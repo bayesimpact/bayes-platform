@@ -9,11 +9,6 @@ function featureFlag<Key extends string>(flag: {
 
 export const FeatureFlags = [
   featureFlag({
-    key: "evaluation",
-    description:
-      "Evaluate the performance of your agents with a set of pre-defined evaluation tasks",
-  }),
-  featureFlag({
     key: "sources-tool",
     description: "Access and utilize the sources tool.",
   }),
@@ -46,10 +41,6 @@ export const FeatureFlags = [
     description: "View project-level analytics and usage charts in the studio.",
   }),
   featureFlag({
-    key: "web-sources",
-    description: "Crawl a website and index its pages as documents.",
-  }),
-  featureFlag({
     key: "agent-mcp",
     description: "Connect MCP servers to agents for external tool access.",
   }),
@@ -69,6 +60,21 @@ export const FeatureFlags = [
     key: "agent-prompt-variables",
     description:
       "Collect values for the variables an agent declares in its instructions, at session start, with defaults set on the agent's settings.",
+  }),
+  featureFlag({
+    key: "chat-interface-prompt",
+    description:
+      "Tell conversation agents how the Desk shows their task lists, and what the quoted passages and ticked tasks in the user's messages mean.",
+  }),
+  featureFlag({
+    key: "embedding-models",
+    description:
+      "(beta) Choose the models that embed the project's documents (Vertex, bge-m3...) and the one each agent searches with.",
+  }),
+  featureFlag({
+    key: "apps-catalog",
+    description:
+      "Browse the apps that can be connected to the project, from the Connected apps page.",
   }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]

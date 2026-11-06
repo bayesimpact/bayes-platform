@@ -20,5 +20,6 @@ export function toInvitationDto(
     organizationName: details?.organizationName ?? "",
     projectName: details?.projectName ?? "",
     targetName: details?.targetName ?? "",
+    agents: details?.agents ?? [],
   }
 }

@@ -1,4 +1,5 @@
 import { type FeatureFlagKey, FeatureFlags } from "@caseai-connect/api-contracts"
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Command,
@@ -21,6 +22,7 @@ import {
   ArrowUpDownIcon,
   ChevronsUpDownIcon,
   FlagIcon,
+  LockIcon,
   MinusCircleIcon,
   PlusCircleIcon,
   SearchIcon,
@@ -52,6 +54,51 @@ export function SearchField({
 }
 
 export function FeatureFlagCell({
+  projectName,
+  enabledFlags,
+  canUpdate,
+  onAdd,
+  onRemove,
+}: {
+  projectName: string
+  enabledFlags: FeatureFlagKey[]
+  canUpdate: boolean
+  onAdd: (featureFlagKey: FeatureFlagKey) => void
+  onRemove: (featureFlagKey: FeatureFlagKey) => void
+}) {
+  // the API refuses the change without backoffice.project.update: show the flags, offer no edit
+  if (!canUpdate) return <ReadOnlyFeatureFlags enabledFlags={enabledFlags} />
+  return (
+    <EditableFeatureFlags
+      projectName={projectName}
+      enabledFlags={enabledFlags}
+      onAdd={onAdd}
+      onRemove={onRemove}
+    />
+  )
+}
+
+// the names stay on the page, not in a tooltip: keyboard and touch users read them too
+function ReadOnlyFeatureFlags({ enabledFlags }: { enabledFlags: FeatureFlagKey[] }) {
+  const sortedFlags = [...enabledFlags].sort((flagA, flagB) => flagA.localeCompare(flagB))
+  return (
+    <div className="flex min-h-8 flex-wrap items-center gap-1.5 text-sm">
+      <LockIcon className="size-3.5 text-muted-foreground" aria-hidden />
+      <span className="sr-only">Feature flags, read only:</span>
+      {sortedFlags.length === 0 ? (
+        <span className="text-muted-foreground">No flags</span>
+      ) : (
+        sortedFlags.map((flagKey) => (
+          <Badge key={flagKey} variant="secondary" className="capitalize">
+            {flagKey}
+          </Badge>
+        ))
+      )}
+    </div>
+  )
+}
+
+function EditableFeatureFlags({
   projectName,
   enabledFlags,
   onAdd,

@@ -5,7 +5,7 @@ export type CreateDocumentEmbeddingsJobPayload = {
   organizationId: string
   projectId: string
   uploadedByUserId: string
-  origin: "document-upload" | "web-crawl"
+  origin: "document-upload"
   currentTraceId: string
 }
 

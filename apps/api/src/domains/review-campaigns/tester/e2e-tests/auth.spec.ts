@@ -11,7 +11,6 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -21,10 +20,10 @@ import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
 } from "../../memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "../../memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { reviewCampaignStatusErrorMessage } from "../../review-campaign-status"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
-import type { ReviewCampaignMembershipRole } from "../../review-campaigns.types"
 
 describe("ReviewCampaigns - Tester auth", () => {
   let app: INestApplication<App>
@@ -68,7 +67,7 @@ describe("ReviewCampaigns - Tester auth", () => {
 
   const seedAsTester = async (
     campaignStatus: "draft" | "active" | "closed" = "active",
-    role: ReviewCampaignMembershipRole = "tester",
+    roleKey: ReviewCampaignRoleKey = "review_campaign_tester",
   ) => {
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
@@ -90,7 +89,7 @@ describe("ReviewCampaigns - Tester auth", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .transient({ organization, project, campaign, user })
-        .build({ role }),
+        .build({ roleKeys: [roleKey] }),
     })
     organizationId = organization.id
     projectId = project.id
@@ -99,7 +98,7 @@ describe("ReviewCampaigns - Tester auth", () => {
   }
 
   const seedAsReviewerOnly = (campaignStatus: "draft" | "active" | "closed" = "active") =>
-    seedAsTester(campaignStatus, "reviewer")
+    seedAsTester(campaignStatus, "review_campaign_reviewer")
 
   // A campaign session started by the caller, for the routes nested under a session.
   const seedOwnSession = async ({
@@ -114,31 +113,6 @@ describe("ReviewCampaigns - Tester auth", () => {
       .build({ campaignId: campaign.id })
     await repositories.conversationAgentSessionRepository.save(session)
     sessionId = session.id
-  }
-
-  // A campaign row written before campaign roles: the legacy role column and no role_id.
-  const seedAsTesterWithoutCampaignRole = async () => {
-    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
-      repositories,
-      { user: { authSubject } },
-    )
-    const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory
-        .active()
-        .transient({ organization, project, agent, agentSettings })
-        .build(),
-    )
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
-        userId: user.id,
-        resourceType: "review_campaign",
-        resourceId: campaign.id,
-        roleId: null,
-      }),
-    )
-    organizationId = organization.id
-    projectId = project.id
-    reviewCampaignId = campaign.id
   }
 
   const seedAsNonMember = async () => {
@@ -191,10 +165,6 @@ describe("ReviewCampaigns - Tester auth", () => {
       await seedAsTester("draft")
       expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("draft"))
     })
-    it("forbids a campaign row without a campaign role (403)", async () => {
-      await seedAsTesterWithoutCampaignRole()
-      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
     // The context is neutral metadata, and the rule only depends on the campaign status.
     it("allows a tester on a closed campaign (200)", async () => {
       await seedAsTester("closed")
@@ -218,7 +188,7 @@ describe("ReviewCampaigns - Tester auth", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .reviewer()
+          .withRoles("review_campaign_reviewer")
           .transient({ organization, project, campaign, user })
           .build(),
       })
@@ -242,7 +212,7 @@ describe("ReviewCampaigns - Tester auth", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .reviewer()
+          .withRoles("review_campaign_reviewer")
           .transient({ organization, project, campaign, user })
           .build(),
       })
@@ -276,10 +246,6 @@ describe("ReviewCampaigns - Tester auth", () => {
     })
     it("forbids a reviewer-only member (403)", async () => {
       await seedAsReviewerOnly()
-      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-    it("forbids a campaign row without a campaign role (403)", async () => {
-      await seedAsTesterWithoutCampaignRole()
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -490,7 +456,7 @@ describe("ReviewCampaigns - Tester auth", () => {
         organization,
         project,
         campaign,
-        role: "tester",
+        roleKeys: ["review_campaign_tester"],
         user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       organizationId = organization.id

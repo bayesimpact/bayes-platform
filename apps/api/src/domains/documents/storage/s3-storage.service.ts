@@ -17,6 +17,11 @@ import type { IFileStorage } from "./file-storage.interface"
 
 const SIGNED_READ_URL_LIFETIME_SECONDS = 15 * 60
 
+/** True for the 404 a missing key gets (HeadObject, and DeleteObject on GCS). */
+export function isS3NotFound(error: unknown): boolean {
+  return (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404
+}
+
 /** Client settings from the S3_* variables, for `endpoint` (the default AWS endpoint when unset). */
 export function s3ClientConfig(
   configService: ConfigService,
@@ -74,10 +79,15 @@ export class S3StorageService implements IFileStorage {
   }
 
   async deleteFile(storageRelativePath: string): Promise<void> {
-    // S3 answers 204 for a missing key, so a delete is idempotent.
-    await this.client.send(
-      new DeleteObjectCommand({ Bucket: this.bucketName, Key: storageRelativePath }),
-    )
+    // A delete is idempotent: S3 answers 204 for a missing key, but the S3 API of GCS
+    // answers 404 (NoSuchKey).
+    try {
+      await this.client.send(
+        new DeleteObjectCommand({ Bucket: this.bucketName, Key: storageRelativePath }),
+      )
+    } catch (error) {
+      if (!isS3NotFound(error)) throw error
+    }
   }
 
   async readFile(storageRelativePath: string): Promise<Buffer> {
@@ -150,11 +160,7 @@ export class S3StorageService implements IFileStorage {
       )
       return true
     } catch (error) {
-      if (
-        (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404
-      ) {
-        return false
-      }
+      if (isS3NotFound(error)) return false
       throw error
     }
   }

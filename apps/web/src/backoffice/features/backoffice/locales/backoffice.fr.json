@@ -7,6 +7,8 @@
       "projectUpdateError": "La mise à jour de l'espace de travail dans le backoffice a échoué",
       "conversationReviewersUpdated": "Relecteurs de conversations mis à jour",
       "conversationReviewersUpdateError": "La mise à jour des relecteurs de conversations a échoué",
+      "globalRolesUpdated": "Rôles globaux mis à jour",
+      "globalRolesUpdateError": "La mise à jour des rôles globaux a échoué",
       "termsDocumentsSaved": "Documents des conditions d'utilisation enregistrés",
       "termsDocumentsSaveError": "L'enregistrement des documents des conditions d'utilisation a échoué",
       "appCreated": "Application créée",
@@ -15,7 +17,9 @@
       "appCreateError": "La création de l'application a échoué",
       "appUpdateError": "La mise à jour de l'application a échoué",
       "appDeleteError": "La suppression de l'application a échoué",
-      "appOAuthClientError": "Le client OAuth de l'application n'a pas pu être chargé ou mis à jour"
+      "appOAuthClientError": "Le client OAuth de l'application n'a pas pu être chargé ou mis à jour",
+      "maintenanceJobStarted": "Job de maintenance lancé",
+      "maintenanceJobStartError": "Impossible de lancer le job de maintenance"
     }
   }
 }

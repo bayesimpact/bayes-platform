@@ -45,7 +45,11 @@ export type * from "./analytics/analytics.dto"
 export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.routes"
 // Apps
 export * from "./apps/apps.dto"
-export { AppsRoutes, ProjectAppInstallationsRoutes } from "./apps/apps.routes"
+export {
+  AppsRoutes,
+  ProjectAppCatalogRoutes,
+  ProjectAppInstallationsRoutes,
+} from "./apps/apps.routes"
 export { AppsV1Routes } from "./apps/apps-v1.routes"
 export * from "./apps/conversations/apps-conversations.dto"
 export {
@@ -70,8 +74,10 @@ export {
 // Backoffice
 export type * from "./backoffice/backoffice.dto"
 export {
+  BACKOFFICE_GLOBAL_ROLE_KEYS,
   createBackofficeOrganizationSchema,
   grantBackofficeAgentConversationReviewerSchema,
+  grantBackofficeUserGlobalRoleSchema,
 } from "./backoffice/backoffice.dto"
 export { BackofficeRoutes } from "./backoffice/backoffice.routes"
 // Document Tags
@@ -105,7 +111,7 @@ export type { ApiRoute } from "./helpers"
 // Helpers
 export { defineRoute } from "./helpers"
 // Member grants
-export type * from "./invitations/invitations.dto"
+export * from "./invitations/invitations.dto"
 export {
   AgentInvitationsRoutes,
   MyInvitationsRoutes,
@@ -129,6 +135,9 @@ export { OrganizationsRoutes } from "./organizations/organizations.routes"
 // Project Session Categories
 export type * from "./project-agent-session-categories/project-agent-session-categories.dto"
 export { ProjectAgentSessionCategoriesRoutes } from "./project-agent-session-categories/project-agent-session-categories.routes"
+// Project Embedding Models
+export * from "./project-embedding-models/project-embedding-models.dto"
+export { ProjectEmbeddingModelsRoutes } from "./project-embedding-models/project-embedding-models.routes"
 // Project Membership
 export * from "./project-membership/project-membership.dto"
 export { ProjectMembershipRoutes } from "./project-membership/project-membership.routes"

@@ -66,7 +66,7 @@ describe("Project membership - addRoles", () => {
           organization,
           project,
           user: { email, authSubject: `oidc|${randomUUID()}` },
-          projectMembership: { role: "member" },
+          projectMembership: { roleKeys: ["project_member"] },
         })
       ).addedUser
     const first = await addMember("first@example.com")
@@ -75,7 +75,7 @@ describe("Project membership - addRoles", () => {
   }
 
   const roleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "project", resourceId: projectId },
       relations: { rbacRole: true },
     })
@@ -83,7 +83,7 @@ describe("Project membership - addRoles", () => {
   }
 
   const agentRoleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "agent" },
       relations: { rbacRole: true },
     })

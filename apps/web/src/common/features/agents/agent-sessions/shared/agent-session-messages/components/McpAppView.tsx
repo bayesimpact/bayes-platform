@@ -1,5 +1,5 @@
 import type { McpAppCspDto } from "@caseai-connect/api-contracts"
-import { MCP_APP_SANDBOX, mountMcpApp } from "@caseai-connect/mcp-app-host"
+import { MCP_APP_SANDBOX, type McpAppMount, mountMcpApp } from "@caseai-connect/mcp-app-host"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import { cn } from "@caseai-connect/ui/utils"
 import { useEffect, useRef, useState } from "react"
@@ -57,6 +57,12 @@ export function McpAppView({
   onRenderFailed?: () => void
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  // The card speaks the host's language: sent at the handshake, then on every language change
+  // through host-context-changed, so switching language does not reload the card.
+  const { i18n } = useTranslation()
+  const locale = i18n.language
+  const localeRef = useRef(locale)
+  const mountRef = useRef<McpAppMount | null>(null)
   const [hasFailed, setHasFailed] = useState(false)
   // The guest completed `ui/initialize`: until then the frame is blank and a placeholder covers it.
   const [isInitialized, setIsInitialized] = useState(false)
@@ -71,15 +77,21 @@ export function McpAppView({
   })
 
   useEffect(() => {
+    localeRef.current = locale
+    mountRef.current?.setLocale(locale)
+  }, [locale])
+
+  useEffect(() => {
     const iframe = iframeRef.current
     if (!iframe) return
 
     setIsInitialized(false)
-    return mountMcpApp(iframe, {
+    const mount = mountMcpApp(iframe, {
       html,
       csp,
       toolInput,
       toolResult,
+      locale: localeRef.current,
       getMessageHandler: () => onMessageRef.current,
       onInitialized: () => setIsInitialized(true),
       onRenderFailed: () => {
@@ -87,6 +99,11 @@ export function McpAppView({
         onRenderFailedRef.current?.()
       },
     })
+    mountRef.current = mount
+    return () => {
+      mountRef.current = null
+      mount.unmount()
+    }
   }, [html, csp, toolInput, toolResult])
 
   if (hasFailed) return null

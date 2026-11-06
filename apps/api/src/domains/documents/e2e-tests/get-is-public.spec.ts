@@ -108,7 +108,7 @@ describe("Documents - getIsPublic", () => {
   })
 
   it("lets a simple member check a document's public status", async () => {
-    await createContext({ projectMembership: { role: "member" }, isPublic: true })
+    await createContext({ projectMembership: { roleKeys: ["project_member"] }, isPublic: true })
 
     const response = await subject()
 

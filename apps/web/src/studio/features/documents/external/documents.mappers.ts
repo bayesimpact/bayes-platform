@@ -4,7 +4,6 @@ import type { Document } from "../documents.models"
 export function fromDocumentDto(dto: DocumentDto): Document {
   return {
     content: dto.content,
-    pages: dto.pages,
     createdAt: dto.createdAt,
     deletedAt: dto.deletedAt,
     fileName: dto.fileName,

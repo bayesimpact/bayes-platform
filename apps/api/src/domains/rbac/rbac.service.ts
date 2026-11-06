@@ -8,8 +8,10 @@ import {
   AGENT_ROLES,
   ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLES,
+  PLATFORM_ORG_CREATOR_ROLE,
   PLATFORM_STAFF_ROLE,
   PLATFORM_SUPERADMIN_ROLE,
+  PROJECT_EVALUATOR_ROLE,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_ROLES,
   REVIEW_CAMPAIGN_ROLE_PERMISSIONS,
@@ -24,12 +26,14 @@ const ORGANIZATION_ROLE_LABELS: Record<string, string> = {
   org_member: "Organization Member",
   [PLATFORM_STAFF_ROLE]: "Platform Staff",
   [PLATFORM_SUPERADMIN_ROLE]: "Platform Superadmin",
+  [PLATFORM_ORG_CREATOR_ROLE]: "Platform Organization Creator",
 }
 
 const PROJECT_ROLE_LABELS: Record<string, string> = {
   project_owner: "Project Owner",
   project_admin: "Project Admin",
   project_member: "Project Member",
+  [PROJECT_EVALUATOR_ROLE]: "Project Evaluator",
 }
 
 const AGENT_ROLE_LABELS: Record<string, string> = {
@@ -47,6 +51,7 @@ const REVIEW_CAMPAIGN_ROLE_LABELS: Record<string, string> = {
 const GLOBAL_ROLE_SCOPE: Record<string, Role["scopeType"]> = {
   [PLATFORM_STAFF_ROLE]: "global",
   [PLATFORM_SUPERADMIN_ROLE]: "global",
+  [PLATFORM_ORG_CREATOR_ROLE]: "global",
 }
 
 @Injectable()
@@ -69,6 +74,7 @@ export class RbacService {
         ...Object.values(ORGANIZATION_ROLES),
         PLATFORM_STAFF_ROLE,
         PLATFORM_SUPERADMIN_ROLE,
+        PLATFORM_ORG_CREATOR_ROLE,
       ],
       labels: ORGANIZATION_ROLE_LABELS,
       defaultScope: "organization",
@@ -83,7 +89,7 @@ export class RbacService {
    */
   async seedProjectRolesAndPermissions(): Promise<void> {
     const rolesByKey = await this.upsertRoles({
-      roleKeys: Object.values(PROJECT_ROLES),
+      roleKeys: [...Object.values(PROJECT_ROLES), PROJECT_EVALUATOR_ROLE],
       labels: PROJECT_ROLE_LABELS,
       defaultScope: "project",
     })

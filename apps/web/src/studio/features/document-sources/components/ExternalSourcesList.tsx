@@ -1,3 +1,8 @@
+import {
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
+  LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE,
+} from "@caseai-connect/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
@@ -9,20 +14,25 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connect/ui/shad/empty"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react"
+import { EllipsisVerticalIcon, Trash2Icon, TriangleAlertIcon, XIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
+import { DocumentTagsSheet } from "@/studio/features/document-tags/components/DocumentTagsSheet"
+import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
+import { getTagFullPath } from "@/studio/features/documents/components/DocumentList"
+import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import type { DocumentSource } from "../document-sources.models"
 import { selectDocumentSourcesData } from "../document-sources.selectors"
-import { deleteDocumentSource } from "../document-sources.thunks"
+import { deleteDocumentSource, updateDocumentSourceTags } from "../document-sources.thunks"
 
 const LINK_HEAD = 28
 const LINK_TAIL = 18
@@ -32,6 +42,9 @@ export function ExternalSourcesList() {
   // memoize its row model and show stale rows after a deletion.
   "use no memo"
   const documentSources = useValue(selectDocumentSourcesData)
+  const documentTags = useValue(selectDocumentTagsData)
+  const project = useValue(selectCurrentProjectData)
+  const canUpdate = project.permissions.includes(DOCUMENT_SOURCE_UPDATE_PERMISSION)
   const { t } = useTranslation("documentSource")
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
@@ -46,7 +59,12 @@ export function ExternalSourcesList() {
       {
         id: "app",
         header: () => t("columns.app"),
-        cell: ({ row }) => <DocumentSourceAppCell app={row.original.app} />,
+        cell: ({ row }) => <DocumentSourceAppCell documentSource={row.original} />,
+      },
+      {
+        id: "tags",
+        header: () => t("columns.tags"),
+        cell: ({ row }) => <DocumentSourceTagsCell documentSource={row.original} />,
       },
       {
         id: "docs",
@@ -90,8 +108,16 @@ export function ExternalSourcesList() {
         onBack={() => navigate(projectRoute)}
         title={t("title")}
         description={t("description")}
+        action={canUpdate ? <DocumentTagsSheet documentTags={documentTags} /> : undefined}
       />
-      <div className="bg-white p-6">
+      <div className="flex flex-col gap-4 bg-white p-6">
+        {documentSources.some(isLegacyWebCrawlSource) && (
+          <Alert variant="warning">
+            <TriangleAlertIcon />
+            <AlertTitle>{t("legacyWebCrawl.title")}</AlertTitle>
+            <AlertDescription>{t("legacyWebCrawl.description")}</AlertDescription>
+          </Alert>
+        )}
         <DataTable
           table={table}
           empty={
@@ -114,6 +140,47 @@ function DocumentSourceNameCell({ documentSource }: { documentSource: DocumentSo
     <div className="flex flex-col">
       <span>{documentSource.name}</span>
       {detail && <SourceLink value={detail} />}
+    </div>
+  )
+}
+
+function DocumentSourceTagsCell({ documentSource }: { documentSource: DocumentSource }) {
+  const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+  const documentTags = useValue(selectDocumentTagsData)
+  const project = useValue(selectCurrentProjectData)
+  const canUpdate = project.permissions.includes(DOCUMENT_SOURCE_UPDATE_PERMISSION)
+
+  const saveTags = (tagIds: string[]) => {
+    void dispatch(updateDocumentSourceTags({ documentSource, tagIds }))
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {documentSource.tagIds.map((tagId) => (
+        <Badge key={tagId} variant="secondary" className="gap-1 text-xs">
+          {getTagFullPath(documentTags, tagId)}
+          {canUpdate && (
+            <button
+              type="button"
+              aria-label={t("actions:remove")}
+              onClick={() =>
+                saveTags(documentSource.tagIds.filter((attachedTagId) => attachedTagId !== tagId))
+              }
+              className="opacity-60 hover:opacity-100"
+            >
+              <XIcon className="size-3" />
+            </button>
+          )}
+        </Badge>
+      ))}
+      {canUpdate && (
+        <DocumentTagPicker
+          documentTags={documentTags}
+          attachedTagIds={documentSource.tagIds}
+          onAdd={(tagId) => saveTags([...documentSource.tagIds, tagId])}
+        />
+      )}
     </div>
   )
 }
@@ -152,12 +219,24 @@ function DocumentSourceActions({ documentSource }: { documentSource: DocumentSou
   )
 }
 
-function DocumentSourceAppCell({ app }: { app: DocumentSource["app"] }) {
-  if (!app) return null
+function isLegacyWebCrawlSource(documentSource: DocumentSource): boolean {
+  return documentSource.type === LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE
+}
+
+function DocumentSourceAppCell({ documentSource }: { documentSource: DocumentSource }) {
+  const { t } = useTranslation("documentSource")
+  const { app } = documentSource
+  if (!app) {
+    return isLegacyWebCrawlSource(documentSource) ? (
+      <Badge variant="outline">{t("legacyWebCrawl.badge")}</Badge>
+    ) : null
+  }
   return (
-    <div className="flex items-center gap-2">
-      {app.logoUrl && <img src={app.logoUrl} alt="" className="size-6 rounded object-contain" />}
-      <span className="text-sm text-muted-foreground">{app.name}</span>
+    <div className="flex flex-col items-start gap-1">
+      {app.logoUrl && (
+        <img src={app.logoUrl} alt="" className="h-8 w-auto max-w-32 rounded object-contain" />
+      )}
+      <span className="text-xs text-muted-foreground">{app.name}</span>
     </div>
   )
 }

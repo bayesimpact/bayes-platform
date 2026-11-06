@@ -1,6 +1,1 @@
-vulnerabilities:
-  - id: CVE-2023-54404
-    purls:
-      - pkg:npm/zod@3.25.76
-    expired_at: 2026-12-10
-    reason: "zod 3.25.76 nested under spider-browser: fixed only in zod 4.6.6, but spider-browser 0.3.0 (latest) requires zod ^3.23.0"
+vulnerabilities: []

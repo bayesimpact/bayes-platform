@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildOidcSettings, DEFAULT_OIDC_SCOPE } from "./oidc.config"
+import { buildOidcSettings, DEFAULT_OIDC_SCOPE, sessionStorageKey } from "./oidc.config"
 
 const memoryStorage = (): Storage => {
   const values = new Map<string, string>()
@@ -38,6 +38,22 @@ describe("buildOidcSettings", () => {
       scope: DEFAULT_OIDC_SCOPE,
     })
     expect(settings.extraQueryParams).toBeUndefined()
+  })
+
+  it("keeps the session under the key every app of the origin shares", async () => {
+    const storage = memoryStorage()
+    const settings = buildOidcSettings(
+      { oidcAuthority: "https://idp.example.org/realms/acme", oidcClientId: "platform-web" },
+      appUrl,
+      storage,
+    )
+
+    await settings.userStore?.set("user:https://idp.example.org/realms/acme:platform-web", "user")
+
+    expect(sessionStorageKey(settings)).toBe(
+      "oidc.user:https://idp.example.org/realms/acme:platform-web",
+    )
+    expect(storage.getItem(sessionStorageKey(settings))).toBe("user")
   })
 
   it("sends the audience and a custom scope when configured", () => {

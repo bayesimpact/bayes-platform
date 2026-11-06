@@ -9,29 +9,137 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- Agent duplication: copy an agent into a new draft, from its draft or published settings, from the studio or MCP.
-- Test cases: save a good or bad agent answer into an evaluation dataset, from the playground or feedback.
-- (beta) Prompt variables: agents can now declare `{{variables}}` in their instructions, with their values supplied when a session starts.
-- Safety review: list an agent's sessions grouped by category and open one to read it, next to the session id lookup.
-- Agents: Qwen3.8-27B is available as a self-hosted model for projects that enable it.
-- Agents: Gemma 4 31B is available as a self-hosted model for projects with Gemma models.
-- Workspace and agent members: a table of every role, with search, role filter, and bulk role or member changes.
-- Self-hosting: documents can now be stored on any S3-compatible storage.
+- Apps catalog: project owners and admins can browse the apps they can connect, from the Connected apps page.
+- Invitations: one invitation gives a workspace role and several agents, accepted once.
+- MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
+- Workspace selection: a log out button is now on the page that lists your workspaces.
 
 ### Changed
 
-- Safety review: reviewers can now open embedded chat and extraction sessions, not only studio conversations.
-- AI assistants connected to the platform before this release must reconnect once to keep listing and editing agents.
-- App installation: a clearer authorization screen showing the app, the workspace to choose and each permission.
+- Invitation emails: written in the inviter's language, English or French, instead of both.
+- Sign-in: Studio and the Desk now share one session, so signing in, switching account or signing out applies to both.
+- Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
+- Evaluation: access now comes from an Evaluator role that workspace admins give to members.
+
+### Fixed
+
+- Document import errors: a failed document now shows why it failed, in one readable line.
+
+### Security
+
+- Embedded agents: visitor messages no longer appear in URLs.
+- Conversations: long messages now always get a reply, and their text no longer reaches server access logs.
+- Server logs: messages people write and sign-in codes stay out of the logs, even with detailed logging turned on.
+- MCP App cards: each card now runs in its own isolated frame, limited to the domains it declares.
+
+## [26.10.10] - 2026-10-31
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Documents: PDFs that contain images now embed again instead of failing during text recognition.
+
+### Security
+
+## [26.10.9] - 2026-10-30
+
+### Added
+
+- Version display: the Studio and Desk user menus and the help center footer now show the deployed platform version.
+- (beta) Embedding models: projects choose which models embed their documents, such as bge-m3, and each agent which one it searches with.
+
+### Changed
+
+- Embedded agents: an expired conversation now tells the visitor it expired and opens a new one.
+- Agents: the answer language now lives in the agent's instructions, which replace the French/English setting.
+- Self-hosting: Google Cloud Storage buckets now connect through their S3 API with HMAC keys, replacing the gcs storage mode.
+- Desk: a rebuilt Desk replaces the previous one, and lets you quote and annotate passages of a reply.
+
+### Fixed
+
+- Resource libraries: a file that fails to upload now shows an error instead of nothing.
+- Resource libraries: the missing link error waits for the form to be sent, and clears once a file is uploaded.
+
+### Security
+
+- Embedded agents: in tag mode, an agent now searches only the documents that carry its tags.
+
+## [26.10.8] - 2026-10-29
+
+### Added
+
+- Backoffice: superadmins can run one-off maintenance jobs and follow their progress from a new Maintenance tab.
+- Backoffice: superadmins can grant global roles from a user's page, including a new role that only creates organizations.
+
+### Changed
+
+- Web sources: crawled websites now appear as external sources, and recrawling one goes through the Bayes team.
+
+### Fixed
+
+- Resource libraries: the upload button of a resource being edited now opens the file picker instead of saving the resource.
+
+### Security
+
+## [26.10.7] - 2026-10-28
+
+### Added
+
+- External sources: tag a source, and agents filtering by those tags search all of its documents.
+
+### Changed
+
+### Fixed
+
+- PDF export: the download link of an exported PDF works again with Google Cloud Storage.
+
+### Security
+
+## [26.10.6] - 2026-10-27
+
+### Added
+
+### Changed
+
+### Fixed
+
+- PDF export: exported PDFs are created again when documents are stored in Google Cloud Storage.
+
+### Security
+
+## [26.10.5] - 2026-10-27
+
+### Added
+
+- Agent duplication: copy an agent into a new draft, from its draft or published settings, from the studio or MCP.
+- Test cases: save a good or bad agent answer into an evaluation dataset, from the playground or feedback.
+- Safety review: list an agent's sessions grouped by category and open one to read it, next to the session id lookup.
+- Agents: Qwen3.8-27B is available as a self-hosted model for projects that enable it.
+- Agents: Gemma 4 31B is available as a self-hosted model for projects with Gemma models.
+- Members: a person can now hold several roles on the same workspace, project or agent.
+- Self-hosting: documents can now be stored on any S3-compatible storage.
+- (beta) Prompt variables: agents can now declare `{{variables}}` in their instructions, with their values supplied when a session starts.
+
+### Changed
+
 - Agents: Mistral Small 3.2 replaces Mistral Small 3.1.
 - Agents: Gemma 4 replaces the retired MedGemma model.
 - Apps API: document upload URLs now accept only the declared file size, sent as `Content-Length`.
+- Help center: a new look matching the Bayes website, with search and language switch in the header.
 
 ### Fixed
+
 - Review campaigns: test conversations no longer appear among your App conversations.
+- Conversations: a reply cut short by a server restart no longer shows a spinner after reload.
+- Desk: starting a new session no longer crashes the page.
+- Checkboxes now clearly show when they are checked.
 
 ### Security
-- MCP App cards: each card now runs in its own isolated frame, limited to the domains it declares.
+
+- Dependencies: server libraries and Docker images are updated to patch known vulnerabilities.
 
 ## [26.10.4] - 2026-10-18
 

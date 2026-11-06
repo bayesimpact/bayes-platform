@@ -1,4 +1,4 @@
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { UnprocessableEntityException } from "@nestjs/common"
 import {
@@ -60,7 +60,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -90,7 +89,7 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: adminUser,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
 
       // Add a third user as a project member (should NOT get agent membership)
@@ -100,7 +99,7 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
 
       const { agent } = await service.createAgent({
@@ -116,12 +115,11 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
 
-      const memberships = await repositories.userMembershipRepository.find({
+      const memberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "agent", resourceId: agent.id },
         relations: { rbacRole: true },
       })
@@ -159,7 +157,6 @@ describe("AgentsService", () => {
             providerOptions: {},
             model: AgentModel.Gemini25Flash,
             deletedTemperature: 0,
-            locale: AgentLocale.EN,
           },
           userId: user.id,
         })
@@ -187,7 +184,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -209,7 +205,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -230,7 +225,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -253,7 +247,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -277,7 +270,6 @@ describe("AgentsService", () => {
             providerOptions: {},
             model: AgentModel.Gemini25Flash,
             deletedTemperature: 0,
-            locale: AgentLocale.EN,
             type: "extraction",
           },
           userId: user.id,
@@ -324,7 +316,7 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await grantConversationReview({ repositories, user: memberUser, agent })
 
@@ -343,13 +335,13 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await addUserToAgent({
         repositories,
         agent,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["agent_member"] },
       })
 
       const result = await service.listAgents({
@@ -470,12 +462,12 @@ describe("AgentsService", () => {
 
       await service.deleteAgent(agent)
 
-      const activeMemberships = await repositories.userMembershipRepository.find({
+      const activeMemberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "agent", resourceId: agent.id },
       })
       expect(activeMemberships).toHaveLength(0)
 
-      const softDeletedMemberships = await repositories.userMembershipRepository.find({
+      const softDeletedMemberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "agent", resourceId: agent.id },
         withDeleted: true,
       })

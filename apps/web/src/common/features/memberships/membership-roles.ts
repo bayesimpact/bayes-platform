@@ -5,11 +5,6 @@ export type LegacyMembershipRole = "owner" | "admin" | "member"
 
 const LEGACY_ROLES: LegacyMembershipRole[] = ["owner", "admin", "member"]
 
-/** Whether one of the roles has one of the catalog keys. */
-export function holdsRole(roles: Pick<MembershipRoleDto, "key">[], ...roleKeys: string[]): boolean {
-  return roles.some((role) => roleKeys.includes(role.key))
-}
-
 /**
  * The highest of owner, admin and member among the roles (`project_admin` reads `admin`), for
  * the screens that show one role per member until they show every role (#1077).

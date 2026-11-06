@@ -7,12 +7,12 @@ export const agentSettingsDiffKeys = [
   "greetingMessage",
   "model",
   "providerOptions",
-  "locale",
   "documentsRagMode",
   "outputJsonSchema",
   "fillFormEnabled",
   "priorityCallsEnabled",
   "variables",
+  "embeddingModel",
 ] as const
 
 export type AgentSettingsDiffKey = (typeof agentSettingsDiffKeys)[number]
@@ -23,12 +23,12 @@ export const agentSettingsDiffFileNames: Record<AgentSettingsDiffKey, string> = 
   greetingMessage: "greeting-message.md",
   model: "model.txt",
   providerOptions: "model-options.json",
-  locale: "language.txt",
   documentsRagMode: "documents-rag-mode.txt",
   outputJsonSchema: "output-json-schema.json",
   fillFormEnabled: "fill-form-enabled.txt",
   priorityCallsEnabled: "priority-calls-enabled.txt",
   variables: "prompt-variables.json",
+  embeddingModel: "embedding-model.txt",
 }
 
 export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = {
@@ -36,12 +36,12 @@ export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = 
   greetingMessage: "agentSettings:props.greeting",
   model: "agentSettings:props.model",
   providerOptions: "agentSettings:props.modelOptions",
-  locale: "agentSettings:props.locale",
   documentsRagMode: "agentSettings:props.documentsRagMode",
   outputJsonSchema: "agentSettings:props.outputJsonSchema",
   fillFormEnabled: "agentSettings:props.fillFormEnabled",
   priorityCallsEnabled: "agentSettings:props.priorityCallsEnabled",
   variables: "agentSettings:props.promptVariables",
+  embeddingModel: "agentSettings:props.embeddingModel",
 }
 
 export function serializeAgentSettingsField(

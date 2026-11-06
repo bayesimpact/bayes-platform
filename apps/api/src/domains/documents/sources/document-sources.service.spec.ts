@@ -9,6 +9,8 @@ import {
 import { appInstallationFactory } from "@/domains/apps/app-installation.factory"
 import { appManifestFactory } from "@/domains/apps/app-manifest.factory"
 import { createDocumentForProject } from "@/domains/documents/document.factory"
+import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
+import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { DocumentsModule } from "../documents.module"
 import { DocumentsService } from "../documents.service"
@@ -263,5 +265,68 @@ describe("DocumentSourcesService", () => {
     await expect(service.getOne(connectScope, documentSource.id)).resolves.toBeNull()
     const remaining = await repositories.documentRepository.findOne({ where: { id: document.id } })
     expect(remaining).toBeNull()
+  })
+
+  describe("updateTags", () => {
+    const createFeedAndTags = async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+      const feed = await createFeed(connectScope, "folder-1")
+      const [productTag, pricingTag] = await setup
+        .getRepository(DocumentTag)
+        .save([
+          documentTagFactory.transient({ organization, project }).build({ name: "Product" }),
+          documentTagFactory.transient({ organization, project }).build({ name: "Pricing" }),
+        ])
+      return { connectScope, feed, productTag: productTag!, pricingTag: pricingTag! }
+    }
+
+    const listTagIds = async (connectScope: { organizationId: string; projectId: string }) => {
+      const [summary] = await service.listSummaries(connectScope)
+      return [...(summary?.tagIds ?? [])].sort()
+    }
+
+    it("adds and removes tags, and lists them on the summary", async () => {
+      const { connectScope, feed, productTag, pricingTag } = await createFeedAndTags()
+
+      await service.updateTags(connectScope, feed.id, { tagsToAdd: [productTag.id, pricingTag.id] })
+      expect(await listTagIds(connectScope)).toEqual([productTag.id, pricingTag.id].sort())
+
+      await service.updateTags(connectScope, feed.id, { tagsToRemove: [productTag.id] })
+      expect(await listTagIds(connectScope)).toEqual([pricingTag.id])
+    })
+
+    it("keeps one link when a tag is added twice", async () => {
+      const { connectScope, feed, productTag } = await createFeedAndTags()
+
+      await service.updateTags(connectScope, feed.id, { tagsToAdd: [productTag.id, productTag.id] })
+      await service.updateTags(connectScope, feed.id, { tagsToAdd: [productTag.id] })
+      expect(await listTagIds(connectScope)).toEqual([productTag.id])
+    })
+
+    it("rejects a tag of another project", async () => {
+      const { connectScope, feed } = await createFeedAndTags()
+      const other = await createOrganizationWithProject(repositories)
+      const otherTag = await setup
+        .getRepository(DocumentTag)
+        .save(documentTagFactory.transient(other).build())
+
+      await expect(
+        service.updateTags(connectScope, feed.id, { tagsToAdd: [otherTag.id] }),
+      ).rejects.toBeInstanceOf(NotFoundException)
+    })
+
+    it("rejects a source of another project", async () => {
+      const { feed, productTag } = await createFeedAndTags()
+      const other = await createOrganizationWithProject(repositories)
+
+      await expect(
+        service.updateTags(
+          { organizationId: other.organization.id, projectId: other.project.id },
+          feed.id,
+          { tagsToAdd: [productTag.id] },
+        ),
+      ).rejects.toBeInstanceOf(NotFoundException)
+    })
   })
 })

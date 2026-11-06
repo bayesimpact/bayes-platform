@@ -1,9 +1,16 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import type { PLATFORM_STAFF_ROLE, PLATFORM_SUPERADMIN_ROLE } from "./rbac.constants"
+import type {
+  PLATFORM_ORG_CREATOR_ROLE,
+  PLATFORM_STAFF_ROLE,
+  PLATFORM_SUPERADMIN_ROLE,
+} from "./rbac.constants"
 
-export type PlatformRoleKey = typeof PLATFORM_STAFF_ROLE | typeof PLATFORM_SUPERADMIN_ROLE
+export type PlatformRoleKey =
+  | typeof PLATFORM_STAFF_ROLE
+  | typeof PLATFORM_SUPERADMIN_ROLE
+  | typeof PLATFORM_ORG_CREATOR_ROLE
 
 /**
  * TypeORM's raw query returns the rows for SELECT and INSERT ... RETURNING,
@@ -17,7 +24,7 @@ function affectedRows(result: unknown): number {
 }
 
 /**
- * Persistence of the global memberships (`user_membership` rows with
+ * Persistence of the global role grants (`role_grant` rows with
  * resource_type = 'global', one per user and platform role).
  *
  * Participates in the ambient transaction via TransactionService.getManager().
@@ -29,13 +36,13 @@ export class PlatformRoleRepository {
   /** Returns true when a membership was created, false when it already existed. */
   async grantGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `INSERT INTO "user_membership" ("user_id", "resource_type", "resource_id", "role_id")
+      `INSERT INTO "role_grant" ("user_id", "resource_type", "resource_id", "role_id")
        SELECT $1, 'global', NULL, role.id
        FROM "role" AS role
        WHERE role.key = $2
          AND NOT EXISTS (
            SELECT 1
-           FROM "user_membership" AS membership
+           FROM "role_grant" AS membership
            WHERE membership.user_id = $1
              AND membership.resource_type = 'global'
              AND membership.role_id = role.id
@@ -48,13 +55,13 @@ export class PlatformRoleRepository {
   }
 
   /**
-   * Returns true when a membership was revoked, false when there was none.
-   * Hard delete: the unique index on (user, role) for global memberships
+   * Returns true when a grant was revoked, false when there was none.
+   * Hard delete: the unique index on (user, role) for global grants
    * ignores deleted_at, so a soft-deleted row would block a later grant.
    */
   async revokeGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `DELETE FROM "user_membership" AS membership
+      `DELETE FROM "role_grant" AS membership
        USING "role" AS role
        WHERE role.id = membership.role_id
          AND role.key = $2
@@ -66,11 +73,50 @@ export class PlatformRoleRepository {
     return affectedRows(result) > 0
   }
 
+  /** Number of users holding the global role. */
+  async countGlobalRoleHolders(roleKey: PlatformRoleKey): Promise<number> {
+    const rows: { holderCount: number }[] = await this.transactionService.getManager().query(
+      `SELECT COUNT(*)::int AS "holderCount"
+       FROM "role_grant" AS membership
+       INNER JOIN "role" AS role ON role.id = membership.role_id
+       WHERE role.key = $1
+         AND membership.resource_type = 'global'
+         AND membership.deleted_at IS NULL`,
+      [roleKey],
+    )
+    return rows[0]?.holderCount ?? 0
+  }
+
+  /** The global roles of each user, sorted by key. Users with none are absent from the map. */
+  async listGlobalRolesByUserIds(
+    userIds: string[],
+  ): Promise<Map<string, { key: string; name: string }[]>> {
+    const rolesByUserId = new Map<string, { key: string; name: string }[]>()
+    if (userIds.length === 0) return rolesByUserId
+    const rows: { userId: string; roleKey: string; roleName: string }[] =
+      await this.transactionService.getManager().query(
+        `SELECT membership.user_id AS "userId", role.key AS "roleKey", role.name AS "roleName"
+         FROM "role_grant" AS membership
+         INNER JOIN "role" AS role ON role.id = membership.role_id
+         WHERE membership.user_id = ANY($1::uuid[])
+           AND membership.resource_type = 'global'
+           AND membership.deleted_at IS NULL
+         ORDER BY role.key`,
+        [userIds],
+      )
+    for (const row of rows) {
+      const userRoles = rolesByUserId.get(row.userId) ?? []
+      userRoles.push({ key: row.roleKey, name: row.roleName })
+      rolesByUserId.set(row.userId, userRoles)
+    }
+    return rolesByUserId
+  }
+
   /** Keys of the global roles held by the user, sorted. */
   async listGlobalRoleKeys(userId: string): Promise<string[]> {
     const rows: { roleKey: string }[] = await this.transactionService.getManager().query(
       `SELECT role.key AS "roleKey"
-       FROM "user_membership" AS membership
+       FROM "role_grant" AS membership
        INNER JOIN "role" AS role ON role.id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = 'global'

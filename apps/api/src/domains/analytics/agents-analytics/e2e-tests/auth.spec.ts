@@ -16,7 +16,7 @@ import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "@/domains/agents/memberships/agent-membership.factory"
-import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
+import type { AgentRoleKey } from "@/domains/agents/memberships/agent-membership.types"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -25,7 +25,7 @@ import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "@/domains/projects/memberships/project-membership.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -76,12 +76,12 @@ describe("Agents Analytics - Auth", () => {
   })
 
   const seedContext = async (options: {
-    projectRole: ProjectMembershipRole
-    agentMembership: AgentMembershipRole | "none"
+    projectRole: ProjectRoleKey
+    agentMembership: AgentRoleKey | "none"
   }) => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role: options.projectRole },
+      projectMembership: { roleKeys: [options.projectRole] },
     })
     const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
@@ -90,7 +90,7 @@ describe("Agents Analytics - Auth", () => {
         repositories,
         membership: agentMembershipFactory
           .transient({ user, agent })
-          .build({ role: options.agentMembership }),
+          .build({ roleKeys: [options.agentMembership] }),
       })
     }
     organizationId = organization.id
@@ -140,11 +140,20 @@ describe("Agents Analytics - Auth", () => {
       query: analyticsDateRangeQuery,
     })
 
+  const subjectEmptySessions = async () =>
+    request({
+      route: AgentAnalyticsRoutes.getEmptySessionsPerDay,
+      pathParams: removeNullish({ organizationId, projectId, agentId }),
+      token: accessToken ?? undefined,
+      query: analyticsDateRangeQuery,
+    })
+
   it("requires an authentication token", async () => {
     accessToken = null
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await subjectByCategoryPerDay(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await subjectEmptySessions(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
   it("requires a valid organization ID", async () => {
@@ -152,6 +161,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     expectResponse(await subjectAvg(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     expectResponse(await subjectByCategoryPerDay(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    expectResponse(await subjectEmptySessions(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
   })
 
   it("requires the user to be a member of the organization", async () => {
@@ -160,12 +170,13 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectByCategoryPerDay(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    expectResponse(await subjectEmptySessions(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })
 
   it("allows agent owners who are only project members", async () => {
     await createOrganizationWithAgent(repositories, {
       user: { authSubject },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     }).then(({ organization, project, agent }) => {
       organizationId = organization.id
       projectId = project.id
@@ -175,6 +186,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
     expectResponse(await subjectByCategoryPerDay(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("allows agent owners who are project owners", async () => {
@@ -182,27 +194,31 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
     expectResponse(await subjectByCategoryPerDay(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("does not allow project owners without agent membership", async () => {
-    await seedContext({ projectRole: "owner", agentMembership: "none" })
+    await seedContext({ projectRole: "project_owner", agentMembership: "none" })
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectByCategoryPerDay(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await subjectEmptySessions(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("allows project admins who are only agent admins", async () => {
-    await seedContext({ projectRole: "admin", agentMembership: "admin" })
+    await seedContext({ projectRole: "project_admin", agentMembership: "agent_admin" })
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
     expectResponse(await subjectByCategoryPerDay(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("does not allow project members who are only agent members", async () => {
-    await seedContext({ projectRole: "member", agentMembership: "member" })
+    await seedContext({ projectRole: "project_member", agentMembership: "agent_member" })
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectByCategoryPerDay(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await subjectEmptySessions(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("requires an existing project ID", async () => {
@@ -213,7 +229,7 @@ describe("Agents Analytics - Auth", () => {
     const _otherProjectMembership = await saveProjectMembership({
       repositories,
       membership: projectMembershipFactory
-        .owner()
+        .withRoles("project_owner")
         .transient({ user, project: otherProject })
         .build(),
     })
@@ -221,6 +237,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
     expectResponse(await subjectByCategoryPerDay(), 404)
+    expectResponse(await subjectEmptySessions(), 404)
   })
 
   it("requires an existing agent ID for the project", async () => {
@@ -229,5 +246,6 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
     expectResponse(await subjectByCategoryPerDay(), 404)
+    expectResponse(await subjectEmptySessions(), 404)
   })
 })

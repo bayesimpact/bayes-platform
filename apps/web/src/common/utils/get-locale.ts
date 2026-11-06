@@ -1,4 +1,3 @@
-import { AgentLocale } from "@caseai-connect/api-contracts"
 import { enUS, fr, type Locale } from "date-fns/locale"
 
 /**
@@ -6,19 +5,21 @@ import { enUS, fr, type Locale } from "date-fns/locale"
  * i18next persists the full browser tag (e.g. "fr-FR") in localStorage even though
  * `load: "languageOnly"` exposes it as "fr" through `i18n.language`.
  */
-export const toAgentLocale = (language: string | null | undefined): AgentLocale =>
-  language?.toLowerCase().startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
+type UiLocale = "fr" | "en"
+
+export const toUiLocale = (language: string | null | undefined): UiLocale =>
+  language?.toLowerCase().startsWith("fr") ? "fr" : "en"
 
 /** BCP 47 tags accepted by the Web Speech API for each supported locale. */
-const SPEECH_RECOGNITION_LANGUAGES: Record<AgentLocale, string> = {
-  [AgentLocale.FR]: "fr-FR",
-  [AgentLocale.EN]: "en-US",
+const SPEECH_RECOGNITION_LANGUAGES: Record<UiLocale, string> = {
+  fr: "fr-FR",
+  en: "en-US",
 }
 
 export const getSpeechRecognitionLanguage = (language: string | null | undefined): string =>
-  SPEECH_RECOGNITION_LANGUAGES[toAgentLocale(language)]
+  SPEECH_RECOGNITION_LANGUAGES[toUiLocale(language)]
 
 export const getLocale = (): Locale => {
   const userLang = localStorage.getItem("i18nextLng")
-  return toAgentLocale(userLang) === AgentLocale.FR ? fr : enUS
+  return toUiLocale(userLang) === "fr" ? fr : enUS
 }

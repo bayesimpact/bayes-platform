@@ -4,7 +4,6 @@ import type {
   UpdateAgentSettingsGeneralDto,
   UpdateAgentSettingsModelDto,
   UpdateAgentSettingsOutputDto,
-  UpdateAgentSettingsResourcesDto,
   UpdateAgentSettingsSourcesDto,
   UpdateAgentSettingsToolsDto,
 } from "@caseai-connect/api-contracts"
@@ -105,14 +104,6 @@ export const updateAgentSettingsSources = createAsyncThunk<
   { agentId: string; fields: UpdateAgentSettingsSourcesDto },
   ThunkConfig
 >("agentSettings/updateSources", async ({ agentId, fields }, { dispatch }) => {
-  await dispatch(updateAgentSettings({ agentId, fields }))
-})
-
-export const updateAgentSettingsResources = createAsyncThunk<
-  void,
-  { agentId: string; fields: UpdateAgentSettingsResourcesDto },
-  ThunkConfig
->("agentSettings/updateResources", async ({ agentId, fields }, { dispatch }) => {
   await dispatch(updateAgentSettings({ agentId, fields }))
 })
 

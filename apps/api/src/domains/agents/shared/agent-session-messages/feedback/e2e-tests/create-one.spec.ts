@@ -53,7 +53,7 @@ describe("AgentMessageFeedbackRoutes.createOne", () => {
   const createContext = async () => {
     const { user, organization, project, agentMessage } = await createOrganizationWithAgentMessage({
       repositories,
-      params: { organizationMembership: { role: "member" } },
+      params: { organizationMembership: { roleKeys: ["org_member"] } },
       agentType: "conversation",
     })
     organizationId = organization.id

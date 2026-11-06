@@ -21,7 +21,6 @@ export function toAgentWithSettingsRunJobPayload({
       instructions: agentSettings.instructions,
       model: agentSettings.model,
       providerOptions: agentSettings.providerOptions,
-      locale: agentSettings.locale,
       documentsRagMode: agentSettings.documentsRagMode,
       outputJsonSchema: agentSettings.outputJsonSchema,
       greetingMessage: agentSettings.greetingMessage,

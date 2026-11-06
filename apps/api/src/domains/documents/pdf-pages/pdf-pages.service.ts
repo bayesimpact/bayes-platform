@@ -5,7 +5,7 @@ import { PdfConverterClient } from "./pdf-converter.client"
 
 /**
  * Rendered-pdf-pages orchestration for image-only models (Gemma, MedGemma):
- * pages live in GCS at {org}/{proj}/derived/{sourceId}/page-{n}.png, rendered
+ * pages live in the bucket at {org}/{proj}/derived/{sourceId}/page-{n}.png, rendered
  * once by the pdf-converter service and cached via the owning row's
  * pdf_page_count column. The model fetches pages through temporary signed
  * storage URLs, so no image bytes ever transit this process.

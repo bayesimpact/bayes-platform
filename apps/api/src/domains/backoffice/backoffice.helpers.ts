@@ -26,12 +26,14 @@ import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentConversationReviewerRecord } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.repository"
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 import type { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
-import { toMembershipRoleDto, unionRolePermissions } from "@/domains/memberships/membership-roles"
 import type { OrganizationMembershipModel } from "@/domains/organizations/memberships/organization-membership.model"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
-import type { RoleGrant } from "@/domains/rbac/permission.types"
+import { toMembershipRoleDto } from "@/domains/rbac/membership-roles"
+import type { ResourceIdsScope } from "@/domains/rbac/permission.service"
+import type { ResolvedRole } from "@/domains/rbac/permission.types"
+import { unionRolePermissions } from "@/domains/rbac/union-role-permissions"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaignMembershipModel } from "../review-campaigns/memberships/review-campaign-membership.model"
 
@@ -138,9 +140,13 @@ export function toBackofficeAgentDetailDto(
   }
 }
 
-export function toBackofficeProjectListItemDto(
-  project: Project & { organization?: { name: string } },
-): BackofficeProjectListItemDto {
+export function toBackofficeProjectListItemDto({
+  project,
+  permissions,
+}: {
+  project: Project & { organization?: { name: string } }
+  permissions: string[]
+}): BackofficeProjectListItemDto {
   return {
     id: project.id,
     name: project.name,
@@ -148,22 +154,42 @@ export function toBackofficeProjectListItemDto(
     organizationName: project.organization?.name ?? "",
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
+    permissions,
   }
 }
 
-export function toBackofficeProjectDetailDto(
-  project: Project & { organization?: { name: string } },
-  members: ProjectMembershipModel[],
-  agents: Agent[],
-): BackofficeProjectDetailDto {
+export function toBackofficeProjectDetailDto({
+  project,
+  permissions,
+  organizationPermissions,
+  members,
+  visibleUsers,
+  agents,
+}: {
+  project: Project & { organization?: { name: string } }
+  permissions: string[]
+  organizationPermissions: string[]
+  members: ProjectMembershipModel[]
+  visibleUsers: ResourceIdsScope
+  agents: { agent: Agent; permissions: string[] }[]
+}): BackofficeProjectDetailDto {
+  // reading the project does not grant reading its members: a member the caller cannot read as a
+  // user is left out, so the page cannot be used to list users
+  const readableMembers = members.filter(
+    (membership) => visibleUsers.scope === "all" || visibleUsers.ids.includes(membership.userId),
+  )
   return {
     id: project.id,
     name: project.name,
-    organizationId: project.organizationId,
-    organizationName: project.organization?.name ?? "",
+    organization: {
+      id: project.organizationId,
+      name: project.organization?.name ?? "",
+      permissions: organizationPermissions,
+    },
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
-    members: members.map(
+    permissions,
+    members: readableMembers.map(
       (membership): BackofficeProjectMemberDto => ({
         userId: membership.userId,
         userEmail: membership.user?.email ?? "",
@@ -171,64 +197,70 @@ export function toBackofficeProjectDetailDto(
         roles: membership.roles.map(toMembershipRoleDto),
       }),
     ),
+    hiddenMemberCount: members.length - readableMembers.length,
     agents: agents.map(
-      (agent): BackofficeProjectAgentDto => ({
+      ({ agent, permissions }): BackofficeProjectAgentDto => ({
         id: agent.id,
         name: agent.name,
+        permissions,
       }),
     ),
   }
 }
 
-export function toBackofficeUserDto(user: User): BackofficeUserDto {
+export function toBackofficeUserDto(
+  user: User,
+  globalRoles: { key: string; name: string }[],
+): BackofficeUserDto {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
+    globalRoles,
   }
 }
 
 export function toBackofficeUserOrganizationMembershipDto(
   membership: OrganizationMembershipModel,
-  roleGrantsByRoleId: ReadonlyMap<string, RoleGrant>,
+  rolesById: ReadonlyMap<string, ResolvedRole>,
 ): BackofficeUserOrganizationMembershipDto {
   return {
     organizationId: membership.organizationId,
     organizationName: membership.organization?.name ?? "",
     roles: membership.roles.map(toMembershipRoleDto),
-    permissions: unionRolePermissions(membership.roles, roleGrantsByRoleId),
+    permissions: unionRolePermissions(membership.roles, rolesById),
   }
 }
 
 export function toBackofficeUserProjectMembershipDto(
   membership: ProjectMembershipModel,
-  roleGrantsByRoleId: ReadonlyMap<string, RoleGrant>,
+  rolesById: ReadonlyMap<string, ResolvedRole>,
 ): BackofficeUserProjectMembershipDto {
   return {
     projectId: membership.projectId,
     projectName: membership.project?.name ?? "",
     roles: membership.roles.map(toMembershipRoleDto),
-    permissions: unionRolePermissions(membership.roles, roleGrantsByRoleId),
+    permissions: unionRolePermissions(membership.roles, rolesById),
   }
 }
 
 export function toBackofficeUserAgentMembershipDto(
   membership: AgentMembershipModel,
-  roleGrantsByRoleId: ReadonlyMap<string, RoleGrant>,
+  rolesById: ReadonlyMap<string, ResolvedRole>,
 ): BackofficeUserAgentMembershipDto {
   return {
     agentId: membership.agentId,
     agentName: membership.agent?.name ?? "",
     roles: membership.roles.map(toMembershipRoleDto),
-    permissions: unionRolePermissions(membership.roles, roleGrantsByRoleId),
+    permissions: unionRolePermissions(membership.roles, rolesById),
   }
 }
 
 /** One entry per campaign, in the order of `memberships`, with the user's roles on it. */
 export function toBackofficeUserReviewCampaignMembershipDtos(
   memberships: ReviewCampaignMembershipModel[],
-  roleGrantsByRoleId: ReadonlyMap<string, RoleGrant>,
+  rolesById: ReadonlyMap<string, ResolvedRole>,
 ): BackofficeUserReviewCampaignMembershipDto[] {
   const membershipsByCampaignId = new Map<string, ReviewCampaignMembershipModel[]>()
   for (const membership of memberships) {
@@ -247,28 +279,28 @@ export function toBackofficeUserReviewCampaignMembershipDtos(
         campaignName: first.campaign?.name ?? "",
         projectId: first.projectId,
         roles: roles.map(toMembershipRoleDto),
-        permissions: unionRolePermissions(roles, roleGrantsByRoleId),
+        permissions: unionRolePermissions(roles, rolesById),
       },
     ]
   })
 }
 
-export function toBackofficeUserGlobalRoleDto(roleGrant: RoleGrant): BackofficeUserGlobalRoleDto {
+export function toBackofficeUserGlobalRoleDto(role: ResolvedRole): BackofficeUserGlobalRoleDto {
   return {
-    key: roleGrant.key,
-    name: roleGrant.name,
-    permissions: roleGrant.permissions,
+    key: role.key,
+    name: role.name,
+    permissions: role.permissions,
   }
 }
 
 export function toBackofficeUserDetailDto(
   user: User,
-  globalRoles: RoleGrant[],
+  globalRoles: ResolvedRole[],
   organizationMemberships: OrganizationMembershipModel[],
   projectMemberships: ProjectMembershipModel[],
   agentMemberships: AgentMembershipModel[],
   reviewCampaignMemberships: ReviewCampaignMembershipModel[],
-  roleGrantsByRoleId: Map<string, RoleGrant>,
+  rolesById: Map<string, ResolvedRole>,
 ): BackofficeUserDetailDto {
   return {
     id: user.id,
@@ -277,17 +309,17 @@ export function toBackofficeUserDetailDto(
     createdAt: user.createdAt.getTime() as TimeType,
     globalRoles: globalRoles.map(toBackofficeUserGlobalRoleDto),
     organizationMemberships: organizationMemberships.map((membership) =>
-      toBackofficeUserOrganizationMembershipDto(membership, roleGrantsByRoleId),
+      toBackofficeUserOrganizationMembershipDto(membership, rolesById),
     ),
     projectMemberships: projectMemberships.map((membership) =>
-      toBackofficeUserProjectMembershipDto(membership, roleGrantsByRoleId),
+      toBackofficeUserProjectMembershipDto(membership, rolesById),
     ),
     agentMemberships: agentMemberships.map((membership) =>
-      toBackofficeUserAgentMembershipDto(membership, roleGrantsByRoleId),
+      toBackofficeUserAgentMembershipDto(membership, rolesById),
     ),
     reviewCampaignMemberships: toBackofficeUserReviewCampaignMembershipDtos(
       reviewCampaignMemberships,
-      roleGrantsByRoleId,
+      rolesById,
     ),
   }
 }

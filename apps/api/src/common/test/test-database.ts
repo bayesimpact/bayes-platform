@@ -177,6 +177,9 @@ WITH
   del_document_document_tag AS (
     DELETE FROM "document_document_tag"
   ),
+  del_document_source_document_tag AS (
+    DELETE FROM "document_source_document_tag"
+  ),
   del_agent_document_tag AS (
     DELETE FROM "agent_document_tag"
   ),
@@ -188,6 +191,9 @@ WITH
   ),
   del_resource_library AS (
     DELETE FROM "resource_library"
+  ),
+  del_project_embedding_model AS (
+    DELETE FROM "project_embedding_model"
   ),
   del_feature_flag AS (
     DELETE FROM "feature_flag"
@@ -213,8 +219,8 @@ WITH
   del_tester_campaign_survey AS (
     DELETE FROM "tester_campaign_survey"
   ),
-  del_user_membership AS (
-    DELETE FROM "user_membership"
+  del_role_grant AS (
+    DELETE FROM "role_grant"
   )
 SELECT 1;`)
       // Legacy membership tables are kept in production for now; test DBs may still

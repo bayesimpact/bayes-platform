@@ -1,19 +1,6 @@
 {
   "projectMembership": {
     "members": "Membres",
-    "props": {
-      "validation": {
-        "emailDuplicate": "Email déjà ajouté",
-        "emailInvalid": "Email invalide"
-      }
-    },
-    "create": {
-      "button": "Inviter des administrateurs",
-      "title": "Inviter des administrateurs",
-      "description": "Entrez l'adresse email des personnes qui doivent gérer cet espace de travail. Elles acceptent l'invitation après s'être connectées.",
-      "label": "Adresse email",
-      "placeholder": "Entrez une adresse email"
-    },
     "pendingInvitations": {
       "title": "Invitations en attente",
       "description": "Personnes invitées sur ce projet qui n'ont pas encore répondu."
@@ -34,12 +21,15 @@
       "rolesAdded_one": "Rôles ajoutés à {{count}} membre",
       "rolesAdded_other": "Rôles ajoutés à {{count}} membres",
       "membersRemoved_one": "{{count}} membre retiré",
-      "membersRemoved_other": "{{count}} membres retirés"
+      "membersRemoved_other": "{{count}} membres retirés",
+      "agentsGiven_one": "{{count}} personne déjà dans l'espace de travail a reçu ses agents",
+      "agentsGiven_other": "{{count}} personnes déjà dans l'espace de travail ont reçu leurs agents"
     },
     "roleNames": {
       "project_owner": "Propriétaire",
       "project_admin": "Administrateur",
       "project_member": "Membre",
+      "project_evaluator": "Évaluateur",
       "agent_owner": "Propriétaire",
       "agent_admin": "Administrateur",
       "agent_member": "Membre",

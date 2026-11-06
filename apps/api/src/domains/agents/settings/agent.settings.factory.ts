@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto"
 import {
-  AgentLocale,
   AgentMemoryMode,
   AgentModel,
   DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
@@ -44,7 +44,6 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       variables: (params.variables as Record<string, string> | undefined) ?? null,
       model: params.model || AgentModel._Mock,
       deletedTemperature: params.deletedTemperature ?? 0.7,
-      locale: params.locale || AgentLocale.EN,
       documentsRagMode: params.documentsRagMode || DocumentsRagMode.All,
       greetingMessage: params.greetingMessage ?? null,
       outputJsonSchema: params.outputJsonSchema ?? null,
@@ -52,6 +51,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
       providerOptions: params.providerOptions ?? {},
       memoryMode: params.memoryMode || AgentMemoryMode.Off,
+      embeddingModel: params.embeddingModel ?? EmbeddingModel.GeminiEmbedding001,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

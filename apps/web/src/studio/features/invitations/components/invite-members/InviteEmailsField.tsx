@@ -1,0 +1,100 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
+import { Button } from "@caseai-connect/ui/shad/button"
+import { Input } from "@caseai-connect/ui/shad/input"
+import { XIcon } from "lucide-react"
+import { type KeyboardEvent, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { z } from "zod"
+
+/** The addresses of a typed or pasted text ("a@x.org, b@x.org"), lowercased. */
+function splitEmails(text: string): string[] {
+  return text
+    .split(/[\s,;]+/)
+    .map((candidate) => candidate.trim().toLowerCase())
+    .filter(Boolean)
+}
+
+const isEmail = (candidate: string) => z.email().safeParse(candidate).success
+
+/** The emails to invite, as removable chips. */
+export function InviteEmailsField({
+  emails,
+  onChange,
+  onDraftChange,
+}: {
+  emails: string[]
+  onChange: (emails: string[]) => void
+  /** The valid emails typed and not added yet, so the dialog counts them before they become chips. */
+  onDraftChange: (draftEmails: string[]) => void
+}) {
+  const { t } = useTranslation()
+  const [inputEmail, setInputEmail] = useState("")
+  const [inputError, setInputError] = useState<string | undefined>()
+
+  // Reads the text from the field itself: a key handler must not see the text of a past render.
+  const addEmails = (text: string) => {
+    // Pasting a list adds every address of it.
+    const candidates = splitEmails(text)
+    if (candidates.length === 0) return
+    const invalid = candidates.find((candidate) => !isEmail(candidate))
+    if (invalid) {
+      setInputError(t("invitations:inviteDialog.invalidEmail", { email: invalid }))
+      return
+    }
+    onChange([...new Set([...emails, ...candidates])])
+    setInputEmail("")
+    onDraftChange([])
+    setInputError(undefined)
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault()
+      addEmails(event.currentTarget.value)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        <Input
+          id="invite-emails"
+          type="text"
+          inputMode="email"
+          placeholder={t("invitations:inviteDialog.emailsPlaceholder")}
+          value={inputEmail}
+          onChange={(event) => {
+            setInputEmail(event.target.value)
+            setInputError(undefined)
+            onDraftChange(splitEmails(event.target.value).filter(isEmail))
+          }}
+          onKeyDown={handleKeyDown}
+          onBlur={(event) => addEmails(event.currentTarget.value)}
+          aria-invalid={inputError ? "true" : "false"}
+        />
+        <Button type="button" variant="outline" onClick={() => addEmails(inputEmail)}>
+          {t("actions:add")}
+        </Button>
+      </div>
+      {inputError && <p className="text-sm text-destructive">{inputError}</p>}
+
+      {emails.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {emails.map((email) => (
+            <Badge key={email} variant="outline" className="gap-1 pr-1">
+              {email}
+              <button
+                type="button"
+                aria-label={t("invitations:inviteDialog.removeEmail", { email })}
+                className="rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                onClick={() => onChange(emails.filter((candidate) => candidate !== email))}
+              >
+                <XIcon className="size-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

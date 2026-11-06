@@ -7,7 +7,6 @@ import { AppAccessTokenService } from "@/domains/apps/app-access-token.service"
 import { AppInstallationRepository } from "@/domains/apps/app-installation.repository"
 import { AppManifestRepository } from "@/domains/apps/app-manifest.repository"
 import { AppsService } from "@/domains/apps/apps.service"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { DOCUMENT_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -37,7 +36,7 @@ describe("OAuthClientsService - app clients", () => {
         UserRepository,
         AppAccessTokenService,
       ],
-      additionalImports: [RbacModule, MembershipsModule],
+      additionalImports: [RbacModule],
     })
     await ensureRbacCatalog(setup.module)
   })

@@ -11,7 +11,10 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+} from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -72,6 +75,7 @@ describe("EvaluationConversationRuns - executeOne", () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
+        projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
         user: { authSubject },
         agent: { type: "conversation" },
         agentSettings: {

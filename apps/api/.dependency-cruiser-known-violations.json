@@ -102,6 +102,32 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/documents/sources/document-source.entity.ts",
+    "to": "src/domains/documents/tags/document-tag.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/agents/agent.entity.ts",
     "to": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
     "rule": {
@@ -2134,7 +2160,7 @@
   },
   {
     "type": "cycle",
-    "from": "src/domains/memberships/user-membership.entity.ts",
+    "from": "src/domains/rbac/role-grant.entity.ts",
     "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
@@ -2152,7 +2178,7 @@
         ]
       },
       {
-        "name": "src/domains/memberships/user-membership.entity.ts",
+        "name": "src/domains/rbac/role-grant.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -2646,7 +2672,7 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
+    "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -2673,7 +2699,7 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/conversation-agent-sessions/agent-sessions-service-tests/test-setup.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
+    "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -2745,7 +2771,7 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/memberships/agent-membership.repository.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
+    "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3501,7 +3527,7 @@
   {
     "type": "dependency",
     "from": "src/domains/organizations/memberships/organization-membership.repository.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
+    "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3564,7 +3590,7 @@
   {
     "type": "dependency",
     "from": "src/domains/projects/memberships/project-membership.repository.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
+    "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3681,7 +3707,7 @@
   {
     "type": "dependency",
     "from": "src/domains/review-campaigns/memberships/review-campaign-membership.repository.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
+    "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3717,7 +3743,7 @@
   {
     "type": "dependency",
     "from": "src/domains/review-campaigns/review-campaign.repository.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
+    "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"

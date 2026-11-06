@@ -6,6 +6,7 @@
     "columns": {
       "source": "Source",
       "app": "App",
+      "tags": "Tags",
       "docs": "Docs",
       "lastSync": "Last sync",
       "status": "Status"
@@ -17,6 +18,14 @@
     "empty": {
       "title": "No external source yet",
       "description": "Sources appear here once an app syncs documents to this workspace."
+    },
+    "legacyWebCrawl": {
+      "badge": "Former web crawler",
+      "title": "Some sources come from the former web crawler",
+      "description": "Their pages stay available to your agents, but nothing updates them anymore. To change one of these sources or crawl its site again, contact us."
+    },
+    "notifications": {
+      "tagsUpdateError": "The tags of the source could not be updated"
     }
   }
 }

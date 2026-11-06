@@ -23,6 +23,7 @@ import type { IAgentMessageFeedbackSpi } from "@/studio/features/agent-message-f
 import type { IAgentSubAgentsSpi } from "@/studio/features/agent-sub-agents/agent-sub-agents.spi"
 import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent-analytics.spi"
 import type { IProjectAnalyticsSpi } from "@/studio/features/analytics/project/analytics.spi"
+import type { IAppCatalogSpi } from "@/studio/features/app-catalog/app-catalog.spi"
 import type { IAppInstallationsSpi } from "@/studio/features/app-installations/app-installations.spi"
 import type { IConversationReviewSpi } from "@/studio/features/conversation-review/conversation-review.spi"
 import type { IDocumentSourcesSpi } from "@/studio/features/document-sources/document-sources.spi"
@@ -30,6 +31,7 @@ import type { IDocumentTagsSpi } from "@/studio/features/document-tags/document-
 import type { IDocumentsSpi } from "@/studio/features/documents/documents.spi"
 import type { IInvitationsSpi } from "@/studio/features/invitations/invitations.spi"
 import type { IMcpServersSpi } from "@/studio/features/mcp-servers/mcp-servers.spi"
+import type { IProjectEmbeddingModelsSpi } from "@/studio/features/project-embedding-models/project-embedding-models.spi"
 import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
 import type { IResourceLibrariesSpi } from "@/studio/features/resource-libraries/resource-libraries.spi"
 import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
@@ -60,6 +62,7 @@ export type Services = {
   evaluationExtractionRuns: IEvaluationExtractionRunsSpi
   extractionAgentSessions: IExtractionAgentSessionsSpi
   mcpServers: IMcpServersSpi
+  appCatalog: IAppCatalogSpi
   appInstallations: IAppInstallationsSpi
   me: IMeSpi
   oauthConsent: IOAuthConsentSpi
@@ -67,6 +70,7 @@ export type Services = {
   invitations: IInvitationsSpi
   organizations: IOrganizationsSpi
   projectAnalytics: IProjectAnalyticsSpi
+  projectEmbeddingModels: IProjectEmbeddingModelsSpi
   projectMemberships: IProjectMembershipsSpi
   projects: IProjectsSpi
   resourceLibraries: IResourceLibrariesSpi

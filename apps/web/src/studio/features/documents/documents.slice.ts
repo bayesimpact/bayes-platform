@@ -14,16 +14,11 @@ type UploaderState = {
 type EmbeddingStatusStreamState = {
   isActive: boolean
 }
-type CrawlProgressStreamState = {
-  isActive: boolean
-}
 interface State {
   currentSourceType: DocumentSourceType
   data: AsyncData<Document[]>
   uploader: UploaderState
   embeddingStatusStream: EmbeddingStatusStreamState
-  crawlProgressStream: CrawlProgressStreamState
-  crawlProgressByDocumentId: Record<string, number>
 }
 
 const initialState: State = {
@@ -38,10 +33,6 @@ const initialState: State = {
   embeddingStatusStream: {
     isActive: false,
   },
-  crawlProgressStream: {
-    isActive: false,
-  },
-  crawlProgressByDocumentId: {},
 }
 
 function mergeDocumentsByUpdatedAt({
@@ -70,8 +61,6 @@ const slice = createSlice({
   reducers: {
     projectMount: () => {},
     projectUnmount: () => {},
-    webSourcesMount: () => {},
-    webSourcesUnmount: () => {},
     reset: () => initialState,
     resetUploaderCounters: (state) => {
       state.uploader.total = 0
@@ -125,26 +114,6 @@ const slice = createSlice({
       document.embeddingStatus = action.payload.embeddingStatus
       document.embeddingError = action.payload.embeddingError
       document.updatedAt = action.payload.updatedAt
-      if (
-        action.payload.embeddingStatus === "completed" ||
-        action.payload.embeddingStatus === "failed"
-      ) {
-        delete state.crawlProgressByDocumentId[action.payload.documentId]
-      }
-    },
-    startCrawlProgressStream: (state) => {
-      state.crawlProgressStream.isActive = true
-    },
-    stopCrawlProgressStream: (state) => {
-      state.crawlProgressStream.isActive = false
-    },
-    patchDocumentCrawlProgress: (
-      state,
-      action: PayloadAction<{ documentId: string; pagesCrawled: number }>,
-    ) => {
-      const previous = state.crawlProgressByDocumentId[action.payload.documentId] ?? 0
-      if (action.payload.pagesCrawled < previous) return
-      state.crawlProgressByDocumentId[action.payload.documentId] = action.payload.pagesCrawled
     },
   },
   extraReducers: (builder) => {
@@ -165,20 +134,6 @@ const slice = createSlice({
           status: ADS.Fulfilled,
           error: null,
           value: mergedDocuments,
-        }
-
-        const stillCrawling = new Set(
-          mergedDocuments
-            .filter(
-              (document) =>
-                document.sourceType === "webCrawl" && document.embeddingStatus === "pending",
-            )
-            .map((document) => document.id),
-        )
-        for (const documentId of Object.keys(state.crawlProgressByDocumentId)) {
-          if (!stillCrawling.has(documentId)) {
-            delete state.crawlProgressByDocumentId[documentId]
-          }
         }
       })
       .addCase(listDocuments.rejected, (state, action) => {

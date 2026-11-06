@@ -17,7 +17,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import {
   mockForeignAuthSubject,
@@ -100,7 +100,7 @@ describe("ExtractionAgentSessions - Auth", () => {
   // Seeds an organization/project (membership at `role`) + extraction agent, and a run of `type`
   // owned by the caller so the getOne and delete routes have a resolvable target.
   const createContextForRole = async (
-    role: ProjectMembershipRole,
+    role: ProjectRoleKey,
     type: BaseAgentSessionTypeDto = "live",
   ) => {
     const { organization, project, agent, agentSettings, document, agentSession, user } =
@@ -108,7 +108,7 @@ describe("ExtractionAgentSessions - Auth", () => {
         repositories,
         params: {
           user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-          projectMembership: { role },
+          projectMembership: { roleKeys: [role] },
           agentSettings: {
             outputJsonSchema: {
               type: "object",
@@ -149,7 +149,7 @@ describe("ExtractionAgentSessions - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     const agentSession = extractionAgentSessionFactory
       .transient({ organization, project, agent, agentSettings, document, user })
@@ -170,25 +170,25 @@ describe("ExtractionAgentSessions - Auth", () => {
       })
 
       it("requires a valid organization ID", async () => {
-        await createContextForRole("owner", type)
+        await createContextForRole("project_owner", type)
         organizationId = null
         expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
       })
 
       it("requires a valid agent ID", async () => {
-        await createContextForRole("owner", type)
+        await createContextForRole("project_owner", type)
         agentId = randomUUID()
         expectResponse(await subject(type), 404)
       })
 
       it("requires the user to be a member of the organization", async () => {
-        await createContextForRole("owner", type)
+        await createContextForRole("project_owner", type)
         authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
 
       it("forbids an organization admin who holds no project role", async () => {
-        const context = await createContextForRole("owner", type)
+        const context = await createContextForRole("project_owner", type)
         await switchToOrganizationAdminWithoutProjectRole(context)
         expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       })
@@ -202,24 +202,24 @@ describe("ExtractionAgentSessions - Auth", () => {
     allowedStatus = 201,
   ) => {
     it.each([
-      ["owner"],
-      ["admin"],
-      ["member"],
+      ["project_owner"],
+      ["project_admin"],
+      ["project_member"],
     ] as const)("allows a project %s on the live routes", async (role) => {
       await createContextForRole(role, "live")
       expectResponse(await subject("live"), allowedStatus)
     })
 
     it.each([
-      ["owner"],
-      ["admin"],
+      ["project_owner"],
+      ["project_admin"],
     ] as const)("allows a project %s on the playground routes", async (role) => {
       await createContextForRole(role, "playground")
       expectResponse(await subject("playground"), allowedStatus)
     })
 
     it("forbids a plain member on the playground routes", async () => {
-      await createContextForRole("member", "playground")
+      await createContextForRole("project_member", "playground")
       expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   }
@@ -261,12 +261,12 @@ describe("ExtractionAgentSessions - Auth", () => {
     describeRoleChecks(subject)
 
     it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("owner", "playground")
+      await createContextForRole("project_owner", "playground")
       expectResponse(await subject("live"), 404)
     })
 
     it("answers 404 for a live run on the playground routes", async () => {
-      await createContextForRole("owner", "live")
+      await createContextForRole("project_owner", "live")
       expectResponse(await subject("playground"), 404)
     })
   })
@@ -283,18 +283,18 @@ describe("ExtractionAgentSessions - Auth", () => {
     describeRoleChecks(subject)
 
     it("answers 404 for an unknown run", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       agentSessionId = randomUUID()
       expectResponse(await subject("live"), 404)
     })
 
     it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("owner", "playground")
+      await createContextForRole("project_owner", "playground")
       expectResponse(await subject("live"), 404)
     })
 
     it("answers 404 for a live run on the playground routes", async () => {
-      await createContextForRole("owner", "live")
+      await createContextForRole("project_owner", "live")
       expectResponse(await subject("playground"), 404)
     })
   })
@@ -353,7 +353,7 @@ describe("ExtractionAgentSessions - Auth", () => {
     describeRoleChecks(subject, 404)
 
     it("answers 404 for an unknown document", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       documentId = randomUUID()
       expectResponse(await subject("live"), 404)
     })
@@ -374,13 +374,13 @@ describe("ExtractionAgentSessions - Auth", () => {
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })

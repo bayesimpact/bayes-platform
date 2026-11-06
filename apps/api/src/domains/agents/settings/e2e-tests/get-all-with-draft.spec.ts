@@ -1,9 +1,9 @@
 import {
-  AgentLocale,
   AgentMemoryMode,
   AgentModel,
   AgentSettingsRoutes,
   DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -148,7 +148,6 @@ describe("Agent Settings - getAllWithDraft", () => {
       revisionDesc: "The second revision",
       instructions: "Rev 2 instructions",
       greetingMessage: "Hello there",
-      locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
@@ -172,9 +171,9 @@ describe("Agent Settings - getAllWithDraft", () => {
       instructions: "Rev 2 instructions",
       variables: null,
       greetingMessage: "Hello there",
-      locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
       documentsRagMode: DocumentsRagMode.None,
+      embeddingModel: EmbeddingModel.GeminiEmbedding001,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
       isDraft: false,

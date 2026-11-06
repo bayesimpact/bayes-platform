@@ -97,10 +97,6 @@ export function AgentMetadataDialog({
               />
             )}
             <MetadataField
-              label={t("evaluationConversationRun:agentMetadata.locale")}
-              value={agentSettings.locale}
-            />
-            <MetadataField
               label={t("evaluationConversationRun:agentMetadata.documentsRagMode")}
               value={agentSettings.documentsRagMode}
             />

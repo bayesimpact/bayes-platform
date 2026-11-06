@@ -3,6 +3,7 @@ import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generi
 import { defineRoute } from "../helpers"
 import type {
   BackofficeAgentDetailDto,
+  BackofficeMaintenanceJobDto,
   BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
   BackofficeProjectDetailDto,
@@ -10,6 +11,8 @@ import type {
   BackofficeUserDetailDto,
   CreateBackofficeOrganizationRequestDto,
   GrantBackofficeAgentConversationReviewerRequestDto,
+  GrantBackofficeUserGlobalRoleRequestDto,
+  ListBackofficeMaintenanceJobsResponseDto,
   ListTermsDocumentsResponseDto,
   PaginatedBackofficeAgentsDto,
   PaginatedBackofficeOrganizationsDto,
@@ -61,6 +64,17 @@ export const BackofficeRoutes = {
     method: "get",
     path: "backoffice/users/:userId",
   }),
+  grantUserGlobalRole: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<GrantBackofficeUserGlobalRoleRequestDto>
+  >({
+    method: "post",
+    path: "backoffice/users/:userId/global-roles",
+  }),
+  revokeUserGlobalRole: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: "backoffice/users/:userId/global-roles/:roleKey",
+  }),
   listProjects: defineRoute<ResponseData<PaginatedBackofficeProjectsDto>>({
     method: "get",
     path: "backoffice/projects",
@@ -94,5 +108,13 @@ export const BackofficeRoutes = {
   >({
     method: "put",
     path: "backoffice/terms-documents",
+  }),
+  listMaintenanceJobs: defineRoute<ResponseData<ListBackofficeMaintenanceJobsResponseDto>>({
+    method: "get",
+    path: "backoffice/maintenance-jobs",
+  }),
+  runMaintenanceJob: defineRoute<ResponseData<BackofficeMaintenanceJobDto>>({
+    method: "post",
+    path: "backoffice/maintenance-jobs/:jobKey/run",
   }),
 }

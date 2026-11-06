@@ -10,6 +10,8 @@ const SANDBOX_RPC_TYPE = "caseai/sandbox-rpc"
 const BOOTSTRAP_READY_METHOD = "caseai/sandbox-bootstrap-ready"
 const SANDBOX_ID_PLACEHOLDER = "__SANDBOX_ID__"
 const TOOL_RESULT_RETRY_DELAYS_MS = [50, 250] as const
+// The app has no dark mode, so guests are told to render light.
+const BASE_HOST_CONTEXT = { displayMode: "inline", platform: "web", theme: "light" } as const
 
 /**
  * Both frames carry `allow-popups allow-popups-to-escape-sandbox allow-downloads`: a nested
@@ -190,6 +192,8 @@ export type McpAppMountOptions = {
   csp?: McpAppCspDto
   toolInput: unknown
   toolResult: unknown
+  /** The host's UI language (`hostContext.locale`), so the card speaks it. */
+  locale: string
   /**
    * Where a message the app proposes (`ui/message`) goes, read when the app sends one. Without
    * it at mount time the app is told the host takes no messages, and offers its own fallback.
@@ -201,14 +205,25 @@ export type McpAppMountOptions = {
   onRenderFailed: () => void
 }
 
+export type McpAppMount = {
+  /**
+   * The host switched language. Sent to an initialized app through `host-context-changed`, so
+   * the card follows without reloading; before that, the handshake carries the latest one.
+   */
+  setLocale: (locale: string) => void
+  /** Tears the app down. */
+  unmount: () => void
+}
+
 /**
- * Loads an MCP App in an outer frame rendered with `MCP_APP_SANDBOX`, and talks to it until the
- * returned function tears it down. The app runs under a Content Security Policy built from the
- * domains it declares.
+ * Loads an MCP App in an outer frame rendered with `MCP_APP_SANDBOX`, and talks to it until
+ * `unmount`. The app runs under a Content Security Policy built from the domains it declares.
  */
-export function mountMcpApp(iframe: HTMLIFrameElement, options: McpAppMountOptions): () => void {
+export function mountMcpApp(iframe: HTMLIFrameElement, options: McpAppMountOptions): McpAppMount {
   const { html, csp, toolInput, toolResult, getMessageHandler, onInitialized, onRenderFailed } =
     options
+  let locale = options.locale
+  let initializedBridge: AppBridge | undefined
   const sandboxId = crypto.randomUUID()
   const appHtml = withMcpAppCsp(html, buildMcpAppCsp(csp))
   let cancelled = false
@@ -231,11 +246,9 @@ export function mountMcpApp(iframe: HTMLIFrameElement, options: McpAppMountOptio
           openLinks: {},
           ...(getMessageHandler?.() ? { message: { text: {} } } : {}),
         },
-        {
-          // The app has no dark mode, so guests are told to render light.
-          hostContext: { displayMode: "inline", platform: "web", theme: "light" },
-        },
+        { hostContext: { ...BASE_HOST_CONTEXT, locale } },
       )
+      const handshakeLocale = locale
       bridge = appBridge
 
       const pushToolData = async () => {
@@ -300,6 +313,9 @@ export function mountMcpApp(iframe: HTMLIFrameElement, options: McpAppMountOptio
       await initialized
       if (thisAttempt !== attempt || cancelled) return
 
+      initializedBridge = appBridge
+      // The language changed while the app was starting: it got the old one at the handshake.
+      if (locale !== handshakeLocale) appBridge.setHostContext({ ...BASE_HOST_CONTEXT, locale })
       onInitialized()
       // Apps often register `ontoolresult` after `connect()`, so the first
       // notification is dropped and the UI stays on its loading shell.
@@ -348,9 +364,16 @@ export function mountMcpApp(iframe: HTMLIFrameElement, options: McpAppMountOptio
     iframe.srcdoc = SANDBOX_BOOTSTRAP_HTML.replaceAll(SANDBOX_ID_PLACEHOLDER, sandboxId)
   }, 0)
 
-  return () => {
+  const setLocale = (nextLocale: string) => {
+    if (nextLocale === locale) return
+    locale = nextLocale
+    initializedBridge?.setHostContext({ ...BASE_HOST_CONTEXT, locale })
+  }
+
+  const unmount = () => {
     cancelled = true
     attempt += 1
+    initializedBridge = undefined
     window.clearTimeout(loadTimeoutId)
     for (const timeoutId of retryTimeoutIds) {
       window.clearTimeout(timeoutId)
@@ -364,4 +387,6 @@ export function mountMcpApp(iframe: HTMLIFrameElement, options: McpAppMountOptio
         void currentBridge.close()
       })
   }
+
+  return { setLocale, unmount }
 }

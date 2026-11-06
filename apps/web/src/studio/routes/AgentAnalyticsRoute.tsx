@@ -19,9 +19,11 @@ import {
   selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay,
   selectAgentAnalyticsConversationsByCategoryPerDay,
   selectAgentAnalyticsConversationsPerDay,
+  selectAgentAnalyticsEmptySessionsPerDay,
 } from "@/studio/features/analytics/agent/agent-analytics.selectors"
 import { loadAgentAnalytics } from "@/studio/features/analytics/agent/agent-analytics.thunks"
 import { CategoryRankingCard } from "@/studio/features/analytics/agent/components/CategoryRankingCard"
+import { EmptySessionsNotice } from "@/studio/features/analytics/components/EmptySessionsNotice"
 import { dateRangeToAnalyticsQueryBounds } from "@/studio/features/analytics/project/analytics-date-range"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { ErrorRoute } from "../../common/routes/ErrorRoute"
@@ -60,10 +62,11 @@ export function AgentAnalyticsRoute() {
   const conversationsByCategoryPerDay = useAppSelector(
     selectAgentAnalyticsConversationsByCategoryPerDay,
   )
+  const emptySessions = useAppSelector(selectAgentAnalyticsEmptySessionsPerDay)
 
   if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
   return (
-    <AsyncRoute data={[conversations, avgQuestions, conversationsByCategoryPerDay]}>
+    <AsyncRoute data={[conversations, avgQuestions, conversationsByCategoryPerDay, emptySessions]}>
       <WithData onAnalyticsRangeChange={setBounds} />
     </AsyncRoute>
   )
@@ -79,6 +82,7 @@ function WithData({
   const conversationsPoints = useValue(selectAgentAnalyticsConversationsPerDay)
   const avgQuestionsPoints = useValue(selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay)
   const categoryPoints = useValue(selectAgentAnalyticsConversationsByCategoryPerDay)
+  const emptySessionsPoints = useValue(selectAgentAnalyticsEmptySessionsPerDay)
   const { t } = useTranslation("agentAnalytics")
   const navigate = useNavigate()
   const agentRoute = useGetAgentRoute()
@@ -121,6 +125,11 @@ function WithData({
             align="end"
           />
         </div>
+
+        <EmptySessionsNotice
+          conversationTotal={sumDailyMetricValues(conversationsPoints)}
+          emptySessionTotal={sumDailyMetricValues(emptySessionsPoints)}
+        />
 
         <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-2">
           <ChartCard

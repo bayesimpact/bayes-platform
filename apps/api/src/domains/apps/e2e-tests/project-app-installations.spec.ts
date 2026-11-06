@@ -17,6 +17,7 @@ import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
   mockForeignAuthSubject,
@@ -32,8 +33,6 @@ import {
 import { appInstallationFactory } from "../app-installation.factory"
 import { appManifestFactory } from "../app-manifest.factory"
 import { AppsModule } from "../apps.module"
-
-type ProjectRole = "owner" | "admin" | "member"
 
 describe("Apps - project app installations", () => {
   let app: INestApplication<App>
@@ -77,11 +76,11 @@ describe("Apps - project app installations", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectRole = "owner") => {
+  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      organizationMembership: { role: "member" },
-      projectMembership: { role },
+      organizationMembership: { roleKeys: ["org_member"] },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -90,9 +89,13 @@ describe("Apps - project app installations", () => {
 
   const installApp = async (
     targetProjectId: string,
-    params: { name: string; status?: typeof APP_INSTALLATION_STATUS_REVOKED },
+    params: {
+      name: string
+      appUrl?: string | null
+      status?: typeof APP_INSTALLATION_STATUS_REVOKED
+    },
   ) => {
-    const manifest = appManifestFactory.build({ name: params.name })
+    const manifest = appManifestFactory.build({ name: params.name, appUrl: params.appUrl ?? null })
     await repositories.appManifestRepository.save(manifest)
     const installation = appInstallationFactory.build({
       appManifestId: manifest.id,
@@ -113,7 +116,7 @@ describe("Apps - project app installations", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = organizationAdminAuthSubject
   }
@@ -137,57 +140,70 @@ describe("Apps - project app installations", () => {
 
   describe("getAll auth", () => {
     it("requires an authentication token", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it.each<ProjectRole>([
-      "owner",
-      "admin",
-    ])("allows a project %s to list the apps", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to list the apps", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
 
     it("forbids a simple project member", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("forbids an organization admin without a project role", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
   it("returns the active apps of the project, newest first", async () => {
-    const { project } = await createContextForRole("owner")
+    const { project } = await createContextForRole("project_owner")
     const first = await installApp(project.id, { name: "Helpful Assistant" })
     await repositories.appInstallationRepository.update(
       { id: first.id },
       { createdAt: new Date(Date.now() - 60_000) },
     )
-    const second = await installApp(project.id, { name: "Site Crawler" })
+    const second = await installApp(project.id, {
+      name: "Site Crawler",
+      appUrl: "https://crawler.example.com",
+    })
 
     const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data).toEqual([
-      expect.objectContaining({ id: second.id, appName: "Site Crawler", permissions: [] }),
-      expect.objectContaining({ id: first.id, appName: "Helpful Assistant", permissions: [] }),
+      expect.objectContaining({
+        id: second.id,
+        appName: "Site Crawler",
+        appUrl: "https://crawler.example.com",
+        permissions: [],
+      }),
+      expect.objectContaining({
+        id: first.id,
+        appName: "Helpful Assistant",
+        appUrl: null,
+        permissions: [],
+      }),
     ])
   })
 
   it("leaves out revoked apps and apps of another project", async () => {
-    const { organization, project } = await createContextForRole("owner")
+    const { organization, project } = await createContextForRole("project_owner")
     const otherProject = projectFactory.transient({ organization }).build()
     await repositories.projectRepository.save(otherProject)
     await installApp(project.id, { name: "Revoked App", status: APP_INSTALLATION_STATUS_REVOKED })
@@ -200,7 +216,10 @@ describe("Apps - project app installations", () => {
   })
 
   describe("revokeOne", () => {
-    it.each<ProjectRole>(["owner", "admin"])("lets a project %s revoke an app", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("lets a %s revoke an app", async (role) => {
       const { user, organization, project } = await createContextForRole(role)
       const installation = await installApp(project.id, { name: "Helpful Assistant" })
 
@@ -220,7 +239,7 @@ describe("Apps - project app installations", () => {
     })
 
     it("forbids a simple project member", async () => {
-      const { project } = await createContextForRole("member")
+      const { project } = await createContextForRole("project_member")
       const installation = await installApp(project.id, { name: "Helpful Assistant" })
 
       expectResponse(await revoke(installation.id), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -228,7 +247,7 @@ describe("Apps - project app installations", () => {
     })
 
     it("forbids an organization admin without a project role", async () => {
-      const { organization, project } = await createContextForRole("owner")
+      const { organization, project } = await createContextForRole("project_owner")
       const installation = await installApp(project.id, { name: "Helpful Assistant" })
       await switchToOrganizationAdminWithoutProjectRole(organization)
 
@@ -237,7 +256,7 @@ describe("Apps - project app installations", () => {
     })
 
     it("does not revoke an app of another project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const otherProject = projectFactory.transient({ organization }).build()
       await repositories.projectRepository.save(otherProject)
       const foreign = await installApp(otherProject.id, { name: "Other Project App" })
@@ -247,7 +266,7 @@ describe("Apps - project app installations", () => {
     })
 
     it("answers 404 for an unknown app", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await revoke(randomUUID()), 404)
     })
   })

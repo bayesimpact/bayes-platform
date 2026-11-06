@@ -53,25 +53,11 @@ export function normalizeUploadedFileName(originalFileName: string): string {
   return decodedScore < originalScore ? decodedFileName : originalFileName
 }
 
-// TODO(#421): temporary — page markdown is excluded from list responses to prevent OOM crashes.
-// Replace with a dedicated paginated endpoint that returns page content on demand.
-function parseCrawledPageUrls(content: string | null): { url: string }[] | undefined {
-  if (!content) return undefined
-  try {
-    const parsed: unknown = JSON.parse(content)
-    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url) {
-      return (parsed as { url: string }[]).map(({ url }) => ({ url }))
-    }
-  } catch {
-    // malformed content
-  }
-  return undefined
-}
-
 export function toDocumentDto(entity: Document): DocumentDto {
-  const isWebCrawl = entity.sourceType === "webCrawl"
   return {
-    content: isWebCrawl ? undefined : entity.content,
+    // A legacy web crawl holds every page of a site as JSON: too large for a list response. It goes
+    // away with the maintenance job that migrates the legacy web crawls.
+    content: entity.sourceType === "webCrawl" ? undefined : entity.content,
     createdAt: entity.createdAt.getTime(),
     deletedAt: entity.deletedAt?.getTime() || undefined,
     embeddingError: entity.embeddingError ?? null,
@@ -80,7 +66,6 @@ export function toDocumentDto(entity: Document): DocumentDto {
     id: entity.id,
     language: entity.language === "fr" ? "fr" : "en",
     mimeType: entity.mimeType as MimeTypes,
-    pages: isWebCrawl ? parseCrawledPageUrls(entity.content) : undefined,
     projectId: entity.projectId,
     size: entity.size,
     sourceType: entity.sourceType,

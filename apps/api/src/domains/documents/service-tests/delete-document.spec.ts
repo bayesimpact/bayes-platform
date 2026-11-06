@@ -82,7 +82,7 @@ describe("deleteDocument", () => {
     expect(deleteFileSpy).toHaveBeenCalledWith(`${organization.id}/${project.id}/doc1.pdf`)
   })
 
-  it("should not touch storage for a crawled document without a stored file", async () => {
+  it("should not touch storage for a legacy web crawl without a stored file", async () => {
     const { service, repositories, fileStorageService } = getTestContext()
     const deleteFileSpy = jest.spyOn(fileStorageService, "deleteFile").mockResolvedValue()
 

@@ -52,6 +52,13 @@ describe("StackTraceLoggingExceptionFilter", () => {
     expect(error).toHaveBeenCalledWith("connection lost (GET /api/healthz)", exception.stack)
   })
 
+  it("redacts the visitor's message from the URL, also inside the exception message", () => {
+    const url = "/public/v2/agents/token-1/sessions/session-1/messages/stream?q=secret-message"
+    filter.catch(new NotFoundException(`Cannot GET ${url}`), httpHost("GET", url))
+    const redacted = "/public/v2/agents/token-1/sessions/session-1/messages/stream?q=[redacted]"
+    expect(warn).toHaveBeenCalledWith(`Cannot GET ${redacted} (GET ${redacted})`)
+  })
+
   it("logs a non-Error value as an error", () => {
     filter.catch("oops", httpHost("GET", "/api/x"))
     expect(error).toHaveBeenCalledWith("Non-Error exception thrown: 'oops' (GET /api/x)")

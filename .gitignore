@@ -96,3 +96,6 @@ storybook-static
 
 # Build
 apps/web-embed/dist-launcher/
+
+# TanStack Router plugin's temporary files
+apps/desk/.tanstack/

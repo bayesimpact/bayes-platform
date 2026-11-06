@@ -3,6 +3,7 @@ import { GridHeader } from "@/common/components/grid/Grid"
 import {
   selectIsAppManagementAuthorized,
   selectIsBackofficeAuthorized,
+  selectIsMaintenanceJobRunAuthorized,
   selectIsTermsManagementAuthorized,
 } from "@/common/features/me/me.selectors"
 import { useInitStore } from "@/common/hooks/use-init-store"
@@ -16,6 +17,7 @@ import { injectBackofficeSlices, resetBackofficeSlices } from "../store/slices"
 import {
   BackofficeAgentRoutes,
   BackofficeAppsRoutes,
+  BackofficeMaintenanceJobsRoutes,
   BackofficePermissionsRoutes,
   BackofficeProjectRoutes,
   BackofficeUserRoutes,
@@ -38,6 +40,7 @@ function Layout() {
   const navigate = useNavigate()
   const canManageTerms = useAppSelector(selectIsTermsManagementAuthorized)
   const canManageApps = useAppSelector(selectIsAppManagementAuthorized)
+  const canRunMaintenanceJobs = useAppSelector(selectIsMaintenanceJobRunAuthorized)
 
   useMount({ actions: backofficeActions })
 
@@ -135,6 +138,20 @@ function Layout() {
             }
           >
             Terms & Compliance
+          </NavLink>
+        )}
+        {canRunMaintenanceJobs && (
+          <NavLink
+            to={BackofficeMaintenanceJobsRoutes.maintenanceJobs.path.replace("/backoffice/", "")}
+            className={({ isActive }) =>
+              `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`
+            }
+          >
+            Maintenance
           </NavLink>
         )}
       </nav>

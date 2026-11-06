@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto"
-import { DESK_UI_READ_PERMISSION, ProjectsRoutes } from "@caseai-connect/api-contracts"
+import {
+  DESK_UI_READ_PERMISSION,
+  ProjectsRoutes,
+  REVIEWER_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -16,6 +21,7 @@ import {
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import type { ReviewCampaignStatus } from "@/domains/review-campaigns/review-campaigns.types"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -60,10 +66,10 @@ describe("Projects - getAllMine", () => {
   // second project the caller has nothing on.
   const createCampaignParticipantContext = async ({
     status = "active",
-    role = "tester",
+    roleKey = "review_campaign_tester",
   }: {
     status?: ReviewCampaignStatus
-    role?: "tester" | "reviewer"
+    roleKey?: ReviewCampaignRoleKey
   } = {}) => {
     const { organization, project, agent, agentSettings } =
       await createOrganizationWithAgent(repositories)
@@ -79,7 +85,7 @@ describe("Projects - getAllMine", () => {
       organization,
       project,
       campaign,
-      role,
+      roleKeys: [roleKey],
       user: {
         authSubject: participantAuthSubject,
         email: mockOidcEmailForSub(participantAuthSubject),
@@ -100,8 +106,11 @@ describe("Projects - getAllMine", () => {
     expect(response.body.data.map((listedProject) => listedProject.id)).toEqual([project.id])
     const [listedProject] = response.body.data
     expect([...(listedProject?.permissions ?? [])].sort()).toEqual(
-      [...PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN].sort(),
+      PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN.filter(
+        (permission) => permission !== REVIEWER_UI_READ_PERMISSION,
+      ).sort(),
     )
+    expect(listedProject?.permissions).toContain(TESTER_UI_READ_PERMISSION)
     expect(listedProject?.permissions).not.toContain(DESK_UI_READ_PERMISSION)
   })
 
@@ -121,13 +130,18 @@ describe("Projects - getAllMine", () => {
     ["active"],
     ["closed"],
   ] as const)("lists the campaign's project for a reviewer of an %s campaign", async (status) => {
-    const { project } = await createCampaignParticipantContext({ status, role: "reviewer" })
+    const { project } = await createCampaignParticipantContext({
+      status,
+      roleKey: "review_campaign_reviewer",
+    })
 
     const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data.map((listedProject) => listedProject.id)).toEqual([project.id])
-    expect(response.body.data[0]?.permissions).toEqual([PROJECT_READ_PERMISSION])
+    expect([...(response.body.data[0]?.permissions ?? [])].sort()).toEqual(
+      [PROJECT_READ_PERMISSION, REVIEWER_UI_READ_PERMISSION].sort(),
+    )
   })
 
   it("lists nothing for a tester of a soft-deleted campaign", async () => {
@@ -142,7 +156,12 @@ describe("Projects - getAllMine", () => {
 
   it("lists the project once for a tester who is also a project member, with both sets of keys", async () => {
     const { project, user } = await createCampaignParticipantContext()
-    await addUserToProject({ repositories, project, user, membership: { role: "member" } })
+    await addUserToProject({
+      repositories,
+      project,
+      user,
+      membership: { roleKeys: ["project_member"] },
+    })
 
     const response = await subject()
 

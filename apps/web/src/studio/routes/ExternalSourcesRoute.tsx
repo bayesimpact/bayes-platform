@@ -11,12 +11,14 @@ import { useAppSelector } from "@/common/store/hooks"
 import { ExternalSourcesList } from "@/studio/features/document-sources/components/ExternalSourcesList"
 import { selectDocumentSourcesData } from "@/studio/features/document-sources/document-sources.selectors"
 import { documentSourcesActions } from "@/studio/features/document-sources/document-sources.slice"
+import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 
 export function ExternalSourcesRoute() {
   const projectId = useAppSelector(selectCurrentProjectId)
   const project = useAppSelector(selectCurrentProjectData)
   const documentSources = useAppSelector(selectDocumentSourcesData)
+  const documentTags = useAppSelector(selectDocumentTagsData)
   const canRead =
     ADS.isFulfilled(project) && project.value.permissions.includes(DOCUMENT_SOURCE_READ_PERMISSION)
 
@@ -30,7 +32,7 @@ export function ExternalSourcesRoute() {
   if (!canRead) return <NotFoundRoute />
 
   return (
-    <AsyncRoute data={[documentSources]}>
+    <AsyncRoute data={[documentSources, documentTags]}>
       <ExternalSourcesList />
     </AsyncRoute>
   )

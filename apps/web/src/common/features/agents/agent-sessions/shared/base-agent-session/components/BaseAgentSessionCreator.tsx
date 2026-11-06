@@ -1,4 +1,3 @@
-import { extractPromptVariables } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { SidebarMenuSubButton } from "@caseai-connect/ui/shad/sidebar"
 import throttle from "lodash/throttle"
@@ -6,43 +5,39 @@ import { PlusCircleIcon, PlusIcon } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { selectPlaygroundAgentSettings } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
-import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
-import { useValue } from "@/common/hooks/use-value"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { PromptVariablesSessionDialog } from "@/studio/features/agents/prompt-variables/PromptVariablesSessionDialog"
-import { buildType, createAgentChatSession } from "../base-agent-sessions.thunks"
+import { useAppDispatch } from "@/common/store/hooks"
+import { createAgentChatSession } from "../base-agent-sessions.thunks"
+
+export type RenderVariablesDialogParams = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: (variables: Record<string, string>) => void
+}
+
+export type BaseAgentSessionCreatorProps = {
+  agentType: Agent["type"]
+  type: "button" | "menu"
+  ids: { agentId: string; projectId: string; organizationId: string }
+  /**
+   * Collects the prompt variables before the session is created. A render prop because the
+   * dialog reads the settings under test from the store, which only Studio loads. When omitted,
+   * the session is created directly.
+   */
+  renderVariablesDialog?: (params: RenderVariablesDialogParams) => React.ReactNode
+}
 
 export function BaseAgentSessionCreator({
   agentType,
   type,
   ids,
-}: {
-  agentType: Agent["type"]
-  type: "button" | "menu"
-  ids: { agentId: string; projectId: string; organizationId: string }
-}) {
+  renderVariablesDialog,
+}: BaseAgentSessionCreatorProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { build } = useRoutesBuilder()
-
-  // The playground asks for the declared {{variables}} before creating a session, when the
-  // tested settings declare some and the feature is on; every other channel creates directly.
-  const project = useValue(selectCurrentProjectData)
-  const { hasFeature } = useFeatureFlags(project)
-  const testedAgentSettings = useAppSelector(
-    selectPlaygroundAgentSettings({ agentId: ids.agentId }),
-  )
-  const needsVariablesDialog =
-    agentType === "conversation" &&
-    buildType() === "playground" &&
-    hasFeature("agent-prompt-variables") &&
-    testedAgentSettings !== null &&
-    extractPromptVariables(testedAgentSettings.instructions).length > 0
 
   const [variablesDialogOpen, setVariablesDialogOpen] = useState(false)
 
@@ -65,26 +60,23 @@ export function BaseAgentSessionCreator({
     () =>
       throttle(
         () => {
-          if (needsVariablesDialog) setVariablesDialogOpen(true)
+          if (renderVariablesDialog) setVariablesDialogOpen(true)
           else createSession()
         },
         2000,
         { trailing: false },
       ),
-    [needsVariablesDialog, createSession],
+    [renderVariablesDialog, createSession],
   )
 
-  const variablesDialog = (
-    <PromptVariablesSessionDialog
-      open={variablesDialogOpen}
-      onOpenChange={setVariablesDialogOpen}
-      agentSettings={testedAgentSettings}
-      onConfirm={(variables) => {
-        setVariablesDialogOpen(false)
-        createSession(variables)
-      }}
-    />
-  )
+  const variablesDialog = renderVariablesDialog?.({
+    open: variablesDialogOpen,
+    onOpenChange: setVariablesDialogOpen,
+    onConfirm: (variables) => {
+      setVariablesDialogOpen(false)
+      createSession(variables)
+    },
+  })
 
   if (type === "button") {
     return (

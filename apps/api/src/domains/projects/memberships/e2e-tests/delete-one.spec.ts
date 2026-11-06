@@ -19,8 +19,8 @@ import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
 } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
-import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import type { User } from "@/domains/users/user.entity"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -81,7 +81,7 @@ describe("Project membership - deleteOne", () => {
       repositories,
       project,
       user: { email: "signed-in@example.com", authSubject: "oidc|signed-in" },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     })
     membershipId = membership.id
     memberUserId = membership.userId
@@ -111,7 +111,7 @@ describe("Project membership - deleteOne", () => {
         organization,
         project,
         user: { email: "admin@example.com", authSubject: "oidc|admin" },
-        projectMembership: { role: "admin" },
+        projectMembership: { roleKeys: ["project_admin"] },
       })
       authSubject = admin.authSubject!
       memberUserId = owner.id
@@ -125,12 +125,12 @@ describe("Project membership - deleteOne", () => {
         repositories,
         project,
         user: { email: "co-owner@example.com", authSubject: "oidc|co-owner" },
-        projectMembership: { role: "owner" },
+        projectMembership: { roleKeys: ["project_owner"] },
       })
       memberUserId = coOwner.id
 
       expectResponse(await subject(), 200)
-      const coOwnerRows = await repositories.userMembershipRepository.find({
+      const coOwnerRows = await repositories.roleGrantRepository.find({
         where: { userId: coOwner.id, resourceType: "project", resourceId: project.id },
       })
       expect(coOwnerRows).toEqual([])
@@ -147,7 +147,7 @@ describe("Project membership - deleteOne", () => {
     expect(response.body).toEqual({ data: { success: true } })
 
     // Verify the membership is actually deleted from the database
-    const deletedMembership = await repositories.userMembershipRepository.findOne({
+    const deletedMembership = await repositories.roleGrantRepository.findOne({
       where: { id: membershipId },
     })
     expect(deletedMembership).toBeNull()
@@ -226,28 +226,28 @@ describe("Project membership - deleteOne", () => {
       )
     }
 
-    const addCampaignRole = async ({
+    const addCampaignRoles = async ({
       organization,
       project,
       campaign,
       user,
-      role,
+      roleKeys,
     }: {
       organization: Organization
       project: Project
       campaign: Awaited<ReturnType<typeof createActiveCampaign>>
       user: User
-      role: ReviewCampaignMembershipRole
+      roleKeys: ReviewCampaignRoleKey[]
     }) =>
       saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
           .transient({ organization, project, campaign, user })
-          .build({ role }),
+          .build({ roleKeys }),
       })
 
     const findCampaignRows = (userId: string, campaignId: string) =>
-      repositories.userMembershipRepository.find({
+      repositories.roleGrantRepository.find({
         where: { userId, resourceType: "review_campaign", resourceId: campaignId },
       })
 
@@ -258,21 +258,19 @@ describe("Project membership - deleteOne", () => {
         projectFactory.transient({ organization }).build(),
       )
       const otherProjectCampaign = await createActiveCampaign(organization, otherProject)
-      for (const role of ["tester", "reviewer"] as const) {
-        await addCampaignRole({
-          organization,
-          project,
-          campaign: projectCampaign,
-          user: addedUser,
-          role,
-        })
-      }
-      const keptMembership = await addCampaignRole({
+      await addCampaignRoles({
+        organization,
+        project,
+        campaign: projectCampaign,
+        user: addedUser,
+        roleKeys: ["review_campaign_tester", "review_campaign_reviewer"],
+      })
+      const keptMembership = await addCampaignRoles({
         organization,
         project: otherProject,
         campaign: otherProjectCampaign,
         user: addedUser,
-        role: "tester",
+        roleKeys: ["review_campaign_tester"],
       })
 
       expectResponse(await subject(), 200)

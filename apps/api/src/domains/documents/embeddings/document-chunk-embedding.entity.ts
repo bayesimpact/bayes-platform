@@ -20,6 +20,7 @@ export class DocumentChunkEmbedding extends ConnectEntityBase {
   @Column({ name: "model_name", type: "varchar" })
   modelName!: string
 
-  @Column({ name: "embedding", type: "vector", length: 3072, nullable: true })
+  // Untyped on purpose: each model_name stores its own dimension (gemini 3072, bge-m3 1024). Retrieval always filters on model_name, so a distance never mixes sizes.
+  @Column({ name: "embedding", type: "vector", nullable: true })
   ___dont_use_this_column_directly___!: number[]
 }

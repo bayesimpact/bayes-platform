@@ -26,7 +26,6 @@ import {
   CloudAlertIcon,
   DatabaseZapIcon,
   FileIcon,
-  GlobeIcon,
   LibraryBigIcon,
   ListChecksIcon,
   Loader2Icon,
@@ -75,6 +74,11 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
             projectId={project.id}
             permissions={project.permissions}
           />
+          {!project.permissions.includes(PROJECT_APP_INSTALLATION_READ_PERMISSION) && (
+            <RestrictedFeature feature="apps-catalog">
+              <NavAppCatalog organizationId={project.organizationId} projectId={project.id} />
+            </RestrictedFeature>
+          )}
           <NavProjectMemberships organizationId={project.organizationId} projectId={project.id} />
           <NavAdmin organizationId={project.organizationId} projectId={project.id} />
         </SidebarMenu>
@@ -183,9 +187,6 @@ function NavSources({
               projectId={projectId}
               permissions={permissions}
             />
-            <RestrictedFeature feature="web-sources">
-              <NavWebSources organizationId={organizationId} projectId={projectId} />
-            </RestrictedFeature>
             <NavResourceLibraries organizationId={organizationId} projectId={projectId} />
           </SidebarMenuSub>
         </CollapsibleContent>
@@ -242,29 +243,6 @@ function NavExternalSources({
         <Link to={path}>
           <PlugIcon />
           <span>{t("nav")}</span>
-        </Link>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
-  )
-}
-
-function NavWebSources({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-  const { isRoute } = useIsRoute()
-  const isActive = isRoute(StudioRoutes.webSources.path)
-  const path = StudioRoutes.webSources.build({ organizationId, projectId })
-  return (
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton isActive={isActive} asChild>
-        <Link to={path}>
-          <GlobeIcon />
-          <span>{t("document:filter.webSources")}</span>
         </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>
@@ -355,7 +333,8 @@ function NavAppInstallations({
   const { isRoute } = useIsRoute()
   if (!permissions.includes(PROJECT_APP_INSTALLATION_READ_PERMISSION)) return null
 
-  const isActive = isRoute(StudioRoutes.appInstallations.path)
+  const isActive =
+    isRoute(StudioRoutes.appInstallations.path) || isRoute(StudioRoutes.appCatalog.path)
   const path = StudioRoutes.appInstallations.build({ organizationId, projectId })
   return (
     <SidebarMenuItem>
@@ -364,6 +343,31 @@ function NavAppInstallations({
           <AppWindowIcon />
           <span className={cn(isActive && "font-semibold capitalize-first")}>
             {t("appInstallations:title")}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
+
+function NavAppCatalog({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string
+  projectId: string
+}) {
+  const { t } = useTranslation()
+  const { isRoute } = useIsRoute()
+  const isActive = isRoute(StudioRoutes.appCatalog.path)
+  const path = StudioRoutes.appCatalog.build({ organizationId, projectId })
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton isActive={isActive} asChild>
+        <Link to={path}>
+          <AppWindowIcon />
+          <span className={cn(isActive && "font-semibold capitalize-first")}>
+            {t("appCatalog:title")}
           </span>
         </Link>
       </SidebarMenuButton>

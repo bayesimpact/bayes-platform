@@ -67,7 +67,7 @@ describe("Agent Memberships - addRole and removeRole", () => {
       organization,
       project,
       user: { email: "member@example.com", authSubject: "oidc|member" },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     })
     return { owner, agent, member }
   }
@@ -88,7 +88,7 @@ describe("Agent Memberships - addRole and removeRole", () => {
     })
 
   const roleKeysOn = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "agent", resourceId: agentId },
       relations: { rbacRole: true },
     })

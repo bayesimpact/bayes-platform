@@ -40,8 +40,9 @@ describe("Projects Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
   const day3Start = new Date("2026-01-03T00:00:00.000Z")
   const day3End = new Date(day3Start.getTime() + 24 * 60 * 60 * 1000 - 1)
 
+  // Empty sessions are left out of the mean: only sessions with a user message count.
   const expectedDays = [
-    { date: day1Start.toISOString().slice(0, 10), value: 1 },
+    { date: day1Start.toISOString().slice(0, 10), value: 2 },
     { date: day2Start.toISOString().slice(0, 10), value: 4 },
     { date: day3Start.toISOString().slice(0, 10), value: 0 },
   ]
@@ -72,7 +73,7 @@ describe("Projects Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
   const createContext = async () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role: "admin" },
+      projectMembership: { roleKeys: ["project_admin"] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -85,7 +86,7 @@ describe("Projects Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
       repositories,
       membership: agentMembershipFactory
         .transient({ user, agent: primaryAgent })
-        .build({ role: "admin" }),
+        .build({ roleKeys: ["agent_admin"] }),
     })
     primaryAgentId = primaryAgent.id
 
@@ -187,7 +188,7 @@ describe("Projects Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
     const response = await subject()
     expectResponse(response, 200)
     expect(response.body.data).toEqual([
-      { date: day1Start.toISOString().slice(0, 10), value: 1 },
+      { date: day1Start.toISOString().slice(0, 10), value: 2 },
       { date: day2Start.toISOString().slice(0, 10), value: 3 },
       { date: day3Start.toISOString().slice(0, 10), value: 0 },
     ])

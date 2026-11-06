@@ -1,8 +1,8 @@
 import {
-  AgentLocale,
   AgentModel,
   AgentsRoutes,
   DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -17,6 +17,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { projectEmbeddingModelFactory } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
@@ -91,7 +92,6 @@ describe("Agents - createOne", () => {
       instructions: "This is a default prompt",
       documentsRagMode: DocumentsRagMode.All,
       model: AgentModel.Gemma4_26B,
-      locale: AgentLocale.EN,
       tagsToAdd: [],
       projectAgentSessionCategoryIds: [],
     },
@@ -108,6 +108,25 @@ describe("Agents - createOne", () => {
   })
   const storedOptionsOf = async (agentId: string) =>
     (await setup.getRepository(AgentSettings).findOneByOrFail({ agentId })).providerOptions
+
+  it("gives a new agent its project's default embedding model", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save([
+      projectEmbeddingModelFactory
+        .completed()
+        .transient({ organization, project })
+        .build({ modelName: EmbeddingModel.GeminiEmbedding001 }),
+      projectEmbeddingModelFactory.default().transient({ organization, project }).build(),
+    ])
+
+    const response = await subject(vertex3AgentPayload())
+
+    expectResponse(response, 201)
+    const agentSettings = await setup
+      .getRepository(AgentSettings)
+      .findOneByOrFail({ agentId: response.body.data.id })
+    expect(agentSettings.embeddingModel).toBe(EmbeddingModel.BgeM3)
+  })
 
   it("stores the model's default options when the agent sets none", async () => {
     await createContext()
@@ -183,7 +202,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -210,7 +228,6 @@ describe("Agents - createOne", () => {
     })
     expect(agentSettings?.instructions).toBe("This is a default prompt")
     expect(agentSettings?.model).toBe(AgentModel.Gemini31FlashLite)
-    expect(agentSettings?.locale).toBe(AgentLocale.EN)
     expect(agentSettings?.documentsRagMode).toBe(DocumentsRagMode.All)
     await expectActivityCreated("agent.create")
   })
@@ -225,7 +242,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -261,7 +277,6 @@ describe("Agents - createOne", () => {
         greetingMessage: "Hi! How can I help you today?",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -285,7 +300,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -309,7 +323,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         fillFormEnabled: true,
         outputJsonSchema: {
           type: "object",
@@ -342,7 +355,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         fillFormEnabled: true,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -368,7 +380,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.Tags,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [documentTag.id],
         projectAgentSessionCategoryIds: [],
       },
@@ -404,7 +415,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [projectCategory.id],
       },

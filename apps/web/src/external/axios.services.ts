@@ -22,6 +22,7 @@ import agentMessageFeedback from "@/studio/features/agent-message-feedback/exter
 import agentSubAgents from "@/studio/features/agent-sub-agents/external/agent-sub-agents.api"
 import agentAnalytics from "@/studio/features/analytics/agent/external/agent-analytics.api"
 import projectAnalytics from "@/studio/features/analytics/project/external/analytics.api"
+import appCatalog from "@/studio/features/app-catalog/external/app-catalog.api"
 import appInstallations from "@/studio/features/app-installations/external/app-installations.api"
 import conversationReview from "@/studio/features/conversation-review/external/conversation-review.api"
 import documentSources from "@/studio/features/document-sources/external/document-sources.api"
@@ -29,6 +30,7 @@ import documentTags from "@/studio/features/document-tags/external/document-tags
 import documents from "@/studio/features/documents/external/documents.api"
 import invitations from "@/studio/features/invitations/external/invitations.api"
 import mcpServers from "@/studio/features/mcp-servers/external/mcp-servers.api"
+import projectEmbeddingModels from "@/studio/features/project-embedding-models/external/project-embedding-models.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
 import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
 import reviewCampaigns from "@/studio/features/review-campaigns/external/review-campaigns.api"
@@ -59,6 +61,7 @@ export const services = {
   evaluationExtractionRuns,
   extractionAgentSessions,
   mcpServers,
+  appCatalog,
   appInstallations,
   me,
   oauthConsent,
@@ -66,6 +69,7 @@ export const services = {
   invitations,
   organizations,
   projectAnalytics,
+  projectEmbeddingModels,
   projectMemberships,
   projects,
   resourceLibraries,

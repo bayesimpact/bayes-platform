@@ -216,61 +216,6 @@ export const getDocumentIsPublic = createAsyncThunk<
   return await services.documents.getIsPublic({ organizationId, projectId, documentId })
 })
 
-export const crawlUrl = createAsyncThunk<
-  { message: string },
-  { url: string; name?: string },
-  ThunkConfig
->("documents/crawlUrl", async ({ url, name }, { extra: { services }, getState }) => {
-  const state = getState()
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  return await services.documents.crawlUrl({ organizationId, projectId, url, name })
-})
-
-export const reCrawlUrl = createAsyncThunk<
-  { message: string },
-  { documentId: string },
-  ThunkConfig
->("documents/reCrawlUrl", async ({ documentId }, { extra: { services }, getState }) => {
-  const state = getState()
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  return await services.documents.reCrawlUrl({ organizationId, projectId, documentId })
-})
-
-export const cancelCrawl = createAsyncThunk<void, { documentId: string }, ThunkConfig>(
-  "documents/cancelCrawl",
-  async ({ documentId }, { extra: { services }, getState }) => {
-    const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-    await services.documents.cancelCrawl({ organizationId, projectId, documentId })
-  },
-)
-
-export const streamDocumentCrawlProgresses = createAsyncThunk<void, void, ThunkConfig>(
-  "documents/streamCrawlProgress",
-  async (_, { extra: { services }, getState, dispatch, signal }) => {
-    const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-
-    await services.documents.streamCrawlProgress({
-      organizationId,
-      projectId,
-      signal,
-      onProgressChanged: ({ documentId, pagesCrawled }) => {
-        dispatch(
-          documentsActions.patchDocumentCrawlProgress({
-            documentId,
-            pagesCrawled,
-          }),
-        )
-      },
-    })
-  },
-)
-
 export const streamDocumentEmbeddingStatuses = createAsyncThunk<void, void, ThunkConfig>(
   "documents/streamEmbeddingStatus",
   async (_, { extra: { services }, getState, dispatch, signal }) => {

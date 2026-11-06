@@ -4,6 +4,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@caseai-co
 import { LayoutGridIcon, PencilIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { LogOutButton } from "@/common/components/auth/LogOutButton"
 import { Grid, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { EditOrganizationDialog } from "@/common/components/organization/EditOrganizationDialog"
 import { OrganizationCreator } from "@/common/components/organization/OrganizationCreator"
@@ -12,9 +13,13 @@ import {
   type OrganizationWithProjects,
   selectOrganizationsWithProjectsData,
 } from "@/common/features/organizations/organizations.selectors"
-import { useAppSelector } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { publicAssetUrl } from "@/config/runtime-config"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import {
+  acceptInvitation,
+  declineInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
 import { PendingInvitationList } from "../components/home/PendingInvitationList"
 import {
@@ -89,6 +94,7 @@ function Main({
   invitations: PendingInvitations
 }) {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
 
   return (
     <SearchWorkspaces organizations={organizations}>
@@ -108,13 +114,22 @@ function Main({
                 {t("organization:list:title", { name: user.name })}
               </div>
             }
-            action={<SearchWorkspacesInput />}
+            action={
+              <div className="flex items-center gap-2">
+                <SearchWorkspacesInput />
+                <LogOutButton />
+              </div>
+            }
           />
         </Wrap>
 
         {invitations.length > 0 && (
           <Wrap className="mb-0 md:mb-0">
-            <PendingInvitationList invitations={invitations} />
+            <PendingInvitationList
+              invitations={invitations}
+              onAccept={(invitationId) => dispatch(acceptInvitation({ invitationId }))}
+              onDecline={(invitationId) => dispatch(declineInvitation({ invitationId }))}
+            />
           </Wrap>
         )}
 

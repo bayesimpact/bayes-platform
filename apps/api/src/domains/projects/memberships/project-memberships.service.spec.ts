@@ -7,13 +7,13 @@ import {
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { AGENT_CONVERSATION_REVIEWER_ROLE, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
@@ -63,7 +63,7 @@ describe("ProjectMembershipsService", () => {
       expect(membership.roles.map((role) => role.key)).toEqual(["project_owner"])
 
       // the RBAC role backing the membership is resolved at write time
-      const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
+      const savedMembership = await repositories.roleGrantRepository.findOneOrFail({
         where: { id: membership.roles[0]?.membershipId },
       })
       const projectOwnerRole = await repositories.roleRepository.findOneOrFail({
@@ -136,7 +136,7 @@ describe("ProjectMembershipsService", () => {
         repositories,
         project,
         user: invitedUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       const createAdminAgentMembershipsSpy = jest
         .spyOn(agentMembershipsService, "createAdminAgentMembershipsForUserInProject")
@@ -148,7 +148,7 @@ describe("ProjectMembershipsService", () => {
       })
 
       expect(result).toBeNull()
-      const updatedMembership = await repositories.userMembershipRepository.findOneOrFail({
+      const updatedMembership = await repositories.roleGrantRepository.findOneOrFail({
         where: {
           userId: invitedUser.id,
           resourceType: "project",
@@ -185,7 +185,7 @@ describe("ProjectMembershipsService", () => {
         repositories,
         project,
         user: placeholderUser,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
       const deleteAgentMembershipsSpy = jest
         .spyOn(agentMembershipsService, "deleteAgentMembershipsForUserInProject")
@@ -197,7 +197,7 @@ describe("ProjectMembershipsService", () => {
         projectId: project.id,
       })
 
-      const deletedMembership = await repositories.userMembershipRepository.findOne({
+      const deletedMembership = await repositories.roleGrantRepository.findOne({
         where: { id: membership.id },
       })
       const deletedUser = await repositories.userRepository.findOne({
@@ -220,8 +220,8 @@ describe("ProjectMembershipsService", () => {
       roleKey: string
     }) => {
       const role = await repositories.roleRepository.findOneOrFail({ where: { key: roleKey } })
-      return repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      return repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId,
           resourceType: "project",
           resourceId: projectId,
@@ -238,7 +238,7 @@ describe("ProjectMembershipsService", () => {
       const { membership } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await giveRole({
         userId: membership.userId,
@@ -292,10 +292,15 @@ describe("ProjectMembershipsService", () => {
       const { membership, user: member } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await giveRole({ userId: member.id, projectId: project.id, roleKey: PROJECT_ROLES.admin })
-      await addUserToAgent({ repositories, agent, user: member, membership: { role: "admin" } })
+      await addUserToAgent({
+        repositories,
+        agent,
+        user: member,
+        membership: { roleKeys: ["agent_admin"] },
+      })
       await grantConversationReview({ repositories, user: member, agent })
 
       await service.removeProjectMembership({
@@ -304,7 +309,7 @@ describe("ProjectMembershipsService", () => {
         projectId: project.id,
       })
 
-      const remainingRows = await repositories.userMembershipRepository.find({
+      const remainingRows = await repositories.roleGrantRepository.find({
         where: { userId: member.id },
         relations: { rbacRole: true },
       })
@@ -318,7 +323,7 @@ describe("ProjectMembershipsService", () => {
       const { membership: coOwnerMembership, user: coOwner } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "owner" },
+        membership: { roleKeys: ["project_owner"] },
       })
       const ownerMembership = await service.findProjectMembership({
         userId: owner.id,
@@ -337,7 +342,7 @@ describe("ProjectMembershipsService", () => {
       const { user: admin } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
       await expect(
         service.removeProjectMembership({

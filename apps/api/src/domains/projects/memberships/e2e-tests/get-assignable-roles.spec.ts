@@ -65,7 +65,7 @@ describe("Project membership - getAssignableRoles", () => {
           organization,
           project,
           user: { email, authSubject: `oidc|${randomUUID()}` },
-          projectMembership: { role: "member" },
+          projectMembership: { roleKeys: ["project_member"] },
         })
       ).addedUser
     const first = await addMember("first@example.com")
@@ -74,7 +74,7 @@ describe("Project membership - getAssignableRoles", () => {
   }
 
   const _roleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "project", resourceId: projectId },
       relations: { rbacRole: true },
     })
@@ -82,7 +82,7 @@ describe("Project membership - getAssignableRoles", () => {
   }
 
   const _agentRoleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "agent" },
       relations: { rbacRole: true },
     })
@@ -100,7 +100,11 @@ describe("Project membership - getAssignableRoles", () => {
 
     expectResponse(response, 200)
     const { project, agent, review_campaign } = response.body.data
-    expect(project.map((role) => role.key)).toEqual(["project_admin", "project_member"])
+    expect(project.map((role) => role.key)).toEqual([
+      "project_admin",
+      "project_member",
+      "project_evaluator",
+    ])
     expect(project[0]?.name).toBe("Project Admin")
     // Owner roles are set at creation, and the conversation reviewer role is a backoffice grant.
     expect(agent.map((role) => role.key)).toEqual(["agent_admin", "agent_member"])

@@ -2,6 +2,7 @@ import { Column, ManyToMany } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { Document } from "../document.entity"
+import type { DocumentSource } from "../sources/document-source.entity"
 
 @ConnectEntity("document_tag")
 export class DocumentTag extends ConnectEntityBase {
@@ -16,6 +17,9 @@ export class DocumentTag extends ConnectEntityBase {
 
   @ManyToMany("Document", (document: Document) => document.tags)
   documents!: Document[]
+
+  @ManyToMany("DocumentSource", (documentSource: DocumentSource) => documentSource.tags)
+  documentSources!: DocumentSource[]
 
   @ManyToMany("Agent", (agent: Agent) => agent.documentTags)
   agents!: Agent[]

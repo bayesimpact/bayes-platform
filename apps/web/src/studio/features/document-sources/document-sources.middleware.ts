@@ -1,12 +1,13 @@
 import { DOCUMENT_SOURCE_READ_PERMISSION } from "@caseai-connect/api-contracts"
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { projectsActions } from "@/common/features/projects/projects.slice"
 import { listProjects } from "@/common/features/projects/projects.thunks"
 import { ADS } from "@/common/store/async-data-status"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { documentSourcesActions } from "./document-sources.slice"
-import { listDocumentSources } from "./document-sources.thunks"
+import { listDocumentSources, updateDocumentSourceTags } from "./document-sources.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
@@ -22,6 +23,18 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       if (!canReadDocumentSources(listenerApi.getState())) return
       await listenerApi.dispatch(listDocumentSources())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: updateDocumentSourceTags.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "documentSource:notifications.tagsUpdateError",
+          type: "error",
+        }),
+      )
     },
   })
 }

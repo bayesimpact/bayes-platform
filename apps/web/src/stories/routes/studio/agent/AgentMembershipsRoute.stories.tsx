@@ -103,11 +103,22 @@ const decorator = buildDecorator<StoryArgs>(
         seed.studio.agentHistory({ agentId: currentAgent.id, versions: [currentAgentSettings] }),
         seed.studio.agentPendingInvitations(
           withPendingInvitations
-            ? pendingInvitationFactory.buildList(2, {
-                targetType: "agent",
-                targetId: currentAgent.id,
-                targetName: currentAgent.name,
-              })
+            ? [
+                ...pendingInvitationFactory.buildList(2, {
+                  targetType: "agent",
+                  targetId: currentAgent.id,
+                  targetName: currentAgent.name,
+                }),
+                // A workspace invitation that gives this agent and others.
+                pendingInvitationFactory.build({
+                  targetType: "project",
+                  role: "member",
+                  agents: [currentAgent, ...restAgents].map((agent) => ({
+                    id: agent.id,
+                    name: agent.name,
+                  })),
+                }),
+              ]
             : [],
         ),
       ),

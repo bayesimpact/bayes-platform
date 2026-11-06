@@ -5,6 +5,7 @@ import {
   updateDocumentTagsSchema,
 } from "../../document-tags/document-tag.dto"
 import type { TimeType } from "../../generic"
+import { EmbeddingModel } from "../../project-embedding-models/project-embedding-models.dto"
 import type { AgentDto, AgentType } from "../agents.dto"
 
 export enum AgentModel {
@@ -91,11 +92,6 @@ export enum AgentMemoryMode {
   Auto = "auto",
 }
 
-export enum AgentLocale {
-  EN = "en",
-  FR = "fr",
-}
-
 export enum DocumentsRagMode {
   All = "all",
   None = "none",
@@ -114,6 +110,8 @@ export type AgentSettingsDto = {
   description?: string
   documentsRagMode: DocumentsRagMode
   documentTagIds: DocumentTagDto["id"][]
+  /** Embedding model the knowledge base lookup retrieves with. */
+  embeddingModel: EmbeddingModel
   fillFormEnabled: boolean
   priorityCallsEnabled: boolean
   greetingMessage?: string
@@ -127,7 +125,6 @@ export type AgentSettingsDto = {
   variables: Record<string, string> | null
   isArchived: boolean
   isDraft: boolean
-  locale: AgentLocale
   mcpServers: AgentMcpServerDto[]
   model: AgentModel
   name?: string
@@ -223,8 +220,8 @@ export const agentSettingsValidationSchema = z.object({
   instructions: z.string(),
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),
+  embeddingModel: z.enum(EmbeddingModel),
   fillFormEnabled: z.boolean(),
-  locale: z.enum(AgentLocale),
   priorityCallsEnabled: z.boolean(),
   model: z.enum(AgentModel),
   outputJsonSchema: outputJsonSchemaSchema.optional(),
@@ -281,7 +278,6 @@ export const updateAgentSettingsSchema = agentSettingsValidationSchema
     instructions: true,
     documentTagIds: true,
     documentsRagMode: true,
-    locale: true,
     model: true,
     outputJsonSchema: true,
     projectAgentSessionCategoryIds: true,
@@ -305,7 +301,7 @@ export const updateAgentSettingsOutputSchema = z.object({
 const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
 
 export const updateAgentSettingsGeneralSchema = agentSettingsValidationSchema
-  .pick({ locale: true, instructions: true, variables: true })
+  .pick({ instructions: true, variables: true })
   .extend({
     name: z.string().trim().min(3).max(100),
     greetingMessage: greetingMessageUpdateSchema,
@@ -316,14 +312,17 @@ export const updateAgentSettingsModelSchema = agentSettingsValidationSchema.pick
   model: true,
   providerOptions: true,
   priorityCallsEnabled: true,
+  embeddingModel: true,
 })
 export type UpdateAgentSettingsModelDto = z.infer<typeof updateAgentSettingsModelSchema>
 
 export type UpdateAgentSettingsOutputDto = z.infer<typeof updateAgentSettingsOutputSchema>
 
+// The Sources tab edits what the agent answers from: its documents and its resource libraries.
 export const updateAgentSettingsSourcesSchema = agentSettingsValidationSchema
   .pick({ documentsRagMode: true, documentTagIds: true })
   .extend({
+    resourceLibraryIds: z.array(z.string().uuid()),
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
     tagsToRemove: updateDocumentTagsSchema.required().shape.tagsToRemove,
   })
@@ -335,16 +334,12 @@ export type UpdateAgentSettingsSourcesDto = z.infer<typeof updateAgentSettingsSo
 
 export const updateAgentSettingsSourcesFormSchema = agentSettingsValidationSchema
   .pick({ documentsRagMode: true, documentTagIds: true })
+  .extend({ resourceLibraryIds: z.array(z.string().uuid()) })
   .refine(hasRequiredDocumentTags, {
     message: "At least one document tag is required when documentsRagMode is 'tags'",
     path: ["documentTagIds"],
   })
 export type UpdateAgentSettingsSourcesFormDto = z.infer<typeof updateAgentSettingsSourcesFormSchema>
-
-export const updateAgentSettingsResourcesSchema = agentSettingsValidationSchema
-  .pick({ resourceLibraryIds: true })
-  .extend({ resourceLibraryIds: z.array(z.string().uuid()) })
-export type UpdateAgentSettingsResourcesDto = z.infer<typeof updateAgentSettingsResourcesSchema>
 
 // The Tools tab toggles optional tools on a conversation agent. fillForm's form
 // definition is the agent's outputJsonSchema; it must be present when the tool is

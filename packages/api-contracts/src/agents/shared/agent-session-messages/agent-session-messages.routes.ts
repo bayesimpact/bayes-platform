@@ -20,7 +20,8 @@ const agentSessionsPath =
  * its own permissions.
  */
 function defineAgentSessionMessagesRoutes(type: ConversationAgentSessionTypeDto) {
-  const prefix = `${agentSessionsPath}/${type}/:agentSessionId/messages`
+  const sessionPath = `${agentSessionsPath}/${type}/:agentSessionId`
+  const prefix = `${sessionPath}/messages`
 
   return {
     getAll: defineRoute<ResponseData<AgentSessionMessageDto[]>>({
@@ -66,7 +67,9 @@ function defineAgentSessionMessagesRoutes(type: ConversationAgentSessionTypeDto)
       }>
     >({
       method: "post",
-      path: `${prefix}/stream`,
+      // Not under `messages/`: `getOne` is `POST messages/:messageId`, which would take
+      // `messages/stream` for a message id when its controller registers first.
+      path: `${sessionPath}/stream`,
     }),
   }
 }

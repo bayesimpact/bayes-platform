@@ -6,11 +6,11 @@ Bucket lifecycle rules only express whole days, so they cannot enforce a TTL mea
 
 ## Contract with the converter
 
-The converter owns the lifetime of an export: it puts the exact instant the signed URL stops working in the object name, in Unix seconds before the id. The sweep reads it from a plain listing and deletes the object once it is in the past, so the two sides never have to agree on a TTL, on S3 and GCS alike.
+The converter owns the lifetime of an export: it puts the exact instant the signed URL stops working in the object name, in Unix seconds before the id. The sweep reads it from a plain listing and deletes the object once it is in the past, so the two sides never have to agree on a TTL.
 
 | Env var | Default | Used by |
 |---------|---------|---------|
-| `STORAGE_BACKEND`, `S3_*`, `GCS_STORAGE_BUCKET_NAME` | (unset) | both: the bucket exports are written to and swept from |
+| `STORAGE_BACKEND`, `S3_*` | (unset) | both: the bucket exports are written to and swept from |
 | `PDF_EXPORT_TMP_PREFIX` | `tmp/pdf-exports/` | both: the folder exports live in, must match |
 | `PDF_EXPORT_TTL_MINUTES` | `15` | converter: lifetime of a signed download URL. Workers: fallback only, for legacy objects without an expiry in their name |
 | `PDF_EXPORT_SWEEP_INTERVAL_SECONDS` | `300` | workers only: how often the sweep runs |
@@ -35,6 +35,6 @@ Legacy objects without a creation date are counted and left alone: deleting an o
 
 ## Deployment
 
-- The workers need to list and delete objects in the bucket: on S3, `s3:ListBucket` and `s3:DeleteObject`; on GCS, `storage.objects.list` and `storage.objects.delete` (`roles/storage.objectAdmin`, or a custom role with those two permissions plus the ones the API already needs).
+- The workers need to list and delete objects in the bucket: `s3:ListBucket` and `s3:DeleteObject`. On Cloud Storage, the service account of the HMAC key needs `storage.objects.list` and `storage.objects.delete` (`roles/storage.objectAdmin`, or a custom role with those two permissions plus the ones the API already needs).
 - Production `WORKER_QUEUE_NAMES` must include `pdf-exports-sweep` on exactly one worker pool. The queue is registered in `worker-pools.ts` and mapped to `PdfExportsSweepWorkersModule` in `workers-app.module.ts`, so a pool that does not list it never loads the module.
 - The scheduler is idempotent: every worker that loads the module upserts the same job scheduler id, so running several instances still produces one sweep per interval.

@@ -42,6 +42,10 @@ export type RuntimeConfig = {
   defaultFormAgentSchema?: string
   defaultExtractionAgentPrompt?: string
   defaultExtractionAgentSchema?: string
+  /** Deployed image tag (`26.10.7`, `main-1234-abc1234`), set by the deployment. */
+  appVersion?: string
+  /** Commit the image was built from. */
+  gitSha?: string
 }
 
 declare global {
@@ -74,7 +78,22 @@ function readBuildTimeConfig(): RuntimeConfig {
     defaultFormAgentSchema: env.VITE_DEFAULT_FORM_AGENT_SCHEMA,
     defaultExtractionAgentPrompt: env.VITE_DEFAULT_EXTRACTION_AGENT_PROMPT,
     defaultExtractionAgentSchema: env.VITE_DEFAULT_EXTRACTION_AGENT_SCHEMA,
+    appVersion: env.VITE_APP_VERSION,
+    gitSha: env.VITE_GIT_SHA,
   }
+}
+
+/**
+ * Version to show to users: the deployed tag, or the short commit when only
+ * the build knows it. Undefined when neither is set (local development).
+ */
+export function getDisplayedAppVersion(
+  config: Pick<RuntimeConfig, "appVersion" | "gitSha">,
+): string | undefined {
+  const appVersion = config.appVersion?.trim()
+  if (appVersion) return appVersion
+  const gitSha = config.gitSha?.trim()
+  return gitSha ? gitSha.slice(0, 7) : undefined
 }
 
 /** Injected values win over build-time values, key by key. Undefined injected keys are ignored. */

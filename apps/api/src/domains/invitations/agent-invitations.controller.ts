@@ -37,13 +37,18 @@ export class AgentInvitationsController {
     @Req() request: EndpointRequestWithAgent,
     @Body() body: typeof AgentInvitationsRoutes.createMany.request,
   ): Promise<typeof AgentInvitationsRoutes.createMany.response> {
-    const { invitations, emailSent } = await this.invitationsService.createMany({
+    const { invitations, emailSent, grantedEmails } = await this.invitationsService.createMany({
       target: agentInvitationTarget(request.agent),
       emails: body.payload.emails ?? [],
-      inviter: { name: request.user.name, email: request.user.email },
+      inviter: { userId: request.user.id, name: request.user.name, email: request.user.email },
+      language: body.payload.language,
     })
     return {
-      data: { invitations: await this.invitationsService.toDtos(invitations), emailSent },
+      data: {
+        invitations: await this.invitationsService.toDtos(invitations),
+        emailSent,
+        grantedEmails,
+      },
     }
   }
 

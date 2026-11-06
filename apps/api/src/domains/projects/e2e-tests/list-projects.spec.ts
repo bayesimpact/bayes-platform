@@ -2,8 +2,7 @@ import { randomUUID } from "node:crypto"
 import {
   AGENT_CREATE_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
-  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
-  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
   PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
@@ -156,13 +155,13 @@ describe("Projects - listProjects", () => {
       repositories,
       project: adminProject,
       user,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["project_admin"] },
     })
     await addUserToProject({
       repositories,
       project: memberProject,
       user,
-      membership: { role: "member" },
+      membership: { roleKeys: ["project_member"] },
     })
 
     const response = await subject()
@@ -174,9 +173,11 @@ describe("Projects - listProjects", () => {
     expect([...(permissionsByName.Admin ?? [])].sort()).toEqual(
       [
         DOCUMENT_SOURCE_READ_PERMISSION,
+        DOCUMENT_SOURCE_UPDATE_PERMISSION,
+        "document.read",
+        "document.update",
         "desk.ui.read",
         "studio.ui.read",
-        "evaluation.ui.read",
         PROJECT_MEMBER_UPDATE_PERMISSION,
         PROJECT_MEMBER_DELETE_PERMISSION,
         PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
@@ -185,8 +186,6 @@ describe("Projects - listProjects", () => {
         PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
         PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
         AGENT_CREATE_PERMISSION,
-        EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
-        EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
       ].sort(),
     )
     expect(permissionsByName.Member).toEqual(["desk.ui.read"])
@@ -215,7 +214,7 @@ describe("Projects - listProjects", () => {
       organization,
       project: campaignProject,
       campaign,
-      role: "tester",
+      roleKeys: ["review_campaign_tester"],
       user: { authSubject: testerAuthSubject, email: mockOidcEmailForSub(testerAuthSubject) },
     })
     authSubject = testerAuthSubject
@@ -224,6 +223,7 @@ describe("Projects - listProjects", () => {
 
     expectResponse(response, 200)
     expect(response.body.data.map((project) => project.name)).toEqual(["Campaign"])
-    expect(response.body.data[0]?.permissions).toEqual([])
+    // Only the tester app opens: no studio, desk or evaluation key.
+    expect(response.body.data[0]?.permissions).toEqual(["tester.ui.read"])
   })
 })

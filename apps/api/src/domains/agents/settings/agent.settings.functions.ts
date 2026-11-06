@@ -34,7 +34,6 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "documentsRagMode",
   "model",
   "deletedTemperature",
-  "locale",
   "outputJsonSchema",
   "greetingMessage",
   "fillFormEnabled",
@@ -42,6 +41,7 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "providerOptions",
   "memoryMode",
   "variables",
+  "embeddingModel",
 ]
 
 export function extractAgentSettingsCreateFields<T extends object>(

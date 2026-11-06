@@ -21,6 +21,44 @@ const IS_WINDOWS = platform() === "win32"
 
 const runCommand = promisify(execFile)
 
+/** The last line of a Python traceback: `PermissionError: [Errno 13] Permission denied: ...`. */
+const PYTHON_EXCEPTION_LINE = /^[A-Za-z_][\w.]*(Error|Exception): /
+
+/**
+ * The chunker failed. The message is one line, the Python exception when there is one, as it is
+ * shown on the document and in the error logs; the stack keeps the whole stderr.
+ */
+export class DocumentChunkerError extends Error {
+  constructor(summary: string, stderr: string, options?: ErrorOptions) {
+    super(`Document chunker failed: ${summary}`, options)
+    this.name = "DocumentChunkerError"
+    if (stderr) {
+      this.stack = `${this.stack}\nstderr:\n${stderr}`
+    }
+  }
+}
+
+/** The one line that says why the chunker failed, from the error of `execFile`. */
+export function summarizeChunkerFailure(
+  error: { message: string; stderr?: string; killed?: boolean },
+  timeoutMs: number,
+): string {
+  if (error.killed) {
+    return `timed out after ${timeoutMs} ms`
+  }
+  // Progress bars write carriage returns, not newlines.
+  const lines = (error.stderr ?? "")
+    .split(/\r?\n|\r/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+  return (
+    [...lines].reverse().find((line) => PYTHON_EXCEPTION_LINE.test(line)) ??
+    lines.at(-1) ??
+    error.message.split("\n", 1)[0] ??
+    "unknown error"
+  )
+}
+
 function isPowerShellScript(scriptPath: string): boolean {
   return scriptPath.toLowerCase().endsWith(".ps1")
 }
@@ -122,10 +160,17 @@ export async function extractTextWithDocling({
       "--output-json",
       outputPath,
     ])
-    await runCommand(invocation.executable, invocation.args, {
-      timeout: timeoutMs ?? getDoclingTimeoutMs(),
-      maxBuffer,
-    })
+    const timeout = timeoutMs ?? getDoclingTimeoutMs()
+    try {
+      await runCommand(invocation.executable, invocation.args, { timeout, maxBuffer })
+    } catch (error) {
+      const commandError = error as Error & { stderr?: string; killed?: boolean }
+      throw new DocumentChunkerError(
+        summarizeChunkerFailure(commandError, timeout),
+        commandError.stderr ?? "",
+        { cause: error },
+      )
+    }
 
     const raw = await readFile(outputPath, "utf8")
     const parsed: unknown = JSON.parse(raw)

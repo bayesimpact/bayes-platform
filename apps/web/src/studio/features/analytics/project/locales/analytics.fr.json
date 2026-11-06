@@ -19,6 +19,14 @@
       "title": "Questions utilisateur moy. par session",
       "description": "Moyenne des messages utilisateur par session et par jour",
       "metricLabel": "Par jour"
+    },
+    "emptySessions": {
+      "note_one": "{{emptyCount}} session ouverte sans question n’est pas comptée ({{share}} des {{sessionCount}} sessions).",
+      "note_other": "{{emptyCount}} sessions ouvertes sans question ne sont pas comptées ({{share}} des {{sessionCount}} sessions).",
+      "warning": {
+        "title": "La plupart des sessions n’ont aucune question",
+        "description": "{{emptyCount}} sessions sur {{sessionCount}} ({{share}}) ont été ouvertes sans message de l’utilisateur. Elles ne sont pas comptées comme conversations. Cela arrive souvent quand une intégration crée la session au chargement de la page, et non au premier message."
+      }
     }
   }
 }

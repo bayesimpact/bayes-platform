@@ -23,6 +23,7 @@ export const appInstallationFactory = AppInstallationFactory.define(
       appName: params.appName ?? faker.helpers.arrayElement(APP_NAMES),
       description: params.description !== undefined ? params.description : faker.lorem.sentence(),
       logoUrl: params.logoUrl ?? null,
+      appUrl: params.appUrl !== undefined ? params.appUrl : faker.internet.url(),
       permissions: params.permissions ?? ["document.read", "document.create"],
       createdAt: params.createdAt ?? faker.date.past().getTime(),
     }

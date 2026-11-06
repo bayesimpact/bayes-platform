@@ -11,6 +11,7 @@ cd "$WT_PATH"
 chown "$WT_UID:$WT_GID" /npm-cache /go-cache \
   node_modules \
   apps/api/node_modules \
+  apps/desk/node_modules \
   apps/help/node_modules \
   apps/web/node_modules \
   apps/web-embed/node_modules \

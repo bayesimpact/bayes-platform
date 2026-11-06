@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { Brackets, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { Invitation } from "./invitation.entity"
@@ -13,6 +13,8 @@ export type InvitationDetails = {
   /** Review campaign status, null for other targets. */
   targetStatus: string | null
   targetExists: boolean
+  /** The agents the invitation also gives that still exist, by name. */
+  agents: { id: string; name: string }[]
 }
 
 type InvitationDetailsRow = {
@@ -36,11 +38,13 @@ export class InvitationRepository {
     userId: string
     invitedEmail: string
     role: string
+    agentIds?: string[]
     invitationToken: string
   }): Promise<Invitation> {
     return this.repo().save(
       this.repo().create({
         ...params,
+        agentIds: params.agentIds ?? [],
         status: "pending",
         invitedAt: new Date(),
         acceptedAt: null,
@@ -67,13 +71,65 @@ export class InvitationRepository {
     })
   }
 
+  /** Without a role, any pending invitation of the user to the target. */
   async findPendingForUserAndTarget(params: {
     userId: string
     targetType: InvitationTargetType
     targetId: string
-    role: string
+    role?: string
   }): Promise<Invitation | null> {
-    return this.repo().findOne({ where: { ...params, status: "pending" } })
+    const { role, ...where } = params
+    return this.repo().findOne({
+      where: { ...where, ...(role ? { role } : {}), status: "pending" },
+    })
+  }
+
+  /** The agent's own pending invitations, and the pending workspace invitations that give it. */
+  async listPendingForAgent(agentId: string): Promise<Invitation[]> {
+    return this.pendingForAgentQuery(agentId).orderBy("invitation.invitedAt", "DESC").getMany()
+  }
+
+  async findPendingByIdForAgent(params: {
+    invitationId: string
+    agentId: string
+  }): Promise<Invitation | null> {
+    return this.pendingForAgentQuery(params.agentId)
+      .andWhere("invitation.id = :invitationId", { invitationId: params.invitationId })
+      .getOne()
+  }
+
+  /** Takes an agent out of a workspace invitation. */
+  async removeAgent(params: { invitationId: string; agentId: string }): Promise<void> {
+    await this.transactionService
+      .getManager()
+      .query(`UPDATE invitation SET agent_ids = array_remove(agent_ids, $2::uuid) WHERE id = $1`, [
+        params.invitationId,
+        params.agentId,
+      ])
+  }
+
+  /** Adds agents to a workspace invitation, keeping the ones it already gives. */
+  async addAgents(params: { invitationId: string; agentIds: string[] }): Promise<Invitation> {
+    await this.transactionService.getManager().query(
+      `UPDATE invitation
+      SET agent_ids = ARRAY(SELECT DISTINCT unnest(agent_ids || $2::uuid[]))
+      WHERE id = $1`,
+      [params.invitationId, params.agentIds],
+    )
+    return this.repo().findOneOrFail({ where: { id: params.invitationId } })
+  }
+
+  /** The agents of the project that are not deleted, among the ones given, or all of them. */
+  async findLiveAgentIdsOfProject(params: {
+    projectId: string
+    agentIds?: string[]
+  }): Promise<string[]> {
+    const rows: { id: string }[] = await this.transactionService.getManager().query(
+      `SELECT id FROM agent
+      WHERE project_id = $1 AND deleted_at IS NULL AND ($2::uuid[] IS NULL OR id = ANY($2::uuid[]))`,
+      [params.projectId, params.agentIds ?? null],
+    )
+    return rows.map((row) => row.id)
   }
 
   async listPendingForUser(userId: string): Promise<Invitation[]> {
@@ -143,6 +199,7 @@ export class InvitationRepository {
       WHERE invitation.id = ANY($1::uuid[])`,
       [invitationIds],
     )
+    const agentsById = await this.findAgentsByInvitationIds(invitationIds)
     return new Map(
       rows.map((row) => [
         row.id,
@@ -152,9 +209,51 @@ export class InvitationRepository {
           targetName: row.target_name ?? "",
           targetStatus: row.target_status,
           targetExists: row.target_exists,
+          agents: agentsById.get(row.id) ?? [],
         },
       ]),
     )
+  }
+
+  private async findAgentsByInvitationIds(
+    invitationIds: string[],
+  ): Promise<Map<string, { id: string; name: string }[]>> {
+    const rows: { invitation_id: string; id: string; name: string }[] =
+      await this.transactionService.getManager().query(
+        `SELECT invitation.id AS invitation_id, agent.id, agent.name
+        FROM invitation
+        JOIN agent ON agent.id = ANY(invitation.agent_ids) AND agent.deleted_at IS NULL
+        WHERE invitation.id = ANY($1::uuid[])
+        ORDER BY agent.name`,
+        [invitationIds],
+      )
+    const agentsById = new Map<string, { id: string; name: string }[]>()
+    for (const row of rows) {
+      const agents = agentsById.get(row.invitation_id) ?? []
+      agents.push({ id: row.id, name: row.name })
+      agentsById.set(row.invitation_id, agents)
+    }
+    return agentsById
+  }
+
+  private pendingForAgentQuery(agentId: string) {
+    return this.repo()
+      .createQueryBuilder("invitation")
+      .where("invitation.status = 'pending'")
+      .andWhere(
+        new Brackets((query) => {
+          query
+            .where("invitation.target_type = 'agent' AND invitation.target_id = :agentId", {
+              agentId,
+            })
+            .orWhere(
+              "invitation.target_type = 'project' AND :agentId = ANY(invitation.agent_ids)",
+              {
+                agentId,
+              },
+            )
+        }),
+      )
   }
 
   private repo(): Repository<Invitation> {

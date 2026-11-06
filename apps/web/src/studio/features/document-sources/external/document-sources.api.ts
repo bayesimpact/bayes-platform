@@ -11,6 +11,13 @@ export default {
     )
     return response.data.data.map((documentSource) => toDocumentSource(documentSource, projectId))
   },
+  updateOne: async ({ organizationId, projectId, documentSourceId, payload }) => {
+    const axios = getAxiosInstance()
+    await axios.patch<typeof DocumentSourcesRoutes.updateOne.response>(
+      DocumentSourcesRoutes.updateOne.getPath({ organizationId, projectId, documentSourceId }),
+      { payload } satisfies typeof DocumentSourcesRoutes.updateOne.request,
+    )
+  },
   deleteOne: async ({ organizationId, projectId, documentSourceId }) => {
     const axios = getAxiosInstance()
     await axios.delete<typeof DocumentSourcesRoutes.deleteOne.response>(
@@ -32,6 +39,7 @@ function toDocumentSource(dto: DocumentSourceSummaryDto, projectId: string): Doc
     indexedDocumentCount: dto.indexedDocumentCount,
     lastSyncedAt: dto.lastSyncedAt,
     status: dto.status,
+    tagIds: dto.tagIds,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
   }

@@ -21,7 +21,10 @@ import type { ConversationAgentSession } from "@/common/features/agents/agent-se
 import { selectCurrentConversationAgentSessionsDataFromAgentId } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
 import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
-import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
+import {
+  BaseAgentSessionCreator,
+  type BaseAgentSessionCreatorProps,
+} from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
@@ -35,6 +38,11 @@ type AgentSessionProps = {
   projectId: string
   agentId: string
   agentType: Agent["type"]
+  /**
+   * The component that creates a session from the sidebar. Defaults to the base creator;
+   * Studio passes the playground one, which asks for the prompt variables first.
+   */
+  sessionCreator?: React.ComponentType<BaseAgentSessionCreatorProps>
 }
 export function SidebarAgentSessionList(props: AgentSessionProps) {
   switch (props.agentType) {
@@ -53,9 +61,10 @@ function ConversationAgentSessionList(props: AgentSessionProps) {
   if (!ADS.isFulfilled(sessionsData)) return null
 
   const isActive = currentAgentId === props.agentId
+  const SessionCreator = props.sessionCreator ?? BaseAgentSessionCreator
   return (
     <SessionList sessions={sessionsData.value} isActive={isActive} agentSessionProps={props}>
-      {isActive && <BaseAgentSessionCreator agentType="conversation" ids={props} type="menu" />}
+      {isActive && <SessionCreator agentType="conversation" ids={props} type="menu" />}
     </SessionList>
   )
 }

@@ -1,11 +1,11 @@
-import type { MembershipRole } from "@/domains/memberships/membership-roles"
+import type { MembershipRole } from "@/domains/rbac/membership-roles"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
 
 /**
  * Domain model for a review-campaign membership: one role on the campaign, one
- * `user_membership` row. A person who is both tester and reviewer has two.
+ * `role_grant` row. A person who is both tester and reviewer has two.
  *
  * Plain object returned to the service layer. `user` and `campaign` are TypeORM
  * entities for now (pragmatic compromise during the transition away from legacy

@@ -5,7 +5,6 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { PermissionService } from "@/domains/rbac/permission.service"
@@ -40,7 +39,7 @@ describe("AppsService", () => {
         UserRepository,
         AppAccessTokenService,
       ],
-      additionalImports: [RbacModule, MembershipsModule],
+      additionalImports: [RbacModule],
     })
     await ensureRbacCatalog(setup.module)
   })
@@ -202,6 +201,29 @@ describe("AppsService", () => {
     )
     await service.deleteAppManifest(created.id)
     await expect(service.getAppManifest(created.id)).rejects.toBeInstanceOf(NotFoundException)
+  })
+
+  it("lists the catalog by name, leaving out unlisted apps, with the project's active installs", async () => {
+    const repositories = setup.getAllRepositories()
+    const { project } = await createOrganizationWithProject(repositories)
+    const crawler = await service.createAppManifest({
+      ...createPayload,
+      name: "Site Crawler",
+      slug: "site-crawler",
+      listedInCatalog: true,
+    })
+    const assistant = await service.createAppManifest({ ...createPayload, listedInCatalog: true })
+    await service.createAppManifest({ ...createPayload, name: "Hidden", slug: "hidden" })
+    await repositories.appInstallationRepository.save(
+      appInstallationFactory.build({ appManifestId: crawler.id, projectId: project.id }),
+    )
+
+    const catalog = await service.listAppCatalog(project.id)
+
+    expect(catalog.map((entry) => [entry.id, entry.installed])).toEqual([
+      [assistant.id, false],
+      [crawler.id, true],
+    ])
   })
 
   it("throws not found for an unknown id", async () => {

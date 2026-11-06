@@ -9,10 +9,10 @@ const project = organization.extend("/p/:projectId")
 const agent = project.extend("/a/:agentId")
 const documents = project.extend("/d")
 const externalSources = project.extend("/external")
-const webSources = project.extend("/web-sources")
 const document = documents.extend("/:documentId")
 const mcpServers = project.extend("/mcp-servers")
 const appInstallations = project.extend("/apps")
+const appCatalog = appInstallations.extend("/catalog")
 const resourceLibraries = project.extend("/resource-libraries")
 const resourceLibraryNew = resourceLibraries.extend("/new")
 const resourceLibrary = resourceLibraries.extend("/:resourceLibraryId")
@@ -46,6 +46,7 @@ export const StudioRoutes = {
   agentEdit,
   agentMemberships,
   agentSession,
+  appCatalog,
   appInstallations,
   document,
   documents,
@@ -66,7 +67,6 @@ export const StudioRoutes = {
   resourceNew,
   reviewCampaignReport,
   reviewCampaigns,
-  webSources,
 }
 
 // FIXME: to be removed (alexis)

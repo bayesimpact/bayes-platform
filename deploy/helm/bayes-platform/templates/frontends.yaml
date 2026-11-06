@@ -10,7 +10,7 @@ The main web front is served by the API itself (see api.yaml).
 {{- end }}
 {{- if .Values.help.enabled }}
   {{- $helpTheme := ternary .Values.help.theme dict .Values.help.theme.enabled }}
-  {{- $fronts = append $fronts (dict "component" "help" "values" .Values.help "env" (dict "PUBLIC_APP_URL" .Values.urls.web "PUBLIC_API_BASE_URL" .Values.urls.api "PUBLIC_SITE_URL" .Values.urls.help) "theme" $helpTheme) }}
+  {{- $fronts = append $fronts (dict "component" "help" "values" .Values.help "env" (dict "PUBLIC_APP_URL" .Values.urls.web "PUBLIC_API_BASE_URL" .Values.urls.api "PUBLIC_SITE_URL" .Values.urls.help "APP_VERSION" (include "bayes-platform.imageTag" .)) "theme" $helpTheme) }}
 {{- end }}
 {{- range $front := $fronts }}
 {{- $values := $front.values }}

@@ -43,7 +43,6 @@ const meta = {
   },
   args: {
     ...studioStoryArgs,
-    featureFlags: [...studioStoryArgs.featureFlags, "evaluation"],
     withDatasets: false,
   },
   render: render({ routes: evalRoutes, path: EvalRoutes.conversation.path }),

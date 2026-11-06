@@ -106,6 +106,7 @@ describe("lookupKnowledgeBaseTool", () => {
         returnedChunkCount: 1,
         chunkIds: ["chunk-1"],
         documentIds: ["document-1"],
+        embeddingModel: "gemini-embedding-001",
       },
     })
     expect(result.retrievalMetadata).toEqual({

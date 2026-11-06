@@ -13,3 +13,7 @@ export const selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay = (
 export const selectAgentAnalyticsConversationsByCategoryPerDay = (
   state: RootState,
 ): AsyncData<AnalyticsCategoryDailyPoint[]> => state.agentAnalytics.conversationsByCategoryPerDay
+
+export const selectAgentAnalyticsEmptySessionsPerDay = (
+  state: RootState,
+): AsyncData<AnalyticsDailyPoint[]> => state.agentAnalytics.emptySessionsPerDay

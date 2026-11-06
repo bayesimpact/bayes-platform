@@ -29,6 +29,7 @@ export const documentSourceFactory = DocumentSourceFactory.define(({ params, tra
     lastSyncedAt:
       params.lastSyncedAt !== undefined ? params.lastSyncedAt : faker.date.recent().getTime(),
     status: params.status ?? "ready",
+    tagIds: (params.tagIds ?? []).filter((tagId): tagId is string => tagId !== undefined),
     createdAt: params.createdAt ?? faker.date.past().getTime(),
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
   }

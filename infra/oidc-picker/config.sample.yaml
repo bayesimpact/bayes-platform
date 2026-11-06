@@ -4,14 +4,19 @@
 issuer: http://localhost:5556
 
 clients:
-  # Public client of the web app (authorization code + PKCE). The web app redirects to its
-  # origin, plus VITE_BASE_PATH when set.
+  # Public client of the web app and the Desk (authorization code + PKCE). The web app redirects
+  # to its origin, plus VITE_BASE_PATH when set. The Desk (dev server on 5177) comes back to
+  # /app/auth/callback after sign-in and to /app/ after sign-out.
   - id: platform-web
     redirectUris:
       - https://connect.localhost:5173
       - https://connect.localhost:5174
       - http://localhost:5173
       - https://connect.localhost:3000
+      - https://connect.localhost:5177/app/auth/callback
+      - https://connect.localhost:5177/app/
+      - http://localhost:5177/app/auth/callback
+      - http://localhost:5177/app/
 
 # The picker reports every email as verified, so people added by email are linked.
 profiles:

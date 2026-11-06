@@ -15,6 +15,7 @@ import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "@/domains/agents/memberships/agent-membership.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import {
   createOrganizationWithAgent,
@@ -42,8 +43,9 @@ describe("Agents Analytics - getConversationsPerDay", () => {
   const day3Start = new Date("2026-01-03T00:00:00.000Z")
   const day3End = new Date(day3Start.getTime() + 24 * 60 * 60 * 1000 - 1)
 
+  // session2Day1 has no user message: it is an empty session, not a conversation.
   const expectedDays = [
-    { date: day1Start.toISOString().slice(0, 10), value: 2 },
+    { date: day1Start.toISOString().slice(0, 10), value: 1 },
     { date: day2Start.toISOString().slice(0, 10), value: 1 },
     { date: day3Start.toISOString().slice(0, 10), value: 0 },
   ]
@@ -138,7 +140,7 @@ describe("Agents Analytics - getConversationsPerDay", () => {
 
   it("scopes counts to the requested agent only", async () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      projectMembership: { role: "owner" },
+      projectMembership: { roleKeys: ["project_owner"] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -147,9 +149,16 @@ describe("Agents Analytics - getConversationsPerDay", () => {
     const agentPrimary = agentFactory.transient({ organization, project }).build()
     const agentOther = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save([agentPrimary, agentOther])
+    const agentSettingsPrimary = agentSettingsFactory
+      .transient({ organization, project, agent: agentPrimary })
+      .build()
+    await repositories.agentSettingsRepository.save(agentSettingsPrimary)
     await saveAgentMembership({
       repositories,
-      membership: agentMembershipFactory.owner().transient({ user, agent: agentPrimary }).build(),
+      membership: agentMembershipFactory
+        .withRoles("agent_owner")
+        .transient({ user, agent: agentPrimary })
+        .build(),
     })
 
     const primarySession = conversationAgentSessionFactory
@@ -164,6 +173,17 @@ describe("Agents Analytics - getConversationsPerDay", () => {
         }),
     )
     await repositories.conversationAgentSessionRepository.save([primarySession, ...otherSessions])
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory
+        .user()
+        .transient({
+          organization,
+          project,
+          session: primarySession,
+          agentSettings: agentSettingsPrimary,
+        })
+        .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000 + 60 * 1000) }),
+    )
 
     agentId = agentPrimary.id
     const response = await subject()

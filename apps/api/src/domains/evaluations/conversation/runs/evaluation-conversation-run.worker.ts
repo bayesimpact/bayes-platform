@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
+import { describeFailedJob } from "@/common/logger/describe-failed-job"
 import {
   EVALUATION_CONVERSATION_RUN_CONCURRENCY,
   EVALUATION_CONVERSATION_RUN_QUEUE_NAME,
@@ -39,10 +40,7 @@ export class EvaluationConversationRunWorker extends WorkerHost {
     job: Job<ProcessEvaluationConversationRunRecordJobPayload> | undefined,
     error: Error,
   ): Promise<void> {
-    this.logger.error(
-      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
-      error.stack,
-    )
+    this.logger.error(`Job failed: ${describeFailedJob(job, error)}`, error.stack)
     if (job) {
       await this.processorService.markRecordFailed(job.data, error)
     }

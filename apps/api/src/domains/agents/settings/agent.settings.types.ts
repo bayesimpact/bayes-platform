@@ -23,7 +23,7 @@ export type AgentSettingsFields = Omit<
 
 export type AgentSettingsCreateFields = Pick<
   AgentSettings,
-  "instructions" | "documentsRagMode" | "model" | "locale" | "providerOptions"
+  "instructions" | "documentsRagMode" | "model" | "providerOptions"
 > &
   Partial<
     Pick<
@@ -35,6 +35,7 @@ export type AgentSettingsCreateFields = Pick<
       | "deletedTemperature"
       | "memoryMode"
       | "variables"
+      | "embeddingModel"
     >
   >
 
@@ -46,12 +47,12 @@ export type AgentSettingsUpdateFields = Partial<
     | "documentsRagMode"
     | "model"
     | "deletedTemperature"
-    | "locale"
     | "outputJsonSchema"
     | "fillFormEnabled"
     | "priorityCallsEnabled"
     | "providerOptions"
     | "memoryMode"
     | "variables"
+    | "embeddingModel"
   >
 >

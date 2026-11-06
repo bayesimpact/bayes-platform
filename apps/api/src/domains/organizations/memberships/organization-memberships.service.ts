@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { hasRole } from "@/domains/memberships/membership-roles"
 import type { Organization } from "@/domains/organizations/organization.entity"
+import { hasRole } from "@/domains/rbac/membership-roles"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import type { OrganizationMembershipModel } from "./organization-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI

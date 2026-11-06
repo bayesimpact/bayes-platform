@@ -18,6 +18,7 @@ import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.f
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -65,9 +66,8 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     await app.close()
   })
 
-  const createContext = async (role: "owner" | "member" | "admin") => {
+  const createContext = async (role: ProjectRoleKey) => {
     const created = await createOrganizationWithAgent(repositories, {
-      organizationMembership: { role },
       agentSettings: { greetingMessage: "Published greeting" },
     })
     organization = created.organization
@@ -79,7 +79,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       organization,
       project,
       user: { email: "member@example.com", authSubject: "oidc|member" },
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
     })
 
     organizationId = organization.id
@@ -130,7 +130,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
 
   describe("creating a live session", () => {
     it("should create a live session", async () => {
-      await createContext("member")
+      await createContext("project_member")
 
       const response = await subject("live")
 
@@ -150,7 +150,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
   })
   describe("creating a playground session", () => {
     it("should create a playground session", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
 
       const response = await subject("playground")
 
@@ -170,7 +170,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
 
   describe("with a greetingMessage on the agent", () => {
     it("should seed an assistant message when the agent has a greetingMessage", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       const greeting = "Hi! How can I help you today?"
       await repositories.agentSettingsRepository.update(agentSettingsId, {
         greetingMessage: greeting,
@@ -188,7 +188,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("should not seed any message when the agent has no greetingMessage", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await repositories.agentSettingsRepository.update(agentSettingsId, { greetingMessage: null })
 
       const response = await subject("live")
@@ -203,7 +203,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
 
   describe("greeting with a settings version", () => {
     it("greets a playground session with the draft when no version is requested", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       const draft = await seedRevision({
         revision: 2,
         greetingMessage: "Draft greeting",
@@ -219,7 +219,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("greets a playground session with the requested version", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await seedRevision({ revision: 2, greetingMessage: "Draft greeting", isDraft: true })
 
       const response = await subject("playground", 1)
@@ -231,7 +231,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("greets a live session with the published version even when a draft exists", async () => {
-      await createContext("member")
+      await createContext("project_member")
       await seedRevision({ revision: 2, greetingMessage: "Draft greeting", isDraft: true })
 
       const response = await subject("live")
@@ -242,7 +242,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("rejects a version on a live session", async () => {
-      await createContext("member")
+      await createContext("project_member")
 
       const response = await subject("live", 1)
 
@@ -254,7 +254,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("rejects an unknown version", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
 
       const response = await subject("playground", 42)
 
@@ -262,7 +262,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("rejects an archived version", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await seedRevision({ revision: 2, greetingMessage: "Old greeting", isArchived: true })
 
       const response = await subject("playground", 2)
@@ -282,7 +282,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     }
 
     it("refuses the session when a declared variable has no value", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await declareVariables()
 
       const response = await subject("live")
@@ -300,7 +300,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("falls back to the revision's default when the caller sends no value", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await declareVariables({ topic: "the product tour" })
 
       const response = await subject("live", undefined, { audience: "support agents" })
@@ -316,7 +316,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("lets the caller's value win over the revision's default", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await declareVariables({ topic: "the product tour" })
 
       const response = await subject("live", undefined, {
@@ -335,7 +335,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("stores the values the caller supplies for every declared variable", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await declareVariables()
 
       const response = await subject("live", undefined, {
@@ -354,7 +354,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("treats a blank value as missing", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await declareVariables()
 
       const response = await subject("live", undefined, {
@@ -370,7 +370,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("treats a blank value as missing, so the revision's default is stored", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await declareVariables({ topic: "the product tour" })
 
       const response = await subject("live", undefined, {
@@ -389,7 +389,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
 
     it("ignores values for variables the instructions do not declare", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       await declareVariables()
 
       const response = await subject("live", undefined, {

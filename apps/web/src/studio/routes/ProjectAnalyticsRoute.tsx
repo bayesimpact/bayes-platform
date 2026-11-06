@@ -17,9 +17,11 @@ import { useAbility } from "@/common/hooks/use-ability"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { EmptySessionsNotice } from "@/studio/features/analytics/components/EmptySessionsNotice"
 import {
   selectAnalyticsAvgUserQuestionsPerSessionPerDay,
   selectAnalyticsConversationsPerDay,
+  selectAnalyticsEmptySessionsPerDay,
 } from "@/studio/features/analytics/project/analytics.selectors"
 import { loadProjectAnalytics } from "@/studio/features/analytics/project/analytics.thunks"
 import { dateRangeToAnalyticsQueryBounds } from "@/studio/features/analytics/project/analytics-date-range"
@@ -62,9 +64,10 @@ export function ProjectAnalyticsRoute() {
 
   const conversations = useAppSelector(selectAnalyticsConversationsPerDay)
   const avgQuestions = useAppSelector(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
+  const emptySessions = useAppSelector(selectAnalyticsEmptySessionsPerDay)
 
   return (
-    <AsyncRoute data={[conversations, avgQuestions]}>
+    <AsyncRoute data={[conversations, avgQuestions, emptySessions]}>
       <WithData
         onAnalyticsRangeChange={setBounds}
         selectedAgentId={selectedAgentId}
@@ -90,6 +93,7 @@ function WithData({
   )
   const conversationsPoints = useValue(selectAnalyticsConversationsPerDay)
   const avgQuestionsPoints = useValue(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
+  const emptySessionsPoints = useValue(selectAnalyticsEmptySessionsPerDay)
   const { t } = useTranslation("analytics")
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
@@ -132,6 +136,11 @@ function WithData({
             align="end"
           />
         </div>
+
+        <EmptySessionsNotice
+          conversationTotal={sumDailyMetricValues(conversationsPoints)}
+          emptySessionTotal={sumDailyMetricValues(emptySessionsPoints)}
+        />
 
         <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-2">
           <ChartCard

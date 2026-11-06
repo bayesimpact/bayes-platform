@@ -5,6 +5,7 @@ import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createInvitations,
   listInvitationsForTarget,
+  listInviteeAccess,
   revokeInvitation,
 } from "@/studio/features/invitations/invitations.thunks"
 import { projectMembershipsActions } from "./project-memberships.slice"
@@ -32,6 +33,7 @@ function registerListeners() {
         listenerApi.dispatch(
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),
+        listenerApi.dispatch(listInviteeAccess()),
       ])
     },
   })
@@ -59,7 +61,11 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       const { targetType, targetId } = action.meta.arg
       if (targetType !== "project") return
-      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
+      // People already in the workspace may have got agents right away.
+      await Promise.all([
+        listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId })),
+        listenerApi.dispatch(listInviteeAccess()),
+      ])
     },
   })
 
@@ -83,6 +89,7 @@ function registerListeners() {
         listenerApi.dispatch(
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),
+        listenerApi.dispatch(listInviteeAccess()),
       ])
     },
   })
@@ -118,14 +125,26 @@ function registerListeners() {
     actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "project") return
-      listenerApi.dispatch(
-        notificationsActions.show({
-          titleKey: action.payload.emailSent
-            ? "projectMembership:notifications.invitationsSentByEmail"
-            : "projectMembership:notifications.peopleInvited",
-          type: "success",
-        }),
-      )
+      const { invitations, emailSent, grantedEmails } = action.payload
+      if (invitations.length > 0) {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: emailSent
+              ? "projectMembership:notifications.invitationsSentByEmail"
+              : "projectMembership:notifications.peopleInvited",
+            type: "success",
+          }),
+        )
+      }
+      if (grantedEmails.length > 0) {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "projectMembership:notifications.agentsGiven",
+            titleValues: { count: grantedEmails.length },
+            type: "success",
+          }),
+        )
+      }
     },
   })
 

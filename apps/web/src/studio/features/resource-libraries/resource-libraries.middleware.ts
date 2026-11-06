@@ -10,6 +10,7 @@ import {
   listResourceLibraries,
   updateResource,
   updateResourceLibrary,
+  uploadResourceFile,
 } from "./resource-libraries.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -131,6 +132,19 @@ function registerListeners() {
         notificationsActions.show({
           titleKey: "resourceLibrary:notifications.resourceSaveError",
           description: typeof action.payload === "string" ? action.payload || undefined : undefined,
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: uploadResourceFile.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "actions:fileUploadFailed",
+          titleValues: { fileName: action.meta.arg.file.name, errorMessage: "" },
           type: "error",
         }),
       )

@@ -96,7 +96,6 @@ function toEvaluationConversationRun(dto: EvaluationConversationRunDto): Evaluat
     agentSettings: {
       documentsRagMode: dto.agentSettings.documentsRagMode,
       instructions: dto.agentSettings.instructions,
-      locale: dto.agentSettings.locale,
       model: dto.agentSettings.model,
       revision: dto.agentSettings.revision,
       providerOptions: dto.agentSettings.providerOptions,

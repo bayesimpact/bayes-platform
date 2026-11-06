@@ -8,6 +8,7 @@ import {
 } from "@caseai-connect/ui/shad/sidebar"
 import { useTranslation } from "react-i18next"
 import { useParams } from "react-router-dom"
+import type { BaseAgentSessionCreatorProps } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
@@ -22,10 +23,17 @@ export function SidebarAgentList({
   organizationId,
   project,
   action,
+  sessionCreator,
 }: {
   project: Project | null
   organizationId: string
   action?: React.ReactNode
+  /**
+   * The component that creates a session from the sidebar. A prop because the playground
+   * asks for the prompt variables before creating the session, and only Studio loads the
+   * settings it reads. Defaults to the base creator.
+   */
+  sessionCreator?: React.ComponentType<BaseAgentSessionCreatorProps>
 }) {
   const agents = useAppSelector(selectAgentsData)
 
@@ -37,6 +45,7 @@ export function SidebarAgentList({
       organizationId={organizationId}
       project={project}
       agents={agents.value}
+      sessionCreator={sessionCreator}
     />
   )
 }
@@ -46,11 +55,13 @@ function WithData({
   project,
   agents,
   action,
+  sessionCreator,
 }: {
   organizationId: string
   project: Project
   agents: Agent[]
   action?: React.ReactNode
+  sessionCreator?: React.ComponentType<BaseAgentSessionCreatorProps>
 }) {
   const { t } = useTranslation()
   const { agentId: urlagentId } = useParams()
@@ -91,6 +102,7 @@ function WithData({
                   projectId={project.id}
                   agentId={agent.id}
                   agentType={agent.type}
+                  sessionCreator={sessionCreator}
                 />
               )}
             </AppNavItem>

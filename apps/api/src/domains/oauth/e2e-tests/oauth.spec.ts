@@ -9,7 +9,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { configureGlobalPrefix } from "@/config/api-prefix"
+import type { OrganizationRoleKey } from "@/domains/organizations/memberships/organization-membership.types"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { listenOnLoopback, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { ClientMetadataDocumentFetcher } from "../client-metadata-document.fetcher"
@@ -68,10 +70,17 @@ describe("OAuth authorization server", () => {
 
   const server = () => baseUrl
 
-  const createContext = async (role: "owner" | "member" = "owner") => {
+  const createContext = async ({
+    organizationRoleKey = "org_owner",
+    // An owner who evaluates holds every grantable permission.
+    projectRoleKeys = ["project_owner", "project_evaluator"],
+  }: {
+    organizationRoleKey?: OrganizationRoleKey
+    projectRoleKeys?: ProjectRoleKey[]
+  } = {}) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      organizationMembership: { role },
-      projectMembership: { role },
+      organizationMembership: { roleKeys: [organizationRoleKey] },
+      projectMembership: { roleKeys: projectRoleKeys },
     })
     authSubject = user.authSubject!
     return { user, organization, project }
@@ -177,6 +186,13 @@ describe("OAuth authorization server", () => {
 
   describe("consent page", () => {
     it("describes an unverified dcr client and the projects to grant", async () => {
+      const ALL_GRANTABLE_PERMISSIONS = [
+        "project.read",
+        "agent.create",
+        "agent.settings.draft.update",
+        "evaluation.conversation.dataset.update",
+        "evaluation.conversation.run.create",
+      ]
       const { organization, project } = await createContext()
       const clientId = await registerTestClient(baseUrl)
 
@@ -201,15 +217,18 @@ describe("OAuth authorization server", () => {
             name: project.name,
             organizationId: organization.id,
             organizationName: organization.name,
-            availablePermissions: ["project.read", "agent.create", "agent.settings.draft.update"],
+            availablePermissions: ALL_GRANTABLE_PERMISSIONS,
           },
         ],
-        grantablePermissions: ["project.read", "agent.create", "agent.settings.draft.update"],
+        grantablePermissions: ALL_GRANTABLE_PERMISSIONS,
       })
     })
 
     it("offers a project member only what they hold", async () => {
-      await createContext("member")
+      await createContext({
+        organizationRoleKey: "org_member",
+        projectRoleKeys: ["project_member"],
+      })
       const clientId = await registerTestClient(baseUrl)
 
       const response = await getConsent(

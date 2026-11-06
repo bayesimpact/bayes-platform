@@ -10,7 +10,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import {
   mockForeignAuthSubject,
@@ -63,12 +63,12 @@ describe("EvaluationConversationTestCases - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectMembershipRole) => {
+  const createContextForRole = async (...roleKeys: ProjectRoleKey[]) => {
     const { user, organization, project, lastAnswer } = await createConversationWithAnswers(
       repositories,
       {
         user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-        projectMembership: { role },
+        projectMembership: { roleKeys },
       },
     )
     organizationId = organization.id
@@ -128,21 +128,28 @@ describe("EvaluationConversationTestCases - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each<ProjectMembershipRole>(["admin", "owner"])("allows a project %s", async (role) => {
-      await createContextForRole(role)
+    it("doesn't allow a project admin who is not an evaluator", async () => {
+      await createContextForRole("project_admin")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each<ProjectRoleKey>([
+      "project_member",
+      "project_owner",
+    ])("allows a %s who is an evaluator", async (role) => {
+      await createContextForRole(role, "project_evaluator")
       expectResponse(await subject(), 201)
     })
   })

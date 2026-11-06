@@ -21,7 +21,7 @@ export const PDF_EXPORTS_SWEEP_JOB_NAME = "sweep-expired-pdf-exports"
 
 export const PDF_EXPORTS_SWEEP_SCHEDULER_ID = "pdf-exports-sweep"
 
-/** Objects listed per GCS page. */
+/** Objects listed per page. */
 export const PDF_EXPORTS_SWEEP_PAGE_SIZE = 1000
 
 /** Upper bound on the pages listed per run, so one sweep cannot run unbounded. */
@@ -36,5 +36,5 @@ export const PDF_EXPORTS_DELETE_GRACE_SECONDS = 60
 /** Number of deletes issued concurrently. */
 export const PDF_EXPORTS_DELETE_CHUNK_SIZE = 20
 
-/** DI token for the bucket holding temporary PDF exports (null when GCS is not configured). */
+/** DI token for the bucket holding temporary PDF exports (null with the local storage). */
 export const PDF_EXPORTS_BUCKET = "PdfExportsBucket"

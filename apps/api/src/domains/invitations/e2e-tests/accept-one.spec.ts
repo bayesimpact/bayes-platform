@@ -20,7 +20,6 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { MeModule } from "@/domains/me/me.module"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -41,6 +40,7 @@ import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
+import { createWorkspaceWithTwoAgents } from "./workspace-invitation.helpers"
 
 describe("Invitations - acceptOne", () => {
   let app: INestApplication<App>
@@ -116,16 +116,16 @@ describe("Invitations - acceptOne", () => {
             userId: invitee.id,
             projectId: project.id,
           })
-        )?.role,
-      ).toBe("admin")
+        )?.roleKeys,
+      ).toEqual(["project_admin"])
       expect(
         (
           await findOrganizationMembershipRow(repositories, {
             userId: invitee.id,
             organizationId: organization.id,
           })
-        )?.role,
-      ).toBe("admin")
+        )?.roleKeys,
+      ).toEqual(["org_admin"])
       const acceptedInvitation = await repositories.invitationRepository.findOneByOrFail({
         id: invitation.id,
       })
@@ -146,8 +146,8 @@ describe("Invitations - acceptOne", () => {
             userId: invitee.id,
             projectId: project.id,
           })
-        )?.role,
-      ).toBe("admin")
+        )?.roleKeys,
+      ).toEqual(["project_admin"])
     })
 
     it("does nothing the second time", async () => {
@@ -197,24 +197,24 @@ describe("Invitations - acceptOne", () => {
 
       expect(
         (await findAgentMembershipRow(repositories, { userId: invitee.id, agentId: agent.id }))
-          ?.role,
-      ).toBe("member")
+          ?.roleKeys,
+      ).toEqual(["agent_member"])
       expect(
         (
           await findProjectMembershipRow(repositories, {
             userId: invitee.id,
             projectId: project.id,
           })
-        )?.role,
-      ).toBe("member")
+        )?.roleKeys,
+      ).toEqual(["project_member"])
       expect(
         (
           await findOrganizationMembershipRow(repositories, {
             userId: invitee.id,
             organizationId: organization.id,
           })
-        )?.role,
-      ).toBe("member")
+        )?.roleKeys,
+      ).toEqual(["org_member"])
     })
   })
 
@@ -280,7 +280,7 @@ describe("Invitations - acceptOne", () => {
           await findReviewCampaignMembershipRow(repositories, {
             userId: invitee.id,
             campaignId: reviewCampaign.id,
-            role,
+            roleKey: REVIEW_CAMPAIGN_ROLES[role],
           })
         )?.roleId,
       ).toBe(campaignRole.id)
@@ -290,8 +290,8 @@ describe("Invitations - acceptOne", () => {
             userId: invitee.id,
             organizationId: organization.id,
           })
-        )?.role,
-      ).toBe("member")
+        )?.roleKeys,
+      ).toEqual(["org_member"])
       expect(
         await findProjectMembershipRow(repositories, { userId: invitee.id, projectId: project.id }),
       ).toBeNull()
@@ -303,7 +303,7 @@ describe("Invitations - acceptOne", () => {
         repositories,
         project,
         user: invitee,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
 
       expectResponse(await subject(invitation.id), 201)
@@ -313,37 +313,7 @@ describe("Invitations - acceptOne", () => {
         projectId: project.id,
       })
       expect(projectRow?.id).toBe(projectMembership.id)
-      expect(projectRow?.role).toBe("member")
-    })
-
-    it("gives the tester role next to a campaign row that holds no role", async () => {
-      const { reviewCampaign, invitee, invitation } = await createCampaignInvitation(
-        "active",
-        "tester",
-      )
-      const roleLessRow = await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
-          userId: invitee.id,
-          resourceType: "review_campaign",
-          resourceId: reviewCampaign.id,
-          roleId: null,
-        }),
-      )
-      const testerRole = await findCampaignRole("tester")
-
-      expectResponse(await subject(invitation.id), 201)
-
-      const campaignRows = await repositories.userMembershipRepository.find({
-        where: {
-          userId: invitee.id,
-          resourceType: "review_campaign",
-          resourceId: reviewCampaign.id,
-        },
-      })
-      expect(campaignRows.map((campaignRow) => campaignRow.roleId).sort()).toEqual(
-        [testerRole.id, null].sort(),
-      )
-      expect(campaignRows.some((campaignRow) => campaignRow.id === roleLessRow.id)).toBe(true)
+      expect(projectRow?.roleKeys).toEqual(["project_member"])
     })
 
     it("lets an invited tester chat with the campaign agent until the campaign closes", async () => {
@@ -419,5 +389,66 @@ describe("Invitations - acceptOne", () => {
     expect(
       await findProjectMembershipRow(repositories, { userId: newcomer.id, projectId: project.id }),
     ).not.toBeNull()
+  })
+
+  describe("workspace invitation for a member", () => {
+    it("makes the person a member of the workspace and of each agent, in one go", async () => {
+      const { organization, project, firstAgent, secondAgent } = await createWorkspaceWithTwoAgents(
+        repositories,
+        ownerSubject,
+      )
+      const invitee = await createInvitee()
+      const invitation = await repositories.invitationRepository.save(
+        invitationFactory
+          .transient({ user: invitee, project })
+          .build({ role: "member", agentIds: [firstAgent.id, secondAgent.id] }),
+      )
+
+      expectResponse(await subject(invitation.id), 201)
+
+      const projectRow = await findProjectMembershipRow(repositories, {
+        userId: invitee.id,
+        projectId: project.id,
+      })
+      expect(projectRow?.roleKeys).toEqual(["project_member"])
+      const organizationRow = await findOrganizationMembershipRow(repositories, {
+        userId: invitee.id,
+        organizationId: organization.id,
+      })
+      expect(organizationRow?.roleKeys).toEqual(["org_member"])
+      for (const agent of [firstAgent, secondAgent]) {
+        const agentRow = await findAgentMembershipRow(repositories, {
+          userId: invitee.id,
+          agentId: agent.id,
+        })
+        expect(agentRow?.roleKeys).toEqual(["agent_member"])
+      }
+      expect(
+        (await repositories.invitationRepository.findOneByOrFail({ id: invitation.id })).status,
+      ).toBe("accepted")
+    })
+
+    it("leaves out an agent deleted since the invitation", async () => {
+      const { project, firstAgent, secondAgent } = await createWorkspaceWithTwoAgents(
+        repositories,
+        ownerSubject,
+      )
+      const invitee = await createInvitee()
+      const invitation = await repositories.invitationRepository.save(
+        invitationFactory
+          .transient({ user: invitee, project })
+          .build({ role: "member", agentIds: [firstAgent.id, secondAgent.id] }),
+      )
+      await repositories.agentRepository.softDelete({ id: secondAgent.id })
+
+      expectResponse(await subject(invitation.id), 201)
+
+      expect(
+        await findAgentMembershipRow(repositories, { userId: invitee.id, agentId: firstAgent.id }),
+      ).not.toBeNull()
+      expect(
+        await findAgentMembershipRow(repositories, { userId: invitee.id, agentId: secondAgent.id }),
+      ).toBeNull()
+    })
   })
 })

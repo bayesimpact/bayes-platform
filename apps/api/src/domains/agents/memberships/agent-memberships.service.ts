@@ -9,16 +9,15 @@ import { TransactionService } from "@/common/transaction/transaction.service"
 import type { AgentSummary } from "@/domains/agents/agent.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentRepository } from "@/domains/agents/agent.repository"
-import { hasRole } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
+import { hasRole } from "@/domains/rbac/membership-roles"
 import { AGENT_ROLES, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"
 import type { AgentMembershipModel } from "./agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipRepository } from "./agent-membership.repository"
-import type { AgentMembershipRole } from "./agent-membership.types"
 
 /**
  * The agent roles managed from the studio. `agent_conversation_reviewer` is granted and revoked
@@ -52,8 +51,10 @@ export class AgentMembershipsService {
     return this.agentMembershipRepository.findAllByUser(userId)
   }
 
+  /** The members of the agents, with their member roles (owner, admin, member). */
   async listMembershipsByAgentIds(agentIds: string[]): Promise<AgentMembershipModel[]> {
-    return this.agentMembershipRepository.findAllByAgentIds(agentIds)
+    const memberships = await this.agentMembershipRepository.findAllByAgentIds(agentIds)
+    return memberships.flatMap((membership) => toMemberView(membership) ?? [])
   }
 
   /** The user's member roles on the agent (owner, admin, member), or null without one. */
@@ -66,6 +67,21 @@ export class AgentMembershipsService {
   }): Promise<AgentMembershipModel | null> {
     const membership = await this.agentMembershipRepository.findByUserAndAgent({ userId, agentId })
     return membership ? toMemberView(membership) : null
+  }
+
+  /** The user's member roles (owner, admin, member) on the agents given, in one query. */
+  async listUserAgentMemberships({
+    userId,
+    agentIds,
+  }: {
+    userId: string
+    agentIds: string[]
+  }): Promise<AgentMembershipModel[]> {
+    const memberships = await this.agentMembershipRepository.findByUserAndAgents({
+      userId,
+      agentIds,
+    })
+    return memberships.flatMap((membership) => toMemberView(membership) ?? [])
   }
 
   async listProjectMemberAgents({
@@ -127,7 +143,7 @@ export class AgentMembershipsService {
   }: {
     agentId: string
     userId: string
-    role?: AgentMembershipRole
+    role?: keyof typeof AGENT_ROLES
   }): Promise<AgentMembershipModel | null> {
     return this.transactionService.run(async () => {
       const existing = await this.findAgentMembership({ userId, agentId })

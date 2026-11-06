@@ -13,12 +13,15 @@ import {
 } from "@/stories/routes/backoffice/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 
-type StoryArgs = BackofficeStoryArgs
+type StoryArgs = BackofficeStoryArgs & { withGlobalRoles: boolean }
 
 const decorator = buildDecorator<StoryArgs>((args) => {
   const { baseSeeds, organizations, users, termsDocuments, appManifests } =
     buildBackofficeData(args)
-  const userDetail = buildInspectorUserDetail()
+  const inspectorUserDetail = buildInspectorUserDetail()
+  const userDetail = args.withGlobalRoles
+    ? inspectorUserDetail
+    : { ...inspectorUserDetail, globalRoles: [] }
   return {
     state: mergeSeeds(baseSeeds, seed.backoffice.userDetail(userDetail)),
     services: {
@@ -36,8 +39,8 @@ const decorator = buildDecorator<StoryArgs>((args) => {
 const meta = {
   title: "routes/backoffice/users/detail",
   parameters: { layout: "fullscreen" },
-  argTypes: backofficeStoryArgTypes,
-  args: backofficeStoryArgs,
+  argTypes: { ...backofficeStoryArgTypes, withGlobalRoles: { control: "boolean" } },
+  args: { ...backofficeStoryArgs, withGlobalRoles: true },
   decorators: [decorator],
   render: render({
     path: BackofficeUserRoutes.user.build({ userId: BACKOFFICE_STORY_USER_ID }),
@@ -49,3 +52,9 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Populated: Story = {}
+
+/** A superadmin looks at someone with no global role yet: only the grant control shows. */
+export const NoGlobalRole: Story = { args: { withGlobalRoles: false } }
+
+/** Someone who can open the backoffice but not change global roles: read-only badges. */
+export const ReadOnlyGlobalRoles: Story = { args: { canUpdateGlobalRoles: false } }

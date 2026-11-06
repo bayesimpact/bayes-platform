@@ -8,7 +8,6 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import {
   AGENT_ROLE_PERMISSIONS,
@@ -84,7 +83,7 @@ describe("Backoffice - get user", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign: reviewCampaign, user })
         .build(),
     })
@@ -160,30 +159,6 @@ describe("Backoffice - get user", () => {
     expect(returned.reviewCampaignMemberships[0]?.permissions).toHaveLength(
       REVIEW_CAMPAIGN_ROLE_PERMISSIONS.review_campaign_reviewer.length,
     )
-  })
-
-  it("leaves out a review campaign row without an RBAC role", async () => {
-    const { user, organization, project, agent, agentSettings } = await createAuthorizedContext()
-    const reviewCampaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
-    )
-    // legacy campaign row, as written before the review campaign roles existed
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
-        userId: user.id,
-        resourceType: "review_campaign",
-        resourceId: reviewCampaign.id,
-        roleId: null,
-      }),
-    )
-
-    const response = await request({
-      route: BackofficeRoutes.getUser,
-      pathParams: { userId: user.id },
-      token: "token",
-    })
-    expectResponse(response, 200)
-    expect(response.body.data.reviewCampaignMemberships).toEqual([])
   })
 
   it("returns empty membership lists for a user with no memberships", async () => {

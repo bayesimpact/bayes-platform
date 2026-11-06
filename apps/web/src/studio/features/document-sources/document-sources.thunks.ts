@@ -17,6 +17,25 @@ export const listDocumentSources = createAsyncThunk<DocumentSource[], void, Thun
   },
 )
 
+export const updateDocumentSourceTags = createAsyncThunk<
+  { documentSourceId: string; tagIds: string[] },
+  { documentSource: DocumentSource; tagIds: string[] },
+  ThunkConfig
+>(
+  "documentSources/updateTags",
+  async ({ documentSource, tagIds }, { extra: { services }, getState }) => {
+    await services.documentSources.updateOne({
+      ...currentProjectScope(getState()),
+      documentSourceId: documentSource.id,
+      payload: {
+        tagsToAdd: tagIds.filter((tagId) => !documentSource.tagIds.includes(tagId)),
+        tagsToRemove: documentSource.tagIds.filter((tagId) => !tagIds.includes(tagId)),
+      },
+    })
+    return { documentSourceId: documentSource.id, tagIds }
+  },
+)
+
 export const deleteDocumentSource = createAsyncThunk<
   string,
   { documentSourceId: string },

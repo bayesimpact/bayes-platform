@@ -42,7 +42,7 @@ describe("PublicChatService", () => {
   function buildService(readLiveHtml: jest.Mock, messages: AgentMessage[]) {
     return new PublicChatService(
       {} as never,
-      { getLast: jest.fn().mockResolvedValue({ locale: "fr" }) } as never,
+      { getLast: jest.fn() } as never,
       { getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages }) } as never,
       {} as never,
       {} as never,
@@ -74,10 +74,29 @@ describe("PublicChatService", () => {
       sessionId: session.id,
       messages: [messageWithCard],
       externalVisitorId: "visitor-1",
-      resolveLocale: expect.any(Function),
     })
-    // The language comes from the published settings, looked up on demand.
-    await expect(readLiveHtml.mock.calls[0]?.[0].resolveLocale()).resolves.toBe("fr")
     expect(result).toBe(htmlByKey)
+  })
+
+  it("loads the agent's document tags before answering, so tag RAG mode filters", async () => {
+    const findOne = jest.fn().mockResolvedValue(null)
+    const service = new PublicChatService(
+      { findOne } as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    )
+
+    await expect(service.streamResponse(session, "Hello", jest.fn()).next()).rejects.toThrow(
+      "Agent not found",
+    )
+
+    expect(findOne).toHaveBeenCalledWith({
+      where: { id: session.agentId },
+      relations: expect.arrayContaining(["documentTags"]),
+    })
   })
 })

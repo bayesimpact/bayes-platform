@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto"
-import { EvaluationConversationDatasetsRoutes } from "@caseai-connect/api-contracts"
+import {
+  EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+  EvaluationConversationDatasetsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import type { Repository } from "typeorm"
@@ -10,7 +13,10 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithProject,
+  OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+} from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -59,7 +65,9 @@ describe("EvaluationConversationDatasets - createRecords", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
+    const { user, organization, project } = await createOrganizationWithProject(repositories, {
+      projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+    })
     organizationId = organization.id
     projectId = project.id
     authSubject = user.authSubject!
@@ -150,6 +158,27 @@ describe("EvaluationConversationDatasets - createRecords", () => {
         records: [
           { input: "Question 1", expectedOutput: "Answer 1" },
           { input: "Question 2", expectedOutput: "   " },
+        ],
+      },
+    })
+
+    expectResponse(res, 422)
+
+    const records = await recordRepository.find()
+    expect(records).toHaveLength(0)
+  })
+
+  it("should reject and persist nothing when any input is too long", async () => {
+    await createContext()
+
+    const res = await subject({
+      payload: {
+        records: [
+          { input: "Question 1", expectedOutput: "Answer 1" },
+          {
+            input: "a".repeat(EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH + 1),
+            expectedOutput: "Answer 2",
+          },
         ],
       },
     })

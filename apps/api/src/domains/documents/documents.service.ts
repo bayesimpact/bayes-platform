@@ -279,37 +279,13 @@ export class DocumentsService {
     return this.documentConnectRepository.saveOne(document)
   }
 
-  async updateContent({
-    connectScope,
-    documentId,
-    content,
-    size,
-  }: {
-    connectScope: RequiredConnectScope
-    documentId: string
-    content: string
-    size: number
-  }): Promise<void> {
-    const result: UpdateResult = await this.documentRepository.update(
-      {
-        id: documentId,
-        organizationId: connectScope.organizationId,
-        projectId: connectScope.projectId,
-      },
-      { content, size },
-    )
-    if (!result.affected) {
-      throw new NotFoundException(`Document with id ${documentId} not found`)
-    }
-  }
-
   async saveOne(document: Document): Promise<Document> {
     return this.documentConnectRepository.saveOne(document)
   }
 
   /**
    * Caches the rendered page count for a PDF document, so future extraction
-   * runs referencing the same document reuse the already-rendered GCS pages
+   * runs referencing the same document reuse the already-rendered pages
    * instead of asking the pdf-converter service to render again.
    */
   async updatePdfPageCount({
@@ -327,48 +303,6 @@ export class DocumentsService {
       fields: { pdfPageCount },
     })
     if (!success) {
-      throw new NotFoundException(`Document with id ${documentId} not found`)
-    }
-  }
-
-  async updateEmbeddingStatus({
-    connectScope,
-    documentId,
-    status,
-  }: {
-    connectScope: RequiredConnectScope
-    documentId: string
-    status: Document["embeddingStatus"]
-  }): Promise<void> {
-    const result: UpdateResult = await this.documentRepository.update(
-      {
-        id: documentId,
-        organizationId: connectScope.organizationId,
-        projectId: connectScope.projectId,
-      },
-      { embeddingStatus: status },
-    )
-    if (!result.affected) {
-      throw new NotFoundException(`Document with id ${documentId} not found`)
-    }
-  }
-
-  async resetForRecrawl({
-    connectScope,
-    documentId,
-  }: {
-    connectScope: RequiredConnectScope
-    documentId: string
-  }): Promise<void> {
-    const result: UpdateResult = await this.documentRepository.update(
-      {
-        id: documentId,
-        organizationId: connectScope.organizationId,
-        projectId: connectScope.projectId,
-      },
-      { content: null as unknown as string, embeddingStatus: "pending", embeddingError: null },
-    )
-    if (!result.affected) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
   }
@@ -573,7 +507,7 @@ export class DocumentsService {
 
   /** Removes the source object and every rendered page image of a document from storage. */
   private async deleteStoredFiles(document: Document): Promise<void> {
-    // Crawled documents have no stored file: their content lives in the row only.
+    // Legacy web crawls have no stored file: their content lives in the row only.
     if (!document.storageRelativePath) return
 
     try {

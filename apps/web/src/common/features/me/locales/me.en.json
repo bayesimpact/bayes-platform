@@ -8,6 +8,7 @@
     "helpCenter": "Help Center",
     "editProfile": "Edit profile",
     "connectedApps": "Connected apps",
+    "version": "Version {{version}}",
     "editProfileDialog": {
       "title": "Edit profile",
       "namePlaceholder": "Your name",
@@ -23,10 +24,13 @@
     "invitations": {
       "title": "Pending invitations",
       "description": "Accept an invitation to get access.",
-      "projectBadge": "Project",
+      "projectBadge": "Workspace",
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Review campaign",
-      "roleLabel": "Role"
+      "roleLabel": "Role",
+      "workspaceRoleLabel": "Workspace role",
+      "agentsLabel": "Agent access",
+      "everyAgent": "Every agent"
     },
     "notifications": {
       "invitationAnswerError": "Failed to answer the invitation",

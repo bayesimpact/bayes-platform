@@ -1,3 +1,4 @@
+import { BACKOFFICE_PROJECT_UPDATE_PERMISSION } from "@caseai-connect/api-contracts"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -84,6 +85,7 @@ function WithData() {
             <FeatureFlagCell
               projectName={row.original.name}
               enabledFlags={row.original.featureFlags}
+              canUpdate={row.original.permissions.includes(BACKOFFICE_PROJECT_UPDATE_PERMISSION)}
               onAdd={(featureFlagKey) =>
                 dispatch(
                   backofficeActions.addFeatureFlag({

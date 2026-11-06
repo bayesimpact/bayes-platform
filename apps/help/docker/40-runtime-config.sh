@@ -1,7 +1,7 @@
 #!/bin/sh
 # Replace the build-time placeholders with the container environment. Runs
 # from the nginx image entrypoint before nginx starts. See the Dockerfile for
-# the three variables.
+# the variables.
 set -eu
 
 HTML_DIR=/usr/share/nginx/html
@@ -19,6 +19,7 @@ files=$(find "$HTML_DIR" -type f \( -name '*.js' -o -name '*.html' -o -name '*.x
 echo "$files" | xargs sed -i \
   -e "s|__PUBLIC_APP_URL__|$(escape_value "${PUBLIC_APP_URL:-}")|g" \
   -e "s|__PUBLIC_API_BASE_URL__|$(escape_value "${PUBLIC_API_BASE_URL:-}")|g" \
+  -e "s|__PUBLIC_APP_VERSION__|$(escape_value "${APP_VERSION:-}")|g" \
   -e "s|https://public-site-url.placeholder.invalid|$(escape_value "$site_url")|g"
 
 echo "runtime config applied to $(echo "$files" | wc -l | tr -d ' ') files"

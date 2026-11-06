@@ -29,6 +29,7 @@ import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
 import { AgentConversationReviewRoute } from "./AgentConversationReviewRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
+import { AppCatalogRoute } from "./AppCatalogRoute"
 import { AppInstallationsRoute } from "./AppInstallationsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { ExternalSourcesRoute } from "./ExternalSourcesRoute"
@@ -48,7 +49,6 @@ import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentRoute } from "./StudioAgentRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
 import { StudioRoute } from "./StudioRoute"
-import { WebSourcesRoute } from "./WebSourcesRoute"
 
 export const studioRoutes = {
   path: StudioRoutes.home.path,
@@ -85,14 +85,6 @@ export const studioRoutes = {
           element: <ExternalSourcesRoute />,
         },
         {
-          path: StudioRoutes.webSources.path,
-          element: (
-            <RestrictedFeature feature="web-sources">
-              <WebSourcesRoute />
-            </RestrictedFeature>
-          ),
-        },
-        {
           path: StudioRoutes.mcpServers.path,
           element: (
             <RestrictedFeature feature="agent-mcp">
@@ -103,6 +95,14 @@ export const studioRoutes = {
         {
           path: StudioRoutes.appInstallations.path,
           element: <AppInstallationsRoute />,
+        },
+        {
+          path: StudioRoutes.appCatalog.path,
+          element: (
+            <RestrictedFeature feature="apps-catalog" returnNull={false}>
+              <AppCatalogRoute />
+            </RestrictedFeature>
+          ),
         },
         {
           path: StudioRoutes.resourceLibraries.path,

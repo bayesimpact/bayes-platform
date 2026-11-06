@@ -19,6 +19,7 @@
         "tsconfig.json",
         ".dependency-cruiser.cjs",
         ".dependency-cruiser-known-violations.json",
+        "knip.json",
         ".madgerc",
         "baselines/madge-circular.json",
         "scripts/check-circular.mjs",

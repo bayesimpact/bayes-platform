@@ -2,20 +2,25 @@ import { Logger, Module, type Provider } from "@nestjs/common"
 import { ConfigModule, ConfigService } from "@nestjs/config"
 import { isEmpty } from "lodash"
 import { FILE_STORAGE_SERVICE } from "./file-storage.interface"
-import { GcsStorageService } from "./gcs-storage.service"
 import { LocalStorageService } from "./local-storage.service"
 import { S3StorageService } from "./s3-storage.service"
 
-export type StorageBackend = "s3" | "gcs" | "local"
+export type StorageBackend = "s3" | "local"
 
-/** `STORAGE_BACKEND` when set, otherwise `gcs` when a GCS bucket is configured, otherwise `local`. */
+/** `STORAGE_BACKEND` when set, otherwise `local`. */
 export function resolveStorageBackend(configService: ConfigService): StorageBackend {
   const backend = configService.get<string>("STORAGE_BACKEND")
-  if (backend === "s3" || backend === "gcs" || backend === "local") return backend
+  if (backend === "s3" || backend === "local") return backend
   if (!isEmpty(backend)) {
-    throw new Error(`Invalid STORAGE_BACKEND: ${backend}. Use s3, gcs or local.`)
+    throw new Error(`Invalid STORAGE_BACKEND: ${backend}. Use s3 or local.`)
   }
-  return isEmpty(configService.get<string>("GCS_STORAGE_BUCKET_NAME")) ? "local" : "gcs"
+  // A setup from before the S3 backend would otherwise lose its bucket for the local disk.
+  if (!isEmpty(configService.get<string>("GCS_STORAGE_BUCKET_NAME"))) {
+    throw new Error(
+      "GCS_STORAGE_BUCKET_NAME is no longer read. Set STORAGE_BACKEND=s3 and S3_* (the bucket through the Cloud Storage S3 API, with HMAC keys).",
+    )
+  }
+  return "local"
 }
 
 const storageProvider: Provider = {
@@ -29,7 +34,6 @@ const storageProvider: Provider = {
       }
       return new S3StorageService(configService)
     }
-    if (backend === "gcs") return new GcsStorageService(configService)
     return new LocalStorageService(configService)
   },
   inject: [ConfigService],

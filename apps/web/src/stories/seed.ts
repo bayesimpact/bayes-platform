@@ -1,8 +1,10 @@
 import type {
   AppManifest,
   BackofficeAgentDetail,
+  BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -57,6 +59,7 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { AppCatalogEntry } from "@/studio/features/app-catalog/app-catalog.models"
 import type { AppInstallation } from "@/studio/features/app-installations/app-installations.models"
 import type {
   ConversationReview,
@@ -67,7 +70,9 @@ import type { DocumentSource } from "@/studio/features/document-sources/document
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import type { InviteeAccessByEmail } from "@/studio/features/invitations/invitations.spi"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
+import type { ProjectEmbeddingModel } from "@/studio/features/project-embedding-models/project-embedding-models.models"
 import type {
   AssignableRoles,
   MemberRoles,
@@ -356,9 +361,16 @@ export const seed = {
     appInstallations(appInstallations: AppInstallation[]): StoryPreloadedState {
       return { appInstallations: { data: ads.fulfilled(appInstallations) } }
     },
+    appCatalog(entries: AppCatalogEntry[]): StoryPreloadedState {
+      return { appCatalog: { data: ads.fulfilled(entries) } }
+    },
 
     mcpServers(mcpServers: McpServer[]): StoryPreloadedState {
       return { mcpServers: { data: ads.fulfilled(mcpServers) } }
+    },
+
+    projectEmbeddingModels(projectEmbeddingModels: ProjectEmbeddingModel[]): StoryPreloadedState {
+      return { projectEmbeddingModels: { data: ads.fulfilled(projectEmbeddingModels) } }
     },
 
     resourceLibraries(resourceLibraries: ResourceLibrary[]): StoryPreloadedState {
@@ -368,11 +380,13 @@ export const seed = {
     projectAnalytics(value: {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
+      emptySessionsPerDay: AnalyticsDailyPoint[]
     }): StoryPreloadedState {
       return {
         projectAnalytics: {
           conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
           avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
+          emptySessionsPerDay: ads.fulfilled(value.emptySessionsPerDay),
         },
       }
     },
@@ -381,12 +395,14 @@ export const seed = {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
       conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
+      emptySessionsPerDay: AnalyticsDailyPoint[]
     }): StoryPreloadedState {
       return {
         agentAnalytics: {
           conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
           avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
           conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
+          emptySessionsPerDay: ads.fulfilled(value.emptySessionsPerDay),
         },
       }
     },
@@ -420,6 +436,10 @@ export const seed = {
     },
     projectPendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
       return { projectMemberships: { pendingInvitations: ads.fulfilled(invitations) } }
+    },
+
+    inviteeAccess(access: InviteeAccessByEmail = {}): StoryPreloadedState {
+      return { projectMemberships: { inviteeAccess: ads.fulfilled(access) } }
     },
 
     projectMemberRoles(memberRoles: MemberRoles): StoryPreloadedState {
@@ -542,6 +562,10 @@ export const seed = {
       return { backoffice: { agentDetail: ads.fulfilled(agentDetail) } }
     },
 
+    projectDetail(projectDetail: BackofficeProjectDetail): StoryPreloadedState {
+      return { backoffice: { projectDetail: ads.fulfilled(projectDetail) } }
+    },
+
     userDetail(userDetail: BackofficeUserDetail): StoryPreloadedState {
       return { backoffice: { userDetail: ads.fulfilled(userDetail) } }
     },
@@ -556,6 +580,9 @@ export const seed = {
 
     appManifests(appManifests: AppManifest[]): StoryPreloadedState {
       return { backoffice: { appManifests: ads.fulfilled(appManifests) } }
+    },
+    maintenanceJobs(maintenanceJobs: MaintenanceJob[]): StoryPreloadedState {
+      return { backoffice: { maintenanceJobs: ads.fulfilled(maintenanceJobs) } }
     },
   },
 

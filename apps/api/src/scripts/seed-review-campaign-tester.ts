@@ -1,11 +1,12 @@
 import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
-import { DataSource } from "typeorm"
+import { DataSource, In } from "typeorm"
 import { AppModule } from "@/app.module"
 import { Agent } from "@/domains/agents/agent.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { PROJECT_ROLES, REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { resolveReviewCampaignRoleId } from "@/domains/rbac/resolve-review-campaign-role-id"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { User } from "@/domains/users/user.entity"
 import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
@@ -38,7 +39,7 @@ async function main(): Promise<void> {
   try {
     const dataSource = app.get(DataSource)
     const userRepo = dataSource.getRepository(User)
-    const userMembershipRepo = dataSource.getRepository(UserMembership)
+    const roleGrantRepo = dataSource.getRepository(RoleGrant)
     const projectRepo = dataSource.getRepository(Project)
     const agentRepo = dataSource.getRepository(Agent)
     const campaignRepo = dataSource.getRepository(ReviewCampaign)
@@ -49,11 +50,12 @@ async function main(): Promise<void> {
       process.exit(1)
     }
 
-    const projectMemberships = await userMembershipRepo.find({
-      where: [
-        { userId: user.id, resourceType: "project", role: "owner" },
-        { userId: user.id, resourceType: "project", role: "admin" },
-      ],
+    const projectMemberships = await roleGrantRepo.find({
+      where: {
+        userId: user.id,
+        resourceType: "project",
+        rbacRole: { key: In([PROJECT_ROLES.owner, PROJECT_ROLES.admin]) },
+      },
       order: { createdAt: "DESC" },
     })
     const firstProjectMembership = projectMemberships[0]
@@ -137,23 +139,22 @@ async function main(): Promise<void> {
       logger.log(`Created campaign ${campaign.name} (${campaign.id})`)
     }
 
-    const existingMembership = await userMembershipRepo.findOne({
+    const existingMembership = await roleGrantRepo.findOne({
       where: {
         resourceType: "review_campaign",
         resourceId: campaign.id,
         userId: user.id,
-        role: "tester",
+        rbacRole: { key: REVIEW_CAMPAIGN_ROLES.tester },
       },
     })
     if (existingMembership) {
       logger.log(`Tester membership already exists`)
     } else {
-      await userMembershipRepo.save(
-        userMembershipRepo.create({
+      await roleGrantRepo.save(
+        roleGrantRepo.create({
           userId: user.id,
           resourceType: "review_campaign",
           resourceId: campaign.id,
-          role: "tester",
           roleId: await resolveReviewCampaignRoleId(dataSource.manager, "tester"),
         }),
       )

@@ -39,6 +39,8 @@ import { agentSettingsMiddleware } from "../../common/features/agents/agent-sett
 import { agentSettingsSlice } from "../../common/features/agents/agent-settings/agent-settings.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
+import { appCatalogMiddleware } from "../features/app-catalog/app-catalog.middleware"
+import { appCatalogSlice } from "../features/app-catalog/app-catalog.slice"
 import { appInstallationsMiddleware } from "../features/app-installations/app-installations.middleware"
 import { appInstallationsSlice } from "../features/app-installations/app-installations.slice"
 import { documentSourcesMiddleware } from "../features/document-sources/document-sources.middleware"
@@ -47,6 +49,8 @@ import { documentsMiddleware } from "../features/documents/documents.middleware"
 import { documentsSlice } from "../features/documents/documents.slice"
 import { mcpServersMiddleware } from "../features/mcp-servers/mcp-servers.middleware"
 import { mcpServersSlice } from "../features/mcp-servers/mcp-servers.slice"
+import { projectEmbeddingModelsMiddleware } from "../features/project-embedding-models/project-embedding-models.middleware"
+import { projectEmbeddingModelsSlice } from "../features/project-embedding-models/project-embedding-models.slice"
 import { studioProjectsMiddleware } from "../features/projects/projects.middleware"
 import { resourceLibrariesMiddleware } from "../features/resource-libraries/resource-libraries.middleware"
 import { resourceLibrariesSlice } from "../features/resource-libraries/resource-libraries.slice"
@@ -63,6 +67,7 @@ const studioMiddlewareList = [
   agentMemoriesMiddleware,
   agentMessageFeedbackMiddleware,
   agentSessionMessagesMiddleware,
+  appCatalogMiddleware,
   appInstallationsMiddleware,
   createAgentsMiddleware({ includeDrafts: true }),
   agentSubAgentsMiddleware,
@@ -77,6 +82,7 @@ const studioMiddlewareList = [
   extractionAgentSessionsMiddleware,
   mcpServersMiddleware,
   projectAnalyticsMiddleware,
+  projectEmbeddingModelsMiddleware,
   projectMembershipsMiddleware,
   resourceLibrariesMiddleware,
   reviewCampaignsMiddleware,
@@ -95,6 +101,7 @@ export const studioSliceList = [
   agentMemoriesSlice,
   agentMessageFeedbackSlice,
   agentSessionMessagesSlice,
+  appCatalogSlice,
   appInstallationsSlice,
   agentsSlice,
   agentSubAgentsSlice,
@@ -108,6 +115,7 @@ export const studioSliceList = [
   extractionAgentSessionsSlice,
   mcpServersSlice,
   projectAnalyticsSlice,
+  projectEmbeddingModelsSlice,
   projectMembershipsSlice,
   projectsSlice,
   resourceLibrariesSlice,

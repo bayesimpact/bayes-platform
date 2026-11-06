@@ -71,7 +71,7 @@ export function buildOrganizationWithOwner(
   const organization = organizationFactory.build(params.organization)
   const user = userFactory.build(params.user)
   const organizationMembership = organizationMembershipFactory
-    .owner()
+    .withRoles("org_owner")
     .transient({ user, organization })
     .build(params.organizationMembership)
 
@@ -112,12 +112,20 @@ export async function createOrganizationWithProject(
   await repositories.projectRepository.save(project)
 
   const projectMembership = projectMembershipFactory
-    .owner()
+    .withRoles("project_owner")
     .transient({ user, project })
     .build(params.projectMembership)
   await saveProjectMembership({ repositories, membership: projectMembership })
 
   return { ...data, projectMembership, project }
+}
+
+/**
+ * Project roles of an owner who also evaluates: `project_owner` grants no evaluation permission,
+ * `project_evaluator` does.
+ */
+export const OWNER_EVALUATOR_PROJECT_MEMBERSHIP: Partial<ProjectMembershipFixture> = {
+  roleKeys: ["project_owner", "project_evaluator"],
 }
 
 type AgentParams = ProjectParams & {
@@ -152,7 +160,7 @@ export async function createOrganizationWithAgent(
     .build(params.agentSettings)
   await repositories.agentSettingsRepository.save(agentSettings)
   const agentMembership = agentMembershipFactory
-    .owner()
+    .withRoles("agent_owner")
     .transient({ user, agent })
     .build(params.agentMembership)
   await saveAgentMembership({ repositories, membership: agentMembership })
