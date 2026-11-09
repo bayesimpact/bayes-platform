@@ -1,6 +1,6 @@
 import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { userEvent, within } from "storybook/test"
+import { fireEvent, userEvent, within } from "storybook/test"
 import { conversationUrlOf } from "@/test/desk-urls"
 import {
   buildEmptyHistoryWorld,
@@ -31,6 +31,27 @@ export const QuotedMessage: Story = {
     world: buildQuotedMessageWorld,
     url: (world) => conversationUrlOf(world),
   }),
+}
+
+/** The person selected a passage of a reply: a box offers to copy or annotate it. */
+export const PassageSelected: Story = {
+  parameters: desk({ url: (world) => conversationUrlOf(world) }),
+  // It selects "Pro plan" in the reply, as the mouse does, and lets the mouse button come up.
+  play: async ({ canvasElement }) => {
+    const passage = await within(canvasElement).findByText(
+      /The Pro plan also adds/,
+      {},
+      { timeout: 5000 },
+    )
+    const text = passage.firstChild
+    if (!text) throw new Error("The reply has no text")
+    const range = document.createRange()
+    range.setStart(text, 4)
+    range.setEnd(text, 12)
+    window.getSelection()?.removeAllRanges()
+    window.getSelection()?.addRange(range)
+    fireEvent.mouseUp(passage)
+  },
 }
 
 /**

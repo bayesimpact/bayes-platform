@@ -1,11 +1,8 @@
 import { useLingui } from "@lingui/react/macro"
 import { CheckIcon, CopyIcon } from "lucide-react"
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-
-/** How long the button shows that the text was copied. */
-const COPIED_FEEDBACK_IN_MILLISECONDS = 2000
+import { useCopyText } from "@/hooks/use-copy-text"
 
 export type CopyButtonProps = {
   text: string
@@ -16,18 +13,7 @@ export type CopyButtonProps = {
 /** Copies a text, such as a message or a value, and says so for a moment. */
 export function CopyButton({ text, label: copyLabel }: CopyButtonProps) {
   const { t } = useLingui()
-  const [isCopied, setIsCopied] = useState(false)
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), COPIED_FEEDBACK_IN_MILLISECONDS)
-    } catch (error) {
-      // The browser can refuse the clipboard (no focus, no permission): nothing else to do.
-      console.error("The text could not be copied:", error)
-    }
-  }
+  const { isCopied, copy } = useCopyText()
 
   const label = isCopied
     ? t({ message: "Copied", comment: "The copy button, once it copied its text" })
@@ -40,7 +26,7 @@ export function CopyButton({ text, label: copyLabel }: CopyButtonProps) {
             variant="ghost"
             size="icon-xs"
             aria-label={label}
-            onClick={() => void handleCopy()}
+            onClick={() => void copy(text)}
           />
         }
       >
