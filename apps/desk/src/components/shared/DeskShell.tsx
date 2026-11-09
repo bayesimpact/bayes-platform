@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { HeaderActionsContext } from "./header-actions-context"
+import { NewReleaseBanner } from "./NewReleaseBanner"
 import { ResizeHandle } from "./ResizeHandle"
 import { SidebarToggle } from "./SidebarToggle"
 
@@ -61,6 +62,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
         />
       </Sidebar>
       <SidebarInset className="h-svh min-h-0 min-w-0">
+        <NewReleaseBanner />
         {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
         <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
           {/* Shows or hides the sidebar, as ⌘B or Ctrl+B does. */}

@@ -118,6 +118,10 @@ msgstr "A new version of the Desk is available"
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "A new version of the Desk is available. Reloading the page clears what you have not sent or saved."
+msgstr "A new version of the Desk is available. Reloading the page clears what you have not sent or saved."
+
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Accept"
 msgstr "Accept"
@@ -774,6 +778,7 @@ msgstr "Read and accept the terms of the Desk to continue."
 msgid "Read it<0>: the {documentName}</0>"
 msgstr "Read it<0>: the {documentName}</0>"
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload"
 msgstr "Reload"

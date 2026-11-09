@@ -1,11 +1,13 @@
 import {
   type AnySchemaRoute,
   type AnyStreamRoute,
+  APP_VERSION_HEADER,
   type ErrorOutputDto,
   errorOutputSchema,
   signInRefusalOf,
 } from "@caseai-connect/desk-contracts"
 import { z } from "zod"
+import { appUpdate } from "@/lib/app-update"
 import {
   AuthenticationRequiredError,
   claimAutomaticSignIn,
@@ -125,6 +127,7 @@ async function apiFetch(
   let response = await send(request, { forceRefresh: false })
   // The token may have been revoked before it expired: refresh it once.
   if (response.status === 401) response = await send(request, { forceRefresh: true })
+  appUpdate.reportServerVersion(response.headers.get(APP_VERSION_HEADER))
   if (response.status === 401) {
     // A refusal of the API would come back after any new sign-in: it is explained instead.
     const refusal = signInRefusalOf((await readErrorBody(response))?.message)

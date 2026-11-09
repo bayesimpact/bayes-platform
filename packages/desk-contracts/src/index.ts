@@ -8,6 +8,7 @@ export { DeskAgentSessionsRoutes } from "./agent-sessions/agent-sessions.routes"
 export * from "./agents/agents.dto"
 export { DeskAgentsRoutes } from "./agents/agents.routes"
 // Common
+export * from "./common/app-version"
 export * from "./common/error.dto"
 export * from "./common/params.dto"
 // Conversations
