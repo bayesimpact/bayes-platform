@@ -131,6 +131,30 @@ describe("Agents - getAll", () => {
     })
   })
 
+  it("should expose the greeting of the published revision, not the draft's", async () => {
+    const { organization, project, user } = await createContext()
+
+    const agent = agentFactory
+      .transient({ organization, project })
+      .build({ name: "Greeting Agent" })
+    await repositories.agentRepository.save(agent)
+    const publishedRevision = agentSettingsFactory
+      .transient({ organization, project, agent })
+      .build({ revision: 1, greetingMessage: "Hello! How can I help you today?" })
+    const draftRevision = agentSettingsFactory
+      .transient({ organization, project, agent })
+      .build({ revision: 2, greetingMessage: "A greeting still in draft", isDraft: true })
+    await repositories.agentSettingsRepository.save([publishedRevision, draftRevision])
+    await addUserToAgent({ repositories, agent, user })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data[0]?.currentRevision.greetingMessage).toBe(
+      "Hello! How can I help you today?",
+    )
+  })
+
   it("should return the last published revision and ignore a newer draft", async () => {
     const { organization, project, user } = await createContext()
 

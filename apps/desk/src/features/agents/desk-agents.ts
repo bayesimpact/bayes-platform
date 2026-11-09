@@ -9,6 +9,8 @@ import type { DeskProject } from "./desk-projects"
 /** An agent the person can use in the Desk, with its project and organization. */
 export type DeskAgent = Pick<ProjectAgentOutputDto, "id" | "name" | "type"> & {
   project: DeskProject
+  /** The message a new conversation opens with, when the agent has one. */
+  greetingMessage: string | null
 }
 
 /** A page made for another type of agent is not found: its URL may name any agent. */
@@ -40,6 +42,7 @@ export function groupDeskAgents(
       name: agent.name,
       type: agent.type,
       project,
+      greetingMessage: agent.currentRevision.greetingMessage?.trim() || null,
     }))
     return agents.length > 0 ? [{ project, agents }] : []
   })

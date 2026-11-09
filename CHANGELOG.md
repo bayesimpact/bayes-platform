@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Desk: a new conversation now shows the agent's greeting message before the first message.
 - Desk: you can copy a selected passage of a reply again, or choose to annotate it.
 
 ### Security
