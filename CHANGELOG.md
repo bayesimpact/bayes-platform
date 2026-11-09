@@ -15,6 +15,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+- Agents: a person invited to one agent can no longer chat with or run extractions on the project's other agents.
+
 ## [26.11.1] - 2026-11-09
 
 ### Added

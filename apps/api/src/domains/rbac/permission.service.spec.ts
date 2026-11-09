@@ -21,11 +21,9 @@ import {
   AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_REVIEWER_ROLE,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
-  AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_READ_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
-  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
   BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
@@ -56,6 +54,7 @@ import {
   PROJECT_READ_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_ROLES,
+  RESOURCE_TYPE_PERMISSIONS_MAP,
   REVIEW_CAMPAIGN_READ_PERMISSION,
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
   REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION,
@@ -78,6 +77,13 @@ import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaig
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { assignPlatformSuperadminToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
+
+// What project_owner passes down to each agent of its project (RESOURCE_TYPE_PERMISSIONS_MAP.agent).
+const PROJECT_OWNER_PERMISSIONS_ON_AGENT = PROJECT_ROLE_PERMISSIONS.project_owner
+  .filter((permission) =>
+    (RESOURCE_TYPE_PERMISSIONS_MAP.agent as readonly string[]).includes(permission),
+  )
+  .sort()
 
 describe("PermissionService", () => {
   let service: PermissionService
@@ -1208,8 +1214,8 @@ describe("PermissionService", () => {
       expect(inherited).toContain("agent.settings.draft.read")
       expect(inherited).not.toContain("agent.update")
       expect(
-        await service.listResourcePermissionsFor(agentMember.id, "agent.read", agent.id),
-      ).toEqual(["agent.read"])
+        (await service.listResourcePermissionsFor(agentMember.id, "agent.read", agent.id)).sort(),
+      ).toEqual([...AGENT_ROLE_PERMISSIONS.agent_member].sort())
       expect(await service.listResourcePermissionsFor(reviewer.id, "agent.read", agent.id)).toEqual(
         [],
       )
@@ -1283,16 +1289,6 @@ describe("PermissionService", () => {
         [
           PROJECT_READ_PERMISSION,
           DESK_UI_READ_PERMISSION,
-          "csv_extraction_run.read",
-          "csv_extraction_run.create",
-          "csv_extraction_run.update",
-          "csv_extraction_run.delete",
-          "agent.conversation.session.read",
-          "agent.conversation.session.create",
-          "agent.conversation.session.delete",
-          "agent.extraction.session.read",
-          "agent.extraction.session.create",
-          "agent.extraction.session.delete",
           "project.agent_message_feedback.create",
           "project.mcp_server.read",
         ].sort(),
@@ -1595,14 +1591,7 @@ describe("PermissionService", () => {
       )
 
       expect([...permissionsByAgentId.keys()]).toEqual([agent.id])
-      expect(permissionsByAgentId.get(agent.id)?.sort()).toEqual(
-        [
-          AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
-          "agent.read",
-          AGENT_SETTINGS_DRAFT_READ_PERMISSION,
-          BACKOFFICE_AGENT_READ_PERMISSION,
-        ].sort(),
-      )
+      expect(permissionsByAgentId.get(agent.id)?.sort()).toEqual(PROJECT_OWNER_PERMISSIONS_ON_AGENT)
     })
 
     it("returns an empty map when the user has no access", async () => {
@@ -1681,12 +1670,7 @@ describe("PermissionService", () => {
         const permissionsByAgentId = await service.listResourcePermissions(user.id, "agent.read")
         expect([...permissionsByAgentId.keys()].sort()).toEqual([agentA.id, agentB.id].sort())
         expect(permissionsByAgentId.get(agentB.id)?.sort()).toEqual(
-          [
-            AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
-            "agent.read",
-            AGENT_SETTINGS_DRAFT_READ_PERMISSION,
-            BACKOFFICE_AGENT_READ_PERMISSION,
-          ].sort(),
+          PROJECT_OWNER_PERMISSIONS_ON_AGENT,
         )
       } finally {
         const testRole = await repositories.roleRepository.findOne({

@@ -5,6 +5,7 @@ import {
   MeRoutes,
   MyInvitationsRoutes,
   ProjectInvitationsRoutes,
+  ReviewCampaignsRoutes,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -27,6 +28,7 @@ import {
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import { ReviewCampaignsModule } from "@/domains/review-campaigns/review-campaigns.module"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -59,6 +61,7 @@ describe("Invitations - acceptOne", () => {
         MeModule,
         ActivitiesModule,
         ConversationAgentSessionsModule,
+        ReviewCampaignsModule,
       ],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
@@ -327,29 +330,48 @@ describe("Invitations - acceptOne", () => {
         projectId: project.id,
         agentId: agent.id,
       }
-      const createSession = () =>
+      const startSession = () =>
         request({
+          route: ReviewCampaignsRoutes.startTesterSession,
+          pathParams: {
+            organizationId: project.organizationId,
+            projectId: project.id,
+            reviewCampaignId: reviewCampaign.id,
+          },
+          token: "token",
+          request: { payload: {} },
+        })
+
+      const sessionResponse = await startSession()
+      expectResponse(sessionResponse, 201)
+      const agentSessionId = sessionResponse.body.data.id
+      const listMessages = () =>
+        request({
+          route: AgentSessionMessagesRoutes.review_campaign_tester.getAll,
+          pathParams: { ...agentPathParams, agentSessionId },
+          token: "token",
+        })
+      const messagesResponse = await listMessages()
+      expectResponse(messagesResponse, 201)
+      expect(messagesResponse.body.data).toEqual([])
+
+      // The tester routes are the only way in: the live routes check a role on the agent.
+      expectResponse(
+        await request({
           route: ConversationAgentSessionsRoutes.live.createOne,
           pathParams: agentPathParams,
           token: "token",
-        })
-
-      const sessionResponse = await createSession()
-      expectResponse(sessionResponse, 201)
-      const messagesResponse = await request({
-        route: AgentSessionMessagesRoutes.live.getAll,
-        pathParams: { ...agentPathParams, agentSessionId: sessionResponse.body.data.id },
-        token: "token",
-      })
-      expectResponse(messagesResponse, 201)
-      expect(messagesResponse.body.data).toEqual([])
+        }),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
 
       await repositories.reviewCampaignRepository.update(
         { id: reviewCampaign.id },
         { status: "closed", closedAt: new Date() },
       )
 
-      expectResponse(await createSession(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("refuses while the campaign is not active", async () => {
