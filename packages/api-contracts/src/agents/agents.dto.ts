@@ -18,6 +18,8 @@ export type AgentRevisionDto = {
   name?: string
   description?: string
   number: number
+  /** The message the agent opens each conversation with, in this revision. */
+  greetingMessage?: string
 }
 
 export type AgentDto = {

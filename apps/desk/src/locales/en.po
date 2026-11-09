@@ -603,6 +603,10 @@ msgstr "Name"
 msgid "New conversation"
 msgstr "New conversation"
 
+#: src/features/conversation/components/NewConversation.tsx
+msgid "New conversation with {agentName}"
+msgstr "New conversation with {agentName}"
+
 #: src/features/history/components/NewSessionLink.tsx
 msgid "New extraction"
 msgstr "New extraction"

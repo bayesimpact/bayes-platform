@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Desk: a new conversation now shows the agent's greeting message before the first message.
+
 ### Security
 
 ## [26.11.0] - 2026-11-06

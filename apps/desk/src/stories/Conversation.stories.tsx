@@ -5,6 +5,7 @@ import { conversationUrlOf } from "@/test/desk-urls"
 import {
   buildEmptyHistoryWorld,
   buildFollowUpQuestionsWorld,
+  buildGreetingWorld,
   buildLongConversationWorld,
   buildQuotedMessageWorld,
 } from "@/test/factories/desk-world.factory"
@@ -77,6 +78,11 @@ export const FollowUpQuestionAnswered: Story = {
 
 export const FirstConversation: Story = {
   parameters: desk({ world: buildEmptyHistoryWorld }),
+}
+
+/** A new conversation with an agent that has a greeting: it shows the greeting, not a question. */
+export const NewConversationWithGreeting: Story = {
+  parameters: desk({ world: buildGreetingWorld }),
 }
 
 /**

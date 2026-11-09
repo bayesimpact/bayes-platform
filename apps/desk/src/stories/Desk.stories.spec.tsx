@@ -63,6 +63,10 @@ const PAGES = {
     Story: pageStories.FirstConversation,
     loaded: () => screen.findByText("No conversations yet"),
   },
+  NewConversationWithGreeting: {
+    Story: pageStories.NewConversationWithGreeting,
+    loaded: () => screen.findByText(/I am the/),
+  },
   SeveralAgents: {
     Story: pageStories.SeveralAgents,
     loaded: () => screen.findByRole("heading", { name: "What should Document Reader read?" }),

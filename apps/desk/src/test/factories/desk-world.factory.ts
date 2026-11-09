@@ -498,6 +498,23 @@ export function buildEmptyHistoryWorld(): DeskWorld {
   return world
 }
 
+/** The main case, whose agent greets each new conversation with its own message. */
+export function buildGreetingWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  world.agents = world.agents.map((agent, index) =>
+    index === 0
+      ? {
+          ...agent,
+          currentRevision: {
+            greetingMessage:
+              "Hi, I am the **Helpful Assistant**. Ask me about the plans, their prices or support.",
+          },
+        }
+      : agent,
+  )
+  return world
+}
+
 /** A project opens the Desk, but the person is a member of none of its agents. */
 export function buildNoAgentWorld(): DeskWorld {
   const world = buildDeskWorld()

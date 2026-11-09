@@ -138,7 +138,15 @@ function conversationHandlers(world: DeskWorld) {
         conversation,
         ...(world.conversations[params.agentId] ?? []),
       ]
-      world.messages[conversation.id] = [buildConversationMessage({ createdAt: Date.now() })]
+      // The conversation opens with the agent's greeting, or the factory's for an agent with none.
+      const greetingMessage = world.agents.find((agent) => agent.id === params.agentId)
+        ?.currentRevision.greetingMessage
+      world.messages[conversation.id] = [
+        buildConversationMessage({
+          createdAt: Date.now(),
+          ...(greetingMessage ? { content: greetingMessage } : {}),
+        }),
+      ]
       return { id: conversation.id }
     }),
     mockRoute(DeskConversationsRoutes.deleteOne, ({ params }) => {

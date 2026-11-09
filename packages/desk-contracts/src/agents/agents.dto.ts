@@ -14,6 +14,8 @@ export const projectAgentOutputSchema = z.object({
   name: z.string(),
   type: agentTypeSchema,
   projectId: z.uuid(),
+  /** The published revision: the Desk reads the greeting a new conversation opens with. */
+  currentRevision: z.object({ greetingMessage: z.string().optional() }),
 })
 
 export type ProjectAgentOutputDto = z.output<typeof projectAgentOutputSchema>

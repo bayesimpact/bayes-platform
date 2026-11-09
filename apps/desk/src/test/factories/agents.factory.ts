@@ -14,6 +14,7 @@ export function buildProjectAgent(
     name: "Helpful Assistant",
     type: "conversation",
     projectId: project.id,
+    currentRevision: {},
     ...overrides,
   })
 }
