@@ -94,12 +94,7 @@ Decisions live in `docs/adr/`. Two of them apply to every API change, and each h
 
 ## Changelog
 
-Any edit to `CHANGELOG.md` follows the `end-feature` skill rules, whether or not that skill is invoked. The two that get violated most:
-
-- **One sentence per entry**, max 20 words. Never chain clauses with ";", "—", or "so". No sub-bullets.
-- **Write for end users**: name the capability, not the mechanics (no entities, services, migrations, jobs, or column names).
-
-Target shape: `Conversation retention: conversations are kept 30 days by default, configurable per workspace.`
+Any edit to `CHANGELOG.md` follows `docs/changelog.md`, whether or not a skill is invoked. Read it before you write an entry: it is the single source of the changelog rules.
 
 ## Git
 

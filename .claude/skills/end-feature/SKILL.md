@@ -29,7 +29,7 @@ Then call `AskUserQuestion` once, with two **multi-select** questions (`multiSel
 
 Pre-select:
 
-- **Update changelog** only when the change is visible to end users or security-relevant. Leave it unchecked for internal work: refactors, CI/tooling, docs, tests. Say in the question why it is unchecked; the user can still check it.
+- **Update changelog** only when the change needs an entry, as `docs/changelog.md` ▸ *When to write an entry* says. When it is unchecked, say why in the question; the user can still check it.
 - **Review the Desk conventions** only when the diff touches `apps/desk`, `packages/desk-contracts` or `docs/frontend/`.
 - **Create a PR** and **CI checks** always.
 - The three test options with the path rules of the `changes` job in `.github/workflows/ci.yml`, so the form runs what CI will run. Read the rules there; do not copy them here. Name in the question the option you left unchecked and why.
@@ -38,19 +38,11 @@ Whatever the user leaves checked is the set to run. Run the checked steps **stri
 
 ## 1. Update changelog
 
-Only if checked. Edit `CHANGELOG.md`, adding a line under `## [Unreleased]`. The format and the categories come from [ADR 0003](../../../docs/adr/0003-product-versioning-strategy.md); the writing rules below are the reference for every changelog edit (`CLAUDE.md` ▸ *Changelog*).
+Only if checked. Read [`docs/changelog.md`](../../../docs/changelog.md) in full: it holds every changelog rule, and this skill copies none of them. Then:
 
-- Pick the category. New capability → `### Added`; modified behavior → `### Changed`; capability that will go away → `### Deprecated`; capability taken away → `### Removed`; bug fix → `### Fixed`; security hardening or vulnerability fix → `### Security`. Add the heading under `[Unreleased]` when it is missing.
-- **Check for a feature flag.** The flag keys are declared in `packages/api-contracts/src/feature-flags/feature-flags.dto.ts`. The code checks them with `hasFeature`, `hasFeatureOrThrow`, `RestrictedFeature` and `isFeatureEnabled`. Grep the diff for a new key and for those calls, and check whether the changed screens or endpoints sit behind a flag already. A flagged feature, or one not exposed in the UI yet, takes the `(beta)` prefix and goes **last in its category**.
-- **Start with the capability's name and a colon** when the entry is about a named capability: `Apps catalog: project owners and admins can browse the apps they can connect.`
-- **Write for end users, not developers**: describe the visible outcome, not entities, services or migrations.
-- **Write in STE (Simplified Technical English)**: short sentences (max 20 words), one fact per sentence, active voice.
-- **One sentence per entry.** Even a large feature gets one headline sentence naming the capability or the new status (e.g. "Agent drafts: each agent has a draft and a published version of its settings."), not the mechanics. No sub-bullets. Never chain clauses with ";", "—", or "so".
-- **Avoid "now".** The release the entry sits under already says when the change came. Use "now" only when the entry misleads without it, for example a behavior that changed for existing data.
-- Name the capability, not the UI: no button placement, labels, colors, or click behavior. Keep dates and required user actions.
-- Merge entries that belong to the same change into one. Delete an entry whose information is already carried by another.
-- **Verify before writing**: check the actual commits and code for how a change works (runtime vs data migration, full vs partial scope). Scope claims exactly: write "New CSV extraction runs are personal." when existing data is unaffected.
-- Do not add an entry for a bug that was never in a released version. Check that the bug's cause was in the last release tag before listing a fix.
+1. Check whether the feature is behind a feature flag, as `docs/changelog.md` ▸ *Feature flags and `(beta)`* says.
+2. Write the entry under `## [Unreleased]`, in its category, following every rule of the file.
+3. Run the local dry run of the changelog check, as `docs/changelog.md` ▸ *Checks* says.
 
 ## 2. Review the Desk conventions
 
@@ -75,10 +67,10 @@ Only if checked. The rules of a PR live in other files. Read them at this step a
 
 | Rule | Source of truth |
 |------|-----------------|
-| Commit and PR title format | `CLAUDE.md` ▸ *Git*, and the types table of the `commit` skill (`.claude/skills/commit/SKILL.md`) |
+| Commit and PR title format | `CLAUDE.md` ▸ *Git*, and the types table of the `commit` skill (`.claude/skills/commit/skill.md`) |
 | What a public repository must never mention | `CLAUDE.md` ▸ *Git* |
 | Public API contract, maintainer go, `public-contract-approved` label | `docs/public-api-contract.md` |
-| Changelog entries only under `[Unreleased]` | `.github/scripts/changelog-check.mjs` (header comment) |
+| Changelog entries | `docs/changelog.md` |
 | Commit and PR attribution lines | the attribution reminder of the current session |
 
 Steps:
@@ -88,7 +80,7 @@ Steps:
 3. **Check conformity** before pushing. Go through each row of the table against the commits, the planned title and body, and the diff:
    - grep the commit messages, the title and the body for the names the *Git* section forbids;
    - when the diff touches a file the public contract covers, run the local check given in `docs/public-api-contract.md`. A failure there means the PR needs a maintainer's label: tell the user before opening it;
-   - when `CHANGELOG.md` changed, run the local dry run given at the top of `.github/scripts/changelog-check.mjs`.
+   - when `CHANGELOG.md` changed, check each new entry against `docs/changelog.md` and run the local dry run its *Checks* section gives.
 
    Report one line per rule: met, fixed, or blocked with the reason. Fix what you can; ask the user about the rest before going on.
 4. **Push** the branch: `git push -u origin <branch>`.
