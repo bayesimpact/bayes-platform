@@ -3,15 +3,19 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { documentFactory } from "@/domains/documents/document.factory"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
+import { userFactory } from "@/domains/users/user.factory"
 import type { AgentCsvExtractionRunStatus } from "../agent-csv-extraction-run.entity"
 import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factory"
 
 /**
  * Creates an organization, project (with a membership at the given role), an
- * extraction agent and a CSV source document. These are the resources every
- * CSV-extraction-run endpoint needs in scope before it can be reached.
+ * extraction agent and a CSV source document the user uploaded for a run. These are the
+ * resources every CSV-extraction-run endpoint needs in scope before it can be reached.
  */
 export async function createCsvExtractionRunContext({
   repositories,
@@ -35,10 +39,51 @@ export async function createCsvExtractionRunContext({
     mimeType: "text/csv",
     fileName: "input.csv",
     storageRelativePath: "documents/input.csv",
+    sourceType: "extraction",
+    userId: user.id,
   })
   await repositories.documentRepository.save(csvDocument)
 
   return { user, organization, project, agent, agentSettings, csvDocument }
+}
+
+/**
+ * Creates and persists a CSV the context user did not upload for a run: a knowledge-base
+ * document of the project, a colleague's upload for their own run, or an upload of the user in
+ * another organization.
+ */
+export async function createCsvDocumentNotOwnedByUser({
+  repositories,
+  context,
+  origin,
+}: {
+  repositories: AllRepositories
+  context: Awaited<ReturnType<typeof createCsvExtractionRunContext>>
+  origin: "knowledge_base" | "colleague_upload" | "other_organization"
+}) {
+  const csvFields = {
+    mimeType: "text/csv",
+    fileName: "other.csv",
+    storageRelativePath: "documents/other.csv",
+  }
+  if (origin === "knowledge_base") {
+    const document = documentFactory
+      .transient({ organization: context.organization, project: context.project })
+      .build({ ...csvFields, sourceType: "project" })
+    return await repositories.documentRepository.save(document)
+  }
+  if (origin === "colleague_upload") {
+    const colleague = await repositories.userRepository.save(userFactory.build())
+    const document = documentFactory
+      .transient({ organization: context.organization, project: context.project })
+      .build({ ...csvFields, sourceType: "extraction", userId: colleague.id })
+    return await repositories.documentRepository.save(document)
+  }
+  const { organization, project } = await createOrganizationWithProject(repositories)
+  const document = documentFactory
+    .transient({ organization, project })
+    .build({ ...csvFields, sourceType: "extraction", userId: context.user.id })
+  return await repositories.documentRepository.save(document)
 }
 
 /**

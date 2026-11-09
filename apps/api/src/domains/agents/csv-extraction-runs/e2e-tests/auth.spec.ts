@@ -23,10 +23,18 @@ import { expectResponse, type Requester, testRequester } from "../../../../../te
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import {
   attachCsvExtractionRunExport,
+  createCsvDocumentNotOwnedByUser,
   createCsvExtractionRun,
   createCsvExtractionRunContext,
   createOtherAgentInProject,
 } from "./csv-extraction-run.helpers"
+
+const CSV_DOCUMENTS_NOT_OWNED_BY_USER = [
+  "knowledge_base",
+  "colleague_upload",
+  "other_organization",
+] as const
+
 import {
   applyCsvExtractionRunOverrides,
   buildMockBatchService,
@@ -131,6 +139,15 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     agentCsvExtractionRunId = run.id
   }
 
+  /** Points the CSV document id at a CSV the caller did not upload for a run. */
+  const switchToCsvDocumentNotOwnedByUser = async (
+    origin: (typeof CSV_DOCUMENTS_NOT_OWNED_BY_USER)[number],
+    context: Awaited<ReturnType<typeof createContextForRole>>,
+  ) => {
+    const document = await createCsvDocumentNotOwnedByUser({ repositories, context, origin })
+    documentId = document.id
+  }
+
   /** Switches the caller to an organization admin who holds no role on the project. */
   const switchToOrganizationAdminWithoutProjectRole = async (
     organization: Awaited<ReturnType<typeof createContextForRole>>["organization"],
@@ -174,9 +191,30 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it("allows a project member to create a run", async () => {
+    it("allows a project member to create a run on their own upload", async () => {
       await createContextForRole("project_member")
       expectResponse(await subject(), 201)
+    })
+
+    it.each(
+      CSV_DOCUMENTS_NOT_OWNED_BY_USER,
+    )("answers 404 to a project member who creates a run on a CSV they did not upload (%s)", async (origin) => {
+      const context = await createContextForRole("project_member")
+      await switchToCsvDocumentNotOwnedByUser(origin, context)
+      expectResponse(await subject(), 404)
+      expect(await repositories.agentCsvExtractionRunRepository.count()).toBe(1)
+    })
+
+    it("allows a project owner to create a playground run on a knowledge-base CSV", async () => {
+      const context = await createContextForRole("project_owner")
+      await switchToCsvDocumentNotOwnedByUser("knowledge_base", context)
+      expectResponse(await subject("playground"), 201)
+    })
+
+    it("answers 404 to a project owner who creates a playground run on a CSV of another organization", async () => {
+      const context = await createContextForRole("project_owner")
+      await switchToCsvDocumentNotOwnedByUser("other_organization", context)
+      expectResponse(await subject("playground"), 404)
     })
 
     it("forbids a plain member to create a playground run", async () => {
@@ -721,9 +759,23 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it("allows a project member to read file columns", async () => {
+    it("allows a project member to read the columns of their own upload", async () => {
       await createContextForRole("project_member")
       expectResponse(await subject(), 200)
+    })
+
+    it.each(
+      CSV_DOCUMENTS_NOT_OWNED_BY_USER,
+    )("answers 404 to a project member who reads the columns of a CSV they did not upload (%s)", async (origin) => {
+      const context = await createContextForRole("project_member")
+      await switchToCsvDocumentNotOwnedByUser(origin, context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 to a project owner who reads the columns of a CSV of another organization on the playground routes", async () => {
+      const context = await createContextForRole("project_owner")
+      await switchToCsvDocumentNotOwnedByUser("other_organization", context)
+      expectResponse(await subject("playground"), 404)
     })
 
     it("forbids a plain member to read file columns on the playground routes", async () => {
