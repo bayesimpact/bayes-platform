@@ -66,7 +66,7 @@ describe("an agent's pages", () => {
     expect(
       await screen.findByRole("heading", { name: "New conversation with Helpful Assistant" }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/I am the/)).toBeInTheDocument()
+    expect(screen.getByText(/Ask me about the plans, their prices or support/)).toBeInTheDocument()
     expect(
       screen.queryByRole("heading", { name: "How can I help you today?" }),
     ).not.toBeInTheDocument()
@@ -78,7 +78,7 @@ describe("an agent's pages", () => {
       await screen.findByText(/Here is what I found about "Which plan suits a team of five\?"/),
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toMatch(/\/as\/[0-9a-f-]+$/)
-    expect(screen.getByText(/I am the/)).toBeInTheDocument()
+    expect(screen.getByText(/Ask me about the plans, their prices or support/)).toBeInTheDocument()
   })
 
   it("keep the first message and its file when the conversation could not start", async () => {

@@ -90,7 +90,10 @@ function emptyWorld(): DeskWorld {
   }
 }
 
-/** A short exchange, for a conversation of the history. */
+/**
+ * A short exchange, for a conversation of the history. It opens with the greeting the agent had
+ * then: a greeting changes, and a conversation keeps the one it started with.
+ */
 function buildExchange(question: string, createdAt: number): ConversationMessageOutputDto[] {
   return [
     buildConversationMessage({ content: "Hello! How can I help you today?", createdAt }),
@@ -501,17 +504,12 @@ export function buildEmptyHistoryWorld(): DeskWorld {
 /** The main case, whose agent greets each new conversation with its own message. */
 export function buildGreetingWorld(): DeskWorld {
   const world = buildDeskWorld()
-  world.agents = world.agents.map((agent, index) =>
-    index === 0
-      ? {
-          ...agent,
-          currentRevision: {
-            greetingMessage:
-              "Hi, I am the **Helpful Assistant**. Ask me about the plans, their prices or support.",
-          },
-        }
-      : agent,
-  )
+  const [assistant] = world.agents
+  if (!assistant) return world
+  assistant.currentRevision = {
+    greetingMessage:
+      "Hi, I am the **Helpful Assistant**. Ask me about the plans, their prices or support.",
+  }
   return world
 }
 

@@ -65,7 +65,7 @@ const PAGES = {
   },
   NewConversationWithGreeting: {
     Story: pageStories.NewConversationWithGreeting,
-    loaded: () => screen.findByText(/I am the/),
+    loaded: () => screen.findByRole("heading", { name: "New conversation with Helpful Assistant" }),
   },
   SeveralAgents: {
     Story: pageStories.SeveralAgents,
