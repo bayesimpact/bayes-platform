@@ -146,3 +146,5 @@ Before marking any work as completed, run and verify:
 4. `npm run check -w @caseai-connect/desk` — when the Desk or its contracts changed
 
 Work is NOT complete until all applicable commands pass with exit code 0.
+
+When a feature is done, run `/end-feature`, every time: it brings the branch up to date with `main`, writes the changelog entry, reviews the frontend conventions, runs the checks CI will run and opens or updates the PR.
