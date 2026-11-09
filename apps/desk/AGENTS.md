@@ -42,7 +42,7 @@ holds what is specific to the Desk.
   `appUpdate` (`src/lib/app-update.ts`), which counts another release as new once it alone
   answered for a minute, so a rolling deployment does not announce the old release, and at once
   when Vite cannot load a chunk of this tab's release (`vite:preloadError`). Then
-  `NewReleaseBanner`, above every signed-in page, offers the reload, which the person chooses;
+  `NewReleaseBanner`, at the top of every signed-in page, offers the reload, which the person chooses;
   `useReloadWhenSafe`, in the root route, turns the next move to another page into a full load of
   that page, unless a mutation is on its way; and `RouteErrorState` offers a reload, not a retry.
   The Desk never reloads the page the person is on by itself. Nothing tells a release in dev.

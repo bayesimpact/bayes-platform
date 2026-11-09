@@ -174,7 +174,11 @@ describe("the stories of the Desk", () => {
     ).toBeInTheDocument()
     await act(() => NewReleaseOut.play?.({ canvasElement: container }))
 
-    expect(screen.getByText(/A new version of the Desk is available\./)).toBeInTheDocument()
+    const banner = screen.getByRole("status")
+    expect(within(banner).getByText("A new version of the Desk is available")).toBeInTheDocument()
+    expect(
+      within(banner).getByText("Reloading the page clears what you have not sent or saved."),
+    ).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument()
   })
 

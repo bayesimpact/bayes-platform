@@ -110,6 +110,7 @@ msgstr "<0><1/><2/></0> for a new line"
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
@@ -117,10 +118,6 @@ msgstr "A new version of the Desk is available"
 #: src/features/conversation/components/ReplyError.tsx
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
-
-#: src/components/shared/NewReleaseBanner.tsx
-msgid "A new version of the Desk is available. Reloading the page clears what you have not sent or saved."
-msgstr "A new version of the Desk is available. Reloading the page clears what you have not sent or saved."
 
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Accept"
@@ -786,6 +783,10 @@ msgstr "Reload"
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "Reloading the page clears what you have not sent or saved."
+msgstr "Reloading the page clears what you have not sent or saved."
 
 #. Saves the fact the agent proposed in its memory
 #. Saves the reworded fact in the agent's memory

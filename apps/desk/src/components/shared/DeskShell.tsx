@@ -62,7 +62,6 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
         />
       </Sidebar>
       <SidebarInset className="h-svh min-h-0 min-w-0">
-        <NewReleaseBanner />
         {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
         <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
           {/* Shows or hides the sidebar, as ⌘B or Ctrl+B does. */}
@@ -70,6 +69,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
           <div className="min-w-0 flex-1 truncate text-sm font-medium">{title}</div>
           <div ref={setActionsSlot} className="flex shrink-0 items-center gap-2" />
         </header>
+        <NewReleaseBanner />
         {/* The page scrolls inside this frame, so a conversation can keep its message box in view. */}
         <HeaderActionsContext value={actionsSlot}>
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>

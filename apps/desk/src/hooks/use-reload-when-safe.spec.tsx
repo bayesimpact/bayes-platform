@@ -9,9 +9,8 @@ import { worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
-/** The words of the banner once a new release is out. */
-const BANNER_TEXT =
-  "A new version of the Desk is available. Reloading the page clears what you have not sent or saved."
+/** The warning of the banner once a new release is out. */
+const BANNER_TEXT = "Reloading the page clears what you have not sent or saved."
 
 /** Opens a new conversation, with the page's reload watched. */
 async function openNewConversation() {
