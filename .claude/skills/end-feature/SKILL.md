@@ -38,13 +38,15 @@ Whatever the user leaves checked is the set to run. Run the checked steps **stri
 
 ## 1. Update changelog
 
-Only if checked. Edit `CHANGELOG.md`, adding a line under `## [Unreleased]`:
+Only if checked. Edit `CHANGELOG.md`, adding a line under `## [Unreleased]`. The format and the categories come from [ADR 0003](../../../docs/adr/0003-product-versioning-strategy.md); the writing rules below are the reference for every changelog edit (`CLAUDE.md` ▸ *Changelog*).
 
-- New capability → `### Added`; modified behavior → `### Changed`; bug fix → `### Fixed`; security hardening or vulnerability fix → `### Security`.
+- Pick the category. New capability → `### Added`; modified behavior → `### Changed`; capability that will go away → `### Deprecated`; capability taken away → `### Removed`; bug fix → `### Fixed`; security hardening or vulnerability fix → `### Security`. Add the heading under `[Unreleased]` when it is missing.
+- **Check for a feature flag.** The flag keys are declared in `packages/api-contracts/src/feature-flags/feature-flags.dto.ts`. The code checks them with `hasFeature`, `hasFeatureOrThrow`, `RestrictedFeature` and `isFeatureEnabled`. Grep the diff for a new key and for those calls, and check whether the changed screens or endpoints sit behind a flag already. A flagged feature, or one not exposed in the UI yet, takes the `(beta)` prefix and goes **last in its category**.
+- **Start with the capability's name and a colon** when the entry is about a named capability: `Apps catalog: project owners and admins can browse the apps they can connect.`
 - **Write for end users, not developers**: describe the visible outcome, not entities, services or migrations.
-- Prefix with `(beta)` if the feature is behind a flag or not yet exposed in the UI.
 - **Write in STE (Simplified Technical English)**: short sentences (max 20 words), one fact per sentence, active voice.
-- **One sentence per entry.** Even a large feature gets one headline sentence naming the capability or the new status (e.g. "Agents now have a draft and a published version of their settings."), not the mechanics. No sub-bullets. Never chain clauses with ";", "—", or "so".
+- **One sentence per entry.** Even a large feature gets one headline sentence naming the capability or the new status (e.g. "Agent drafts: each agent has a draft and a published version of its settings."), not the mechanics. No sub-bullets. Never chain clauses with ";", "—", or "so".
+- **Avoid "now".** The release the entry sits under already says when the change came. Use "now" only when the entry misleads without it, for example a behavior that changed for existing data.
 - Name the capability, not the UI: no button placement, labels, colors, or click behavior. Keep dates and required user actions.
 - Merge entries that belong to the same change into one. Delete an entry whose information is already carried by another.
 - **Verify before writing**: check the actual commits and code for how a change works (runtime vs data migration, full vs partial scope). Scope claims exactly: write "New CSV extraction runs are personal." when existing data is unaffected.
