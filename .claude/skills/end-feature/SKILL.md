@@ -1,6 +1,6 @@
 ---
 name: end-feature
-description: Run the last steps before ending a feature. Shows a form where you can check/uncheck which final steps to run (update changelog, review the Desk conventions, CI checks, API tests, web tests, Desk checks, create a PR), then executes the selected steps in that order.
+description: Run the last steps before ending a feature. Shows a form where you can check/uncheck which final steps to run (update changelog, review the Desk conventions, review the apps/web conventions, CI checks, API tests, web tests, Desk checks, create a PR), then executes the selected steps in that order.
 user_invocable: true
 ---
 
@@ -17,7 +17,8 @@ Then call `AskUserQuestion` once, with two **multi-select** questions (`multiSel
 **Question 1, `header: "Steps"`**
 
 - **Update changelog**: add an entry under `## [Unreleased]` in `CHANGELOG.md`
-- **Review the Desk conventions**: a subagent reviews the diff of `apps/desk` (ADR 0031 stack) against `docs/frontend/conventions.md`. The `apps/web` conventions are not reviewed here
+- **Review the Desk conventions**: a subagent reviews the diff of `apps/desk` (ADR 0031 stack) against `docs/frontend/conventions.md`
+- **Review the apps/web conventions**: a subagent reviews the diff of `apps/web` and `packages/ui` against the rules of `apps/web`, which differ from the Desk's
 - **Create a PR**: push the branch and open a pull request with `gh`
 
 **Question 2, `header: "Checks"`**
@@ -31,6 +32,7 @@ Pre-select:
 
 - **Update changelog** only when the change needs an entry, as `docs/changelog.md` ▸ *When to write an entry* says. When it is unchecked, say why in the question; the user can still check it.
 - **Review the Desk conventions** only when the diff touches `apps/desk`, `packages/desk-contracts` or `docs/frontend/`.
+- **Review the apps/web conventions** only when the diff touches `apps/web` or `packages/ui`.
 - **Create a PR** and **CI checks** always.
 - The three test options with the path rules of the `changes` job in `.github/workflows/ci.yml`, so the form runs what CI will run. Read the rules there; do not copy them here. Name in the question the option you left unchecked and why.
 
@@ -48,11 +50,26 @@ Only if checked. Read [`docs/changelog.md`](../../../docs/changelog.md) in full:
 
 Only if checked. Dispatch the `frontend-conventions-reviewer` subagent (Agent tool, `subagent_type: "frontend-conventions-reviewer"`) on the current branch's diff. It reports what breaks the rules no tool checks, and edits nothing.
 
-- Fix each finding. The Desk checks of step 3 then run on the fixed code; if they are unchecked, run `npm run check -w @caseai-connect/desk` anyway.
+- Fix each finding. The Desk checks of step 4 then run on the fixed code; if they are unchecked, run `npm run check -w @caseai-connect/desk` anyway.
 - A finding you disagree with goes to the user with your reasoning; do not skip it silently.
 - Commit the fixes with the feature's other changes.
 
-## 3. Checks and tests
+## 3. Review the apps/web conventions
+
+Only if checked. `apps/web` follows its own rules, not those of the Desk: `docs/frontend/conventions.md` does not apply to it. There is no dedicated agent, so dispatch a `general-purpose` subagent (Agent tool) with this brief:
+
+- Read in full the documents that hold the rules of `apps/web`. They are the reference; your memory of React or Redux is not:
+  - `apps/web/CLAUDE.md`, the rules themselves;
+  - [ADR 0011](../../../docs/adr/0011-frontend-architecture.md): routing, features, store, hooks;
+  - [ADR 0012](../../../docs/adr/0012-form-architecture.md): forms;
+  - [ADR 0010](../../../docs/adr/0010-factory-per-model-and-story-per-route.md): a factory per model, a story per route.
+- Get the diff against the base branch (`git diff origin/main...HEAD` plus `git diff HEAD`), limited to `apps/web` and `packages/ui`. Read each changed file whole.
+- Run the audits of `.claude/skills/check-factories-and-stories/SKILL.md` and `.claude/skills/check-use-state/SKILL.md`, and keep the findings on the changed files.
+- Report each finding as `path:line`, the rule it breaks (quote a few words of the document), and the change that would fix it, from the most likely bug to the most cosmetic. Say plainly when there is nothing. Edit no file.
+
+Then handle the findings as step 2 says: fix each one, take a disagreement to the user, commit the fixes with the feature.
+
+## 4. Checks and tests
 
 Run each checked option from the repository root, in the order of the form. When one fails, **stop** and report the failure with its output. Do not run the next ones and do not open the PR. Let the user fix and re-run.
 
@@ -61,7 +78,7 @@ Run each checked option from the repository root, in the order of the form. When
 - **Web tests**: `npm run test -w @caseai-connect/web`.
 - **Desk checks**: `npm run check -w @caseai-connect/desk`, then `npm run build -w @caseai-connect/desk`.
 
-## 4. Create a PR
+## 5. Create a PR
 
 Only if checked. The rules of a PR live in other files. Read them at this step and follow them as they are written today. Do not copy them into this skill.
 
@@ -94,10 +111,10 @@ Steps:
    EOF
    )"
    ```
-6. Report the PR URL as a clickable link, with the conformity report of step 3.
+6. Report the PR URL as a clickable link, with the conformity report written before the push.
 
 ## Notes
 
-- Respect the order: changelog → Desk review → checks and tests → PR. Never reorder.
+- Respect the order: changelog → Desk review → apps/web review → checks and tests → PR. Never reorder.
 - If the user unchecks everything, there is nothing to do: say so.
 - If a step's precondition isn't met, point out the conflict and ask before proceeding rather than guessing.
