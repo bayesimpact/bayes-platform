@@ -16,11 +16,12 @@ const support: DeskProject = {
   organization,
 }
 
-const agent = (name: string, project: DeskProject) => ({
+const agent = (name: string, project: DeskProject, greetingMessage?: string) => ({
   id: crypto.randomUUID(),
   name,
   type: "conversation" as const,
   projectId: project.id,
+  currentRevision: greetingMessage === undefined ? {} : { greetingMessage },
 })
 
 describe("groupDeskAgents", () => {
@@ -34,6 +35,25 @@ describe("groupDeskAgents", () => {
     expect(flattenDeskAgents(groups).map((deskAgent) => deskAgent.name)).toEqual([
       "Helpful Assistant",
       "Writing Helper",
+    ])
+  })
+
+  it("keeps the greeting of each agent, and none for a blank one", () => {
+    const groups = groupDeskAgents(
+      [support],
+      [
+        [
+          agent("Helpful Assistant", support, "Hello! How can I help you today?"),
+          agent("Writing Helper", support, "  "),
+          agent("Pricing Assistant", support),
+        ],
+      ],
+    )
+
+    expect(flattenDeskAgents(groups).map((deskAgent) => deskAgent.greetingMessage)).toEqual([
+      "Hello! How can I help you today?",
+      null,
+      null,
     ])
   })
 })

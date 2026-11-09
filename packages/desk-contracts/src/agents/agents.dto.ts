@@ -14,6 +14,11 @@ export const projectAgentOutputSchema = z.object({
   name: z.string(),
   type: agentTypeSchema,
   projectId: z.uuid(),
+  /**
+   * The published revision: the Desk reads the greeting a new conversation opens with. The API
+   * leaves the key out when the agent has no greeting, as it does for the revision's name.
+   */
+  currentRevision: z.object({ greetingMessage: z.string().optional() }),
 })
 
 export type ProjectAgentOutputDto = z.output<typeof projectAgentOutputSchema>
