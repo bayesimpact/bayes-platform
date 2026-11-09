@@ -179,6 +179,11 @@ msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne
 msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
 msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
 
+#. Opens a note on the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Annotate"
+msgstr "Annoter"
+
 #: src/features/conversation/components/QuoteReplyPopover.tsx
 msgid "Annotate and press Enter to keep it"
 msgstr "Annotez, puis appuyez sur Entrée pour garder la note"
@@ -254,9 +259,16 @@ msgid "Contact your administrator."
 msgstr "Contactez votre administrateur."
 
 #. The copy button, once it copied its text
+#. The copy button, once it copied its text
 #: src/components/shared/CopyButton.tsx
+#: src/features/conversation/components/SelectionActions.tsx
 msgid "Copied"
 msgstr "Copié"
+
+#. Copies the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Copy"
+msgstr "Copier"
 
 #: src/features/extraction/components/ResultFields.tsx
 msgid "Copy {label}"

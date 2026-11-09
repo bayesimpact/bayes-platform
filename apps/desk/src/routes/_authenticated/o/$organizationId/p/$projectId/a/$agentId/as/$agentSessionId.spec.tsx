@@ -588,7 +588,10 @@ describe("a conversation", () => {
       window.getSelection()?.addRange(range)
       fireEvent.mouseUp(element)
     }
-    const noteBox = () => screen.findByRole("textbox", { name: "Your note on this passage" })
+    const noteBox = async () => {
+      await userEvent.click(await screen.findByRole("button", { name: "Annotate" }))
+      return screen.findByRole("textbox", { name: "Your note on this passage" })
+    }
 
     // A note left for another passage is kept, as one added with Enter.
     select(await screen.findByText(/The Pro plan also adds/), 4, 12)

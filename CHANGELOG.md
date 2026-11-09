@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Desk: you can copy a selected passage of a reply again, or choose to annotate it.
+
 ### Security
 
 ## [26.11.0] - 2026-11-06
