@@ -20,7 +20,7 @@ function LocaleAndCache() {
 
 const { HistoryFailsToLoad, PageNotFound, ProjectsFailToLoad, Loading, ...generalPages } =
   composeStories(generalStories)
-const { ReplyFails, ...conversationPages } = composeStories(conversationStories)
+const { ReplyFails, PassageSelected, ...conversationPages } = composeStories(conversationStories)
 const { DocumentDetails, ...extractionPages } = composeStories(extractionStories)
 /** The stories of a page, from the three folders of Storybook. */
 const pageStories = {
@@ -139,6 +139,15 @@ describe("the stories of the Desk", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Retry" }))
     expect(await screen.findByText(/Here is what I found about "Hello"/)).toBeInTheDocument()
+  })
+
+  it("PassageSelected offers to copy or annotate the passage it selects", async () => {
+    await PassageSelected.load()
+    const { container } = render(<PassageSelected />)
+    await PassageSelected.play?.({ canvasElement: container })
+
+    expect(await screen.findByRole("button", { name: "Copy" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Annotate" })).toBeInTheDocument()
   })
 
   it("DocumentDetails opens the details of a document beside the page", async () => {
