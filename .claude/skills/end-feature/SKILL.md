@@ -8,6 +8,17 @@ Wrap up a feature by running its final steps. Present a checklist form, then exe
 
 The work happens on the branch of the worktree that `/worktree-env` created at the start of the session. This skill creates no branch and never switches back to `main`.
 
+## Before the form: bring the branch up to date
+
+Run `git fetch origin main`, then `git rev-list --count HEAD..origin/main`. When the branch is behind `main`:
+
+- Commit the uncommitted changes first, with a message that follows `CLAUDE.md` ▸ *Git*. Never use `git stash`: its stack is shared with every worktree.
+- If the branch was never pushed (`git rev-parse --abbrev-ref @{upstream}` fails), rebase it: `git rebase origin/main`. If it was pushed, merge instead: `git merge origin/main`, so the pushed history is never rewritten and no force push follows.
+- On a conflict, stop and show the user the files. In `CHANGELOG.md`, the branch's entries stay under `[Unreleased]`, never under a version `main` released since (`docs/changelog.md` ▸ *Where an entry goes*).
+- In a worktree with an environment (`infra/worktree/.env` exists), run `bayes wt up` afterwards: `main` may bring migrations or dependencies the environment lacks.
+
+Say in one line how many commits `main` brought and how the branch took them, or that it was up to date.
+
 ## Step 0: show the checklist form
 
 First list the files the feature changes: `git diff --name-only origin/main...HEAD` plus `git status --porcelain`. The pre-selections below depend on them.
@@ -92,7 +103,10 @@ Only if checked. The rules of a PR live in other files. Read them at this step a
 
 Steps:
 
-1. **Check the branch.** Run `git branch --show-current`. On `main`, stop: the work belongs on a worktree branch, so suggest `/worktree-env`.
+1. **Check the branch and its PR.** Run `git branch --show-current`. On `main`, stop: the work belongs on a worktree branch, so suggest `/worktree-env`. Then run `gh pr view --json number,url,state`:
+   - no PR: open one at sub-step 5;
+   - an open PR: do not open another one. Sub-step 5 updates it;
+   - a merged or closed PR: stop and tell the user. The branch's work already landed or was dropped, so new work needs a new branch.
 2. **Commit** the uncommitted changes, with a message that follows the sources above.
 3. **Check conformity** before pushing. Go through each row of the table against the commits, the planned title and body, and the diff:
    - grep the commit messages, the title and the body for the names the *Git* section forbids;
@@ -101,7 +115,11 @@ Steps:
 
    Report one line per rule: met, fixed, or blocked with the reason. Fix what you can; ask the user about the rest before going on.
 4. **Push** the branch: `git push -u origin <branch>`.
-5. **Open the PR** with a heredoc body that ends with the session's attribution line:
+5. **Open the PR**, or update the open one.
+
+   With an open PR, the push of sub-step 4 already added the commits. Report its URL. When its title or summary no longer describe the branch, update them with `gh api -X PATCH repos/bayesimpact/bayes-platform/pulls/<number> -f title="<title>" -f body="<body>"`: `gh pr edit` can fail with a GraphQL permission error.
+
+   Without a PR, open one with a heredoc body that ends with the session's attribution line:
    ```bash
    gh pr create --title "<title>" --body "$(cat <<'EOF'
    ## Summary
@@ -111,10 +129,10 @@ Steps:
    EOF
    )"
    ```
-6. Report the PR URL as a clickable link, with the conformity report written before the push.
+6. Report the PR URL as a clickable link, new or updated, with the conformity report written before the push.
 
 ## Notes
 
-- Respect the order: changelog → Desk review → apps/web review → checks and tests → PR. Never reorder.
+- Respect the order: branch update → form → changelog → Desk review → apps/web review → checks and tests → PR. Never reorder.
 - If the user unchecks everything, there is nothing to do: say so.
 - If a step's precondition isn't met, point out the conflict and ask before proceeding rather than guessing.
