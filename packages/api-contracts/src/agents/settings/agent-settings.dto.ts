@@ -65,19 +65,20 @@ export const AgentModelToAgentProvider = {
 } as const satisfies Record<AgentModel, AgentProvider>
 
 /**
- * The providers whose models take the priority tier: Gemini 3.x (Vertex AI's shared request
- * type) and OpenAI (the service tier of the Responses API). The project needs the
- * `llm-priority-calls` flag, and the agent turns it on.
+ * The providers whose models take a service tier, priority or flex: Gemini 3.x (Vertex AI's
+ * shared request type) and OpenAI (the service tier of the Responses API). Priority needs the
+ * project's `llm-priority-calls` flag and the agent's toggle; flex needs the project's
+ * `llm-flex-workers` flag and only applies to background jobs.
  */
-const PRIORITY_CALLS_PROVIDERS: readonly AgentProvider[] = [
+const SERVICE_TIER_PROVIDERS: readonly AgentProvider[] = [
   AgentProvider.Vertex3,
   AgentProvider.OpenAI,
 ]
 
-/** Whether `model` can be called with the priority tier. */
-export function supportsPriorityCalls(model: string | undefined): boolean {
+/** Whether `model` can be called with a service tier (priority or flex). */
+export function supportsServiceTiers(model: string | undefined): boolean {
   if (model === undefined || !(model in AgentModelToAgentProvider)) return false
-  return PRIORITY_CALLS_PROVIDERS.includes(AgentModelToAgentProvider[model as AgentModel])
+  return SERVICE_TIER_PROVIDERS.includes(AgentModelToAgentProvider[model as AgentModel])
 }
 
 export type AgentModelOf<Provider extends AgentProvider> = {

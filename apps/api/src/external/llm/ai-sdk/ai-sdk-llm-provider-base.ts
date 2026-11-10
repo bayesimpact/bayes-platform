@@ -13,7 +13,8 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
+import { AISDKLLMErrorsMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-errors-mgmt"
+import type { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
 import type { AISDKLLMModelMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import type { LeakedToolCall } from "@/external/llm/ai-sdk/ai-sdk-llm-tools-mgmt"
 
@@ -32,7 +33,7 @@ export const MAX_STREAM_OUTPUT_TOKENS = 16384
  * {@link AISDKLLMFetchMgmt}.
  */
 export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = AgentProvider>
-  extends AISDKLLMFetchMgmt<Provider>
+  extends AISDKLLMErrorsMgmt<Provider>
   implements LLMProvider
 {
   /** What the provider says of itself, sent under `provider.*`. Providers add their own. */
@@ -161,7 +162,20 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     })
   }
 
-  async generateText({
+  async generateText(args: {
+    prompt: string
+    config: LLMConfig
+    callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
+  }): Promise<string> {
+    return this.withRetryOnSpecificErrors({
+      config: args.config,
+      callOrigin: CallOrigin.generateText,
+      call: (config) => this.generateTextOnce({ ...args, config }),
+    })
+  }
+
+  private async generateTextOnce({
     prompt,
     config,
     callContext,
@@ -179,6 +193,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
       system: config.systemPrompt,
       prompt,
+      maxRetries: this.getMaxRetries(config),
       experimental_telemetry: {
         isEnabled: true,
         functionId: "LLMProvider.generateText",
@@ -189,7 +204,21 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     return text
   }
 
-  async generateStructuredOutput({
+  async generateStructuredOutput(args: {
+    message: LLMChatMessage
+    schema: Record<string, unknown>
+    config: LLMConfig
+    callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
+  }): Promise<Record<string, unknown>> {
+    return this.withRetryOnSpecificErrors({
+      config: args.config,
+      callOrigin: CallOrigin.generateStructuredOutput,
+      call: (config) => this.generateStructuredOutputOnce({ ...args, config }),
+    })
+  }
+
+  private async generateStructuredOutputOnce({
     message,
     schema,
     config,
@@ -212,6 +241,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
+      maxRetries: this.getMaxRetries(config),
       output: Output.object({
         schema: jsonSchema<Record<string, unknown>>(schema),
       }),

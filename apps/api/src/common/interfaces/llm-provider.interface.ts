@@ -53,6 +53,7 @@ export type BuildLLMConfigParams = {
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
   useExtendedTimeouts?: boolean
+  isWorkerCall?: boolean
 }
 export type LLMConfig =
   | {
@@ -64,6 +65,9 @@ export type LLMConfig =
       terminalToolNames?: string[]
       useExtendedTimeouts?: never
       serviceTier: never
+      nbRetriesOnSpecificErrors?: number
+      fallbackToStandardTier?: boolean
+      forceNoRetry?: boolean
     }
   | {
       model: Exclude<string, MockModels>
@@ -91,6 +95,15 @@ export type LLMConfig =
        */
       useExtendedTimeouts?: boolean
       serviceTier: LLMServiceTier
+      /**
+       * Retries on the errors worth retrying (a 429, a timeout), managed by the
+       * provider instead of the AI SDK. 0 or unset: the AI SDK's own retries.
+       */
+      nbRetriesOnSpecificErrors?: number
+      /** A flex call with no capacity left after its retries runs once on the standard tier. */
+      fallbackToStandardTier?: boolean
+      /** Turns the AI SDK's own retries off (the standard-tier fallback is one attempt). */
+      forceNoRetry?: boolean
     }
 export type LLMServiceTier = "priority" | "flex" | undefined
 /** What the provider says of itself, sent under `provider.*`. */

@@ -110,11 +110,11 @@ describe("AISDKOpenAIProvider model options", () => {
         })
       })
 
-      it("sends the priority tier the call asks for", () => {
-        const config = configFor(model, { serviceTier: "priority" })
+      it.each(["priority", "flex"] as const)("sends the %s tier the call asks for", (tier) => {
+        const config = configFor(model, { serviceTier: tier })
         expect(provider.specificProviderOptionsFor(config)).toEqual({
           providerOptions: {
-            openai: { reasoningEffort: "low", ...callSettings, serviceTier: "priority" },
+            openai: { reasoningEffort: "low", ...callSettings, serviceTier: tier },
           },
         })
       })
@@ -260,10 +260,12 @@ describe("AISDKOpenAIProvider request", () => {
       expect(warningCollector.warnings).toEqual([])
     })
 
-    it.each(CALLS)("sends the priority tier the call asks for on %s", async (call) => {
-      const request = await send(call, model, undefined, "priority")
+    it.each(
+      CALLS.flatMap((call) => (["priority", "flex"] as const).map((tier) => ({ call, tier }))),
+    )("sends the $tier tier the call asks for on $call", async ({ call, tier }) => {
+      const request = await send(call, model, undefined, tier)
 
-      expect(request.body.service_tier).toBe("priority")
+      expect(request.body.service_tier).toBe(tier)
       expect(warningCollector.warnings).toEqual([])
     })
 

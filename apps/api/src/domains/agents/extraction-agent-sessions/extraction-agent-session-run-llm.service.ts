@@ -124,6 +124,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
           useExtendedTimeouts: true,
           priorityCallsEnabled: agentSettings.priorityCallsEnabled,
           llmFeatures,
+          isWorkerCall: true,
         }),
         callContext: this.buildLLMCallContext({ agent, agentSettings, run, connectScope }),
         additionalMetadata: telemetryAdditionalMetadata({ agent, agentSettings }),

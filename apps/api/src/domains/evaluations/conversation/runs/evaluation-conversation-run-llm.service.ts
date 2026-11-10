@@ -62,7 +62,7 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
           )
         },
         getProviderForModel: this.getProviderForModel,
-        buildLLMConfig: this.buildLLMConfig,
+        buildLLMConfig: (params) => this.buildLLMConfig({ ...params, isWorkerCall: true }), // ! propagate isWorkerCall to other calls 'inside' the eval (tools, sub-agent, ...)
       })
 
     try {

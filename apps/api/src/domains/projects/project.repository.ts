@@ -96,7 +96,7 @@ export class ProjectRepository {
     })
     return {
       priorityCalls,
-      flexWorkers: flexWorkers && process.env.LLM_VERTEX3_ENABLE_FLEX_FOR_WORKERS === "true", //kill switch by env variable
+      flexWorkers: flexWorkers && process.env.LLM_WORKERS_ENABLE_LOW_PRIORITY_MODE === "true",
     }
   }
   /** Queried through the featureFlags relation to keep this repository on the Project entity only. */

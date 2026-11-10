@@ -1,4 +1,4 @@
-import { type AgentModel, supportsPriorityCalls } from "@caseai-connect/api-contracts"
+import { type AgentModel, supportsServiceTiers } from "@caseai-connect/api-contracts"
 import type { AgentModelEntry, AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import { buildDate } from "@/common/utils/build-date"
@@ -26,7 +26,7 @@ export function findAgentModelEntry(
 /**
  * Whether the priority service tier can be offered for `model`: the project must hold the
  * `llm-priority-calls` flag and the model must take the tier (Gemini 3.x and OpenAI, see
- * `supportsPriorityCalls`). The API applies the same rule; this only decides whether to show the
+ * `supportsServiceTiers`). The API applies the same rule; this only decides whether to show the
  * toggle.
  */
 export function isPriorityCallsAvailable({
@@ -37,7 +37,7 @@ export function isPriorityCallsAvailable({
   model: AgentModel | undefined
 }): boolean {
   if (!hasFeature("llm-priority-calls")) return false
-  return supportsPriorityCalls(model)
+  return supportsServiceTiers(model)
 }
 
 /**
