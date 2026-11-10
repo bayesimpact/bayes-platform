@@ -1,8 +1,4 @@
-import {
-  type AgentModel,
-  AgentModelToAgentProvider,
-  AgentProvider,
-} from "@caseai-connect/api-contracts"
+import { type AgentModel, supportsPriorityCalls } from "@caseai-connect/api-contracts"
 import type { AgentModelEntry, AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import { buildDate } from "@/common/utils/build-date"
@@ -29,8 +25,9 @@ export function findAgentModelEntry(
 
 /**
  * Whether the priority service tier can be offered for `model`: the project must hold the
- * `llm-priority-calls` flag and the model must be a Gemini 3.x one (the only provider with tiers).
- * The API enforces the same rule; this only decides whether to show the toggle.
+ * `llm-priority-calls` flag and the model must take the tier (Gemini 3.x and OpenAI, see
+ * `supportsPriorityCalls`). The API applies the same rule; this only decides whether to show the
+ * toggle.
  */
 export function isPriorityCallsAvailable({
   hasFeature,
@@ -40,7 +37,7 @@ export function isPriorityCallsAvailable({
   model: AgentModel | undefined
 }): boolean {
   if (!hasFeature("llm-priority-calls")) return false
-  return model !== undefined && AgentModelToAgentProvider[model] === AgentProvider.Vertex3
+  return supportsPriorityCalls(model)
 }
 
 /**
@@ -110,6 +107,12 @@ type OptionsJsonSchema = {
 }
 
 /**
+ * The names a provider gives its thinking level: `thinkingLevel` (Gemini 3.x), `reasoningEffort`
+ * (OpenAI), `effort` (Claude). The form shows them all as one thinking level field.
+ */
+const THINKING_LEVEL_KEYS = ["thinkingLevel", "reasoningEffort", "effort"] as const
+
+/**
  * The option fields a model offers, read from the JSON Schema of its options: a temperature when
  * it takes one, a thinking level (with the levels it accepts) when it has one. A model may have
  * either, both, or none.
@@ -132,16 +135,29 @@ export function describeModelOptionFields(entry: AgentModelEntry | undefined): M
   }
 }
 
-/** The path to the `thinkingLevel` property, wherever the provider nests it, and its levels. */
+/** The path to the thinking level property, wherever the provider nests it, and its levels. */
 function findThinkingLevel(
   schema: OptionsJsonSchema,
   path: string[],
 ): { path: string[]; levels: string[] } | undefined {
   for (const [key, property] of Object.entries(schema.properties ?? {})) {
-    if (key === "thinkingLevel" && Array.isArray(property.enum))
+    if (isThinkingLevelKey(key) && Array.isArray(property.enum))
       return { path: [...path, key], levels: property.enum.map(String) }
     const nested = findThinkingLevel(property, [...path, key])
     if (nested) return nested
+  }
+  return undefined
+}
+
+function isThinkingLevelKey(key: string): boolean {
+  return (THINKING_LEVEL_KEYS as readonly string[]).includes(key)
+}
+
+/** The thinking level stored in model options, whatever name the provider gives it. */
+export function findThinkingLevelValue(options: Record<string, unknown> | null): unknown {
+  for (const key of THINKING_LEVEL_KEYS) {
+    const value = findModelOptionValue(options, key)
+    if (value !== undefined) return value
   }
   return undefined
 }

@@ -9,14 +9,19 @@ import {
   describeModelOptionFields,
   findAgentModelEntry,
   findModelOptionValue,
+  findThinkingLevelValue,
   formatAgentModelLabel,
   isPriorityCallsAvailable,
   readModelOption,
   writeModelOption,
 } from "./agent-model.helpers"
+import agentSettingsEn from "./agent-settings/locales/agent-settings.en.json"
+import agentSettingsFr from "./agent-settings/locales/agent-settings.fr.json"
 import type { AgentModelsCatalog } from "./agents.models"
 
 const catalog = agentModelsCatalogFactory.build()
+const thinkingLevelsEn = agentSettingsEn.agentSettings.props.thinkingLevels
+const thinkingLevelsFr = agentSettingsFr.agentSettings.props.thinkingLevels
 
 /** The catalog with one model's entry changed, as the API would send it. */
 const catalogWith = (
@@ -297,10 +302,35 @@ describe("describeModelOptionFields", () => {
     AgentModel.ClaudeSonnet55,
     AgentModel.ClaudeHaiku55,
     AgentModel.ClaudeOpus5,
+  ])("offers the effort of %s as its thinking level", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: {
+        path: ["providerOptions", "anthropic", "effort"],
+        levels: ["low", "medium", "high"],
+      },
+    })
+  })
+
+  it.each([
     AgentModel.Gpt54,
     AgentModel.Gpt54Mini,
-  ])("offers no field for %s, which runs on its default effort", (model) => {
-    expect(fieldsOf(model)).toEqual({})
+  ])("offers the reasoning effort of %s as its thinking level", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: {
+        path: ["providerOptions", "openai", "reasoningEffort"],
+        levels: ["none", "low", "medium", "high"],
+      },
+    })
+  })
+
+  it("offers a translated label for every thinking level of the catalog", () => {
+    const levels = new Set(
+      catalog.models.flatMap(
+        (entry) => describeModelOptionFields(entry).thinkingLevel?.levels ?? [],
+      ),
+    )
+    expect([...levels].filter((level) => !(level in thinkingLevelsEn))).toEqual([])
+    expect([...levels].filter((level) => !(level in thinkingLevelsFr))).toEqual([])
   })
 
   it("offers nothing for a model that left the catalog", () => {
@@ -360,6 +390,21 @@ describe("findModelOptionValue", () => {
   })
 })
 
+describe("findThinkingLevelValue", () => {
+  it.each([
+    ["Gemini 3.x", { vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } } }],
+    ["OpenAI", { openai: { reasoningEffort: "low" } }],
+    ["Claude", { anthropic: { effort: "low" } }],
+  ])("finds the thinking level of a %s model", (_provider, providerOptions) => {
+    expect(findThinkingLevelValue({ providerOptions })).toBe("low")
+  })
+
+  it("finds nothing for a model without a thinking level", () => {
+    expect(findThinkingLevelValue({ temperature: 0 })).toBeUndefined()
+    expect(findThinkingLevelValue(null)).toBeUndefined()
+  })
+})
+
 describe("isPriorityCallsAvailable", () => {
   const withPriorityFlag: HasFeature = (feature) => feature === "llm-priority-calls"
 
@@ -375,10 +420,30 @@ describe("isPriorityCallsAvailable", () => {
     ).toBe(false)
   })
 
-  it("is hidden for models outside the vertex 3 provider", () => {
-    expect(
-      isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model: AgentModel.Gemini25Flash }),
-    ).toBe(false)
+  it.each([
+    AgentModel.Gpt54,
+    AgentModel.Gpt54Mini,
+  ])("is available for the OpenAI model %s when the project has the flag", (model) => {
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model })).toBe(true)
+  })
+
+  it("is hidden for an OpenAI model without the project flag", () => {
+    expect(isPriorityCallsAvailable({ hasFeature: () => false, model: AgentModel.Gpt54 })).toBe(
+      false,
+    )
+  })
+
+  it.each([
+    AgentModel.Gemini25Flash,
+    AgentModel.ClaudeSonnet55,
+    AgentModel.Gemma4_26B,
+    AgentModel.MistralSmall32_24B,
+    AgentModel.Qwen38_27B,
+  ])("is hidden for %s, whose provider has no tier", (model) => {
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model })).toBe(false)
+  })
+
+  it("is hidden when no model is picked", () => {
     expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model: undefined })).toBe(false)
   })
 })
