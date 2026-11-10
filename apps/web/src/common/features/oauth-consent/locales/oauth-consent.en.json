@@ -156,6 +156,21 @@
         "requested": "What {{name}} asks for when someone connects it. The person who connects it chooses what to grant.",
         "granted": "What {{name}} can do on this project."
       }
+    },
+    "installer": {
+      "me": "you",
+      "formerMember": "a former member"
+    },
+    "installedByMe": "Installed by you. Installing it again reconnects it.",
+    "installedBy": "Installed by {{installer}}",
+    "reconnect": "Reconnect {{name}}",
+    "alreadyInstalled": {
+      "title": "{{name}} is already installed on this workspace",
+      "byMember": "<installer/> installed it. Ask them if you need it reconnected or its permissions changed.",
+      "byFormerMember": "A former member installed it, so nobody can reconnect it.",
+      "replace": "To replace that installation, revoke it from the workspace's <settings>installed apps</settings>, then install {{name}} again. {{name}} stops at once, and what the old installation set up stays with it.",
+      "error": "Pick another workspace, or revoke the current installation first.",
+      "emailSubject": "{{name}} on the {{workspace}} workspace"
     }
   }
 }

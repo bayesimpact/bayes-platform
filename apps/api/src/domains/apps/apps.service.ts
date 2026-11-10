@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import {
   type AppGrantablePermission,
+  type AppInstallerDto,
   MAX_ALLOWED_REDIRECT_URIS,
 } from "@caseai-connect/api-contracts"
 import {
@@ -35,6 +36,7 @@ import {
   AppInstallationRepository,
   type ListedAppInstallation,
 } from "./app-installation.repository"
+import { toAppInstallerDto } from "./app-installer"
 import type {
   AppManifestRecord,
   CreateAppManifestFields,
@@ -183,6 +185,13 @@ export class AppsService {
         app.id,
         project.id,
       )
+      // Reconnecting replaces the permissions and ends the app's tokens: only who installed it
+      // may do that. Someone else revokes it in the studio and installs it again.
+      if (existing && existing.createdByUserId !== params.userId) {
+        throw new ConflictException(
+          "This app is already installed on that project by someone else. Ask them to reconnect it, or revoke it and install it again.",
+        )
+      }
       if (existing?.serviceUserId && existing.customRoleId) {
         await this.roleRepository.replacePermissionKeys(existing.customRoleId, permissions)
         this.logger.log(`Reconnected app installation ${existing.id} by user ${params.userId}`)
@@ -243,6 +252,24 @@ export class AppsService {
 
   isAppsCatalogEnabled(projectId: string): Promise<boolean> {
     return this.projectRepository.isFeatureEnabled({ projectId, feature: "apps-catalog" })
+  }
+
+  /** Who installed the app on each of these projects where it is active, by project id. */
+  async describeInstallers(params: {
+    appManifestId: string
+    projectIds: string[]
+    viewerUserId: string
+  }): Promise<Map<string, AppInstallerDto>> {
+    const installers = await this.appInstallationRepository.listActiveInstallersByProjectId(
+      params.appManifestId,
+      params.projectIds,
+    )
+    return new Map(
+      [...installers].map(([projectId, installer]) => [
+        projectId,
+        toAppInstallerDto(installer, params.viewerUserId),
+      ]),
+    )
   }
 
   async listActiveInstallations(projectId: string): Promise<ActiveAppInstallationSummary[]> {
@@ -373,5 +400,6 @@ function toActiveInstallationSummary(
       ? (permissionsByRoleId.get(installation.customRoleId) ?? [])
       : [],
     createdAt: installation.createdAt,
+    installer: installation.installer,
   }
 }

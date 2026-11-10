@@ -6,7 +6,6 @@
       "title": "Aucune app connectée pour l'instant",
       "description": "Les apps que vous connectez à ce projet apparaissent ici, avec ce à quoi elles ont accès."
     },
-    "installedOn": "Connectée le {{date}}",
     "noPermissions": "Aucune permission accordée",
     "revoke": {
       "action": "Révoquer",
@@ -20,6 +19,11 @@
     "permissions": {
       "menuItem_one": "Voir la permission",
       "menuItem_other": "Voir les {{count}} permissions"
+    },
+    "installedBy": "Connectée par <installer>{{installer}}</installer> le {{date}}",
+    "installer": {
+      "memberHint": "Demandez-lui de reconnecter {{name}} ou de changer ses permissions.",
+      "formerMemberHint": "Cette personne n'est plus membre, ou son compte n'existe plus, donc personne ne peut reconnecter {{name}}. Pour la remplacer, révoquez-la puis installez-la à nouveau."
     }
   }
 }

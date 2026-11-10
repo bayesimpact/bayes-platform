@@ -1,4 +1,5 @@
 import type { oauthConsentSchema } from "@caseai-connect/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { CardContent } from "@caseai-connect/ui/shad/card"
 import {
   Form,
@@ -20,6 +21,7 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { cn } from "@caseai-connect/ui/utils"
+import { InfoIcon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Trans, useTranslation } from "react-i18next"
@@ -28,7 +30,11 @@ import type { z } from "zod"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import type { OAuthAuthorizationRequest, OAuthConsentProject } from "../oauth-consent.models"
+import type {
+  AppInstaller,
+  OAuthAuthorizationRequest,
+  OAuthConsentProject,
+} from "../oauth-consent.models"
 import { selectOAuthConsentPage } from "../oauth-consent.selectors"
 import { approveOAuthConsent } from "../oauth-consent.thunks"
 import {
@@ -48,6 +54,7 @@ import {
   SECTION_TITLE,
   useConsentResolver,
 } from "./ConsentLayout"
+import { useInstallerLabel } from "./use-installer-label"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
 
@@ -55,6 +62,13 @@ type FormValues = z.infer<typeof oauthConsentSchema>
 const MAX_WORKSPACE_ROWS = 5
 
 const APP_COPY = { permission: "appPermission", resource: "appResource" } as const
+
+/**
+ * Someone else installed the app on this workspace: approving is refused, since it would cut their
+ * tokens and replace the permissions they granted. Who installed it reconnects it as before.
+ */
+const isInstalledBySomeoneElse = (project: OAuthConsentProject | undefined) =>
+  !!project?.installedBy && project.installedBy.kind !== "me"
 
 /**
  * App install consent. An authorization installs the app on one workspace, so the person picks one.
@@ -67,8 +81,14 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   const page = useValue(selectOAuthConsentPage)
   const [outcome, setOutcome] = useState<"approved" | "denied" | null>(null)
   const clientName = page.client.name ?? page.client.redirectHost
-  // The first workspace as displayed: organizations in list order, projects A to Z.
-  const defaultProjectId = groupConsentProjectsByOrganization(page.projects)[0]?.projects[0]?.id
+  // The first workspace as displayed (organizations in list order, projects A to Z), skipping
+  // those where someone else installed the app.
+  const displayedProjects = groupConsentProjectsByOrganization(page.projects).flatMap(
+    (group) => group.projects,
+  )
+  const defaultProjectId = (
+    displayedProjects.find((project) => !isInstalledBySomeoneElse(project)) ?? displayedProjects[0]
+  )?.id
   const defaultProjectIds = defaultProjectId ? [defaultProjectId] : []
   const defaultAvailable = availablePermissionsFor(page.projects, defaultProjectIds)
 
@@ -86,6 +106,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   const selectedProjectIds = form.watch("projectIds")
   const available = availablePermissionsFor(page.projects, selectedProjectIds)
   const selectedProject = page.projects.find((project) => project.id === selectedProjectIds[0])
+  const isBlocked = isInstalledBySomeoneElse(selectedProject)
 
   const setProjectIds = (projectIds: string[]) => {
     form.setValue("projectIds", projectIds, { shouldValidate: form.formState.isSubmitted })
@@ -97,6 +118,11 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   }
 
   const onValid = async (values: FormValues) => {
+    // The button is gone on such a workspace. This guard catches a submit that comes another way.
+    if (isBlocked) {
+      form.setError("projectIds", { message: t("alreadyInstalled.error") })
+      return
+    }
     const result = await dispatch(approveOAuthConsent(values))
     if (approveOAuthConsent.fulfilled.match(result)) {
       setOutcome("approved")
@@ -204,42 +230,60 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="permissions"
-                render={({ field }) => (
-                  <FormItem className="mt-6 gap-3">
-                    <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
-                    <GroupedPermissions
-                      permissions={page.grantablePermissions}
-                      copy={APP_COPY}
-                      selected={field.value}
-                      available={available}
-                      unavailableHint={
-                        selectedProjectIds.length === 0
-                          ? t("selectWorkspaceFirst")
-                          : t("appPermissionUnavailable")
-                      }
-                      disabled={isSubmitting}
-                      readOnly={false}
-                      onToggle={(permission, checked) =>
-                        field.onChange(
-                          checked
-                            ? [...field.value, permission]
-                            : field.value.filter(
-                                (selectedPermission) => selectedPermission !== permission,
-                              ),
-                        )
-                      }
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {isBlocked && selectedProject?.installedBy ? (
+                <AlreadyInstalledAlert
+                  clientName={clientName}
+                  installer={selectedProject.installedBy}
+                  workspaceName={selectedProject.name}
+                  revokePath={revokePath}
+                />
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="permissions"
+                  render={({ field }) => (
+                    <FormItem className="mt-6 gap-3">
+                      <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
+                      <GroupedPermissions
+                        permissions={page.grantablePermissions}
+                        copy={APP_COPY}
+                        selected={field.value}
+                        available={available}
+                        unavailableHint={
+                          selectedProjectIds.length === 0
+                            ? t("selectWorkspaceFirst")
+                            : t("appPermissionUnavailable")
+                        }
+                        disabled={isSubmitting}
+                        readOnly={false}
+                        onToggle={(permission, checked) =>
+                          field.onChange(
+                            checked
+                              ? [...field.value, permission]
+                              : field.value.filter(
+                                  (selectedPermission) => selectedPermission !== permission,
+                                ),
+                          )
+                        }
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </CardContent>
 
             <ConsentFooter
-              submitLabel={isSubmitting ? t("installing") : t("install", { name: clientName })}
+              // Nothing to install where someone else installed the app: only cancel remains.
+              submitLabel={
+                isBlocked
+                  ? undefined
+                  : isSubmitting
+                    ? t("installing")
+                    : t(selectedProject?.installedBy?.kind === "me" ? "reconnect" : "install", {
+                        name: clientName,
+                      })
+              }
               isSubmitting={isSubmitting}
               cancel={
                 <CancelLink
@@ -269,6 +313,7 @@ function WorkspaceSelect({
   onChange: (projectId: string) => void
 }) {
   const { t } = useTranslation("oauthConsent")
+  const installedHint = useInstalledHint()
   return (
     <Select value={value ?? ""} onValueChange={onChange} disabled={disabled}>
       <FormControl>
@@ -283,6 +328,11 @@ function WorkspaceSelect({
             {group.projects.map((project) => (
               <SelectItem key={project.id} value={project.id}>
                 {project.name}
+                {project.installedBy && (
+                  <span className="text-xs text-muted-foreground">
+                    {installedHint(project.installedBy)}
+                  </span>
+                )}
               </SelectItem>
             ))}
           </SelectGroup>
@@ -303,6 +353,7 @@ function WorkspaceChoices({
   disabled: boolean
   onChange: (projectId: string) => void
 }) {
+  const installedHint = useInstalledHint()
   return (
     <RadioGroup
       value={value ?? ""}
@@ -319,6 +370,7 @@ function WorkspaceChoices({
                 key={project.id}
                 htmlFor={radioId}
                 label={project.name}
+                hint={project.installedBy ? installedHint(project.installedBy) : undefined}
                 disabled={disabled}
                 control={<RadioGroupItem id={radioId} value={project.id} />}
               />
@@ -327,5 +379,104 @@ function WorkspaceChoices({
         </OrganizationGroup>
       ))}
     </RadioGroup>
+  )
+}
+
+/** The line under a workspace where the app is already installed. */
+function useInstalledHint() {
+  const { t } = useTranslation("oauthConsent")
+  const installerLabel = useInstallerLabel()
+  return (installer: AppInstaller) =>
+    installer.kind === "me"
+      ? t("installedByMe")
+      : t("installedBy", { installer: installerLabel(installer) })
+}
+
+/**
+ * Why the app cannot be installed on this workspace, who to ask, and how to replace the
+ * installation on purpose. With a former member, there is nobody to ask.
+ */
+function AlreadyInstalledAlert({
+  clientName,
+  installer,
+  workspaceName,
+  revokePath,
+}: {
+  clientName: string
+  installer: AppInstaller
+  workspaceName: string
+  revokePath: string
+}) {
+  const { t } = useTranslation("oauthConsent")
+  return (
+    <Alert className="mt-6">
+      <InfoIcon />
+      <AlertTitle>{t("alreadyInstalled.title", { name: clientName })}</AlertTitle>
+      <AlertDescription>
+        <p>
+          {installer.kind === "member" ? (
+            <Trans
+              i18nKey="alreadyInstalled.byMember"
+              ns="oauthConsent"
+              components={{
+                installer: (
+                  <InstallerContact
+                    installer={installer}
+                    subject={t("alreadyInstalled.emailSubject", {
+                      name: clientName,
+                      workspace: workspaceName,
+                    })}
+                  />
+                ),
+              }}
+            />
+          ) : (
+            t("alreadyInstalled.byFormerMember")
+          )}
+        </p>
+        <p>
+          <Trans
+            i18nKey="alreadyInstalled.replace"
+            ns="oauthConsent"
+            values={{ name: clientName }}
+            components={{
+              settings: (
+                <Link
+                  to={revokePath}
+                  className="font-semibold text-foreground underline-offset-2 hover:underline"
+                />
+              ),
+            }}
+          />
+        </p>
+      </AlertDescription>
+    </Alert>
+  )
+}
+
+/**
+ * The installer's name and email, the email a mail link with the subject filled in, so asking
+ * them is one click. The email stays visible for whoever has no mail app to open.
+ */
+function InstallerContact({
+  installer,
+  subject,
+}: {
+  installer: Extract<AppInstaller, { kind: "member" }>
+  subject: string
+}) {
+  const email = (
+    <a
+      href={`mailto:${installer.email}?subject=${encodeURIComponent(subject)}`}
+      className="font-semibold text-foreground underline-offset-2 hover:underline"
+    >
+      {installer.email}
+    </a>
+  )
+  if (!installer.name) return email
+  return (
+    <>
+      {installer.name} ({email})
+    </>
   )
 }

@@ -1,3 +1,5 @@
+import type { AppInstaller } from "@/common/features/oauth-consent/oauth-consent.models"
+
 export type AppInstallation = {
   id: string
   appName: string
@@ -7,4 +9,5 @@ export type AppInstallation = {
   appUrl: string | null
   permissions: string[]
   createdAt: number
+  installedBy: AppInstaller
 }

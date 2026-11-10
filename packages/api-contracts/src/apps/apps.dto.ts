@@ -185,6 +185,15 @@ export type AppCatalogEntryDto = {
   installed: boolean
 }
 
+/**
+ * Who installed an app on a project, as the caller sees them. A member who left (soft deleted) and
+ * an account that no longer exists both show as a former member: there is nobody to ask.
+ */
+export type AppInstallerDto =
+  | { kind: "me" }
+  | { kind: "member"; name: string | null; email: string }
+  | { kind: "former-member" }
+
 export type AppInstallationSummaryDto = {
   id: string
   appName: string
@@ -194,6 +203,7 @@ export type AppInstallationSummaryDto = {
   appUrl: string | null
   permissions: string[]
   createdAt: TimeType
+  installedBy: AppInstallerDto
 }
 
 export type AppMeResponseDto = {

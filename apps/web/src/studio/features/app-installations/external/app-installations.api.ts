@@ -34,4 +34,5 @@ const toAppInstallation = (dto: AppInstallationSummaryDto): AppInstallation => (
   appUrl: dto.appUrl,
   permissions: dto.permissions,
   createdAt: dto.createdAt,
+  installedBy: dto.installedBy,
 })

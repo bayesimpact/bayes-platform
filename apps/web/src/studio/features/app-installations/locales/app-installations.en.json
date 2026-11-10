@@ -6,7 +6,6 @@
       "title": "No connected app yet",
       "description": "Apps that you connect to this project show up here, with what they can access."
     },
-    "installedOn": "Connected on {{date}}",
     "noPermissions": "No permission granted",
     "revoke": {
       "action": "Revoke",
@@ -20,6 +19,11 @@
     "permissions": {
       "menuItem_one": "View the permission",
       "menuItem_other": "View the {{count}} permissions"
+    },
+    "installedBy": "Connected by <installer>{{installer}}</installer> on {{date}}",
+    "installer": {
+      "memberHint": "Ask them to reconnect {{name}} or to change its permissions.",
+      "formerMemberHint": "This person is no longer a member, or their account is gone, so nobody can reconnect {{name}}. To replace it, revoke it and install it again."
     }
   }
 }

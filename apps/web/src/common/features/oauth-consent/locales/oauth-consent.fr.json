@@ -156,6 +156,21 @@
         "requested": "Ce que {{name}} demande quand on le connecte. La personne qui le connecte choisit ce qu'elle accorde.",
         "granted": "Ce que {{name}} peut faire sur ce projet."
       }
+    },
+    "installer": {
+      "me": "vous",
+      "formerMember": "un ancien membre"
+    },
+    "installedByMe": "Installée par vous. L'installer à nouveau la reconnecte.",
+    "installedBy": "Installée par {{installer}}",
+    "reconnect": "Reconnecter {{name}}",
+    "alreadyInstalled": {
+      "title": "{{name}} est déjà installée sur cet espace",
+      "byMember": "<installer/> l'a installée. Demandez-lui si elle doit être reconnectée ou si ses permissions doivent changer.",
+      "byFormerMember": "Un ancien membre l'a installée, donc personne ne peut la reconnecter.",
+      "replace": "Pour remplacer cette installation, révoquez-la depuis les <settings>apps installées</settings> de l'espace, puis installez {{name}} à nouveau. {{name}} s'arrête aussitôt, et ce que l'ancienne installation a mis en place reste lié à elle.",
+      "error": "Choisissez un autre espace, ou révoquez d'abord l'installation actuelle.",
+      "emailSubject": "{{name}} sur l'espace {{workspace}}"
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import {
@@ -20,6 +20,15 @@ export type AppInstallationRecord = {
   revokedAt: Date | null
 }
 
+/**
+ * Who installed an installation. `user` is null when that person is soft deleted or when no user is
+ * recorded (the account is gone), so there is nobody left to name.
+ */
+export type AppInstallationInstaller = {
+  createdByUserId: string | null
+  user: { name: string | null; email: string } | null
+}
+
 export type ListedAppInstallation = {
   id: string
   appName: string
@@ -28,6 +37,7 @@ export type ListedAppInstallation = {
   appUrl: string | null
   customRoleId: string | null
   createdAt: Date
+  installer: AppInstallationInstaller
 }
 
 export type ActiveAppInstallationSummary = {
@@ -39,6 +49,7 @@ export type ActiveAppInstallationSummary = {
   appUrl: string | null
   permissions: string[]
   createdAt: Date
+  installer: AppInstallationInstaller
 }
 
 export type CreateAppInstallationFields = {
@@ -64,6 +75,21 @@ export class AppInstallationRepository {
     return installation ? this.toRecord(installation) : null
   }
 
+  /** Who installed the app on each of these projects where it is active, by project id. */
+  async listActiveInstallersByProjectId(
+    appManifestId: string,
+    projectIds: string[],
+  ): Promise<Map<string, AppInstallationInstaller>> {
+    if (projectIds.length === 0) return new Map()
+    const installations = await this.repo().find({
+      where: { appManifestId, projectId: In(projectIds), status: APP_INSTALLATION_STATUS_ACTIVE },
+      relations: { createdByUser: true },
+    })
+    return new Map(
+      installations.map((installation) => [installation.projectId, toInstaller(installation)]),
+    )
+  }
+
   async listActiveManifestIdsByProjectId(projectId: string): Promise<string[]> {
     const installations = await this.repo().find({
       select: { appManifestId: true },
@@ -75,7 +101,7 @@ export class AppInstallationRepository {
   async listActiveByProjectId(projectId: string): Promise<ListedAppInstallation[]> {
     const installations = await this.repo().find({
       where: { projectId, status: APP_INSTALLATION_STATUS_ACTIVE },
-      relations: { appManifest: true },
+      relations: { appManifest: true, createdByUser: true },
       order: { createdAt: "DESC" },
     })
     return installations.map((installation) => ({
@@ -86,6 +112,7 @@ export class AppInstallationRepository {
       appUrl: installation.appManifest?.appUrl ?? null,
       customRoleId: installation.customRoleId,
       createdAt: installation.createdAt,
+      installer: toInstaller(installation),
     }))
   }
 
@@ -148,5 +175,14 @@ export class AppInstallationRepository {
 
   private repo(): Repository<AppInstallation> {
     return this.transactionService.getManager().getRepository(AppInstallation)
+  }
+}
+
+/** A soft deleted user is left out of the relation, so it reads as nobody, like a missing one. */
+function toInstaller(installation: AppInstallation): AppInstallationInstaller {
+  const user = installation.createdByUser
+  return {
+    createdByUserId: installation.createdByUserId,
+    user: user && !user.deletedAt ? { name: user.name, email: user.email } : null,
   }
 }

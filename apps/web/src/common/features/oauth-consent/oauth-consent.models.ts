@@ -27,12 +27,23 @@ export type OAuthConsentClient = {
   logoUrl: string | null
 }
 
+/**
+ * Who installed an app on a workspace, as the person looking sees them. A member who left (soft
+ * deleted) and an account that no longer exists (hard deleted) both show as a former member.
+ */
+export type AppInstaller =
+  | { kind: "me" }
+  | { kind: "member"; name: string | null; email: string }
+  | { kind: "former-member" }
+
 export type OAuthConsentProject = {
   id: string
   name: string
   organizationId: string
   organizationName: string
   availablePermissions: string[]
+  /** Who installed the app on this workspace, null when it is not installed there. */
+  installedBy: AppInstaller | null
 }
 
 export type OAuthConsentPage = {

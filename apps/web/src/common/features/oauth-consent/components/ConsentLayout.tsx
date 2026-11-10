@@ -3,7 +3,15 @@ import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@caseai-connect/ui/shad/card"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
-import { Field, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@caseai-connect/ui/shad/field"
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FieldTitle,
+} from "@caseai-connect/ui/shad/field"
 import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@caseai-connect/ui/shad/item"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { cn } from "@caseai-connect/ui/utils"
@@ -72,11 +80,14 @@ export function ChoiceCard({
   htmlFor,
   control,
   label,
+  hint,
   disabled,
 }: {
   htmlFor: string
   control: ReactNode
   label: string
+  /** A line under the label, such as who already installed the app there. */
+  hint?: string
   disabled: boolean
 }) {
   return (
@@ -86,7 +97,14 @@ export function ChoiceCard({
     >
       <Field orientation="horizontal" className="gap-2.5" data-disabled={disabled || undefined}>
         {control}
-        <FieldTitle className="min-w-0 break-words">{label}</FieldTitle>
+        {hint ? (
+          <FieldContent className="min-w-0 gap-0.5">
+            <FieldTitle className="break-words">{label}</FieldTitle>
+            <FieldDescription className="text-xs">{hint}</FieldDescription>
+          </FieldContent>
+        ) : (
+          <FieldTitle className="min-w-0 break-words">{label}</FieldTitle>
+        )}
       </Field>
     </FieldLabel>
   )
@@ -208,25 +226,28 @@ function ClientMark({ logoUrl }: { logoUrl: string | null }) {
  * The submit button and the way back, kept in view while the page scrolls. It reaches the card's
  * bottom edge, over the card's own bottom padding, so nothing shows under it.
  */
+/** Without `submitLabel`, nothing can be submitted from this screen and only `cancel` shows. */
 export function ConsentFooter({
   submitLabel,
   isSubmitting,
   cancel,
 }: {
-  submitLabel: string
+  submitLabel?: string
   isSubmitting: boolean
   cancel: ReactNode
 }) {
   return (
     <CardFooter className="sticky bottom-0 -mb-6 flex-col items-stretch rounded-b-xl border-t bg-card pt-4 pb-5">
-      <Button
-        type="submit"
-        className="h-auto min-h-11 w-full whitespace-normal"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? null : <ShieldCheckIcon className="size-4" aria-hidden />}
-        {submitLabel}
-      </Button>
+      {submitLabel && (
+        <Button
+          type="submit"
+          className="h-auto min-h-11 w-full whitespace-normal"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? null : <ShieldCheckIcon className="size-4" aria-hidden />}
+          {submitLabel}
+        </Button>
+      )}
       {cancel}
     </CardFooter>
   )

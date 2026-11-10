@@ -218,6 +218,7 @@ describe("OAuth authorization server", () => {
             organizationId: organization.id,
             organizationName: organization.name,
             availablePermissions: ALL_GRANTABLE_PERMISSIONS,
+            installedBy: null,
           },
         ],
         grantablePermissions: ALL_GRANTABLE_PERMISSIONS,

@@ -1,4 +1,5 @@
 import { z } from "zod"
+import type { AppInstallerDto } from "../apps/apps.dto"
 import { isLoopbackHostname } from "../apps/loopback-redirect"
 
 /**
@@ -144,6 +145,11 @@ export type OAuthConsentProjectDto = {
   organizationName: string
   /** Grantable permissions the person holds on the project, the ones worth offering. */
   availablePermissions: string[]
+  /**
+   * For an app, who installed it on the project, null when it is not installed there. Approving
+   * on a project someone else installed it on is refused: only who installed it reconnects it.
+   */
+  installedBy: AppInstallerDto | null
 }
 
 /**

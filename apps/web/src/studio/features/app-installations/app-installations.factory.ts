@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import type { AppInstaller } from "@/common/features/oauth-consent/oauth-consent.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { AppInstallation } from "./app-installations.models"
 
@@ -26,6 +27,13 @@ export const appInstallationFactory = AppInstallationFactory.define(
       appUrl: params.appUrl !== undefined ? params.appUrl : faker.internet.url(),
       permissions: params.permissions ?? ["document.read", "document.create"],
       createdAt: params.createdAt ?? faker.date.past().getTime(),
+      installedBy: params.installedBy
+        ? (params.installedBy as AppInstaller)
+        : {
+            kind: "member" as const,
+            name: faker.person.fullName(),
+            email: faker.internet.email(),
+          },
     }
   },
 )

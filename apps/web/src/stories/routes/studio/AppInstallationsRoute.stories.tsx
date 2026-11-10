@@ -73,18 +73,22 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
     ? [
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Helpful Assistant",
+          installedBy: { kind: "me" },
           logoUrl: "https://placehold.co/52x52/png",
           appUrl: "https://assistant.example.com",
           permissions: ["document.read", "document.create", "document_tag.read"],
         }),
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Site Crawler",
+          installedBy: { kind: "member", name: "Alex Morgan", email: "alex.morgan@example.com" },
           description: null,
           appUrl: null,
           permissions: ["agent.read", "agent.conversation.session.external.create"],
         }),
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Pricing Sync",
+          // Soft or hard deleted: the list says "a former member" either way.
+          installedBy: { kind: "former-member" },
           appUrl: "https://pricing.example.com",
           permissions: [],
         }),
@@ -116,6 +120,7 @@ export const Empty: Story = {
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
 }
 
+/** One app per installer: the person, a colleague, a former member. */
 export const WithApps: Story = {
   args: { withApps: true },
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
@@ -150,5 +155,25 @@ export const ActionsMenuWithoutRevokeRights: Story = {
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
   play: async ({ canvasElement }) => {
     await openFirstMenu(canvasElement)
+  },
+}
+
+/** A colleague's name opens how to reach them, with a mail link. */
+export const ColleagueInstaller: Story = {
+  args: { withApps: true },
+  decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+  play: async ({ canvasElement }) => {
+    await userEvent.click(await within(canvasElement).findByRole("button", { name: "Alex Morgan" }))
+  },
+}
+
+/** A former member opens why nobody can reconnect the app, and what to do instead. */
+export const FormerMemberInstaller: Story = {
+  args: { withApps: true },
+  decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      await within(canvasElement).findByRole("button", { name: /former member|ancien membre/ }),
+    )
   },
 }
