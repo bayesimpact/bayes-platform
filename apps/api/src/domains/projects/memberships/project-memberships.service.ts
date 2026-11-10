@@ -15,6 +15,7 @@ import type { ResolvedRole } from "@/domains/rbac/permission.types"
 import {
   AGENT_CONVERSATION_REVIEWER_ROLE,
   AGENT_ROLES,
+  PROJECT_EVALUATOR_ROLE,
   PROJECT_ROLES,
 } from "@/domains/rbac/rbac.constants"
 import { unionRolePermissions } from "@/domains/rbac/union-role-permissions"
@@ -33,6 +34,13 @@ import { ProjectMembershipRepository } from "./project-membership.repository"
 
 /** The project roles that make their holder admin of every agent of the project. */
 const AGENT_MANAGING_ROLE_KEYS: string[] = [PROJECT_ROLES.owner, PROJECT_ROLES.admin]
+
+/**
+ * The project roles a manager of the project may give themselves or take from themselves. The
+ * evaluation app is not open to the owner or the admin role, so they add the evaluator role to
+ * run evaluations on their own project.
+ */
+const SELF_MANAGED_ROLE_KEYS: string[] = [PROJECT_EVALUATOR_ROLE]
 
 @Injectable()
 export class ProjectMembershipsService {
@@ -324,7 +332,7 @@ export class ProjectMembershipsService {
 
   /**
    * Gives the roles to several members of the project, all or nothing. Nobody changes their own
-   * roles, and nobody is made owner here. `project_admin` also makes the member admin of every
+   * roles except `project_evaluator`, and nobody is made owner here. `project_admin` also makes the member admin of every
    * agent of the project, as for an invited admin.
    */
   async addRolesToMembers({
@@ -342,7 +350,10 @@ export class ProjectMembershipsService {
     rolesById: Map<string, ResolvedRole>
   }> {
     await this.assertAssignable(roleKeys)
-    if (memberUserIds.includes(callerUserId)) {
+    const onlySelfManagedRoles = roleKeys.every((roleKey) =>
+      SELF_MANAGED_ROLE_KEYS.includes(roleKey),
+    )
+    if (memberUserIds.includes(callerUserId) && !onlySelfManagedRoles) {
       throw new ForbiddenException("Cannot change your own role")
     }
 
@@ -370,10 +381,10 @@ export class ProjectMembershipsService {
   }
 
   /**
-   * Takes one role from a member. Nobody changes their own roles, a member keeps at least one
-   * role (removing the last one is removing the member), and the project keeps an owner. Losing
-   * the last of `project_owner` and `project_admin` turns their admin agent memberships into
-   * member ones.
+   * Takes one role from a member. Nobody changes their own roles except `project_evaluator`, a
+   * member keeps at least one role (removing the last one is removing the member), and the
+   * project keeps an owner. Losing the last of `project_owner` and `project_admin` turns their
+   * admin agent memberships into member ones.
    */
   async removeRoleFromMember({
     callerUserId,
@@ -386,7 +397,7 @@ export class ProjectMembershipsService {
     projectId: string
     roleKey: string
   }): Promise<{ membership: ProjectMembershipModel; rolesById: Map<string, ResolvedRole> }> {
-    if (memberUserId === callerUserId) {
+    if (memberUserId === callerUserId && !SELF_MANAGED_ROLE_KEYS.includes(roleKey)) {
       throw new ForbiddenException("Cannot change your own role")
     }
     if (roleKey === PROJECT_ROLES.owner) {

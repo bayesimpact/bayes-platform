@@ -26,7 +26,10 @@ export function ResourceRoleChips({
   onRemoveRole,
 }: {
   resource: MemberResourceRoles
-  /** False on the viewer's own page or without the permission: the roles are shown only. */
+  /**
+   * False without the permission, or for a section read-only on the viewer's own page: the roles
+   * are shown only.
+   */
   editable: boolean
   /** Roles that cannot be removed, with the reason shown on hover. */
   lockedRoles: Record<string, string>

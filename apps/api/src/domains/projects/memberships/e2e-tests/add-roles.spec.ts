@@ -155,6 +155,39 @@ describe("Project membership - addRoles", () => {
     expect(await roleKeysOf(first.id)).toEqual(["project_member"])
   })
 
+  it("lets the owner give themselves the evaluator role", async () => {
+    const { owner } = await createContext()
+
+    expectResponse(await subject({ userIds: [owner.id], roleKeys: ["project_evaluator"] }), 201)
+
+    expect(await roleKeysOf(owner.id)).toEqual(["project_evaluator", "project_owner"])
+  })
+
+  it("lets an admin give themselves the evaluator role", async () => {
+    const { first } = await createContext()
+    expectResponse(await subject({ userIds: [first.id], roleKeys: ["project_admin"] }), 201)
+    authSubject = first.authSubject!
+
+    expectResponse(await subject({ userIds: [first.id], roleKeys: ["project_evaluator"] }), 201)
+
+    expect(await roleKeysOf(first.id)).toEqual([
+      "project_admin",
+      "project_evaluator",
+      "project_member",
+    ])
+  })
+
+  it("refuses the evaluator role on the caller when another role comes with it", async () => {
+    const { owner } = await createContext()
+
+    expectResponse(
+      await subject({ userIds: [owner.id], roleKeys: ["project_evaluator", "project_admin"] }),
+      403,
+      "Cannot change your own role",
+    )
+    expect(await roleKeysOf(owner.id)).toEqual(["project_owner"])
+  })
+
   it("refuses a role that is not a workspace role", async () => {
     const { first } = await createContext()
 

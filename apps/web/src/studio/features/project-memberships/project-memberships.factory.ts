@@ -16,6 +16,7 @@ export const SAMPLE_PROJECT_ROLES: ProjectRole[] = [
   { key: "project_owner", name: "Project Owner" },
   { key: "project_admin", name: "Project Admin" },
   { key: "project_member", name: "Project Member" },
+  { key: "project_evaluator", name: "Project Evaluator" },
 ]
 
 /** The catalog role of an owner / admin / member shorthand. */

@@ -83,6 +83,7 @@
       "you": "Vous",
       "selfTitle": "C'est votre propre page",
       "selfDescription": "Personne ne change ses propres rôles. Un autre gestionnaire de cet espace de travail peut les changer.",
+      "selfDescriptionEvaluator": "Vous pouvez vous donner le rôle d'évaluateur, ou vous le retirer. Un autre gestionnaire de cet espace de travail change vos autres rôles.",
       "addErrorTitle": "Le rôle n'a pas été ajouté",
       "addErrorDetail": "{{role}} sur {{resource}} : {{error}}",
       "addError": "Le rôle n'a pas pu être ajouté. Réessayez.",
@@ -108,7 +109,8 @@
           "project": "Leurs permissions sur cet espace de travail changent tout de suite.",
           "agent": "Leurs permissions sur cet agent changent tout de suite.",
           "review_campaign": "Leur participation à cette campagne d'évaluation change tout de suite."
-        }
+        },
+        "selfEffect": "Vos permissions sur cet espace de travail changent tout de suite."
       },
       "noAccess": "Aucun accès",
       "cannotRemove": "{{role}} ne peut pas être retiré",
@@ -126,7 +128,8 @@
         "active": "Active",
         "closed": "Clôturée"
       },
-      "ownerLocked": "Le rôle de propriétaire est attribué à la création de l'espace de travail ou de l'agent, et ne se change pas ici."
+      "ownerLocked": "Le rôle de propriétaire est attribué à la création de l'espace de travail ou de l'agent, et ne se change pas ici.",
+      "selfLocked": "Personne ne change ses propres rôles, sauf le rôle d'évaluateur. Un autre gestionnaire de cet espace de travail peut changer celui-ci."
     }
   }
 }
