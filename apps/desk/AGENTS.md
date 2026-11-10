@@ -35,17 +35,19 @@ holds what is specific to the Desk.
   page, as apps/web does. It is the one section that holds its pages back, on purpose.
 - Configuration: the API injects `window.__CONFIG__` when it serves the Desk, from the `WEB_*`
   variables it gives apps/web (`helpCenterUrl`, the `oidc*` keys), and the version it runs
-  (`appVersion`, `gitSha`), which the user menu shows and new releases are told by; in dev, the
-  `VITE_*` values of `apps/desk/.env` stand in (see `.env-example`).
-- New releases: the API names the release that answered in the `X-App-Version` header of every
-  response under `/api` (`APP_VERSION_HEADER` in the contracts). The API client hands it to
-  `appUpdate` (`src/lib/app-update.ts`), which counts another release as new once it alone
-  answered for a minute, so a rolling deployment does not announce the old release, and at once
-  when Vite cannot load a chunk of this tab's release (`vite:preloadError`). Then
-  `NewReleaseBanner`, at the top of every signed-in page, offers the reload, which the person chooses;
-  `useReloadWhenSafe`, in the root route, turns the next move to another page into a full load of
-  that page, unless a mutation is on its way; and `RouteErrorState` offers a reload, not a retry.
-  The Desk never reloads the page the person is on by itself. Nothing tells a release in dev.
+  (`appVersion`, `gitSha`), which the user menu shows; in dev, the `VITE_*` values of
+  `apps/desk/.env` stand in (see `.env-example`).
+- New releases: the API has no part in them. Each production build gets an id, which it knows
+  (`buildId` in `src/app/config.ts`) and publishes in `version.json` beside its files
+  (`publishBuildId` in `vite.config.ts`). The root route polls that file every minute while the
+  tab is visible (`features/releases`) and hands its id to `appUpdate` (`src/lib/app-update.ts`).
+  Another build counts as new once it alone was published for a minute, so a rolling deployment
+  does not announce the old build, and at once when Vite cannot load a chunk of this tab's build
+  (`vite:preloadError`). Then `NewReleaseBanner`, at the top of every signed-in page, offers the
+  reload, which the person chooses; `useReloadWhenSafe`, in the root route, turns the next move to
+  another page into a full load of that page, unless a mutation is on its way; and
+  `RouteErrorState` offers a reload, not a retry. The Desk never reloads the page the person is on
+  by itself. Dev, the tests and Storybook have no build id, and poll nothing.
 
 ## Commands
 

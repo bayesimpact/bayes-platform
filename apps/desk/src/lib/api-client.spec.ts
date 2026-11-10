@@ -1,8 +1,4 @@
-import {
-  APP_VERSION_HEADER,
-  defineSchemaRoute,
-  defineStreamRoute,
-} from "@caseai-connect/desk-contracts"
+import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/desk-contracts"
 import { HttpResponse, http } from "msw"
 import { setupServer } from "msw/node"
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
@@ -24,9 +20,6 @@ const session = vi.hoisted(() => ({
   signIn: vi.fn(),
 }))
 vi.mock("@/lib/auth/session", () => session)
-
-const appUpdate = vi.hoisted(() => ({ reportServerVersion: vi.fn() }))
-vi.mock("@/lib/app-update", () => ({ appUpdate }))
 
 const { ApiError, ContractMismatchError, apiRequest, apiStreamResponse } = await import(
   "./api-client"
@@ -91,34 +84,6 @@ describe("apiRequest", () => {
       url: `http://desk.test/api/test/items/${itemId}?page=2`,
       authorization: "Bearer first-token",
     })
-  })
-
-  it("reports the release the API names, on a success and an error alike", async () => {
-    appUpdate.reportServerVersion.mockReset()
-    server.use(
-      http.get(
-        "http://desk.test/api/test/items/:itemId",
-        ({ params }) =>
-          HttpResponse.json(
-            { data: { itemId: params.itemId, page: 0 } },
-            { headers: { [APP_VERSION_HEADER]: "2" } },
-          ),
-        { once: true },
-      ),
-      http.get("http://desk.test/api/test/items/:itemId", () =>
-        HttpResponse.json(
-          { statusCode: 503 },
-          { status: 503, headers: { [APP_VERSION_HEADER]: "3" } },
-        ),
-      ),
-    )
-
-    await apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } })
-    await expect(
-      apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } }),
-    ).rejects.toBeInstanceOf(ApiError)
-
-    expect(appUpdate.reportServerVersion.mock.calls).toEqual([["2"], ["3"]])
   })
 
   it("sends the body in its payload envelope", async () => {

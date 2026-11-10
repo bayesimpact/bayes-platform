@@ -10,7 +10,6 @@ import { StackTraceLoggingExceptionFilter } from "./common/filters/stack-trace-l
 import { registerGracefulShutdown } from "./common/lifecycle/graceful-shutdown"
 import { getLogLevels, StructuredLogger } from "./common/logger/structured-logger"
 import { enableDbListeners } from "./common/sse/postgres-status-stream.service"
-import { registerAppVersionHeader } from "./common/web-app/app-version-header"
 import { registerWebApp } from "./common/web-app/web-app.middleware"
 import { configureGlobalPrefix } from "./config/api-prefix"
 import { buildCorsOptionsDelegate, parseFrontendUrls } from "./config/cors"
@@ -37,8 +36,6 @@ async function bootstrap() {
   }
   // Private API under /api, public chat API at /public (see config/api-prefix).
   configureGlobalPrefix(app)
-  // The release on every private API response, so an open Desk learns of a new one.
-  registerAppVersionHeader(app)
   // Web front served at / from this process in the app-runtime image (no-op otherwise).
   registerWebApp(app)
   app.useBodyParser("json", { limit: "500kb" })

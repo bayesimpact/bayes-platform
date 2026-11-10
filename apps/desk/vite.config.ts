@@ -1,11 +1,12 @@
 /// <reference types="vitest/config" />
+import { randomUUID } from "node:crypto"
 import { existsSync, readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { lingui } from "@lingui/vite-plugin"
 import tailwindcss from "@tailwindcss/vite"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig, loadEnv } from "vite"
+import { defineConfig, loadEnv, type Plugin } from "vite"
 
 // The local certificates of the API, which serve connect.localhost over HTTPS when they exist.
 const certsDirectory = fileURLToPath(new URL("../api/.certs/", import.meta.url))
@@ -28,6 +29,11 @@ export default defineConfig(({ command, mode }) => {
       secure: false,
     },
   }
+
+  // The id of a production build, which `version.json` publishes beside its files: an open tab
+  // polls it to learn that another build replaced its own (src/lib/app-update.ts). None in dev, in
+  // the tests or in Storybook, where nothing is deployed.
+  const buildId = command === "build" && mode !== "mock" ? randomUUID() : undefined
 
   return {
     // Served by the API under /app, ahead of apps/web: appBasePath in src/app/config.ts is the same.
@@ -59,7 +65,10 @@ export default defineConfig(({ command, mode }) => {
       }),
       lingui(),
       tailwindcss(),
+      publishBuildId(buildId),
     ],
+    // The build knows its own id, which src/app/config.ts reads with the other `VITE_*` values.
+    define: buildId ? { "import.meta.env.VITE_BUILD_ID": JSON.stringify(buildId) } : {},
     resolve: {
       alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
     },
@@ -105,3 +114,19 @@ export default defineConfig(({ command, mode }) => {
     },
   }
 })
+
+/** Writes `version.json`, `{ "buildId": "..." }`, next to the files of a build that has an id. */
+function publishBuildId(buildId: string | undefined): Plugin {
+  return {
+    name: "desk:publish-build-id",
+    apply: "build",
+    generateBundle() {
+      if (!buildId) return
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: `${JSON.stringify({ buildId })}\n`,
+      })
+    },
+  }
+}

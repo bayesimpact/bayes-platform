@@ -5,8 +5,6 @@ vi.mock("@/lib/auth/session", () => ({
   SignInRefusedError: class SignInRefusedError extends Error {},
   SignInLoopError: class SignInLoopError extends Error {},
 }))
-// The client reports the API's release to it, which reads the configuration of a browser.
-vi.mock("@/lib/app-update", () => ({ appUpdate: { reportServerVersion: () => undefined } }))
 
 const { ApiError, ContractMismatchError } = await import("@/lib/api-client")
 const { AuthenticationRequiredError, SignInLoopError, SignInRefusedError } = await import(

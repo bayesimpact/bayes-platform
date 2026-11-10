@@ -1,21 +1,21 @@
 import { appConfig } from "@/app/config"
 
 /**
- * How long another release must answer alone before it counts as new. During a rolling deployment,
- * the old and the new release answer side by side: a tab of the new one also sees the old one,
- * which it must not announce. Once the deployment ends, only the new release answers.
+ * How long another build must be the one published alone before it counts as new. During a rolling
+ * deployment, the servers of the old and the new release answer side by side: a tab of the new
+ * build also reads the old one, which it must not announce. Once the deployment ends, only the new
+ * build is published.
  */
 const CONFIRMATION_DELAY_IN_MILLISECONDS = 60 * 1000
 
 /**
- * Follows whether a newer release of the Desk than the one this tab runs is deployed.
- * `runningVersion` is undefined where nothing is deployed, as in local dev: no release then counts
- * as new.
+ * Follows whether a newer build of the Desk than the one this tab runs is deployed. `runningBuildId`
+ * is undefined where nothing is deployed, as in dev: no build then counts as new.
  */
-export function createAppUpdate(runningVersion: string | undefined) {
+export function createAppUpdate(runningBuildId: string | undefined) {
   let isAvailable = false
-  // When a response of another release came first, since the last one of this tab's release.
-  let otherReleaseSince: number | null = null
+  // When another build was first read, since the last time this tab's own build was.
+  let otherBuildSince: number | null = null
   const listeners = new Set<() => void>()
 
   const setAvailable = (nextIsAvailable: boolean) => {
@@ -35,18 +35,18 @@ export function createAppUpdate(runningVersion: string | undefined) {
       }
     },
     /**
-     * Reads the release that answered a request of the API, from its `X-App-Version` header.
-     * Another release counts as new once it alone answered for a minute.
+     * Reads the build that `version.json` publishes now. Another build counts as new once it alone
+     * was published for a minute.
      */
-    reportServerVersion: (serverVersion: string | null) => {
-      if (!serverVersion || !runningVersion) return
-      if (serverVersion === runningVersion) {
-        otherReleaseSince = null
+    reportPublishedBuild: (publishedBuildId: string) => {
+      if (!runningBuildId) return
+      if (publishedBuildId === runningBuildId) {
+        otherBuildSince = null
         return
       }
       const now = Date.now()
-      if (otherReleaseSince === null) otherReleaseSince = now
-      if (now - otherReleaseSince >= CONFIRMATION_DELAY_IN_MILLISECONDS) markAvailable()
+      if (otherBuildSince === null) otherBuildSince = now
+      if (now - otherBuildSince >= CONFIRMATION_DELAY_IN_MILLISECONDS) markAvailable()
     },
     /**
      * A file of this tab's release is gone from the server: the release no longer runs anywhere,
@@ -55,11 +55,11 @@ export function createAppUpdate(runningVersion: string | undefined) {
     reportStaleBuild: markAvailable,
     /** Forgets the new release, as a new tab: each test starts from one. */
     reset: () => {
-      otherReleaseSince = null
+      otherBuildSince = null
       setAvailable(false)
     },
   }
 }
 
-/** The release of this tab against the API's: the deployed tag, else the commit. */
-export const appUpdate = createAppUpdate(appConfig.appVersion ?? appConfig.gitSha)
+/** This tab's build against the one its server publishes. */
+export const appUpdate = createAppUpdate(appConfig.buildId)
