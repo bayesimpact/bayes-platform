@@ -109,7 +109,8 @@
           "project": "Leurs permissions sur cet espace de travail changent tout de suite.",
           "agent": "Leurs permissions sur cet agent changent tout de suite.",
           "review_campaign": "Leur participation à cette campagne d'évaluation change tout de suite."
-        }
+        },
+        "selfEffect": "Vos permissions sur cet espace de travail changent tout de suite."
       },
       "noAccess": "Aucun accès",
       "cannotRemove": "{{role}} ne peut pas être retiré",

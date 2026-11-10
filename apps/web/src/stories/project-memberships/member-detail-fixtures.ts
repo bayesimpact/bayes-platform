@@ -3,7 +3,8 @@ import type {
   MemberResourceRoles,
   RoleOption,
 } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
-import { mockCurrentUserId, mockProjectRoles } from "./fixtures"
+import { SAMPLE_PROJECT_ROLES } from "@/studio/features/project-memberships/project-memberships.factory"
+import { mockCurrentUserId } from "./fixtures"
 
 /** The `agent` and `review_campaign` roles of the RBAC catalog, as the `role` table names them. */
 export const mockAgentRoles: RoleOption[] = [
@@ -18,10 +19,7 @@ export const mockCampaignRoles: RoleOption[] = [
 ]
 
 /** The workspace roles of the member page, the evaluator role included. */
-const mockDetailProjectRoles: RoleOption[] = [
-  ...mockProjectRoles,
-  { key: "project_evaluator", name: "Project Evaluator" },
-]
+const mockDetailProjectRoles: RoleOption[] = SAMPLE_PROJECT_ROLES
 
 const roleByKey = new Map(
   [...mockDetailProjectRoles, ...mockAgentRoles, ...mockCampaignRoles].map((role) => [
@@ -186,4 +184,11 @@ export const mockOwnerWorkspace = resource(
   "proj-1",
   "Demo project",
   roles("project_owner"),
+)
+
+export const mockOwnerEvaluatorWorkspace = resource(
+  "project",
+  "proj-1",
+  "Demo project",
+  roles("project_owner", "project_evaluator"),
 )

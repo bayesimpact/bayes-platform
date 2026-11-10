@@ -60,17 +60,19 @@ export function ProjectMemberDetail({
       }
     : workspace
 
-  // Owner roles are set when the workspace or the agent is created, never changed here.
+  // Owner roles are set when the workspace or the agent is created, never changed here. On their
+  // own page, the viewer's other workspace roles are locked too, all but the evaluator role.
   const lockedRolesFor = (resource: MemberResourceRoles): Record<string, string> => {
     if (resource.kind === "review_campaign") return {}
     const ownerKey = OWNER_ROLE_KEY[resource.kind]
-    const selfLocked = isSelf
-      ? Object.fromEntries(
-          resource.roles
-            .filter((role) => role.key !== PROJECT_EVALUATOR_ROLE_KEY)
-            .map((role) => [role.key, t("projectMembership:memberDetail.selfLocked")]),
-        )
-      : {}
+    const selfLocked =
+      isSelf && resource.kind === "project"
+        ? Object.fromEntries(
+            resource.roles
+              .filter((role) => role.key !== PROJECT_EVALUATOR_ROLE_KEY)
+              .map((role) => [role.key, t("projectMembership:memberDetail.selfLocked")]),
+          )
+        : {}
     return { ...selfLocked, [ownerKey]: t("projectMembership:memberDetail.ownerLocked") }
   }
 
@@ -109,7 +111,6 @@ export function ProjectMemberDetail({
   }
 
   const sectionProps = {
-    readOnly: isSelf,
     lockedRolesFor,
     onAddRole: handleAddRole,
     onRemoveRole: (resource: MemberResourceRoles, role: RoleOption) =>
@@ -156,8 +157,8 @@ export function ProjectMemberDetail({
           description={t("projectMembership:memberDetail.workspace.description")}
           emptyLabel={t("projectMembership:memberDetail.workspace.empty")}
           resources={[ownWorkspace]}
-          {...sectionProps}
           readOnly={false}
+          {...sectionProps}
         />
         <ResourceRolesSection
           icon={BotIcon}
@@ -165,6 +166,7 @@ export function ProjectMemberDetail({
           description={t("projectMembership:memberDetail.agents.description")}
           emptyLabel={t("projectMembership:memberDetail.agents.empty")}
           resources={agents}
+          readOnly={isSelf}
           {...sectionProps}
         />
         <ResourceRolesSection
@@ -173,6 +175,7 @@ export function ProjectMemberDetail({
           description={t("projectMembership:memberDetail.campaigns.description")}
           emptyLabel={t("projectMembership:memberDetail.campaigns.empty")}
           resources={campaigns}
+          readOnly={isSelf}
           {...sectionProps}
         />
       </div>
@@ -189,9 +192,11 @@ export function ProjectMemberDetail({
         }
         description={
           pendingRemoval
-            ? t(
-                `projectMembership:memberDetail.removeDialog.effect.${pendingRemoval.resource.kind}`,
-              )
+            ? isSelf
+              ? t("projectMembership:memberDetail.removeDialog.selfEffect")
+              : t(
+                  `projectMembership:memberDetail.removeDialog.effect.${pendingRemoval.resource.kind}`,
+                )
             : undefined
         }
         confirmLabel={t("actions:remove")}

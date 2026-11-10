@@ -8,6 +8,7 @@ import {
   mockAgents,
   mockCampaigns,
   mockDetailMember,
+  mockOwnerEvaluatorWorkspace,
   mockOwnerWorkspace,
   mockSelfMember,
   mockWorkspace,
@@ -157,6 +158,34 @@ export const MyOwnPage: Story = {
     await expect(menu.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
       "Evaluator",
     ])
+  },
+}
+
+/** The viewer holds the evaluator role: they can take it away, not their other roles. */
+export const MyOwnPageWithEvaluator: Story = {
+  args: { member: mockSelfMember, workspace: mockOwnerEvaluatorWorkspace },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(canvas.getByRole("button", { name: "Remove Evaluator" })).toBeEnabled()
+    await expect(canvas.getByRole("button", { name: "Owner cannot be removed" })).toHaveAttribute(
+      "aria-disabled",
+    )
+  },
+}
+
+/** The viewer's own page without the permission to change roles: nothing is editable. */
+export const MyOwnPageReadOnly: Story = {
+  args: {
+    member: mockSelfMember,
+    workspace: { ...mockOwnerWorkspace, canManage: false },
+    agents: readOnly(mockAgents),
+    campaigns: readOnly(mockCampaigns),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(
+      canvas.queryByRole("button", { name: "Add a role on Demo project" }),
+    ).not.toBeInTheDocument()
   },
 }
 
