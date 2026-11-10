@@ -64,6 +64,22 @@ export const AgentModelToAgentProvider = {
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
 
+/**
+ * The providers whose models take the priority tier: Gemini 3.x (Vertex AI's shared request
+ * type) and OpenAI (the service tier of the Responses API). The project needs the
+ * `llm-priority-calls` flag, and the agent turns it on.
+ */
+const PRIORITY_CALLS_PROVIDERS: readonly AgentProvider[] = [
+  AgentProvider.Vertex3,
+  AgentProvider.OpenAI,
+]
+
+/** Whether `model` can be called with the priority tier. */
+export function supportsPriorityCalls(model: string | undefined): boolean {
+  if (model === undefined || !(model in AgentModelToAgentProvider)) return false
+  return PRIORITY_CALLS_PROVIDERS.includes(AgentModelToAgentProvider[model as AgentModel])
+}
+
 export type AgentModelOf<Provider extends AgentProvider> = {
   [Model in AgentModel]: (typeof AgentModelToAgentProvider)[Model] extends Provider ? Model : never
 }[AgentModel]

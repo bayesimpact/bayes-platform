@@ -1,4 +1,4 @@
-import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModelToAgentProvider, supportsPriorityCalls } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import type {
   BuildLLMConfigParams,
@@ -31,11 +31,7 @@ export abstract class LlmServiceBase {
       llmFeatures,
     } = params
     let serviceTier: LLMServiceTier
-    if (
-      llmFeatures?.priorityCalls &&
-      priorityCallsEnabled &&
-      AgentModelToAgentProvider[model] === AgentProvider.Vertex3
-    ) {
+    if (llmFeatures?.priorityCalls && priorityCallsEnabled && supportsPriorityCalls(model)) {
       serviceTier = "priority"
     }
     return {

@@ -74,10 +74,11 @@ export class AISDKOpenAIProvider extends AISDKLLMProviderBase<AgentProvider.Open
   }
 
   /**
-   * The agent's options, plus two settings of every call that are not the
+   * The agent's options, plus the settings of the call that are not the
    * agent's: `store: false` keeps the conversation out of OpenAI's response
    * storage, and the encrypted reasoning is sent back instead, so that a tool
-   * loop keeps the model's reasoning.
+   * loop keeps the model's reasoning. The service tier comes from the call
+   * (project flag and agent toggle), never from the stored options.
    */
   protected override buildSpecificProviderOptions({
     config,
@@ -89,7 +90,12 @@ export class AISDKOpenAIProvider extends AISDKLLMProviderBase<AgentProvider.Open
     return {
       ...values,
       providerOptions: {
-        openai: { ...openai, store: false, include: ["reasoning.encrypted_content"] },
+        openai: {
+          ...openai,
+          store: false,
+          include: ["reasoning.encrypted_content"],
+          ...(config.serviceTier ? { serviceTier: config.serviceTier } : {}),
+        },
       },
     }
   }
@@ -108,6 +114,10 @@ export class AISDKOpenAIProvider extends AISDKLLMProviderBase<AgentProvider.Open
     const parsed = reasoningEffortSchema.safeParse(stored)
     const reasoningEffort = parsed.success ? parsed.data : DEFAULT_REASONING_EFFORT
     // The reasoning effort is OpenAI's thinking level: one attribute for both.
-    return { ...super.getModelMetadata(config), thinkingLevel: reasoningEffort.toUpperCase() }
+    return {
+      ...super.getModelMetadata(config),
+      thinkingLevel: reasoningEffort.toUpperCase(),
+      serviceTier: config.serviceTier?.toUpperCase(),
+    }
   }
 }

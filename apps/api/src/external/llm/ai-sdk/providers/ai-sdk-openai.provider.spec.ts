@@ -1,5 +1,9 @@
 import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
-import type { LLMConfig, SpecificProviderOptions } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMConfig,
+  LLMServiceTier,
+  SpecificProviderOptions,
+} from "@/common/interfaces/llm-provider.interface"
 import {
   type CapturedRequest,
   callContext,
@@ -106,6 +110,24 @@ describe("AISDKOpenAIProvider model options", () => {
         })
       })
 
+      it("sends the priority tier the call asks for", () => {
+        const config = configFor(model, { serviceTier: "priority" })
+        expect(provider.specificProviderOptionsFor(config)).toEqual({
+          providerOptions: {
+            openai: { reasoningEffort: "low", ...callSettings, serviceTier: "priority" },
+          },
+        })
+      })
+
+      it("leaves out a service tier left in the stored options", () => {
+        const storedOptions = {
+          providerOptions: { openai: { reasoningEffort: "low", serviceTier: "priority" } },
+        }
+        expect(sentFor(storedOptions)).toEqual({
+          providerOptions: { openai: { reasoningEffort: "low", ...callSettings } },
+        })
+      })
+
       it("sends no temperature on an internal call", () => {
         expect(provider.getInternalCallModelOptions(model)).toEqual({})
         expect(sentFor(provider.getInternalCallModelOptions(model))).toEqual({
@@ -115,6 +137,14 @@ describe("AISDKOpenAIProvider model options", () => {
     })
 
     describe("model metadata", () => {
+      it("reports the priority tier the call asks for", () => {
+        expect(provider.getModelMetadata(configFor(model, { serviceTier: "priority" }))).toEqual({
+          name: model,
+          thinkingLevel: "LOW",
+          serviceTier: "PRIORITY",
+        })
+      })
+
       it("reports the low thinking level without stored options", () => {
         expect(provider.getModelMetadata(configFor(model))).toEqual({
           name: model,
@@ -172,8 +202,9 @@ describe("AISDKOpenAIProvider request", () => {
     call: Call,
     model: AgentModel,
     modelOptions?: Record<string, unknown>,
+    serviceTier?: LLMServiceTier,
   ): Promise<CapturedRequest> => {
-    const config = configFor(model, { modelOptions })
+    const config = configFor(model, { modelOptions, serviceTier })
     if (call === "generateText") {
       fakeFetch.respondWith(openResponses.text("Hello"))
       const text = await provider.generateText({
@@ -227,6 +258,22 @@ describe("AISDKOpenAIProvider request", () => {
       expect(request.body).not.toHaveProperty("temperature")
       expect(request.body.reasoning).toEqual({ effort: "high" })
       expect(warningCollector.warnings).toEqual([])
+    })
+
+    it.each(CALLS)("sends the priority tier the call asks for on %s", async (call) => {
+      const request = await send(call, model, undefined, "priority")
+
+      expect(request.body.service_tier).toBe("priority")
+      expect(warningCollector.warnings).toEqual([])
+    })
+
+    it.each(CALLS)("sends no service tier when the call asks for none on %s", async (call) => {
+      const storedTier = {
+        providerOptions: { openai: { reasoningEffort: "low", serviceTier: "priority" } },
+      }
+      const request = await send(call, model, storedTier)
+
+      expect(request.body).not.toHaveProperty("service_tier")
     })
 
     it.each(CALLS)("sends the low reasoning effort for an unknown one on %s", async (call) => {

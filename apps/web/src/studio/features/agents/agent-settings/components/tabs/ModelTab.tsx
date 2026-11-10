@@ -87,8 +87,8 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
-  // The priority tier only exists for Gemini 3.x models and needs the project flag. It follows
-  // the model currently picked in the form, so switching to another provider hides it.
+  // The priority tier only exists for Gemini 3.x and OpenAI models and needs the project flag.
+  // It follows the model currently picked in the form, so switching to another provider hides it.
   const selectedModel = form.watch("model")
   const optionFields = describeModelOptionFields(findAgentModelEntry(catalog, selectedModel))
   const priorityCallsAvailable = isPriorityCallsAvailable({ hasFeature, model: selectedModel })

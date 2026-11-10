@@ -97,10 +97,19 @@ describe("LlmServiceBase.buildLLMConfig", () => {
       expect(new TestLlmService().build(priorityParams).serviceTier).toBe("priority")
     })
 
+    it.each([
+      AgentModel.Gpt54,
+      AgentModel.Gpt54Mini,
+    ])("asks for priority on the OpenAI model %s when the agent and the feature allow it", (model) => {
+      expect(new TestLlmService().build({ ...priorityParams, model }).serviceTier).toBe("priority")
+    })
+
     it.each<[string, Partial<BuildLLMConfigParams>]>([
       ["the agent does not enable it", { priorityCallsEnabled: false }],
       ["the feature is off", { llmFeatures: {} }],
       ["the model is not served by Vertex3", { model: AgentModel.Gemini25Flash }],
+      ["the model is a Claude one", { model: AgentModel.ClaudeSonnet55 }],
+      ["the model is a vLLM one", { model: AgentModel.Gemma4_26B }],
     ])("asks for no tier when %s", (_case, overrides) => {
       expect(
         new TestLlmService().build({ ...priorityParams, ...overrides }).serviceTier,

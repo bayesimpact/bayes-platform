@@ -43,7 +43,7 @@ export const FeatureFlags = [
   }),
   featureFlag({
     key: "llm-priority-calls",
-    description: "Access and set priority for Gemini 3.x models",
+    description: "Access and set priority for Gemini 3.x and OpenAI models",
   }),
   featureFlag({
     key: "llm-flex-workers",
