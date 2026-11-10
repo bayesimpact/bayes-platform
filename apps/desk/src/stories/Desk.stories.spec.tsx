@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react"
 import { composeStories, composeStory, setProjectAnnotations } from "@storybook/react-vite"
 import { useQueryClient } from "@tanstack/react-query"
-import { render, screen, within } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
@@ -18,8 +18,15 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const { HistoryFailsToLoad, PageNotFound, ProjectsFailToLoad, Loading, ...generalPages } =
-  composeStories(generalStories)
+const {
+  HistoryFailsToLoad,
+  PageNotFound,
+  ProjectsFailToLoad,
+  Loading,
+  NewReleaseOut,
+  PageFailsAfterNewRelease,
+  ...generalPages
+} = composeStories(generalStories)
 const { ReplyFails, PassageSelected, ...conversationPages } = composeStories(conversationStories)
 const { DocumentDetails, ...extractionPages } = composeStories(extractionStories)
 /** The stories of a page, from the three folders of Storybook. */
@@ -157,6 +164,33 @@ describe("the stories of the Desk", () => {
 
     const panel = await screen.findByRole("complementary", { name: "quarterly-report.pdf" })
     expect(within(panel).getByRole("heading", { name: "Quarterly report" })).toBeInTheDocument()
+  })
+
+  it("NewReleaseOut shows a banner whose button reloads the page", async () => {
+    await NewReleaseOut.load()
+    const { container } = render(<NewReleaseOut />)
+    expect(
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
+    await act(() => NewReleaseOut.play?.({ canvasElement: container }))
+
+    const banner = screen.getByRole("status")
+    expect(within(banner).getByText("A new version of the Desk is available")).toBeInTheDocument()
+    expect(
+      within(banner).getByText("Reloading the page clears what you have not sent or saved."),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument()
+  })
+
+  it("PageFailsAfterNewRelease offers a reload, not a retry", async () => {
+    await PageFailsAfterNewRelease.load()
+    const { container } = render(<PageFailsAfterNewRelease />)
+    expect(await screen.findByText("This page could not load")).toBeInTheDocument()
+    await act(() => PageFailsAfterNewRelease.play?.({ canvasElement: container }))
+
+    expect(screen.getByText("A new version of the Desk is available")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument()
   })
 
   it("HistoryFailsToLoad keeps the page, and loads the history on its retry", async () => {
