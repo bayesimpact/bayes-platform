@@ -18,18 +18,22 @@ import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-
 
 type AnthropicAgentModel = AgentModelOf<AgentProvider.Anthropic>
 
-/**
- * An effort and no temperature: Claude 5.x models reject a temperature. The
- * effort sets how much the model thinks; "medium" keeps a chat turn short.
- */
+/** The efforts Claude 5.x accepts: how much the model thinks. */
+const effortSchema = z.enum(["low", "medium", "high"])
+type ClaudeEffort = z.infer<typeof effortSchema>
+
+/** "medium" keeps a chat turn short. */
+const DEFAULT_EFFORT: ClaudeEffort = "medium"
+
+/** An effort and no temperature: Claude 5.x models reject a temperature. */
 const claudeModelOptions = () =>
   defineModelOptions(
     z.object({
       providerOptions: z.object({
-        anthropic: z.object({ effort: z.enum(["low", "medium", "high"]) }),
+        anthropic: z.object({ effort: effortSchema }),
       }),
     }),
-    { providerOptions: { anthropic: { effort: "medium" } } },
+    { providerOptions: { anthropic: { effort: DEFAULT_EFFORT } } },
   )
 
 /**
@@ -94,13 +98,17 @@ export class AISDKAnthropicProvider extends AISDKLLMProviderBase<AgentProvider.A
 
   override getModelMetadata(config: LLMConfig): ModelMetadata {
     const stored = (
-      config.modelOptions?.providerOptions as { anthropic?: { effort?: string } } | undefined
+      config.modelOptions?.providerOptions as { anthropic?: { effort?: unknown } } | undefined
     )?.anthropic?.effort
+    // An effort the model does not take is not sent: the call falls back to
+    // the default, and the metadata reports the effort actually sent.
+    const parsed = effortSchema.safeParse(stored)
+    const effort = parsed.success ? parsed.data : DEFAULT_EFFORT
     // The effort is Claude's thinking level: one attribute for both.
     return {
       ...super.getModelMetadata(config),
       location: this.vertexLocation,
-      thinkingLevel: (stored ?? "medium").toUpperCase(),
+      thinkingLevel: effort.toUpperCase(),
     }
   }
 }
