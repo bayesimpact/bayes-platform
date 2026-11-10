@@ -9,6 +9,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Desk: an open page now tells you when a new version is out, and you reload it when you choose.
+
 ### Changed
 
 - Evaluator role: workspace owners and admins can give themselves the evaluator role, or take it away.

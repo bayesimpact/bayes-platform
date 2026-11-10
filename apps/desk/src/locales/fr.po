@@ -110,6 +110,7 @@ msgstr "<0><1/><2/></0> pour aller à la ligne"
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Lire</0> : l’agent la lit. <1>Garder</1> : affichée à côté des résultats. <2>Ignorer</2> : laissée de côté."
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the Desk is available"
 msgstr "Une nouvelle version du Desk est disponible"
@@ -774,6 +775,7 @@ msgstr "Prenez connaissance des conditions du Desk et acceptez-les pour continue
 msgid "Read it<0>: the {documentName}</0>"
 msgstr "Lire<0> : {documentName}</0>"
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload"
 msgstr "Recharger"
@@ -781,6 +783,10 @@ msgstr "Recharger"
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload the page to keep going."
 msgstr "Rechargez la page pour continuer."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "Reloading the page clears what you have not sent or saved."
+msgstr "Recharger la page efface ce que vous n'avez pas envoyé ou enregistré."
 
 #. Saves the fact the agent proposed in its memory
 #. Saves the reworded fact in the agent's memory

@@ -2,6 +2,7 @@ import "@testing-library/jest-dom/vitest"
 import { cleanup } from "@testing-library/react"
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest"
 import { activateLocale } from "@/app/i18n"
+import { appUpdate } from "@/lib/app-update"
 import { deskHandlers } from "./msw/handlers"
 import { server } from "./msw/server"
 
@@ -19,6 +20,7 @@ beforeEach(async () => {
   server.resetHandlers(...deskHandlers())
   window.localStorage.clear()
   window.sessionStorage.clear()
+  appUpdate.reset()
   await activateLocale("en")
 })
 afterEach(() => {
