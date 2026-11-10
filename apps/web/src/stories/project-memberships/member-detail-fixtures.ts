@@ -3,7 +3,8 @@ import type {
   MemberResourceRoles,
   RoleOption,
 } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
-import { mockCurrentUserId, mockProjectRoles } from "./fixtures"
+import { SAMPLE_PROJECT_ROLES } from "@/studio/features/project-memberships/project-memberships.factory"
+import { mockCurrentUserId } from "./fixtures"
 
 /** The `agent` and `review_campaign` roles of the RBAC catalog, as the `role` table names them. */
 export const mockAgentRoles: RoleOption[] = [
@@ -17,8 +18,14 @@ export const mockCampaignRoles: RoleOption[] = [
   { key: "review_campaign_reviewer", name: "Review Campaign Reviewer" },
 ]
 
+/** The workspace roles of the member page, the evaluator role included. */
+const mockDetailProjectRoles: RoleOption[] = SAMPLE_PROJECT_ROLES
+
 const roleByKey = new Map(
-  [...mockProjectRoles, ...mockAgentRoles, ...mockCampaignRoles].map((role) => [role.key, role]),
+  [...mockDetailProjectRoles, ...mockAgentRoles, ...mockCampaignRoles].map((role) => [
+    role.key,
+    role,
+  ]),
 )
 
 function roles(...keys: string[]): RoleOption[] {
@@ -51,6 +58,13 @@ const PERMISSIONS_BY_ROLE: Record<string, string[]> = {
     "desk.ui.read",
   ],
   project_member: ["project.read", "desk.ui.read"],
+  project_evaluator: [
+    "project.read",
+    "evaluation.ui.read",
+    "agent.read",
+    "evaluation.extraction.dataset.read",
+    "evaluation.extraction.run.read",
+  ],
   agent_owner: [
     "agent.read",
     "agent.update",
@@ -101,7 +115,11 @@ function resource(
 ): MemberResourceRoles {
   // Owner roles are set at creation, never given from the member page.
   const grantableRoles = (
-    kind === "project" ? mockProjectRoles : kind === "agent" ? mockAgentRoles : mockCampaignRoles
+    kind === "project"
+      ? mockDetailProjectRoles
+      : kind === "agent"
+        ? mockAgentRoles
+        : mockCampaignRoles
   ).filter((role) => !role.key.endsWith("_owner"))
   return {
     kind,
@@ -166,4 +184,11 @@ export const mockOwnerWorkspace = resource(
   "proj-1",
   "Demo project",
   roles("project_owner"),
+)
+
+export const mockOwnerEvaluatorWorkspace = resource(
+  "project",
+  "proj-1",
+  "Demo project",
+  roles("project_owner", "project_evaluator"),
 )

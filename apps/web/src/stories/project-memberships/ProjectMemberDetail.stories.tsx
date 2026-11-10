@@ -8,6 +8,7 @@ import {
   mockAgents,
   mockCampaigns,
   mockDetailMember,
+  mockOwnerEvaluatorWorkspace,
   mockOwnerWorkspace,
   mockSelfMember,
   mockWorkspace,
@@ -141,9 +142,51 @@ export const Owner: Story = {
   args: { workspace: mockOwnerWorkspace },
 }
 
-/** The viewer's own page: every role shows, none can be changed. */
+/**
+ * The viewer's own page: every role shows, and only the evaluator role on the workspace can be
+ * given or taken. The agent and campaign roles stay read-only.
+ */
 export const MyOwnPage: Story = {
-  args: { member: mockSelfMember },
+  args: { member: mockSelfMember, workspace: mockOwnerWorkspace },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(
+      canvas.queryByRole("button", { name: "Add a role on Helpful Assistant" }),
+    ).not.toBeInTheDocument()
+    await userEvent.click(canvas.getByRole("button", { name: "Add a role on Demo project" }))
+    const menu = within(await body(canvasElement).findByRole("menu"))
+    await expect(menu.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+      "Evaluator",
+    ])
+  },
+}
+
+/** The viewer holds the evaluator role: they can take it away, not their other roles. */
+export const MyOwnPageWithEvaluator: Story = {
+  args: { member: mockSelfMember, workspace: mockOwnerEvaluatorWorkspace },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(canvas.getByRole("button", { name: "Remove Evaluator" })).toBeEnabled()
+    await expect(canvas.getByRole("button", { name: "Owner cannot be removed" })).toHaveAttribute(
+      "aria-disabled",
+    )
+  },
+}
+
+/** The viewer's own page without the permission to change roles: nothing is editable. */
+export const MyOwnPageReadOnly: Story = {
+  args: {
+    member: mockSelfMember,
+    workspace: { ...mockOwnerWorkspace, canManage: false },
+    agents: readOnly(mockAgents),
+    campaigns: readOnly(mockCampaigns),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(
+      canvas.queryByRole("button", { name: "Add a role on Demo project" }),
+    ).not.toBeInTheDocument()
+  },
 }
 
 /** A viewer who may read members but change no role. */

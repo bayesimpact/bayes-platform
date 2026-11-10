@@ -1,6 +1,8 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { fetchMyProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createInvitations,
@@ -45,13 +47,17 @@ function registerListeners() {
     },
   })
 
-  // A role change on the member page: reload their roles, and the list their row belongs to
+  // A role change on the member page: reload their roles, and the list their row belongs to.
+  // On the viewer's own page, also reload their projects: their own permissions changed.
   listenerMiddleware.startListening({
     matcher: isAnyOf(addMemberResourceRole.fulfilled, removeMemberResourceRole.fulfilled),
     effect: async (_, listenerApi) => {
+      const state = listenerApi.getState()
+      const isSelf = getCurrentId({ state, name: "memberUserId" }) === state.me.data.value?.id
       await Promise.all([
         listenerApi.dispatch(loadMemberRoles()),
         listenerApi.dispatch(listProjectMemberships()),
+        ...(isSelf ? [listenerApi.dispatch(fetchMyProjects())] : []),
       ])
     },
   })

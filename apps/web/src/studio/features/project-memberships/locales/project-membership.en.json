@@ -83,6 +83,7 @@
       "you": "You",
       "selfTitle": "This is your own page",
       "selfDescription": "Nobody changes their own roles. Another manager of this workspace can change them.",
+      "selfDescriptionEvaluator": "You can give yourself the evaluator role, or take it away. Another manager of this workspace changes your other roles.",
       "addErrorTitle": "The role was not added",
       "addErrorDetail": "{{role}} on {{resource}}: {{error}}",
       "addError": "The role could not be added. Try again.",
@@ -108,7 +109,8 @@
           "project": "Their permissions on this workspace change right away.",
           "agent": "Their permissions on this agent change right away.",
           "review_campaign": "Their part in this review campaign changes right away."
-        }
+        },
+        "selfEffect": "Your permissions on this workspace change right away."
       },
       "noAccess": "No access",
       "cannotRemove": "{{role}} cannot be removed",
@@ -126,7 +128,8 @@
         "active": "Active",
         "closed": "Closed"
       },
-      "ownerLocked": "The owner role is set when the workspace or the agent is created, and is not changed here."
+      "ownerLocked": "The owner role is set when the workspace or the agent is created, and is not changed here.",
+      "selfLocked": "Nobody changes their own roles, except the evaluator role. Another manager of this workspace can change this one."
     }
   }
 }

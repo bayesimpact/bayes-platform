@@ -22,6 +22,9 @@ export type MembersTableScope = "project" | "agent"
 /** The role a workspace must always keep on at least one member. */
 export const PROJECT_OWNER_ROLE_KEY = "project_owner"
 
+/** The only role a manager of the workspace may give themselves or take from themselves. */
+export const PROJECT_EVALUATOR_ROLE_KEY = "project_evaluator"
+
 /** The role each kind of resource must always keep on at least one member. */
 export const OWNER_ROLE_KEY: Record<MembersTableScope, string> = {
   project: PROJECT_OWNER_ROLE_KEY,
