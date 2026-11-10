@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
-import { OWNER_ROLE_KEY } from "../members-table/members-table.models"
+import { OWNER_ROLE_KEY, PROJECT_EVALUATOR_ROLE_KEY } from "../members-table/members-table.models"
 import { useRoleLabel } from "../members-table/role-label"
 import type { MemberDetailMember, MemberResourceRoles, RoleOption } from "./member-detail.models"
 import { ResourceRolesSection } from "./ResourceRolesSection"
@@ -50,11 +50,29 @@ export function ProjectMemberDetail({
   const isSelf = member.userId === currentUserId
   const displayName = member.userName ?? member.userEmail
 
+  // On their own page, a manager of the workspace may only give or take the evaluator role.
+  const ownWorkspace: MemberResourceRoles = isSelf
+    ? {
+        ...workspace,
+        grantableRoles: workspace.grantableRoles.filter(
+          (role) => role.key === PROJECT_EVALUATOR_ROLE_KEY,
+        ),
+      }
+    : workspace
+
   // Owner roles are set when the workspace or the agent is created, never changed here.
-  const lockedRolesFor = (resource: MemberResourceRoles): Record<string, string> =>
-    resource.kind === "review_campaign"
-      ? {}
-      : { [OWNER_ROLE_KEY[resource.kind]]: t("projectMembership:memberDetail.ownerLocked") }
+  const lockedRolesFor = (resource: MemberResourceRoles): Record<string, string> => {
+    if (resource.kind === "review_campaign") return {}
+    const ownerKey = OWNER_ROLE_KEY[resource.kind]
+    const selfLocked = isSelf
+      ? Object.fromEntries(
+          resource.roles
+            .filter((role) => role.key !== PROJECT_EVALUATOR_ROLE_KEY)
+            .map((role) => [role.key, t("projectMembership:memberDetail.selfLocked")]),
+        )
+      : {}
+    return { ...selfLocked, [ownerKey]: t("projectMembership:memberDetail.ownerLocked") }
+  }
 
   const handleAddRole = async (resource: MemberResourceRoles, role: RoleOption) => {
     setAddError(null)
@@ -118,7 +136,9 @@ export function ProjectMemberDetail({
             <InfoIcon />
             <AlertTitle>{t("projectMembership:memberDetail.selfTitle")}</AlertTitle>
             <AlertDescription>
-              {t("projectMembership:memberDetail.selfDescription")}
+              {workspace.canManage
+                ? t("projectMembership:memberDetail.selfDescriptionEvaluator")
+                : t("projectMembership:memberDetail.selfDescription")}
             </AlertDescription>
           </Alert>
         )}
@@ -135,8 +155,9 @@ export function ProjectMemberDetail({
           title={t("projectMembership:memberDetail.workspace.title")}
           description={t("projectMembership:memberDetail.workspace.description")}
           emptyLabel={t("projectMembership:memberDetail.workspace.empty")}
-          resources={[workspace]}
+          resources={[ownWorkspace]}
           {...sectionProps}
+          readOnly={false}
         />
         <ResourceRolesSection
           icon={BotIcon}

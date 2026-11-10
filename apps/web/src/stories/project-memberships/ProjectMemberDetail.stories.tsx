@@ -141,9 +141,23 @@ export const Owner: Story = {
   args: { workspace: mockOwnerWorkspace },
 }
 
-/** The viewer's own page: every role shows, none can be changed. */
+/**
+ * The viewer's own page: every role shows, and only the evaluator role on the workspace can be
+ * given or taken. The agent and campaign roles stay read-only.
+ */
 export const MyOwnPage: Story = {
-  args: { member: mockSelfMember },
+  args: { member: mockSelfMember, workspace: mockOwnerWorkspace },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(
+      canvas.queryByRole("button", { name: "Add a role on Helpful Assistant" }),
+    ).not.toBeInTheDocument()
+    await userEvent.click(canvas.getByRole("button", { name: "Add a role on Demo project" }))
+    const menu = within(await body(canvasElement).findByRole("menu"))
+    await expect(menu.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+      "Evaluator",
+    ])
+  },
 }
 
 /** A viewer who may read members but change no role. */
