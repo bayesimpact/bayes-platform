@@ -48,6 +48,7 @@ function buildDeskDist(): string {
   )
   writeFileSync(join(distDir, "assets", "index-def456.js"), "console.log(2)")
   writeFileSync(join(distDir, "theme", "theme.css"), ":root {}")
+  writeFileSync(join(distDir, "version.json"), '{"buildId":"build-1"}\n')
   return distDir
 }
 
@@ -205,6 +206,20 @@ describe("registerWebApp with the Desk", () => {
     const theme = await request(app.getHttpServer()).get("/app/theme/theme.css")
     expect(theme.status).toBe(200)
     expect(theme.headers["cache-control"]).toBe("public, max-age=300")
+  })
+
+  it("serves the Desk's version.json as a file no cache keeps, revalidated by its ETag", async () => {
+    const manifest = await request(app.getHttpServer()).get("/app/version.json").accept("*/*")
+    expect(manifest.status).toBe(200)
+    expect(manifest.body).toEqual({ buildId: "build-1" })
+    expect(manifest.headers["cache-control"]).toBe("no-cache")
+    const etag = manifest.headers.etag
+    expect(etag).toEqual(expect.any(String))
+
+    const revalidated = await request(app.getHttpServer())
+      .get("/app/version.json")
+      .set("If-None-Match", String(etag))
+    expect(revalidated.status).toBe(304)
   })
 
   it("answers a missing asset with a 404, never with an entry page", async () => {

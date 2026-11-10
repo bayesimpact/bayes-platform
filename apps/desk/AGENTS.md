@@ -37,9 +37,10 @@ holds what is specific to the Desk.
   variables it gives apps/web (`helpCenterUrl`, the `oidc*` keys), and the version it runs
   (`appVersion`, `gitSha`), which the user menu shows; in dev, the `VITE_*` values of
   `apps/desk/.env` stand in (see `.env-example`).
-- New releases: the API has no part in them. Each production build gets an id, which it knows
-  (`buildId` in `src/app/config.ts`) and publishes in `version.json` beside its files
-  (`publishBuildId` in `vite.config.ts`). The root route polls that file every minute while the
+- New releases: each production build gets an id, which it knows (`buildId` in
+  `src/app/config.ts`) and publishes in `version.json` beside its files (`publishBuildId` in
+  `vite.config.ts`). The API only serves that file with `Cache-Control: no-cache`, so no cache on
+  the way keeps it. The root route polls that file every minute while the
   tab is visible (`features/releases`) and hands its id to `appUpdate` (`src/lib/app-update.ts`).
   Another build counts as new once it alone was published for a minute, so a rolling deployment
   does not announce the old build, and at once when Vite cannot load a chunk of this tab's build
