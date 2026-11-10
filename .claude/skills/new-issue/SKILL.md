@@ -25,6 +25,8 @@ Override only if the user explicitly names another repo in the invocation (e.g. 
 
 **Security issues always go to the private `bayesimpact/internal-issues` repo**, never to bayes-platform, even when the user did not name a repo. This covers access-control gaps, permission bypasses, vulnerabilities, data exposure, and anything describing how to reach data a caller should not see. Use `--repo bayesimpact/internal-issues` for both the duplicate search and the creation. If you are unsure whether an issue is security-related, treat it as one.
 
+**Feedback from using the platform on a real case also goes to `bayesimpact/internal-issues`**, even when the user did not name a repo. This covers anything observed while working on a client, partner or project: a demo, an agent built or evaluated through the MCP, a client deployment, a named workspace or organisation. Maintainers decide what reaches the public repo; scrubbing the case out of a public issue is not enough, because GitHub keeps every earlier version of a body in its public edit history. If you are unsure where an observation comes from, use `internal-issues`. Use `--repo bayesimpact/internal-issues` for both the duplicate search and the creation, and keep the guardrail above for anything that does go to bayes-platform.
+
 ## Inputs
 
 The arguments are the raw description of the issue, in any language, however terse (e.g. `/new-issue le bouton upload plante au-delà de 10Mo`). There is no fixed format — interpret intent.
