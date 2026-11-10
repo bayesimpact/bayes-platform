@@ -73,6 +73,10 @@ per role.** Their permissions there are the union of those roles.
 * **Guards**: nobody changes their own roles, and a project keeps at least one
   `project_owner`. Removing an owner is allowed while another one remains, in
   place of the old "the owner cannot be removed".
+  The one exception is `project_evaluator`, which no owner or admin role
+  includes: a holder of `project.member.update` gives it to themselves, or
+  takes it away (added on 2026-11-10,
+  [#1198](https://github.com/bayesimpact/bayes-platform/issues/1198)).
 * **Removal** from a project deletes every project role of the person, their
   agent member roles in the project and their campaign roles there.
 * **The conversation reviewer grant belongs to the backoffice.** The studio's
