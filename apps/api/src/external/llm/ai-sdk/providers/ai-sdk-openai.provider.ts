@@ -20,22 +20,23 @@ import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-
 type OpenAIAgentModel = AgentModelOf<AgentProvider.OpenAI>
 
 /** The reasoning efforts GPT-5.4 accepts. */
-type OpenAIReasoningEffort = "none" | "low" | "medium" | "high"
+const reasoningEffortSchema = z.enum(["none", "low", "medium", "high"])
+type OpenAIReasoningEffort = z.infer<typeof reasoningEffortSchema>
+
+/** "low" keeps the latency of a chat turn close to the one of a flash model. */
+const DEFAULT_REASONING_EFFORT: OpenAIReasoningEffort = "low"
 
 type OpenAIOptions = { reasoningEffort: OpenAIReasoningEffort }
 
-/**
- * A reasoning effort and no temperature: GPT-5.x reasoning models reject one.
- * "low" keeps the latency of a chat turn close to the one of a flash model.
- */
+/** A reasoning effort and no temperature: GPT-5.x reasoning models reject one. */
 const openAIModelOptions = () =>
   defineModelOptions(
     z.object({
       providerOptions: z.object({
-        openai: z.object({ reasoningEffort: z.enum(["none", "low", "medium", "high"]) }),
+        openai: z.object({ reasoningEffort: reasoningEffortSchema }),
       }),
     }),
-    { providerOptions: { openai: { reasoningEffort: "low" } } },
+    { providerOptions: { openai: { reasoningEffort: DEFAULT_REASONING_EFFORT } } },
   )
 
 /**
@@ -100,9 +101,13 @@ export class AISDKOpenAIProvider extends AISDKLLMProviderBase<AgentProvider.Open
 
   override getModelMetadata(config: LLMConfig): ModelMetadata {
     const stored = (
-      config.modelOptions?.providerOptions as { openai?: Partial<OpenAIOptions> } | undefined
+      config.modelOptions?.providerOptions as { openai?: { reasoningEffort?: unknown } } | undefined
     )?.openai?.reasoningEffort
+    // An effort the model does not take is not sent: the call falls back to
+    // the default, and the metadata reports the effort actually sent.
+    const parsed = reasoningEffortSchema.safeParse(stored)
+    const reasoningEffort = parsed.success ? parsed.data : DEFAULT_REASONING_EFFORT
     // The reasoning effort is OpenAI's thinking level: one attribute for both.
-    return { ...super.getModelMetadata(config), thinkingLevel: (stored ?? "low").toUpperCase() }
+    return { ...super.getModelMetadata(config), thinkingLevel: reasoningEffort.toUpperCase() }
   }
 }
