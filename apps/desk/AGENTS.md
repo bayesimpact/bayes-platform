@@ -20,7 +20,9 @@ holds what is specific to the Desk.
   changes only in its usual way when one is missing (`docs/frontend/conventions.md`, Endpoints).
   The sidebar reads `me`, then `projects/mine`, `organizations/mine` and the agents of each project
   that grants `desk.ui.read`, as apps/web does, under one query (`deskAgentsQueryOptions` in
-  `features/agents`), and the person's invitations every minute.
+  `features/agents`), and the person's invitations every minute. It keeps the agents whose
+  `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API
+  also lists the agents a project evaluator only reads.
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It signs in with the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its session is the one every app
