@@ -108,7 +108,7 @@ export const mockTranscript = [
     id: "msg-2",
     role: "assistant",
     content:
-      "You can export by going to Settings → Data → Export. I'll walk you through each step.",
+      "You can export from **Settings → Data → Export**. The steps:\n\n* Open **Settings**\n* Choose **Data**\n* Click **Export** and pick a format",
     createdAt: now - 29 * MS_PER_MINUTE,
   }),
   reviewerSessionTranscriptMessageFactory.build({
