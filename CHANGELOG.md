@@ -18,6 +18,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Agent creation: a quick double submit creates one agent, and each new agent shows its actions, delete included.
+
 ### Security
 
 - Agents: a person invited to one agent can no longer chat with or run extractions on the project's other agents.

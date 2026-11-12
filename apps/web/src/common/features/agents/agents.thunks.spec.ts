@@ -38,4 +38,23 @@ describe("listAgents", () => {
     expect(getAll).toHaveBeenCalledWith({ organizationId, projectId })
     expect(getAllWithDrafts).not.toHaveBeenCalled()
   })
+
+  it("rejects an answer that arrives after a newer request was sent", async () => {
+    // The agents slice keeps the id of the last request sent; the dispatch below plays its part.
+    let latestListRequestId: string | null = null
+    const dispatch = vi.fn((action: unknown) => {
+      if (listAgents.pending.match(action)) latestListRequestId = action.meta.requestId
+    })
+    const getState = () => ({ ...state, agents: { latestListRequestId } }) as unknown as RootState
+    getAllWithDrafts
+      .mockResolvedValueOnce(["agent-1"])
+      .mockResolvedValueOnce(["agent-1", "agent-2"])
+
+    // Both requests are sent before either answer is read.
+    const olderRequest = listAgents({ includeDrafts: true })(dispatch, getState, extra)
+    const newerRequest = listAgents({ includeDrafts: true })(dispatch, getState, extra)
+
+    expect(listAgents.fulfilled.match(await newerRequest)).toBe(true)
+    expect(listAgents.rejected.match(await olderRequest)).toBe(true)
+  })
 })

@@ -7,14 +7,21 @@ type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
 export const listAgents = createAsyncThunk<Agent[], { includeDrafts: boolean }, ThunkConfig>(
   "agents/list",
-  async ({ includeDrafts }, { extra: { services }, getState }) => {
+  async ({ includeDrafts }, { extra: { services }, getState, requestId }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId }
-    return includeDrafts
+    const agents = includeDrafts
       ? await services.agents.getAllWithDrafts(params)
       : await services.agents.getAll(params)
+    // Two creations in a row reload the list twice, and the first answer can arrive last
+    // without the second agent. Only the latest request may reach the reducers and listeners.
+    const latestRequestId = getState().agents?.latestListRequestId
+    if (latestRequestId && latestRequestId !== requestId) {
+      throw new Error("A newer list of agents was requested")
+    }
+    return agents
   },
 )
 
