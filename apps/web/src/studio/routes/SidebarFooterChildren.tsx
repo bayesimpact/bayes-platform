@@ -97,7 +97,9 @@ function NavReviewCampaigns({
   const { t } = useTranslation()
   const { isRoute } = useIsRoute()
   const isActive =
-    isRoute(StudioRoutes.reviewCampaigns.path) || isRoute(StudioRoutes.reviewCampaignReport.path)
+    isRoute(StudioRoutes.reviewCampaigns.path) ||
+    isRoute(StudioRoutes.reviewCampaign.path) ||
+    isRoute(StudioRoutes.reviewCampaignReport.path)
   const path = StudioRoutes.reviewCampaigns.build({ organizationId, projectId })
   return (
     <SidebarMenuSubItem>

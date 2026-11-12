@@ -19,7 +19,6 @@ const meta = {
   args: {
     open: true,
     agents: mockAgents,
-    view: "form",
     onClose: fn(),
   },
 } satisfies Meta<typeof CampaignEditorSheet>
@@ -29,7 +28,7 @@ type Story = StoryObj<typeof meta>
 
 export const CreateOpen: Story = {
   args: {
-    mode: "create",
+    editor: { mode: "create" },
   },
   decorators: [
     withRedux({
@@ -41,8 +40,7 @@ export const CreateOpen: Story = {
 
 export const EditDraft: Story = {
   args: {
-    mode: "edit",
-    reviewCampaignId: mockDraftCampaign.id,
+    editor: { mode: "edit", reviewCampaignId: mockDraftCampaign.id, view: "form", editorPath: "/" },
   },
   decorators: [
     withRedux({
@@ -61,8 +59,12 @@ export const EditDraft: Story = {
 
 export const EditActive: Story = {
   args: {
-    mode: "edit",
-    reviewCampaignId: mockActiveCampaign.id,
+    editor: {
+      mode: "edit",
+      reviewCampaignId: mockActiveCampaign.id,
+      view: "form",
+      editorPath: "/",
+    },
   },
   decorators: [
     withRedux({

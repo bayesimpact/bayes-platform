@@ -10,9 +10,8 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { useValue } from "@/common/hooks/use-value"
-import type { EditorState } from "@/studio/routes/CampaignsRoute"
 import { selectReviewCampaignsData } from "../review-campaigns.selectors"
-import { CampaignEditorSheet } from "./CampaignEditorSheet"
+import { type CampaignEditor, CampaignEditorSheet } from "./CampaignEditorSheet"
 import { CampaignListTable } from "./CampaignListTable"
 
 export function CampaignList({
@@ -21,7 +20,7 @@ export function CampaignList({
   onEdit,
   onCloseEditor,
 }: {
-  editor: EditorState
+  editor: CampaignEditor | null
   onCreate: () => void
   onEdit: (campaignId: string) => void
   onCloseEditor: () => void
@@ -55,14 +54,7 @@ export function CampaignList({
         />
       )}
       {editor && (
-        <CampaignEditorSheet
-          open
-          mode={editor.mode}
-          reviewCampaignId={editor.mode === "edit" ? editor.campaignId : undefined}
-          view={editor.mode === "edit" ? editor.view : "form"}
-          agents={agentOptions}
-          onClose={onCloseEditor}
-        />
+        <CampaignEditorSheet open editor={editor} agents={agentOptions} onClose={onCloseEditor} />
       )}
     </>
   )

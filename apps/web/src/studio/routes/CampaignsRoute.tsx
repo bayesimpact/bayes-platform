@@ -13,17 +13,15 @@ import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppSelector } from "@/common/store/hooks"
+import type { CampaignEditor } from "../features/review-campaigns/components/CampaignEditorSheet"
 import { CampaignList } from "../features/review-campaigns/components/CampaignList"
+import { reviewCampaignsReportsActions } from "../features/review-campaigns/reports/reports.slice"
 import { selectReviewCampaignsData } from "../features/review-campaigns/review-campaigns.selectors"
 import { reviewCampaignsActions } from "../features/review-campaigns/review-campaigns.slice"
 import { StudioRoutes } from "./helpers"
 
-// The editor of an existing campaign has a URL, so the report can lead back to it.
-export type EditorState =
-  | { mode: "create"; campaignId?: undefined }
-  | { mode: "edit"; campaignId: string; view: "form" | "report" }
-  | null
-
+// Three URLs render this route: the list, an open campaign, and its report.
+// The open campaign and its report show in a full-screen sheet over the list.
 export function CampaignsRoute() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -39,9 +37,23 @@ export function CampaignsRoute() {
   const [isCreating, setIsCreating] = useState(false)
 
   useMount({ actions: reviewCampaignsActions })
+  useMount({
+    actions: reviewCampaignsReportsActions,
+    condition: isReportOpen && !!reviewCampaignId,
+    refreshOn: [reviewCampaignId],
+  })
 
-  const editor: EditorState = reviewCampaignId
-    ? { mode: "edit", campaignId: reviewCampaignId, view: isReportOpen ? "report" : "form" }
+  const editor: CampaignEditor | null = reviewCampaignId
+    ? {
+        mode: "edit",
+        reviewCampaignId,
+        view: isReportOpen ? "report" : "form",
+        editorPath: StudioRoutes.reviewCampaign.build({
+          organizationId,
+          projectId,
+          reviewCampaignId,
+        }),
+      }
     : isCreating
       ? { mode: "create" }
       : null
