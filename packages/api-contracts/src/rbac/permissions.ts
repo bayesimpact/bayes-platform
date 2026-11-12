@@ -607,7 +607,10 @@ export function isProjectPermission(permission: string): permission is ProjectPe
   return PROJECT_SCOPED_PERMISSION_SET.has(permission)
 }
 
-/** Agent-scoped permissions exposed on `AgentDto.permissions`: what the studio gates on an agent. */
+/**
+ * Agent-scoped permissions exposed on `AgentDto.permissions`: what the studio gates on an agent,
+ * and whether the caller can open a live session with it, which the Desk reads to list its agents.
+ */
 export const AGENT_SCOPED_PERMISSIONS = [
   AGENT_UPDATE_PERMISSION,
   AGENT_DELETE_PERMISSION,
@@ -616,6 +619,8 @@ export const AGENT_SCOPED_PERMISSIONS = [
   AGENT_MEMBER_INVITE_PERMISSION,
   AGENT_MEMBER_UPDATE_PERMISSION,
   AGENT_MEMBER_DELETE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
 ] as const
 
 export type AgentPermission = (typeof AGENT_SCOPED_PERMISSIONS)[number]

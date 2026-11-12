@@ -362,6 +362,28 @@ export function buildSeveralAgentsWorld(): DeskWorld {
   return world
 }
 
+/**
+ * The several agents of one project, where the person may only read "Writing Helper", as a project
+ * evaluator with no role on it does: the API lists it, with no key to open a session.
+ */
+export function buildReadOnlyAgentWorld(): DeskWorld {
+  const world = buildSeveralAgentsWorld()
+  world.agents = world.agents.map((agent) =>
+    agent.name === "Writing Helper" ? { ...agent, permissions: [] } : agent,
+  )
+  return world
+}
+
+/**
+ * A project opens the Desk, and the person reads its agent with no key to open a session, as a
+ * project evaluator with no role on the agent does.
+ */
+export function buildOnlyReadOnlyAgentsWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  world.agents = world.agents.map((agent) => ({ ...agent, permissions: [] }))
+  return world
+}
+
 /** Several projects in two organizations, each with its agents. */
 export function buildSeveralProjectsWorld(): DeskWorld {
   const world = emptyWorld()

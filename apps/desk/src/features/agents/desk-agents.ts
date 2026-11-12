@@ -1,4 +1,5 @@
 import {
+  AGENT_SESSION_CREATE_PERMISSIONS,
   type AgentTypeDto,
   type ProjectAgentOutputDto,
   SOURCES_TOOL_FEATURE_FLAG,
@@ -29,15 +30,23 @@ export type DeskProjectAgents = {
 }
 
 /**
- * The agents of every Desk project, grouped by project in the order of `listDeskProjects`, with
- * the agents in the API's order (by name). A project with no agent is left out.
+ * Whether the person may open a session with the agent. The API lists every agent they can read,
+ * such as the ones a project evaluator reads with no role on them, where a session is refused.
+ */
+const canOpenSession = (agent: ProjectAgentOutputDto): boolean =>
+  agent.permissions.includes(AGENT_SESSION_CREATE_PERMISSIONS[agent.type])
+
+/**
+ * The agents of every Desk project the person may open a session with, grouped by project in the
+ * order of `listDeskProjects`, with the agents in the API's order (by name). A project with no
+ * such agent is left out.
  */
 export function groupDeskAgents(
   projects: DeskProject[],
   agentsOfProjects: ProjectAgentOutputDto[][],
 ): DeskProjectAgents[] {
   return projects.flatMap((project, index) => {
-    const agents = (agentsOfProjects[index] ?? []).map((agent) => ({
+    const agents = (agentsOfProjects[index] ?? []).filter(canOpenSession).map((agent) => ({
       id: agent.id,
       name: agent.name,
       type: agent.type,
