@@ -21,7 +21,9 @@ listenerMiddleware.startListening({
     listenerApi.dispatch(
       notificationsActions.show({
         titleKey: "oauthConsent:notifications.approveError",
-        description: action.payload || undefined,
+        ...(action.payload?.alreadyInstalled
+          ? { descriptionKey: "oauthConsent:notifications.alreadyInstalled" }
+          : { description: action.payload?.message || undefined }),
         type: "error",
       }),
     )

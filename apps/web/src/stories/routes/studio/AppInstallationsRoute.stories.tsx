@@ -87,7 +87,7 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
         }),
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Pricing Sync",
-          // Soft or hard deleted: the list says "a former member" either way.
+          // Left the workspace, lost the permission or has no account: "a former member" each time.
           installedBy: { kind: "former-member" },
           appUrl: "https://pricing.example.com",
           permissions: [],
@@ -167,7 +167,7 @@ export const ColleagueInstaller: Story = {
   },
 }
 
-/** A former member opens why nobody can reconnect the app, and what to do instead. */
+/** A former member opens why they cannot reconnect the app, and who can. */
 export const FormerMemberInstaller: Story = {
   args: { withApps: true },
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],

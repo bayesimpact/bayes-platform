@@ -17,7 +17,12 @@ import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectRepository } from "@/domains/projects/project.repository"
-import { intersectWithAppGrantablePermissions } from "@/domains/rbac/rbac.constants"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+import {
+  intersectWithAppGrantablePermissions,
+  PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { RoleRepository } from "@/domains/rbac/role.repository"
 import { isServiceUser } from "@/domains/users/service-user.helpers"
@@ -33,8 +38,10 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import {
   type ActiveAppInstallationSummary,
+  type AppInstallationInstaller,
   AppInstallationRepository,
   type ListedAppInstallation,
+  type ResolvedAppInstaller,
 } from "./app-installation.repository"
 import { toAppInstallerDto } from "./app-installer"
 import type {
@@ -74,6 +81,7 @@ export class AppsService {
     private readonly projectRepository: ProjectRepository,
     private readonly transactionService: TransactionService,
     private readonly appAccessTokenService: AppAccessTokenService,
+    private readonly permissionService: PermissionService,
   ) {}
 
   listAppManifests(): Promise<AppManifestRecord[]> {
@@ -166,6 +174,9 @@ export class AppsService {
    * installation. An app already installed on the project is reconnected
    * instead: it keeps its installation, so its service user, conversations
    * and document sources, and its role gets the permissions just granted.
+   * Only its installer reconnects it, as long as they can still install apps
+   * on the project. Once they cannot, whoever approves takes the installation
+   * over and becomes its installer.
    * The caller checked who approves and what they can grant, and runs this
    * in the transaction that also creates the grant.
    */
@@ -185,16 +196,26 @@ export class AppsService {
         app.id,
         project.id,
       )
-      // Reconnecting replaces the permissions and ends the app's tokens: only who installed it
-      // may do that. Someone else revokes it in the studio and installs it again.
-      if (existing && existing.createdByUserId !== params.userId) {
-        throw new ConflictException(
-          "This app is already installed on that project by someone else. Ask them to reconnect it, or revoke it and install it again.",
-        )
+      // Reconnecting replaces the permissions and ends the app's tokens. While who installed the
+      // app can still do that, nobody else may, so no one overwrites a colleague's installation
+      // without knowing it.
+      const isTakeover = !!existing && existing.createdByUserId !== params.userId
+      if (isTakeover) {
+        const installers = await this.listResolvedInstallers(app.id, [project.id])
+        if (installers.get(project.id)?.canStillInstall) {
+          throw new ConflictException(
+            "This app is already installed on that project by someone else. Ask them to reconnect it, or revoke it and install it again.",
+          )
+        }
       }
       if (existing?.serviceUserId && existing.customRoleId) {
         await this.roleRepository.replacePermissionKeys(existing.customRoleId, permissions)
-        this.logger.log(`Reconnected app installation ${existing.id} by user ${params.userId}`)
+        if (isTakeover) {
+          await this.appInstallationRepository.setCreatedByUserId(existing.id, params.userId)
+        }
+        this.logger.log(
+          `Reconnected app installation ${existing.id} by user ${params.userId}${isTakeover ? `, taken over from ${existing.createdByUserId ?? "nobody"}` : ""}`,
+        )
         return {
           installationId: existing.id,
           serviceUserId: existing.serviceUserId,
@@ -260,10 +281,7 @@ export class AppsService {
     projectIds: string[]
     viewerUserId: string
   }): Promise<Map<string, AppInstallerDto>> {
-    const installers = await this.appInstallationRepository.listActiveInstallersByProjectId(
-      params.appManifestId,
-      params.projectIds,
-    )
+    const installers = await this.listResolvedInstallers(params.appManifestId, params.projectIds)
     return new Map(
       [...installers].map(([projectId, installer]) => [
         projectId,
@@ -281,9 +299,53 @@ export class AppsService {
         installation.customRoleId ? [installation.customRoleId] : [],
       ),
     )
-    return installations.map((installation) =>
-      toActiveInstallationSummary(installation, permissionsByRoleId),
+    return Promise.all(
+      installations.map(async (installation) =>
+        toActiveInstallationSummary(
+          installation,
+          permissionsByRoleId,
+          await this.resolveInstaller(installation.installer, project.id),
+        ),
+      ),
     )
+  }
+
+  private async listResolvedInstallers(
+    appManifestId: string,
+    projectIds: string[],
+  ): Promise<Map<string, ResolvedAppInstaller>> {
+    const installers = await this.appInstallationRepository.listActiveInstallersByProjectId(
+      appManifestId,
+      projectIds,
+    )
+    return new Map(
+      await Promise.all(
+        [...installers].map(
+          async ([projectId, installer]) =>
+            [projectId, await this.resolveInstaller(installer, projectId)] as const,
+        ),
+      ),
+    )
+  }
+
+  /**
+   * Whether the installer can still install apps on the project, asked to the RBAC like the
+   * approval itself. False for a missing or deleted user, someone removed from the project, and
+   * someone who lost the permission.
+   */
+  private async resolveInstaller(
+    installer: AppInstallationInstaller,
+    projectId: string,
+  ): Promise<ResolvedAppInstaller> {
+    const canStillInstall =
+      !!installer.createdByUserId &&
+      !!installer.user &&
+      (await this.permissionService.has(
+        installer.createdByUserId,
+        PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
+        { type: "project", id: projectId },
+      ))
+    return { ...installer, canStillInstall }
   }
 
   /** The service user an installation acts as, null once it is revoked. */
@@ -389,6 +451,7 @@ export class AppsService {
 function toActiveInstallationSummary(
   installation: ListedAppInstallation,
   permissionsByRoleId: Map<string, string[]>,
+  installer: ResolvedAppInstaller,
 ): ActiveAppInstallationSummary {
   return {
     id: installation.id,
@@ -400,6 +463,6 @@ function toActiveInstallationSummary(
       ? (permissionsByRoleId.get(installation.customRoleId) ?? [])
       : [],
     createdAt: installation.createdAt,
-    installer: installation.installer,
+    installer,
   }
 }

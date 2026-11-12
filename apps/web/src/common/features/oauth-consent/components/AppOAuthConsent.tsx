@@ -27,14 +27,13 @@ import { useForm } from "react-hook-form"
 import { Trans, useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import type { z } from "zod"
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
+import { useInstallerLabel } from "@/common/features/app-installers/components/use-installer-label"
+import { useInstallerMailLink } from "@/common/features/app-installers/components/use-installer-mail-link"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import type {
-  AppInstaller,
-  OAuthAuthorizationRequest,
-  OAuthConsentProject,
-} from "../oauth-consent.models"
+import type { OAuthAuthorizationRequest, OAuthConsentProject } from "../oauth-consent.models"
 import { selectOAuthConsentPage } from "../oauth-consent.selectors"
 import { approveOAuthConsent } from "../oauth-consent.thunks"
 import {
@@ -54,7 +53,6 @@ import {
   SECTION_TITLE,
   useConsentResolver,
 } from "./ConsentLayout"
-import { useInstallerLabel } from "./use-installer-label"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
 
@@ -64,11 +62,12 @@ const MAX_WORKSPACE_ROWS = 5
 const APP_COPY = { permission: "appPermission", resource: "appResource" } as const
 
 /**
- * Someone else installed the app on this workspace: approving is refused, since it would cut their
- * tokens and replace the permissions they granted. Who installed it reconnects it as before.
+ * A colleague who can still manage the workspace's apps installed this one: approving is refused,
+ * since it would cut their tokens and replace the permissions they granted. They reconnect it
+ * themselves. Once they cannot (a former member), whoever approves takes the installation over.
  */
 const isInstalledBySomeoneElse = (project: OAuthConsentProject | undefined) =>
-  !!project?.installedBy && project.installedBy.kind !== "me"
+  project?.installedBy?.kind === "member"
 
 /**
  * App install consent. An authorization installs the app on one workspace, so the person picks one.
@@ -230,14 +229,15 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
                 )}
               />
 
-              {isBlocked && selectedProject?.installedBy ? (
+              {selectedProject?.installedBy && selectedProject.installedBy.kind !== "me" && (
                 <AlreadyInstalledAlert
                   clientName={clientName}
                   installer={selectedProject.installedBy}
                   workspaceName={selectedProject.name}
                   revokePath={revokePath}
                 />
-              ) : (
+              )}
+              {!isBlocked && (
                 <FormField
                   control={form.control}
                   name="permissions"
@@ -280,7 +280,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
                   ? undefined
                   : isSubmitting
                     ? t("installing")
-                    : t(selectedProject?.installedBy?.kind === "me" ? "reconnect" : "install", {
+                    : t(selectedProject?.installedBy ? "reconnect" : "install", {
                         name: clientName,
                       })
               }
@@ -393,8 +393,9 @@ function useInstalledHint() {
 }
 
 /**
- * Why the app cannot be installed on this workspace, who to ask, and how to replace the
- * installation on purpose. With a former member, there is nobody to ask.
+ * The app is installed on this workspace by someone else. With a colleague: why it cannot be
+ * installed again, who to ask, and how to replace the installation on purpose. With a former
+ * member, there is nobody to ask: what reconnecting it does, above the permissions to grant.
  */
 function AlreadyInstalledAlert({
   clientName,
@@ -403,36 +404,40 @@ function AlreadyInstalledAlert({
   revokePath,
 }: {
   clientName: string
-  installer: AppInstaller
+  installer: Exclude<AppInstaller, { kind: "me" }>
   workspaceName: string
   revokePath: string
 }) {
   const { t } = useTranslation("oauthConsent")
+  if (installer.kind === "former-member") {
+    return (
+      <Alert className="mt-6">
+        <InfoIcon />
+        <AlertTitle>{t("alreadyInstalled.title", { name: clientName })}</AlertTitle>
+        <AlertDescription>{t("alreadyInstalled.byFormerMember")}</AlertDescription>
+      </Alert>
+    )
+  }
   return (
     <Alert className="mt-6">
       <InfoIcon />
       <AlertTitle>{t("alreadyInstalled.title", { name: clientName })}</AlertTitle>
       <AlertDescription>
         <p>
-          {installer.kind === "member" ? (
-            <Trans
-              i18nKey="alreadyInstalled.byMember"
-              ns="oauthConsent"
-              components={{
-                installer: (
-                  <InstallerContact
-                    installer={installer}
-                    subject={t("alreadyInstalled.emailSubject", {
-                      name: clientName,
-                      workspace: workspaceName,
-                    })}
-                  />
-                ),
-              }}
-            />
-          ) : (
-            t("alreadyInstalled.byFormerMember")
-          )}
+          <Trans
+            i18nKey="alreadyInstalled.byMember"
+            ns="oauthConsent"
+            values={{ name: clientName }}
+            components={{
+              installer: (
+                <InstallerContact
+                  installer={installer}
+                  appName={clientName}
+                  workspaceName={workspaceName}
+                />
+              ),
+            }}
+          />
         </p>
         <p>
           <Trans
@@ -460,14 +465,17 @@ function AlreadyInstalledAlert({
  */
 function InstallerContact({
   installer,
-  subject,
+  appName,
+  workspaceName,
 }: {
   installer: Extract<AppInstaller, { kind: "member" }>
-  subject: string
+  appName: string
+  workspaceName: string
 }) {
+  const mailLink = useInstallerMailLink()
   const email = (
     <a
-      href={`mailto:${installer.email}?subject=${encodeURIComponent(subject)}`}
+      href={mailLink(installer, { appName, workspaceName })}
       className="font-semibold text-foreground underline-offset-2 hover:underline"
     >
       {installer.email}

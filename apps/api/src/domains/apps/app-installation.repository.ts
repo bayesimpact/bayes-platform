@@ -29,6 +29,12 @@ export type AppInstallationInstaller = {
   user: { name: string | null; email: string } | null
 }
 
+/**
+ * An installer, and whether they can still install apps on the project. Without that, they cannot
+ * reconnect the app, so someone else may take the installation over.
+ */
+export type ResolvedAppInstaller = AppInstallationInstaller & { canStillInstall: boolean }
+
 export type ListedAppInstallation = {
   id: string
   appName: string
@@ -49,7 +55,7 @@ export type ActiveAppInstallationSummary = {
   appUrl: string | null
   permissions: string[]
   createdAt: Date
-  installer: AppInstallationInstaller
+  installer: ResolvedAppInstaller
 }
 
 export type CreateAppInstallationFields = {
@@ -147,6 +153,11 @@ export class AppInstallationRepository {
     installation.revokedAt = revokedAt
     const saved = await this.repo().save(installation)
     return this.toRecord(saved)
+  }
+
+  /** Records who took the installation over, when its installer can no longer reconnect it. */
+  async setCreatedByUserId(installationId: string, createdByUserId: string): Promise<void> {
+    await this.repo().update({ id: installationId }, { createdByUserId })
   }
 
   async createInstallation(fields: CreateAppInstallationFields): Promise<AppInstallationRecord> {

@@ -1,4 +1,4 @@
-import type { AppInstaller } from "@/common/features/oauth-consent/oauth-consent.models"
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
 
 export type AppInstallation = {
   id: string

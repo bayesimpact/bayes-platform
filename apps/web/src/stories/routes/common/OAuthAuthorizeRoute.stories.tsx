@@ -7,13 +7,13 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Provider } from "react-redux"
 import { createMemoryRouter, RouterProvider } from "react-router-dom"
 import { within } from "storybook/test"
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
 import { userFactory } from "@/common/features/me/me.factory"
 import {
   oauthAuthorizationRequestFactory,
   oauthConsentPageFactory,
   oauthConsentProjectFactory,
 } from "@/common/features/oauth-consent/oauth-consent.factory"
-import type { AppInstaller } from "@/common/features/oauth-consent/oauth-consent.models"
 import { RouteNames } from "@/common/routes/helpers"
 import { oauthAuthorizeRoute } from "@/common/routes/Router"
 import { buildMockStore } from "@/stories/decorators"
@@ -246,8 +246,9 @@ export const AppInstalledByMember: Story = {
 }
 
 /**
- * The installer left (soft deleted) or their account is gone (hard deleted): both read "a former
- * member", and the page points straight to revoke and install again, with nobody to ask.
+ * The installer can no longer manage the workspace's apps (they left, lost the permission, or
+ * have no account): the page says what reconnecting does, and the person can reconnect the app
+ * and become its installer.
  */
 export const AppInstalledByFormerMember: Story = {
   args: { kind: "app", singleWorkspace: true, installedBy: "former-member" },

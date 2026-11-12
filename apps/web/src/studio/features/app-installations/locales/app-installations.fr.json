@@ -10,7 +10,7 @@
     "revoke": {
       "action": "Révoquer",
       "title": "Révoquer {{name}} ?",
-      "description": "{{name}} perd immédiatement l'accès à ce projet. Pour la réinstaller, il faudra une nouvelle autorisation."
+      "description": "{{name}} perd immédiatement l'accès à ce projet. Ses conversations restent liées à cette installation : la réinstaller demande une nouvelle autorisation et repart sans elles."
     },
     "notifications": {
       "revoked": "App révoquée",
@@ -23,7 +23,7 @@
     "installedBy": "Connectée par <installer>{{installer}}</installer> le {{date}}",
     "installer": {
       "memberHint": "Demandez-lui de reconnecter {{name}} ou de changer ses permissions.",
-      "formerMemberHint": "Cette personne n'est plus membre, ou son compte n'existe plus, donc personne ne peut reconnecter {{name}}. Pour la remplacer, révoquez-la puis installez-la à nouveau."
+      "formerMemberHint": "Cette personne ne peut plus gérer les apps de cet espace. Pour reconnecter {{name}}, installez-la à nouveau depuis l'app, ou demandez à un propriétaire de l'espace."
     }
   }
 }

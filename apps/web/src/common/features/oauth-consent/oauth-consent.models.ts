@@ -1,3 +1,5 @@
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
+
 /** Authorization request of an OAuth client, with the protocol's own parameter names. */
 export type OAuthAuthorizationRequest = {
   response_type: "code"
@@ -26,15 +28,6 @@ export type OAuthConsentClient = {
   description: string | null
   logoUrl: string | null
 }
-
-/**
- * Who installed an app on a workspace, as the person looking sees them. A member who left (soft
- * deleted) and an account that no longer exists (hard deleted) both show as a former member.
- */
-export type AppInstaller =
-  | { kind: "me" }
-  | { kind: "member"; name: string | null; email: string }
-  | { kind: "former-member" }
 
 export type OAuthConsentProject = {
   id: string

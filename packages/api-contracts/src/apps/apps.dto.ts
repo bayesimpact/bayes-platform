@@ -186,8 +186,9 @@ export type AppCatalogEntryDto = {
 }
 
 /**
- * Who installed an app on a project, as the caller sees them. A member who left (soft deleted) and
- * an account that no longer exists both show as a former member: there is nobody to ask.
+ * Who installed an app on a project, as the caller sees them. A former member can no longer
+ * install apps on the project: they left it, lost the permission, or have no account any more.
+ * There is nobody to ask, so whoever approves the app next takes the installation over.
  */
 export type AppInstallerDto =
   | { kind: "me" }

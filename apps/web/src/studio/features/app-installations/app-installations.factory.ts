@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
-import type { AppInstaller } from "@/common/features/oauth-consent/oauth-consent.models"
+import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { AppInstallation } from "./app-installations.models"
 
@@ -29,11 +30,7 @@ export const appInstallationFactory = AppInstallationFactory.define(
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       installedBy: params.installedBy
         ? (params.installedBy as AppInstaller)
-        : {
-            kind: "member" as const,
-            name: faker.person.fullName(),
-            email: faker.internet.email(),
-          },
+        : appInstallerFactory.build(),
     }
   },
 )

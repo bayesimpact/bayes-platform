@@ -147,7 +147,8 @@ export type OAuthConsentProjectDto = {
   availablePermissions: string[]
   /**
    * For an app, who installed it on the project, null when it is not installed there. Approving
-   * on a project someone else installed it on is refused: only who installed it reconnects it.
+   * on a project a `member` installed it on is refused: they reconnect it themselves. Approving
+   * on a `former-member`'s installation reconnects it and makes the caller its installer.
    */
   installedBy: AppInstallerDto | null
 }

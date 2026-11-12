@@ -17,7 +17,9 @@ import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
   mockForeignAuthSubject,
@@ -175,13 +177,27 @@ describe("Apps - project app installations", () => {
 
   it("names who installed each app: the caller, a colleague, or a former member", async () => {
     const { user, organization, project } = await createContextForRole("project_owner")
-    const { user: colleague } = await addUserToOrganization({
-      repositories,
-      organization,
-      user: { name: "Alex Morgan", email: "alex.morgan@example.com" },
+    const addProjectAdmin = async (fields: { name?: string; email?: string } = {}) => {
+      const added = await addUserToOrganization({ repositories, organization, user: fields })
+      await addUserToProject({
+        repositories,
+        project,
+        user: added.user,
+        membership: { roleKeys: ["project_admin"] },
+      })
+      return added.user
+    }
+    const colleague = await addProjectAdmin({
+      name: "Alex Morgan",
+      email: "alex.morgan@example.com",
     })
-    const { user: leaver } = await addUserToOrganization({ repositories, organization })
-    await repositories.userRepository.softDelete({ id: leaver.id })
+    // Removed from the project since: they can no longer reconnect what they installed.
+    const leaver = await addProjectAdmin()
+    await app.get(ProjectMembershipsService).removeProjectMembership({
+      callerUserId: user.id,
+      memberUserId: leaver.id,
+      projectId: project.id,
+    })
     const mine = await installApp(project.id, { name: "Mine", createdByUserId: user.id })
     const theirs = await installApp(project.id, {
       name: "Theirs",

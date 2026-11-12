@@ -1,0 +1,7 @@
+{
+  "appInstallers": {
+    "me": "vous",
+    "formerMember": "un ancien membre",
+    "emailSubject": "{{name}} sur l'espace {{workspace}}"
+  }
+}

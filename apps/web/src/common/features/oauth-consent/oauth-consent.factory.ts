@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
 import type {
-  AppInstaller,
   OAuthAuthorizationRequest,
   OAuthConsentClient,
   OAuthConsentPage,
