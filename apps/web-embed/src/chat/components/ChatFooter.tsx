@@ -31,7 +31,7 @@ export function ChatFooter({
   }, [])
 
   React.useEffect(() => {
-    if (focus) inputRef.current?.focus()
+    if (focus) inputRef.current?.focus({ preventScroll: true })
   }, [focus])
 
   const handleSubmit = React.useCallback(
@@ -39,7 +39,7 @@ export function ChatFooter({
       if (!value.trim()) return
       onMessageSubmit(value)
       setInputValue("")
-      inputRef.current?.focus()
+      inputRef.current?.focus({ preventScroll: true })
     },
     [onMessageSubmit],
   )
@@ -61,7 +61,7 @@ export function ChatFooter({
             isFocused ? "border-[var(--embed-primary)]" : "border-gray-200",
             className,
           )}
-          onClick={() => inputRef.current?.focus()}
+          onClick={() => inputRef.current?.focus({ preventScroll: true })}
           {...props}
         >
           {children}
