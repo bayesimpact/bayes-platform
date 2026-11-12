@@ -17,10 +17,14 @@ import { CampaignListTable } from "./CampaignListTable"
 
 export function CampaignList({
   editor,
-  setEditor,
+  onCreate,
+  onEdit,
+  onCloseEditor,
 }: {
   editor: EditorState
-  setEditor: React.Dispatch<React.SetStateAction<EditorState>>
+  onCreate: () => void
+  onEdit: (campaignId: string) => void
+  onCloseEditor: () => void
 }) {
   const agents = useValue(selectAgentsData)
   const campaigns = useValue(selectReviewCampaignsData)
@@ -45,9 +49,9 @@ export function CampaignList({
         <CampaignListTable
           campaigns={campaigns}
           membershipCountByCampaign={membershipCountByCampaign}
-          onEdit={(campaignId) => setEditor({ mode: "edit", campaignId })}
-          onDelete={(campaignId) => setEditor({ mode: "edit", campaignId })}
-          onCreate={() => setEditor({ mode: "create" })}
+          onEdit={onEdit}
+          onDelete={onEdit}
+          onCreate={onCreate}
         />
       )}
       {editor && (
@@ -55,8 +59,9 @@ export function CampaignList({
           open
           mode={editor.mode}
           reviewCampaignId={editor.mode === "edit" ? editor.campaignId : undefined}
+          view={editor.mode === "edit" ? editor.view : "form"}
           agents={agentOptions}
-          onClose={() => setEditor(null)}
+          onClose={onCloseEditor}
         />
       )}
     </>

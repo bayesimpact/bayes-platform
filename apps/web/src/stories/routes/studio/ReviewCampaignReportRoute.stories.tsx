@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { buildDecorator, render } from "@/stories/decorators"
+import { buildMockReviewCampaignsService } from "@/stories/review-campaigns/mock-service"
 import {
   buildStudioData,
   type StudioStoryArgs,
@@ -15,6 +16,7 @@ import {
 } from "@/studio/features/review-campaigns/reports/report.factory"
 import type { CampaignReport } from "@/studio/features/review-campaigns/reports/reports.models"
 import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
+import { reviewCampaignFactory } from "@/studio/features/review-campaigns/review-campaign.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -118,6 +120,7 @@ const meta = {
   },
   args: {
     ...studioStoryArgs,
+    withAgents: true,
     withReportData: false,
   },
   render: render({
@@ -132,7 +135,11 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   decorators: [
     buildDecorator<StoryArgs>(({ withReportData, ...args }) => {
-      const { baseSeeds } = buildStudioData(args)
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      // The report opens in the campaign editor's sheet, over the list of campaigns.
+      const campaign = reviewCampaignFactory
+        .transient({ project, agent: agents[0] })
+        .build({ id: FIXED_CAMPAIGN_ID, status: "closed" })
       const report = withReportData
         ? buildPopulatedReport()
         : campaignReportFactory.build({ campaignId: FIXED_CAMPAIGN_ID })
@@ -140,9 +147,11 @@ export const Default: Story = {
         state: mergeSeeds(
           baseSeeds,
           seed.currentReviewCampaignId(FIXED_CAMPAIGN_ID),
+          seed.studio.reviewCampaigns([campaign]),
           seed.campaignReport(report),
         ),
         services: {
+          reviewCampaigns: buildMockReviewCampaignsService({ campaigns: [campaign] }),
           reviewCampaignsReports: buildMockReportsService({ report }),
         },
       }

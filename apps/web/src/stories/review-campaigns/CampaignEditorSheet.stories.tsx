@@ -19,6 +19,7 @@ const meta = {
   args: {
     open: true,
     agents: mockAgents,
+    view: "form",
     onClose: fn(),
   },
 } satisfies Meta<typeof CampaignEditorSheet>

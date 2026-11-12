@@ -45,7 +45,6 @@ import { ResourceLibrariesRoute } from "./ResourceLibrariesRoute"
 import { ResourceLibraryCreatorRoute } from "./ResourceLibraryCreatorRoute"
 import { ResourceLibraryEditorRoute } from "./ResourceLibraryEditorRoute"
 import { RestrictedAccess } from "./RestrictedAccess"
-import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentRoute } from "./StudioAgentRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
 import { StudioRoute } from "./StudioRoute"
@@ -155,8 +154,13 @@ export const studioRoutes = {
           element: <CampaignsRoute />,
         },
         {
+          // The campaign editor and its report open over the list, in a full-screen sheet.
+          path: StudioRoutes.reviewCampaign.path,
+          element: <CampaignsRoute />,
+        },
+        {
           path: StudioRoutes.reviewCampaignReport.path,
-          element: <ReviewCampaignReportRoute />,
+          element: <CampaignsRoute />,
         },
         {
           path: StudioRoutes.agent.path,
