@@ -19,6 +19,7 @@ import type { AgentSettings } from "@/common/features/agents/agent-settings/agen
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
+import { runtimeConfig } from "@/config/runtime-config"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -27,6 +28,7 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
+import { agentEmbedConfigFactory } from "@/studio/features/agent-embed-configs/agent-embed-configs.factory"
 import { agentSubAgentFactory } from "@/studio/features/agent-sub-agents/agent-sub-agents.factory"
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 import { projectEmbeddingModelFactory } from "@/studio/features/project-embedding-models/project-embedding-models.factory"
@@ -287,6 +289,12 @@ export const ConversationAgent: Story = {
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
             seed.studio.projectEmbeddingModels(embeddingModels),
+            // Embedding is on, so the Embed tab shows its snippet, links and public API.
+            seed.studio.agentEmbedConfig(
+              agentEmbedConfigFactory
+                .transient({ agent: rawParentAgent })
+                .build({ isEnabled: true }),
+            ),
             embeddingSeeds,
           ),
           services: {
@@ -484,4 +492,42 @@ export const SourcesTab: Story = {
     )
     await userEvent.click(sourcesTab)
   },
+}
+
+/** Sets the help center URL of the deployment for one story, then puts the previous one back. */
+function withHelpCenterUrl(helpCenterUrl: string | undefined) {
+  return () => {
+    const previous = runtimeConfig.helpCenterUrl
+    runtimeConfig.helpCenterUrl = helpCenterUrl
+    return () => {
+      runtimeConfig.helpCenterUrl = previous
+    }
+  }
+}
+
+/**
+ * The Embed tab with embedding on: activation, appearance, the widget snippet, the public page
+ * and the public API. The deployment has a help center, so the widget guide and the API
+ * reference are linked.
+ */
+export const EmbedTab: Story = {
+  args: {
+    featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "agent-embed"],
+  },
+  decorators: ConversationAgent.decorators,
+  beforeEach: withHelpCenterUrl("https://help.example.org"),
+  play: async ({ canvasElement }) => {
+    const embedTab = await within(canvasElement).findByRole(
+      "tab",
+      { name: "Embed" },
+      { timeout: 10_000 },
+    )
+    await userEvent.click(embedTab)
+  },
+}
+
+/** The same tab on a deployment without a help center: no links to the guide and the reference. */
+export const EmbedTabWithoutHelpCenter: Story = {
+  ...EmbedTab,
+  beforeEach: withHelpCenterUrl(undefined),
 }

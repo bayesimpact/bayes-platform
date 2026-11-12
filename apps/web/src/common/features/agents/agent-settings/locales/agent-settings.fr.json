@@ -202,15 +202,15 @@
       "loading": "Chargement de la configuration d'intégration…",
       "loadError": "Impossible de charger la configuration d'intégration.",
       "enabledLabel": "Activer l'intégration",
-      "enabledDescription": "Permettre à {{name}} d'être intégré sur des sites externes via un iframe.",
-      "snippetLabel": "Extrait d'intégration",
-      "snippetDescription": "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
+      "enabledDescription": "Rend {{name}} disponible hors de la plateforme : widget, page publique et API publique. Désactivée, les trois cessent de fonctionner.",
+      "snippetLabel": "Widget sur un site",
+      "snippetDescription": "Collez cette balise <script> avant la balise </body> fermante sur chaque page où le widget de chat doit apparaître.",
       "snippetHint": "Attributs optionnels : data-color=\"#2563eb\" (couleur du bouton), data-locale=\"fr\" (langue du widget), data-display-mode=\"drawer\" (panneau latéral au lieu d'une bulle), data-hint=\"Besoin d'aide ?\" (infobulle affichée au chargement et au survol).",
-      "publicPageLabel": "Lien de la page publique",
+      "publicPageLabel": "Page publique",
       "publicPageDescription": "Partagez ce lien, ou un QR code de ce lien, pour rendre {{name}} accessible sans site hôte.",
       "publicPageHint": "La page ne fonctionne que lorsque l'intégration est activée. Ajoutez &locale=fr pour forcer la langue.",
       "allowedOriginsLabel": "Origines autorisées",
-      "allowedOriginsDescription": "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
+      "allowedOriginsDescription": "Laissez vide pour l'instant. Le widget appelle la plateforme depuis {{embedOrigin}}, pas depuis votre site : une liste sans cette adresse bloque le widget. La vérification du site qui affiche le widget n'est pas encore disponible.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
       "titleLabel": "Titre du widget",
       "titleDescription": "Titre affiché dans l'en-tête du chat. Correspond au nom {{name}} si laissé vide.",
@@ -221,7 +221,19 @@
       "primaryColorDescription": "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb).",
       "bannerTextLabel": "Texte du bandeau",
       "bannerTextDescription": "Message optionnel affiché en permanence au-dessus de la conversation, sur la page publique et dans le widget. Utilisez-le pour préciser le contexte, par exemple une version de test ou le public visé.",
-      "bannerTextPlaceholder": "Version de test, réservée à l'équipe pilote"
+      "bannerTextPlaceholder": "Version de test, réservée à l'équipe pilote",
+      "appearance": {
+        "title": "Apparence",
+        "description": "Affichée dans l'en-tête du widget et de la page publique."
+      },
+      "apiSection": {
+        "title": "API publique",
+        "description": "Pour construire votre propre interface de chat, appelez directement l'API à la place du widget."
+      },
+      "apiBaseUrlLabel": "URL de base",
+      "apiBaseUrlDescription": "Toutes les routes de l'API commencent par cette URL. Elle contient le token d'intégration de cet agent.",
+      "apiReferenceLink": "Lire la référence de l'API",
+      "widgetGuideLink": "Lire le guide du widget"
     },
     "promptVariables": {
       "title": "Variables de prompt",
