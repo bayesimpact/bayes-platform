@@ -19,6 +19,7 @@ function LocaleAndCache() {
 }
 
 const {
+  AgentTheyOnlyRead,
   HistoryFailsToLoad,
   PageNotFound,
   ProjectsFailToLoad,
@@ -76,10 +77,6 @@ const PAGES = {
   },
   SeveralAgents: {
     Story: pageStories.SeveralAgents,
-    loaded: () => screen.findByRole("heading", { name: "What should Document Reader read?" }),
-  },
-  AgentTheyOnlyRead: {
-    Story: pageStories.AgentTheyOnlyRead,
     loaded: () => screen.findByRole("heading", { name: "What should Document Reader read?" }),
   },
   SeveralProjects: {
@@ -168,6 +165,19 @@ describe("the stories of the Desk", () => {
 
     const panel = await screen.findByRole("complementary", { name: "quarterly-report.pdf" })
     expect(within(panel).getByRole("heading", { name: "Quarterly report" })).toBeInTheDocument()
+  })
+
+  it("AgentTheyOnlyRead opens the switcher without the agent the person only reads", async () => {
+    await AgentTheyOnlyRead.load()
+    const { container } = render(<AgentTheyOnlyRead />)
+    await AgentTheyOnlyRead.play?.({ canvasElement: container })
+
+    const list = await screen.findByRole("listbox")
+    expect(
+      within(list)
+        .getAllByRole("option")
+        .map((item) => item.textContent),
+    ).toEqual(["Document Reader", "Helpful Assistant"])
   })
 
   it("NewReleaseOut shows a banner whose button reloads the page", async () => {

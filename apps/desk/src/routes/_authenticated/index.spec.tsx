@@ -9,6 +9,7 @@ import { agentOf, agentUrlOf, routerPathOf } from "@/test/desk-urls"
 import {
   buildDeskWorld,
   buildNoAgentWorld,
+  buildOnlyReadOnlyAgentsWorld,
   buildReadOnlyAgentWorld,
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
@@ -142,6 +143,13 @@ describe("the Desk's home", () => {
 
   it("says so when the person has no agent yet", async () => {
     server.use(...worldHandlers(buildNoAgentWorld()))
+    renderApp("/app/")
+
+    expect(await screen.findByText("You don't have access to an agent yet")).toBeInTheDocument()
+  })
+
+  it("says so to a person who only reads the agents of their project", async () => {
+    server.use(...worldHandlers(buildOnlyReadOnlyAgentsWorld()))
     renderApp("/app/")
 
     expect(await screen.findByText("You don't have access to an agent yet")).toBeInTheDocument()

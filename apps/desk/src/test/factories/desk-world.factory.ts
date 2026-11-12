@@ -374,6 +374,16 @@ export function buildReadOnlyAgentWorld(): DeskWorld {
   return world
 }
 
+/**
+ * A project opens the Desk, and the person reads its agent with no key to open a session, as a
+ * project evaluator with no role on the agent does.
+ */
+export function buildOnlyReadOnlyAgentsWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  world.agents = world.agents.map((agent) => ({ ...agent, permissions: [] }))
+  return world
+}
+
 /** Several projects in two organizations, each with its agents. */
 export function buildSeveralProjectsWorld(): DeskWorld {
   const world = emptyWorld()

@@ -1,6 +1,7 @@
 import { DeskAgentSessionsRoutes, DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
+import { userEvent, within } from "storybook/test"
 import { appUpdate } from "@/lib/app-update"
 import { agentUrlOf } from "@/test/desk-urls"
 import {
@@ -29,9 +30,14 @@ export const SeveralAgents: Story = {
   parameters: desk({ world: buildSeveralAgentsWorld }),
 }
 
-/** The switcher leaves out the agent the person may read but not open a session with. */
+/** The switcher, open, leaves out the agent the person may read but not open a session with. */
 export const AgentTheyOnlyRead: Story = {
   parameters: desk({ world: buildReadOnlyAgentWorld }),
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      await within(canvasElement).findByRole("combobox", { name: /Switch agent/ }),
+    )
+  },
 }
 
 export const SeveralProjects: Story = {
