@@ -13,12 +13,19 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { AGENT_ROLE_PERMISSIONS, PROJECT_EVALUATOR_ROLE } from "@/domains/rbac/rbac.constants"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { AgentsModule } from "../agents.module"
 import { grantConversationReview } from "../conversation-reviewers/agent-conversation-reviewer.factory"
 import { addUserToAgent } from "../memberships/agent-membership.factory"
+
+/** The keys of `AgentDto.permissions` an agent role grants. */
+const exposedPermissionsOf = (roleKey: keyof typeof AGENT_ROLE_PERMISSIONS): string[] => {
+  const granted: readonly string[] = AGENT_ROLE_PERMISSIONS[roleKey]
+  return AGENT_SCOPED_PERMISSIONS.filter((permission) => granted.includes(permission)).sort()
+}
 
 describe("Agents - getAll", () => {
   let app: INestApplication<App>
@@ -244,10 +251,37 @@ describe("Agents - getAll", () => {
     )
     expect(Object.keys(permissionsByName).sort()).toEqual(["Owned Agent", "Used Agent"])
     expect([...(permissionsByName["Owned Agent"] ?? [])].sort()).toEqual(
-      [...AGENT_SCOPED_PERMISSIONS].sort(),
+      exposedPermissionsOf("agent_owner"),
     )
-    // agent.read is not in the whitelist: a plain member gets no action.
-    expect(permissionsByName["Used Agent"]).toEqual([])
+    // agent.read is not in the whitelist: a plain member gets no studio action.
+    expect([...(permissionsByName["Used Agent"] ?? [])].sort()).toEqual(
+      exposedPermissionsOf("agent_member"),
+    )
+  })
+
+  it("should return the agents an evaluator reads without the keys to open a live session", async () => {
+    const { organization, project } = await createContext()
+    const agent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Evaluated Agent" }),
+    )
+    await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent }).build(),
+    )
+    // The evaluator role reads every agent of the project, with no role on any of them.
+    await addMemberByEmailToProject({
+      repositories,
+      organization,
+      project,
+      user: { email: "evaluator@example.com", authSubject: "oidc|evaluator" },
+      projectMembership: { roleKeys: ["project_member", PROJECT_EVALUATOR_ROLE] },
+    })
+    authSubject = "oidc|evaluator"
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.map((listedAgent) => listedAgent.name)).toEqual(["Evaluated Agent"])
+    expect(response.body.data[0]?.permissions).toEqual([])
   })
 
   it("should return empty array when project has no agents", async () => {

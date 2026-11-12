@@ -1,3 +1,7 @@
+import {
+  AGENT_SESSION_CREATE_PERMISSIONS,
+  type ProjectAgentOutputDto,
+} from "@caseai-connect/desk-contracts"
 import { describe, expect, it } from "vitest"
 import { chooseDefaultAgent, flattenDeskAgents, groupDeskAgents } from "./desk-agents"
 import type { DeskProject } from "./desk-projects"
@@ -16,12 +20,17 @@ const support: DeskProject = {
   organization,
 }
 
-const agent = (name: string, project: DeskProject, greetingMessage?: string) => ({
+const agent = (
+  name: string,
+  project: DeskProject,
+  greetingMessage?: string,
+): ProjectAgentOutputDto => ({
   id: crypto.randomUUID(),
   name,
-  type: "conversation" as const,
+  type: "conversation",
   projectId: project.id,
   currentRevision: greetingMessage === undefined ? {} : { greetingMessage },
+  permissions: [AGENT_SESSION_CREATE_PERMISSIONS.conversation],
 })
 
 describe("groupDeskAgents", () => {
@@ -35,6 +44,36 @@ describe("groupDeskAgents", () => {
     expect(flattenDeskAgents(groups).map((deskAgent) => deskAgent.name)).toEqual([
       "Helpful Assistant",
       "Writing Helper",
+    ])
+  })
+
+  it("leaves out the agents the person may read but not open a session with", () => {
+    const groups = groupDeskAgents(
+      [pricing, support],
+      [
+        // A project evaluator reads every agent of the project, with no key to start a session.
+        [{ ...agent("Pricing Assistant", pricing), permissions: [] }],
+        [
+          agent("Helpful Assistant", support),
+          // The key of another type of agent does not open this one.
+          {
+            ...agent("Document Reader", support),
+            type: "extraction",
+            permissions: [AGENT_SESSION_CREATE_PERMISSIONS.conversation],
+          },
+          {
+            ...agent("Form Reader", support),
+            type: "extraction",
+            permissions: ["agent.update", AGENT_SESSION_CREATE_PERMISSIONS.extraction],
+          },
+        ],
+      ],
+    )
+
+    expect(groups.map((group) => group.project.name)).toEqual(["Support"])
+    expect(flattenDeskAgents(groups).map((deskAgent) => deskAgent.name)).toEqual([
+      "Helpful Assistant",
+      "Form Reader",
     ])
   })
 

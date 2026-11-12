@@ -78,6 +78,10 @@ const PAGES = {
     Story: pageStories.SeveralAgents,
     loaded: () => screen.findByRole("heading", { name: "What should Document Reader read?" }),
   },
+  AgentTheyOnlyRead: {
+    Story: pageStories.AgentTheyOnlyRead,
+    loaded: () => screen.findByRole("heading", { name: "What should Document Reader read?" }),
+  },
   SeveralProjects: {
     Story: pageStories.SeveralProjects,
     loaded: () => screen.findByRole("combobox", { name: /Switch agent/ }),

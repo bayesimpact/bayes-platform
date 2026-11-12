@@ -9,6 +9,7 @@ import { agentOf, agentUrlOf, routerPathOf } from "@/test/desk-urls"
 import {
   buildDeskWorld,
   buildNoAgentWorld,
+  buildReadOnlyAgentWorld,
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
@@ -77,6 +78,21 @@ describe("the Desk's home", () => {
       await screen.findByRole("heading", { name: "How can I help you today?" }),
     ).toBeInTheDocument()
     expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
+  })
+
+  it("leaves out of the switcher an agent the person may read but not open a session with", async () => {
+    server.use(...worldHandlers(buildReadOnlyAgentWorld()))
+    renderApp("/app/")
+
+    await userEvent.click(
+      await screen.findByRole("combobox", { name: "Switch agent, current agent: Document Reader" }),
+    )
+    const list = await screen.findByRole("listbox")
+    expect(
+      within(list)
+        .getAllByRole("option")
+        .map((item) => item.textContent),
+    ).toEqual(["Document Reader", "Helpful Assistant"])
   })
 
   it("groups the agents by project when the person has several projects", async () => {

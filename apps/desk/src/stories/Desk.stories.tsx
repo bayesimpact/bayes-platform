@@ -5,6 +5,7 @@ import { appUpdate } from "@/lib/app-update"
 import { agentUrlOf } from "@/test/desk-urls"
 import {
   buildNoAgentWorld,
+  buildReadOnlyAgentWorld,
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
@@ -26,6 +27,11 @@ export const Home: Story = {}
 
 export const SeveralAgents: Story = {
   parameters: desk({ world: buildSeveralAgentsWorld }),
+}
+
+/** The switcher leaves out the agent the person may read but not open a session with. */
+export const AgentTheyOnlyRead: Story = {
+  parameters: desk({ world: buildReadOnlyAgentWorld }),
 }
 
 export const SeveralProjects: Story = {

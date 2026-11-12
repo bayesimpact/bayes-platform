@@ -7,6 +7,7 @@ import {
   buildEmptyHistoryWorld,
   buildExtractionAgentWorld,
   buildGreetingWorld,
+  buildReadOnlyAgentWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
 import { hiddenFileInput } from "@/test/file-input"
@@ -108,6 +109,14 @@ describe("an agent's pages", () => {
     const world = buildEmptyHistoryWorld()
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world, "Billing Assistant"))
+
+    expect(await screen.findByText("Page not found")).toBeInTheDocument()
+  })
+
+  it("are not found for an agent the person may read but not open a session with", async () => {
+    const world = buildReadOnlyAgentWorld()
+    server.use(...worldHandlers(world))
+    renderApp(agentUrlOf(world, "Writing Helper"))
 
     expect(await screen.findByText("Page not found")).toBeInTheDocument()
   })
