@@ -58,11 +58,11 @@ The `resource_library.*` permissions are not inherited either: an organization r
 
 The `*.ui.read` permissions open one user interface of the project each and are not inherited from the organization. They are exposed on `ProjectDto.permissions`. No project role holds `tester.ui.read` or `reviewer.ui.read`: only a review campaign role gives them (see Review campaign roles).
 
-The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four live run permissions, while the `csv_extraction_run.playground.*` ones stay with owners and admins.
+The `csv_extraction_run.*` permissions are checked on the agent. Project owners and admins hold all of them and pass them down to every agent of the project. `project_member` holds none: the four live run permissions come from a role on the agent (see Agent roles), so a person invited to one agent cannot run extractions on the others. No organization role holds them. The `csv_extraction_run.playground.*` ones stay with project owners and admins.
 
-The `agent.conversation.session.*` permissions are not inherited either: an organization role does not open a project's conversations. Every project role holds the three live session permissions, while the `agent.conversation.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own sessions. A review campaign tester also holds the read and create keys on the campaign's project (see Review campaign roles).
+The `agent.conversation.session.*` permissions are checked on the agent, on the live and playground session, message and stream routes. Project owners and admins hold all of them and pass them down to every agent of the project. `project_member` holds none: the three live session permissions come from a role on the agent (see Agent roles), so a person invited to one agent cannot open sessions with the others. No organization role holds them. The `agent.conversation.session.playground.*` ones stay with project owners and admins. Each caller only ever sees their own sessions. A review campaign tester holds the read and create keys on the campaign's project, for the tester routes only (see Review campaign roles).
 
-The `agent.extraction.session.*` permissions follow the same rule: an organization role does not open a project's extraction runs. Every project role holds the three live session permissions, while the `agent.extraction.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own runs and the documents they uploaded for them.
+The `agent.extraction.session.*` permissions follow the same rule: they are checked on the agent, project owners and admins hold all of them and pass them down to every agent of the project, and the three live session permissions otherwise come from a role on the agent. The `agent.extraction.session.playground.*` ones stay with project owners and admins. Each caller only ever sees their own runs and the documents they uploaded for them.
 
 The `project.agent_session_category.*` permissions are not inherited either: an organization role does not change a project's conversation categories.
 
@@ -125,23 +125,23 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 | `resource_library.create` — create a resource library, or upload a file for one of its resources | ✅ | ✅ | — | — |
 | `resource_library.update` — rename a resource library, or add, edit and remove its resources | ✅ | ✅ | — | — |
 | `resource_library.delete` — delete a resource library | ✅ | ✅ | — | — |
-| `csv_extraction_run.read` — see the agents' live CSV extraction runs and their results | ✅ | ✅ | ✅ | — |
-| `csv_extraction_run.create` — create a live CSV extraction run | ✅ | ✅ | ✅ | — |
-| `csv_extraction_run.update` — execute, retry or cancel a live CSV extraction run | ✅ | ✅ | ✅ | — |
-| `csv_extraction_run.delete` — delete a live CSV extraction run | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.read` — see the agents' live CSV extraction runs and their results | ✅ | ✅ | — | — |
+| `csv_extraction_run.create` — create a live CSV extraction run | ✅ | ✅ | — | — |
+| `csv_extraction_run.update` — execute, retry or cancel a live CSV extraction run | ✅ | ✅ | — | — |
+| `csv_extraction_run.delete` — delete a live CSV extraction run | ✅ | ✅ | — | — |
 | `csv_extraction_run.playground.read` — see the agents' playground CSV extraction runs and their results | ✅ | ✅ | — | — |
 | `csv_extraction_run.playground.create` — create a playground CSV extraction run | ✅ | ✅ | — | — |
 | `csv_extraction_run.playground.update` — execute, retry or cancel a playground CSV extraction run | ✅ | ✅ | — | — |
 | `csv_extraction_run.playground.delete` — delete a playground CSV extraction run | ✅ | ✅ | — | — |
-| `agent.conversation.session.read` — see your live conversations with the project's agents, and their sub-sessions | ✅ | ✅ | ✅ | — |
-| `agent.conversation.session.create` — start a live conversation with an agent | ✅ | ✅ | ✅ | — |
-| `agent.conversation.session.delete` — delete one of your live conversations | ✅ | ✅ | ✅ | — |
+| `agent.conversation.session.read` — see your live conversations with the project's agents, and their sub-sessions | ✅ | ✅ | — | — |
+| `agent.conversation.session.create` — start a live conversation with an agent | ✅ | ✅ | — | — |
+| `agent.conversation.session.delete` — delete one of your live conversations | ✅ | ✅ | — | — |
 | `agent.conversation.session.playground.read` — see your playground conversations with the project's agents, and their sub-sessions | ✅ | ✅ | — | — |
 | `agent.conversation.session.playground.create` — start a playground conversation with an agent | ✅ | ✅ | — | — |
 | `agent.conversation.session.playground.delete` — delete one of your playground conversations | ✅ | ✅ | — | — |
-| `agent.extraction.session.read` — see your live extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | ✅ | — |
-| `agent.extraction.session.create` — upload a document and run a live extraction with an agent | ✅ | ✅ | ✅ | — |
-| `agent.extraction.session.delete` — delete one of your live extraction runs | ✅ | ✅ | ✅ | — |
+| `agent.extraction.session.read` — see your live extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | — | — |
+| `agent.extraction.session.create` — upload a document and run a live extraction with an agent | ✅ | ✅ | — | — |
+| `agent.extraction.session.delete` — delete one of your live extraction runs | ✅ | ✅ | — | — |
 | `agent.extraction.session.playground.read` — see your playground extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | — | — |
 | `agent.extraction.session.playground.create` — upload a document and run a playground extraction with an agent | ✅ | ✅ | — | — |
 | `agent.extraction.session.playground.delete` — delete one of your playground extraction runs | ✅ | ✅ | — | — |
@@ -187,6 +187,8 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 
 `agent.settings.draft.read` works the other way: it is checked on the agent but granted on project owners and admins, and passes down to every agent of the project.
 
+The live `agent.conversation.session.*`, `agent.extraction.session.*` and `csv_extraction_run.*` permissions are held by every agent role, so accepting an invitation on one agent (which gives `project_member` and `agent_member`) opens sessions and CSV extraction runs with that agent only. Project owners and admins reach every agent through the project, playground keys included.
+
 | Permission | `agent_owner` | `agent_admin` | `agent_member` | `agent_conversation_reviewer` |
 |---|---|---|---|---|
 | `agent.read` | ✅ | ✅ | ✅ | — |
@@ -206,6 +208,16 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 | `agent.settings.archive` — archive a revision of the settings | ✅ | ✅ | — | — |
 | `user.read` — see the agent's members | ✅ | ✅ | — | — |
 | `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — | — |
+| `csv_extraction_run.read` — see the agent's live CSV extraction runs and their results | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.create` — create a live CSV extraction run | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.update` — execute, retry or cancel a live CSV extraction run | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.delete` — delete a live CSV extraction run | ✅ | ✅ | ✅ | — |
+| `agent.conversation.session.read` — see your live conversations with the agent, and their sub-sessions | ✅ | ✅ | ✅ | — |
+| `agent.conversation.session.create` — start a live conversation with the agent | ✅ | ✅ | ✅ | — |
+| `agent.conversation.session.delete` — delete one of your live conversations | ✅ | ✅ | ✅ | — |
+| `agent.extraction.session.read` — see your live extraction runs with the agent, and the documents you uploaded for them | ✅ | ✅ | ✅ | — |
+| `agent.extraction.session.create` — upload a document and run a live extraction with the agent | ✅ | ✅ | ✅ | — |
+| `agent.extraction.session.delete` — delete one of your live extraction runs | ✅ | ✅ | ✅ | — |
 | `agent.conversation.review` — read any conversation of the agent from its session id (safety review) | — | — | — | ✅ |
 | `agent.conversation.review.category.read` — list the agent's sessions grouped by category (safety review) | — | — | — | ✅ |
 
@@ -219,7 +231,7 @@ People who joined a campaign before these roles existed keep the `project_member
 
 The `review_campaign.*` keys apply to the campaign. The organization passes none of them down, and the project passes down only `review_campaign.report.read` (`RESOURCE_TYPE_PERMISSIONS_MAP.review_campaign`), which project owners and admins hold (see Project roles).
 
-A campaign role also gives the keys in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` on the campaign's project: `project.read`, `tester.ui.read`, `reviewer.ui.read`, `agent.conversation.session.read`, `agent.conversation.session.create` and `project.agent_message_feedback.create`. Testers hold all of them but `reviewer.ui.read`, reviewers only `project.read` and `reviewer.ui.read`. The web app opens the tester and reviewer apps from the two `*.ui.read` keys on `ProjectDto.permissions`. This is the only grant that goes from a child resource up to its parent, and it holds only while the campaign is in one of the role's statuses in `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`: active for a tester, active or closed for a reviewer. A draft campaign gives nothing. No other RBAC rule looks at the campaign status. The rule applies to `PermissionService.has`, `listResourceIds("project.read")` and `listResourcePermissions("project.read")`, so the project shows in the participant's project list. The live session routes check these keys on the project, so a tester reaches every agent of the project, as a project member could, until the session keys move to agent scope. The role's `review_campaign.*` keys never apply to the project.
+A campaign role also gives the keys in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` on the campaign's project: `project.read`, `tester.ui.read`, `reviewer.ui.read`, `agent.conversation.session.read`, `agent.conversation.session.create` and `project.agent_message_feedback.create`. Testers hold all of them but `reviewer.ui.read`, reviewers only `project.read` and `reviewer.ui.read`. The web app opens the tester and reviewer apps from the two `*.ui.read` keys on `ProjectDto.permissions`. This is the only grant that goes from a child resource up to its parent, and it holds only while the campaign is in one of the role's statuses in `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`: active for a tester, active or closed for a reviewer. A draft campaign gives nothing. No other RBAC rule looks at the campaign status. The rule applies to `PermissionService.has`, `listResourceIds("project.read")` and `listResourcePermissions("project.read")`, so the project shows in the participant's project list. Only the tester message and stream routes check the session keys on the project. The live session routes check them on the agent, where a campaign role gives nothing, so a tester only chats in the sessions the tester routes start on the campaign's agent. The role's `review_campaign.*` keys never apply to the project.
 
 The tester, reviewer and report routes check these keys with `@CheckPermission(..., "review_campaign")`, on the campaign of the URL or, for the routes under a session, on the session's campaign. No route reads the legacy `role` column any more. The campaign status stays out of these checks: `TesterService` and `ReviewerService` refuse with a 403 an action the status does not allow. Testing, giving feedback, the survey and reviewing need an active campaign. The tester context (shared with the reviewer landing page) and the reviewer's reading of sessions need it active or closed. The report has no status rule: participants only exist once a campaign is active, and project owners and admins see it on a draft too.
 
@@ -243,8 +255,8 @@ The last six rows apply to the campaign's project, and only while the campaign i
 | `project.read` — see the campaign's project, and find it in your project list | ✅ while active | ✅ while active or closed |
 | `tester.ui.read` — open the project's tester app | ✅ while active | — |
 | `reviewer.ui.read` — open the project's reviewer app | — | ✅ while active or closed |
-| `agent.conversation.session.read` — see your live conversations with the project's agents | ✅ while active | — |
-| `agent.conversation.session.create` — start a live conversation with one of the project's agents, attach a file | ✅ while active | — |
+| `agent.conversation.session.read` — read the messages of your test conversations | ✅ while active | — |
+| `agent.conversation.session.create` — send a message in one of your test conversations, attach a file | ✅ while active | — |
 | `project.agent_message_feedback.create` — leave feedback on an agent's message | ✅ while active | — |
 
 ## App grantable permissions

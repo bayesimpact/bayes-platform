@@ -15,17 +15,17 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithAgentSession,
 } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
-import { projectFactory } from "@/domains/projects/project.factory"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
-import type { ReviewCampaignStatus } from "@/domains/review-campaigns/review-campaigns.types"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -257,13 +257,82 @@ describe("Agent Sessions - Auth", () => {
     describeRoleChecks(subject)
   })
 
-  // A campaign role gives the live session keys on the campaign's project, without a project row.
+  // Accepting an invitation on one agent gives project_member on the project and agent_member on
+  // that agent. The live routes check the agent, so the other agents of the project stay closed.
+  describe("a person invited to one agent", () => {
+    const createInvitedAgentMemberContext = async () => {
+      const { organization, project, agent, user } = await createOrganizationWithAgent(
+        repositories,
+        {
+          user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+          organizationMembership: { roleKeys: ["org_member"] },
+          projectMembership: { roleKeys: ["project_member"] },
+          agentMembership: { roleKeys: ["agent_member"] },
+          agent: { type: "conversation" },
+        },
+      )
+      const otherAgent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+      )
+      await repositories.agentSettingsRepository.save(
+        agentSettingsFactory.transient({ organization, project, agent: otherAgent }).build(),
+      )
+      authSubject = user.authSubject!
+      organizationId = organization.id
+      projectId = project.id
+      accessToken = "token"
+      return { organization, project, agent, otherAgent }
+    }
+
+    const subject = (routeKey: "createOne" | "getAll") =>
+      request({
+        route: ConversationAgentSessionsRoutes.live[routeKey],
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+      })
+
+    it.each([["createOne"], ["getAll"]] as const)("can %s on their agent", async (routeKey) => {
+      const { agent } = await createInvitedAgentMemberContext()
+      agentId = agent.id
+      expectResponse(await subject(routeKey), 201)
+    })
+
+    it.each([
+      ["createOne"],
+      ["getAll"],
+    ] as const)("cannot %s on another agent of the project", async (routeKey) => {
+      const { otherAgent } = await createInvitedAgentMemberContext()
+      agentId = otherAgent.id
+      expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("lets a project admin open every agent of the project", async () => {
+      const { organization, project, otherAgent } = await createInvitedAgentMemberContext()
+      const adminAuthSubject = `oidc|${randomUUID()}`
+      const { user: admin } = await addUserToOrganization({
+        repositories,
+        organization,
+        user: { authSubject: adminAuthSubject, email: mockOidcEmailForSub(adminAuthSubject) },
+        membership: { roleKeys: ["org_member"] },
+      })
+      await addUserToProject({
+        repositories,
+        project,
+        user: admin,
+        membership: { roleKeys: ["project_admin"] },
+      })
+      authSubject = adminAuthSubject
+      agentId = otherAgent.id
+      expectResponse(await subject("createOne"), 201)
+    })
+  })
+
+  // A campaign role gives the session keys on the campaign's project only, for the tester routes.
+  // The live routes check the agent, where a campaign role gives nothing.
   describe("review campaign participants", () => {
     const createCampaignParticipantContext = async ({
-      status = "active",
       roleKey = "review_campaign_tester",
     }: {
-      status?: ReviewCampaignStatus
       roleKey?: ReviewCampaignRoleKey
     } = {}) => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
@@ -271,12 +340,13 @@ describe("Agent Sessions - Auth", () => {
         { agent: { type: "conversation" } },
       )
       const campaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory[status]()
+        reviewCampaignFactory
+          .active()
           .transient({ organization, project, agent, agentSettings })
           .build(),
       )
       const participantAuthSubject = `oidc|${randomUUID()}`
-      const { user, membership } = await addUserToReviewCampaign({
+      const { user } = await addUserToReviewCampaign({
         repositories,
         organization,
         project,
@@ -292,88 +362,32 @@ describe("Agent Sessions - Auth", () => {
       projectId = project.id
       agentId = agent.id
       accessToken = "token"
-      return { organization, project, agent, campaign, user, membership }
+      return { organization, project, agent, campaign, user }
     }
 
-    const closeCampaign = (campaignId: string) =>
-      repositories.reviewCampaignRepository.update(
-        { id: campaignId },
-        { status: "closed", closedAt: new Date() },
-      )
-
-    const subject = (routeKey: "createOne" | "getAll", type: BaseAgentSessionTypeDto = "live") =>
+    const subject = (routeKey: "createOne" | "getAll", type: BaseAgentSessionTypeDto) =>
       request({
         route: ConversationAgentSessionsRoutes[type][routeKey],
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
       })
 
-    describe.each([["createOne"], ["getAll"]] as const)("live %s", (routeKey) => {
-      it("allows a tester of an active campaign", async () => {
-        await createCampaignParticipantContext()
-        expectResponse(await subject(routeKey), 201)
-      })
+    it.each([
+      ["createOne", "live"],
+      ["getAll", "live"],
+      ["createOne", "playground"],
+      ["getAll", "playground"],
+    ] as const)("forbids a tester of an active campaign to %s on the %s routes of the campaign's agent", async (routeKey, type) => {
+      await createCampaignParticipantContext()
+      expectResponse(await subject(routeKey, type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
 
-      it("forbids the tester once the campaign is closed", async () => {
-        const { campaign } = await createCampaignParticipantContext()
-        expectResponse(await subject(routeKey), 201)
-
-        await closeCampaign(campaign.id)
-
-        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      })
-
-      it("forbids a tester of a draft campaign", async () => {
-        await createCampaignParticipantContext({ status: "draft" })
-        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      })
-
-      it.each([
-        ["active"],
-        ["closed"],
-      ] as const)("forbids a reviewer-only participant (%s campaign)", async (status) => {
-        await createCampaignParticipantContext({ status, roleKey: "review_campaign_reviewer" })
-        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      })
-
-      it("forbids a tester on another project of the organization", async () => {
-        const { organization } = await createCampaignParticipantContext()
-        const otherProject = await repositories.projectRepository.save(
-          projectFactory.transient({ organization }).build(),
-        )
-        const otherAgent = await repositories.agentRepository.save(
-          agentFactory
-            .transient({ organization, project: otherProject })
-            .build({ type: "conversation" }),
-        )
-        projectId = otherProject.id
-        agentId = otherAgent.id
-
-        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      })
-
-      it("forbids a tester whose campaign row was deleted", async () => {
-        const { membership } = await createCampaignParticipantContext()
-        await repositories.roleGrantRepository.delete({ id: membership.id })
-
-        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      })
-
-      it("forbids a tester of a soft-deleted campaign", async () => {
-        const { campaign } = await createCampaignParticipantContext()
-        await repositories.reviewCampaignRepository.softDelete({ id: campaign.id })
-
-        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      })
-
-      it("forbids a tester on the playground route", async () => {
-        await createCampaignParticipantContext()
-        expectResponse(
-          await subject(routeKey, "playground"),
-          403,
-          AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
-        )
-      })
+    it.each([
+      ["createOne"],
+      ["getAll"],
+    ] as const)("forbids a reviewer to %s on the live routes", async (routeKey) => {
+      await createCampaignParticipantContext({ roleKey: "review_campaign_reviewer" })
+      expectResponse(await subject(routeKey, "live"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("forbids a tester to delete their own live session", async () => {

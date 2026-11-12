@@ -14,6 +14,7 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { AGENT_ROLE_PERMISSIONS } from "@/domains/rbac/rbac.constants"
 import { userFactory } from "@/domains/users/user.factory"
 import { AgentsModule } from "./agents.module"
 import { AgentsService } from "./agents.service"
@@ -328,7 +329,7 @@ describe("AgentsService", () => {
       expect(result.agents).toEqual([])
     })
 
-    it("should return an agent member's agent with read-only permissions", async () => {
+    it("should return an agent member's agent with read and live session permissions only", async () => {
       const { organization, project, agent } = await createOrganizationWithAgent(repositories)
       const memberUser = await repositories.userRepository.save(userFactory.build())
       await addUserToProject({
@@ -350,7 +351,10 @@ describe("AgentsService", () => {
       })
 
       expect(result.agents.map(({ id }) => id)).toEqual([agent.id])
-      expect(result.permissionsByAgentId.get(agent.id)).toEqual(["agent.read"])
+      expect(result.permissionsByAgentId.get(agent.id)?.sort()).toEqual(
+        [...AGENT_ROLE_PERMISSIONS.agent_member].sort(),
+      )
+      expect(result.permissionsByAgentId.get(agent.id)).not.toContain("agent.update")
     })
 
     it("should return empty array when project has no Agents", async () => {

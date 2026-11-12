@@ -21,7 +21,7 @@ import { ConversationAgentSessionsController } from "./conversation-agent-sessio
 
 const Routes = ConversationAgentSessionsRoutes.live
 
-/** Live conversation sessions, open to every project role through the `agent.conversation.session.*` keys. */
+/** Live conversation sessions, open to the agent's roles and to project owners and admins through the `agent.conversation.session.*` keys. */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent")
 @Controller()
@@ -29,13 +29,13 @@ export class LiveConversationAgentSessionsController extends ConversationAgentSe
   protected readonly type = "live"
 
   @Post(Routes.getAll.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "agent")
   getAll(@Req() request: EndpointRequestWithAgent): Promise<typeof Routes.getAll.response> {
     return this.handleGetAll(request)
   }
 
   @Post(Routes.createOne.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "agent")
   @TrackActivity({ action: "conversationAgentSession.create" })
   createOne(
     @Req() request: EndpointRequestWithAgent,
@@ -46,7 +46,7 @@ export class LiveConversationAgentSessionsController extends ConversationAgentSe
 
   @Post(Routes.deleteOne.path)
   @AddContext("agentSession")
-  @CheckPermission(AGENT_CONVERSATION_SESSION_DELETE_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_DELETE_PERMISSION, "agent")
   deleteOne(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<typeof Routes.deleteOne.response> {
@@ -54,7 +54,7 @@ export class LiveConversationAgentSessionsController extends ConversationAgentSe
   }
 
   @Post(Routes.listSubSessions.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "agent")
   listSubSessions(
     @Req() request: EndpointRequestWithAgent,
     @Param("agentSessionId") agentSessionId: string,

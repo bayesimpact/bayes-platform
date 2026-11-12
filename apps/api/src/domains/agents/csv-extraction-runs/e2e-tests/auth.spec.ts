@@ -196,6 +196,18 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 201)
     })
 
+    it("forbids a project member on another agent of the project, where they hold no role", async () => {
+      const context = await createContextForRole("project_member")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows a project admin on every agent of the project", async () => {
+      const context = await createContextForRole("project_admin")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 201)
+    })
+
     it.each(
       CSV_DOCUMENTS_NOT_OWNED_BY_USER,
     )("answers 404 to a project member who creates a run on a CSV they did not upload (%s)", async (origin) => {

@@ -33,7 +33,7 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
   protected readonly type = "playground"
 
   @Post(Routes.executeOne.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION, "agent")
   @TrackActivity({ action: "extractionAgentSession.execute" })
   executeOne(
     @Req() request: EndpointRequestWithAgent,
@@ -43,14 +43,14 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
   }
 
   @Post(Routes.getAll.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "agent")
   getAll(@Req() request: EndpointRequestWithAgent): Promise<typeof Routes.getAll.response> {
     return this.handleGetAll(request)
   }
 
   @Post(Routes.getOne.path)
   @AddContext("agentSession")
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "agent")
   getOne(
     @Req() request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
   ): Promise<typeof Routes.getOne.response> {
@@ -59,7 +59,7 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
 
   @Post(Routes.deleteOne.path)
   @AddContext("agentSession")
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION, "agent")
   deleteOne(
     @Req() request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
   ): Promise<typeof Routes.deleteOne.response> {
@@ -67,7 +67,7 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
   }
 
   @Post(Routes.presignDocument.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION, "agent")
   @HttpCode(HttpStatus.CREATED)
   presignDocument(
     @Req() request: EndpointRequestWithAgent,
@@ -77,7 +77,7 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
   }
 
   @Post(Routes.confirmDocument.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION, "agent")
   @TrackActivity({ action: "extractionAgentSession.uploadDocument" })
   @HttpCode(HttpStatus.CREATED)
   confirmDocument(
@@ -88,7 +88,7 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
   }
 
   @Post(Routes.listMyDocuments.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "agent")
   listMyDocuments(
     @Req() request: EndpointRequestWithAgent,
   ): Promise<typeof Routes.listMyDocuments.response> {
@@ -97,7 +97,7 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
 
   @Post(Routes.deleteMyDocument.path)
   @AddContext("document")
-  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION, "agent")
   @TrackActivity({ action: "extractionAgentSession.deleteDocument" })
   deleteMyDocument(
     @Req() request: EndpointRequestWithAgent & EndpointRequestWithDocument,

@@ -14,6 +14,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import type { Agent } from "@/domains/agents/agent.entity"
+import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
@@ -80,6 +81,13 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       project,
       user: { email: "member@example.com", authSubject: "oidc|member" },
       projectMembership: { roleKeys: [role] },
+    })
+    // A plain member opens sessions through a role on the agent, as an invitation to it gives.
+    await addUserToAgent({
+      repositories,
+      agent,
+      user: addedUser,
+      membership: { roleKeys: ["agent_member"] },
     })
 
     organizationId = organization.id

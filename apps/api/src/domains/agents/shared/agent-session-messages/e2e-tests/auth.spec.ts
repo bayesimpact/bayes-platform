@@ -389,7 +389,7 @@ describe("Agent Session Messages - Auth", () => {
       expectResponse(await presignAttachment(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
-    it("answers 404 for the tester's campaign session on the live routes", async () => {
+    it("forbids the tester on the live routes, which check a role on the agent", async () => {
       await createCampaignParticipantContext()
 
       const response = await request({
@@ -397,7 +397,7 @@ describe("Agent Session Messages - Auth", () => {
         pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
         token: accessToken ?? undefined,
       })
-      expectResponse(response, 404)
+      expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("forbids a reviewer-only participant", async () => {
