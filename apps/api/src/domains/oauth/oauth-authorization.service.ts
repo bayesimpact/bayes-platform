@@ -464,6 +464,7 @@ export class OAuthAuthorizationService {
       projects.map(async (project) => ({
         ...project,
         availablePermissions: await this.listHeldPermissions(userId, project.id),
+        installedBy: null,
       })),
     )
   }
@@ -487,6 +488,11 @@ export class OAuthAuthorizationService {
       if (canInstall) installableProjectIds.push(projectId)
     }
     const projects = await this.projectRepository.findPickerProjectsByIds(installableProjectIds)
+    const installers = await this.appsService.describeInstallers({
+      appManifestId: app.id,
+      projectIds: projects.map((project) => project.id),
+      viewerUserId: userId,
+    })
     return Promise.all(
       projects.map(async (project) => ({
         ...project,
@@ -495,6 +501,7 @@ export class OAuthAuthorizationService {
           project.id,
           app.grantablePermissions,
         ),
+        installedBy: installers.get(project.id) ?? null,
       })),
     )
   }

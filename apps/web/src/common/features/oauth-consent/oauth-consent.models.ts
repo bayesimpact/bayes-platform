@@ -1,3 +1,5 @@
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
+
 /** Authorization request of an OAuth client, with the protocol's own parameter names. */
 export type OAuthAuthorizationRequest = {
   response_type: "code"
@@ -33,6 +35,8 @@ export type OAuthConsentProject = {
   organizationId: string
   organizationName: string
   availablePermissions: string[]
+  /** Who installed the app on this workspace, null when it is not installed there. */
+  installedBy: AppInstaller | null
 }
 
 export type OAuthConsentPage = {

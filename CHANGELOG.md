@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 - Evaluator role: workspace owners and admins can give themselves the evaluator role, or take it away.
+- App installs: connected apps show who installed them, and a colleague cannot reconnect an app over its installer.
 
 ### Fixed
 

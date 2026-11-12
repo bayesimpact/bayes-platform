@@ -6,6 +6,9 @@ import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Provider } from "react-redux"
 import { createMemoryRouter, RouterProvider } from "react-router-dom"
+import { within } from "storybook/test"
+import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"
+import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
 import { userFactory } from "@/common/features/me/me.factory"
 import {
   oauthAuthorizationRequestFactory,
@@ -24,6 +27,20 @@ type StoryArgs = {
   singleWorkspace: boolean
   manyItems: boolean
   invalidRequest: boolean
+  /** Who already installed the app on the first workspace. */
+  installedBy: "nobody" | AppInstaller["kind"]
+  /** The other workspaces are installed too: one by the person, one by a former member. */
+  mixedInstallations: boolean
+}
+
+const installers: Record<AppInstaller["kind"], AppInstaller> = {
+  me: appInstallerFactory.build({ kind: "me" }),
+  member: appInstallerFactory.build({
+    kind: "member",
+    name: "Alex Morgan",
+    email: "alex.morgan@example.com",
+  }),
+  "former-member": appInstallerFactory.build({ kind: "former-member" }),
 }
 
 const request = oauthAuthorizationRequestFactory.build({ client_id: "helpful-assistant" })
@@ -85,10 +102,31 @@ const manyAppWorkspaces = [
   )
 })
 
-function appWorkspacesFor({ withProjects, singleWorkspace, manyItems }: StoryArgs) {
+function appWorkspacesFor({
+  withProjects,
+  singleWorkspace,
+  manyItems,
+  installedBy,
+  mixedInstallations,
+}: StoryArgs) {
   if (!withProjects) return []
-  if (manyItems) return manyAppWorkspaces
-  return singleWorkspace ? appWorkspaces.slice(0, 1) : appWorkspaces
+  const workspaces = manyItems
+    ? manyAppWorkspaces
+    : singleWorkspace
+      ? appWorkspaces.slice(0, 1)
+      : appWorkspaces
+  return workspaces.map((workspace, index) => {
+    if (index === 0) {
+      return {
+        ...workspace,
+        installedBy: installedBy === "nobody" ? null : installers[installedBy],
+      }
+    }
+    if (!mixedInstallations) return workspace
+    if (index === 1) return { ...workspace, installedBy: installers.me }
+    if (index === 2) return { ...workspace, installedBy: installers["former-member"] }
+    return workspace
+  })
 }
 
 function buildPage(args: StoryArgs) {
@@ -144,6 +182,8 @@ const meta = {
     singleWorkspace: { control: "boolean" },
     manyItems: { control: "boolean" },
     invalidRequest: { control: "boolean" },
+    installedBy: { control: "inline-radio", options: ["nobody", "me", "member", "former-member"] },
+    mixedInstallations: { control: "boolean" },
   },
   args: {
     kind: "mcp",
@@ -152,6 +192,8 @@ const meta = {
     singleWorkspace: false,
     manyItems: false,
     invalidRequest: false,
+    installedBy: "nobody",
+    mixedInstallations: false,
   },
   render: renderRoute,
 } satisfies Meta<StoryArgs>
@@ -193,6 +235,48 @@ export const AppInstallOneWorkspace: Story = {
 /** Many workspaces go in a select, and every permission an app can ask for fits in a few rows. */
 export const AppInstallManyItems: Story = {
   args: { kind: "app", manyItems: true },
+}
+
+/** The person installed the app on this workspace before: approving reconnects it. */
+export const AppReconnect: Story = {
+  args: { kind: "app", singleWorkspace: true, installedBy: "me" },
+}
+
+/**
+ * A colleague installed the app on this workspace: approving is refused, and the page says who
+ * to ask and how to replace the installation on purpose.
+ */
+export const AppInstalledByMember: Story = {
+  args: { kind: "app", singleWorkspace: true, installedBy: "member" },
+}
+
+/**
+ * The installer can no longer manage the workspace's apps (they left, lost the permission, or
+ * have no account): the page says what reconnecting does, and the person can reconnect the app
+ * and become its installer.
+ */
+export const AppInstalledByFormerMember: Story = {
+  args: { kind: "app", singleWorkspace: true, installedBy: "former-member" },
+}
+
+/**
+ * The picker says where the app is installed already, so the person learns it before approving.
+ * The first workspace is someone else's installation, so the page selects the next one.
+ */
+export const AppInstallSomeWorkspacesInstalled: Story = {
+  args: { kind: "app", installedBy: "member", mixedInstallations: true },
+}
+
+/**
+ * The safety net behind the hidden button: a submit that reaches the form anyway (Enter, a
+ * script) is refused and says why.
+ */
+export const AppInstalledByMemberSubmitted: Story = {
+  args: { kind: "app", singleWorkspace: true, installedBy: "member" },
+  play: async ({ canvasElement }) => {
+    const form = await within(canvasElement).findByRole("radiogroup")
+    form.closest("form")?.requestSubmit()
+  },
 }
 
 export const AppInstallNoWorkspaces: Story = {

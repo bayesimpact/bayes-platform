@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"
 import type {
   OAuthAuthorizationRequest,
   OAuthConsentClient,
@@ -16,6 +17,7 @@ export const oauthConsentProjectFactory = OAuthConsentProjectFactory.define(
     organizationId: params.organizationId ?? faker.string.uuid(),
     organizationName: params.organizationName ?? "Acme",
     availablePermissions: params.availablePermissions ?? ["project.read", "agent.create"],
+    installedBy: params.installedBy ? appInstallerFactory.build(params.installedBy) : null,
   }),
 )
 
