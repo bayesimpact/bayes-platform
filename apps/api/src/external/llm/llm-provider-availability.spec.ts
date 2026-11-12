@@ -11,7 +11,11 @@ import { telemetryAdditionalMetadata } from "@/external/llm/telemetry/telemetry-
  * VLLM_<MODEL>_APIKEY, GOOGLE_APPLICATION_CREDENTIALS, OPENAI_API_KEY...).
  * Enable it with LLM_PROVIDER_AVAILABILITY_TEST=true in `.env.test`, then:
  *
- *   npx jest --colors --runInBand --forceExit src/external/llm/llm-provider-availability
+ *   node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --colors --runInBand --forceExit src/external/llm/llm-provider-availability
+ *
+ * Keep --experimental-vm-modules: the Google auth library loads its fetch
+ * with a dynamic import, so without it every Vertex and Claude model fails
+ * with "Unexpected Gaxios Error". `npm run test:win` lacks the flag.
  *
  * A model whose access is missing or broken fails: the goal is to see what is
  * wrong in the local setup, so nothing is skipped.
