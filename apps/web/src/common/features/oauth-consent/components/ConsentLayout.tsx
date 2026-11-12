@@ -30,21 +30,28 @@ import { BayesCrossMark } from "./BayesCrossMark"
 
 /**
  * The consent form's resolver: an empty project or permission list gets words a person can act on,
- * any other issue keeps the contract's message.
+ * any other issue keeps the contract's message. A project in `blockedProjectIds` cannot be
+ * approved: the error goes under the project field.
  */
-export function useConsentResolver() {
+export function useConsentResolver(blockedProjectIds: string[] = []) {
   const { t } = useTranslation("oauthConsent")
   return useMemo(
     () =>
-      zodResolver(oauthConsentSchema, {
-        error: (issue) => {
-          if (issue.code !== "too_small") return undefined
-          if (issue.path?.[0] === "projectIds") return t("projectRequired")
-          if (issue.path?.[0] === "permissions") return t("permissionRequired")
-          return undefined
+      zodResolver(
+        oauthConsentSchema.refine(
+          (values) => !values.projectIds.some((projectId) => blockedProjectIds.includes(projectId)),
+          { path: ["projectIds"], message: t("alreadyInstalled.error") },
+        ),
+        {
+          error: (issue) => {
+            if (issue.code !== "too_small") return undefined
+            if (issue.path?.[0] === "projectIds") return t("projectRequired")
+            if (issue.path?.[0] === "permissions") return t("permissionRequired")
+            return undefined
+          },
         },
-      }),
-    [t],
+      ),
+    [t, blockedProjectIds],
   )
 }
 
@@ -224,9 +231,9 @@ function ClientMark({ logoUrl }: { logoUrl: string | null }) {
 
 /**
  * The submit button and the way back, kept in view while the page scrolls. It reaches the card's
- * bottom edge, over the card's own bottom padding, so nothing shows under it.
+ * bottom edge, over the card's own bottom padding, so nothing shows under it. Without `submitLabel`,
+ * nothing can be submitted from this screen and only `cancel` shows.
  */
-/** Without `submitLabel`, nothing can be submitted from this screen and only `cancel` shows. */
 export function ConsentFooter({
   submitLabel,
   isSubmitting,

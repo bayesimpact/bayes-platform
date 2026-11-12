@@ -91,8 +91,13 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   const defaultProjectIds = defaultProjectId ? [defaultProjectId] : []
   const defaultAvailable = availablePermissionsFor(page.projects, defaultProjectIds)
 
+  const blockedProjectIds = page.projects
+    .filter(isInstalledBySomeoneElse)
+    .map((project) => project.id)
+
   const form = useForm<FormValues>({
-    resolver: useConsentResolver(),
+    // The button is gone on a blocked workspace. The resolver refuses a submit that comes another way.
+    resolver: useConsentResolver(blockedProjectIds),
     defaultValues: {
       ...request,
       projectIds: defaultProjectIds,
@@ -117,11 +122,6 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   }
 
   const onValid = async (values: FormValues) => {
-    // The button is gone on such a workspace. This guard catches a submit that comes another way.
-    if (isBlocked) {
-      form.setError("projectIds", { message: t("alreadyInstalled.error") })
-      return
-    }
     const result = await dispatch(approveOAuthConsent(values))
     if (approveOAuthConsent.fulfilled.match(result)) {
       setOutcome("approved")
@@ -274,7 +274,8 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
             </CardContent>
 
             <ConsentFooter
-              // Nothing to install where someone else installed the app: only cancel remains.
+              // Nothing to install where someone else installed the app: only cancel remains. An
+              // exception to ADR 0012 §3.5 (keep the submit button): the alert above says why.
               submitLabel={
                 isBlocked
                   ? undefined

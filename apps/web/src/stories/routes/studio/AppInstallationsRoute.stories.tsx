@@ -4,6 +4,7 @@ import {
 } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
+import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -73,14 +74,18 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
     ? [
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Helpful Assistant",
-          installedBy: { kind: "me" },
+          installedBy: appInstallerFactory.build({ kind: "me" }),
           logoUrl: "https://placehold.co/52x52/png",
           appUrl: "https://assistant.example.com",
           permissions: ["document.read", "document.create", "document_tag.read"],
         }),
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Site Crawler",
-          installedBy: { kind: "member", name: "Alex Morgan", email: "alex.morgan@example.com" },
+          installedBy: appInstallerFactory.build({
+            kind: "member",
+            name: "Alex Morgan",
+            email: "alex.morgan@example.com",
+          }),
           description: null,
           appUrl: null,
           permissions: ["agent.read", "agent.conversation.session.external.create"],
@@ -88,7 +93,7 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Pricing Sync",
           // Left the workspace, lost the permission or has no account: "a former member" each time.
-          installedBy: { kind: "former-member" },
+          installedBy: appInstallerFactory.build({ kind: "former-member" }),
           appUrl: "https://pricing.example.com",
           permissions: [],
         }),

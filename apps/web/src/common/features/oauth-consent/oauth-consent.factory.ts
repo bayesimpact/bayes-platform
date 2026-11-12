@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
-import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
+import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"
 import type {
   OAuthAuthorizationRequest,
   OAuthConsentClient,
@@ -17,8 +17,7 @@ export const oauthConsentProjectFactory = OAuthConsentProjectFactory.define(
     organizationId: params.organizationId ?? faker.string.uuid(),
     organizationName: params.organizationName ?? "Acme",
     availablePermissions: params.availablePermissions ?? ["project.read", "agent.create"],
-    // fishery deep-partials params; an installer is always passed whole.
-    installedBy: params.installedBy === undefined ? null : (params.installedBy as AppInstaller),
+    installedBy: params.installedBy ? appInstallerFactory.build(params.installedBy) : null,
   }),
 )
 

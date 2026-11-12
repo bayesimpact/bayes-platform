@@ -7,6 +7,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Provider } from "react-redux"
 import { createMemoryRouter, RouterProvider } from "react-router-dom"
 import { within } from "storybook/test"
+import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"
 import type { AppInstaller } from "@/common/features/app-installers/app-installers.models"
 import { userFactory } from "@/common/features/me/me.factory"
 import {
@@ -33,9 +34,13 @@ type StoryArgs = {
 }
 
 const installers: Record<AppInstaller["kind"], AppInstaller> = {
-  me: { kind: "me" },
-  member: { kind: "member", name: "Alex Morgan", email: "alex.morgan@example.com" },
-  "former-member": { kind: "former-member" },
+  me: appInstallerFactory.build({ kind: "me" }),
+  member: appInstallerFactory.build({
+    kind: "member",
+    name: "Alex Morgan",
+    email: "alex.morgan@example.com",
+  }),
+  "former-member": appInstallerFactory.build({ kind: "former-member" }),
 }
 
 const request = oauthAuthorizationRequestFactory.build({ client_id: "helpful-assistant" })
