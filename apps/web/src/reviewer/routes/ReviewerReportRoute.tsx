@@ -11,7 +11,9 @@ export function ReviewerReportRoute() {
   const organizationId = useCurrentId(selectCurrentOrganizationId)
   const projectId = useCurrentId(selectCurrentProjectId)
   const reviewCampaignId = useCurrentId(selectCurrentReviewCampaignId)
-  useMount({ actions: reviewCampaignsReportsActions })
+
+  useMount({ actions: reviewCampaignsReportsActions, refreshOn: [reviewCampaignId] })
+
   return (
     <CampaignReportPage
       backPath={ReviewerRoutes.campaign.build({ organizationId, projectId, reviewCampaignId })}

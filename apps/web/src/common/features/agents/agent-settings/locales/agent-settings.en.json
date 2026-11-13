@@ -202,15 +202,15 @@
       "loading": "Loading embed configuration…",
       "loadError": "Failed to load embed configuration.",
       "enabledLabel": "Enable embed",
-      "enabledDescription": "Allow {{name}} to be embedded on external websites via an iframe.",
-      "snippetLabel": "Embed snippet",
-      "snippetDescription": "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
+      "enabledDescription": "Makes {{name}} available outside the platform: the widget, the public page and the public API. When off, all three stop working.",
+      "snippetLabel": "Widget on a website",
+      "snippetDescription": "Paste this <script> tag before the closing </body> tag on each page where the chat widget must appear.",
       "snippetHint": "Optional attributes: data-color=\"#2563eb\" (button color), data-locale=\"fr\" (widget language), data-display-mode=\"drawer\" (side panel instead of bubble), data-hint=\"Need help?\" (tooltip shown on load and hover).",
-      "publicPageLabel": "Public page link",
+      "publicPageLabel": "Public page",
       "publicPageDescription": "Share this link, or a QR code of it, to make {{name}} available without a host website.",
       "publicPageHint": "The page only works while embedding is enabled. Add &locale=fr to force the language.",
       "allowedOriginsLabel": "Allowed origins",
-      "allowedOriginsDescription": "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
+      "allowedOriginsDescription": "Leave empty for now. The widget calls the platform from {{embedOrigin}}, not from your website: a list without this address blocks the widget. The check of the website that shows the widget is not available yet.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
       "titleLabel": "Widget title",
       "titleDescription": "Title shown in the chat header. Defaults to {{name}} when left empty.",
@@ -221,7 +221,19 @@
       "primaryColorDescription": "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb).",
       "bannerTextLabel": "Banner text",
       "bannerTextDescription": "Optional notice pinned above the conversation, on the public page and in the widget. Use it to state the context, such as a test version or the intended audience.",
-      "bannerTextPlaceholder": "Test version, for the pilot team only"
+      "bannerTextPlaceholder": "Test version, for the pilot team only",
+      "appearance": {
+        "title": "Appearance",
+        "description": "Shown in the header of the widget and of the public page."
+      },
+      "apiSection": {
+        "title": "Public API",
+        "description": "To build your own chat interface, call the API directly instead of using the widget."
+      },
+      "apiBaseUrlLabel": "Base URL",
+      "apiBaseUrlDescription": "Every route of the API starts with this URL. It contains the embed token of this agent.",
+      "apiReferenceLink": "Read the API reference",
+      "widgetGuideLink": "Read the widget guide"
     },
     "promptVariables": {
       "title": "Prompt variables",
