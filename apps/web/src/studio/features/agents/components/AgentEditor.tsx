@@ -65,6 +65,7 @@ export function AgentEditor({
   orchestration,
   defaultTab,
   onDirtyChange,
+  showVersionActions = false,
 }: {
   agent: Agent
   agentSettings: AgentSettings
@@ -74,6 +75,11 @@ export function AgentEditor({
   defaultTab?: TabKey
   /** Reports whether the active tab has unsaved changes, e.g. to disable a publish action. */
   onDirtyChange?: (dirty: boolean) => void
+  /**
+   * Shows the History and Save version buttons next to the tabs. For a page whose header has no
+   * such buttons, like the extraction agent page that embeds the editor.
+   */
+  showVersionActions?: boolean
 }) {
   const { t } = useTranslation()
   const project = useValue(selectCurrentProjectData)
@@ -248,7 +254,7 @@ export function AgentEditor({
               </TabsTrigger>
             ))}
           </TabsList>
-          {agent.type === "extraction" && (
+          {showVersionActions && (
             <ButtonGroup>
               <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
               <AgentSettingsCreateButton agentSettings={agentSettings} hasUnsavedChanges={dirty} />

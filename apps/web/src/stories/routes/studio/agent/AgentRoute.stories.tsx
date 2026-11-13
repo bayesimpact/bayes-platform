@@ -148,6 +148,8 @@ export const Default: Story = {
                 ? [draftAgentSettings, ...publishedAgentSettings]
                 : publishedAgentSettings,
             }),
+            // The extraction page embeds the agent editor, which lists the project's MCP servers.
+            seed.studio.mcpServers([]),
           ),
         }
       },
