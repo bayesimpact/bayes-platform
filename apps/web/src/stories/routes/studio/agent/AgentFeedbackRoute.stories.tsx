@@ -67,7 +67,7 @@ export const Default: Story = {
       const feedbacks = withFeedbacks
         ? [
             ...feedbackFactory.buildList(2, { userId: user.id }),
-            feedbackFactory.build({ userId: user.id, rating: "positive", content: "" }),
+            feedbackFactory.positive().build({ userId: user.id }),
           ]
         : []
 

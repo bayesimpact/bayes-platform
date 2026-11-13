@@ -12,7 +12,12 @@ type AgentMessageFeedbackTransientParams = {
 class AgentMessageFeedbackFactory extends Factory<
   AgentMessageFeedback,
   AgentMessageFeedbackTransientParams
-> {}
+> {
+  /** A thumbs-up, which comes with no text. */
+  positive() {
+    return this.params({ rating: "positive", content: "" })
+  }
+}
 
 export const agentMessageFeedbackFactory = AgentMessageFeedbackFactory.define(
   ({ params, transientParams }) => {

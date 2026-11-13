@@ -20,7 +20,6 @@
       "button": "Report",
       "title": "Report a problem with this message",
       "description": "Please provide details about the issue you encountered with this message. Your feedback will help us improve our agents.",
-      "positive": "Good answer",
       "negative": "Report a problem"
     },
     "list": {

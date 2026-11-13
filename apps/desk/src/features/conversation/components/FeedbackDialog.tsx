@@ -1,8 +1,5 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
-import {
-  MESSAGE_FEEDBACK_MAX_LENGTH,
-  messageReportInputSchema,
-} from "@caseai-connect/desk-contracts"
+import { MESSAGE_FEEDBACK_MAX_LENGTH } from "@caseai-connect/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ThumbsDownIcon } from "lucide-react"
@@ -24,6 +21,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSendFeedback } from "../api/mutations"
+import { reportFormSchema } from "../schemas"
 
 export type FeedbackDialogProps = {
   conversation: ConversationParamsDto
@@ -37,7 +35,7 @@ export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogP
   const [isOpen, setIsOpen] = useState(false)
   const sendFeedback = useSendFeedback(conversation)
   const form = useForm({
-    resolver: zodResolver(messageReportInputSchema),
+    resolver: zodResolver(reportFormSchema),
     defaultValues: { content: "" },
   })
   const maxLength = i18n.number(MESSAGE_FEEDBACK_MAX_LENGTH)

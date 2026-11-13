@@ -20,7 +20,6 @@
       "button": "Aider à améliorer",
       "title": "Signaler un problème avec ce message",
       "description": "Merci de fournir des détails sur le problème que vous avez rencontré avec ce message. Votre retour nous aidera à améliorer nos agents.",
-      "positive": "Bonne réponse",
       "negative": "Signaler un problème"
     },
     "list": {

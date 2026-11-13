@@ -143,16 +143,14 @@ export const MESSAGE_FEEDBACK_MAX_LENGTH = 2000
 /** A thumbs-up on one of the agent's replies, or a problem the person reports with it. */
 export const messageFeedbackRatingSchema = z.enum(["positive", "negative"])
 
-/** A problem the person reports on one of the agent's replies, as the report form writes it. */
-export const messageReportInputSchema = z.strictObject({
-  content: z.string().trim().min(1).max(MESSAGE_FEEDBACK_MAX_LENGTH),
-})
+/** The text a person writes about one of the agent's replies. */
+export const messageFeedbackContentSchema = z.string().trim().max(MESSAGE_FEEDBACK_MAX_LENGTH)
 
 /** What the person says of one of the agent's replies. A thumbs-up needs no text, a report does. */
 export const messageFeedbackInputSchema = z
   .strictObject({
     rating: messageFeedbackRatingSchema,
-    content: z.string().trim().max(MESSAGE_FEEDBACK_MAX_LENGTH).optional(),
+    content: messageFeedbackContentSchema.optional(),
   })
   .refine((feedback) => feedback.rating === "positive" || Boolean(feedback.content), {
     path: ["content"],

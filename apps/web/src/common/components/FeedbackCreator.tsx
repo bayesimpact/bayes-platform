@@ -11,14 +11,14 @@ import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad
 import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
 import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { cn } from "@caseai-connect/ui/utils"
-import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
+import { ThumbsDownIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { useAppDispatch } from "@/common/store/hooks"
 import { createAgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.thunks"
+import { PositiveFeedbackButton } from "./PositiveFeedbackButton"
 
 /** A thumbs-up that rates the reply at once, and a thumbs-down that opens the report form. */
 export function FeedbackCreator({ message }: { message: AgentSessionMessage }) {
@@ -27,34 +27,6 @@ export function FeedbackCreator({ message }: { message: AgentSessionMessage }) {
       <PositiveFeedbackButton agentMessageId={message.id} />
       <NegativeFeedbackDialog message={message} />
     </>
-  )
-}
-
-function PositiveFeedbackButton({ agentMessageId }: { agentMessageId: string }) {
-  const { t } = useTranslation("agentMessageFeedback", { keyPrefix: "create" })
-  const dispatch = useAppDispatch()
-  const [isSent, setIsSent] = useState(false)
-  const handleClick = async () => {
-    setIsSent(true)
-    const result = await dispatch(
-      createAgentMessageFeedback({ agentMessageId, rating: "positive" }),
-    )
-    // The failure toast comes from the middleware; the button is offered again.
-    if (createAgentMessageFeedback.rejected.match(result)) setIsSent(false)
-  }
-  return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      className="text-muted-foreground"
-      aria-label={t("positive")}
-      title={t("positive")}
-      aria-pressed={isSent}
-      disabled={isSent}
-      onClick={() => void handleClick()}
-    >
-      <ThumbsUpIcon className={cn("size-3.5", isSent && "fill-current")} />
-    </Button>
   )
 }
 

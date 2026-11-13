@@ -1,49 +1,40 @@
 import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
-import { QueryClientProvider } from "@tanstack/react-query"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
-import { createQueryClient } from "@/app/query-client"
-import { Toaster } from "@/components/ui/sonner"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
-import { renderWithI18n } from "@/test/render-with-i18n"
+import { randomConversationParams, renderWithQueryClient } from "@/test/render-with-query-client"
 import { GoodReplyButton } from "./GoodReplyButton"
 
 function renderButton() {
-  const queryClient = createQueryClient({ isRetrying: false })
-  const conversation = {
-    organizationId: crypto.randomUUID(),
-    projectId: crypto.randomUUID(),
-    agentId: crypto.randomUUID(),
-    agentSessionId: crypto.randomUUID(),
-  }
-  renderWithI18n(
-    <QueryClientProvider client={queryClient}>
-      <GoodReplyButton conversation={conversation} agentMessageId={crypto.randomUUID()} />
-      <Toaster />
-    </QueryClientProvider>,
+  renderWithQueryClient(
+    <GoodReplyButton
+      conversation={randomConversationParams()}
+      agentMessageId={crypto.randomUUID()}
+    />,
   )
 }
 
 describe("GoodReplyButton", () => {
-  it("sends the thumbs-up, says so and stays pressed", async () => {
-    let sentBody: unknown = null
+  it("sends the thumbs-up once, says so and stays pressed and focusable", async () => {
+    const sentBodies: unknown[] = []
     server.use(
       mockRoute(DeskConversationsRoutes.createMessageFeedback, ({ payload }) => {
-        sentBody = payload
+        sentBodies.push(payload)
         return { success: true }
       }),
     )
     renderButton()
-
-    await userEvent.click(screen.getByRole("button", { name: "Good reply" }))
-
-    expect(await screen.findByText("Thank you for your feedback.")).toBeInTheDocument()
-    expect(sentBody).toEqual({ rating: "positive" })
     const button = screen.getByRole("button", { name: "Good reply" })
+
+    await userEvent.click(button)
+    expect(await screen.findByText("Thank you for your feedback.")).toBeInTheDocument()
+    await userEvent.click(button)
+
+    expect(sentBodies).toEqual([{ rating: "positive" }])
     expect(button).toHaveAttribute("aria-pressed", "true")
-    expect(button).toBeDisabled()
+    expect(button).toBeEnabled()
   })
 
   it("says the thumbs-up failed, and offers it again", async () => {
@@ -55,6 +46,8 @@ describe("GoodReplyButton", () => {
     expect(
       await screen.findByText("Your feedback could not be sent. Try again."),
     ).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Good reply" })).toBeEnabled()
+    const button = screen.getByRole("button", { name: "Good reply" })
+    expect(button).toHaveAttribute("aria-pressed", "false")
+    expect(button).toBeEnabled()
   })
 })
