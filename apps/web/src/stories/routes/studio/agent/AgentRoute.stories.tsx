@@ -17,6 +17,7 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
+import { mcpServerFactory } from "@/studio/features/mcp-servers/mcp-servers.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -34,6 +35,8 @@ type StoryArgs = StudioStoryArgs & {
   withDeprecatedModel?: boolean
   /** Grants the safety review of the current agent: the header shows the safety entry. */
   canReviewConversations?: boolean
+  /** Lists MCP servers in the project and turns on `agent-mcp`: the editor shows its MCP tab. */
+  withMcpServers?: boolean
 }
 
 const meta = {
@@ -52,6 +55,7 @@ const meta = {
     unpublished: { control: "boolean" },
     withDeprecatedModel: { control: "boolean" },
     canReviewConversations: { control: "boolean" },
+    withMcpServers: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -63,6 +67,7 @@ const meta = {
     unpublished: false,
     withDeprecatedModel: false,
     canReviewConversations: false,
+    withMcpServers: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agent.path }),
 } satisfies Meta<StoryArgs>
@@ -81,9 +86,14 @@ export const Default: Story = {
         unpublished,
         withDeprecatedModel,
         canReviewConversations,
+        withMcpServers,
         ...args
       }) => {
-        const { baseSeeds, user, project, agents } = buildStudioData(args)
+        const { baseSeeds, user, project, agents } = buildStudioData(
+          withMcpServers
+            ? { ...args, featureFlags: [...(args.featureFlags ?? []), "agent-mcp"] }
+            : args,
+        )
         const [firstAgent, ...restAgents] = agents
         const withFillForm = agentType === "conversation" && !!fillForm
         const currentAgent = unpublished
@@ -149,7 +159,9 @@ export const Default: Story = {
                 : publishedAgentSettings,
             }),
             // The extraction page embeds the agent editor, which lists the project's MCP servers.
-            seed.studio.mcpServers([]),
+            seed.studio.mcpServers(
+              withMcpServers ? mcpServerFactory.transient({ project }).buildList(2) : [],
+            ),
           ),
         }
       },
@@ -178,6 +190,12 @@ export const AgentExtractionWithData: Story = {
     // The extraction playground edits settings inline, so its header owns the publish action.
     withDraft: true,
   },
+  decorators: Default.decorators,
+}
+
+/** The extraction playground's editor with the project's MCP servers: it shows the MCP tab. */
+export const AgentExtractionWithMcpServers: Story = {
+  args: { ...AgentExtractionWithData.args, withMcpServers: true },
   decorators: Default.decorators,
 }
 
