@@ -95,7 +95,7 @@ Only if checked. The rules of a PR live in other files. Read them at this step a
 
 | Rule | Source of truth |
 |------|-----------------|
-| Commit and PR title format | `CLAUDE.md` ▸ *Git*, and the types table of the `commit` skill (`.claude/skills/commit/skill.md`) |
+| Commit and PR title format | `CLAUDE.md` ▸ *Git*, and the types table of the `commit` skill (`.claude/skills/commit/SKILL.md`) |
 | What a public repository must never mention | `CLAUDE.md` ▸ *Git* |
 | Public API contract, maintainer go, `public-contract-approved` label | `docs/public-api-contract.md` |
 | Changelog entries | `docs/changelog.md` |
