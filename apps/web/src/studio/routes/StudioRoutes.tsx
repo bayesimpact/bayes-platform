@@ -6,7 +6,6 @@ import { useValue } from "@/common/hooks/use-value"
 import { AgentRoute } from "@/common/routes/AgentRoute"
 import { AgentSessionRoute } from "@/common/routes/agents/AgentSessionRoute"
 import { ConversationAgentSessionsRoute } from "@/common/routes/agents/ConversationAgentSessionsRoute"
-import { ExtractionAgentSessionsRoute } from "@/common/routes/agents/ExtractionAgentSessionsRoute"
 import { AgentCsvExtractionRunRoute } from "@/common/routes/agents/extraction/AgentCsvExtractionRunRoute"
 import { AgentExtractionRoute } from "@/common/routes/agents/extraction/AgentExtractionRoute"
 import { AgentExtractionRunRoute } from "@/common/routes/agents/extraction/AgentExtractionRunRoute"
@@ -16,10 +15,7 @@ import { OrganizationRoute } from "@/common/routes/OrganizationRoute"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
-import {
-  ConversationAgentSessionList,
-  ExtractionAgentSessionList,
-} from "@/studio/features/agents/components/AgentSessionList"
+import { ConversationAgentSessionList } from "@/studio/features/agents/components/AgentSessionList"
 import { CampaignsRoute } from "@/studio/routes/CampaignsRoute"
 import { ProjectAdminRoute } from "@/studio/routes/ProjectAdminRoute"
 import { StudioLayout } from "../components/StudioLayout"
@@ -47,6 +43,7 @@ import { ResourceLibraryEditorRoute } from "./ResourceLibraryEditorRoute"
 import { RestrictedAccess } from "./RestrictedAccess"
 import { StudioAgentRoute } from "./StudioAgentRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
+import { StudioExtractionAgentSessionsRoute } from "./StudioExtractionAgentSessionsRoute"
 import { StudioRoute } from "./StudioRoute"
 
 export const studioRoutes = {
@@ -261,11 +258,7 @@ function AgentSessionsHandler() {
         </ConversationAgentSessionsRoute>
       )
     case "extraction":
-      return (
-        <ExtractionAgentSessionsRoute>
-          <ExtractionAgentSessionList />
-        </ExtractionAgentSessionsRoute>
-      )
+      return <StudioExtractionAgentSessionsRoute />
     default:
       return <ErrorRoute error={"Unknown agent type"} />
   }
