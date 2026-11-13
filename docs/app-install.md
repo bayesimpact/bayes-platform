@@ -68,6 +68,8 @@ The authorization request is the standard one:
 
 - The page lists the projects where the installer holds `project.app_installation.create`, that is the projects they own or administer. Organization roles do not pass it down, and platform staff get no exception.
 - An app is installed on one project at a time. Approving an app already installed on the project reconnects it: the installation stays, with its service user, conversations and document sources, its permissions become those just granted, and the previous refresh tokens stop working.
+- The person who installed the app is the one who reconnects it, as long as they still hold `project.app_installation.create` on the project. Meanwhile the page tells anyone else who installed the app and offers no approval, and an approval sent anyway is refused before anything changes: the app gets no code and keeps its tokens. To replace the installation on purpose, another owner or admin revokes it in the studio and installs the app again; the conversations stay with the revoked installation.
+- Once the installer can no longer install apps on the project (they left it, lost the permission, or no user is recorded), any owner or admin reconnects the app and becomes its installer.
 - The permissions offered are the manifest's grantable permissions that the installer holds on the project. An install never gives an app more than its installer has.
 
 ## Tokens
