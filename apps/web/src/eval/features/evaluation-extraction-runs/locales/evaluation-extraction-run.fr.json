@@ -50,6 +50,7 @@
       "mismatch": "Non-correspondance",
       "error": "Erreur",
       "fyi": "Info",
+      "fieldStatus": "{{field}} : {{status}}",
       "noRecords": "Aucun enregistrement trouvé",
       "processing": "Traitement des enregistrements...",
       "processingDescription": "{{processed}} sur {{total}} enregistrements traités. Cela peut prendre quelques minutes.",

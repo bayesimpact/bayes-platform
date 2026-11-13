@@ -23,6 +23,13 @@ export const evaluationExtractionRunSummaryFactory = Factory.define<EvaluationEx
   },
 )
 
+export const evaluationExtractionRunRecordFieldResultFactory =
+  Factory.define<EvaluationExtractionRunRecordFieldResult>(({ params }) => ({
+    agentValue: params.agentValue ?? faker.lorem.word(),
+    groundTruth: params.groundTruth ?? faker.lorem.word(),
+    status: params.status ?? "match",
+  }))
+
 type EvaluationExtractionRunTransientParams = {
   dataset: EvaluationExtractionDataset
   agent: Agent
@@ -112,11 +119,9 @@ export const evaluationExtractionRunRecordFactory = EvaluationExtractionRunRecor
               .filter((entry) => entry.mode === "scored")
               .map((entry, index) => [
                 entry.agentOutputKey,
-                {
-                  agentValue: faker.lorem.word(),
-                  groundTruth: faker.lorem.word(),
+                evaluationExtractionRunRecordFieldResultFactory.build({
                   status: status === "mismatch" && index === 0 ? "mismatch" : "match",
-                } satisfies EvaluationExtractionRunRecordFieldResult,
+                }),
               ]),
           ))
 

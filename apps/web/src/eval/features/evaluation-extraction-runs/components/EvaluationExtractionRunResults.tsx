@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@caseai-connect/ui/shad/card"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
+import { cn } from "@caseai-connect/ui/utils"
 import {
   type Column,
   type ColumnDef,
@@ -18,6 +19,7 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
+import { CheckIcon, XIcon } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { DataTable } from "@/common/components/data-table/DataTable"
@@ -34,6 +36,10 @@ import type {
   EvaluationExtractionDataset,
   EvaluationExtractionDatasetSchemaColumn,
 } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
+import {
+  type ScoredFieldStatus,
+  scoredFieldStatuses,
+} from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.helpers"
 import type {
   EvaluationExtractionRun,
   EvaluationExtractionRunRecord,
@@ -57,12 +63,25 @@ function StatusBadge({ status }: { status: EvaluationExtractionRunRecordStatus }
   return <Badge variant={variant}>{t(`evaluationExtractionRun:results.${status}`)}</Badge>
 }
 
-function FieldStatusBadge({ status }: { status: EvaluationExtractionRunRecordFieldStatus }) {
+// One scored field of a record: its name, coloured by its status. The icon and the tooltip say
+// the status too, so it does not rest on colour alone.
+function FieldStatusBadge({ fieldKey, status }: ScoredFieldStatus) {
   const { t } = useTranslation()
-  const variant = status === "match" ? "success" : status === "mismatch" ? "destructive" : "outline"
+  const variant = status === "match" ? "success" : "destructive"
+  const StatusIcon = status === "match" ? CheckIcon : XIcon
+  const statusLabel = t(`evaluationExtractionRun:results.${status}`)
   return (
-    <Badge variant={variant} className="text-xs">
-      {t(`evaluationExtractionRun:results.${status}`)}
+    <Badge
+      variant={variant}
+      className="max-w-full shrink"
+      title={t("evaluationExtractionRun:results.fieldStatus", {
+        field: fieldKey,
+        status: statusLabel,
+      })}
+    >
+      <StatusIcon aria-hidden />
+      <span className="min-w-0 truncate">{fieldKey}</span>
+      <span className="sr-only">{statusLabel}</span>
     </Badge>
   )
 }
@@ -342,23 +361,29 @@ function RecordsTable({
         />
       ),
       cell: ({ row }) => {
-        const scoredEntries = Object.entries(row.original.fields).filter(
-          ([, field]) => field.status !== "fyi",
-        )
+        const fieldStatuses = scoredFieldStatuses(row.original.fields)
         return (
-          <div className="flex items-center gap-1">
+          // The fixed width keeps a few badges on a line: a wide table would otherwise shrink
+          // the column to one badge a line.
+          <div
+            className={cn("flex flex-col items-start gap-1.5", fieldStatuses.length > 0 && "w-60")}
+          >
             <StatusBadge status={row.original.status} />
-            {scoredEntries.length > 1 && (
-              <div className="flex gap-0.5">
-                {scoredEntries.map(([fieldKey, field]) => (
-                  <FieldStatusBadge key={fieldKey} status={field.status} />
+            {fieldStatuses.length > 0 && (
+              <ul className="flex max-w-full flex-wrap gap-1">
+                {fieldStatuses.map((fieldStatus) => (
+                  <li key={fieldStatus.fieldKey} className="flex min-w-0">
+                    <FieldStatusBadge fieldKey={fieldStatus.fieldKey} status={fieldStatus.status} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
         )
       },
-      size: 150,
+      // The cap makes the field badges wrap instead of widening the column. It leaves room for
+      // the `w-60` of the cell's content: change the two together.
+      size: 260,
     }
 
     const traceUrlColumn: ColumnDef<ResultRow> = {
