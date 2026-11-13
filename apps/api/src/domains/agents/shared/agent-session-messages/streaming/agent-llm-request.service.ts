@@ -29,6 +29,7 @@ import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachm
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
+import type { ConversationFormStore } from "./tools/fill-form.tool"
 import {
   createInlineCitationExtractor,
   createPassthroughCitationExtractor,
@@ -91,6 +92,7 @@ export class AgentLlmRequestService {
     attachmentDocumentId,
     includeSessionMetadataTools = true,
     sessionState,
+    conversationFormStore,
     syntheticUserContent,
   }: {
     agentSessionScope: AgentSessionScope
@@ -100,6 +102,8 @@ export class AgentLlmRequestService {
     attachmentDocumentId?: string
     includeSessionMetadataTools?: boolean
     sessionState?: SessionStateTarget
+    /** Evaluation runs keep their form outside a persisted conversation session. */
+    conversationFormStore?: ConversationFormStore
     /**
      * A user-role message appended for this call only, never persisted nor
      * shown: it triggers a turn the user did not type (a sub-agent's first
@@ -133,6 +137,7 @@ export class AgentLlmRequestService {
       includeSessionMetadataTools,
       onExecute: onToolExecute,
       sessionState,
+      conversationFormStore,
     })
 
     const toolNames = tools ? Object.keys(tools) : []

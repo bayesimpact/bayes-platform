@@ -43,6 +43,8 @@
       "input": "Entrée",
       "expectedOutput": "Résultat attendu",
       "output": "Sortie agent",
+      "formState": "Formulaire rempli",
+      "emptyForm": "Aucun champ rempli",
       "score": "Score",
       "noRecords": "Aucun enregistrement trouvé",
       "processing": "Traitement des enregistrements...",

@@ -43,6 +43,8 @@
       "input": "Input",
       "expectedOutput": "Expected Output",
       "output": "Agent Output",
+      "formState": "Filled form",
+      "emptyForm": "No fields filled",
       "score": "Score",
       "noRecords": "No records found",
       "processing": "Processing records...",

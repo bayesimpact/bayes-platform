@@ -19,6 +19,8 @@ import {
   type EvaluationConversationRunBatchService,
 } from "./evaluation-conversation-run-batch.interface"
 import { EvaluationConversationRunRecord } from "./records/evaluation-conversation-run-record.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationConversationRunRecordRepository } from "./records/evaluation-conversation-run-record.repository"
 
 const BATCH_SIZE = 500
 
@@ -40,6 +42,7 @@ export class EvaluationConversationRunsService {
     agentRepository: Repository<Agent>,
     @Inject(EVALUATION_CONVERSATION_RUN_BATCH_SERVICE)
     private readonly batchService: EvaluationConversationRunBatchService,
+    private readonly runRecordRepository: EvaluationConversationRunRecordRepository,
   ) {
     this.runConnectRepository = new ConnectRepository(
       evaluationConversationRunRepository,
@@ -294,11 +297,10 @@ export class EvaluationConversationRunsService {
 
     // Reset the retried records so the processor's status === "running" guard
     // lets them through, clearing the stale results of the previous attempt.
-    await this.runRecordConnectRepository.updateManyBy({
+    await this.runRecordRepository.resetForRetry(
       connectScope,
-      where: { id: In(retryableRecords.map((runRecord) => runRecord.id)) },
-      fields: { status: "running", output: null, score: null, errorDetails: null, traceId: null },
-    })
+      retryableRecords.map((runRecord) => runRecord.id),
+    )
 
     // Recompute the summary from the post-reset record statuses: retried records
     // are running again and no error/cancelled records remain.

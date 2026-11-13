@@ -62,6 +62,8 @@ export type EvaluationConversationRunRecordDto = {
   input: string
   expectedOutput: string
   output: string | null
+  /** Filled fields; {} when none were filled, null when no form was collected. */
+  formState: Record<string, unknown> | null
   score: number | null
   errorDetails: string | null
   traceUrl: string | null

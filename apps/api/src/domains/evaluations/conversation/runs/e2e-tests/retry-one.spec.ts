@@ -108,7 +108,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
         evaluationConversationRun: run,
         evaluationConversationDatasetRecord: datasetRecords[0],
       })
-      .build({ status: "error", errorDetails: "boom" })
+      .build({ status: "error", errorDetails: "boom", formState: { title: "Previous attempt" } })
     await setup.getRepository(EvaluationConversationRunRecord).save(errorRecord)
 
     const gradedRecord = evaluationConversationRunRecordFactory
@@ -118,7 +118,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
         evaluationConversationRun: run,
         evaluationConversationDatasetRecord: datasetRecords[1],
       })
-      .build({ status: "graded", output: "answer", score: 4 })
+      .build({ status: "graded", output: "answer", score: 4, formState: { title: "Saved result" } })
     await setup.getRepository(EvaluationConversationRunRecord).save(gradedRecord)
 
     const cancelledRecord = evaluationConversationRunRecordFactory
@@ -128,7 +128,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
         evaluationConversationRun: run,
         evaluationConversationDatasetRecord: datasetRecords[2],
       })
-      .build({ status: "cancelled" })
+      .build({ status: "cancelled", formState: { title: "Cancelled attempt" } })
     await setup.getRepository(EvaluationConversationRunRecord).save(cancelledRecord)
 
     return { organization, project, run, errorRecord, gradedRecord, cancelledRecord }
@@ -173,6 +173,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
       const retriedRecord = await runRecordRepository.findOneByOrFail({ id: retriedRecordId })
       expect(retriedRecord.status).toBe("running")
       expect(retriedRecord.output).toBeNull()
+      expect(retriedRecord.formState).toBeNull()
       expect(retriedRecord.score).toBeNull()
       expect(retriedRecord.errorDetails).toBeNull()
       expect(retriedRecord.traceId).toBeNull()
@@ -182,6 +183,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
     const untouchedRecord = await runRecordRepository.findOneByOrFail({ id: gradedRecord.id })
     expect(untouchedRecord.status).toBe("graded")
     expect(untouchedRecord.score).toBe(4)
+    expect(untouchedRecord.formState).toEqual({ title: "Saved result" })
 
     await expectActivityCreated("evaluationConversationRun.retry")
   })
@@ -201,10 +203,12 @@ describe("EvaluationConversationRuns - retryOne", () => {
     const restoredErrorRecord = await runRecordRepository.findOneByOrFail({ id: errorRecord.id })
     expect(restoredErrorRecord.status).toBe("error")
     expect(restoredErrorRecord.errorDetails).toBe("boom")
+    expect(restoredErrorRecord.formState).toEqual({ title: "Previous attempt" })
     const restoredCancelledRecord = await runRecordRepository.findOneByOrFail({
       id: cancelledRecord.id,
     })
     expect(restoredCancelledRecord.status).toBe("cancelled")
+    expect(restoredCancelledRecord.formState).toEqual({ title: "Cancelled attempt" })
     const untouchedRecord = await runRecordRepository.findOneByOrFail({ id: gradedRecord.id })
     expect(untouchedRecord.status).toBe("graded")
 
