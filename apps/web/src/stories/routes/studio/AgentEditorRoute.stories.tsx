@@ -6,7 +6,7 @@ import {
   EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { userEvent, within } from "storybook/test"
+import { expect, userEvent, within } from "storybook/test"
 import {
   agentFactory,
   agentModelsCatalogFactory,
@@ -530,4 +530,61 @@ export const EmbedTab: Story = {
 export const EmbedTabWithoutHelpCenter: Story = {
   ...EmbedTab,
   beforeEach: withHelpCenterUrl(undefined),
+}
+
+/**
+ * An extraction agent, as it opens right after its creation: one History and Save version bar,
+ * in the page header. The tabs bar adds none of its own.
+ */
+export const ExtractionAgent: Story = {
+  // An extraction agent has no sources, tools, sub-agents or embedding models.
+  argTypes: {
+    withSubAgents: { control: false },
+    withPriorityCalls: { control: false },
+    unpublished: { control: false },
+    withEmbeddingModels: { control: false },
+    withSources: { control: false },
+    withFollowUpQuestions: { control: false },
+  },
+  args: { withDraft: false },
+  decorators: [
+    buildDecorator<StoryArgs>(({ withDraft, withDeprecatedModel, ...args }) => {
+      const { baseSeeds, agents } = buildStudioData({ ...args, withAgents: true })
+      const [firstAgent] = agents
+      if (!firstAgent) {
+        throw new Error("Agent editor route story requires an agent")
+      }
+      const agent = { ...firstAgent, name: "Helpful Assistant", type: "extraction" as const }
+      const publishedSettings = agentSettingsFactory.transient({ agent }).build({
+        name: "Helpful Assistant",
+        instructions: "Extract the title and summary of the document.",
+        revision: 1,
+        isDraft: false,
+        model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
+      })
+      // With a draft, an unpublished revision 2 sits on top of the published revision 1.
+      const versions = withDraft
+        ? [{ ...publishedSettings, revision: 2, isDraft: true }, publishedSettings]
+        : [publishedSettings]
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([agent], { currentId: agent.id }),
+          seed.studio.agentHistory({ agentId: agent.id, versions }),
+          seed.extractionAgentSessions({ [agent.id]: { csvSessions: [], others: [] } }),
+          seed.studio.mcpServers([]),
+        ),
+        services: {
+          agents: buildMockAgentsService([agent]),
+          agentSettings: buildMockAgentSettingsService(versions),
+        },
+      }
+    }),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByRole("tab", { name: "Output" }, { timeout: 10_000 })
+    await expect(canvas.getAllByRole("button", { name: /history/i })).toHaveLength(1)
+  },
 }
