@@ -17,9 +17,10 @@ import { CampaignReport } from "./CampaignReport"
 
 type Props = {
   backPath: string
+  headerClassName?: string
 }
 
-export function CampaignReportPage({ backPath }: Props) {
+export function CampaignReportPage({ backPath, headerClassName }: Props) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const report = useAppSelector(selectCurrentCampaignReport)
@@ -30,6 +31,7 @@ export function CampaignReportPage({ backPath }: Props) {
   return (
     <>
       <GridHeader
+        className={headerClassName}
         onBack={handleBack}
         title={t("reviewCampaigns:report.title")}
         action={ADS.isFulfilled(report) && <DownloadCsvButton />}

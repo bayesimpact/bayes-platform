@@ -10,17 +10,20 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { useValue } from "@/common/hooks/use-value"
-import type { EditorState } from "@/studio/routes/CampaignsRoute"
 import { selectReviewCampaignsData } from "../review-campaigns.selectors"
-import { CampaignEditorSheet } from "./CampaignEditorSheet"
+import { type CampaignEditor, CampaignEditorSheet } from "./CampaignEditorSheet"
 import { CampaignListTable } from "./CampaignListTable"
 
 export function CampaignList({
   editor,
-  setEditor,
+  onCreate,
+  onEdit,
+  onCloseEditor,
 }: {
-  editor: EditorState
-  setEditor: React.Dispatch<React.SetStateAction<EditorState>>
+  editor: CampaignEditor | null
+  onCreate: () => void
+  onEdit: (campaignId: string) => void
+  onCloseEditor: () => void
 }) {
   const agents = useValue(selectAgentsData)
   const campaigns = useValue(selectReviewCampaignsData)
@@ -45,19 +48,13 @@ export function CampaignList({
         <CampaignListTable
           campaigns={campaigns}
           membershipCountByCampaign={membershipCountByCampaign}
-          onEdit={(campaignId) => setEditor({ mode: "edit", campaignId })}
-          onDelete={(campaignId) => setEditor({ mode: "edit", campaignId })}
-          onCreate={() => setEditor({ mode: "create" })}
+          onEdit={onEdit}
+          onDelete={onEdit}
+          onCreate={onCreate}
         />
       )}
       {editor && (
-        <CampaignEditorSheet
-          open
-          mode={editor.mode}
-          reviewCampaignId={editor.mode === "edit" ? editor.campaignId : undefined}
-          agents={agentOptions}
-          onClose={() => setEditor(null)}
-        />
+        <CampaignEditorSheet open editor={editor} agents={agentOptions} onClose={onCloseEditor} />
       )}
     </>
   )

@@ -23,6 +23,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Review campaigns: the message count of each session matches the messages reviewers read in its transcript.
 - Review campaigns: testers can scroll their campaign pages and always reach the end-of-phase survey.
 - Review campaigns: the full report of a campaign loads when you open it from the studio.
+- Review campaigns: the full report opens inside the campaign, and leaving it returns to the campaign.
 
 ### Security
 
