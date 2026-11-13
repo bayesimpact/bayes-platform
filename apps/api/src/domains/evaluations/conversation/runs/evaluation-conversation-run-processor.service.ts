@@ -21,20 +21,20 @@ import {
   EvaluationConversationRunRecord,
   type EvaluationConversationRunRecordStatus,
 } from "./records/evaluation-conversation-run-record.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationConversationRunRecordRepository } from "./records/evaluation-conversation-run-record.repository"
 
 @Injectable()
 export class EvaluationConversationRunProcessorService {
   private readonly logger = new Logger(EvaluationConversationRunProcessorService.name)
   private readonly evaluationConversationRunConnectRepository: ConnectRepository<EvaluationConversationRun>
-  private readonly runRecordConnectRepository: ConnectRepository<EvaluationConversationRunRecord>
   private readonly agentConnectRepository: ConnectRepository<Agent>
   private readonly agentSettingsConnectRepository: ConnectRepository<AgentSettings>
 
   constructor(
     @InjectRepository(EvaluationConversationRun)
     evaluationConversationRunRepository: Repository<EvaluationConversationRun>,
-    @InjectRepository(EvaluationConversationRunRecord)
-    evaluationConversationRunRecordRepository: Repository<EvaluationConversationRunRecord>,
+    private readonly runRecordRepository: EvaluationConversationRunRecordRepository,
     @InjectRepository(Agent)
     agentRepository: Repository<Agent>,
     @InjectRepository(AgentSettings)
@@ -48,10 +48,6 @@ export class EvaluationConversationRunProcessorService {
       evaluationConversationRunRepository,
       "evaluationConversationRun",
     )
-    this.runRecordConnectRepository = new ConnectRepository(
-      evaluationConversationRunRecordRepository,
-      "evaluationConversationRunRecord",
-    )
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agent")
     this.agentSettingsConnectRepository = new ConnectRepository(
       agentSettingsRepository,
@@ -62,7 +58,7 @@ export class EvaluationConversationRunProcessorService {
   async processRunRecord(payload: ProcessEvaluationConversationRunRecordJobPayload): Promise<void> {
     const { connectScope, runRecordId } = payload
 
-    const runRecord = await this.runRecordConnectRepository.getOneById(connectScope, runRecordId)
+    const runRecord = await this.runRecordRepository.findForProcessing(connectScope, runRecordId)
     if (!runRecord) {
       throw new NotFoundException(`Evaluation run record with id ${runRecordId} not found`)
     }
@@ -216,7 +212,7 @@ export class EvaluationConversationRunProcessorService {
   ): Promise<void> {
     const { connectScope, evaluationConversationRun } = payload
 
-    const runRecord = await this.runRecordConnectRepository.getOneById(
+    const runRecord = await this.runRecordRepository.findForProcessing(
       connectScope,
       payload.runRecordId,
     )
@@ -228,16 +224,13 @@ export class EvaluationConversationRunProcessorService {
     if (runRecord.status !== "running") return
 
     // Conditional update: never overwrite a record cancelled since the read above.
-    await this.runRecordConnectRepository.updateManyBy({
-      connectScope,
-      where: { id: runRecord.id, status: "running" },
-      fields: {
-        status: "error",
-        errorDetails: error.message ?? "Unknown error",
-        output: null,
-        score: null,
-        traceId: null,
-      },
+    await this.runRecordRepository.finishIfRunning(connectScope, runRecord.id, {
+      status: "error",
+      errorDetails: error.message ?? "Unknown error",
+      output: null,
+      formState: null,
+      score: null,
+      traceId: null,
     })
 
     await this.recomputeSummaryAndMaybeComplete({
@@ -278,13 +271,14 @@ export class EvaluationConversationRunProcessorService {
       // Run the agent through the exact same request building as Studio
       // (tools, master prompt, streaming provider call), so the evaluation
       // measures the agent as users actually experience it.
-      const { output, traceId } = await this.evaluationConversationRunLlmService.runSingleTurn({
-        agent,
-        agentSettings,
-        connectScope,
-        userContent: runRecord.input,
-        // extraTags: ["evaluation-conversation-run"], //fixme DOO
-      })
+      const { output, traceId, formState } =
+        await this.evaluationConversationRunLlmService.runSingleTurn({
+          agent,
+          agentSettings,
+          connectScope,
+          userContent: runRecord.input,
+          // extraTags: ["evaluation-conversation-run"], //fixme DOO
+        })
 
       const score = await this.graderService.gradeOutput({
         expectedOutput: runRecord.expectedOutput,
@@ -299,25 +293,25 @@ export class EvaluationConversationRunProcessorService {
       // Conditional update instead of a save: a cancel can flip the record to
       // "cancelled" while the LLM calls are in flight, and grading results
       // must not overwrite that terminal status.
-      await this.runRecordConnectRepository.updateManyBy({
-        connectScope,
-        where: { id: runRecord.id, status: "running" },
-        fields: { status: "graded", output, score, errorDetails: null, traceId },
+      await this.runRecordRepository.finishIfRunning(connectScope, runRecord.id, {
+        status: "graded",
+        output,
+        formState,
+        score,
+        errorDetails: null,
+        traceId,
       })
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error during agent invocation"
 
-      await this.runRecordConnectRepository.updateManyBy({
-        connectScope,
-        where: { id: runRecord.id, status: "running" },
-        fields: {
-          status: "error",
-          output: null,
-          score: null,
-          errorDetails: errorMessage,
-          traceId: null,
-        },
+      await this.runRecordRepository.finishIfRunning(connectScope, runRecord.id, {
+        status: "error",
+        output: null,
+        formState: null,
+        score: null,
+        errorDetails: errorMessage,
+        traceId: null,
       })
     }
 

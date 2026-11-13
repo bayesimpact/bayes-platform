@@ -114,6 +114,7 @@ export const evaluationConversationRunRecordFactory = EvaluationConversationRunR
       input: params.input ?? faker.lorem.sentence(),
       expectedOutput: params.expectedOutput ?? faker.lorem.sentence(),
       output: params.output !== undefined ? params.output : faker.lorem.sentence(),
+      formState: params.formState ?? null,
       score: params.score !== undefined ? params.score : faker.number.int({ min: 0, max: 5 }),
       errorDetails: params.errorDetails ?? null,
       traceUrl: params.traceUrl ?? null,

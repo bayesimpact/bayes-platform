@@ -121,6 +121,7 @@ function RecordsTable({ run, records, total, pagination, onPaginationChange }: R
   const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
 
   const hasErrors = records.some((record) => record.errorDetails)
+  const hasForms = records.some((record) => record.formState !== null)
 
   const columns = useMemo<ColumnDef<EvaluationConversationRunRecord>[]>(() => {
     const indexColumn: ColumnDef<EvaluationConversationRunRecord> = {
@@ -181,14 +182,27 @@ function RecordsTable({ run, records, total, pagination, onPaginationChange }: R
       size: 100,
     }
 
-    const allColumns = [
-      indexColumn,
-      statusColumn,
-      inputColumn,
-      expectedOutputColumn,
-      outputColumn,
-      scoreColumn,
-    ]
+    const allColumns = [indexColumn, statusColumn, inputColumn, expectedOutputColumn, outputColumn]
+
+    if (hasForms) {
+      allColumns.push({
+        id: "formState",
+        header: () => t("evaluationConversationRun:results.formState"),
+        cell: ({ row }) => (
+          <TruncatedCell
+            value={
+              row.original.formState === null
+                ? ""
+                : Object.keys(row.original.formState).length === 0
+                  ? t("evaluationConversationRun:results.emptyForm")
+                  : JSON.stringify(row.original.formState, null, 2)
+            }
+          />
+        ),
+        size: 250,
+      })
+    }
+    allColumns.push(scoreColumn)
 
     if (hasErrors) {
       allColumns.push({
@@ -209,7 +223,7 @@ function RecordsTable({ run, records, total, pagination, onPaginationChange }: R
     allColumns.push(traceUrlColumn)
 
     return allColumns
-  }, [hasErrors, t])
+  }, [hasErrors, hasForms, t])
 
   const table = useReactTable({
     data: records,

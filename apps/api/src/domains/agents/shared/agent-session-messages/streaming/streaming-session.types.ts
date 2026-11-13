@@ -12,8 +12,7 @@ import type { ToolExecutionLog } from "./tools/tool-execution-log"
 export type PublicStreamingSessionProxy = {
   /**
    * Whether the session has a row the forms can attach to. True for public
-   * (embed) sessions, false for evaluation runs, which have no session and
-   * therefore no fillForm tool.
+   * (embed) sessions, false for evaluation runs, which supply a separate form store.
    */
   persistsForms: boolean
   id: string

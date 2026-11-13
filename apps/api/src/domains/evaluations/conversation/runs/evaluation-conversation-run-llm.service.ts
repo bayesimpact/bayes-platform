@@ -7,6 +7,7 @@ import type { AgentMessage } from "@/domains/agents/shared/agent-session-message
 // biome-ignore lint/style/useImportType: required for DI
 import { AgentLlmRequestService } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm-request.service"
 import type { PublicStreamingSessionProxy } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-session.types"
+import type { ConversationFormStore } from "@/domains/agents/shared/agent-session-messages/streaming/tools/fill-form.tool"
 import { LlmServiceBase } from "@/external/llm"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 
@@ -28,7 +29,8 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
    * exactly like the Studio one.
    *
    * The only divergence from Studio: session-metadata tools are excluded because
-   * there is no session row for them to mutate.
+   * there is no session row for them to mutate. The form is collected in memory
+   * and returned for storage on the evaluation record.
    */
   async runSingleTurn({
     agent,
@@ -40,15 +42,28 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
     agentSettings: AgentSettings
     connectScope: RequiredConnectScope
     userContent: string
-  }): Promise<{ output: string; traceId: string }> {
+  }): Promise<{ output: string; traceId: string; formState: Record<string, unknown> | null }> {
     const traceId = v4()
+    let formState: Record<string, unknown> | null =
+      agentSettings.fillFormEnabled && agentSettings.outputJsonSchema != null ? {} : null
+    // One store per invocation: partial writes merge exactly as in Studio, but
+    // no conversation form or session is created by an evaluation.
+    const conversationFormStore: ConversationFormStore | undefined =
+      formState !== null
+        ? {
+            findOne: async () => ({ state: formState ?? {} }),
+            mergeFields: async ({ fields }) => {
+              formState = { ...formState, ...fields }
+              return { state: formState }
+            },
+          }
+        : undefined
     const userMessage = { role: "user", content: userContent, status: null } as AgentMessage
     const session: PublicStreamingSessionProxy = {
       id: traceId,
       traceId,
       organizationId: connectScope.organizationId,
       messages: [userMessage],
-      // No session row: nothing for a form to attach to, so no fillForm tool.
       persistsForms: false,
     }
 
@@ -56,6 +71,7 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope: { agent, agentSettings, session, connectScope },
         includeSessionMetadataTools: false,
+        conversationFormStore,
         onToolExecute: (toolExecution) => {
           this.logger.log(
             `Tool "${toolExecution.toolName}" executed during single-turn run (trace ${traceId})`,
@@ -79,7 +95,7 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       output += citations.flush()
       // Same post-turn step as Studio (sources only: no session to title).
       await classifyTurn({ answerText: output })
-      return { output, traceId }
+      return { output, traceId, formState }
     } finally {
       await mcpClose?.()
     }

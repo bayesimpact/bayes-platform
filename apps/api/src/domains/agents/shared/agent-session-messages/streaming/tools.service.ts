@@ -42,7 +42,7 @@ import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming
 import { sessionPersistsForms } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { concludeHandoffInstruction, concludeHandoffTool } from "./tools/conclude-handoff.tool"
-import { fillFormTool } from "./tools/fill-form.tool"
+import { type ConversationFormStore, fillFormTool } from "./tools/fill-form.tool"
 import { handoffTranscriptWindow, runFormConsolidation } from "./tools/form-consolidation"
 import type { HandoffTurnState } from "./tools/handoff.tool"
 import {
@@ -95,6 +95,8 @@ type BuildToolsParams = {
   includeSubAgentTools?: boolean
   /** Overrides where stateful tools persist (public sessions). */
   sessionState?: SessionStateTarget
+  /** The form of an evaluation run, which has no persisted session. */
+  conversationFormStore?: ConversationFormStore
 }
 
 /**
@@ -140,6 +142,7 @@ export class ToolsService {
     includeSessionMetadataTools = true,
     includeSubAgentTools = true,
     sessionState,
+    conversationFormStore,
   }: BuildToolsParams): Promise<BuiltTools> {
     const { agent } = agentSessionScope
     const mcp = await this.buildMcpTools({
@@ -159,6 +162,7 @@ export class ToolsService {
           buildLLMConfig,
           onExecute,
           sessionState,
+          conversationFormStore,
         })
 
       default:
@@ -405,6 +409,7 @@ export class ToolsService {
     buildLLMConfig,
     onExecute,
     sessionState,
+    conversationFormStore,
   }: {
     agentSessionScope: AgentSessionScope
     includeSessionMetadataTools: boolean
@@ -414,14 +419,14 @@ export class ToolsService {
     buildLLMConfig: (params: BuildLLMConfigParams) => LLMConfig
     onExecute: OnExecute
     sessionState?: SessionStateTarget
+    conversationFormStore?: ConversationFormStore
   }): Promise<BuiltTools> {
     const { agent, agentSettings, connectScope, session } = agentSessionScope
-    // fillForm needs a session row for its form to attach to: evaluation runs
-    // have none and get no fillForm tool.
+    // A run supplies its own store; Studio and public sessions store conversation forms.
     const hasFillFormTool =
       agentSettings.fillFormEnabled &&
       agentSettings.outputJsonSchema != null &&
-      sessionPersistsForms(session)
+      (conversationFormStore !== undefined || sessionPersistsForms(session))
     const [
       hasSourcesTool,
       memoryEnabled,
@@ -561,6 +566,7 @@ export class ToolsService {
       session,
       handoff,
       ownFormSchema: hasFillFormTool ? agentSettings.outputJsonSchema : null,
+      conversationFormStore,
     })
     const memory = memoryOwner
       ? await this.buildMemoryContext({ connectScope, owner: memoryOwner })
@@ -680,7 +686,7 @@ export class ToolsService {
         ? {
             [ToolName.FillForm]: fillFormTool({
               agentSessionScope,
-              conversationFormStore: this.conversationFormsService,
+              conversationFormStore: conversationFormStore ?? this.conversationFormsService,
               onExecute,
             }),
           }
@@ -837,6 +843,7 @@ export class ToolsService {
     session,
     handoff,
     ownFormSchema,
+    conversationFormStore,
   }: {
     connectScope: RequiredConnectScope
     agent: Agent
@@ -844,20 +851,29 @@ export class ToolsService {
     handoff: AgentSessionScope["handoff"]
     /** The agent's form definition when it has the fillForm tool in this session. */
     ownFormSchema: AgentSettings["outputJsonSchema"] | null
+    conversationFormStore?: ConversationFormStore
   }): Promise<string[]> {
-    if (!sessionPersistsForms(session)) return []
-    const forms = await this.conversationFormsService.listForSession({
-      connectScope,
-      sessionId: session.id,
-      withAgent: true,
-    })
+    if (!sessionPersistsForms(session) && !conversationFormStore) return []
+    const forms = sessionPersistsForms(session)
+      ? await this.conversationFormsService.listForSession({
+          connectScope,
+          sessionId: session.id,
+          withAgent: true,
+        })
+      : []
 
     // The agent's own form: what it recorded and what is still empty. The
     // transcript shows the answers but not the tool calls, so this is the
     // only way the model knows what it saved.
     const ownSections: string[] = []
     if (ownFormSchema) {
-      const ownForm = forms.find((form) => form.agentId === agent.id)
+      const ownForm = conversationFormStore
+        ? await conversationFormStore.findOne({
+            connectScope,
+            sessionId: session.id,
+            agentId: agent.id,
+          })
+        : forms.find((form) => form.agentId === agent.id)
       const filled = ownForm?.state ?? {}
       const fieldNames = Object.keys(outputJsonSchemaSchema.parse(ownFormSchema).properties ?? {})
       const missingFields = fieldNames.filter(

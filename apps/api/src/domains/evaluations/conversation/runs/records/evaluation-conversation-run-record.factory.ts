@@ -42,6 +42,7 @@ export const evaluationConversationRunRecordFactory = EvaluationConversationRunR
       expectedOutput:
         params.expectedOutput || transientParams.evaluationConversationDatasetRecord.expectedOutput,
       output: params.output || null,
+      formState: params.formState ?? null,
       score: params.score ?? null,
       errorDetails: params.errorDetails || null,
       traceId: params.traceId || null,
