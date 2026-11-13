@@ -26,6 +26,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Review campaigns: the full report opens inside the campaign, and leaving it returns to the campaign.
 - Extraction agents: the edit page shows the version history and save actions once.
 - Agent settings: a direct link to an agent's settings or extraction playground opens the page without an error.
+- CSV extraction: a CSV with many columns scrolls inside its results table instead of stretching the page.
 - Extraction evaluations: each record of a run shows the status of every scored field with the field's name.
 
 ### Security
