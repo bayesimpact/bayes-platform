@@ -1,5 +1,5 @@
-# The dev environment of one git worktree: web app, Desk, API, workers, web-embed, help site,
-# pdf-converter, the four Storybooks, Grafana, a sign-in (oidc-picker), a Redis and two
+# The dev environment of one git worktree: web app, Desk, Evaluation, API, workers, web-embed, help
+# site, pdf-converter, the five Storybooks, Grafana, a sign-in (oidc-picker), a Redis and two
 # databases on the shared Postgres. The worktree tooling writes infra/worktree/.env
 # (COMPOSE_PROJECT_NAME=wt-<name> and the WT_* values below), then runs `docker compose up -d`
 # with this file.
@@ -48,6 +48,7 @@ x-node-volumes: &node-volumes
   - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
   - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
   - { type: volume, source: nm-desk, target: "${WT_PATH}/apps/desk/node_modules" }
+  - { type: volume, source: nm-eval, target: "${WT_PATH}/apps/eval/node_modules" }
   - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
   - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
   - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -174,6 +175,7 @@ services:
       - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
       - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
       - { type: volume, source: nm-desk, target: "${WT_PATH}/apps/desk/node_modules" }
+      - { type: volume, source: nm-eval, target: "${WT_PATH}/apps/eval/node_modules" }
       - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
       - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
       - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -412,6 +414,38 @@ services:
       - traefik.http.middlewares.wt-${WT_SLUG}-desk-slash.redirectregex.replacement=$${1}/app/
       - traefik.http.services.wt-${WT_SLUG}-desk.loadbalancer.server.port=5177
 
+  # Evaluation (apps/eval) on the environment's host, under /eval, as the Desk is under /app: its
+  # router wins over the web app's. /eval redirects to /eval/, the Vite base.
+  eval:
+    <<: *node
+    profiles: [eval]
+    working_dir: ${WT_PATH}/apps/eval
+    networks: [default, shared]
+    environment:
+      <<: *node-env
+      VITE_OIDC_AUTHORITY: ${WT_AUTH_ISSUER}
+      VITE_OIDC_CLIENT_ID: platform-web
+      VITE_OIDC_AUDIENCE: ""
+      VITE_OIDC_AUTHORIZATION_PARAMS: ""
+    depends_on: *after-init
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--strictPort"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5179/eval/').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+    labels:
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
+      - dev.worktree.service=eval
+      - dev.worktree.link.eval=${WT_ORIGIN}/eval/
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-eval.rule=(Host(`${WT_SLUG}.${WT_DOMAIN}`) || Host(`${WT_SLUG}.connect.localhost`)) && PathRegexp(`^/eval(/|$$)`)
+      - traefik.http.routers.wt-${WT_SLUG}-eval.priority=50
+      - traefik.http.routers.wt-${WT_SLUG}-eval.middlewares=wt-${WT_SLUG}-eval-slash,dev-starting@docker
+      - traefik.http.middlewares.wt-${WT_SLUG}-eval-slash.redirectregex.regex=^(https?://[^/]+)/eval$$
+      - traefik.http.middlewares.wt-${WT_SLUG}-eval-slash.redirectregex.replacement=$${1}/eval/
+      - traefik.http.services.wt-${WT_SLUG}-eval.loadbalancer.server.port=5179
+
   embed:
     <<: *node
     profiles: [embed]
@@ -560,6 +594,30 @@ services:
       - traefik.http.routers.wt-${WT_SLUG}-storybook-desk.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-storybook-desk.loadbalancer.server.port=${WT_PUBLIC_PORT}
 
+  storybook-eval:
+    <<: *node
+    profiles: [storybook-eval]
+    working_dir: ${WT_PATH}/apps/eval
+    networks: [default, shared]
+    environment: *tools-env
+    depends_on: *after-init
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    command: ["npm", "run", "storybook", "--", "-p", "${WT_PUBLIC_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_PUBLIC_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+    labels:
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
+      - dev.worktree.service=storybook-eval
+      - dev.worktree.link.eval-storybook=${WT_SCHEME}://${WT_SLUG}-eval-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}${WT_PORT_SUFFIX}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-eval.rule=Host(`${WT_SLUG}-eval-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}`) || Host(`${WT_SLUG}-eval-storybook.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-eval.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-storybook-eval.loadbalancer.server.port=${WT_PUBLIC_PORT}
+
   # Bull Board on this environment's Redis, no login (infra/bull-board/README.md).
   bull-board:
     profiles: [bull-board]
@@ -680,6 +738,7 @@ volumes:
   nm-root: {}
   nm-api: {}
   nm-desk: {}
+  nm-eval: {}
   nm-help: {}
   nm-web: {}
   nm-web-embed: {}
