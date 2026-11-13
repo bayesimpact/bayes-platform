@@ -21,16 +21,16 @@ export function useSendMessage(conversation: ConversationParamsDto) {
   })
 }
 
-/** Reports a problem with one of the agent's replies. */
+/** Gives a thumbs-up to one of the agent's replies, or reports a problem with it. */
 export function useSendFeedback(conversation: ConversationParamsDto) {
   return useMutation({
     mutationFn: ({
       agentMessageId,
-      content,
-    }: MessageFeedbackInputDto & Pick<MessageParamsDto, "agentMessageId">) =>
+      feedback,
+    }: Pick<MessageParamsDto, "agentMessageId"> & { feedback: MessageFeedbackInputDto }) =>
       apiRequest(DeskConversationsRoutes.createMessageFeedback, {
         params: { ...conversation, agentMessageId },
-        body: { content },
+        body: feedback,
       }),
   })
 }

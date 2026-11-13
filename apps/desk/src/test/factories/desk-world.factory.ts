@@ -10,6 +10,8 @@ import type {
   InvitationOutputDto,
   McpAppHtmlOutputDto,
   MemoryOutputDto,
+  MessageFeedbackInputDto,
+  MessageParamsDto,
   MyOrganizationOutputDto,
   MyProjectOutputDto,
   ProjectAgentOutputDto,
@@ -50,8 +52,8 @@ export type DeskWorld = {
   csvExtractionRuns: Record<string, CsvExtractionRunDetailOutputDto[]>
   /** The messages of each conversation, oldest first. */
   messages: Record<string, ConversationMessageOutputDto[]>
-  /** The problems reported on the agents' replies. */
-  feedbacks: { agentMessageId: string; content: string }[]
+  /** The thumbs-up and the problems reported on the agents' replies. */
+  feedbacks: (Pick<MessageParamsDto, "agentMessageId"> & MessageFeedbackInputDto)[]
   /** What each agent remembers about the person. */
   memories: Record<string, MemoryOutputDto[]>
   /** The person's pending invitations, with the agent each one gives access to once accepted. */

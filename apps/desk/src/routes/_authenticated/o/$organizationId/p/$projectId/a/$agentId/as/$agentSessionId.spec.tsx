@@ -633,7 +633,24 @@ describe("a conversation", () => {
 
     expect(await screen.findByText("Thank you. Your report was sent.")).toBeInTheDocument()
     const [, reply] = savedMessagesOf(world).filter((message) => message.role === "assistant")
-    expect(world.feedbacks).toEqual([{ agentMessageId: reply?.id, content: "The table is wrong." }])
+    expect(world.feedbacks).toEqual([
+      { agentMessageId: reply?.id, rating: "negative", content: "The table is wrong." },
+    ])
+  })
+
+  it("gives a thumbs-up to a reply in one click", async () => {
+    const world = serveDeskWorld()
+    renderApp(conversationUrlOf(world))
+
+    // The greeting's button, then the reply's.
+    const [, goodReplyButton] = await screen.findAllByRole("button", { name: "Good reply" })
+    await userEvent.click(required(goodReplyButton, "the reply's thumbs-up"))
+
+    expect(await screen.findByText("Thank you for your feedback.")).toBeInTheDocument()
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    expect(goodReplyButton).toHaveAttribute("aria-pressed", "true")
+    const [, reply] = savedMessagesOf(world).filter((message) => message.role === "assistant")
+    expect(world.feedbacks).toEqual([{ agentMessageId: reply?.id, rating: "positive" }])
   })
 
   it("is not found when its id in the URL is not an id, without asking the API", async () => {

@@ -1,4 +1,5 @@
 import { Item, ItemContent, ItemFooter, ItemHeader, ItemTitle } from "@caseai-connect/ui/shad/item"
+import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
@@ -17,6 +18,7 @@ export function FeedbackItem({
   const { t } = useTranslation("agentMessageFeedback")
   const { agentSessionId, agentMessageId } = feedback
   const creationDate = buildDate(feedback.createdAt)
+  const RatingIcon = feedback.rating === "positive" ? ThumbsUpIcon : ThumbsDownIcon
   return (
     <div className="py-6 flex flex-col gap-4">
       <Item variant="outline">
@@ -35,9 +37,15 @@ export function FeedbackItem({
 
       <Item variant="muted">
         <ItemHeader>
-          <ItemTitle className="text-muted-foreground">{creationDate}</ItemTitle>
+          <ItemTitle className="text-muted-foreground">
+            <RatingIcon className="size-4" />
+            {t(`props.rating.${feedback.rating}`)} • {creationDate}
+          </ItemTitle>
         </ItemHeader>
-        <ItemContent className="text-base">{feedback.content}</ItemContent>
+        {/* A positive feedback usually comes with no text. */}
+        {feedback.content !== "" && (
+          <ItemContent className="text-base">{feedback.content}</ItemContent>
+        )}
         <ItemFooter>
           <TraceUrlOpener
             traceUrl={feedback.traceUrl}

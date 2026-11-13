@@ -11,6 +11,7 @@ import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad
 import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
 import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
+import { cn } from "@caseai-connect/ui/utils"
 import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -19,7 +20,45 @@ import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/
 import { useAppDispatch } from "@/common/store/hooks"
 import { createAgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.thunks"
 
+/** A thumbs-up that rates the reply at once, and a thumbs-down that opens the report form. */
 export function FeedbackCreator({ message }: { message: AgentSessionMessage }) {
+  return (
+    <>
+      <PositiveFeedbackButton agentMessageId={message.id} />
+      <NegativeFeedbackDialog message={message} />
+    </>
+  )
+}
+
+function PositiveFeedbackButton({ agentMessageId }: { agentMessageId: string }) {
+  const { t } = useTranslation("agentMessageFeedback", { keyPrefix: "create" })
+  const dispatch = useAppDispatch()
+  const [isSent, setIsSent] = useState(false)
+  const handleClick = async () => {
+    setIsSent(true)
+    const result = await dispatch(
+      createAgentMessageFeedback({ agentMessageId, rating: "positive" }),
+    )
+    // The failure toast comes from the middleware; the button is offered again.
+    if (createAgentMessageFeedback.rejected.match(result)) setIsSent(false)
+  }
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      className="text-muted-foreground"
+      aria-label={t("positive")}
+      title={t("positive")}
+      aria-pressed={isSent}
+      disabled={isSent}
+      onClick={() => void handleClick()}
+    >
+      <ThumbsUpIcon className={cn("size-3.5", isSent && "fill-current")} />
+    </Button>
+  )
+}
+
+function NegativeFeedbackDialog({ message }: { message: AgentSessionMessage }) {
   const { t } = useTranslation("agentMessageFeedback", { keyPrefix: "create" })
   const [open, setOpen] = useState(false)
   const handleSuccess = () => {
@@ -28,8 +67,14 @@ export function FeedbackCreator({ message }: { message: AgentSessionMessage }) {
   return (
     <Dialog modal open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
-          <ThumbsUpIcon className="size-3.5" /> <ThumbsDownIcon className="size-3.5" />
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-muted-foreground"
+          aria-label={t("negative")}
+          title={t("negative")}
+        >
+          <ThumbsDownIcon className="size-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -66,7 +111,7 @@ function CreateForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSuccess()
-    dispatch(createAgentMessageFeedback({ agentMessageId, content: value }))
+    dispatch(createAgentMessageFeedback({ agentMessageId, rating: "negative", content: value }))
   }
   return (
     <div className="flex flex-col gap-2">

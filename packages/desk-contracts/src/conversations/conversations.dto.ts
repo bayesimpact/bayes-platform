@@ -140,10 +140,24 @@ export type MessageParamsDto = z.output<typeof messageParamsSchema>
 /** The longest report a person can write on a reply. */
 export const MESSAGE_FEEDBACK_MAX_LENGTH = 2000
 
-/** A problem the person reports on one of the agent's replies. */
-export const messageFeedbackInputSchema = z.strictObject({
+/** A thumbs-up on one of the agent's replies, or a problem the person reports with it. */
+export const messageFeedbackRatingSchema = z.enum(["positive", "negative"])
+
+/** A problem the person reports on one of the agent's replies, as the report form writes it. */
+export const messageReportInputSchema = z.strictObject({
   content: z.string().trim().min(1).max(MESSAGE_FEEDBACK_MAX_LENGTH),
 })
+
+/** What the person says of one of the agent's replies. A thumbs-up needs no text, a report does. */
+export const messageFeedbackInputSchema = z
+  .strictObject({
+    rating: messageFeedbackRatingSchema,
+    content: z.string().trim().max(MESSAGE_FEEDBACK_MAX_LENGTH).optional(),
+  })
+  .refine((feedback) => feedback.rating === "positive" || Boolean(feedback.content), {
+    path: ["content"],
+    message: "A report needs a text",
+  })
 
 export type MessageFeedbackInputDto = z.input<typeof messageFeedbackInputSchema>
 

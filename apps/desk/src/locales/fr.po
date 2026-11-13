@@ -497,6 +497,11 @@ msgstr "conditions générales de service"
 msgid "Give the agent one file at a time."
 msgstr "Donnez un seul fichier à la fois à l’agent."
 
+#. The thumbs-up button under a reply
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Good reply"
+msgstr "Bonne réponse"
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Handing the conversation back"
 msgstr "Retour à l'agent précédent"
@@ -1052,6 +1057,10 @@ msgstr "Texte"
 msgid "Text read in the document"
 msgstr "Texte lu dans le document"
 
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Thank you for your feedback."
+msgstr "Merci pour votre retour."
+
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Thank you. Your report was sent."
 msgstr "Merci, votre signalement a été envoyé."
@@ -1437,6 +1446,10 @@ msgstr "Votre réponse n'a pas pu être enregistrée. Réessayez."
 #: src/features/extraction/components/RecentDocuments.tsx
 msgid "Your documents"
 msgstr "Vos documents"
+
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Your feedback could not be sent. Try again."
+msgstr "Votre retour n’a pas pu être envoyé. Réessayez."
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider did not share your email address with the Desk."

@@ -13,6 +13,7 @@ import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } fro
 import type { OpenedResource } from "../resource-media"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { FollowUpQuestions } from "./FollowUpQuestions"
+import { GoodReplyButton } from "./GoodReplyButton"
 import { McpAppsList } from "./McpAppsList"
 import { MessageActions } from "./MessageActions"
 import { ReplyError } from "./ReplyError"
@@ -124,7 +125,10 @@ export function AssistantMessageView({
             <CopyButton text={text} label={t`Copy the reply`} />
             {/* A local reply gets its id once the persisted messages replace it. */}
             {isLocalMessageId(message.id) ? null : (
-              <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+              <>
+                <GoodReplyButton conversation={conversation} agentMessageId={message.id} />
+                <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+              </>
             )}
             {message.createdAt !== null ? (
               <RelativeTime

@@ -14,7 +14,7 @@ export default {
     )
     return response.data.data.feedbacks.map(toFeedback)
   },
-  createOne: async ({ organizationId, projectId, agentMessageId, content }) => {
+  createOne: async ({ organizationId, projectId, agentMessageId, rating, content }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof AgentMessageFeedbackRoutes.createOne.response>(
       AgentMessageFeedbackRoutes.createOne.getPath({
@@ -22,7 +22,9 @@ export default {
         projectId,
         agentMessageId,
       }),
-      { payload: { content } } satisfies typeof AgentMessageFeedbackRoutes.createOne.request,
+      {
+        payload: { rating, content },
+      } satisfies typeof AgentMessageFeedbackRoutes.createOne.request,
     )
     return response.data.data
   },
@@ -39,6 +41,7 @@ function toFeedback(dto: AgentMessageFeedbackDto): AgentMessageFeedback {
     agentMessageContent: dto.agentMessageContent,
     traceUrl: dto.traceUrl,
     userId: dto.userId,
+    rating: dto.rating,
     content: dto.content,
     createdAt: dto.createdAt,
   }

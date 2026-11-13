@@ -10,12 +10,18 @@
       "createdAt": "Créé le",
       "placeholders": {
         "content": "Décrivez le problème que vous avez rencontré avec ce message..."
+      },
+      "rating": {
+        "positive": "Bonne réponse",
+        "negative": "Problème signalé"
       }
     },
     "create": {
       "button": "Aider à améliorer",
       "title": "Signaler un problème avec ce message",
-      "description": "Merci de fournir des détails sur le problème que vous avez rencontré avec ce message. Votre retour nous aidera à améliorer nos agents."
+      "description": "Merci de fournir des détails sur le problème que vous avez rencontré avec ce message. Votre retour nous aidera à améliorer nos agents.",
+      "positive": "Bonne réponse",
+      "negative": "Signaler un problème"
     },
     "list": {
       "description": "Gérez les retours sur les messages de l'agent.",

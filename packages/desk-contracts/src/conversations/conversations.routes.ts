@@ -65,7 +65,7 @@ export const DeskConversationsRoutes = {
     params: attachmentParamsSchema,
     response: temporaryUrlOutputSchema,
   }),
-  /** Reports a problem with one of the agent's replies. */
+  /** Gives a thumbs-up to one of the agent's replies, or reports a problem with it. */
   createMessageFeedback: defineSchemaRoute({
     method: "post",
     path: `${PROJECT_PATH}/agent-messages/:agentMessageId/feedbacks`,

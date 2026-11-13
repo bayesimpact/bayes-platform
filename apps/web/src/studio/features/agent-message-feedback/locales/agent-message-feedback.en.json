@@ -10,12 +10,18 @@
       "createdAt": "Created At",
       "placeholders": {
         "content": "Describe the issue you encountered with this message..."
+      },
+      "rating": {
+        "positive": "Good answer",
+        "negative": "Reported problem"
       }
     },
     "create": {
       "button": "Report",
       "title": "Report a problem with this message",
-      "description": "Please provide details about the issue you encountered with this message. Your feedback will help us improve our agents."
+      "description": "Please provide details about the issue you encountered with this message. Your feedback will help us improve our agents.",
+      "positive": "Good answer",
+      "negative": "Report a problem"
     },
     "list": {
       "description": "Manage feedback on agent messages.",

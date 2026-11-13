@@ -36,6 +36,7 @@ export const agentMessageFeedbackFactory = AgentMessageFeedbackFactory.define(
       agentMessageContent: params.agentMessageContent ?? faker.lorem.paragraph(),
       traceUrl: params.traceUrl ?? faker.internet.url(),
       userId: params.userId ?? faker.string.uuid(),
+      rating: params.rating ?? "negative",
       content: params.content ?? faker.lorem.sentence(),
       createdAt: params.createdAt ?? faker.date.recent().getTime(),
     }
