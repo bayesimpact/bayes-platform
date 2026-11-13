@@ -24,6 +24,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Review campaigns: testers can scroll their campaign pages and always reach the end-of-phase survey.
 - Review campaigns: the full report of a campaign loads when you open it from the studio.
 - Review campaigns: the full report opens inside the campaign, and leaving it returns to the campaign.
+- CSV extraction: a CSV with many columns scrolls inside its results table instead of stretching the page.
 
 ### Security
 

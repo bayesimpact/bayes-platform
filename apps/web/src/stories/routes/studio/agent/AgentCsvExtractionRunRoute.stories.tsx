@@ -27,6 +27,8 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 type StoryArgs = StudioStoryArgs & {
   runStatus: AgentCsvExtractionRunStatus
   withRecords?: boolean
+  /** How many input columns the CSV has. A wide CSV checks that the table scrolls in its box. */
+  inputColumnCount?: number
 }
 
 const RUN_STATUSES: AgentCsvExtractionRunStatus[] = [
@@ -38,6 +40,27 @@ const RUN_STATUSES: AgentCsvExtractionRunStatus[] = [
 ]
 
 const RECORD_TOTAL = 3
+
+const MANY_INPUT_COLUMNS = 30
+
+/** A CSV schema of neutral input columns: `column_1`, `column_2` and so on. */
+function buildColumnSchema(inputColumnCount: number): AgentCsvExtractionRun["columnSchema"] {
+  return Object.fromEntries(
+    Array.from({ length: inputColumnCount }, (_, columnIndex) => {
+      const columnName = `column_${columnIndex + 1}`
+      return [
+        columnName,
+        {
+          id: columnName,
+          originalName: columnName,
+          finalName: columnName,
+          role: "input" as const,
+          index: columnIndex,
+        },
+      ]
+    }),
+  )
+}
 
 function buildSummary(runStatus: AgentCsvExtractionRunStatus) {
   if (runStatus === "pending" || runStatus === "running") {
@@ -113,38 +136,44 @@ function buildMockCsvRunsService(
   }
 }
 
-const decorator = buildDecorator<StoryArgs>(({ runStatus, withRecords, ...args }) => {
-  const { baseSeeds, project, agents } = buildStudioData(args)
-  const [firstAgent, ...restAgents] = agents
-  const agent = agentFactory.transient({ project }).build({ ...firstAgent, type: "extraction" })
-  const run = agentCsvExtractionRunFactory
-    .transient({ agent })
-    .build({ status: runStatus, summary: buildSummary(runStatus), agentRevision: 1 })
-  const records = withRecords ? buildRunRecords(run, runStatus) : []
-  // The records table loads its first page itself, from the mocked service.
-  const paginatedRecords = {
-    records,
-    total: records.length,
-    page: 0,
-    limit: DEFAULT_PAGE_SIZE,
-  }
-  const versions = [agentSettingsFactory.transient({ agent }).build({ revision: 1 })]
+const decorator = buildDecorator<StoryArgs>(
+  ({ runStatus, withRecords, inputColumnCount, ...args }) => {
+    const { baseSeeds, project, agents } = buildStudioData(args)
+    const [firstAgent, ...restAgents] = agents
+    const agent = agentFactory.transient({ project }).build({ ...firstAgent, type: "extraction" })
+    const run = agentCsvExtractionRunFactory.transient({ agent }).build({
+      status: runStatus,
+      summary: buildSummary(runStatus),
+      agentRevision: 1,
+      // Without a count, the factory's default schema applies.
+      ...(inputColumnCount ? { columnSchema: buildColumnSchema(inputColumnCount) } : {}),
+    })
+    const records = withRecords ? buildRunRecords(run, runStatus) : []
+    // The records table loads its first page itself, from the mocked service.
+    const paginatedRecords = {
+      records,
+      total: records.length,
+      page: 0,
+      limit: DEFAULT_PAGE_SIZE,
+    }
+    const versions = [agentSettingsFactory.transient({ agent }).build({ revision: 1 })]
 
-  return {
-    state: mergeSeeds(
-      baseSeeds,
-      seed.agents([...restAgents, agent], { currentId: agent.id }),
-      seed.extractionAgentSessions({ [agent.id]: { csvSessions: [run], others: [] } }),
-      // The parent extraction route waits on the agent's documents.
-      seed.extractionAgentSessionDocuments([]),
-      seed.currentCsvRunId(run.id),
-      seed.studio.agentHistory({ agentId: agent.id, versions }),
-    ),
-    services: {
-      agentCsvExtractionRuns: buildMockCsvRunsService(run, paginatedRecords),
-    },
-  }
-})
+    return {
+      state: mergeSeeds(
+        baseSeeds,
+        seed.agents([...restAgents, agent], { currentId: agent.id }),
+        seed.extractionAgentSessions({ [agent.id]: { csvSessions: [run], others: [] } }),
+        // The parent extraction route waits on the agent's documents.
+        seed.extractionAgentSessionDocuments([]),
+        seed.currentCsvRunId(run.id),
+        seed.studio.agentHistory({ agentId: agent.id, versions }),
+      ),
+      services: {
+        agentCsvExtractionRuns: buildMockCsvRunsService(run, paginatedRecords),
+      },
+    }
+  },
+)
 
 const meta = {
   title: "routes/studio/project/agent/csvExtractionRun",
@@ -154,6 +183,7 @@ const meta = {
     withAgents: { control: undefined },
     runStatus: { control: "select", options: RUN_STATUSES },
     withRecords: { control: "boolean" },
+    inputColumnCount: { control: { type: "number", min: 1, max: 100 } },
   },
   args: {
     ...studioStoryArgs,
@@ -179,5 +209,11 @@ export const Completed: Story = {
 
 export const Failed: Story = {
   args: { runStatus: "failed" },
+  decorators: [decorator],
+}
+
+/** A CSV with many columns: the table scrolls sideways in its box, the page keeps its width. */
+export const ManyColumns: Story = {
+  args: { runStatus: "completed", inputColumnCount: MANY_INPUT_COLUMNS },
   decorators: [decorator],
 }
