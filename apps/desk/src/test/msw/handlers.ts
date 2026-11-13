@@ -155,7 +155,7 @@ function conversationHandlers(world: DeskWorld) {
       return { success: true }
     }),
     mockRoute(DeskConversationsRoutes.createMessageFeedback, ({ params, payload }) => {
-      world.feedbacks.push({ agentMessageId: params.agentMessageId, content: payload.content })
+      world.feedbacks.push({ agentMessageId: params.agentMessageId, ...payload })
       return { success: true }
     }),
     mockRoute(DeskDocumentsRoutes.getIsPublic, () => ({ isPublicDocument: true })),

@@ -11,15 +11,26 @@ import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad
 import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
 import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
+import { ThumbsDownIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { useAppDispatch } from "@/common/store/hooks"
 import { createAgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.thunks"
+import { PositiveFeedbackButton } from "./PositiveFeedbackButton"
 
+/** A thumbs-up that rates the reply at once, and a thumbs-down that opens the report form. */
 export function FeedbackCreator({ message }: { message: AgentSessionMessage }) {
+  return (
+    <>
+      <PositiveFeedbackButton agentMessageId={message.id} />
+      <NegativeFeedbackDialog message={message} />
+    </>
+  )
+}
+
+function NegativeFeedbackDialog({ message }: { message: AgentSessionMessage }) {
   const { t } = useTranslation("agentMessageFeedback", { keyPrefix: "create" })
   const [open, setOpen] = useState(false)
   const handleSuccess = () => {
@@ -28,8 +39,14 @@ export function FeedbackCreator({ message }: { message: AgentSessionMessage }) {
   return (
     <Dialog modal open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
-          <ThumbsUpIcon className="size-3.5" /> <ThumbsDownIcon className="size-3.5" />
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-muted-foreground"
+          aria-label={t("negative")}
+          title={t("negative")}
+        >
+          <ThumbsDownIcon className="size-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -66,7 +83,7 @@ function CreateForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSuccess()
-    dispatch(createAgentMessageFeedback({ agentMessageId, content: value }))
+    dispatch(createAgentMessageFeedback({ agentMessageId, rating: "negative", content: value }))
   }
   return (
     <div className="flex flex-col gap-2">

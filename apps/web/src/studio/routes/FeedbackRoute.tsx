@@ -30,7 +30,7 @@ export function FeedbackRoute() {
   const { abilities } = useAbility()
 
   useMount({ actions: agentMessageFeedbackActions, refreshOn: [agentId] })
-  // The datasets a reported answer can be saved into as a test case. Left out of the AsyncRoute:
+  // The datasets a rated answer can be saved into as a test case. Left out of the AsyncRoute:
   // the feedback list does not wait for them.
   useMount({
     actions: evaluationConversationDatasetsActions,
@@ -54,7 +54,7 @@ function WithData() {
   const me = useAppSelector(selectMe)
   const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
   // Saving a test case reads the conversation behind the answer: one's own, or any of the agent's
-  // for a safety reviewer. A report is usually left on the reporter's own conversation.
+  // for a safety reviewer. A feedback is usually left on its author's own conversation.
   const canReadConversation = (feedback: AgentMessageFeedback) =>
     canReviewConversations || feedback.userId === me?.value?.id
 
@@ -90,7 +90,8 @@ function WithData() {
                       source={{
                         agentMessageId: feedback.agentMessageId,
                         answer: feedback.agentMessageContent,
-                        feedback: feedback.content,
+                        // A thumbs-up is no complaint: the judge step would start it as "bad".
+                        feedback: feedback.rating === "negative" ? feedback.content : null,
                       }}
                     />
                   )

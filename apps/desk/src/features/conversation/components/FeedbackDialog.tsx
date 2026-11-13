@@ -1,11 +1,8 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
-import {
-  MESSAGE_FEEDBACK_MAX_LENGTH,
-  messageFeedbackInputSchema,
-} from "@caseai-connect/desk-contracts"
+import { MESSAGE_FEEDBACK_MAX_LENGTH } from "@caseai-connect/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { FlagIcon } from "lucide-react"
+import { ThumbsDownIcon } from "lucide-react"
 import { useId, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -24,6 +21,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSendFeedback } from "../api/mutations"
+import { reportFormSchema } from "../schemas"
 
 export type FeedbackDialogProps = {
   conversation: ConversationParamsDto
@@ -37,14 +35,14 @@ export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogP
   const [isOpen, setIsOpen] = useState(false)
   const sendFeedback = useSendFeedback(conversation)
   const form = useForm({
-    resolver: zodResolver(messageFeedbackInputSchema),
+    resolver: zodResolver(reportFormSchema),
     defaultValues: { content: "" },
   })
   const maxLength = i18n.number(MESSAGE_FEEDBACK_MAX_LENGTH)
 
   const handleSubmit = form.handleSubmit((values) =>
     sendFeedback.mutate(
-      { agentMessageId, content: values.content },
+      { agentMessageId, feedback: { rating: "negative", content: values.content } },
       {
         onSuccess: () => {
           toast.success(t`Thank you. Your report was sent.`)
@@ -66,7 +64,7 @@ export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogP
             />
           }
         >
-          <FlagIcon aria-hidden className="size-3.5" />
+          <ThumbsDownIcon aria-hidden className="size-3.5" />
         </TooltipTrigger>
         <TooltipContent>
           <Trans>Report a problem</Trans>

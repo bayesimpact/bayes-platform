@@ -84,7 +84,8 @@ describe("AgentMessageFeedbackRoutes.getAll", () => {
     const feedback2 = agentMessageFeedbackFactory
       .transient({ user, organization, project, agentMessage })
       .build({
-        content: "Feedback 2",
+        rating: "positive",
+        content: "",
       })
 
     await repositories.agentMessageFeedbackRepository.save([feedback1, feedback2])
@@ -123,8 +124,12 @@ describe("AgentMessageFeedbackRoutes.getAll", () => {
     expectResponse(response, 200)
     const { feedbacks } = response.body.data
     expect(feedbacks).toHaveLength(2)
-    expect(feedbacks.map((feedback) => feedback.content)).toContain("Feedback 1")
-    expect(feedbacks.map((feedback) => feedback.content)).toContain("Feedback 2")
+    expect(feedbacks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ rating: "negative", content: "Feedback 1" }),
+        expect.objectContaining({ rating: "positive", content: "" }),
+      ]),
+    )
     expect(feedbacks[0]).toHaveProperty("id")
     expect(feedbacks[0]).toHaveProperty("createdAt")
   })

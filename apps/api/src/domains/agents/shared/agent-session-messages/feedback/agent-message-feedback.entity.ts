@@ -1,3 +1,4 @@
+import type { AgentMessageFeedbackRating } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { ConnectEntity } from "@/common/entities/connect-entity"
@@ -43,6 +44,9 @@ export class AgentMessageFeedback extends Base4AllEntity {
   )
   @JoinColumn({ name: "user_id" })
   user!: Relation<User>
+
+  @Column({ type: "varchar", name: "rating", default: "negative" })
+  rating!: AgentMessageFeedbackRating
 
   @Column({ name: "content", nullable: false })
   content!: string

@@ -1,8 +1,11 @@
 import {
   type AgentMessageFeedbackDto,
   AgentMessageFeedbackRoutes,
+  createAgentMessageFeedbackSchema,
+  type RequestPayload,
 } from "@caseai-connect/api-contracts"
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
+import type { z } from "zod"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithProject,
@@ -10,6 +13,7 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
@@ -36,7 +40,8 @@ export class AgentMessageFeedbackController {
   async createOne(
     @Req() request: EndpointRequestWithProject,
     @Param("agentMessageId") agentMessageId: string,
-    @Body() { payload }: typeof AgentMessageFeedbackRoutes.createOne.request,
+    @Body(new ZodValidationPipe(createAgentMessageFeedbackSchema))
+    { payload }: RequestPayload<z.output<typeof createAgentMessageFeedbackSchema>>,
   ): Promise<typeof AgentMessageFeedbackRoutes.createOne.response> {
     const user = request.user
 
@@ -44,6 +49,7 @@ export class AgentMessageFeedbackController {
       connectScope: getRequiredConnectScope(request),
       userId: user.id,
       agentMessageId,
+      rating: payload.rating,
       content: payload.content,
     })
 
@@ -106,6 +112,7 @@ function toDto({
         agentMessageId: f.agentMessageId,
         agentMessageContent: agentMessage.content,
         userId: f.userId,
+        rating: f.rating,
         content: f.content,
         createdAt: f.createdAt.getTime(),
         traceUrl,
