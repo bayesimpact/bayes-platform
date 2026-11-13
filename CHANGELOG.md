@@ -28,6 +28,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent settings: a direct link to an agent's settings or extraction playground opens the page without an error.
 - CSV extraction: a CSV with many columns scrolls inside its results table instead of stretching the page.
 - Extraction evaluations: each record of a run shows the status of every scored field with the field's name.
+- (beta) MCP servers: a direct link to a project's MCP servers page opens the page without an error.
 
 ### Security
 
