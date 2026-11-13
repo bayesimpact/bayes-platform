@@ -25,6 +25,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Review campaigns: the full report of a campaign loads when you open it from the studio.
 - Review campaigns: the full report opens inside the campaign, and leaving it returns to the campaign.
 - Extraction agents: the edit page shows the version history and save actions once.
+- Extraction evaluations: each record of a run shows the status of every scored field with the field's name.
 
 ### Security
 
