@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
-import { useAppDispatch } from "@/common/store/hooks"
+import { AsyncRoute } from "@/common/routes/AsyncRoute"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { McpServersList } from "@/studio/features/mcp-servers/components/McpServersList"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
 import {
@@ -14,6 +15,15 @@ import {
 import { StudioRoutes } from "./helpers"
 
 export function McpServersRoute() {
+  const mcpServers = useAppSelector(selectMcpServersData)
+  return (
+    <AsyncRoute data={[mcpServers]}>
+      <WithData />
+    </AsyncRoute>
+  )
+}
+
+function WithData() {
   const mcpServers = useValue(selectMcpServersData)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
