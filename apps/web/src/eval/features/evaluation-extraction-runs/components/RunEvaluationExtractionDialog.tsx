@@ -124,7 +124,8 @@ export function RunEvaluationExtractionDialog({
           {t("evaluationExtractionRun:run")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      {/* Only the fields scroll: the title and the Run button stay in view. */}
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("evaluationExtractionRun:selectAgent")}</DialogTitle>
           <DialogDescription>
@@ -306,56 +307,63 @@ function RunEvaluationExtractionForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={handleRun} className="flex flex-col gap-4">
-        <AgentField control={control} agents={extractionAgents} onAgentChange={handleAgentChange} />
+      <form onSubmit={handleRun} className="flex min-h-0 flex-1 flex-col gap-4">
+        {/* The negative margins keep the field focus rings clear of the scroll edge. */}
+        <div className="-mx-6 -my-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-1">
+          <AgentField
+            control={control}
+            agents={extractionAgents}
+            onAgentChange={handleAgentChange}
+          />
 
-        {selectedAgentId &&
-          (ADS.isError(agentSettingsHistoryData) ? (
-            <p className="text-sm text-destructive">
-              {t("evaluationExtractionRun:agentSettingsUnavailable")}
-            </p>
-          ) : !history ? (
-            <Loader />
-          ) : (
-            <>
-              <AgentVersionField
-                control={control}
-                history={history}
-                effectiveRevision={effectiveRevision}
-              />
-
-              {agentOutputKeys.length > 0 ? (
-                <FormField
+          {selectedAgentId &&
+            (ADS.isError(agentSettingsHistoryData) ? (
+              <p className="text-sm text-destructive">
+                {t("evaluationExtractionRun:agentSettingsUnavailable")}
+              </p>
+            ) : !history ? (
+              <Loader />
+            ) : (
+              <>
+                <AgentVersionField
                   control={control}
-                  name="keyMapping"
-                  render={() => (
-                    <FormItem>
-                      <KeyMappingEditor
-                        agentOutputKeys={agentOutputKeys}
-                        targetColumns={targetColumns}
-                        keyMapping={keyMapping}
-                        onColumnChange={handleColumnChange}
-                        onModeChange={handleModeChange}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  history={history}
+                  effectiveRevision={effectiveRevision}
                 />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {t("evaluationExtractionRun:keyMapping.noOutputSchema")}
-                </p>
-              )}
 
-              <RunScopeSelector
-                recordCount={dataset.recordCount}
-                runScope={runScope}
-                limitedCount={limitedCount}
-                onRunScopeChange={(scope) => setValue("runScope", scope)}
-                onLimitedCountChange={handleLimitedCountChange}
-              />
-            </>
-          ))}
+                {agentOutputKeys.length > 0 ? (
+                  <FormField
+                    control={control}
+                    name="keyMapping"
+                    render={() => (
+                      <FormItem>
+                        <KeyMappingEditor
+                          agentOutputKeys={agentOutputKeys}
+                          targetColumns={targetColumns}
+                          keyMapping={keyMapping}
+                          onColumnChange={handleColumnChange}
+                          onModeChange={handleModeChange}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {t("evaluationExtractionRun:keyMapping.noOutputSchema")}
+                  </p>
+                )}
+
+                <RunScopeSelector
+                  recordCount={dataset.recordCount}
+                  runScope={runScope}
+                  limitedCount={limitedCount}
+                  onRunScopeChange={(scope) => setValue("runScope", scope)}
+                  onLimitedCountChange={handleLimitedCountChange}
+                />
+              </>
+            ))}
+        </div>
 
         <DialogFooter>
           <Button
