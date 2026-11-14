@@ -18,6 +18,12 @@ what a workspace sees of itself, served by the API with its permissions.
 | `sessions` | session, without its id | `organization_id`, `project_id`, `agent_id`, `channel`, `created_at`, `last_activity_at`, `purged_at`, `status` |
 | `messages` | message, as an anonymous event | `organization_id`, `project_id`, `agent_id`, `channel`, `role`, `status`, `created_at`, `started_at`, `completed_at`, `response_seconds`, `tool_call_count`, `has_attachment` |
 | `feedback` | user feedback on an answer | `organization_id`, `project_id`, `agent_id`, `created_at` |
+| `llm_usage` | LLM call, without its id or message id | `organization_id`, `project_id`, `agent_id`, `project_name`, `organization_name`, `model`, `provider`, `call_kind`, `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens`, `reasoning_tokens`, `created_at`, `cost` |
+
+`cost` is not stored: the view computes it from the price in effect when the call
+was made, in `llm_model_price`, one row per model, token kind and price period (the
+current price being the row with a null `valid_to`). A call with no price in range
+costs zero.
 
 `channel` is `public` (embed widget), `live` or `playground` (conversations in
 the app), `review_campaign_tester` (a tester's conversations in a review
