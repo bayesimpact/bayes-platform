@@ -172,6 +172,12 @@ export type LLMCallContext = (
    * "Turn #4 · classification" instead of a second bare "Turn #4".
    */
   spanLabel?: string
+  /**
+   * The assistant message the call belongs to, when there is one (the answer of
+   * a turn, or a sub-agent's message). Set so the token metering can attribute
+   * the usage to a stored message; null/absent for a standalone call.
+   */
+  agentMessageId?: string
 }
 
 export interface LLMProvider {

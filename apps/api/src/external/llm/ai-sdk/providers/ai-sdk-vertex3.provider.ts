@@ -1,6 +1,6 @@
 import { createVertex } from "@ai-sdk/google-vertex"
 import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
-import { Injectable } from "@nestjs/common"
+import { Inject, Injectable, Optional } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { z } from "zod"
 import type {
@@ -17,6 +17,7 @@ import {
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
+import { LlmUsageMeter } from "@/external/llm/usage/llm-usage-meter"
 
 type VertexLocation = "eu" | "global"
 
@@ -145,8 +146,8 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
   >
   private readonly vertexProject: string
 
-  constructor() {
-    super()
+  constructor(@Optional() @Inject(LlmUsageMeter) llmUsageMeter?: LlmUsageMeter) {
+    super(llmUsageMeter)
     this.vertexProject = process.env.GOOGLE_VERTEX_PROJECT || "caseai-connect"
 
     // One provider per location: models run on "eu" (EU data residency)

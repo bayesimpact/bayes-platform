@@ -155,10 +155,23 @@ The database has a read-only `analytics` schema for dashboards (`docs/analytics-
 The chart ships the product dashboards (`dashboards/*.json`) for a Grafana
 running in the cluster with the dashboards sidecar. `grafanaDashboards.enabled:
 true` creates one ConfigMap per file, labelled `grafana_dashboard: "1"`, folder
-from the annotation `grafana_folder` (value `grafanaDashboards.folder`). The
-dashboards query a datasource named `analytics`: the platform database through
-its read-only `analytics` schema (`docs/analytics-schema.md`). The chart installs
-neither Grafana nor the datasource.
+from the annotation `grafana_folder` (value `grafanaDashboards.folder`). A single
+file can override its folder with `grafanaDashboards.folders` (keyed by the file
+name without `.json`), so it can be gated to a team in Grafana without touching
+the rest. The dashboards query a datasource named `analytics`: the platform
+database through its read-only `analytics` schema (`docs/analytics-schema.md`). The
+chart installs neither Grafana nor the datasource.
+
+Two of them cover LLM token consumption (ADR 0033):
+
+- **LLM cost and usage** (`llm-cost-usage.json`), on the `analytics` datasource,
+  in its own folder (`grafanaDashboards.folders.llm-cost-usage`, default `FinOps`):
+  the per-workspace cost, computed live in the `analytics.llm_usage` view from the
+  current prices. Create that folder and gate it to the team that should read the
+  cost — the per-workspace cost is commercially sensitive.
+- **LLM token burn** (`llm-token-burn.json`), on the cluster's Prometheus datasource
+  (uid `prometheus`; point the dashboard at yours if it differs): the live token
+  burn, from the `llm_tokens_total` metric emitted at the LLM call boundary.
 
 ## LLM traces
 

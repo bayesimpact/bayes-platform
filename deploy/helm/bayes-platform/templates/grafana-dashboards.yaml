@@ -5,8 +5,10 @@ folder from the annotation). They read the `analytics` schema through a
 datasource named `analytics`, provided by the Grafana of the cluster.
 */ -}}
 {{- if .Values.grafanaDashboards.enabled }}
+{{- $folders := $.Values.grafanaDashboards.folders | default dict }}
 {{- range $path, $bytes := .Files.Glob "dashboards/*.json" }}
 {{- $name := base $path | trimSuffix ".json" }}
+{{- $folder := index $folders $name | default $.Values.grafanaDashboards.folder }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -16,7 +18,7 @@ metadata:
     {{- include "bayes-platform.labels" $ | nindent 4 }}
     {{ $.Values.grafanaDashboards.label }}: "1"
   annotations:
-    {{ $.Values.grafanaDashboards.folderAnnotation }}: {{ $.Values.grafanaDashboards.folder | quote }}
+    {{ $.Values.grafanaDashboards.folderAnnotation }}: {{ $folder | quote }}
 data:
   {{ base $path }}: |-
 {{ $bytes | toString | indent 4 }}

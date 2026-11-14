@@ -115,6 +115,7 @@ export class StreamingLlmService extends LlmServiceBase {
         agentSessionScope,
         attachmentDocumentId: turnAttachmentDocumentId,
         syntheticUserContent: persistUserMessage ? undefined : userContent,
+        assistantMessageId,
         onToolExecute: async (toolExecution) => {
           await this.persistToolExecutionAndNotifyClient({
             agentSessionScope,
@@ -282,6 +283,7 @@ export class StreamingLlmService extends LlmServiceBase {
         agentSessionScope,
         sessionState,
         syntheticUserContent: persistUserMessage ? undefined : userContent,
+        assistantMessageId,
         onToolExecute: async (toolExecution) => {
           await this.persistToolExecutionAndNotifyClient({
             agentSessionScope,

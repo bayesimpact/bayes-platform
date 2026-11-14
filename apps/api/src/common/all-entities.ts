@@ -60,6 +60,8 @@ import { TesterSessionFeedback } from "@/domains/review-campaigns/tester-session
 import { TermsAcceptance } from "@/domains/terms-compliance/terms-acceptance.entity"
 import { TermsDocument } from "@/domains/terms-compliance/terms-document.entity"
 import { User } from "@/domains/users/user.entity"
+import { LlmModelPrice } from "@/external/llm/usage/llm-model-price.entity"
+import { LlmUsage } from "@/external/llm/usage/llm-usage.entity"
 import { AgentSettings } from "../domains/agents/settings/agent-settings.entity"
 
 export const ALL_ENTITIES = [
@@ -123,4 +125,6 @@ export const ALL_ENTITIES = [
   TesterCampaignSurvey,
   TesterSessionFeedback,
   User,
+  LlmUsage,
+  LlmModelPrice,
 ]

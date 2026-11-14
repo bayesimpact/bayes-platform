@@ -1,0 +1,591 @@
+{
+  "uid": "llm-token-burn",
+  "title": "LLM token burn",
+  "tags": ["platform", "analytics", "llm", "metrics"],
+  "description": "The live token burn of the platform, from the Prometheus metric llm_tokens_total (emitted at the LLM call boundary, one counter per token kind). Token volume per day, the burn rate, the split by project, agent, model and organization, and the share of cached input. Not durable: Prometheus retention only. The datasource must be the cluster's Prometheus.",
+  "timezone": "browser",
+  "editable": false,
+  "graphTooltip": 1,
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "organization_id",
+        "label": "Organization",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(llm_tokens_total, organization_id)",
+        "query": "label_values(llm_tokens_total, organization_id)",
+        "sort": 1
+      },
+      {
+        "name": "project_id",
+        "label": "Workspace",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(llm_tokens_total{organization_id=~\"$organization_id\"}, project_id)",
+        "query": "label_values(llm_tokens_total{organization_id=~\"$organization_id\"}, project_id)",
+        "sort": 1
+      },
+      {
+        "name": "model",
+        "label": "Model",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\"}, model)",
+        "query": "label_values(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\"}, model)",
+        "sort": 1
+      },
+      {
+        "name": "agent_id",
+        "label": "Agent",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\"}, agent_id)",
+        "query": "label_values(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\"}, agent_id)",
+        "sort": 1
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Burn",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Tokens, 24h",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum(increase(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\",model=~\"$model\",agent_id=~\"$agent_id\"}[24h]))",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "Total tokens consumed over the last 24 hours across the selected scope."
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Cache read share",
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "100.0 * sum(increase(llm_tokens_total{token_kind=\"cache_read\",organization_id=~\"$organization_id\",project_id=~\"$project_id\"}[24h])) / sum(increase(llm_tokens_total{token_kind=\"input\",organization_id=~\"$organization_id\",project_id=~\"$project_id\"}[24h]))",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "Cached input over all input tokens. Higher is cheaper."
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Burn rate, 5m",
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum(rate(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\"}[5m])) * 60",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "Tokens per minute, over the last 5 minutes."
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "Trends",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Tokens per hour, by kind",
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (token_kind) (increase(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\",model=~\"$model\",agent_id=~\"$agent_id\"}[$__interval]))",
+          "legendFormat": "{{token_kind}}",
+          "interval": "1h"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 30,
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Tokens per hour, by model",
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (model) (increase(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\",agent_id=~\"$agent_id\"}[$__interval]))",
+          "legendFormat": "{{model}}",
+          "interval": "1h"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 30,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Tokens per hour, by workspace",
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (project_id) (increase(llm_tokens_total{organization_id=~\"$organization_id\",model=~\"$model\",agent_id=~\"$agent_id\"}[$__interval]))",
+          "legendFormat": "{{project_id}}",
+          "interval": "1h"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 30,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Tokens per hour, by organization",
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (organization_id) (increase(llm_tokens_total{project_id=~\"$project_id\",model=~\"$model\",agent_id=~\"$agent_id\"}[$__interval]))",
+          "legendFormat": "{{organization_id}}",
+          "interval": "1h"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 30,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Tokens per hour, by agent",
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (agent_id) (increase(llm_tokens_total{organization_id=~\"$organization_id\",project_id=~\"$project_id\",model=~\"$model\"}[$__interval]))",
+          "legendFormat": "{{agent_id}}",
+          "interval": "1h"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 30,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}

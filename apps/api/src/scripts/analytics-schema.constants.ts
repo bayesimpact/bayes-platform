@@ -12,7 +12,13 @@ export const ANALYTICS_SCHEMA = "analytics"
 export const ANALYTICS_READER_ROLE = "analytics_reader"
 
 /** Every view of the schema. A new view goes here, or the spec fails. */
-export const ANALYTICS_VIEWS = ["projects", "sessions", "messages", "feedback"] as const
+export const ANALYTICS_VIEWS = [
+  "projects",
+  "sessions",
+  "messages",
+  "feedback",
+  "llm_usage",
+] as const
 
 /** Columns every view must have: the dashboards filter on them. */
 export const ANALYTICS_REQUIRED_COLUMNS = ["organization_id", "project_id"] as const

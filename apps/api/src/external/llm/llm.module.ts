@@ -8,6 +8,7 @@ import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.p
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
+import { LlmUsageMeteringModule } from "@/external/llm/usage/llm-usage-metering.module"
 
 const LLM_AVAILABLE_PROVIDERS = {
   [AgentProvider._Mock]: AISDKMockProvider,
@@ -28,6 +29,10 @@ const providerClasses = agentProviders.map(
 )
 
 @Module({
+  // Provides the token meter so each provider can inject it (optional at
+  // injection: a provider built without a module, e.g. the test providers,
+  // simply does not meter).
+  imports: [LlmUsageMeteringModule],
   providers: [
     ...providerClasses,
     {

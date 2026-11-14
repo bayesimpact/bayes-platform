@@ -1,7 +1,7 @@
 import type { AgentProvider } from "@caseai-connect/api-contracts"
-import { Logger } from "@nestjs/common"
+import { Inject, Logger, Optional } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
-import { generateText, jsonSchema, Output, ToolLoopAgent } from "ai"
+import { generateText, jsonSchema, type LanguageModelUsage, Output, ToolLoopAgent } from "ai"
 import type {
   AdditionalMetadata,
   LLMCallContext,
@@ -16,6 +16,8 @@ import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
 import type { AISDKLLMModelMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import type { LeakedToolCall } from "@/external/llm/ai-sdk/ai-sdk-llm-tools-mgmt"
+import type { LlmUsageCallKind } from "@/external/llm/usage/llm-usage.entity"
+import { LlmUsageMeter } from "@/external/llm/usage/llm-usage-meter"
 
 const logger = new Logger("AISDKLLMProviderBase")
 
@@ -35,9 +37,51 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
   extends AISDKLLMFetchMgmt<Provider>
   implements LLMProvider
 {
+  /**
+   * The token meter, when one is wired in (ADR 0033). It is optional so a
+   * provider built without it — the test providers, built with `new` — simply
+   * does not meter. Providers that have their own constructor forward it to
+   * {@link super}; the rest inherit this constructor and are injected directly.
+   */
+  private readonly llmUsageMeter?: LlmUsageMeter
+
+  constructor(@Optional() @Inject(LlmUsageMeter) llmUsageMeter?: LlmUsageMeter) {
+    super()
+    this.llmUsageMeter = llmUsageMeter
+  }
+
   /** What the provider says of itself, sent under `provider.*`. Providers add their own. */
   getProviderMetadata(): ProviderMetadata {
     return { name: this.getAgentProvider() }
+  }
+
+  /**
+   * Best-effort: records the usage of a call in the meter, when one is wired
+   * in. A metering failure never breaks the LLM call — it is only logged.
+   */
+  private meterUsage({
+    callContext,
+    config,
+    callKind,
+    usage,
+  }: {
+    callContext: LLMCallContext
+    config: LLMConfig
+    callKind: LlmUsageCallKind
+    usage: LanguageModelUsage
+  }): void {
+    if (!this.llmUsageMeter) return
+    try {
+      this.llmUsageMeter.recordUsage({
+        callContext,
+        model: config.model,
+        provider: this.getAgentProvider(),
+        callKind,
+        usage,
+      })
+    } catch (error) {
+      logger.warn("Failed to meter an LLM call", error)
+    }
   }
 
   /** All the metadata of a call: the caller's, then the provider and model levels. */
@@ -159,6 +203,19 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       streamResult,
       telemetryMetadata,
     })
+    // Meter the call's usage once the stream is fully consumed. `totalUsage`
+    // resolves with the accumulated usage of the whole generation. Best-effort:
+    // a failure here never breaks the stream (the chunks are already yielded).
+    try {
+      this.meterUsage({
+        callContext,
+        config,
+        callKind: "answer",
+        usage: await streamResult.totalUsage,
+      })
+    } catch (error) {
+      logger.warn("Failed to meter the streamed LLM call", error)
+    }
   }
 
   async generateText({
@@ -175,7 +232,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     const callOrigin = CallOrigin.generateText
     this.checkConfigProviderAndModel(config)
     const telemetryMetadata = this.getTelemetryMetadata(config, additionalMetadata)
-    const { text } = await generateText({
+    const result = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
       system: config.systemPrompt,
       prompt,
@@ -186,7 +243,8 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       },
       ...this.buildSpecificProviderOptions({ config }),
     })
-    return text
+    this.meterUsage({ callContext, config, callKind: "internal", usage: result.totalUsage })
+    return result.text
   }
 
   async generateStructuredOutput({
@@ -226,6 +284,12 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
         }),
       },
       ...this.buildSpecificProviderOptions({ config }),
+    })
+    this.meterUsage({
+      callContext,
+      config,
+      callKind: "internal",
+      usage: result.totalUsage,
     })
     return this.readStructuredOutput(result)
   }

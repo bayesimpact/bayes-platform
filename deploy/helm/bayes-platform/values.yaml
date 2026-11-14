@@ -486,6 +486,13 @@ grafanaDashboards:
   label: grafana_dashboard
   folderAnnotation: grafana_folder
   folder: Platform
+  # Optional per-dashboard folder override, keyed by the JSON file name without
+  # its .json extension. A dashboard in its own folder can be gated to a team in
+  # Grafana without touching the rest of the chart — the per-workspace cost is
+  # commercially sensitive, so it lives in a dedicated folder (default: the
+  # `FinOps` team). Empty: every dashboard goes to `folder` above.
+  folders:
+    llm-cost-usage: FinOps
 
 # ---------------------------------------------------------------------------
 # Ingress
