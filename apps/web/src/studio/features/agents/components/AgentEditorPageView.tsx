@@ -64,14 +64,12 @@ export function AgentEditorPageView({
             <ArrowLeftIcon />
             {t("agentSettings:editor.back")}
           </Button>
-          <div className="flex items-start gap-2 px-2">
-            <AgentTypeIcon className="mt-1 size-4 shrink-0" />
-            <div className="min-w-0">
-              <p className="truncate font-medium">{agent.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {t(`agent:update.${agent.type}.title`)}
-              </p>
-            </div>
+          <div className="px-2">
+            <p className="flex items-center gap-2 font-medium">
+              <AgentTypeIcon className="size-4 shrink-0" />
+              <span className="truncate">{agent.name}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">{t(`agent:update.${agent.type}.title`)}</p>
           </div>
         </SidebarHeader>
 
