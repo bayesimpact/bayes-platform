@@ -37,7 +37,7 @@ import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
-import { AgentEvaluationCard } from "./AgentEvaluationCard"
+import { AgentEvaluationCard, AgentProductionAppCard } from "./AgentExternalAppCard"
 import { AgentMembersCard } from "./AgentMembersCard"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
 
@@ -92,11 +92,17 @@ export function ExtractionAgentSessionList() {
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
   const canOpenEvaluation = abilities.canAccessEvaluation({ projectId: agent.projectId })
 
+  // The app only lists published agents: a fresh copy appears there once published.
+  const isPublished = agent.currentRevision !== undefined
+  // Three cards a row at most: beyond that they wrap to a second row.
+  const cardCount =
+    1 + (isPublished ? 1 : 0) + (canOpenEvaluation ? 1 : 0) + (canManageAgent ? 1 : 0)
+
   const handleBack = () => navigate(projectRoute)
 
   if (outlet) return outlet
   return (
-    <Grid cols={(1 + (canOpenEvaluation ? 1 : 0) + (canManageAgent ? 1 : 0)) as 1 | 2 | 3}>
+    <Grid cols={Math.min(cardCount, 3) as 1 | 2 | 3}>
       <GridHeader
         onBack={handleBack}
         title={t("extractionAgentSession:playground.title")}
@@ -117,6 +123,14 @@ export function ExtractionAgentSessionList() {
             </div>
           </GridCard.Body>
         </GridCard>
+
+        {isPublished && (
+          <AgentProductionAppCard
+            agentId={agent.id}
+            organizationId={organizationId}
+            projectId={agent.projectId}
+          />
+        )}
 
         {canOpenEvaluation && (
           <AgentEvaluationCard
