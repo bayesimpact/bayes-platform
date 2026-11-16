@@ -72,27 +72,33 @@ export class AgentSettingsRepository {
   }
 
   /**
-   * Whether a session, a run or a campaign ran on this revision. Their foreign keys cascade: a
-   * revision that something ran on must never be deleted, or its sessions go with it. The tables
+   * Points every session, run and campaign that ran on a revision at another one. Their foreign
+   * keys cascade: deleting a revision something still points at would delete it too. The tables
    * come from the entity metadata, so a new table that points at a revision is covered at once.
+   * Call it inside `transactionService.run()`.
    */
-  async isRunBySomething(agentSettingsId: string): Promise<boolean> {
+  async moveRunsToRevision({
+    fromAgentSettingsId,
+    toAgentSettingsId,
+  }: {
+    fromAgentSettingsId: string
+    toAgentSettingsId: string
+  }): Promise<void> {
     const manager = this.transactionService.getManager()
     for (const metadata of manager.connection.entityMetadatas) {
       for (const foreignKey of metadata.foreignKeys) {
         if (foreignKey.referencedEntityMetadata.target !== AgentSettings) continue
         const [column] = foreignKey.columns
         if (!column) continue
-        const isReferenced = await manager
-          .getRepository(metadata.target)
-          .createQueryBuilder("referencing")
-          .withDeleted()
-          .where(`referencing.${column.propertyName} = :agentSettingsId`, { agentSettingsId })
-          .getExists()
-        if (isReferenced) return true
+        // A plain update also moves the soft-deleted rows, which the cascade would delete as well.
+        await manager
+          .createQueryBuilder()
+          .update(metadata.target)
+          .set({ [column.propertyName]: toAgentSettingsId })
+          .where(`${column.databaseName} = :fromAgentSettingsId`, { fromAgentSettingsId })
+          .execute()
       }
     }
-    return false
   }
 
   /** Removes a draft for good, so the next draft takes its revision number. */

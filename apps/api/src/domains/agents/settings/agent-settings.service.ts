@@ -381,9 +381,11 @@ export class AgentSettingsService {
 
   /**
    * Deletes a draft that holds the same settings as the newest published revision, and returns
-   * that revision: an edit the author took back leaves no draft behind. The draft stays when
-   * the agent was never published (it is its only revision), and when a session or a run ran on
-   * it (deleting the draft would delete them too).
+   * that revision: an edit the author took back, or a restore of the published version, leaves
+   * no draft behind. What ran on the draft (a playground session, a run) moves to the published
+   * revision first: it holds the same settings, and deleting the draft would otherwise delete
+   * those sessions with it. The draft stays when the agent was never published: it is its only
+   * revision.
    */
   private async discardDraftWithoutChanges({
     connectScope,
@@ -395,16 +397,19 @@ export class AgentSettingsService {
     const published = await this.findLastPublished({ connectScope, agentId: draft.agentId })
     if (!published || !hasSameAgentSettings(published, draft)) return undefined
 
-    // The check and the delete are one unit. The lock on the draft holds back a session that
-    // starts on it and another edit of it: once the lock is taken, what the check reads is what
-    // the delete acts on. Without it, a session started in between would be deleted in cascade.
+    // One unit: the lock on the draft holds back a session that starts on it and another edit
+    // of it, so nothing can point at the draft between the move and the delete, and what the
+    // comparison reads is what the delete acts on.
     const isDeleted = await this.transactionService.run(async () => {
       const lockedDraft = await this.agentSettingsRepository.findDraftForUpdate(
         connectScope,
         draft.id,
       )
       if (!lockedDraft || !hasSameAgentSettings(published, lockedDraft)) return false
-      if (await this.agentSettingsRepository.isRunBySomething(lockedDraft.id)) return false
+      await this.agentSettingsRepository.moveRunsToRevision({
+        fromAgentSettingsId: lockedDraft.id,
+        toAgentSettingsId: published.id,
+      })
       await this.agentSettingsRepository.deleteDraft(connectScope, lockedDraft.id)
       return true
     })

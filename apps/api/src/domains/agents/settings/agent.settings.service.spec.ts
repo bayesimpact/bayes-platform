@@ -587,7 +587,7 @@ describe("AgentSettings", () => {
         expect(nextDraft.revision).toBe(2)
       })
 
-      it("is kept once a session ran on it, with that session", async () => {
+      it("is deleted, and the session that ran on it moves to the published revision", async () => {
         const { organization, project, agent, user, document } =
           await createOrganizationWithAgentSession({
             repositories,
@@ -610,11 +610,12 @@ describe("AgentSettings", () => {
           },
         })
 
-        expect(agentSettings.isDraft).toBe(true)
-        expect(revisions.map((revision) => revision.revision)).toEqual([2, 1])
-        expect(
-          await repositories.extractionAgentSessionRepository.findOneBy({ id: sessionOnDraftId }),
-        ).not.toBeNull()
+        expect(agentSettings.isDraft).toBe(false)
+        expect(revisions.map((revision) => revision.revision)).toEqual([1])
+        const session = await repositories.extractionAgentSessionRepository.findOneBy({
+          id: sessionOnDraftId,
+        })
+        expect(session?.agentSettingsId).toBe(agentSettings.id)
       })
 
       it("is kept when the agent was never published", async () => {
