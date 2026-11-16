@@ -15,10 +15,12 @@ import {
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { GitCompareIcon } from "lucide-react"
+import { GitCompareIcon, PencilIcon } from "lucide-react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
+import { agentSettingsDiffFileNames } from "@/common/features/agents/agent-settings/agent-settings.functions"
 import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsGeneral } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -28,6 +30,7 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { PromptVariablesEditor } from "@/studio/features/agents/prompt-variables/PromptVariablesEditor"
 import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
+import { TextDiff } from "../TextDiff"
 
 type FormValues = z.infer<typeof updateAgentSettingsGeneralSchema>
 
@@ -35,12 +38,8 @@ export function GeneralTab({
   agent,
   agentSettings,
   saveControl,
-  onViewChanges,
-}: AgentTabFormProps & {
-  agent: Agent
-  /** Opens the version history, to compare the instructions with the published ones. */
-  onViewChanges: () => void
-}) {
+}: AgentTabFormProps & { agent: Agent }) {
+  const [isDiffRequested, setIsDiffRequested] = useState(false)
   // Undefined for an agent that was never published: it has nothing to compare with.
   const publishedInstructions = useAppSelector(
     selectAgentSettingsDataByAgentId({ agentId: agent.id }),
@@ -132,38 +131,56 @@ export function GeneralTab({
         <FormField
           control={form.control}
           name="instructions"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex min-h-8 items-center justify-between gap-4">
-                <FormLabel>
-                  {t("agentSettings:props.instructions")}
-                  <span className="font-normal text-muted-foreground">
-                    {t("agentSettings:props.characterCount", {
-                      count: field.value.length,
-                      formattedCount: field.value.length.toLocaleString(i18n.language),
-                    })}
-                  </span>
-                </FormLabel>
-                {/* Only while the instructions differ from the published ones: the history then
-                    opens on the draft, whose diff is the one against the published version. */}
-                {publishedInstructions !== undefined && field.value !== publishedInstructions && (
-                  <Button type="button" variant="outline" size="sm" onClick={onViewChanges}>
-                    <GitCompareIcon />
-                    {t("agentSettings:history.viewChanges")}
-                  </Button>
+          render={({ field }) => {
+            // Nothing to compare for an agent that was never published, or without a change.
+            const hasChanges =
+              publishedInstructions !== undefined && field.value !== publishedInstructions
+            const isDiffShown = isDiffRequested && hasChanges
+            return (
+              <FormItem>
+                <div className="flex min-h-8 items-center justify-between gap-4">
+                  <FormLabel>
+                    {t("agentSettings:props.instructions")}
+                    <span className="font-normal text-muted-foreground">
+                      {t("agentSettings:props.characterCount", {
+                        count: field.value.length,
+                        formattedCount: field.value.length.toLocaleString(i18n.language),
+                      })}
+                    </span>
+                  </FormLabel>
+                  {hasChanges && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsDiffRequested(!isDiffShown)}
+                    >
+                      {isDiffShown ? <PencilIcon /> : <GitCompareIcon />}
+                      {isDiffShown ? t("actions:edit") : t("agentSettings:history.viewChanges")}
+                    </Button>
+                  )}
+                </div>
+                {isDiffShown ? (
+                  // The diff with the published instructions takes the place of the field.
+                  <TextDiff
+                    name={agentSettingsDiffFileNames.instructions}
+                    before={publishedInstructions}
+                    after={field.value}
+                  />
+                ) : (
+                  <FormControl>
+                    {/* It grows with its text, with no height limit: the page scrolls, not the field. */}
+                    <Textarea
+                      placeholder={t("agentSettings:props.placeholders.instructions")}
+                      className="min-h-40 resize-none font-mono"
+                      {...field}
+                    />
+                  </FormControl>
                 )}
-              </div>
-              <FormControl>
-                {/* It grows with its text, with no height limit: the page scrolls, not the field. */}
-                <Textarea
-                  placeholder={t("agentSettings:props.placeholders.instructions")}
-                  className="min-h-40 resize-none font-mono"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+                <FormMessage />
+              </FormItem>
+            )
+          }}
         />
 
         {showPromptVariables && (

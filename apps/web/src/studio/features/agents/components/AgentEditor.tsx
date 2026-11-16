@@ -68,8 +68,6 @@ type TabContext = {
   saveControl: TabSaveControl
   /** Switches tab, once the current one is saved. */
   openTab: (tab: EditorTabKey) => void
-  /** Opens the version history, after saving what waits in the tab so the history shows it. */
-  openHistory: () => void
 }
 type TabConfig = {
   value: EditorTabKey
@@ -143,13 +141,8 @@ export function AgentEditor({
         label: t("agentSettings:tabs.general"),
         icon: SlidersHorizontalIcon,
         autosave: true,
-        render: ({ saveControl, openHistory }) => (
-          <GeneralTab
-            agent={agent}
-            agentSettings={agentSettings}
-            saveControl={saveControl}
-            onViewChanges={openHistory}
-          />
+        render: ({ saveControl }) => (
+          <GeneralTab agent={agent} agentSettings={agentSettings} saveControl={saveControl} />
         ),
       },
       {
@@ -333,11 +326,6 @@ export function AgentEditor({
 
   if (!activeTab) return <ErrorRoute error="Tab not found" />
 
-  const openHistory = () => {
-    flushRef.current?.()
-    setNav((prev) => ({ ...prev, history: true }))
-  }
-
   const activeSheet = sheets.find((sheet) => sheet.value === nav.sheet)
 
   const requestTabChange = (next: string) => {
@@ -383,7 +371,6 @@ export function AgentEditor({
       {activeTab.render({
         saveControl: { onStateChange: handleSaveStateChange, flushRef },
         openTab: requestTabChange,
-        openHistory,
       })}
     </div>
   )
