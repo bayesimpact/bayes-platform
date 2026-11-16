@@ -7,7 +7,7 @@ export * from "./agent-membership/agent-membership.dto"
 export { AgentMembershipRoutes } from "./agent-membership/agent-membership.routes"
 
 // Agent Message Feedback
-export type * from "./agent-message-feedback/agent-message-feedback.dto"
+export * from "./agent-message-feedback/agent-message-feedback.dto"
 export { AgentMessageFeedbackRoutes } from "./agent-message-feedback/agent-message-feedback.routes"
 // Agent CSV Extraction Runs
 export * from "./agents/agent-csv-extraction-runs/agent-csv-extraction-runs.dto"
@@ -45,7 +45,11 @@ export type * from "./analytics/analytics.dto"
 export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.routes"
 // Apps
 export * from "./apps/apps.dto"
-export { AppsRoutes, ProjectAppInstallationsRoutes } from "./apps/apps.routes"
+export {
+  AppsRoutes,
+  ProjectAppCatalogRoutes,
+  ProjectAppInstallationsRoutes,
+} from "./apps/apps.routes"
 export { AppsV1Routes } from "./apps/apps-v1.routes"
 export * from "./apps/conversations/apps-conversations.dto"
 export {
@@ -107,7 +111,7 @@ export type { ApiRoute } from "./helpers"
 // Helpers
 export { defineRoute } from "./helpers"
 // Member grants
-export type * from "./invitations/invitations.dto"
+export * from "./invitations/invitations.dto"
 export {
   AgentInvitationsRoutes,
   MyInvitationsRoutes,

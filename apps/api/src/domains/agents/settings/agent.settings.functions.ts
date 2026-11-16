@@ -40,6 +40,9 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "priorityCallsEnabled",
   "providerOptions",
   "memoryMode",
+  "followUpSuggestionsEnabled",
+  "followUpSuggestionsInstructions",
+  "followUpSuggestionsMax",
   "variables",
   "embeddingModel",
 ]

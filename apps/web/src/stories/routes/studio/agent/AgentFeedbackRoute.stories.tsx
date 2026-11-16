@@ -59,11 +59,16 @@ export const Default: Story = {
         .transient({ agent: currentAgent })
         .build({ revision: currentAgent.currentRevision?.number ?? 1 })
 
-      // The viewer's own reports: their conversations can be saved as test cases.
+      // The viewer's own reports and a thumbs-up: their conversations can be saved as test cases.
+      const feedbackFactory = agentMessageFeedbackFactory.transient({
+        agent: currentAgent,
+        project,
+      })
       const feedbacks = withFeedbacks
-        ? agentMessageFeedbackFactory
-            .transient({ agent: currentAgent, project })
-            .buildList(3, { userId: user.id })
+        ? [
+            ...feedbackFactory.buildList(2, { userId: user.id }),
+            feedbackFactory.positive().build({ userId: user.id }),
+          ]
         : []
 
       const datasets = withDatasets

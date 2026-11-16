@@ -127,6 +127,7 @@ export function ExtractionAgentSessionList() {
           agent={agent}
           agentSettings={agentSettings}
           className="bg-white p-6"
+          showVersionActions
         />
       )}
     </Grid>

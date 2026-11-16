@@ -1,6 +1,7 @@
 {
   "agentSessionMessage": {
     "attachment": "Attachment",
+    "followUpQuestions": "Suggested questions",
     "navigator": {
       "title": "Jump to a message",
       "trigger": "Jump to a message",

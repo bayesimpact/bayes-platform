@@ -4,6 +4,7 @@ import {
   type ChatMessage,
   failStreamingReplies,
   findRetryableMessage,
+  lastReplyFollowUpQuestions,
   type ReplyCursor,
   setAttachmentDocument,
   startTurn,
@@ -45,6 +46,54 @@ describe("toChatMessages", () => {
       ["user", "completed", []],
       ["assistant", "completed", ["lookup_knowledge_base"]],
     ])
+  })
+})
+
+describe("follow-up questions", () => {
+  const id = () => crypto.randomUUID()
+  const replyWith = (
+    toolCalls: { id: string; name: string; arguments?: Record<string, unknown> }[],
+  ) =>
+    toChatMessages([
+      { id: id(), role: "user", content: "Hello" },
+      { id: id(), role: "assistant", content: "Hi", status: "completed", toolCalls },
+      { id: id(), role: "tool", content: "{}" },
+    ])
+
+  it("reads the questions of the last call, without blank or repeated ones", () => {
+    const messages = replyWith([
+      { id: "first", name: "suggestFollowUpQuestions", arguments: { questions: ["Old?"] } },
+      {
+        id: "second",
+        name: "suggestFollowUpQuestions",
+        arguments: {
+          questions: ["First?", " ", "Second?", "First?"],
+          detectedByClassifier: true,
+        },
+      },
+    ])
+    expect(lastReplyFollowUpQuestions(messages, false)).toEqual(["First?", "Second?"])
+  })
+
+  it("leaves out a call whose arguments break their contract", () => {
+    const messages = replyWith([
+      { id: "call", name: "suggestFollowUpQuestions", arguments: { questions: "Not a list" } },
+    ])
+    expect(lastReplyFollowUpQuestions(messages, false)).toEqual([])
+  })
+
+  it("hides the questions while the person sends, or once a message follows the reply", () => {
+    const messages = replyWith([
+      { id: "call", name: "suggestFollowUpQuestions", arguments: { questions: ["Next?"] } },
+    ])
+    expect(lastReplyFollowUpQuestions(messages, true)).toEqual([])
+    const withNextTurn = startTurn(
+      messages,
+      { content: "Next?", attachment: null },
+      { userMessageId: "user", replyId: "reply" },
+      now,
+    )
+    expect(lastReplyFollowUpQuestions(withNextTurn, false)).toEqual([])
   })
 })
 

@@ -10,6 +10,7 @@ import {
   forgetMemoryInstruction,
   saveMemoryInstruction,
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/memory.tools"
+import { suggestFollowUpQuestionsInstruction } from "@/domains/agents/shared/agent-session-messages/streaming/tools/suggest-follow-up-questions.tool"
 import {
   enumerateAgentResources,
   type SurfaceableLibrary,
@@ -219,6 +220,9 @@ ${orderedFields
 
       case ToolName.ForgetMemory:
         return `[${name}]: ${forgetMemoryInstruction()}`
+
+      case ToolName.SuggestFollowUpQuestions:
+        return `[${name}]: ${suggestFollowUpQuestionsInstruction(agentSettings)}`
 
       case ToolName.SurfaceResources:
         return `[${name}]: Call ${name} tool whenever the user's request matches a resource in the resource libraries (by title or description or matchingHints). Pass the matching resources, copying their id, title, description, and link verbatim. Do not surface resources that are not relevant to the user's request.`

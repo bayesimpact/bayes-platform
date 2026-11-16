@@ -34,6 +34,9 @@ export type AgentSettingsCreateFields = Pick<
       | "priorityCallsEnabled"
       | "deletedTemperature"
       | "memoryMode"
+      | "followUpSuggestionsEnabled"
+      | "followUpSuggestionsInstructions"
+      | "followUpSuggestionsMax"
       | "variables"
       | "embeddingModel"
     >
@@ -52,6 +55,9 @@ export type AgentSettingsUpdateFields = Partial<
     | "priorityCallsEnabled"
     | "providerOptions"
     | "memoryMode"
+    | "followUpSuggestionsEnabled"
+    | "followUpSuggestionsInstructions"
+    | "followUpSuggestionsMax"
     | "variables"
     | "embeddingModel"
   >

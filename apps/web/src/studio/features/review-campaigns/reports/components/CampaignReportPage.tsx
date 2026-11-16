@@ -7,26 +7,23 @@ import { GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
-import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { getServices } from "@/di/services"
 import { selectCurrentCampaignReport } from "../reports.selectors"
-import { reviewCampaignsReportsActions } from "../reports.slice"
 import { CampaignReport } from "./CampaignReport"
 
 type Props = {
   backPath: string
+  headerClassName?: string
 }
 
-export function CampaignReportPage({ backPath }: Props) {
+export function CampaignReportPage({ backPath, headerClassName }: Props) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const report = useAppSelector(selectCurrentCampaignReport)
-
-  useMount({ actions: reviewCampaignsReportsActions })
 
   const handleBack = () => {
     navigate(backPath)
@@ -34,6 +31,7 @@ export function CampaignReportPage({ backPath }: Props) {
   return (
     <>
       <GridHeader
+        className={headerClassName}
         onBack={handleBack}
         title={t("reviewCampaigns:report.title")}
         action={ADS.isFulfilled(report) && <DownloadCsvButton />}

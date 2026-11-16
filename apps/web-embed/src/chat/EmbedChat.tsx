@@ -18,6 +18,7 @@ import {
   ChatMessage,
   ChatSubmit,
 } from "./components"
+import { followUpReplyIndex } from "./components/FollowUpQuestions"
 import { useScrollToEnd } from "./hooks/use-scroll-to-end"
 
 export type EmbedChatTheme = {
@@ -110,6 +111,8 @@ function EmbedChatInner({
     }
   }, [isStreaming, scrollToEndInstant, scrollToEndSmooth])
 
+  const followUpIndex = followUpReplyIndex(messages)
+
   const handleSendMessage = (content: string) => {
     const trimmed = content.trim()
     if (!trimmed || isStreaming) return
@@ -135,12 +138,16 @@ function EmbedChatInner({
             {t("status.sessionExpired")}
           </p>
         )}
-        {messages.map((message) => (
+        {messages.map((message, index) => (
           <ChatMessage
             key={message.id}
             message={message}
             mcpAppHtml={mcpAppHtml}
             isMcpAppHtmlLoading={isMcpAppHtmlLoading}
+            // Only the last reply keeps its suggested questions: a new message hides them.
+            onFollowUpSelect={
+              !isStreaming && index === followUpIndex ? handleSendMessage : undefined
+            }
           />
         ))}
         <div ref={chatEndRef} />

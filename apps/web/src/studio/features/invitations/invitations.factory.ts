@@ -18,5 +18,6 @@ export const pendingInvitationFactory = Factory.define<PendingInvitation>(({ par
     organizationName: params.organizationName ?? faker.company.name(),
     projectName,
     targetName: params.targetName ?? (targetType === "project" ? projectName : "Helpful Assistant"),
+    agents: params.agents ?? [],
   }
 })

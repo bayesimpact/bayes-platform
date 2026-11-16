@@ -32,13 +32,13 @@ export class PlaygroundConversationAgentSessionsController extends ConversationA
   protected readonly type = "playground"
 
   @Post(Routes.getAll.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION, "agent")
   getAll(@Req() request: EndpointRequestWithAgent): Promise<typeof Routes.getAll.response> {
     return this.handleGetAll(request)
   }
 
   @Post(Routes.createOne.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION, "agent")
   @TrackActivity({ action: "conversationAgentSession.create" })
   createOne(
     @Req() request: EndpointRequestWithAgent,
@@ -49,7 +49,7 @@ export class PlaygroundConversationAgentSessionsController extends ConversationA
 
   @Post(Routes.deleteOne.path)
   @AddContext("agentSession")
-  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION, "agent")
   deleteOne(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<typeof Routes.deleteOne.response> {
@@ -57,7 +57,7 @@ export class PlaygroundConversationAgentSessionsController extends ConversationA
   }
 
   @Post(Routes.listSubSessions.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION, "agent")
   listSubSessions(
     @Req() request: EndpointRequestWithAgent,
     @Param("agentSessionId") agentSessionId: string,

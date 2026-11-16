@@ -26,7 +26,7 @@ import { ExtractionAgentSessionsController } from "./extraction-agent-sessions.c
 
 const Routes = ExtractionAgentSessionsRoutes.live
 
-/** Live extraction runs, open to every project role through the `agent.extraction.session.*` keys. */
+/** Live extraction runs, open to the agent's roles and to project owners and admins through the `agent.extraction.session.*` keys. */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent")
 @Controller()
@@ -34,7 +34,7 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
   protected readonly type = "live"
 
   @Post(Routes.executeOne.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_CREATE_PERMISSION, "agent")
   @TrackActivity({ action: "extractionAgentSession.execute" })
   executeOne(
     @Req() request: EndpointRequestWithAgent,
@@ -46,7 +46,7 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
   // Shared by live and playground screens. It is checked with the live read key, which every
   // project role holds, and carries status changes only, never results.
   @Sse(ExtractionAgentSessionsRoutes.streamSessionStatus.path, { method: 0 /* GET */ })
-  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "agent")
   streamSessionStatus(
     @Req() request: EndpointRequestWithAgent,
   ): Observable<ExtractionAgentSessionStatusChangedEventDto> {
@@ -54,14 +54,14 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
   }
 
   @Post(Routes.getAll.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "agent")
   getAll(@Req() request: EndpointRequestWithAgent): Promise<typeof Routes.getAll.response> {
     return this.handleGetAll(request)
   }
 
   @Post(Routes.getOne.path)
   @AddContext("agentSession")
-  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "agent")
   getOne(
     @Req() request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
   ): Promise<typeof Routes.getOne.response> {
@@ -70,7 +70,7 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
 
   @Post(Routes.deleteOne.path)
   @AddContext("agentSession")
-  @CheckPermission(AGENT_EXTRACTION_SESSION_DELETE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_DELETE_PERMISSION, "agent")
   deleteOne(
     @Req() request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
   ): Promise<typeof Routes.deleteOne.response> {
@@ -78,7 +78,7 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
   }
 
   @Post(Routes.presignDocument.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_CREATE_PERMISSION, "agent")
   @HttpCode(HttpStatus.CREATED)
   presignDocument(
     @Req() request: EndpointRequestWithAgent,
@@ -88,7 +88,7 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
   }
 
   @Post(Routes.confirmDocument.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_CREATE_PERMISSION, "agent")
   @TrackActivity({ action: "extractionAgentSession.uploadDocument" })
   @HttpCode(HttpStatus.CREATED)
   confirmDocument(
@@ -99,7 +99,7 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
   }
 
   @Post(Routes.listMyDocuments.path)
-  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_READ_PERMISSION, "agent")
   listMyDocuments(
     @Req() request: EndpointRequestWithAgent,
   ): Promise<typeof Routes.listMyDocuments.response> {
@@ -108,7 +108,7 @@ export class LiveExtractionAgentSessionsController extends ExtractionAgentSessio
 
   @Post(Routes.deleteMyDocument.path)
   @AddContext("document")
-  @CheckPermission(AGENT_EXTRACTION_SESSION_DELETE_PERMISSION, "project")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_DELETE_PERMISSION, "agent")
   @TrackActivity({ action: "extractionAgentSession.deleteDocument" })
   deleteMyDocument(
     @Req() request: EndpointRequestWithAgent & EndpointRequestWithDocument,

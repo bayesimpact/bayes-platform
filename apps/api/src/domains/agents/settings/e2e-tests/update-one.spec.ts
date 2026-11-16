@@ -246,6 +246,36 @@ describe("Agent Settings - updateOne", () => {
     await expectActivityCreated("agentSettings.update")
   })
 
+  it("stores the follow-up question settings in a new draft revision", async () => {
+    await createContext()
+
+    expectResponse(
+      await subject({
+        payload: {
+          followUpSuggestionsEnabled: true,
+          followUpSuggestionsInstructions: "Only when the answer has a difficult term.",
+          followUpSuggestionsMax: 4,
+        },
+      }),
+      200,
+    )
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOneOrFail({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings.followUpSuggestionsEnabled).toBe(true)
+    expect(updatedAgentSettings.followUpSuggestionsInstructions).toBe(
+      "Only when the answer has a difficult term.",
+    )
+    expect(updatedAgentSettings.followUpSuggestionsMax).toBe(4)
+  })
+
+  it("rejects more than 4 follow-up questions", async () => {
+    await createContext()
+
+    expectResponse(await subject({ payload: { followUpSuggestionsMax: 5 } }), 400)
+  })
+
   it("rejects an embedding model the project has not finished embedding with", async () => {
     const { organization, project } = await createContext()
     await repositories.projectEmbeddingModelRepository.save(

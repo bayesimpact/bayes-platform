@@ -203,6 +203,29 @@ describe("AppsService", () => {
     await expect(service.getAppManifest(created.id)).rejects.toBeInstanceOf(NotFoundException)
   })
 
+  it("lists the catalog by name, leaving out unlisted apps, with the project's active installs", async () => {
+    const repositories = setup.getAllRepositories()
+    const { project } = await createOrganizationWithProject(repositories)
+    const crawler = await service.createAppManifest({
+      ...createPayload,
+      name: "Site Crawler",
+      slug: "site-crawler",
+      listedInCatalog: true,
+    })
+    const assistant = await service.createAppManifest({ ...createPayload, listedInCatalog: true })
+    await service.createAppManifest({ ...createPayload, name: "Hidden", slug: "hidden" })
+    await repositories.appInstallationRepository.save(
+      appInstallationFactory.build({ appManifestId: crawler.id, projectId: project.id }),
+    )
+
+    const catalog = await service.listAppCatalog(project.id)
+
+    expect(catalog.map((entry) => [entry.id, entry.installed])).toEqual([
+      [assistant.id, false],
+      [crawler.id, true],
+    ])
+  })
+
   it("throws not found for an unknown id", async () => {
     const unknownId = randomUUID()
     await expect(service.getAppManifest(unknownId)).rejects.toBeInstanceOf(NotFoundException)

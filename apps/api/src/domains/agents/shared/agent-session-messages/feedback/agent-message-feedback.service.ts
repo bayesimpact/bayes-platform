@@ -1,3 +1,4 @@
+import type { AgentMessageFeedbackRating } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -29,11 +30,13 @@ export class AgentMessageFeedbackService {
     connectScope,
     userId,
     agentMessageId,
+    rating,
     content,
   }: {
     connectScope: RequiredConnectScope
     userId: string
     agentMessageId: string
+    rating: AgentMessageFeedbackRating
     content: string
   }): Promise<AgentMessageFeedback | null> {
     const agentMessage = await this.agentMessageConnectRepository.getOneById(
@@ -46,6 +49,7 @@ export class AgentMessageFeedbackService {
     return await this.feedbackConnectRepository.createAndSave(connectScope, {
       userId,
       agentMessageId,
+      rating,
       content,
     })
   }

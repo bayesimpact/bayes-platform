@@ -107,6 +107,7 @@ function WithData() {
         invitations={pendingInvitations}
         title={t("agentMembership:pendingInvitations.title")}
         description={t("agentMembership:pendingInvitations.description")}
+        currentAgent={{ id: agent.id, name: agent.name }}
         onRevoke={handleRevokeInvitation}
       />
     </>

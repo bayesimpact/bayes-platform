@@ -21,6 +21,7 @@
       "lookupKnowledgeBase": "Recherche dans la base de connaissances…",
       "gatheringSources": "Collecte des sources…",
       "surfacingResources": "Mise en avant des ressources…",
+      "suggestingQuestions": "Préparation de questions de relance…",
       "fillingForm": "Remplissage du formulaire…",
       "completingForm": "Complément du formulaire…",
       "handingBack": "Retour de la conversation…",

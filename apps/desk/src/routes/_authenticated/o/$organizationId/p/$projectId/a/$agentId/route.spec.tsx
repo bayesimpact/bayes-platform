@@ -6,6 +6,8 @@ import { agentUrlOf, projectUrlOf, routerPathOf } from "@/test/desk-urls"
 import {
   buildEmptyHistoryWorld,
   buildExtractionAgentWorld,
+  buildGreetingWorld,
+  buildReadOnlyAgentWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
 import { hiddenFileInput } from "@/test/file-input"
@@ -57,6 +59,29 @@ describe("an agent's pages", () => {
     expect(await screen.findByText("No conversations yet")).toBeInTheDocument()
   })
 
+  it("greet a new conversation with the agent's greeting, kept as its first message", async () => {
+    const world = buildGreetingWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(agentUrlOf(world))
+
+    expect(
+      await screen.findByRole("heading", { name: "New conversation with Helpful Assistant" }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Ask me about the plans, their prices or support/)).toBeInTheDocument()
+    expect(
+      screen.queryByRole("heading", { name: "How can I help you today?" }),
+    ).not.toBeInTheDocument()
+
+    const messageBox = screen.getByRole("textbox", { name: "Message to Helpful Assistant" })
+    await writeMessage(messageBox, "Which plan suits a team of five?", { send: true })
+
+    expect(
+      await screen.findByText(/Here is what I found about "Which plan suits a team of five\?"/),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toMatch(/\/as\/[0-9a-f-]+$/)
+    expect(screen.getByText(/Ask me about the plans, their prices or support/)).toBeInTheDocument()
+  })
+
   it("keep the first message and its file when the conversation could not start", async () => {
     const world = buildEmptyHistoryWorld()
     server.use(
@@ -84,6 +109,14 @@ describe("an agent's pages", () => {
     const world = buildEmptyHistoryWorld()
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world, "Billing Assistant"))
+
+    expect(await screen.findByText("Page not found")).toBeInTheDocument()
+  })
+
+  it("are not found for an agent the person may read but not open a session with", async () => {
+    const world = buildReadOnlyAgentWorld()
+    server.use(...worldHandlers(world))
+    renderApp(agentUrlOf(world, "Writing Helper"))
 
     expect(await screen.findByText("Page not found")).toBeInTheDocument()
   })

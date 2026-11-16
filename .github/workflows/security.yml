@@ -38,76 +38,66 @@ jobs:
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: 'caseai-connect/api:local'
-          format: 'table'
+          format: 'json'
           exit-code: '1'
           ignore-unfixed: true
           pkg-types: 'os,library'
           severity: 'CRITICAL,HIGH'
           trivyignores: '.trivyignore.yaml'
-          output: 'trivy-api-results.txt'
+          output: 'trivy-api-results.json'
 
       - name: Run Trivy vulnerability scanner on CPU Workers
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: 'caseai-connect/cpu-workers:local'
-          format: 'table'
+          format: 'json'
           exit-code: '1'
           ignore-unfixed: true
           pkg-types: 'os,library'
           severity: 'CRITICAL,HIGH'
           trivyignores: '.trivyignore.yaml'
-          output: 'trivy-cpu-workers-results.txt'
+          output: 'trivy-cpu-workers-results.json'
 
       - name: Run Trivy vulnerability scanner on GPU Workers
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: 'caseai-connect/gpu-workers:local'
-          format: 'table'
+          format: 'json'
           exit-code: '1'
           ignore-unfixed: true
           pkg-types: 'os,library'
           severity: 'CRITICAL,HIGH'
           trivyignores: '.trivyignore.yaml'
-          output: 'trivy-gpu-workers-results.txt'
+          output: 'trivy-gpu-workers-results.json'
 
       - name: Run Trivy vulnerability scanner on PDF Converter
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: 'caseai-connect/pdf-converter:local'
-          format: 'table'
+          format: 'json'
           exit-code: '1'
           ignore-unfixed: true
           pkg-types: 'os,library'
           severity: 'CRITICAL,HIGH'
           trivyignores: '.trivyignore.yaml'
-          output: 'trivy-pdf-converter-results.txt'
+          output: 'trivy-pdf-converter-results.json'
 
       - name: Trivy scan summary
         if: always()
         run: |
-          MAX_SIZE=300000
-          print_report() {
-            local label="$1" file="$2"
-            echo "### $label"
-            echo '```'
-            if [ ! -f "$file" ]; then
-              echo "(scan did not run)"
-            elif [ "$(wc -c < "$file")" -gt "$MAX_SIZE" ]; then
-              echo "... output truncated (showing last ${MAX_SIZE} bytes)"
-              echo ""
-              tail -c $MAX_SIZE "$file"
-            else
-              cat "$file"
-            fi
-            echo '```'
-          }
-          {
-            echo "## Trivy Vulnerability Scan Results"
-            print_report "API Image" trivy-api-results.txt
-            print_report "CPU Workers Image" trivy-cpu-workers-results.txt
-            print_report "GPU Workers Image" trivy-gpu-workers-results.txt
-            print_report "PDF Converter Image" trivy-pdf-converter-results.txt
-          } >> $GITHUB_STEP_SUMMARY
+          .github/scripts/trivy-report.sh "$GITHUB_STEP_SUMMARY" \
+            "API image=trivy-api-results.json" \
+            "CPU workers image=trivy-cpu-workers-results.json" \
+            "GPU workers image=trivy-gpu-workers-results.json" \
+            "PDF converter image=trivy-pdf-converter-results.json"
+
+      - name: Upload Trivy reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-reports
+          path: trivy-*-results.json
+          if-no-files-found: ignore

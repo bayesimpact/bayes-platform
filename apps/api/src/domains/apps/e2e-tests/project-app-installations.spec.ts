@@ -17,7 +17,9 @@ import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
   mockForeignAuthSubject,
@@ -89,13 +91,19 @@ describe("Apps - project app installations", () => {
 
   const installApp = async (
     targetProjectId: string,
-    params: { name: string; status?: typeof APP_INSTALLATION_STATUS_REVOKED },
+    params: {
+      name: string
+      appUrl?: string | null
+      status?: typeof APP_INSTALLATION_STATUS_REVOKED
+      createdByUserId?: string | null
+    },
   ) => {
-    const manifest = appManifestFactory.build({ name: params.name })
+    const manifest = appManifestFactory.build({ name: params.name, appUrl: params.appUrl ?? null })
     await repositories.appManifestRepository.save(manifest)
     const installation = appInstallationFactory.build({
       appManifestId: manifest.id,
       projectId: targetProjectId,
+      createdByUserId: params.createdByUserId ?? null,
       ...(params.status ? { status: params.status, revokedAt: new Date() } : {}),
     })
     await repositories.appInstallationRepository.save(installation)
@@ -167,6 +175,59 @@ describe("Apps - project app installations", () => {
     })
   })
 
+  it("names who installed each app: the caller, a colleague, or a former member", async () => {
+    const { user, organization, project } = await createContextForRole("project_owner")
+    const addProjectAdmin = async (fields: { name?: string; email?: string } = {}) => {
+      const added = await addUserToOrganization({ repositories, organization, user: fields })
+      await addUserToProject({
+        repositories,
+        project,
+        user: added.user,
+        membership: { roleKeys: ["project_admin"] },
+      })
+      return added.user
+    }
+    const colleague = await addProjectAdmin({
+      name: "Alex Morgan",
+      email: "alex.morgan@example.com",
+    })
+    // Removed from the project since: they can no longer reconnect what they installed.
+    const leaver = await addProjectAdmin()
+    await app.get(ProjectMembershipsService).removeProjectMembership({
+      callerUserId: user.id,
+      memberUserId: leaver.id,
+      projectId: project.id,
+    })
+    const mine = await installApp(project.id, { name: "Mine", createdByUserId: user.id })
+    const theirs = await installApp(project.id, {
+      name: "Theirs",
+      createdByUserId: colleague.id,
+    })
+    const leaversApp = await installApp(project.id, {
+      name: "Left behind",
+      createdByUserId: leaver.id,
+    })
+    const unknown = await installApp(project.id, { name: "Unknown", createdByUserId: null })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    const installedBy = new Map(
+      response.body.data.map((installation: { id: string; installedBy: unknown }) => [
+        installation.id,
+        installation.installedBy,
+      ]),
+    )
+    expect(installedBy.get(mine.id)).toEqual({ kind: "me" })
+    expect(installedBy.get(theirs.id)).toEqual({
+      kind: "member",
+      name: "Alex Morgan",
+      email: "alex.morgan@example.com",
+    })
+    expect(installedBy.get(leaversApp.id)).toEqual({ kind: "former-member" })
+    expect(installedBy.get(unknown.id)).toEqual({ kind: "former-member" })
+  })
+
   it("returns the active apps of the project, newest first", async () => {
     const { project } = await createContextForRole("project_owner")
     const first = await installApp(project.id, { name: "Helpful Assistant" })
@@ -174,14 +235,27 @@ describe("Apps - project app installations", () => {
       { id: first.id },
       { createdAt: new Date(Date.now() - 60_000) },
     )
-    const second = await installApp(project.id, { name: "Site Crawler" })
+    const second = await installApp(project.id, {
+      name: "Site Crawler",
+      appUrl: "https://crawler.example.com",
+    })
 
     const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data).toEqual([
-      expect.objectContaining({ id: second.id, appName: "Site Crawler", permissions: [] }),
-      expect.objectContaining({ id: first.id, appName: "Helpful Assistant", permissions: [] }),
+      expect.objectContaining({
+        id: second.id,
+        appName: "Site Crawler",
+        appUrl: "https://crawler.example.com",
+        permissions: [],
+      }),
+      expect.objectContaining({
+        id: first.id,
+        appName: "Helpful Assistant",
+        appUrl: null,
+        permissions: [],
+      }),
     ])
   })
 

@@ -105,6 +105,47 @@ export const resourceCardsConversation: AgentSessionMessageDto[] = [
   }),
 ]
 
+export function buildFollowUpQuestionsToolCall(
+  questions: string[],
+): NonNullable<AgentSessionMessageDto["toolCalls"]>[number] {
+  return {
+    id: `tool-follow-up-${nextId()}`,
+    name: ToolName.SuggestFollowUpQuestions,
+    arguments: { questions },
+  }
+}
+
+const followUpAnswer =
+  "A subscription renews on the same day each month. You can cancel it at any time from your account page."
+
+export const oneFollowUpQuestionConversation: AgentSessionMessageDto[] = [
+  buildUserMessage("How does the subscription work?"),
+  buildAssistantMessage(followUpAnswer, {
+    toolCalls: [buildFollowUpQuestionsToolCall(["What does renew mean?"])],
+  }),
+]
+
+export const maxFollowUpQuestionsConversation: AgentSessionMessageDto[] = [
+  buildUserMessage("How does the subscription work?"),
+  buildAssistantMessage(followUpAnswer, {
+    toolCalls: [
+      buildFollowUpQuestionsToolCall([
+        "What does renew mean?",
+        "How do I cancel my subscription?",
+        "Can I change my plan later?",
+        "Do I get a refund if I cancel?",
+      ]),
+    ],
+  }),
+]
+
+/** The user sent a new message: the questions of the earlier reply are hidden. */
+export const followUpQuestionsAfterNewMessageConversation: AgentSessionMessageDto[] = [
+  ...maxFollowUpQuestionsConversation,
+  buildUserMessage("What does renew mean?"),
+  buildAssistantMessage("Renew means the subscription starts again for one more month."),
+]
+
 export const sourcesConversation: AgentSessionMessageDto[] = [
   buildUserMessage("What is the return policy?"),
   buildAssistantMessage(

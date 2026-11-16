@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
+import { AgentInvitationsRoutes, ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -17,6 +17,7 @@ import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
+import { createWorkspaceWithTwoAgents } from "./workspace-invitation.helpers"
 
 describe("Invitations - revokeOne", () => {
   let app: INestApplication<App>
@@ -126,5 +127,60 @@ describe("Invitations - revokeOne", () => {
     expect(
       (await repositories.invitationRepository.findOneByOrFail({ id: otherInvitation.id })).status,
     ).toBe("pending")
+  })
+
+  describe("from an agent", () => {
+    const revokeOnAgent = (
+      agent: { id: string; organizationId: string; projectId: string },
+      invitationId: string,
+    ) =>
+      request({
+        route: AgentInvitationsRoutes.deleteOne,
+        pathParams: {
+          organizationId: agent.organizationId,
+          projectId: agent.projectId,
+          agentId: agent.id,
+          invitationId,
+        },
+        token: "token",
+      })
+
+    it("takes the agent out of a workspace invitation, which stays pending", async () => {
+      const { project, firstAgent, secondAgent } = await createWorkspaceWithTwoAgents(
+        repositories,
+        authSubject,
+      )
+      const invitedUser = await repositories.userRepository.save(
+        userFactory.build({ authSubject: null }),
+      )
+      const invitation = await repositories.invitationRepository.save(
+        invitationFactory
+          .transient({ user: invitedUser, project })
+          .build({ role: "member", agentIds: [firstAgent.id, secondAgent.id] }),
+      )
+
+      expectResponse(await revokeOnAgent(firstAgent, invitation.id), 200)
+
+      const saved = await repositories.invitationRepository.findOneByOrFail({ id: invitation.id })
+      expect(saved.status).toBe("pending")
+      expect(saved.agentIds).toEqual([secondAgent.id])
+    })
+
+    it("answers 404 for a workspace invitation that does not give the agent", async () => {
+      const { project, firstAgent, secondAgent } = await createWorkspaceWithTwoAgents(
+        repositories,
+        authSubject,
+      )
+      const invitedUser = await repositories.userRepository.save(
+        userFactory.build({ authSubject: null }),
+      )
+      const invitation = await repositories.invitationRepository.save(
+        invitationFactory
+          .transient({ user: invitedUser, project })
+          .build({ role: "member", agentIds: [secondAgent.id] }),
+      )
+
+      expectResponse(await revokeOnAgent(firstAgent, invitation.id), 404)
+    })
   })
 })

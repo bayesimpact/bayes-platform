@@ -19,6 +19,7 @@ import {
   agentEditorTabKeys,
   type TabKey,
 } from "@/studio/features/agents/components/AgentEditor"
+import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
 import { projectEmbeddingModelsActions } from "@/studio/features/project-embedding-models/project-embedding-models.slice"
 import { selectAgentSettingsDataByAgentId } from "../../common/features/agents/agent-settings/agent-settings.selectors"
 import { AgentSettingsCreateButton } from "../features/agents/agent-settings/components/AgentSettingsCreateButton"
@@ -28,6 +29,8 @@ export function AgentEditorRoute() {
   const agent = useValue(selectCurrentAgentData)
   const project = useValue(selectCurrentProjectData)
   const subAgents = useAppSelector(selectAgentSubAgentsData)
+  // The project mount lists the MCP servers, and the editor reads them: a deep link can arrive first.
+  const mcpServers = useAppSelector(selectMcpServersData)
   const agentSettings = useAppSelector(
     selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true }),
   )
@@ -45,14 +48,14 @@ export function AgentEditorRoute() {
 
   if (hasOrchestration) {
     return (
-      <AsyncRoute data={[agentSettings, subAgents]}>
+      <AsyncRoute data={[agentSettings, subAgents, mcpServers]}>
         <WithOrchestrationData />
       </AsyncRoute>
     )
   }
 
   return (
-    <AsyncRoute data={[agentSettings]}>
+    <AsyncRoute data={[agentSettings, mcpServers]}>
       <WithData />
     </AsyncRoute>
   )

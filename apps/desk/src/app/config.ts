@@ -28,6 +28,11 @@ const sharedConfigSchema = z.object({
   appVersion: optionalText,
   /** The commit the image was built from. */
   gitSha: optionalText,
+  /**
+   * The id of this production build, which its `version.json` publishes too: an open tab learns
+   * from that file that another build replaced its own. Undefined in dev, the tests and Storybook.
+   */
+  buildId: optionalText,
 })
 
 const apiModeConfigSchema = sharedConfigSchema.extend({
@@ -67,6 +72,7 @@ function readConfig(): AppConfig {
       helpCenterUrl: "https://help.example.org",
       appVersion: "26.10.7",
       gitSha: undefined,
+      buildId: undefined,
     }
   }
 
@@ -74,6 +80,7 @@ function readConfig(): AppConfig {
     helpCenterUrl: env.VITE_HELP_CENTER_URL,
     appVersion: env.VITE_APP_VERSION,
     gitSha: env.VITE_GIT_SHA,
+    buildId: env.VITE_BUILD_ID,
     oidcAuthority: env.VITE_OIDC_AUTHORITY,
     oidcClientId: env.VITE_OIDC_CLIENT_ID,
     oidcAudience: env.VITE_OIDC_AUDIENCE,

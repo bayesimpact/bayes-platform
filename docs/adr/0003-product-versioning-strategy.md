@@ -1,7 +1,7 @@
 # ADR 0003: Product Versioning and Release Notes Strategy
 
 * **Status**: Accepted
-* **Date**: 2026-02-25 (updated 2026-03-27)
+* **Date**: 2026-02-25 (updated 2026-03-27, 2026-11-09)
 * **Deciders**: Jérémie
 
 ---
@@ -39,8 +39,7 @@ All internal packages and shared modules will use **SemVer** (`Major.Minor.Patch
 We follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format in `CHANGELOG.md`:
 
 * Developers update the `[Unreleased]` section as part of their PRs.
-* Standard categories: Added, Changed, Deprecated, Removed, Fixed, Security.
-* Features behind a feature flag are prefixed with `(beta)` and listed last in their category.
+* The rules for entries (categories, the `(beta)` prefix of flagged features, the writing style) live in [`docs/changelog.md`](../changelog.md).
 * On release, a maintainer pushes a CalVer git tag (e.g., `git tag v26.03.0 && git push --tags`).
 * A GitHub Actions workflow (`release.yml`) promotes `[Unreleased]` to a versioned entry, commits the updated changelog, and creates a GitHub Release.
 

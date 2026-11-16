@@ -146,6 +146,15 @@ describe("Project membership - removeRole", () => {
     expectResponse(await subject(owner.id, "project_admin"), 403, "Cannot change your own role")
   })
 
+  it("lets the caller take their own evaluator role", async () => {
+    const { owner } = await createContext()
+    await giveRole(owner.id, "project_evaluator")
+
+    expectResponse(await subject(owner.id, "project_evaluator"), 200)
+
+    expect(await roleKeysOf(owner.id)).toEqual(["project_owner"])
+  })
+
   it("refuses to take a member's last role", async () => {
     const { first } = await createContext()
 

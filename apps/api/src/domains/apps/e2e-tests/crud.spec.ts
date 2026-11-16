@@ -150,6 +150,72 @@ describe("Apps - CRUD", () => {
     expectResponse(unknownPermission, 400)
   })
 
+  it("keeps the catalog fields of a manifest", async () => {
+    const created = await createApp()
+    expectResponse(created, 201)
+    expect(created.body.data).toMatchObject({
+      appUrl: null,
+      listedInCatalog: false,
+      installInstructions: null,
+    })
+
+    const updated = await request({
+      route: AppsRoutes.updateOne,
+      pathParams: { appManifestId: created.body.data.id },
+      token: "token",
+      request: {
+        payload: {
+          appUrl: "https://app.example.com",
+          listedInCatalog: true,
+          installInstructions: "Ask the Bayes team to open your access.",
+        },
+      },
+    })
+    expectResponse(updated, 200)
+    expect(updated.body.data).toMatchObject({
+      appUrl: "https://app.example.com",
+      listedInCatalog: true,
+      installInstructions: "Ask the Bayes team to open your access.",
+    })
+
+    const cleared = await request({
+      route: AppsRoutes.updateOne,
+      pathParams: { appManifestId: created.body.data.id },
+      token: "token",
+      request: { payload: { appUrl: "", installInstructions: "" } },
+    })
+    expectResponse(cleared, 200)
+    expect(cleared.body.data).toMatchObject({ appUrl: null, installInstructions: null })
+  })
+
+  it.each([
+    "http://app.example.com",
+    "ftp://app.example.com",
+  ])("rejects %s as an app URL", async (appUrl) => {
+    const created = await createApp()
+    expectResponse(created, 201)
+    const updated = await request({
+      route: AppsRoutes.updateOne,
+      pathParams: { appManifestId: created.body.data.id },
+      token: "token",
+      request: { payload: { appUrl } },
+    })
+    expectResponse(updated, 400)
+  })
+
+  it("accepts a loopback http app URL", async () => {
+    const created = await createApp({ slug: "local-app" })
+    expectResponse(created, 201)
+    const updated = await request({
+      route: AppsRoutes.updateOne,
+      pathParams: { appManifestId: created.body.data.id },
+      token: "token",
+      request: { payload: { appUrl: "http://localhost:3010" } },
+    })
+    expectResponse(updated, 200)
+    expect(updated.body.data.appUrl).toBe("http://localhost:3010")
+  })
+
   it("rejects a duplicate slug", async () => {
     expectResponse(await createApp(), 201)
     const duplicate = await createApp()

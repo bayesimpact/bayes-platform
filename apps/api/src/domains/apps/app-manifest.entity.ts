@@ -21,4 +21,13 @@ export class AppManifest extends Base4AllEntity {
 
   @Column({ type: "jsonb", name: "allowed_redirect_uris", default: [] })
   allowedRedirectUris!: string[]
+
+  @Column({ type: "varchar", name: "app_url", nullable: true })
+  appUrl!: string | null
+
+  @Column({ type: "boolean", name: "listed_in_catalog", default: false })
+  listedInCatalog!: boolean
+
+  @Column({ type: "varchar", name: "install_instructions", nullable: true })
+  installInstructions!: string | null
 }

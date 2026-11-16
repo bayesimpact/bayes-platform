@@ -20,7 +20,7 @@ import { AgentMessagesController } from "./agent-messages.controller"
 
 const Routes = AgentSessionMessagesRoutes.live
 
-/** Messages of live sessions, open to every project role through the `agent.conversation.session.*` keys. */
+/** Messages of live sessions, open to the agent's roles and to project owners and admins through the `agent.conversation.session.*` keys. */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent", "agentSession")
 @Controller()
@@ -28,7 +28,7 @@ export class LiveAgentMessagesController extends AgentMessagesController {
   protected readonly type = "live"
 
   @Post(Routes.getAll.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "agent")
   getAll(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<typeof Routes.getAll.response> {
@@ -36,7 +36,7 @@ export class LiveAgentMessagesController extends AgentMessagesController {
   }
 
   @Post(Routes.getMcpAppHtml.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "agent")
   getMcpAppHtml(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<typeof Routes.getMcpAppHtml.response> {
@@ -44,7 +44,7 @@ export class LiveAgentMessagesController extends AgentMessagesController {
   }
 
   @Post(Routes.getOne.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "agent")
   getOne(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Param("messageId") messageId: string,
@@ -53,7 +53,7 @@ export class LiveAgentMessagesController extends AgentMessagesController {
   }
 
   @Post(Routes.presignAttachmentDocument.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "agent")
   @HttpCode(HttpStatus.CREATED)
   presignAttachmentDocument(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
@@ -64,7 +64,7 @@ export class LiveAgentMessagesController extends AgentMessagesController {
   }
 
   @Post(Routes.getAttachmentDocumentTemporaryUrl.path)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "agent")
   getAttachmentDocumentTemporaryUrl(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Param("attachmentDocumentId") attachmentDocumentId: string,

@@ -42,6 +42,7 @@ const toOAuthConsentPage = (dto: OAuthConsentPageDto): OAuthConsentPage => ({
     organizationId: project.organizationId,
     organizationName: project.organizationName,
     availablePermissions: project.availablePermissions,
+    installedBy: project.installedBy,
   })),
   grantablePermissions: dto.grantablePermissions,
 })

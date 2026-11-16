@@ -65,7 +65,7 @@ describe("Invitations - email", () => {
     await app.close()
   })
 
-  const invite = async (emails: string[]) => {
+  const invite = async (emails: string[], language?: "en" | "fr") => {
     const { organization, project } = await createOrganizationWithProject(repositories, {
       user: { authSubject, name: "Alex Martin" },
     })
@@ -74,7 +74,7 @@ describe("Invitations - email", () => {
       route: routes.createMany,
       pathParams,
       token: "token",
-      request: { payload: { emails } },
+      request: { payload: { emails, language } },
     })
     return { response, organization, project }
   }
@@ -89,11 +89,41 @@ describe("Invitations - email", () => {
     expect(message?.to).toBe("first+team@example.com")
     expect(message?.subject).toContain(project.name)
     expect(message?.text).toContain(
-      `Alex Martin invited you to join the workspace ${project.name} (${organization.name}).`,
+      `Alex Martin invited you to join the workspace ${project.name} (${organization.name}) as an admin.`,
     )
     expect(message?.text).toContain(
       "https://platform.example.org/?login_hint=first%2Bteam%40example.com",
     )
+  })
+
+  it("writes the email in the inviter's language only", async () => {
+    const { response, organization, project } = await invite(["invited@example.com"], "fr")
+
+    expectResponse(response, 201)
+    const [message] = sentMessages
+    expect(message?.subject).toBe(`Invitation : ${project.name}`)
+    expect(message?.text).toContain(
+      `Alex Martin vous invite à rejoindre l'espace de travail ${project.name} (${organization.name}) en tant qu'administrateur.`,
+    )
+    expect(message?.text).toContain("Vous aurez accès à tous les agents.")
+    expect(message?.text).not.toContain("invited you")
+  })
+
+  it("rejects a language the platform does not write", async () => {
+    const { project } = await createOrganizationWithProject(repositories, {
+      user: { authSubject },
+    })
+    const { routes, pathParams } = invitationRoutesFor({ project })
+
+    const response = await request({
+      route: routes.createMany,
+      pathParams,
+      token: "token",
+      request: { payload: { emails: ["invited@example.com"], language: "de" as "en" } },
+    })
+
+    expectResponse(response, 400)
+    expect(sentMessages).toEqual([])
   })
 
   it("does not email people who were skipped", async () => {
@@ -110,7 +140,7 @@ describe("Invitations - email", () => {
     })
 
     expectResponse(again, 201)
-    expect(again.body.data).toEqual({ invitations: [], emailSent: false })
+    expect(again.body.data).toEqual({ invitations: [], emailSent: false, grantedEmails: [] })
     expect(sentMessages).toEqual([])
   })
 

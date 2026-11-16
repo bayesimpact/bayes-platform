@@ -8,6 +8,7 @@ import {
   selectCurrentProjectData,
   selectCurrentProjectId,
 } from "@/common/features/projects/projects.selectors"
+import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
@@ -53,6 +54,7 @@ function WithData() {
   const project = useValue(selectCurrentProjectData)
   const appInstallations = useValue(selectAppInstallationsData)
   const canRevoke = project.permissions.includes(PROJECT_APP_INSTALLATION_REVOKE_PERMISSION)
+  const { hasFeature } = useFeatureFlags(project)
   return (
     <AppInstallationsList
       appInstallations={appInstallations}
@@ -60,6 +62,11 @@ function WithData() {
       onRevoke={
         canRevoke
           ? (appInstallationId) => dispatch(revokeProjectAppInstallation({ appInstallationId }))
+          : undefined
+      }
+      onBrowseCatalog={
+        hasFeature("apps-catalog")
+          ? () => navigate(StudioRoutes.appCatalog.build({ organizationId, projectId }))
           : undefined
       }
     />

@@ -13,6 +13,9 @@ export const agentSettingsDiffKeys = [
   "priorityCallsEnabled",
   "variables",
   "embeddingModel",
+  "followUpSuggestionsEnabled",
+  "followUpSuggestionsInstructions",
+  "followUpSuggestionsMax",
 ] as const
 
 export type AgentSettingsDiffKey = (typeof agentSettingsDiffKeys)[number]
@@ -29,6 +32,9 @@ export const agentSettingsDiffFileNames: Record<AgentSettingsDiffKey, string> = 
   priorityCallsEnabled: "priority-calls-enabled.txt",
   variables: "prompt-variables.json",
   embeddingModel: "embedding-model.txt",
+  followUpSuggestionsEnabled: "follow-up-suggestions-enabled.txt",
+  followUpSuggestionsInstructions: "follow-up-suggestions-instructions.md",
+  followUpSuggestionsMax: "follow-up-suggestions-max.txt",
 }
 
 export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = {
@@ -42,6 +48,9 @@ export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = 
   priorityCallsEnabled: "agentSettings:props.priorityCallsEnabled",
   variables: "agentSettings:props.promptVariables",
   embeddingModel: "agentSettings:props.embeddingModel",
+  followUpSuggestionsEnabled: "agentSettings:props.followUpSuggestionsEnabled",
+  followUpSuggestionsInstructions: "agentSettings:props.followUpSuggestionsInstructions",
+  followUpSuggestionsMax: "agentSettings:props.followUpSuggestionsMax",
 }
 
 export function serializeAgentSettingsField(

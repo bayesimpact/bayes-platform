@@ -131,7 +131,10 @@ RUN cd apps/desk && npm run build
 FROM node:24.21.0-trixie-slim AS runtime-base
 
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
+# `apt-get upgrade` takes the Debian security fixes released after the Node
+# image was built (zlib1g, apt), so trivy does not flag them.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+  && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
 
 # The runtime only calls `node`. The package managers bundled in the Node image
 # carry their own dependencies (and CVEs), so drop them.
@@ -194,7 +197,9 @@ CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]
 FROM node:24.21.0-trixie-slim AS docling-base
 
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Same as runtime-base: take the Debian security fixes first.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+  && apt-get install -y --no-install-recommends \
   libc6 \
   python3 python3-pip python3-venv \
   libxcb1 libgl1 libglib2.0-0 \

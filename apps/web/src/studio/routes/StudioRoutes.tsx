@@ -6,7 +6,6 @@ import { useValue } from "@/common/hooks/use-value"
 import { AgentRoute } from "@/common/routes/AgentRoute"
 import { AgentSessionRoute } from "@/common/routes/agents/AgentSessionRoute"
 import { ConversationAgentSessionsRoute } from "@/common/routes/agents/ConversationAgentSessionsRoute"
-import { ExtractionAgentSessionsRoute } from "@/common/routes/agents/ExtractionAgentSessionsRoute"
 import { AgentCsvExtractionRunRoute } from "@/common/routes/agents/extraction/AgentCsvExtractionRunRoute"
 import { AgentExtractionRoute } from "@/common/routes/agents/extraction/AgentExtractionRoute"
 import { AgentExtractionRunRoute } from "@/common/routes/agents/extraction/AgentExtractionRunRoute"
@@ -16,10 +15,7 @@ import { OrganizationRoute } from "@/common/routes/OrganizationRoute"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
-import {
-  ConversationAgentSessionList,
-  ExtractionAgentSessionList,
-} from "@/studio/features/agents/components/AgentSessionList"
+import { ConversationAgentSessionList } from "@/studio/features/agents/components/AgentSessionList"
 import { CampaignsRoute } from "@/studio/routes/CampaignsRoute"
 import { ProjectAdminRoute } from "@/studio/routes/ProjectAdminRoute"
 import { StudioLayout } from "../components/StudioLayout"
@@ -29,6 +25,7 @@ import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
 import { AgentConversationReviewRoute } from "./AgentConversationReviewRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
+import { AppCatalogRoute } from "./AppCatalogRoute"
 import { AppInstallationsRoute } from "./AppInstallationsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { ExternalSourcesRoute } from "./ExternalSourcesRoute"
@@ -44,9 +41,9 @@ import { ResourceLibrariesRoute } from "./ResourceLibrariesRoute"
 import { ResourceLibraryCreatorRoute } from "./ResourceLibraryCreatorRoute"
 import { ResourceLibraryEditorRoute } from "./ResourceLibraryEditorRoute"
 import { RestrictedAccess } from "./RestrictedAccess"
-import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentRoute } from "./StudioAgentRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
+import { StudioExtractionAgentSessionsRoute } from "./StudioExtractionAgentSessionsRoute"
 import { StudioRoute } from "./StudioRoute"
 
 export const studioRoutes = {
@@ -94,6 +91,14 @@ export const studioRoutes = {
         {
           path: StudioRoutes.appInstallations.path,
           element: <AppInstallationsRoute />,
+        },
+        {
+          path: StudioRoutes.appCatalog.path,
+          element: (
+            <RestrictedFeature feature="apps-catalog" returnNull={false}>
+              <AppCatalogRoute />
+            </RestrictedFeature>
+          ),
         },
         {
           path: StudioRoutes.resourceLibraries.path,
@@ -146,8 +151,13 @@ export const studioRoutes = {
           element: <CampaignsRoute />,
         },
         {
+          // The campaign editor and its report open over the list, in a full-screen sheet.
+          path: StudioRoutes.reviewCampaign.path,
+          element: <CampaignsRoute />,
+        },
+        {
           path: StudioRoutes.reviewCampaignReport.path,
-          element: <ReviewCampaignReportRoute />,
+          element: <CampaignsRoute />,
         },
         {
           path: StudioRoutes.agent.path,
@@ -248,11 +258,7 @@ function AgentSessionsHandler() {
         </ConversationAgentSessionsRoute>
       )
     case "extraction":
-      return (
-        <ExtractionAgentSessionsRoute>
-          <ExtractionAgentSessionList />
-        </ExtractionAgentSessionsRoute>
-      )
+      return <StudioExtractionAgentSessionsRoute />
     default:
       return <ErrorRoute error={"Unknown agent type"} />
   }

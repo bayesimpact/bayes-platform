@@ -13,6 +13,9 @@ export type AppManifestRecord = {
   logoUrl: string | null
   grantablePermissions: string[]
   allowedRedirectUris: string[]
+  appUrl: string | null
+  listedInCatalog: boolean
+  installInstructions: string | null
   createdAt: Date
 }
 
@@ -23,6 +26,9 @@ export type CreateAppManifestFields = {
   logoUrl: string | null
   grantablePermissions: string[]
   allowedRedirectUris?: string[]
+  appUrl?: string | null
+  listedInCatalog?: boolean
+  installInstructions?: string | null
 }
 
 export type UpdateAppManifestFields = Partial<CreateAppManifestFields>
@@ -33,6 +39,14 @@ export class AppManifestRepository {
 
   async findAll(): Promise<AppManifestRecord[]> {
     const manifests = await this.repo().find({ order: { name: "ASC" } })
+    return manifests.map((manifest) => this.toRecord(manifest))
+  }
+
+  async findListedInCatalog(): Promise<AppManifestRecord[]> {
+    const manifests = await this.repo().find({
+      where: { listedInCatalog: true },
+      order: { name: "ASC" },
+    })
     return manifests.map((manifest) => this.toRecord(manifest))
   }
 
@@ -97,6 +111,9 @@ export class AppManifestRepository {
       logoUrl: manifest.logoUrl,
       grantablePermissions: manifest.grantablePermissions,
       allowedRedirectUris: manifest.allowedRedirectUris,
+      appUrl: manifest.appUrl,
+      listedInCatalog: manifest.listedInCatalog,
+      installInstructions: manifest.installInstructions,
       createdAt: manifest.createdAt,
     }
   }

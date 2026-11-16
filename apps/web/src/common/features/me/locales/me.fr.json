@@ -24,10 +24,13 @@
     "invitations": {
       "title": "Invitations en attente",
       "description": "Acceptez une invitation pour obtenir l'accès.",
-      "projectBadge": "Projet",
+      "projectBadge": "Espace de travail",
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Campagne de revue",
-      "roleLabel": "Rôle"
+      "roleLabel": "Rôle",
+      "workspaceRoleLabel": "Rôle dans l'espace de travail",
+      "agentsLabel": "Accès aux agents",
+      "everyAgent": "Tous les agents"
     },
     "notifications": {
       "invitationAnswerError": "Impossible de répondre à l'invitation",

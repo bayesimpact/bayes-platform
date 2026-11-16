@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react"
 import { composeStories, composeStory, setProjectAnnotations } from "@storybook/react-vite"
 import { useQueryClient } from "@tanstack/react-query"
-import { render, screen, within } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
@@ -18,9 +18,17 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const { HistoryFailsToLoad, PageNotFound, ProjectsFailToLoad, Loading, ...generalPages } =
-  composeStories(generalStories)
-const { ReplyFails, ...conversationPages } = composeStories(conversationStories)
+const {
+  AgentTheyOnlyRead,
+  HistoryFailsToLoad,
+  PageNotFound,
+  ProjectsFailToLoad,
+  Loading,
+  NewReleaseOut,
+  PageFailsAfterNewRelease,
+  ...generalPages
+} = composeStories(generalStories)
+const { ReplyFails, PassageSelected, ...conversationPages } = composeStories(conversationStories)
 const { DocumentDetails, ...extractionPages } = composeStories(extractionStories)
 /** The stories of a page, from the three folders of Storybook. */
 const pageStories = {
@@ -47,9 +55,25 @@ const PAGES = {
     Story: pageStories.LongConversation,
     loaded: () => screen.findByRole("heading", { name: "What the billing team should check" }),
   },
+  OneFollowUpQuestion: {
+    Story: pageStories.OneFollowUpQuestion,
+    loaded: () => screen.findByRole("button", { name: "What does renew mean?" }),
+  },
+  MostFollowUpQuestions: {
+    Story: pageStories.MostFollowUpQuestions,
+    loaded: () => screen.findByRole("button", { name: /Do I get a refund if I cancel/ }),
+  },
+  FollowUpQuestionAnswered: {
+    Story: pageStories.FollowUpQuestionAnswered,
+    loaded: () => screen.findByText("The Pro plan renews on the same day each month."),
+  },
   FirstConversation: {
     Story: pageStories.FirstConversation,
     loaded: () => screen.findByText("No conversations yet"),
+  },
+  NewConversationWithGreeting: {
+    Story: pageStories.NewConversationWithGreeting,
+    loaded: () => screen.findByRole("heading", { name: "New conversation with Helpful Assistant" }),
   },
   SeveralAgents: {
     Story: pageStories.SeveralAgents,
@@ -125,6 +149,15 @@ describe("the stories of the Desk", () => {
     expect(await screen.findByText(/Here is what I found about "Hello"/)).toBeInTheDocument()
   })
 
+  it("PassageSelected offers to copy or annotate the passage it selects", async () => {
+    await PassageSelected.load()
+    const { container } = render(<PassageSelected />)
+    await PassageSelected.play?.({ canvasElement: container })
+
+    expect(await screen.findByRole("button", { name: "Copy" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Annotate" })).toBeInTheDocument()
+  })
+
   it("DocumentDetails opens the details of a document beside the page", async () => {
     await DocumentDetails.load()
     const { container } = render(<DocumentDetails />)
@@ -132,6 +165,46 @@ describe("the stories of the Desk", () => {
 
     const panel = await screen.findByRole("complementary", { name: "quarterly-report.pdf" })
     expect(within(panel).getByRole("heading", { name: "Quarterly report" })).toBeInTheDocument()
+  })
+
+  it("AgentTheyOnlyRead opens the switcher without the agent the person only reads", async () => {
+    await AgentTheyOnlyRead.load()
+    const { container } = render(<AgentTheyOnlyRead />)
+    await AgentTheyOnlyRead.play?.({ canvasElement: container })
+
+    const list = await screen.findByRole("listbox")
+    expect(
+      within(list)
+        .getAllByRole("option")
+        .map((item) => item.textContent),
+    ).toEqual(["Document Reader", "Helpful Assistant"])
+  })
+
+  it("NewReleaseOut shows a banner whose button reloads the page", async () => {
+    await NewReleaseOut.load()
+    const { container } = render(<NewReleaseOut />)
+    expect(
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
+    await act(() => NewReleaseOut.play?.({ canvasElement: container }))
+
+    const banner = screen.getByRole("status")
+    expect(within(banner).getByText("A new version of the Desk is available")).toBeInTheDocument()
+    expect(
+      within(banner).getByText("Reloading the page clears what you have not sent or saved."),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument()
+  })
+
+  it("PageFailsAfterNewRelease offers a reload, not a retry", async () => {
+    await PageFailsAfterNewRelease.load()
+    const { container } = render(<PageFailsAfterNewRelease />)
+    expect(await screen.findByText("This page could not load")).toBeInTheDocument()
+    await act(() => PageFailsAfterNewRelease.play?.({ canvasElement: container }))
+
+    expect(screen.getByText("A new version of the Desk is available")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument()
   })
 
   it("HistoryFailsToLoad keeps the page, and loads the history on its retry", async () => {

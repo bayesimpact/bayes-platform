@@ -2,6 +2,8 @@ import type { DocumentSourceStatus } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { TransactionService } from "@/common/transaction/transaction.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "../tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "../tags/document-tags.types"
 import type { DocumentSource } from "./document-source.entity"
@@ -34,6 +36,7 @@ export class DocumentSourcesService {
   constructor(
     private readonly documentSourceRepository: DocumentSourceRepository,
     private readonly documentTagsService: DocumentTagsService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   async listSummaries(connectScope: RequiredConnectScope): Promise<DocumentSourceSummary[]> {
@@ -82,11 +85,21 @@ export class DocumentSourcesService {
     return this.documentSourceRepository.findOne(connectScope, id)
   }
 
+  /** Creates the source with its tags, found or created by name, in one transaction. */
   createOne(
     connectScope: RequiredConnectScope,
     fields: CreateDocumentSourceFields,
+    tagNames: string[] = [],
   ): Promise<DocumentSource> {
-    return this.documentSourceRepository.createOne(connectScope, fields)
+    return this.transactionService.run(async () => {
+      const documentSource = await this.documentSourceRepository.createOne(connectScope, fields)
+      if (tagNames.length === 0) return documentSource
+      const tags = await this.documentTagsService.findOrCreateTopLevelTags({
+        connectScope,
+        names: tagNames,
+      })
+      return this.documentSourceRepository.saveTags(documentSource, tags)
+    })
   }
 
   async updateOne(

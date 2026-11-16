@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { HeaderActionsContext } from "./header-actions-context"
+import { NewReleaseBanner } from "./NewReleaseBanner"
 import { ResizeHandle } from "./ResizeHandle"
 import { SidebarToggle } from "./SidebarToggle"
 
@@ -68,6 +69,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
           <div className="min-w-0 flex-1 truncate text-sm font-medium">{title}</div>
           <div ref={setActionsSlot} className="flex shrink-0 items-center gap-2" />
         </header>
+        <NewReleaseBanner />
         {/* The page scrolls inside this frame, so a conversation can keep its message box in view. */}
         <HeaderActionsContext value={actionsSlot}>
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>

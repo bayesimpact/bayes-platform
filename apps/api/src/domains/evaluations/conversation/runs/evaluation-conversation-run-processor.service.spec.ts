@@ -19,6 +19,7 @@ import { EvaluationConversationRunLlmService } from "./evaluation-conversation-r
 import { EvaluationConversationRunProcessorService } from "./evaluation-conversation-run-processor.service"
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
 import { evaluationConversationRunRecordFactory } from "./records/evaluation-conversation-run-record.factory"
+import { EvaluationConversationRunRecordRepository } from "./records/evaluation-conversation-run-record.repository"
 
 const RATING_AGENT_ID = "Custom-Rating-Agent"
 const mockStatusNotifier = { notifyRunStatusChanged: jest.fn() }
@@ -34,6 +35,7 @@ describe("EvaluationConversationRunProcessorService", () => {
       additionalImports: [LlmModule, AgentLlmModule],
       providers: [
         EvaluationConversationRunProcessorService,
+        EvaluationConversationRunRecordRepository,
         EvaluationConversationRunGraderLlmService,
         EvaluationConversationRunLlmService,
         { provide: EvaluationConversationRunStatusNotifierService, useValue: mockStatusNotifier },
@@ -169,6 +171,43 @@ describe("EvaluationConversationRunProcessorService", () => {
       running: 0,
       averageScore: null,
     })
+  })
+
+  it("offers fillForm to an evaluated agent whose pinned revision enables it", async () => {
+    const { agent, run, record, payload } = await seedRunRecord({ recordStatus: "running" })
+    await repositories.agentSettingsRepository.update(run.agentSettingsId, {
+      fillFormEnabled: true,
+      outputJsonSchema: {
+        type: "object",
+        properties: { title: { type: "string" }, summary: { type: "string" } },
+      },
+    })
+    mockProvider.addToolCallTurn(agent.id, "fillForm", { formFields: { title: "Request" } })
+    mockProvider.addToolCallTurn(agent.id, "fillForm", {
+      formFields: { summary: "Compare options" },
+    })
+    mockProvider.addTextTurn(agent.id, "The answer is 2")
+    mockProvider.addTextTurn(RATING_AGENT_ID, "5")
+
+    await service.processRunRecord(payload)
+
+    const agentCall = mockProvider.getCalls().find((call) => call.agentId === agent.id)
+    expect(agentCall?.toolNames).toContain("fillForm")
+    expect(JSON.parse(agentCall!.toolSchemas.fillForm!)).toMatchObject({
+      properties: {
+        formFields: {
+          properties: { title: expect.anything(), summary: expect.anything() },
+        },
+      },
+    })
+    const updatedRecord =
+      await repositories.evaluationConversationRunRecordRepository.findOneByOrFail({
+        id: record.id,
+      })
+    expect(updatedRecord.status).toBe("graded")
+    expect(updatedRecord.formState).toEqual({ title: "Request", summary: "Compare options" })
+    expect(updatedRecord.output).toBe("The answer is 2")
+    expect(await repositories.conversationFormRepository.count()).toBe(0)
   })
 
   it("processRunRecord - should skips already graded", async () => {

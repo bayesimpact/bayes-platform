@@ -34,7 +34,10 @@ export function ResourceRolesSection({
   description: string
   emptyLabel: string
   resources: MemberResourceRoles[]
-  /** True on the viewer's own page: nothing is editable, whatever the permissions. */
+  /**
+   * True when nothing in the section is editable, whatever the permissions: the agent and
+   * campaign roles on the viewer's own page.
+   */
   readOnly: boolean
   lockedRolesFor: (resource: MemberResourceRoles) => Record<string, string>
   onAddRole: (resource: MemberResourceRoles, role: RoleOption) => void

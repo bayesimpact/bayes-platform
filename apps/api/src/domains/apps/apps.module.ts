@@ -26,6 +26,7 @@ import { AppsConversationsService } from "./conversations/apps-conversations.ser
 import { AppsDocumentSourcesController } from "./document-sources/apps-document-sources.controller"
 import { AppsDocumentTagsController } from "./document-tags/apps-document-tags.controller"
 import { AppsDocumentsController } from "./documents/apps-documents.controller"
+import { ProjectAppCatalogController } from "./project-app-catalog.controller"
 import { ProjectAppInstallationsController } from "./project-app-installations.controller"
 
 @Module({
@@ -46,6 +47,7 @@ import { ProjectAppInstallationsController } from "./project-app-installations.c
     AppsDocumentsController,
     AppsConversationsController,
     ProjectAppInstallationsController,
+    ProjectAppCatalogController,
   ],
   providers: [
     AppsService,

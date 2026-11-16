@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { fireEvent, userEvent, within } from "storybook/test"
 import { backofficeRoutes } from "@/backoffice/routes/BackofficeRoutes"
 import { BackofficeAppsRoutes } from "@/backoffice/routes/helpers"
 import { buildDecorator, render } from "@/stories/decorators"
@@ -54,5 +55,30 @@ export const Empty: Story = {
     ...backofficeStoryArgs,
     isAppManagementAuthorized: true,
     withAppManifests: false,
+  },
+}
+
+/** Opens the delete dialog of the first app and returns its element. */
+const openFirstDeleteDialog = async (canvasElement: HTMLElement) => {
+  const canvas = within(canvasElement)
+  const [deleteButton] = await canvas.findAllByRole("button", { name: /^Delete / })
+  if (deleteButton) await userEvent.click(deleteButton)
+  return within(canvasElement.ownerDocument.body).findByRole("dialog")
+}
+
+/** Delete stays disabled until the app's slug is typed. */
+export const DeleteConfirmation: Story = {
+  play: async ({ canvasElement }) => {
+    await openFirstDeleteDialog(canvasElement)
+  },
+}
+
+export const DeleteConfirmationWithSlugTyped: Story = {
+  play: async ({ canvasElement }) => {
+    const dialog = await openFirstDeleteDialog(canvasElement)
+    // Factory slugs follow a sequence: type the one the dialog asks for.
+    const slug = dialog.querySelector("code")?.textContent ?? ""
+    // fireEvent sets the value as React expects, even when the page has no focus.
+    fireEvent.change(within(dialog).getByLabelText(/to confirm/), { target: { value: slug } })
   },
 }

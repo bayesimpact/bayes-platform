@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@caseai-connect/api-contracts": "*",
@@ -40,6 +41,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "globals": "^16.5.0",
     "storybook": "^10.6.1",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "vitest": "^4.1.2"
   }
 }

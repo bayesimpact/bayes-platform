@@ -15,6 +15,11 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   return humanizeZodValidationMessage(message)
 }
 
+/** True when the API refused the request with a 409: what it acts on changed in the meantime. */
+export function isApiConflict(error: unknown): boolean {
+  return isAxiosError(error) && error.response?.status === 409
+}
+
 function extractRawMessage(error: unknown): string | null {
   if (isAxiosError(error)) {
     const data = error.response?.data

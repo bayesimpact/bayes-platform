@@ -28,12 +28,14 @@ const TOOL_LABELS = {
 } satisfies Partial<Record<ToolName, MessageDescriptor>>
 
 /**
- * Tools the platform calls for itself after the reply, which say nothing to the person as steps:
- * the sources show under the reply instead.
+ * Tools that say nothing to the person as steps: the platform calls
+ * `recalculateConversationSessionMetadata` for itself after the reply, and the sources and the
+ * follow-up questions show under the reply instead.
  */
 const HIDDEN_TOOLS: ReadonlySet<string> = new Set([
   TOOL_NAMES.recalculateConversationSessionMetadata,
   TOOL_NAMES.sources,
+  TOOL_NAMES.suggestFollowUpQuestions,
 ])
 
 export type ToolStepsProps = {

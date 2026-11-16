@@ -1,9 +1,12 @@
 import { DeskAgentSessionsRoutes, DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
+import { userEvent, within } from "storybook/test"
+import { appUpdate } from "@/lib/app-update"
 import { agentUrlOf } from "@/test/desk-urls"
 import {
   buildNoAgentWorld,
+  buildReadOnlyAgentWorld,
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
@@ -25,6 +28,16 @@ export const Home: Story = {}
 
 export const SeveralAgents: Story = {
   parameters: desk({ world: buildSeveralAgentsWorld }),
+}
+
+/** The switcher, open, leaves out the agent the person may read but not open a session with. */
+export const AgentTheyOnlyRead: Story = {
+  parameters: desk({ world: buildReadOnlyAgentWorld }),
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      await within(canvasElement).findByRole("combobox", { name: /Switch agent/ }),
+    )
+  },
 }
 
 export const SeveralProjects: Story = {
@@ -51,6 +64,26 @@ export const HistoryFailsToLoad: Story = {
 /** A conversation that is not in the world, nor the person's. */
 export const PageNotFound: Story = {
   parameters: desk({ url: (world) => `${agentUrlOf(world)}/as/${crypto.randomUUID()}` }),
+}
+
+/**
+ * A new release of the Desk is out: a banner above the page offers to reload. The story reports it
+ * as a file of this release gone from the server would, which counts at once.
+ */
+export const NewReleaseOut: Story = {
+  play: () => {
+    appUpdate.reportStaleBuild()
+  },
+}
+
+/** A page fails once a new release is out: only a reload brings it back, so no retry is offered. */
+export const PageFailsAfterNewRelease: Story = {
+  parameters: desk({
+    handlers: () => [mockRoute(DeskProjectsRoutes.getAllMine, () => apiError(503))],
+  }),
+  play: () => {
+    appUpdate.reportStaleBuild()
+  },
 }
 
 export const ProjectsFailToLoad: Story = {

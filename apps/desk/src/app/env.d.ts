@@ -13,6 +13,8 @@ declare global {
     readonly VITE_HELP_CENTER_URL?: string
     readonly VITE_APP_VERSION?: string
     readonly VITE_GIT_SHA?: string
+    /** The id of a production build, which `version.json` publishes too (vite.config.ts). */
+    readonly VITE_BUILD_ID?: string
   }
 
   // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.

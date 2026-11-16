@@ -60,6 +60,7 @@ function toAgentRevisionDto(agentSettings: AgentSettings): AgentRevisionDto {
     name: agentSettings.revisionName,
     description: agentSettings.revisionDesc,
     number: agentSettings.revision,
+    greetingMessage: agentSettings.greetingMessage ?? undefined,
   }
 }
 

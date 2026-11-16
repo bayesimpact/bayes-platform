@@ -24,9 +24,15 @@ import {
 import { appManifestFactory } from "@/domains/apps/app-manifest.factory"
 import { AppsService } from "@/domains/apps/apps.service"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { OrganizationRoleKey } from "@/domains/organizations/memberships/organization-membership.types"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import type { Project } from "@/domains/projects/project.entity"
+import type { User } from "@/domains/users/user.entity"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { listenOnLoopback, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
@@ -176,6 +182,23 @@ describe("OAuth authorization server - app installs", () => {
       client_id: params.clientId,
       client_secret: params.clientSecret,
     })
+
+  /** Another owner of the project, who could install apps there too. */
+  const addColleague = async (organization: Organization, project: Project) => {
+    const { user } = await addUserToOrganization({
+      repositories,
+      organization,
+      user: { name: "Alex Morgan", email: "alex.morgan@example.com" },
+      membership: { roleKeys: ["org_member"] },
+    })
+    await addUserToProject({
+      repositories,
+      project,
+      user,
+      membership: { roleKeys: ["project_owner"] },
+    })
+    return user
+  }
 
   const getAppsMe = (accessToken: string) =>
     request(baseUrl).get("/api/apps/v1/me").set("Authorization", `Bearer ${accessToken}`)
@@ -328,6 +351,173 @@ describe("OAuth authorization server - app installs", () => {
       const stale = await refresh({ clientId, clientSecret, refreshToken: first.refreshToken })
       expect(stale.status).toBe(400)
       expect((await getAppsMe(second.accessToken)).status).toBe(200)
+    })
+  })
+
+  describe("an app someone else installed", () => {
+    it("tells each person who installed the app on each project", async () => {
+      const { user: installer, organization, project } = await createContext()
+      const { clientId, clientSecret } = await createAppClient()
+      await installApp({ clientId, clientSecret, projectId: project.id })
+      const colleague = await addColleague(organization, project)
+
+      const asInstaller = await getConsent(clientId)
+      authSubject = colleague.authSubject!
+      const asColleague = await getConsent(clientId)
+
+      expect(asInstaller.body.data.projects).toEqual([
+        expect.objectContaining({ id: project.id, installedBy: { kind: "me" } }),
+      ])
+      expect(asColleague.body.data.projects).toEqual([
+        expect.objectContaining({
+          id: project.id,
+          installedBy: { kind: "member", name: installer.name, email: installer.email },
+        }),
+      ])
+    })
+
+    it("refuses the approval, leaving the installation, its permissions and its tokens as they were", async () => {
+      const { organization, project } = await createContext()
+      const { clientId, clientSecret, manifest } = await createAppClient()
+      const installed = await installApp({ clientId, clientSecret, projectId: project.id })
+      const grantsBefore = await repositories.oauthGrantRepository.find({ order: { id: "ASC" } })
+      const colleague = await addColleague(organization, project)
+      authSubject = colleague.authSubject!
+
+      const response = await postConsent({
+        clientId,
+        codeChallenge: generatePkcePair().codeChallenge,
+        projectIds: [project.id],
+        permissions: [DOCUMENT_READ_PERMISSION, DOCUMENT_CREATE_PERMISSION],
+      })
+
+      expect(response.status).toBe(409)
+      expect(response.body.data).toBeUndefined()
+      expect(
+        await repositories.appInstallationRepository.countBy({ appManifestId: manifest.id }),
+      ).toBe(1)
+      expect(await repositories.oauthGrantRepository.find({ order: { id: "ASC" } })).toEqual(
+        grantsBefore,
+      )
+      const [summary] = await app.get(AppsService).listActiveInstallations(project.id)
+      expect(summary?.permissions).toEqual([DOCUMENT_READ_PERMISSION])
+      const refreshed = await refresh({
+        clientId,
+        clientSecret,
+        refreshToken: installed.refreshToken,
+      })
+      expect(refreshed.status).toBe(200)
+    })
+
+    describe("once the installer can no longer reconnect it", () => {
+      const removeFromProject = async (installer: User, colleague: User, project: Project) => {
+        await app.get(ProjectMembershipsService).removeProjectMembership({
+          callerUserId: colleague.id,
+          memberUserId: installer.id,
+          projectId: project.id,
+        })
+      }
+      const demoteToMember = async (installer: User, colleague: User, project: Project) => {
+        const memberships = app.get(ProjectMembershipsService)
+        const change = { callerUserId: colleague.id, projectId: project.id }
+        await memberships.addRolesToMembers({
+          ...change,
+          memberUserIds: [installer.id],
+          roleKeys: ["project_member"],
+        })
+        await memberships.removeRoleFromMember({
+          ...change,
+          memberUserId: installer.id,
+          roleKey: "project_admin",
+        })
+      }
+      const forgetInstaller = async (_installer: User, _colleague: User, project: Project) => {
+        await repositories.appInstallationRepository.update(
+          { projectId: project.id },
+          { createdByUserId: null },
+        )
+      }
+
+      it.each([
+        ["was removed from the project", removeFromProject],
+        ["lost the right to install apps", demoteToMember],
+        ["is not recorded", forgetInstaller],
+      ])("lets a colleague take the installation over when the installer %s", async (_case, makeUnavailable) => {
+        const {
+          user: installer,
+          organization,
+          project,
+        } = await createContext({ projectRoleKey: "project_admin" })
+        const { clientId, clientSecret, manifest } = await createAppClient()
+        const installed = await installApp({ clientId, clientSecret, projectId: project.id })
+        const installation = await repositories.appInstallationRepository.findOneByOrFail({
+          appManifestId: manifest.id,
+        })
+        const colleague = await addColleague(organization, project)
+        await makeUnavailable(installer, colleague, project)
+        authSubject = colleague.authSubject!
+
+        const consentBefore = await getConsent(clientId)
+        await installApp({
+          clientId,
+          clientSecret,
+          projectId: project.id,
+          permissions: [DOCUMENT_READ_PERMISSION, DOCUMENT_CREATE_PERMISSION],
+        })
+        const consentAfter = await getConsent(clientId)
+
+        expect(consentBefore.body.data.projects).toEqual([
+          expect.objectContaining({ id: project.id, installedBy: { kind: "former-member" } }),
+        ])
+        expect(consentAfter.body.data.projects).toEqual([
+          expect.objectContaining({ id: project.id, installedBy: { kind: "me" } }),
+        ])
+        // The same installation, now the colleague's, with the permissions they granted.
+        const installations = await repositories.appInstallationRepository.findBy({
+          appManifestId: manifest.id,
+        })
+        expect(installations).toEqual([
+          expect.objectContaining({ id: installation.id, createdByUserId: colleague.id }),
+        ])
+        const [summary] = await app.get(AppsService).listActiveInstallations(project.id)
+        expect(summary?.permissions.sort()).toEqual(
+          [DOCUMENT_READ_PERMISSION, DOCUMENT_CREATE_PERMISSION].sort(),
+        )
+        // The tokens of the previous connection end with it.
+        const stale = await refresh({
+          clientId,
+          clientSecret,
+          refreshToken: installed.refreshToken,
+        })
+        expect(stale.status).toBe(400)
+      })
+    })
+
+    it("lets the colleague install the app once the installation is revoked", async () => {
+      const { organization, project } = await createContext()
+      const { clientId, clientSecret, manifest } = await createAppClient()
+      await installApp({ clientId, clientSecret, projectId: project.id })
+      const installation = await repositories.appInstallationRepository.findOneByOrFail({
+        appManifestId: manifest.id,
+      })
+      await app
+        .get(AppsService)
+        .revokeInstallation({ installationId: installation.id, userId: null })
+      const colleague = await addColleague(organization, project)
+      authSubject = colleague.authSubject!
+
+      const consent = await getConsent(clientId)
+      await installApp({ clientId, clientSecret, projectId: project.id })
+
+      expect(consent.body.data.projects).toEqual([
+        expect.objectContaining({ id: project.id, installedBy: null }),
+      ])
+      const active = await repositories.appInstallationRepository.findOneByOrFail({
+        appManifestId: manifest.id,
+        status: "active",
+      })
+      expect(active.id).not.toBe(installation.id)
+      expect(active.createdByUserId).toBe(colleague.id)
     })
   })
 

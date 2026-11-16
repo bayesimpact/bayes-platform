@@ -110,6 +110,7 @@ msgstr "<0><1/><2/></0> for a new line"
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
@@ -178,6 +179,11 @@ msgstr "An account already exists for your email address, and this platform does
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
 msgstr "An account is waiting for your email address, but your identity provider has not verified it yet."
+
+#. Opens a note on the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Annotate"
+msgstr "Annotate"
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx
 msgid "Annotate and press Enter to keep it"
@@ -254,9 +260,16 @@ msgid "Contact your administrator."
 msgstr "Contact your administrator."
 
 #. The copy button, once it copied its text
+#. The copy button, once it copied its text
 #: src/components/shared/CopyButton.tsx
+#: src/features/conversation/components/SelectionActions.tsx
 msgid "Copied"
 msgstr "Copied"
+
+#. Copies the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Copy"
+msgstr "Copy"
 
 #: src/features/extraction/components/ResultFields.tsx
 msgid "Copy {label}"
@@ -484,6 +497,11 @@ msgstr "general conditions of service"
 msgid "Give the agent one file at a time."
 msgstr "Give the agent one file at a time."
 
+#. The thumbs-up button under a reply
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Good reply"
+msgstr "Good reply"
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
@@ -602,6 +620,10 @@ msgstr "Name"
 #: src/features/history/history-entries.ts
 msgid "New conversation"
 msgstr "New conversation"
+
+#: src/features/conversation/components/NewConversation.tsx
+msgid "New conversation with {agentName}"
+msgstr "New conversation with {agentName}"
 
 #: src/features/history/components/NewSessionLink.tsx
 msgid "New extraction"
@@ -758,6 +780,7 @@ msgstr "Read and accept the terms of the Desk to continue."
 msgid "Read it<0>: the {documentName}</0>"
 msgstr "Read it<0>: the {documentName}</0>"
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload"
 msgstr "Reload"
@@ -765,6 +788,10 @@ msgstr "Reload"
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "Reloading the page clears what you have not sent or saved."
+msgstr "Reloading the page clears what you have not sent or saved."
 
 #. Saves the fact the agent proposed in its memory
 #. Saves the reworded fact in the agent's memory
@@ -999,6 +1026,10 @@ msgstr "Stop the dictation"
 msgid "Stopped"
 msgstr "Stopped"
 
+#: src/features/conversation/components/FollowUpQuestions.tsx
+msgid "Suggested questions"
+msgstr "Suggested questions"
+
 #: src/features/agents/components/AgentSwitcher.tsx
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
@@ -1025,6 +1056,10 @@ msgstr "Text"
 #: src/features/extraction/components/DocumentPanel.tsx
 msgid "Text read in the document"
 msgstr "Text read in the document"
+
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Thank you for your feedback."
+msgstr "Thank you for your feedback."
 
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Thank you. Your report was sent."
@@ -1411,6 +1446,10 @@ msgstr "Your answer could not be saved. Try again."
 #: src/features/extraction/components/RecentDocuments.tsx
 msgid "Your documents"
 msgstr "Your documents"
+
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Your feedback could not be sent. Try again."
+msgstr "Your feedback could not be sent. Try again."
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider did not share your email address with the Desk."

@@ -62,6 +62,9 @@ export function toAgentSettingsDto({
     updatedAt: agentSettings.updatedAt.getTime(),
     usedProjectAgentSessionCategoryIds,
     memoryMode: agentSettings.memoryMode,
+    followUpSuggestionsEnabled: agentSettings.followUpSuggestionsEnabled,
+    followUpSuggestionsInstructions: agentSettings.followUpSuggestionsInstructions,
+    followUpSuggestionsMax: agentSettings.followUpSuggestionsMax,
     providerOptions: agentSettings.providerOptions,
   }
 }

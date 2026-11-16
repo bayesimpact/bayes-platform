@@ -47,7 +47,8 @@ export const agentMessageFeedbackFactory = AgentMessageFeedbackFactory.define(
       agentMessage: transientParams.agentMessage,
       userId: transientParams.user.id,
       user: transientParams.user,
-      content: params.content || `Feedback content ${sequence}`,
+      rating: params.rating ?? "negative",
+      content: params.content ?? `Feedback content ${sequence}`,
     } satisfies AgentMessageFeedback
   },
 )

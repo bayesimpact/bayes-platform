@@ -17,7 +17,7 @@ import { MemoryButton, MemoryPanel } from "@/features/memory"
 import { useNow } from "@/hooks/use-now"
 import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
-import { findRetryableMessage, isBeingWritten } from "../chat-messages"
+import { findRetryableMessage, isBeingWritten, lastReplyFollowUpQuestions } from "../chat-messages"
 import { useCitedPassages } from "../hooks/use-cited-passages"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
@@ -56,6 +56,8 @@ export function ConversationView({
   const now = useNow(CLOCK_INTERVAL_IN_MILLISECONDS, true)
   const isBusy = sending.isSending || messages.some((message) => isBeingWritten(message, now))
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
+  const followUpQuestions = lastReplyFollowUpQuestions(messages, isBusy)
+  const lastPosition = messages.length - 1
   const forms = useConversationForms(conversation)
   const [draft, setDraft] = useState("")
   const composerId = useId()
@@ -72,6 +74,12 @@ export function ConversationView({
     enabled: hasSettledApps,
   })
   const appsHtml = { htmls: mcpAppsHtml.data ?? [], isPending: mcpAppsHtml.isPending }
+  // The buttons of the questions go away once one is sent: the focus moves to the message box,
+  // so a keyboard user does not start again from the top of the page.
+  const handleFollowUpQuestion = (question: string) => {
+    sending.send({ content: question, attachment: null })
+    document.getElementById(composerId)?.focus()
+  }
   // An app's message joins what the person wrote, and the focus goes to the box to send it.
   const handleAppMessage = (text: string) => {
     setDraft((current) => withAppMessage(current, text))
@@ -151,6 +159,8 @@ export function ConversationView({
                               onOpenResource={panel.openResource}
                               citedPassages={citedPassages}
                               taskChecks={sending.taskChecks}
+                              followUpQuestions={position === lastPosition ? followUpQuestions : []}
+                              onFollowUpQuestion={handleFollowUpQuestion}
                             />
                           </MessageScrollerItem>
                         ))}

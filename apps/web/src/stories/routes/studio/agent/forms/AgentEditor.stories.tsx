@@ -145,6 +145,7 @@ export const ExtractionEdit: Story = {
   args: {
     agent: extractionAgent,
     agentSettings: extractionAgentSettings,
+    showVersionActions: true,
   },
 }
 

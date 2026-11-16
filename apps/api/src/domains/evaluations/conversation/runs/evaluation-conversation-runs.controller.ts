@@ -330,6 +330,7 @@ function toEvaluationConversationRunRecordDto(
     input: record.input,
     expectedOutput: record.expectedOutput,
     output: record.output,
+    formState: record.formState,
     score: record.score,
     errorDetails: record.errorDetails,
     traceUrl: record.traceId ? (telemetryTraceUrl(record.traceId) ?? null) : null,

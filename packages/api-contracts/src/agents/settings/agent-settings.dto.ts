@@ -136,6 +136,12 @@ export type AgentSettingsDto = {
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]
   memoryMode: AgentMemoryMode
+  /** Whether the agent may end an answer with short follow-up questions the user can click. */
+  followUpSuggestionsEnabled: boolean
+  /** Extra guidance on when and how to write the follow-up questions. */
+  followUpSuggestionsInstructions: string | null
+  /** Most follow-up questions the agent may suggest after one answer. */
+  followUpSuggestionsMax: number
 }
 
 // Constraint keywords (enum/minimum/maximum/items) mirror the subset of JSON Schema
@@ -213,6 +219,12 @@ export function getOrderedPropertyEntries(
   ][]
 }
 
+/** Highest value of `followUpSuggestionsMax`. */
+export const FOLLOW_UP_SUGGESTIONS_MAX = 4
+/** Value of `followUpSuggestionsMax` on a new agent. */
+export const FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX = 2
+export const FOLLOW_UP_SUGGESTIONS_INSTRUCTIONS_MAX_LENGTH = 2000
+
 // Every editable agent field lives on a settings revision. This is the single source of truth
 // for their validation; the create/update payload schemas below are all derived from it.
 export const agentSettingsValidationSchema = z.object({
@@ -228,6 +240,13 @@ export const agentSettingsValidationSchema = z.object({
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
   memoryMode: z.enum(AgentMemoryMode),
+  followUpSuggestionsEnabled: z.boolean(),
+  followUpSuggestionsInstructions: z
+    .string()
+    .trim()
+    .max(FOLLOW_UP_SUGGESTIONS_INSTRUCTIONS_MAX_LENGTH)
+    .nullable(),
+  followUpSuggestionsMax: z.number().int().min(1).max(FOLLOW_UP_SUGGESTIONS_MAX),
   providerOptions: z.record(z.string(), z.unknown()),
   // Defaults of the {{variables}} the instructions declare. Keys are the declared
   // variable names (the session-side resolution drops any value for an undeclared one).
@@ -349,6 +368,11 @@ export const updateAgentSettingsToolsSchema = z
     fillFormEnabled: agentSettingsValidationSchema.shape.fillFormEnabled,
     outputJsonSchema: outputJsonSchemaSchema.optional(),
     memoryMode: agentSettingsValidationSchema.shape.memoryMode.optional(),
+    followUpSuggestionsEnabled:
+      agentSettingsValidationSchema.shape.followUpSuggestionsEnabled.optional(),
+    followUpSuggestionsInstructions:
+      agentSettingsValidationSchema.shape.followUpSuggestionsInstructions.optional(),
+    followUpSuggestionsMax: agentSettingsValidationSchema.shape.followUpSuggestionsMax.optional(),
   })
   .refine(refineFillFormOutputJsonSchema.fn, refineFillFormOutputJsonSchema.message)
 export type UpdateAgentSettingsToolsDto = z.infer<typeof updateAgentSettingsToolsSchema>

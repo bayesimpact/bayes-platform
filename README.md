@@ -24,10 +24,10 @@ A SaaS platform for building multi-agent systems, built as a Turbo monorepo with
 From the root of the repository:
 
 ```bash
-npm install
+npm ci
 ```
 
-This will install dependencies for all workspaces (apps and packages).
+This installs dependencies for all workspaces (apps and packages) using the versions in `package-lock.json`.
 
 ### 2. Set Up the Database
 

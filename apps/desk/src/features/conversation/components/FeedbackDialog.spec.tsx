@@ -1,28 +1,18 @@
 import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
-import { QueryClientProvider } from "@tanstack/react-query"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
-import { createQueryClient } from "@/app/query-client"
-import { Toaster } from "@/components/ui/sonner"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
-import { renderWithI18n } from "@/test/render-with-i18n"
+import { randomConversationParams, renderWithQueryClient } from "@/test/render-with-query-client"
 import { FeedbackDialog } from "./FeedbackDialog"
 
 function renderDialog() {
-  const queryClient = createQueryClient({ isRetrying: false })
-  const conversation = {
-    organizationId: crypto.randomUUID(),
-    projectId: crypto.randomUUID(),
-    agentId: crypto.randomUUID(),
-    agentSessionId: crypto.randomUUID(),
-  }
-  renderWithI18n(
-    <QueryClientProvider client={queryClient}>
-      <FeedbackDialog conversation={conversation} agentMessageId={crypto.randomUUID()} />
-      <Toaster />
-    </QueryClientProvider>,
+  renderWithQueryClient(
+    <FeedbackDialog
+      conversation={randomConversationParams()}
+      agentMessageId={crypto.randomUUID()}
+    />,
   )
 }
 

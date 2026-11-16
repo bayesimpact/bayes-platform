@@ -90,9 +90,14 @@ const ENTRY_PAGE_HEADERS = {
 
 /**
  * The static files of a build: hashed assets are immutable, the rest (theme
- * files, manifest) is short-lived so a tenant can swap them. The entry page is
+ * files, manifest) is short-lived so a tenant can swap them. `version.json`,
+ * the build an open Desk polls to learn of a new release, is never kept by a
+ * cache on the way: each read revalidates it, with its ETag. The entry page is
  * never served from here (`index: false`).
  */
+/** The file in which a build of the Desk publishes its id (apps/desk/vite.config.ts). */
+const BUILD_MANIFEST_PATH = "version.json"
+
 function staticOptions(settings: WebAppSettings) {
   // `path.relative` uses the platform separator: set HASHED_ASSETS_PREFIX to `assets\` on Windows.
   const hashedAssetsPrefix = process.env.HASHED_ASSETS_PREFIX ?? "assets/"
@@ -100,10 +105,12 @@ function staticOptions(settings: WebAppSettings) {
     index: false,
     redirect: false,
     setHeaders: (response: Response, filePath: string) => {
-      const isHashedAsset = relative(settings.distDir, filePath).startsWith(hashedAssetsPrefix)
-      const cacheControl = isHashedAsset
+      const servedPath = relative(settings.distDir, filePath)
+      const cacheControl = servedPath.startsWith(hashedAssetsPrefix)
         ? "public, max-age=31536000, immutable"
-        : "public, max-age=300"
+        : servedPath === BUILD_MANIFEST_PATH
+          ? "no-cache"
+          : "public, max-age=300"
       response.setHeader("Cache-Control", cacheControl)
     },
   } as const

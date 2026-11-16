@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { AppInstallation } from "./app-installations.models"
 
@@ -23,8 +24,10 @@ export const appInstallationFactory = AppInstallationFactory.define(
       appName: params.appName ?? faker.helpers.arrayElement(APP_NAMES),
       description: params.description !== undefined ? params.description : faker.lorem.sentence(),
       logoUrl: params.logoUrl ?? null,
+      appUrl: params.appUrl !== undefined ? params.appUrl : faker.internet.url(),
       permissions: params.permissions ?? ["document.read", "document.create"],
       createdAt: params.createdAt ?? faker.date.past().getTime(),
+      installedBy: appInstallerFactory.build(params.installedBy),
     }
   },
 )

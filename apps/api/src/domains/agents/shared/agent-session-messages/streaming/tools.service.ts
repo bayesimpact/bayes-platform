@@ -42,7 +42,7 @@ import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming
 import { sessionPersistsForms } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { concludeHandoffInstruction, concludeHandoffTool } from "./tools/conclude-handoff.tool"
-import { fillFormTool } from "./tools/fill-form.tool"
+import { type ConversationFormStore, fillFormTool } from "./tools/fill-form.tool"
 import { handoffTranscriptWindow, runFormConsolidation } from "./tools/form-consolidation"
 import type { HandoffTurnState } from "./tools/handoff.tool"
 import {
@@ -58,6 +58,7 @@ import {
 } from "./tools/memory.tools"
 import { createRetrievedChunksRegistry } from "./tools/retrieved-chunks-registry"
 import type { SessionStateTarget } from "./tools/session-state-target"
+import { suggestFollowUpQuestionsTool } from "./tools/suggest-follow-up-questions.tool"
 import { surfaceResourcesTool } from "./tools/surface-resources.tool"
 import { createSurfacedResourcesRegistry } from "./tools/surfaced-resources-registry"
 import type { TurnClassificationContext } from "./tools/turn-classification"
@@ -69,7 +70,10 @@ import type { TurnClassificationContext } from "./tools/turn-classification"
  * (lookup_knowledge_base, fillForm, MCP, sub-agents) stay out of this list
  * because the model consumes their output.
  */
-const FIRE_AND_FORGET_TOOL_NAMES: string[] = [ToolName.SurfaceResources]
+const FIRE_AND_FORGET_TOOL_NAMES: string[] = [
+  ToolName.SurfaceResources,
+  ToolName.SuggestFollowUpQuestions,
+]
 
 /**
  * The tools exposed by an agent's enabled MCP servers
@@ -91,6 +95,8 @@ type BuildToolsParams = {
   includeSubAgentTools?: boolean
   /** Overrides where stateful tools persist (public sessions). */
   sessionState?: SessionStateTarget
+  /** The form of an evaluation run, which has no persisted session. */
+  conversationFormStore?: ConversationFormStore
 }
 
 /**
@@ -136,6 +142,7 @@ export class ToolsService {
     includeSessionMetadataTools = true,
     includeSubAgentTools = true,
     sessionState,
+    conversationFormStore,
   }: BuildToolsParams): Promise<BuiltTools> {
     const { agent } = agentSessionScope
     const mcp = await this.buildMcpTools({
@@ -155,6 +162,7 @@ export class ToolsService {
           buildLLMConfig,
           onExecute,
           sessionState,
+          conversationFormStore,
         })
 
       default:
@@ -401,6 +409,7 @@ export class ToolsService {
     buildLLMConfig,
     onExecute,
     sessionState,
+    conversationFormStore,
   }: {
     agentSessionScope: AgentSessionScope
     includeSessionMetadataTools: boolean
@@ -410,14 +419,14 @@ export class ToolsService {
     buildLLMConfig: (params: BuildLLMConfigParams) => LLMConfig
     onExecute: OnExecute
     sessionState?: SessionStateTarget
+    conversationFormStore?: ConversationFormStore
   }): Promise<BuiltTools> {
     const { agent, agentSettings, connectScope, session } = agentSessionScope
-    // fillForm needs a session row for its form to attach to: evaluation runs
-    // have none and get no fillForm tool.
+    // A run supplies its own store; Studio and public sessions store conversation forms.
     const hasFillFormTool =
       agentSettings.fillFormEnabled &&
       agentSettings.outputJsonSchema != null &&
-      sessionPersistsForms(session)
+      (conversationFormStore !== undefined || sessionPersistsForms(session))
     const [
       hasSourcesTool,
       memoryEnabled,
@@ -557,6 +566,7 @@ export class ToolsService {
       session,
       handoff,
       ownFormSchema: hasFillFormTool ? agentSettings.outputJsonSchema : null,
+      conversationFormStore,
     })
     const memory = memoryOwner
       ? await this.buildMemoryContext({ connectScope, owner: memoryOwner })
@@ -577,8 +587,18 @@ export class ToolsService {
     // sources) is computed after the turn, not by a tool in the loop (see
     // turn-classification.ts). Sub-agents and evaluation runs pass
     // includeSessionMetadataTools=false: no session of their own to title.
+    // Only the agent that speaks to the user suggests follow-up questions: a
+    // relay sub-agent (includeSubAgentTools=false) answers its parent, which
+    // never shows chips. The classifier writes them when the model did not.
+    const hasFollowUpQuestions = agentSettings.followUpSuggestionsEnabled && includeSubAgentTools
+    const followUpTurnState = { suggestedByTool: false }
+
     const turnClassification: TurnClassificationContext | undefined =
-      hasSourcesReporting || includeSessionMetadataTools || handoff || announcedHandoff
+      hasSourcesReporting ||
+      includeSessionMetadataTools ||
+      handoff ||
+      announcedHandoff ||
+      hasFollowUpQuestions
         ? {
             retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
             sessionMetadata: includeSessionMetadataTools
@@ -604,6 +624,13 @@ export class ToolsService {
                   }
                 : undefined,
             announcedHandoff,
+            followUpQuestions: hasFollowUpQuestions
+              ? {
+                  maxQuestions: agentSettings.followUpSuggestionsMax,
+                  instructions: agentSettings.followUpSuggestionsInstructions,
+                  suggestedByTool: () => followUpTurnState.suggestedByTool,
+                }
+              : undefined,
             onExecute,
           }
         : undefined
@@ -641,12 +668,25 @@ export class ToolsService {
           }
         : {}),
 
+      // Follow-up question chips (see hasFollowUpQuestions above).
+      ...(hasFollowUpQuestions
+        ? {
+            [ToolName.SuggestFollowUpQuestions]: suggestFollowUpQuestionsTool({
+              followUpSuggestionsMax: agentSettings.followUpSuggestionsMax,
+              onExecute,
+              onSuggested: () => {
+                followUpTurnState.suggestedByTool = true
+              },
+            }),
+          }
+        : {}),
+
       // Add the fillForm tool if the agent has it enabled (with a form definition)
       ...(hasFillFormTool
         ? {
             [ToolName.FillForm]: fillFormTool({
               agentSessionScope,
-              conversationFormStore: this.conversationFormsService,
+              conversationFormStore: conversationFormStore ?? this.conversationFormsService,
               onExecute,
             }),
           }
@@ -803,6 +843,7 @@ export class ToolsService {
     session,
     handoff,
     ownFormSchema,
+    conversationFormStore,
   }: {
     connectScope: RequiredConnectScope
     agent: Agent
@@ -810,20 +851,29 @@ export class ToolsService {
     handoff: AgentSessionScope["handoff"]
     /** The agent's form definition when it has the fillForm tool in this session. */
     ownFormSchema: AgentSettings["outputJsonSchema"] | null
+    conversationFormStore?: ConversationFormStore
   }): Promise<string[]> {
-    if (!sessionPersistsForms(session)) return []
-    const forms = await this.conversationFormsService.listForSession({
-      connectScope,
-      sessionId: session.id,
-      withAgent: true,
-    })
+    if (!sessionPersistsForms(session) && !conversationFormStore) return []
+    const forms = sessionPersistsForms(session)
+      ? await this.conversationFormsService.listForSession({
+          connectScope,
+          sessionId: session.id,
+          withAgent: true,
+        })
+      : []
 
     // The agent's own form: what it recorded and what is still empty. The
     // transcript shows the answers but not the tool calls, so this is the
     // only way the model knows what it saved.
     const ownSections: string[] = []
     if (ownFormSchema) {
-      const ownForm = forms.find((form) => form.agentId === agent.id)
+      const ownForm = conversationFormStore
+        ? await conversationFormStore.findOne({
+            connectScope,
+            sessionId: session.id,
+            agentId: agent.id,
+          })
+        : forms.find((form) => form.agentId === agent.id)
       const filled = ownForm?.state ?? {}
       const fieldNames = Object.keys(outputJsonSchemaSchema.parse(ownFormSchema).properties ?? {})
       const missingFields = fieldNames.filter(

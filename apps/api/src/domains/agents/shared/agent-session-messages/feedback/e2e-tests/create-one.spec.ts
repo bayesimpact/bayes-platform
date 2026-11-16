@@ -1,4 +1,7 @@
-import { AgentMessageFeedbackRoutes } from "@caseai-connect/api-contracts"
+import {
+  AgentMessageFeedbackRoutes,
+  type CreateAgentMessageFeedbackDto,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -63,7 +66,7 @@ describe("AgentMessageFeedbackRoutes.createOne", () => {
     return { user, organization, project, agentMessage }
   }
 
-  const subject = async (payload?: { content: string }) =>
+  const subject = async (payload?: CreateAgentMessageFeedbackDto) =>
     request({
       route: AgentMessageFeedbackRoutes.createOne,
       pathParams: removeNullish({ organizationId, projectId, agentMessageId }),
@@ -80,5 +83,60 @@ describe("AgentMessageFeedbackRoutes.createOne", () => {
     const feedback = response.body.data
 
     expect(feedback.success).toBeTruthy()
+  })
+
+  const findSavedFeedback = () =>
+    repositories.agentMessageFeedbackRepository.findOneByOrFail({ agentMessageId })
+
+  it("saves a positive feedback with no text", async () => {
+    await createContext()
+
+    const response = await subject({ rating: "positive" })
+
+    expectResponse(response, 201)
+    const saved = await findSavedFeedback()
+    expect(saved.rating).toBe("positive")
+    expect(saved.content).toBe("")
+  })
+
+  it("saves a negative feedback with its text", async () => {
+    await createContext()
+
+    const response = await subject({ rating: "negative", content: "  Out of date prices  " })
+
+    expectResponse(response, 201)
+    const saved = await findSavedFeedback()
+    expect(saved.rating).toBe("negative")
+    expect(saved.content).toBe("Out of date prices")
+  })
+
+  it("saves a feedback with no rating as negative, as clients sent before ratings", async () => {
+    await createContext()
+
+    const response = await subject({ content: "Persisted feedback" })
+
+    expectResponse(response, 201)
+    expect((await findSavedFeedback()).rating).toBe("negative")
+  })
+
+  it("refuses a negative feedback with no text", async () => {
+    await createContext()
+
+    const response = await subject({ rating: "negative", content: "   " })
+
+    expectResponse(response, 400)
+    expect(await repositories.agentMessageFeedbackRepository.count()).toBe(0)
+  })
+
+  it("refuses an unknown rating", async () => {
+    await createContext()
+
+    const response = await subject({
+      // @ts-expect-error: a client may send any value, which the API refuses
+      rating: "neutral",
+      content: "Persisted feedback",
+    })
+
+    expectResponse(response, 400)
   })
 })

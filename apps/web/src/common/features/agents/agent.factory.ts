@@ -1,4 +1,10 @@
-import { AGENT_SCOPED_PERMISSIONS, AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import {
+  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
+  AGENT_SCOPED_PERMISSIONS,
+  AgentModel,
+  AgentProvider,
+} from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
@@ -20,6 +26,12 @@ const AGENT_NAMES = [
   "Summary Bot",
   "Triage Assistant",
   "Support Agent",
+]
+
+/** What the API exposes to an agent member: the keys to open a session, and no studio action. */
+const MEMBER_PERMISSIONS = [
+  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
 ]
 
 class AgentFactory extends Factory<Agent, AgentTransientParams> {
@@ -58,7 +70,9 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
           number: params.draftRevision.number ?? 1,
         }
       : undefined,
-    permissions: params.permissions ?? (role === "member" ? [] : [...AGENT_SCOPED_PERMISSIONS]),
+    permissions:
+      params.permissions ??
+      (role === "member" ? [...MEMBER_PERMISSIONS] : [...AGENT_SCOPED_PERMISSIONS]),
   } satisfies Agent
 })
 

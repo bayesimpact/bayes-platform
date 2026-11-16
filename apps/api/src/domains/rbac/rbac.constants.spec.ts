@@ -534,14 +534,19 @@ describe("CSV extraction run permissions", () => {
     CSV_EXTRACTION_RUN_DELETE_PERMISSION,
   ]
 
-  it.each(csvExtractionRunPermissions)("grants %s to every project role only", (permission) => {
+  it.each(
+    csvExtractionRunPermissions,
+  )("grants %s to project owners and admins, and to every agent role", (permission) => {
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
       "project_owner",
       "project_admin",
-      "project_member",
     ])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
-    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([
+      "agent_owner",
+      "agent_admin",
+      "agent_member",
+    ])
   })
 
   const playgroundCsvExtractionRunPermissions = [
@@ -562,16 +567,15 @@ describe("CSV extraction run permissions", () => {
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
   })
 
-  it("never inherits CSV extraction runs from the organization", () => {
-    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+  it("passes CSV extraction runs down from the project to its agents, never to the project", () => {
+    const inheritableOnProject: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    const inheritableOnAgent: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.agent
     for (const permission of [
       ...csvExtractionRunPermissions,
-      CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION,
-      CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION,
-      CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION,
-      CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION,
+      ...playgroundCsvExtractionRunPermissions,
     ]) {
-      expect(inheritable).not.toContain(permission)
+      expect(inheritableOnProject).not.toContain(permission)
+      expect(inheritableOnAgent).toContain(permission)
     }
   })
 })
@@ -590,14 +594,17 @@ describe("conversation agent session permissions", () => {
 
   it.each(
     liveSessionPermissions,
-  )("grants %s to every project role, and read and create to testers", (permission) => {
+  )("grants %s to project owners and admins, every agent role, and read and create to testers", (permission) => {
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
       "project_owner",
       "project_admin",
-      "project_member",
     ])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
-    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([
+      "agent_owner",
+      "agent_admin",
+      "agent_member",
+    ])
     expect(rolesHolding(REVIEW_CAMPAIGN_ROLE_PERMISSIONS, permission)).toEqual(
       permission === AGENT_CONVERSATION_SESSION_DELETE_PERMISSION
         ? []
@@ -623,10 +630,12 @@ describe("conversation agent session permissions", () => {
     expect(rolesHolding(REVIEW_CAMPAIGN_ROLE_PERMISSIONS, permission)).toEqual([])
   })
 
-  it("never inherits conversation sessions from the organization", () => {
-    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+  it("passes conversation sessions down from the project to its agents, never to the project", () => {
+    const inheritableOnProject: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    const inheritableOnAgent: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.agent
     for (const permission of [...liveSessionPermissions, ...playgroundSessionPermissions]) {
-      expect(inheritable).not.toContain(permission)
+      expect(inheritableOnProject).not.toContain(permission)
+      expect(inheritableOnAgent).toContain(permission)
     }
   })
 })
@@ -643,14 +652,19 @@ describe("extraction agent session permissions", () => {
     AGENT_EXTRACTION_SESSION_DELETE_PERMISSION,
   ]
 
-  it.each(liveSessionPermissions)("grants %s to every project role only", (permission) => {
+  it.each(
+    liveSessionPermissions,
+  )("grants %s to project owners and admins, and to every agent role", (permission) => {
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
       "project_owner",
       "project_admin",
-      "project_member",
     ])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
-    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([
+      "agent_owner",
+      "agent_admin",
+      "agent_member",
+    ])
   })
 
   const playgroundSessionPermissions = [
@@ -670,10 +684,12 @@ describe("extraction agent session permissions", () => {
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
   })
 
-  it("never inherits extraction sessions from the organization", () => {
-    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+  it("passes extraction sessions down from the project to its agents, never to the project", () => {
+    const inheritableOnProject: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    const inheritableOnAgent: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.agent
     for (const permission of [...liveSessionPermissions, ...playgroundSessionPermissions]) {
-      expect(inheritable).not.toContain(permission)
+      expect(inheritableOnProject).not.toContain(permission)
+      expect(inheritableOnAgent).toContain(permission)
     }
   })
 })

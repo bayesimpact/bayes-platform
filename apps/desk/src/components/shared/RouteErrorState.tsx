@@ -3,6 +3,7 @@ import { useQueryErrorResetBoundary } from "@tanstack/react-query"
 import { type ErrorComponentProps, useRouter } from "@tanstack/react-router"
 import { RefreshCwIcon, TriangleAlertIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useIsNewReleaseOut } from "@/hooks/use-is-new-release-out"
 import { ContractMismatchError } from "@/lib/api-client"
 import { releaseAutomaticSignIn, SignInLoopError, SignInRefusedError } from "@/lib/auth/session"
 import { SignInProblemPage } from "./SignInProblemPage"
@@ -16,6 +17,7 @@ import { StatusPage } from "./StatusPage"
 export function RouteErrorState({ error }: ErrorComponentProps) {
   const router = useRouter()
   const queryErrorResetBoundary = useQueryErrorResetBoundary()
+  const isNewReleaseOut = useIsNewReleaseOut()
 
   if (error instanceof SignInRefusedError || error instanceof SignInLoopError) {
     return (
@@ -30,7 +32,9 @@ export function RouteErrorState({ error }: ErrorComponentProps) {
     )
   }
 
-  if (error instanceof ContractMismatchError) {
+  // A page that failed once a new release is out, such as a chunk of this tab's release gone from
+  // the server, would fail again on a retry: only a reload brings it back.
+  if (error instanceof ContractMismatchError || isNewReleaseOut) {
     return (
       <StatusPage
         icon={<RefreshCwIcon aria-hidden />}

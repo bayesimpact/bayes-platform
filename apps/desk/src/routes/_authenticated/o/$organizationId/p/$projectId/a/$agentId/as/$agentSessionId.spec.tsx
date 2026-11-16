@@ -6,6 +6,7 @@ import { agentUrlOf, conversationOf, conversationUrlOf } from "@/test/desk-urls"
 import { buildConversationMessage } from "@/test/factories/agent-sessions.factory"
 import {
   buildDeskWorld,
+  buildFollowUpQuestionsWorld,
   buildQuotedMessageWorld,
   type DeskWorld,
 } from "@/test/factories/desk-world.factory"
@@ -147,6 +148,42 @@ describe("a conversation", () => {
     await waitFor(() =>
       expect(screen.getAllByRole("button", { name: "Copy the reply" })).toHaveLength(3),
     )
+  })
+
+  it("sends a question the last reply suggests with one click, which hides the questions", async () => {
+    const world = buildFollowUpQuestionsWorld({
+      questions: ["What does renew mean?", "How do I cancel my plan?"],
+    })
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    const questions = await screen.findByRole("list", { name: "Suggested questions" })
+    expect(within(questions).getAllByRole("button")).toHaveLength(2)
+    await userEvent.click(within(questions).getByRole("button", { name: "What does renew mean?" }))
+
+    // The buttons go away: the focus waits in the message box.
+    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus()
+    expect(
+      await screen.findByText(/Here is what I found about "What does renew mean\?"/),
+    ).toBeInTheDocument()
+    expect(savedMessagesOf(world).map((message) => message.content)).toContain(
+      "What does renew mean?",
+    )
+    expect(screen.queryByRole("list", { name: "Suggested questions" })).not.toBeInTheDocument()
+  })
+
+  it("shows the questions of the last reply only", async () => {
+    const world = buildFollowUpQuestionsWorld({
+      questions: ["What does renew mean?"],
+      answered: true,
+    })
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    expect(
+      await screen.findByText("The Pro plan renews on the same day each month."),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("list", { name: "Suggested questions" })).not.toBeInTheDocument()
   })
 
   it("sends the message in the body of the stream, never in its URL", async () => {
@@ -551,7 +588,10 @@ describe("a conversation", () => {
       window.getSelection()?.addRange(range)
       fireEvent.mouseUp(element)
     }
-    const noteBox = () => screen.findByRole("textbox", { name: "Your note on this passage" })
+    const noteBox = async () => {
+      await userEvent.click(await screen.findByRole("button", { name: "Annotate" }))
+      return screen.findByRole("textbox", { name: "Your note on this passage" })
+    }
 
     // A note left for another passage is kept, as one added with Enter.
     select(await screen.findByText(/The Pro plan also adds/), 4, 12)
@@ -593,7 +633,24 @@ describe("a conversation", () => {
 
     expect(await screen.findByText("Thank you. Your report was sent.")).toBeInTheDocument()
     const [, reply] = savedMessagesOf(world).filter((message) => message.role === "assistant")
-    expect(world.feedbacks).toEqual([{ agentMessageId: reply?.id, content: "The table is wrong." }])
+    expect(world.feedbacks).toEqual([
+      { agentMessageId: reply?.id, rating: "negative", content: "The table is wrong." },
+    ])
+  })
+
+  it("gives a thumbs-up to a reply in one click", async () => {
+    const world = serveDeskWorld()
+    renderApp(conversationUrlOf(world))
+
+    // The greeting's button, then the reply's.
+    const [, goodReplyButton] = await screen.findAllByRole("button", { name: "Good reply" })
+    await userEvent.click(required(goodReplyButton, "the reply's thumbs-up"))
+
+    expect(await screen.findByText("Thank you for your feedback.")).toBeInTheDocument()
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    expect(goodReplyButton).toHaveAttribute("aria-pressed", "true")
+    const [, reply] = savedMessagesOf(world).filter((message) => message.role === "assistant")
+    expect(world.feedbacks).toEqual([{ agentMessageId: reply?.id, rating: "positive" }])
   })
 
   it("is not found when its id in the URL is not an id, without asking the API", async () => {

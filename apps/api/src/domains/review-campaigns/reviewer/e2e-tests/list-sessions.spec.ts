@@ -188,7 +188,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
       .transient({ organization, project, agent, user: tester })
       .build({ campaignId: campaign.id })
     await repositories.conversationAgentSessionRepository.save(session)
-    // 3 messages for the session.
+    // 3 transcript messages for the session.
     for (let index = 0; index < 3; index += 1) {
       await repositories.agentMessageRepository.save({
         organizationId: organization.id,
@@ -199,6 +199,15 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
         content: `hello ${index}`,
       })
     }
+    // A tool call stays out of the transcript, so it stays out of the count too.
+    await repositories.agentMessageRepository.save({
+      organizationId: organization.id,
+      projectId: project.id,
+      sessionId: session.id,
+      agentSettingsId: agentSettings.id,
+      role: "tool",
+      content: "tool result",
+    })
     // Another reviewer has already reviewed this session.
     const otherReviewer = await repositories.userRepository.save(
       userFactory.build({ email: `other-reviewer-${randomUUID()}@example.com` }),

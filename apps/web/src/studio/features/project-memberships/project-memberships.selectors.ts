@@ -15,6 +15,8 @@ export const selectProjectPendingInvitations = (state: RootState) =>
 
 export const selectAssignableRoles = (state: RootState) => state.projectMemberships.assignableRoles
 
+export const selectInviteeAccess = (state: RootState) => state.projectMemberships.inviteeAccess
+
 export const selectCurrentProjectMemberUserId = (state: RootState) => state.currentIds.memberUserId
 
 export const selectCurrentProjectMembership = createSelector(

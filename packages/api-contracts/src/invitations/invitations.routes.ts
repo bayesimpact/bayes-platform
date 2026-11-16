@@ -3,21 +3,31 @@ import { defineRoute } from "../helpers"
 import type {
   CreateInvitationsRequestDto,
   CreateInvitationsResponseDto,
+  CreateProjectInvitationsRequestDto,
   CreateReviewCampaignInvitationsRequestDto,
   ListInvitationsResponseDto,
+  ListInviteeAccessResponseDto,
 } from "./invitations.dto"
 
 const PROJECT_PATH = "organizations/:organizationId/projects/:projectId"
 
-/** Invitations to a project. Needs `project.member.invite` on the project. */
+/**
+ * Invitations to a project. Needs `project.member.invite` on the project, and `agent.member.invite`
+ * on each agent an invitation gives.
+ */
 export const ProjectInvitationsRoutes = {
   getAll: defineRoute<ResponseData<ListInvitationsResponseDto>>({
     method: "get",
     path: `${PROJECT_PATH}/invitations`,
   }),
+  /** What each person already in the workspace holds, for the invite dialog. */
+  getInviteeAccess: defineRoute<ResponseData<ListInviteeAccessResponseDto>>({
+    method: "get",
+    path: `${PROJECT_PATH}/invitations/invitee-access`,
+  }),
   createMany: defineRoute<
     ResponseData<CreateInvitationsResponseDto>,
-    RequestPayload<CreateInvitationsRequestDto>
+    RequestPayload<CreateProjectInvitationsRequestDto>
   >({
     method: "post",
     path: `${PROJECT_PATH}/invitations`,
@@ -28,7 +38,10 @@ export const ProjectInvitationsRoutes = {
   }),
 }
 
-/** Invitations to an agent. Needs `agent.member.invite` on the agent. */
+/**
+ * Invitations to an agent. Needs `agent.member.invite` on the agent. The list also holds the
+ * workspace invitations that give the agent, and deleting one of those takes the agent out of it.
+ */
 export const AgentInvitationsRoutes = {
   getAll: defineRoute<ResponseData<ListInvitationsResponseDto>>({
     method: "get",

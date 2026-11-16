@@ -1,5 +1,6 @@
 import { getResponse, type RequestHandler } from "msw"
 import { forgetLastAgent } from "@/features/agents"
+import { appUpdate } from "@/lib/app-update"
 import { buildDeskWorld, type DeskWorld } from "../factories/desk-world.factory"
 import { installStableIds } from "../stable-ids"
 import { deskHandlers } from "./handlers"
@@ -51,6 +52,8 @@ export function serveStoryWorld(parameters: DeskStoryParameters = {}): string {
   mockFetch()
   // The agent a previous story left open would decide which one this story opens.
   forgetLastAgent()
+  // A new release a previous story announced would show its banner here too.
+  appUpdate.reset()
   installStableIds()
   const world = (parameters.world ?? buildDeskWorld)()
   storyHandlers = [...(parameters.handlers?.() ?? []), ...deskHandlers(world)]

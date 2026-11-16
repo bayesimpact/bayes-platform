@@ -1,6 +1,7 @@
 {
   "agentSessionMessage": {
     "attachment": "Pièce jointe",
+    "followUpQuestions": "Questions suggérées",
     "navigator": {
       "title": "Aller à un message",
       "trigger": "Aller à un message",

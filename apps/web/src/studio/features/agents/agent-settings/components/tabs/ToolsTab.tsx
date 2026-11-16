@@ -1,5 +1,7 @@
 import {
   AgentMemoryMode,
+  FOLLOW_UP_SUGGESTIONS_INSTRUCTIONS_MAX_LENGTH,
+  FOLLOW_UP_SUGGESTIONS_MAX,
   type UpdateAgentSettingsToolsDto,
   updateAgentSettingsToolsSchema,
 } from "@caseai-connect/api-contracts"
@@ -20,6 +22,7 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
+import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -47,6 +50,9 @@ export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
       fillFormEnabled: agentSettings.fillFormEnabled,
       outputJsonSchema: agentSettings.outputJsonSchema,
       memoryMode: agentSettings.memoryMode,
+      followUpSuggestionsEnabled: agentSettings.followUpSuggestionsEnabled,
+      followUpSuggestionsInstructions: agentSettings.followUpSuggestionsInstructions,
+      followUpSuggestionsMax: agentSettings.followUpSuggestionsMax,
     },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
@@ -75,6 +81,7 @@ export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   }
 
   const fillFormEnabled = form.watch("fillFormEnabled")
+  const followUpSuggestionsEnabled = form.watch("followUpSuggestionsEnabled")
 
   return (
     <Form {...form}>
@@ -115,6 +122,86 @@ export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
                 </FormItem>
               )}
             />
+          )}
+        </div>
+
+        <div className="rounded-lg border p-4 space-y-4">
+          <FormField
+            control={form.control}
+            name="followUpSuggestionsEnabled"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <FormLabel>{t("agentSettings:tools.followUpSuggestions.title")}</FormLabel>
+                  <FormDescription>
+                    {t("agentSettings:tools.followUpSuggestions.description")}
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {followUpSuggestionsEnabled && (
+            <>
+              <FormField
+                control={form.control}
+                name="followUpSuggestionsMax"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-4">
+                    <FormLabel>{t("agentSettings:tools.followUpSuggestions.max")}</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={String(field.value)}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-24 shrink-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Array.from(
+                          { length: FOLLOW_UP_SUGGESTIONS_MAX },
+                          (_, index) => index + 1,
+                        ).map((maxQuestions) => (
+                          <SelectItem key={maxQuestions} value={String(maxQuestions)}>
+                            {maxQuestions}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="followUpSuggestionsInstructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t("agentSettings:tools.followUpSuggestions.instructions")}
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(event) => field.onChange(event.target.value || null)}
+                        maxLength={FOLLOW_UP_SUGGESTIONS_INSTRUCTIONS_MAX_LENGTH}
+                        placeholder={t(
+                          "agentSettings:tools.followUpSuggestions.instructionsPlaceholder",
+                        )}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t("agentSettings:tools.followUpSuggestions.instructionsDescription")}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           )}
         </div>
 

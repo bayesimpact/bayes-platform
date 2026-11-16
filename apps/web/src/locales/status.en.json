@@ -21,6 +21,7 @@
       "lookupKnowledgeBase": "Searching across the knowledge base…",
       "gatheringSources": "Gathering sources…",
       "surfacingResources": "Surfacing resources…",
+      "suggestingQuestions": "Suggesting follow-up questions…",
       "fillingForm": "Filling in the form…",
       "completingForm": "Completing the form…",
       "handingBack": "Handing the conversation back…",

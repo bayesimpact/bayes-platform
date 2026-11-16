@@ -108,6 +108,41 @@ export class DocumentTagsService {
     })
   }
 
+  /**
+   * The top-level tags with these names, created when missing. The oldest wins when several
+   * share a name.
+   */
+  async findOrCreateTopLevelTags({
+    connectScope,
+    names,
+  }: {
+    connectScope: RequiredConnectScope
+    names: string[]
+  }): Promise<DocumentTag[]> {
+    const uniqueNames = [...new Set(names.map((name) => name.trim()))]
+    const reservedName = uniqueNames.find((name) => this.isReservedPublicDocumentsName(name))
+    if (reservedName !== undefined) {
+      throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
+    }
+    const existingTags = await this.documentTagRepository.findTopLevelByNames(
+      connectScope,
+      uniqueNames,
+    )
+    const tags: DocumentTag[] = []
+    for (const name of uniqueNames) {
+      const existingTag = existingTags.find((tag) => tag.name === name)
+      tags.push(
+        existingTag ??
+          (await this.documentTagRepository.createOne(connectScope, {
+            name,
+            description: null,
+            parentId: null,
+          })),
+      )
+    }
+    return tags
+  }
+
   createPublicDocumentsTag(connectScope: RequiredConnectScope): Promise<DocumentTag> {
     return this.documentTagRepository.createOne(connectScope, {
       name: PUBLIC_DOCUMENTS_TAG_NAME,

@@ -18,5 +18,12 @@ export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$proje
 function NewConversationRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
-  return <NewConversation key={agent.id} agent={params} agentName={agent.name} />
+  return (
+    <NewConversation
+      key={agent.id}
+      agent={params}
+      agentName={agent.name}
+      greetingMessage={agent.greetingMessage}
+    />
+  )
 }

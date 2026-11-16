@@ -16,6 +16,7 @@ import { expectResponse, type Requester, testRequester } from "../../../../test/
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
 import { type InvitationRouteTarget, invitationRoutesFor } from "./invitation-routes.helpers"
+import { createWorkspaceWithTwoAgents } from "./workspace-invitation.helpers"
 
 describe("Invitations - listForTarget", () => {
   let app: INestApplication<App>
@@ -105,6 +106,42 @@ describe("Invitations - listForTarget", () => {
     expectResponse(response, 200)
     expect(response.body.data.invitations).toEqual([
       expect.objectContaining({ id: invitation.id, targetName: reviewCampaign.name }),
+    ])
+  })
+
+  it("lists on an agent the workspace invitations that give it", async () => {
+    const { project, firstAgent, secondAgent } = await createWorkspaceWithTwoAgents(
+      repositories,
+      authSubject,
+    )
+    const [givingUser, otherUser] = await repositories.userRepository.save([
+      userFactory.build({ authSubject: null }),
+      userFactory.build({ authSubject: null }),
+    ])
+    const giving = await repositories.invitationRepository.save(
+      invitationFactory
+        .transient({ user: givingUser!, project })
+        .build({ role: "member", agentIds: [firstAgent.id, secondAgent.id] }),
+    )
+    await repositories.invitationRepository.save(
+      invitationFactory
+        .transient({ user: otherUser!, project })
+        .build({ role: "member", agentIds: [secondAgent.id] }),
+    )
+
+    const response = await subject({ agent: firstAgent })
+
+    expectResponse(response, 200)
+    expect(response.body.data.invitations).toEqual([
+      expect.objectContaining({
+        id: giving.id,
+        targetType: "project",
+        role: "member",
+        agents: [
+          { id: firstAgent.id, name: firstAgent.name },
+          { id: secondAgent.id, name: secondAgent.name },
+        ],
+      }),
     ])
   })
 })

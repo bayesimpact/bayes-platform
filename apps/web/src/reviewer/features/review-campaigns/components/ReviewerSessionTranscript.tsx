@@ -1,6 +1,7 @@
 import type { ReviewerSessionTranscriptMessageDto } from "@caseai-connect/api-contracts"
 import { cn } from "@caseai-connect/ui/utils"
 import { useTranslation } from "react-i18next"
+import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 
 type Props = {
   messages: ReviewerSessionTranscriptMessageDto[]
@@ -28,7 +29,15 @@ export function ReviewerSessionTranscript({ messages }: Props) {
           <span className="text-muted-foreground text-xs uppercase tracking-wide">
             {message.role}
           </span>
-          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+          {/* Same rendering as the chat, so reviewers judge what testers saw: markdown for the
+              agent's replies, plain text for what the tester typed. */}
+          {message.role === "assistant" ? (
+            <div className="text-sm">
+              <MarkdownWrapper content={message.content} />
+            </div>
+          ) : (
+            <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+          )}
         </li>
       ))}
     </ol>

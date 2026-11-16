@@ -9,10 +9,66 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.11.2] - 2026-11-16
+
+### Added
+
+- Desk: an open page tells you when a new version is out, and you reload it when you choose.
+- Message feedback: users can mark an agent reply as a good answer, and the team sees it with the reports.
 
 ### Changed
 
+- Evaluator role: workspace owners and admins can give themselves the evaluator role, or take it away.
+- App installs: connected apps show who installed them, and a colleague cannot reconnect an app over its installer.
+
+### Fixed
+
+- Agent creation: a quick double submit creates one agent, and each new agent shows its actions, delete included.
+- Review campaigns: transcripts match what testers saw, and the full report and end-of-phase survey open reliably.
+- Extraction agents: the edit page shows the version history and save actions once.
+- Agent settings: a direct link to an agent's settings or extraction playground opens the page without an error.
+- CSV extraction: a CSV with many columns scrolls inside its results table instead of stretching the page.
+- Extraction evaluations: run records show each scored field by name, and the run setup scrolls with many fields.
+- Conversation evaluations: form-enabled agents fill forms during runs, and reviewers can read the collected fields.
+- (beta) MCP servers: a direct link to a project's MCP servers page opens the page without an error.
+
+### Security
+
+- Agents: a person invited to one agent can no longer chat with or run extractions on the project's other agents.
+
+## [26.11.1] - 2026-11-09
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Desk: a new conversation now shows the agent's greeting message before the first message.
+- Desk: you can copy a selected passage of a reply again, or choose to annotate it.
+
+### Security
+
+## [26.11.0] - 2026-11-06
+
+### Added
+
+- Apps: an app can tag a document source when it creates it, so agents can target its documents by tag.
+- Follow-up questions: an agent can suggest short questions under its answers, which users send with one click.
+- Invitations: one invitation gives a workspace role and several agents, accepted once.
+- MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
+- Workspace selection: a log out button is now on the page that lists your workspaces.
+- (beta) Apps catalog: project owners and admins can browse the apps they can connect, from the Connected apps page.
+
+### Changed
+
+- Invitation emails: written in the inviter's language, English or French, instead of both.
 - Sign-in: Studio and the Desk now share one session, so signing in, switching account or signing out applies to both.
 - Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
 - Evaluation: access now comes from an Evaluator role that workspace admins give to members.
@@ -23,6 +79,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+- Embedded agents: visitor messages no longer appear in URLs.
 - Conversations: long messages now always get a reply, and their text no longer reaches server access logs.
 - Server logs: messages people write and sign-in codes stay out of the logs, even with detailed logging turned on.
 

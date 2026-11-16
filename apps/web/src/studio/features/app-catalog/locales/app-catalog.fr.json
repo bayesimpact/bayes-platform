@@ -1,0 +1,17 @@
+{
+  "appCatalog": {
+    "title": "Catalogue d'apps",
+    "description": "Les apps que vous pouvez connecter à ce projet.",
+    "browse": "Parcourir les apps",
+    "empty": {
+      "title": "Aucune app dans le catalogue pour l'instant",
+      "description": "Les apps qui peuvent être connectées à ce projet apparaîtront ici."
+    },
+    "connected": "Connectée",
+    "openApp": "Ouvrir l'app",
+    "askToInstall": {
+      "title": "Seuls les propriétaires et admins du projet peuvent connecter une app",
+      "description": "Demandez à l'un d'eux d'installer l'app dont vous avez besoin."
+    }
+  }
+}

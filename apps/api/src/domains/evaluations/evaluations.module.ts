@@ -37,6 +37,7 @@ import { EvaluationConversationRunStatusStreamService } from "./conversation/run
 import { EvaluationConversationRunsController } from "./conversation/runs/evaluation-conversation-runs.controller"
 import { EvaluationConversationRunsService } from "./conversation/runs/evaluation-conversation-runs.service"
 import { EvaluationConversationRunRecord } from "./conversation/runs/records/evaluation-conversation-run-record.entity"
+import { EvaluationConversationRunRecordRepository } from "./conversation/runs/records/evaluation-conversation-run-record.repository"
 import { EvaluationConversationTestCaseLlmService } from "./conversation/test-cases/evaluation-conversation-test-case-llm.service"
 import { EvaluationConversationTestCasesController } from "./conversation/test-cases/evaluation-conversation-test-cases.controller"
 import { EvaluationConversationTestCasesService } from "./conversation/test-cases/evaluation-conversation-test-cases.service"
@@ -99,6 +100,7 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationConversationRunStatusNotifierService,
     EvaluationConversationRunStatusStreamService,
     EvaluationConversationRunsService,
+    EvaluationConversationRunRecordRepository,
     EvaluationConversationTestCaseLlmService,
     EvaluationConversationTestCasesService,
     EvaluationExtractionDatasetContextResolver,

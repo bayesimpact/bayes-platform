@@ -43,7 +43,7 @@ function Layout() {
         homePath={RouteNames.HOME}
         appName={t("testerCampaigns:shell.title")}
       />
-      <div className="flex-1 min-h-0 sm:mx-4 md:mx-10 xl:mx-20 sm:my-4 md:my-10 relative sm:border sm:rounded-2xl overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 sm:mx-4 md:mx-10 xl:mx-20 sm:my-4 md:my-10 relative sm:border sm:rounded-2xl overflow-y-auto flex flex-col">
         <CampaignsRoute />
       </div>
     </div>

@@ -11,6 +11,7 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import type { OnExecute } from "../streaming-session.types"
 import type { RetrievedChunksRegistry } from "./retrieved-chunks-registry"
+import { cleanFollowUpQuestions } from "./suggest-follow-up-questions.tool"
 
 /**
  * Post-turn classification.
@@ -122,6 +123,20 @@ export type AnnouncedHandoffClassificationConfig = {
   handOff: (params: { toolName: string }) => Promise<void>
 }
 
+/**
+ * Present when the agent suggests follow-up questions. Most models call the
+ * suggestFollowUpQuestions tool themselves; small ones often answer without
+ * it. The classifier then writes the questions from the exchange, so the
+ * chips do not depend on the model. Not asked when the tool ran in the turn.
+ */
+export type FollowUpQuestionsClassificationConfig = {
+  maxQuestions: number
+  /** The agent author's guidance on when and how to write the questions. */
+  instructions: string | null
+  /** True when the agent called suggestFollowUpQuestions during this turn. */
+  suggestedByTool: () => boolean
+}
+
 export type TurnClassificationContext = {
   /** Present when the sources feature is enabled for the project and the agent retrieves. */
   retrievedChunksRegistry?: RetrievedChunksRegistry
@@ -131,6 +146,8 @@ export type TurnClassificationContext = {
   handoff?: HandoffClassificationConfig
   /** Present when the replying agent has handoff sub-agents. */
   announcedHandoff?: AnnouncedHandoffClassificationConfig
+  /** Present when the agent suggests follow-up questions. */
+  followUpQuestions?: FollowUpQuestionsClassificationConfig
   onExecute: OnExecute
 }
 
@@ -219,6 +236,7 @@ export function buildTurnClassificationSchema({
   chunkAliases,
   handoff = false,
   announcedHandoffToolNames = [],
+  maxFollowUpQuestions = 0,
 }: {
   availableCategoryNames: string[]
   chunkAliases: string[]
@@ -226,6 +244,8 @@ export function buildTurnClassificationSchema({
   handoff?: boolean
   /** Adds the announced hand-over field, closed on these tool names. */
   announcedHandoffToolNames?: string[]
+  /** Adds the follow-up questions field, with at most this many questions. */
+  maxFollowUpQuestions?: number
 }): Record<string, unknown> {
   const properties: Record<string, unknown> = {
     suggestedTitle: {
@@ -271,6 +291,15 @@ export function buildTurnClassificationSchema({
         "The sub-agent tool whose hand-over the reply announces (it tells the user it transfers them, passes them on, or lets that sub-agent take over) while no tool ran. null when the reply announces no hand-over.",
     }
   }
+  if (maxFollowUpQuestions > 0) {
+    properties.followUpQuestions = {
+      type: "array",
+      items: { type: "string" },
+      maxItems: maxFollowUpQuestions,
+      description:
+        "Short questions the user could send next, each written as the user would ask it, in the conversation's language. Empty when no follow-up question is relevant.",
+    }
+  }
   return {
     type: "object",
     properties,
@@ -293,6 +322,7 @@ const turnClassificationOutputSchema = z.object({
   taskConcluded: z.boolean().optional(),
   handoffSummary: z.string().trim().optional(),
   announcedHandoffTo: z.string().nullable().optional(),
+  followUpQuestions: z.array(z.string()).optional(),
 })
 
 function truncate(text: string, maxLength: number): string {
@@ -317,6 +347,7 @@ export function buildTurnClassificationPrompt({
   passages,
   handoff,
   announcedHandoff,
+  followUpQuestions,
 }: {
   /** LLM-visible history BEFORE the latest user message. */
   earlierMessages: LLMChatMessage[]
@@ -326,6 +357,7 @@ export function buildTurnClassificationPrompt({
   passages: Array<{ alias: string; documentTitle: string; content: string }>
   handoff?: Pick<HandoffClassificationConfig, "childAgentName" | "parentAgentName">
   announcedHandoff?: Pick<AnnouncedHandoffClassificationConfig, "candidates">
+  followUpQuestions?: Pick<FollowUpQuestionsClassificationConfig, "maxQuestions" | "instructions">
 }): { systemPrompt: string; userContent: string } {
   const systemPrompt = [
     "You are a classifier working behind a conversational assistant. You read one exchange between a user and the assistant and return a structured report about it.",
@@ -380,6 +412,12 @@ export function buildTurnClassificationPrompt({
       `## Announced hand-over\nThe assistant can hand the conversation to these sub-agents by calling a tool, and called none in this reply:\n${candidateLines}\nIf the reply tells the user it hands them over to one of them (transfers them, passes them on, lets it take over, starts its questionnaire), return that tool name (announcedHandoffTo). Return null when the reply announces no hand-over, or only mentions a sub-agent without handing over now.`,
     )
   }
+  if (followUpQuestions) {
+    const authorInstructions = followUpQuestions.instructions?.trim()
+    sections.push(
+      `## Follow-up questions\nThe user sees these questions as buttons under the reply and sends one with a click. When it helps the user continue the conversation, return at most ${followUpQuestions.maxQuestions} short questions the user could send next (followUpQuestions), each written as the user would ask it, in the conversation's language, on one line. Do not repeat a question the reply already answers. Return an empty array when no follow-up question is relevant.${authorInstructions ? ` Instructions for these questions: ${authorInstructions}` : ""}`,
+    )
+  }
   return { systemPrompt, userContent: sections.join("\n\n") }
 }
 
@@ -420,6 +458,11 @@ export async function runTurnClassification({
     !context.announcedHandoff.handedOffByTool()
       ? context.announcedHandoff
       : undefined
+  // Asked only when the agent did not suggest questions with its tool.
+  const followUpQuestions =
+    context.followUpQuestions && !context.followUpQuestions.suggestedByTool()
+      ? context.followUpQuestions
+      : undefined
   try {
     let sourcesDispatched = false
     if (retrievedChunksRegistry && citedChunkAliases.length > 0) {
@@ -433,7 +476,8 @@ export async function runTurnClassification({
     // Sources only need the classifier when passages were retrieved and the
     // reply cited none of them inline.
     const needsSources = retrievedChunksRegistry?.hasChunks() && !sourcesDispatched
-    if (!needsSources && !sessionMetadata && !handoff && !announcedHandoff) return
+    if (!needsSources && !sessionMetadata && !handoff && !announcedHandoff && !followUpQuestions)
+      return
 
     const passages = needsSources
       ? (retrievedChunksRegistry?.entries() ?? []).map(({ alias, chunk }) => ({
@@ -451,6 +495,7 @@ export async function runTurnClassification({
       passages,
       handoff,
       announcedHandoff,
+      followUpQuestions,
     })
     const schema = buildTurnClassificationSchema({
       availableCategoryNames,
@@ -459,6 +504,7 @@ export async function runTurnClassification({
       announcedHandoffToolNames: announcedHandoff?.candidates.map(
         (candidate) => candidate.toolName,
       ),
+      maxFollowUpQuestions: followUpQuestions?.maxQuestions ?? 0,
     })
 
     const rawOutput = await provider.generateStructuredOutput({
@@ -504,6 +550,20 @@ export async function runTurnClassification({
       const toolName = parsed.data.announcedHandoffTo
       if (announcedHandoff.candidates.some((candidate) => candidate.toolName === toolName)) {
         await announcedHandoff.handOff({ toolName })
+      }
+    }
+
+    if (followUpQuestions) {
+      const questions = cleanFollowUpQuestions(
+        parsed.data.followUpQuestions ?? [],
+        followUpQuestions.maxQuestions,
+      )
+      if (questions.length > 0) {
+        // Same tool name as the agent's own call: the chats render both alike.
+        await onExecute({
+          toolName: ToolName.SuggestFollowUpQuestions,
+          arguments: { questions, detectedByClassifier: true },
+        })
       }
     }
 

@@ -29,6 +29,7 @@ export const TOOL_NAMES = {
   forgetMemory: "forgetMemory",
   sources: "sources",
   recalculateConversationSessionMetadata: "recalculateConversationSessionMetadata",
+  suggestFollowUpQuestions: "suggestFollowUpQuestions",
 } as const
 
 export type ToolName = (typeof TOOL_NAMES)[keyof typeof TOOL_NAMES]
@@ -83,6 +84,18 @@ export const surfaceResourcesArgumentsSchema = z.object({
 
 export type SurfaceResourcesArgumentsDto = z.output<typeof surfaceResourcesArgumentsSchema>
 
+/**
+ * The short questions a reply suggests the person could send next (the `suggestFollowUpQuestions`
+ * tool), shown as buttons under the last reply.
+ */
+export const suggestFollowUpQuestionsArgumentsSchema = z.object({
+  questions: z.array(z.string()),
+})
+
+export type SuggestFollowUpQuestionsArgumentsDto = z.output<
+  typeof suggestFollowUpQuestionsArgumentsSchema
+>
+
 /** One message of a conversation, oldest first. `tool` messages hold tool results. */
 export const conversationMessageOutputSchema = z.object({
   id: z.uuid(),
@@ -127,10 +140,22 @@ export type MessageParamsDto = z.output<typeof messageParamsSchema>
 /** The longest report a person can write on a reply. */
 export const MESSAGE_FEEDBACK_MAX_LENGTH = 2000
 
-/** A problem the person reports on one of the agent's replies. */
-export const messageFeedbackInputSchema = z.strictObject({
-  content: z.string().trim().min(1).max(MESSAGE_FEEDBACK_MAX_LENGTH),
-})
+/** A thumbs-up on one of the agent's replies, or a problem the person reports with it. */
+export const messageFeedbackRatingSchema = z.enum(["positive", "negative"])
+
+/** The text a person writes about one of the agent's replies. */
+export const messageFeedbackContentSchema = z.string().trim().max(MESSAGE_FEEDBACK_MAX_LENGTH)
+
+/** What the person says of one of the agent's replies. A thumbs-up needs no text, a report does. */
+export const messageFeedbackInputSchema = z
+  .strictObject({
+    rating: messageFeedbackRatingSchema,
+    content: messageFeedbackContentSchema.optional(),
+  })
+  .refine((feedback) => feedback.rating === "positive" || Boolean(feedback.content), {
+    path: ["content"],
+    message: "A report needs a text",
+  })
 
 export type MessageFeedbackInputDto = z.input<typeof messageFeedbackInputSchema>
 

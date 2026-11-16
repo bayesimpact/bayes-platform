@@ -1,6 +1,7 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  AppCatalogEntryDto,
   AppInstallationSummaryDto,
   AppManifestDto,
   AppOAuthClientDto,
@@ -55,5 +56,13 @@ export const ProjectAppInstallationsRoutes = {
   revokeOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/app-installations/:appInstallationId/revoke",
+  }),
+}
+
+/** The apps a project can install, behind the apps-catalog feature flag. */
+export const ProjectAppCatalogRoutes = {
+  getAll: defineRoute<ResponseData<AppCatalogEntryDto[]>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/app-catalog",
   }),
 }

@@ -1,19 +1,6 @@
 {
   "projectMembership": {
     "members": "Membres",
-    "props": {
-      "validation": {
-        "emailDuplicate": "Email déjà ajouté",
-        "emailInvalid": "Email invalide"
-      }
-    },
-    "create": {
-      "button": "Inviter des administrateurs",
-      "title": "Inviter des administrateurs",
-      "description": "Entrez l'adresse email des personnes qui doivent gérer cet espace de travail. Elles acceptent l'invitation après s'être connectées.",
-      "label": "Adresse email",
-      "placeholder": "Entrez une adresse email"
-    },
     "pendingInvitations": {
       "title": "Invitations en attente",
       "description": "Personnes invitées sur ce projet qui n'ont pas encore répondu."
@@ -34,7 +21,9 @@
       "rolesAdded_one": "Rôles ajoutés à {{count}} membre",
       "rolesAdded_other": "Rôles ajoutés à {{count}} membres",
       "membersRemoved_one": "{{count}} membre retiré",
-      "membersRemoved_other": "{{count}} membres retirés"
+      "membersRemoved_other": "{{count}} membres retirés",
+      "agentsGiven_one": "{{count}} personne déjà dans l'espace de travail a reçu ses agents",
+      "agentsGiven_other": "{{count}} personnes déjà dans l'espace de travail ont reçu leurs agents"
     },
     "roleNames": {
       "project_owner": "Propriétaire",
@@ -94,6 +83,7 @@
       "you": "Vous",
       "selfTitle": "C'est votre propre page",
       "selfDescription": "Personne ne change ses propres rôles. Un autre gestionnaire de cet espace de travail peut les changer.",
+      "selfDescriptionEvaluator": "Vous pouvez vous donner le rôle d'évaluateur, ou vous le retirer. Un autre gestionnaire de cet espace de travail change vos autres rôles.",
       "addErrorTitle": "Le rôle n'a pas été ajouté",
       "addErrorDetail": "{{role}} sur {{resource}} : {{error}}",
       "addError": "Le rôle n'a pas pu être ajouté. Réessayez.",
@@ -119,7 +109,8 @@
           "project": "Leurs permissions sur cet espace de travail changent tout de suite.",
           "agent": "Leurs permissions sur cet agent changent tout de suite.",
           "review_campaign": "Leur participation à cette campagne d'évaluation change tout de suite."
-        }
+        },
+        "selfEffect": "Vos permissions sur cet espace de travail changent tout de suite."
       },
       "noAccess": "Aucun accès",
       "cannotRemove": "{{role}} ne peut pas être retiré",
@@ -137,7 +128,8 @@
         "active": "Active",
         "closed": "Clôturée"
       },
-      "ownerLocked": "Le rôle de propriétaire est attribué à la création de l'espace de travail ou de l'agent, et ne se change pas ici."
+      "ownerLocked": "Le rôle de propriétaire est attribué à la création de l'espace de travail ou de l'agent, et ne se change pas ici.",
+      "selfLocked": "Personne ne change ses propres rôles, sauf le rôle d'évaluateur. Un autre gestionnaire de cet espace de travail peut changer celui-ci."
     }
   }
 }

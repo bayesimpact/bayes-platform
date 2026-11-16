@@ -25,8 +25,8 @@ import { StreamingController } from "./streaming.controller"
 const Routes = AgentSessionMessagesRoutes.live
 
 /**
- * Sends a message to a live session and streams the reply. Open to every project role through
- * `agent.conversation.session.create`.
+ * Sends a message to a live session and streams the reply. Open to the agent's roles and to
+ * project owners and admins through `agent.conversation.session.create`.
  */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent", "agentSession")
@@ -36,7 +36,7 @@ export class LiveStreamingController extends StreamingController {
 
   @Sse(Routes.stream.path, { method: RequestMethod.POST })
   @HttpCode(HttpStatus.OK)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "agent")
   stream(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Body() body: typeof Routes.stream.request,

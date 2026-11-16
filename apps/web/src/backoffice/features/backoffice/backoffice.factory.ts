@@ -669,6 +669,9 @@ export const appManifestFactory = AppManifestFactory.define(({ params, sequence 
     "http://localhost:3100/auth/bayes/callback",
     "https://app.example.com/auth/bayes/callback",
   ],
+  appUrl: params.appUrl ?? null,
+  listedInCatalog: params.listedInCatalog ?? false,
+  installInstructions: params.installInstructions ?? null,
   createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
 }))
 

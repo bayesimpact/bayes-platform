@@ -1,4 +1,4 @@
-import type { CreateAgentDto } from "@caseai-connect/api-contracts"
+import { agentValidationSchema, type CreateAgentDto } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -8,12 +8,23 @@ import {
   DialogTitle,
 } from "@caseai-connect/ui/shad/dialog"
 import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { cn } from "@caseai-connect/ui/utils"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusCircleIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import type { z } from "zod"
 import { GridCard } from "@/common/components/grid/Grid"
 import { selectAvailableModelsCatalog } from "@/common/features/agents/agents.selectors"
 import type { Project } from "@/common/features/projects/projects.models"
@@ -28,7 +39,9 @@ import { createAgent } from "../agents.thunks"
 
 const defaultChoice: AgentCreationChoice = "conversation"
 const creationChoices: AgentCreationChoice[] = ["conversation", "extraction", "form"]
-const minNameLength = 3
+const agentNameSchema = agentValidationSchema.pick({ name: true })
+
+type FormValues = z.infer<typeof agentNameSchema>
 
 export function AgentCreatorButton({ project }: { project: Project }) {
   const { t } = useTranslation()
@@ -71,21 +84,25 @@ function AgentCreatorDialog({
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [selectedChoice, setSelectedChoice] = useState<AgentCreationChoice>(defaultChoice)
-  const [name, setName] = useState("")
+  const form = useForm<FormValues>({
+    resolver: zodResolver(agentNameSchema),
+    defaultValues: { name: "" },
+  })
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setSelectedChoice(defaultChoice)
-      setName("")
+      form.reset()
     }
     onOpenChange(nextOpen)
   }
 
   // The catalog gives the model a new agent starts on; creating waits for it.
   const catalog = useAppSelector(selectAvailableModelsCatalog)
-  const canCreate = name.trim().length >= minNameLength && catalog !== null
 
-  const handleCreate = () => {
+  // The submit stays pending until the agent opens or the creation fails. Enter then a click
+  // on the button would otherwise create the agent twice.
+  const handleFormSubmit = async (values: FormValues) => {
     if (!catalog) return
     const fields: CreateAgentDto = {
       ...getDefaultFormValues({
@@ -93,25 +110,31 @@ function AgentCreatorDialog({
         defaultModel: catalog.defaults.agent,
         defaultModelOptions: defaultModelOptions(catalog, catalog.defaults.agent),
       }),
-      name: name.trim(),
+      name: values.name,
       projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
     }
 
-    dispatch(
-      createAgent({
-        fields,
-        onSuccess: (agent) => {
-          handleOpenChange(false)
-          navigate(
-            StudioRoutes.agentEdit.build({
-              organizationId: project.organizationId,
-              projectId: project.id,
-              agentId: agent.id,
-            }),
-          )
-        },
-      }),
-    )
+    // `onSuccess` runs once the new agent is listed, after the thunk itself resolved.
+    await new Promise<void>((resolve) => {
+      dispatch(
+        createAgent({
+          fields,
+          onSuccess: (agent) => {
+            resolve()
+            handleOpenChange(false)
+            navigate(
+              StudioRoutes.agentEdit.build({
+                organizationId: project.organizationId,
+                projectId: project.id,
+                agentId: agent.id,
+              }),
+            )
+          },
+        }),
+      )
+        .unwrap()
+        .catch(() => resolve())
+    })
   }
 
   return (
@@ -122,47 +145,50 @@ function AgentCreatorDialog({
           <DialogDescription>{t("agent:create.typeDialog.description")}</DialogDescription>
         </DialogHeader>
 
-        <form
-          className="space-y-4 pt-2"
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (canCreate) handleCreate()
-          }}
-        >
-          <Field>
-            <FieldLabel>{t("agent:create.typeDialog.title")}</FieldLabel>
-            <div className="grid grid-cols-3 gap-2">
-              {creationChoices.map((creationChoice) => (
-                <button
-                  key={creationChoice}
-                  type="button"
-                  className={cn(
-                    "border rounded-md px-3 py-2 text-sm text-center",
-                    selectedChoice === creationChoice ? "border-primary" : "border-muted",
-                  )}
-                  onClick={() => setSelectedChoice(creationChoice)}
-                >
-                  {t(`agent:create.typeDialog.${creationChoice}`)}
-                </button>
-              ))}
-            </div>
-          </Field>
+        <Form {...form}>
+          <form className="space-y-4 pt-2" onSubmit={form.handleSubmit(handleFormSubmit)}>
+            <Field>
+              <FieldLabel>{t("agent:create.typeDialog.title")}</FieldLabel>
+              <div className="grid grid-cols-3 gap-2">
+                {creationChoices.map((creationChoice) => (
+                  <button
+                    key={creationChoice}
+                    type="button"
+                    className={cn(
+                      "border rounded-md px-3 py-2 text-sm text-center",
+                      selectedChoice === creationChoice ? "border-primary" : "border-muted",
+                    )}
+                    onClick={() => setSelectedChoice(creationChoice)}
+                  >
+                    {t(`agent:create.typeDialog.${creationChoice}`)}
+                  </button>
+                ))}
+              </div>
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="agent-name">{t("agent:props.name")}</FieldLabel>
-            <Input
-              id="agent-name"
-              autoFocus
-              placeholder={t("agent:props.placeholders.name")}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("agent:props.name")}</FormLabel>
+                  <FormControl>
+                    <Input autoFocus placeholder={t("agent:props.placeholders.name")} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </Field>
 
-          <Button type="submit" className="w-full" disabled={!canCreate}>
-            {t("actions:create")}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting || catalog === null}
+            >
+              {t("actions:create")}
+            </Button>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

@@ -1,7 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
-import { listInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
+import type { InviteeAccessByEmail } from "@/studio/features/invitations/invitations.spi"
+import {
+  listInvitationsForTarget,
+  listInviteeAccess,
+} from "@/studio/features/invitations/invitations.thunks"
 import type { AssignableRoles, MemberRoles, ProjectMembership } from "./project-memberships.models"
 import {
   addProjectMemberRoles,
@@ -18,6 +22,8 @@ interface State {
   pendingInvitations: AsyncData<PendingInvitations>
   /** The roles a member can be given on the workspace, an agent or a review campaign. */
   assignableRoles: AsyncData<AssignableRoles>
+  /** What each person in the workspace holds, so the invite dialog can tell what changes. */
+  inviteeAccess: AsyncData<InviteeAccessByEmail>
 }
 
 const initialState: State = {
@@ -25,6 +31,7 @@ const initialState: State = {
   memberRoles: defaultAsyncData,
   pendingInvitations: defaultAsyncData,
   assignableRoles: defaultAsyncData,
+  inviteeAccess: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -109,6 +116,19 @@ const slice = createSlice({
         state.pendingInvitations.status = ADS.Error
         state.pendingInvitations.error =
           action.error.message || "Failed to list project pending invitations"
+      })
+
+    builder
+      .addCase(listInviteeAccess.pending, (state) => {
+        if (!ADS.isFulfilled(state.inviteeAccess)) state.inviteeAccess.status = ADS.Loading
+        state.inviteeAccess.error = null
+      })
+      .addCase(listInviteeAccess.fulfilled, (state, action) => {
+        state.inviteeAccess = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(listInviteeAccess.rejected, (state, action) => {
+        state.inviteeAccess.status = ADS.Error
+        state.inviteeAccess.error = action.error.message || "Failed to list the invitee access"
       })
 
     builder

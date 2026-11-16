@@ -79,6 +79,7 @@ export abstract class AgentCsvExtractionRunsController {
     payload: Routes["createOne"]["request"]["payload"],
   ): Promise<Routes["createOne"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
+    await this.getRunCsvDocument(request, payload.csvDocumentId)
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
       agentId: request.agent.id,
@@ -320,21 +321,36 @@ export abstract class AgentCsvExtractionRunsController {
   protected async handleGetFileColumns(
     request: EndpointRequestWithAgent & { params: { documentId?: string } },
   ): Promise<Routes["getFileColumns"]["response"]> {
-    const connectScope = getRequiredConnectScope(request)
     const docId = request.params?.documentId
     if (!docId) {
       throw new UnprocessableEntityException("documentId is required")
     }
 
-    const document = await this.documentsService.findById({ connectScope, documentId: docId })
-    if (!document) {
-      throw new NotFoundException(`Document with id ${docId} not found`)
-    }
-
+    const document = await this.getRunCsvDocument(request, docId)
     const columns = await this.parseCsvColumns({
       storageRelativePath: document.storageRelativePath,
     })
     return { data: columns }
+  }
+
+  /**
+   * The CSV a run reads, loaded in the caller's project. On the live routes, open to every
+   * project member, it must be a CSV the caller uploaded for a run: a knowledge-base document
+   * needs `document.read`, and a colleague's upload is theirs. The playground routes are for
+   * admins and owners, who may read any document of the project. Anything else answers 404, as
+   * if absent.
+   */
+  private async getRunCsvDocument(request: EndpointRequestWithAgent, documentId: string) {
+    const document = await this.documentsService.findById({
+      connectScope: getRequiredConnectScope(request),
+      documentId,
+    })
+    const isCallerUpload =
+      document?.sourceType === "extraction" && document.userId === request.user.id
+    if (!document || (this.type === "live" && !isCallerUpload)) {
+      throw new NotFoundException(`Document ${documentId} not found`)
+    }
+    return document
   }
 
   /**

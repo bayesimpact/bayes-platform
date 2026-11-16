@@ -1,3 +1,4 @@
+import type { AgentMessageFeedbackRating } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
@@ -18,11 +19,11 @@ export const listAgentMessageFeedbacks = createAsyncThunk<
 
 export const createAgentMessageFeedback = createAsyncThunk<
   void,
-  { agentMessageId: string; content: string },
+  { agentMessageId: string; rating: AgentMessageFeedbackRating; content?: string },
   ThunkConfig
 >(
   "agentMessageFeedback/create",
-  async ({ agentMessageId, content }, { extra: { services }, getState }) => {
+  async ({ agentMessageId, rating, content }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
@@ -30,6 +31,7 @@ export const createAgentMessageFeedback = createAsyncThunk<
       organizationId,
       projectId,
       agentMessageId,
+      rating,
       content,
     })
   },

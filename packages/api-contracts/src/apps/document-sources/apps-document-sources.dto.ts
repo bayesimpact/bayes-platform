@@ -10,6 +10,11 @@ export const createDocumentSourceSchema = z
     external_id: optionalText,
     base_url: z.string().url().nullable().optional(),
     config: z.record(z.string(), z.unknown()).nullable().optional(),
+    /**
+     * Names of the tags the new source starts with. A top-level tag of that name is reused, or
+     * created. Read on create only: after that, the workspace owns the tags of the source.
+     */
+    tags: z.array(z.string().trim().min(1).max(200)).max(20).optional(),
   })
   .strict()
 

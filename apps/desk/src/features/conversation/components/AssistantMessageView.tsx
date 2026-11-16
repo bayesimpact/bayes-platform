@@ -12,6 +12,8 @@ import type { TaskChecks } from "../hooks/use-task-checks"
 import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { FeedbackDialog } from "./FeedbackDialog"
+import { FollowUpQuestions } from "./FollowUpQuestions"
+import { GoodReplyButton } from "./GoodReplyButton"
 import { McpAppsList } from "./McpAppsList"
 import { MessageActions } from "./MessageActions"
 import { ReplyError } from "./ReplyError"
@@ -31,6 +33,10 @@ export type AssistantMessageViewProps = {
   onOpenResource: (resource: OpenedResource) => void
   /** The tasks of the replies, as the person left them, and their ticks. */
   taskChecks: TaskChecks
+  /** The questions to show as buttons under the reply: only the last reply has some. */
+  followUpQuestions: string[]
+  /** Sends a suggested question as the person's next message. */
+  onFollowUpQuestion: (question: string) => void
 }
 
 /**
@@ -47,6 +53,8 @@ export function AssistantMessageView({
   onAppMessage,
   onOpenResource,
   taskChecks,
+  followUpQuestions,
+  onFollowUpQuestion,
 }: AssistantMessageViewProps) {
   const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
@@ -104,6 +112,9 @@ export function AssistantMessageView({
         {hasSourcesTool && message.sources.length > 0 ? (
           <SourcesList conversation={conversation} sources={message.sources} />
         ) : null}
+        {followUpQuestions.length > 0 ? (
+          <FollowUpQuestions questions={followUpQuestions} onSelect={onFollowUpQuestion} />
+        ) : null}
         {isInterrupted ? (
           <p className="text-sm text-muted-foreground">
             <Trans>This reply was interrupted before it finished.</Trans>
@@ -114,7 +125,10 @@ export function AssistantMessageView({
             <CopyButton text={text} label={t`Copy the reply`} />
             {/* A local reply gets its id once the persisted messages replace it. */}
             {isLocalMessageId(message.id) ? null : (
-              <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+              <>
+                <GoodReplyButton conversation={conversation} agentMessageId={message.id} />
+                <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+              </>
             )}
             {message.createdAt !== null ? (
               <RelativeTime

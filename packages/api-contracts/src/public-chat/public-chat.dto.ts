@@ -101,7 +101,10 @@ export type CreatePublicSessionResponseDto = {
   sessionToken: string
 }
 
-/** Payload of the stream route, sent URL-encoded in the `q` query parameter. */
+/**
+ * Payload of the stream routes: the JSON body of `streamReply`, or URL-encoded in the `q`
+ * query parameter of the deprecated `streamMessages`.
+ */
 export type PublicChatStreamRequestDto = {
   content: string
 }

@@ -3,7 +3,15 @@ import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@caseai-connect/ui/shad/card"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
-import { Field, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@caseai-connect/ui/shad/field"
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FieldTitle,
+} from "@caseai-connect/ui/shad/field"
 import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@caseai-connect/ui/shad/item"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { cn } from "@caseai-connect/ui/utils"
@@ -22,21 +30,28 @@ import { BayesCrossMark } from "./BayesCrossMark"
 
 /**
  * The consent form's resolver: an empty project or permission list gets words a person can act on,
- * any other issue keeps the contract's message.
+ * any other issue keeps the contract's message. A project in `blockedProjectIds` cannot be
+ * approved: the error goes under the project field.
  */
-export function useConsentResolver() {
+export function useConsentResolver(blockedProjectIds: string[] = []) {
   const { t } = useTranslation("oauthConsent")
   return useMemo(
     () =>
-      zodResolver(oauthConsentSchema, {
-        error: (issue) => {
-          if (issue.code !== "too_small") return undefined
-          if (issue.path?.[0] === "projectIds") return t("projectRequired")
-          if (issue.path?.[0] === "permissions") return t("permissionRequired")
-          return undefined
+      zodResolver(
+        oauthConsentSchema.refine(
+          (values) => !values.projectIds.some((projectId) => blockedProjectIds.includes(projectId)),
+          { path: ["projectIds"], message: t("alreadyInstalled.error") },
+        ),
+        {
+          error: (issue) => {
+            if (issue.code !== "too_small") return undefined
+            if (issue.path?.[0] === "projectIds") return t("projectRequired")
+            if (issue.path?.[0] === "permissions") return t("permissionRequired")
+            return undefined
+          },
         },
-      }),
-    [t],
+      ),
+    [t, blockedProjectIds],
   )
 }
 
@@ -72,11 +87,14 @@ export function ChoiceCard({
   htmlFor,
   control,
   label,
+  hint,
   disabled,
 }: {
   htmlFor: string
   control: ReactNode
   label: string
+  /** A line under the label, such as who already installed the app there. */
+  hint?: string
   disabled: boolean
 }) {
   return (
@@ -86,7 +104,14 @@ export function ChoiceCard({
     >
       <Field orientation="horizontal" className="gap-2.5" data-disabled={disabled || undefined}>
         {control}
-        <FieldTitle className="min-w-0 break-words">{label}</FieldTitle>
+        {hint ? (
+          <FieldContent className="min-w-0 gap-0.5">
+            <FieldTitle className="break-words">{label}</FieldTitle>
+            <FieldDescription className="text-xs">{hint}</FieldDescription>
+          </FieldContent>
+        ) : (
+          <FieldTitle className="min-w-0 break-words">{label}</FieldTitle>
+        )}
       </Field>
     </FieldLabel>
   )
@@ -206,27 +231,30 @@ function ClientMark({ logoUrl }: { logoUrl: string | null }) {
 
 /**
  * The submit button and the way back, kept in view while the page scrolls. It reaches the card's
- * bottom edge, over the card's own bottom padding, so nothing shows under it.
+ * bottom edge, over the card's own bottom padding, so nothing shows under it. Without `submitLabel`,
+ * nothing can be submitted from this screen and only `cancel` shows.
  */
 export function ConsentFooter({
   submitLabel,
   isSubmitting,
   cancel,
 }: {
-  submitLabel: string
+  submitLabel?: string
   isSubmitting: boolean
   cancel: ReactNode
 }) {
   return (
     <CardFooter className="sticky bottom-0 -mb-6 flex-col items-stretch rounded-b-xl border-t bg-card pt-4 pb-5">
-      <Button
-        type="submit"
-        className="h-auto min-h-11 w-full whitespace-normal"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? null : <ShieldCheckIcon className="size-4" aria-hidden />}
-        {submitLabel}
-      </Button>
+      {submitLabel && (
+        <Button
+          type="submit"
+          className="h-auto min-h-11 w-full whitespace-normal"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? null : <ShieldCheckIcon className="size-4" aria-hidden />}
+          {submitLabel}
+        </Button>
+      )}
       {cancel}
     </CardFooter>
   )

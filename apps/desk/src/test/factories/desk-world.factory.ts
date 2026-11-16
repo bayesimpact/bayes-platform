@@ -10,6 +10,8 @@ import type {
   InvitationOutputDto,
   McpAppHtmlOutputDto,
   MemoryOutputDto,
+  MessageFeedbackInputDto,
+  MessageParamsDto,
   MyOrganizationOutputDto,
   MyProjectOutputDto,
   ProjectAgentOutputDto,
@@ -50,8 +52,8 @@ export type DeskWorld = {
   csvExtractionRuns: Record<string, CsvExtractionRunDetailOutputDto[]>
   /** The messages of each conversation, oldest first. */
   messages: Record<string, ConversationMessageOutputDto[]>
-  /** The problems reported on the agents' replies. */
-  feedbacks: { agentMessageId: string; content: string }[]
+  /** The thumbs-up and the problems reported on the agents' replies. */
+  feedbacks: (Pick<MessageParamsDto, "agentMessageId"> & MessageFeedbackInputDto)[]
   /** What each agent remembers about the person. */
   memories: Record<string, MemoryOutputDto[]>
   /** The person's pending invitations, with the agent each one gives access to once accepted. */
@@ -90,7 +92,10 @@ function emptyWorld(): DeskWorld {
   }
 }
 
-/** A short exchange, for a conversation of the history. */
+/**
+ * A short exchange, for a conversation of the history. It opens with the greeting the agent had
+ * then: a greeting changes, and a conversation keeps the one it started with.
+ */
 function buildExchange(question: string, createdAt: number): ConversationMessageOutputDto[] {
   return [
     buildConversationMessage({ content: "Hello! How can I help you today?", createdAt }),
@@ -359,6 +364,28 @@ export function buildSeveralAgentsWorld(): DeskWorld {
   return world
 }
 
+/**
+ * The several agents of one project, where the person may only read "Writing Helper", as a project
+ * evaluator with no role on it does: the API lists it, with no key to open a session.
+ */
+export function buildReadOnlyAgentWorld(): DeskWorld {
+  const world = buildSeveralAgentsWorld()
+  world.agents = world.agents.map((agent) =>
+    agent.name === "Writing Helper" ? { ...agent, permissions: [] } : agent,
+  )
+  return world
+}
+
+/**
+ * A project opens the Desk, and the person reads its agent with no key to open a session, as a
+ * project evaluator with no role on the agent does.
+ */
+export function buildOnlyReadOnlyAgentsWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  world.agents = world.agents.map((agent) => ({ ...agent, permissions: [] }))
+  return world
+}
+
 /** Several projects in two organizations, each with its agents. */
 export function buildSeveralProjectsWorld(): DeskWorld {
   const world = emptyWorld()
@@ -422,6 +449,37 @@ export function buildQuotedMessageWorld(): DeskWorld {
 }
 
 /**
+ * The last reply of the first conversation suggests these questions. With `answered`, the person
+ * then sent the first one and the agent replied, which hides them.
+ */
+export function buildFollowUpQuestionsWorld({
+  questions,
+  answered = false,
+}: {
+  questions: string[]
+  answered?: boolean
+}): DeskWorld {
+  const world = buildDeskWorld()
+  const [assistant] = world.agents
+  const [firstConversation] = world.conversations[assistant?.id ?? ""] ?? []
+  const messages = world.messages[firstConversation?.id ?? ""]
+  const reply = messages?.at(-1)
+  if (!messages || !reply) return world
+  reply.toolCalls = [
+    ...(reply.toolCalls ?? []),
+    buildToolCall({ name: TOOL_NAMES.suggestFollowUpQuestions, arguments: { questions } }),
+  ]
+  const [firstQuestion] = questions
+  if (answered && firstQuestion) {
+    messages.push(
+      buildConversationMessage({ role: "user", content: firstQuestion }),
+      buildConversationMessage({ content: "The Pro plan renews on the same day each month." }),
+    )
+  }
+  return world
+}
+
+/**
  * The main case, with a long conversation at the top of the history: five exchanges whose replies
  * use headings, nested lists, tables, a quote, code and a checklist, and whose messages annotate
  * passages of the reply before.
@@ -464,6 +522,18 @@ export function buildEmptyHistoryWorld(): DeskWorld {
   const world = buildDeskWorld()
   world.conversations = {}
   world.messages = {}
+  return world
+}
+
+/** The main case, whose agent greets each new conversation with its own message. */
+export function buildGreetingWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  const [assistant] = world.agents
+  if (!assistant) return world
+  assistant.currentRevision = {
+    greetingMessage:
+      "Hi, I am the **Helpful Assistant**. Ask me about the plans, their prices or support.",
+  }
   return world
 }
 

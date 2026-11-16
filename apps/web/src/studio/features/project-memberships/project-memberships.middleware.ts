@@ -1,10 +1,13 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { fetchMyProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createInvitations,
   listInvitationsForTarget,
+  listInviteeAccess,
   revokeInvitation,
 } from "@/studio/features/invitations/invitations.thunks"
 import { projectMembershipsActions } from "./project-memberships.slice"
@@ -32,6 +35,7 @@ function registerListeners() {
         listenerApi.dispatch(
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),
+        listenerApi.dispatch(listInviteeAccess()),
       ])
     },
   })
@@ -43,13 +47,17 @@ function registerListeners() {
     },
   })
 
-  // A role change on the member page: reload their roles, and the list their row belongs to
+  // A role change on the member page: reload their roles, and the list their row belongs to.
+  // On the viewer's own page, also reload their projects: their own permissions changed.
   listenerMiddleware.startListening({
     matcher: isAnyOf(addMemberResourceRole.fulfilled, removeMemberResourceRole.fulfilled),
     effect: async (_, listenerApi) => {
+      const state = listenerApi.getState()
+      const isSelf = getCurrentId({ state, name: "memberUserId" }) === state.me.data.value?.id
       await Promise.all([
         listenerApi.dispatch(loadMemberRoles()),
         listenerApi.dispatch(listProjectMemberships()),
+        ...(isSelf ? [listenerApi.dispatch(fetchMyProjects())] : []),
       ])
     },
   })
@@ -59,7 +67,11 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       const { targetType, targetId } = action.meta.arg
       if (targetType !== "project") return
-      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
+      // People already in the workspace may have got agents right away.
+      await Promise.all([
+        listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId })),
+        listenerApi.dispatch(listInviteeAccess()),
+      ])
     },
   })
 
@@ -83,6 +95,7 @@ function registerListeners() {
         listenerApi.dispatch(
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),
+        listenerApi.dispatch(listInviteeAccess()),
       ])
     },
   })
@@ -118,14 +131,26 @@ function registerListeners() {
     actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "project") return
-      listenerApi.dispatch(
-        notificationsActions.show({
-          titleKey: action.payload.emailSent
-            ? "projectMembership:notifications.invitationsSentByEmail"
-            : "projectMembership:notifications.peopleInvited",
-          type: "success",
-        }),
-      )
+      const { invitations, emailSent, grantedEmails } = action.payload
+      if (invitations.length > 0) {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: emailSent
+              ? "projectMembership:notifications.invitationsSentByEmail"
+              : "projectMembership:notifications.peopleInvited",
+            type: "success",
+          }),
+        )
+      }
+      if (grantedEmails.length > 0) {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "projectMembership:notifications.agentsGiven",
+            titleValues: { count: grantedEmails.length },
+            type: "success",
+          }),
+        )
+      }
     },
   })
 

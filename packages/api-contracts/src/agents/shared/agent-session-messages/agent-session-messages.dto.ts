@@ -17,6 +17,8 @@ export enum ToolName {
   SaveMemory = "saveMemory",
   /** The agent removes facts it remembered about the user. */
   ForgetMemory = "forgetMemory",
+  /** The agent suggests short follow-up questions the user can click (see the agent's settings). */
+  SuggestFollowUpQuestions = "suggestFollowUpQuestions",
 }
 
 export type AgentSessionToolName = ToolName | (string & {})
