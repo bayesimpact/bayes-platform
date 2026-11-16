@@ -1,6 +1,6 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
-import { PenLineIcon, ShieldCheckIcon } from "lucide-react"
+import { Settings2Icon, ShieldCheckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -83,7 +83,7 @@ function NavAgentEdit({
   const handleClick = () => navigate(editPath)
   return (
     <Button variant="outline" onClick={handleClick}>
-      <PenLineIcon />
+      <Settings2Icon />
       {t("actions:edit")}
     </Button>
   )
