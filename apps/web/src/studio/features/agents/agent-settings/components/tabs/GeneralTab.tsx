@@ -104,8 +104,8 @@ export function GeneralTab({
                 <FormControl>
                   <Textarea
                     placeholder={t("agentSettings:props.placeholders.greeting")}
-                    rows={3}
-                    className="min-h-40 max-h-96 font-mono"
+                    // Two lines tall when empty, then as tall as its text: the page scrolls.
+                    className="min-h-16 resize-none font-mono"
                     {...field}
                     value={field.value ?? ""}
                     onChange={(event) =>
