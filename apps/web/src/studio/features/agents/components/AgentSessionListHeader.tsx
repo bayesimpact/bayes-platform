@@ -57,10 +57,14 @@ export function AgentSessionListHeader({
 
   const canOpenEvaluation = abilities.canAccessEvaluation({ projectId })
 
-  const headerCardCount = (1 + // Create Session button
+  const headerCards =
+    1 + // Create Session button
     (showAgentAnalytics ? 1 : 0) +
     (canManageAgent ? 2 : 0) + // Feedback and Members
-    (canOpenEvaluation ? 1 : 0)) as 1 | 2 | 3 | 4 | 5
+    (canOpenEvaluation ? 1 : 0)
+  // Three cards a row at most: beyond that they wrap to a second row, and the grid stretches
+  // the last one to fill it. Five in one row left no room for their text.
+  const headerCardCount = Math.min(headerCards, 3) as 1 | 2 | 3
   return (
     <Grid cols={headerCardCount}>
       <GridHeader
