@@ -324,14 +324,22 @@ services:
       - traefik.http.routers.wt-${WT_SLUG}-api.priority=100
       - traefik.http.services.wt-${WT_SLUG}-api.loadbalancer.server.port=3000
 
+  # On the Node image plus Docling (workers.Dockerfile): the workers extract documents as in
+  # production, with the CPU build of Torch.
   workers:
     <<: *node
+    image: wt-workers-docling
+    build:
+      context: ${WT_PATH}
+      dockerfile: infra/worktree/workers.Dockerfile
+    pull_policy: build
     profiles: [workers]
     working_dir: ${WT_PATH}/apps/api
     networks: [default, shared]
     external_links: *auth-through-traefik
     environment:
       <<: *backend-env
+      DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "true"
       WORKER_HEALTH_PORT: "8080"
       OTEL_SERVICE_NAME: workers
     depends_on:
