@@ -3,6 +3,7 @@ import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/ui/shad/toggle-gro
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import { listChangedAgentSettingsFields } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
+import { AgentSettingsCreateButton } from "./AgentSettingsCreateButton"
 import { AgentSettingsFieldDiff } from "./AgentSettingsFieldDiff"
 import { AgentSettingsRestoreButton } from "./AgentSettingsRestoreButton"
 
@@ -16,7 +17,8 @@ export type AgentSettingsCompareAvailability = Record<AgentSettingsCompareMode, 
 
 /**
  * Right pane of the version history: pick what the selected revision is compared against,
- * review the per-field diffs, and restore the selected revision.
+ * review the per-field diffs, and act on the selected revision: save the draft as a version,
+ * or restore an older revision.
  */
 export function AgentSettingsCompare({
   before,
@@ -64,7 +66,16 @@ export function AgentSettingsCompare({
             </ToggleGroupItem>
           )}
         </ToggleGroup>
-        <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+        {/* The draft is the newest revision: there is nothing to restore it from, and saving it
+            as a version is the one thing left to do with it. */}
+        {selected.isDraft ? (
+          <AgentSettingsCreateButton
+            agentSettings={selected}
+            buttonProps={{ size: "sm", className: undefined }}
+          />
+        ) : (
+          <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+        )}
       </div>
 
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4">

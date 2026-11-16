@@ -18,7 +18,6 @@ import { ArrowLeftIcon, ExternalLinkIcon, HistoryIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
-import { AgentSettingsCreateButton } from "../agent-settings/components/AgentSettingsCreateButton"
 import { AgentSettingsHistorySheet } from "../agent-settings/components/AgentSettingsHistorySheet"
 import type { AgentEditorViewProps } from "./agent-editor-view.types"
 
@@ -146,10 +145,6 @@ export function AgentEditorPageView({
                 onRetry={onRetrySave}
               />
             )}
-            <AgentSettingsCreateButton
-              agentSettings={agentSettings}
-              hasUnsavedChanges={saveState !== "saved"}
-            />
           </div>
         </header>
 
