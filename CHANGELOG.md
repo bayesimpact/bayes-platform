@@ -9,7 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- Desk: an open page now tells you when a new version is out, and you reload it when you choose.
+- Desk: an open page tells you when a new version is out, and you reload it when you choose.
 - Message feedback: users can mark an agent reply as a good answer, and the team sees it with the reports.
 
 ### Changed
@@ -20,16 +20,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 
 - Agent creation: a quick double submit creates one agent, and each new agent shows its actions, delete included.
-- Review campaigns: reviewers see each reply of a session transcript formatted as testers saw it in the chat.
-- Review campaigns: the message count of each session matches the messages reviewers read in its transcript.
-- Review campaigns: testers can scroll their campaign pages and always reach the end-of-phase survey.
-- Review campaigns: the full report of a campaign loads when you open it from the studio.
-- Review campaigns: the full report opens inside the campaign, and leaving it returns to the campaign.
+- Review campaigns: transcripts match what testers saw, and the full report and end-of-phase survey open reliably.
 - Extraction agents: the edit page shows the version history and save actions once.
 - Agent settings: a direct link to an agent's settings or extraction playground opens the page without an error.
 - CSV extraction: a CSV with many columns scrolls inside its results table instead of stretching the page.
-- Extraction evaluations: each record of a run shows the status of every scored field with the field's name.
-- Extraction evaluations: the run setup fits the window and scrolls when the agent has many output fields.
+- Extraction evaluations: run records show each scored field by name, and the run setup scrolls with many fields.
 - Conversation evaluations: form-enabled agents fill forms during runs, and reviewers can read the collected fields.
 - (beta) MCP servers: a direct link to a project's MCP servers page opens the page without an error.
 
