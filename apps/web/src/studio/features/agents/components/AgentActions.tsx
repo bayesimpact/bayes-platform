@@ -1,4 +1,5 @@
 import { Button } from "@caseai-connect/ui/shad/button"
+import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import { ExternalLinkIcon, PenLineIcon, ShieldCheckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -41,7 +42,7 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
       )}
 
       {canManageAgent && (
-        <>
+        <ButtonGroup>
           <NavAgentEdit
             organizationId={organizationId}
             projectId={agent.projectId}
@@ -53,7 +54,7 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
             agent={agent}
             canDuplicate={canDuplicateAgent}
           />
-        </>
+        </ButtonGroup>
       )}
     </>
   )
