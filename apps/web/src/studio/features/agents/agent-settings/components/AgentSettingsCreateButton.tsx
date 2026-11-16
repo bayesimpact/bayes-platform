@@ -33,33 +33,26 @@ import { useAppDispatch } from "@/common/store/hooks"
 /**
  * Publishes the agent's draft revision. Saving any tab creates or updates a draft revision;
  * publishing freezes it and makes it the settings the agent actually runs with. Disabled while
- * there is no draft to publish, or while the editor has unsaved changes (`hasUnsavedChanges`) —
- * publishing would freeze the draft without them.
+ * there is no draft to publish.
  */
 export function AgentSettingsCreateButton({
   agentSettings,
   buttonProps,
-  hasUnsavedChanges = false,
 }: {
   agentSettings: AgentSettings
   buttonProps?: React.ComponentProps<typeof Button>
-  hasUnsavedChanges?: boolean
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
-  const disabledTitle = hasUnsavedChanges
-    ? t("agentSettings:create.unsavedChanges")
-    : agentSettings.isDraft
-      ? undefined
-      : t("agentSettings:create.noDraft")
+  const disabledTitle = agentSettings.isDraft ? undefined : t("agentSettings:create.noDraft")
 
   return (
     <Dialog modal open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           type="button"
-          disabled={!agentSettings.isDraft || hasUnsavedChanges}
+          disabled={!agentSettings.isDraft}
           title={disabledTitle}
           size="lg"
           variant="default"

@@ -100,7 +100,6 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
   return (
     <AgentEditor
       key={agent.id}
-      layout="page"
       agent={agent}
       agentSettings={agentSettings}
       orchestration={orchestration}

@@ -138,7 +138,6 @@
     "create": {
       "button": "Save version",
       "noDraft": "No draft to create. Save a change first to create a new draft version.",
-      "unsavedChanges": "Some changes are not saved yet.",
       "optional": "Optional",
       "props": {
         "revisionName": "Version name",
@@ -155,7 +154,6 @@
       }
     },
     "history": {
-      "button": "History",
       "title": "Version history",
       "description": "Browse, compare and restore previous settings of {{name}}.",
       "loadError": "Failed to load version history",

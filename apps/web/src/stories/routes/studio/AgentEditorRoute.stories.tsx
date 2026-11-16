@@ -540,8 +540,8 @@ export const EmbedTabWithoutHelpCenter: Story = {
 }
 
 /**
- * An extraction agent, as it opens right after its creation: one History and Save version bar,
- * in the page header.
+ * An extraction agent, as it opens right after its creation: the same editor page as a
+ * conversation agent, with one entry to its versions.
  */
 export const ExtractionAgent: Story = {
   // An extraction agent has no sources, tools, sub-agents or embedding models.
@@ -592,6 +592,6 @@ export const ExtractionAgent: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await canvas.findByRole("button", { name: "Output" }, { timeout: 10_000 })
-    await expect(canvas.getAllByRole("button", { name: /history/i })).toHaveLength(1)
+    await expect(canvas.getAllByRole("button", { name: /versions/i })).toHaveLength(1)
   },
 }

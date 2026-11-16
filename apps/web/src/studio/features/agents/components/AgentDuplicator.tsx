@@ -127,11 +127,8 @@ function DuplicateForm({
             onSuccess: (copy) => {
               finish()
               onDuplicated()
-              // The editor of an extraction agent is its agent page.
-              const editorRoute =
-                copy.type === "extraction" ? StudioRoutes.agent : StudioRoutes.agentEdit
               navigate(
-                editorRoute.build({
+                StudioRoutes.agentEdit.build({
                   organizationId,
                   projectId: copy.projectId,
                   agentId: copy.id,

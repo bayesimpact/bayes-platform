@@ -49,13 +49,11 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
             agentId={agent.id}
           />
 
-          {agent.type !== "extraction" && (
-            <NavAgentEdit
-              organizationId={organizationId}
-              projectId={agent.projectId}
-              agentId={agent.id}
-            />
-          )}
+          <NavAgentEdit
+            organizationId={organizationId}
+            projectId={agent.projectId}
+            agentId={agent.id}
+          />
 
           {canDuplicateAgent && (
             <AgentDuplicatorWithTrigger organizationId={organizationId} agent={agent} />

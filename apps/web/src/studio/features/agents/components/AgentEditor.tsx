@@ -39,7 +39,6 @@ import { SessionCategoriesTab } from "../agent-settings/components/tabs/SessionC
 import { SourcesTab } from "../agent-settings/components/tabs/SourcesTab"
 import { ToolsTab } from "../agent-settings/components/tabs/ToolsTab"
 import { AgentEditorPageView } from "./AgentEditorPageView"
-import { AgentEditorTabsView } from "./AgentEditorTabsView"
 
 export type AgentEditorOrchestration = {
   agents: Agent[]
@@ -96,9 +95,8 @@ type SheetConfig = {
  * are saved: they sit apart from the tabs, behind a button that opens a full-page sheet with
  * its own Save.
  *
- * Two layouts draw it. `tabs` (the default) puts the editor inside another page, its sections
- * as tabs. `page` makes it a page of its own, with the sections in a sidebar: the editor's
- * route uses it, outside the Studio layout.
+ * It is a page of its own, outside the Studio layout, with its sections in a sidebar
+ * (`AgentEditorPageView`), for conversation and extraction agents alike.
  *
  * Only the active tab is mounted. Before the editor switches tab or lets the user navigate
  * away, it saves what waits in the active tab. It prompts with a ConfirmDialog only for changes
@@ -108,22 +106,17 @@ type SheetConfig = {
 export function AgentEditor({
   agent,
   agentSettings,
-  className,
   orchestration,
   defaultTab,
   onDirtyChange,
-  showVersionActions = false,
-  layout = "tabs",
   onBack,
   banner,
 }: {
   agent: Agent
   agentSettings: AgentSettings
-  className?: string
-  layout?: "tabs" | "page"
-  /** `page` layout: leaves the editor. */
+  /** Leaves the editor. */
   onBack?: () => void
-  /** `page` layout: shown above the active section. */
+  /** Shown above the active section. */
   banner?: ReactNode
   orchestration?: AgentEditorOrchestration
   /**
@@ -133,12 +126,6 @@ export function AgentEditor({
   defaultTab?: TabKey
   /** Reports whether the active tab holds changes the draft does not have yet, e.g. to disable a publish action. */
   onDirtyChange?: (dirty: boolean) => void
-  /**
-   * `tabs` layout: shows the History and Save version buttons next to the tabs. For a page
-   * whose header has no such buttons, like the extraction agent page that embeds the editor.
-   * The `page` layout always shows them.
-   */
-  showVersionActions?: boolean
 }) {
   const { t } = useTranslation()
   const project = useValue(selectCurrentProjectData)
@@ -397,19 +384,9 @@ export function AgentEditor({
 
   return (
     <>
-      {layout === "page" ? (
-        <AgentEditorPageView {...viewProps} onBack={() => onBack?.()} banner={banner}>
-          {activeSection}
-        </AgentEditorPageView>
-      ) : (
-        <AgentEditorTabsView
-          {...viewProps}
-          className={className}
-          showVersionActions={showVersionActions}
-        >
-          {activeSection}
-        </AgentEditorTabsView>
-      )}
+      <AgentEditorPageView {...viewProps} onBack={() => onBack?.()} banner={banner}>
+        {activeSection}
+      </AgentEditorPageView>
 
       {activeSheet?.render({ onDirtyChange: handleSheetDirtyChange, onClose: closeSheet })}
 

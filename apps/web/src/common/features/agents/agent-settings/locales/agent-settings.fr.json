@@ -138,7 +138,6 @@
     "create": {
       "button": "Enregistrer la version",
       "noDraft": "Aucun brouillon à créer. Enregistrez une modification pour créer une nouvelle version brouillon.",
-      "unsavedChanges": "Des modifications ne sont pas encore enregistrées.",
       "optional": "Facultatif",
       "props": {
         "revisionName": "Nom de la version",
@@ -155,7 +154,6 @@
       }
     },
     "history": {
-      "button": "Historique",
       "title": "Historique des versions",
       "description": "Parcourez, comparez et restaurez les paramètres précédents de {{name}}.",
       "loadError": "Échec du chargement de l'historique des versions",

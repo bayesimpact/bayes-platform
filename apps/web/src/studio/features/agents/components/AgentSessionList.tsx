@@ -19,7 +19,6 @@ import type {
   ExtractionAgentSessions,
 } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import { selectCurrentExtractionAgentSessionsData } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
-import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import {
   selectCurrentAgentData,
   selectCurrentAgentId,
@@ -32,13 +31,11 @@ import {
 import type { AgentCsvExtractionRun } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.models"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { useAbility } from "@/common/hooks/use-ability"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
-import { AgentEditor } from "./AgentEditor"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
 
 /** Agent view for a conversation agent. A nested route replaces this list entirely. */
@@ -81,18 +78,12 @@ export function ConversationAgentSessionList() {
 /** Agent view for an extraction agent. A nested extraction run route replaces it entirely. */
 export function ExtractionAgentSessionList() {
   const agent = useValue(selectCurrentAgentData)
-  const agentSettings = useValue(
-    selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true }),
-  )
   const agentSessions = useValue(selectCurrentExtractionAgentSessionsData)
   const outlet = useOutlet()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
   const organizationId = useCurrentId(selectCurrentOrganizationId)
-
-  const { abilities } = useAbility()
-  const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
 
   const handleBack = () => navigate(projectRoute)
 
@@ -106,9 +97,7 @@ export function ExtractionAgentSessionList() {
         action={<AgentActions agent={agent} organizationId={organizationId} />}
       />
 
-      <GridCard
-        className={cn("bg-muted/35 border-r-0 col-span-full", canManageAgent && "border-b")}
-      >
+      <GridCard className="bg-muted/35 border-r-0 col-span-full">
         <GridCard.Body>
           <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
           <GridCard.Description>
@@ -120,16 +109,6 @@ export function ExtractionAgentSessionList() {
           </div>
         </GridCard.Body>
       </GridCard>
-
-      {canManageAgent && (
-        <AgentEditor
-          key={agent.id}
-          agent={agent}
-          agentSettings={agentSettings}
-          className="bg-white p-6"
-          showVersionActions
-        />
-      )}
     </Grid>
   )
 }
