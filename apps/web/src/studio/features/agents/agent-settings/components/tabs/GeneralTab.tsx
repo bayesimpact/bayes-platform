@@ -15,7 +15,7 @@ import {
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { GitCompareIcon, PencilIcon } from "lucide-react"
+import { GitCompareIcon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -132,10 +132,13 @@ export function GeneralTab({
           control={form.control}
           name="instructions"
           render={({ field }) => {
-            // Nothing to compare for an agent that was never published, or without a change.
-            const hasChanges =
-              publishedInstructions !== undefined && field.value !== publishedInstructions
-            const isDiffShown = isDiffRequested && hasChanges
+            // Nothing to compare for an agent that was never published.
+            const isDiffShown = isDiffRequested && publishedInstructions !== undefined
+            // The button stays while the diff is open, even once the text is back to the
+            // published one: the diff must not close under the user's cursor.
+            const canShowDiff =
+              isDiffShown ||
+              (publishedInstructions !== undefined && field.value !== publishedInstructions)
             return (
               <FormItem>
                 <div className="flex min-h-8 items-center justify-between gap-4">
@@ -148,24 +151,27 @@ export function GeneralTab({
                       })}
                     </span>
                   </FormLabel>
-                  {hasChanges && (
+                  {canShowDiff && (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant={isDiffShown ? "default" : "outline"}
                       size="sm"
+                      aria-pressed={isDiffShown}
                       onClick={() => setIsDiffRequested(!isDiffShown)}
                     >
-                      {isDiffShown ? <PencilIcon /> : <GitCompareIcon />}
-                      {isDiffShown ? t("actions:edit") : t("agentSettings:history.advancedMode")}
+                      <GitCompareIcon />
+                      {t("agentSettings:history.advancedMode")}
                     </Button>
                   )}
                 </div>
                 {isDiffShown ? (
-                  // The diff with the published instructions takes the place of the field.
+                  // The diff with the published instructions takes the place of the field, and
+                  // the instructions are edited in it.
                   <TextDiff
                     name={agentSettingsDiffFileNames.instructions}
                     before={publishedInstructions}
                     after={field.value}
+                    onChange={field.onChange}
                   />
                 ) : (
                   <FormControl>

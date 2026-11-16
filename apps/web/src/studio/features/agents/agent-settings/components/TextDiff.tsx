@@ -10,7 +10,8 @@ import {
   preloadHighlighter,
   type SupportedLanguages,
 } from "@pierre/diffs"
-import { FileDiff } from "@pierre/diffs/react"
+import { Editor } from "@pierre/diffs/edit"
+import { type EditorFactory, EditProvider, FileDiff } from "@pierre/diffs/react"
 import { useEffect, useMemo, useState } from "react"
 
 /**
@@ -56,32 +57,69 @@ function useHighlighterReady(lang: SupportedLanguages): boolean {
   return ready
 }
 
+const createEditor: EditorFactory<undefined, undefined> = (editorType, options, editStateKey) =>
+  new Editor(editorType, options, editStateKey)
+
+const DIFF_OPTIONS = { diffStyle: "unified", disableFileHeader: true, overflow: "wrap" } as const
+
 /**
  * Unified diff of two texts, rendered with @pierre/diffs. `name` is a file name: its extension
  * picks the syntax highlighting.
+ *
+ * With `onChange`, the new text is edited in the diff itself and the diff follows each change.
+ * The old text stays read-only.
  */
-export function TextDiff({ name, before, after }: { name: string; before: string; after: string }) {
+export function TextDiff({
+  name,
+  before,
+  after,
+  onChange,
+}: {
+  name: string
+  before: string
+  after: string
+  onChange?: (after: string) => void
+}) {
   const ready = useHighlighterReady(getFiletypeFromFileName(name))
+  // The editor owns the new text while it is edited: giving its changes back to the diff would
+  // restart the edit. So an editable diff starts from the text it was opened with.
+  const [initialAfter] = useState(after)
+  const shownAfter = onChange ? initialAfter : after
 
   const fileDiff = useMemo(
     () =>
       parseDiffFromFile(
         { name, contents: toDiffContents(before) },
-        { name, contents: toDiffContents(after) },
+        { name, contents: toDiffContents(shownAfter) },
       ),
-    [name, before, after],
+    [name, before, shownAfter],
   )
 
+  if (!ready) return <Skeleton className="h-16 w-full rounded-md" />
+
+  if (!onChange) {
+    return (
+      <div className="overflow-hidden rounded-md border">
+        <FileDiff fileDiff={fileDiff} options={DIFF_OPTIONS} />
+      </div>
+    )
+  }
+
+  // The diff got a final newline when the text had none: take it back out of what is saved.
+  const hadFinalNewline = initialAfter === "" || initialAfter.endsWith("\n")
   return (
     <div className="overflow-hidden rounded-md border">
-      {ready ? (
+      <EditProvider createEditor={createEditor}>
         <FileDiff
           fileDiff={fileDiff}
-          options={{ diffStyle: "unified", disableFileHeader: true, overflow: "wrap" }}
+          options={DIFF_OPTIONS}
+          edit
+          onEditChange={(event) => {
+            const contents = event.file.contents
+            onChange(!hadFinalNewline && contents.endsWith("\n") ? contents.slice(0, -1) : contents)
+          }}
         />
-      ) : (
-        <Skeleton className="h-16 w-full" />
-      )}
+      </EditProvider>
     </div>
   )
 }
