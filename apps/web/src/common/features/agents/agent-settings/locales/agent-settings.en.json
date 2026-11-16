@@ -133,10 +133,10 @@
       "refused": "This change could not be saved"
     },
     "liveSettings": {
-      "notice": "These settings are not part of the draft: they apply as soon as you save.",
+      "notice": "These settings are not part of the draft: they apply in production as soon as you save.",
       "confirmSave": {
         "title": "Apply these settings now?",
-        "description": "These settings do not go through the draft: they apply to the agent as soon as you save."
+        "description": "These settings do not go through the draft: they apply to the agent in production as soon as you save."
       }
     },
     "create": {
