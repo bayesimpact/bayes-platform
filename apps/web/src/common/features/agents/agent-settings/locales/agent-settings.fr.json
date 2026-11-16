@@ -135,7 +135,7 @@
       "publishedVersion": "Version {{revision}} · publiée"
     },
     "liveSettings": {
-      "immediate": "S'applique <strong>en production</strong> immédiatement, sans passer par le brouillon.",
+      "immediate": "Un changement ici s'applique immédiatement <strong>en production</strong>.",
       "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent en production dès que vous enregistrez.",
       "confirmSave": {
         "title": "Appliquer ces réglages maintenant ?",
