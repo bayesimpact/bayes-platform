@@ -92,7 +92,7 @@ export function AgentSettingsFieldDiff({
 
   return (
     <section id={agentSettingsFieldDiffId(fieldKey)} className="scroll-mt-4 space-y-2">
-      <h4 className="text-sm font-medium">{t(agentSettingsDiffLabelKeys[fieldKey])}</h4>
+      <h4 className="text-base font-semibold">{t(agentSettingsDiffLabelKeys[fieldKey])}</h4>
       <div className="overflow-hidden rounded-md border">
         {ready ? (
           <FileDiff
