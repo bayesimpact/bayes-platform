@@ -130,7 +130,8 @@
       "hint": "Changes save automatically to the draft",
       "saving": "Saving…",
       "saved": "Draft saved",
-      "unsaved": "Unsaved changes"
+      "unsaved": "Unsaved changes",
+      "refused": "This change could not be saved"
     },
     "liveSettings": {
       "notice": "These settings are not part of the draft: they apply as soon as you save."

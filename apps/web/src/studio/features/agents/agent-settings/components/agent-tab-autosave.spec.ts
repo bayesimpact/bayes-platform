@@ -17,6 +17,7 @@ function setup({
 } = {}) {
   const form = { values: { title: "Pricing", summary: "Plans and prices" } as Values }
   const states: TabSaveState[] = []
+  const reasons: (string | undefined)[] = []
   const saves: AutosaveArgs<Values>[] = []
   const autosaver = createAutosaver<Values>({
     initialValues: form.values,
@@ -26,13 +27,16 @@ function setup({
       saves.push(args)
       await save?.(args)
     },
-    onStateChange: (state) => states.push(state),
+    onStateChange: (state, reason) => {
+      states.push(state)
+      reasons.push(reason)
+    },
   })
   const edit = (changes: Partial<Values>) => {
     form.values = { ...form.values, ...changes }
     autosaver.notifyChange()
   }
-  return { autosaver, edit, states, saves }
+  return { autosaver, edit, states, reasons, saves }
 }
 
 describe("createAutosaver", () => {
@@ -174,6 +178,23 @@ describe("createAutosaver", () => {
     expect(saves).toHaveLength(2)
     expect(saves[1]?.changed).toEqual({ title: "Pricing 2" })
     expect(states).toEqual(["saving", "unsaved", "saving", "saved"])
+  })
+
+  it("reports why a save was refused, and nothing for an invalid value", async () => {
+    const refused = setup({
+      save: async () => {
+        throw { message: "This category is already used in a conversation." }
+      },
+    })
+    refused.edit({ title: "Pricing 2" })
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    expect(refused.states).toEqual(["saving", "unsaved"])
+    expect(refused.reasons).toEqual([undefined, "This category is already used in a conversation."])
+
+    const invalid = setup({ validate: () => null })
+    invalid.edit({ title: "Pr" })
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    expect(invalid.reasons).toEqual([undefined, undefined])
   })
 
   it("saves nothing once disposed", async () => {

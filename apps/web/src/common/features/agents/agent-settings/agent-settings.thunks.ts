@@ -10,6 +10,7 @@ import type {
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+import { getApiErrorMessage } from "@/common/utils/api-error"
 import { updateAgent } from "@/studio/features/agents/agents.thunks"
 import { selectCurrentAgentData } from "../agents.selectors"
 import type { AgentSettings } from "./agent-settings.models"
@@ -59,19 +60,27 @@ export const createAgentSettings = createAsyncThunk<
 })
 
 // The tab thunks below unwrap this one: the editor saves by itself and must know when a save
-// failed, to keep the change marked as unsaved.
+// failed, to keep the change marked as unsaved. It rejects with the API's own message, so the
+// editor can say why (a category that conversations already use, for example).
 export const updateAgentSettings = createAsyncThunk<
   void,
   { agentId: string; fields: PartialUpdateAgentSettingsDto },
-  ThunkConfig
->("agentSettings/updateOne", async (payload, { extra: { services }, getState }) => {
-  const state = getState()
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  const params = { organizationId, projectId, agentId: payload.agentId }
+  ThunkConfig & { rejectValue: string }
+>(
+  "agentSettings/updateOne",
+  async (payload, { extra: { services }, getState, rejectWithValue }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId, agentId: payload.agentId }
 
-  await services.agentSettings.updateOne(params, payload.fields)
-})
+    try {
+      await services.agentSettings.updateOne(params, payload.fields)
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
+  },
+)
 
 export const updateAgentSettingsGeneral = createAsyncThunk<
   void,

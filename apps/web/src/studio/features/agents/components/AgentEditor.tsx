@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import {
   AlertTriangleIcon,
   BracesIcon,
@@ -285,15 +286,16 @@ export function AgentEditor({
       ? { active: "general", pending: null, sheet: defaultTab, sheetDirty: false }
       : { active: defaultTab ?? "general", pending: null, sheet: null, sheetDirty: false },
   )
-  const [saveState, setSaveState] = useState<TabSaveState>("saved")
+  const [save, setSave] = useState<{ state: TabSaveState; reason?: string }>({ state: "saved" })
+  const saveState = save.state
   // The active tab puts here how to save now what waits for its pause.
   const flushRef = useRef<(() => void) | null>(null)
   // A restore replaces the settings under the forms: they reload on it.
   const restoreCount = useAppSelector(selectAgentSettingsRestoreCount)
 
   const handleSaveStateChange = useCallback(
-    (next: TabSaveState) => {
-      setSaveState(next)
+    (next: TabSaveState, reason?: string) => {
+      setSave({ state: next, reason })
       onDirtyChange?.(next !== "saved")
     },
     [onDirtyChange],
@@ -366,7 +368,15 @@ export function AgentEditor({
   // themselves (revision, updatedAt): each automatic save changes them, and a reload would
   // take the focus away from the field the user is typing in.
   const activeSection = (
-    <div key={`${activeTab.value}-${restoreCount}`}>
+    <div key={`${activeTab.value}-${restoreCount}`} className="flex flex-col gap-4">
+      {/* Why the API refused the save, right above the fields it concerns. */}
+      {saveState === "unsaved" && save.reason && (
+        <Alert variant="destructive">
+          <AlertTriangleIcon />
+          <AlertTitle>{t("agentSettings:autosave.refused")}</AlertTitle>
+          <AlertDescription>{save.reason}</AlertDescription>
+        </Alert>
+      )}
       {activeTab.render({
         saveControl: { onStateChange: handleSaveStateChange, flushRef },
         openTab: requestTabChange,

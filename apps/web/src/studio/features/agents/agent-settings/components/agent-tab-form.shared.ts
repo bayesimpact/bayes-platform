@@ -5,7 +5,8 @@ import { type AutosaveArgs, createAutosaver, type TabSaveState } from "./agent-t
 
 /** What the editor hands to a tab that saves by itself. */
 export type TabSaveControl = {
-  onStateChange: (state: TabSaveState) => void
+  /** `reason` says why a save failed, when the failure gave one. */
+  onStateChange: (state: TabSaveState, reason?: string) => void
   /** The tab puts here how to save now what waits for its pause. The editor calls it before it leaves the tab. */
   flushRef: RefObject<(() => void) | null>
 }
@@ -57,9 +58,9 @@ export function useAutosave<TValues extends FieldValues>({
           )()
         }),
       save: (args) => latest.current.save(args),
-      onStateChange: (state) => {
+      onStateChange: (state, reason) => {
         setSaveState(state)
-        latest.current.saveControl.onStateChange(state)
+        latest.current.saveControl.onStateChange(state, reason)
       },
     })
     control.flushRef.current = () => void autosaver.flush()

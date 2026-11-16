@@ -49,7 +49,8 @@ export function createAutosaver<TValues extends object>({
   validate: () => Promise<TValues | null>
   /** Rejects when the save failed. */
   save: (args: AutosaveArgs<TValues>) => Promise<void>
-  onStateChange: (state: TabSaveState) => void
+  /** `reason` says why a save failed, when the failure gave one. */
+  onStateChange: (state: TabSaveState, reason?: string) => void
   delayMs?: number
 }): Autosaver {
   // Compared with what the user typed, not with what validation returns: a schema may trim or
@@ -60,10 +61,10 @@ export function createAutosaver<TValues extends object>({
   let running: Promise<void> | null = null
   let disposed = false
 
-  const setState = (next: TabSaveState) => {
+  const setState = (next: TabSaveState, reason?: string) => {
     if (next === state || disposed) return
     state = next
-    onStateChange(next)
+    onStateChange(next, reason)
   }
 
   const clearTimer = () => {
@@ -87,8 +88,8 @@ export function createAutosaver<TValues extends object>({
           changed: pickChangedFields({ values, rawValues, savedValues }),
           previous: savedValues,
         })
-      } catch {
-        return setState("unsaved")
+      } catch (error) {
+        return setState("unsaved", readErrorMessage(error))
       }
       savedValues = rawValues
     }
@@ -135,4 +136,11 @@ function pickChangedFields<TValues extends object>({
     if (!isEqual(rawValues[key], savedValues[key])) changed[key] = values[key]
   }
   return changed
+}
+
+/** The message of a failed save: an Error, a rejected thunk's serialized error, or a string. */
+function readErrorMessage(error: unknown): string | undefined {
+  const message =
+    typeof error === "object" && error !== null && "message" in error ? error.message : error
+  return typeof message === "string" && message.trim().length > 0 ? message : undefined
 }

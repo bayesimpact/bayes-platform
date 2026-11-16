@@ -130,7 +130,8 @@
       "hint": "Les modifications s'enregistrent automatiquement dans le brouillon",
       "saving": "Enregistrement…",
       "saved": "Brouillon enregistré",
-      "unsaved": "Modifications non enregistrées"
+      "unsaved": "Modifications non enregistrées",
+      "refused": "Cette modification n'a pas pu être enregistrée"
     },
     "liveSettings": {
       "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent dès que vous enregistrez."
