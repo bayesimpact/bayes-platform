@@ -82,7 +82,8 @@ export function GeneralTab({
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
+        {/* A little more room under the name's description than between two fields. */}
+        <div className="grid gap-4 pb-3 md:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
