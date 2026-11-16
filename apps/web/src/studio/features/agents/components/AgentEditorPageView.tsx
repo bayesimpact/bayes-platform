@@ -119,21 +119,18 @@ export function AgentEditorPageView({
           )}
         </SidebarContent>
 
-        {/* The versions concern the whole agent, not one section: their entry stays in the menu. */}
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <AgentSettingsHistorySheet
-                agent={agent}
-                trigger={
-                  <SidebarMenuButton>
-                    <HistoryIcon />
-                    <span>{t("agentSettings:history.manage")}</span>
-                  </SidebarMenuButton>
-                }
-              />
-            </SidebarMenuItem>
-          </SidebarMenu>
+        {/* The versions concern the whole agent, not one section: their entry stays in the menu.
+            It is a full button, set apart by a line, so it stands out from the menu's entries. */}
+        <SidebarFooter className="border-t p-3">
+          <AgentSettingsHistorySheet
+            agent={agent}
+            trigger={
+              <Button type="button" variant="outline" className="w-full bg-background">
+                <HistoryIcon />
+                {t("agentSettings:history.manage")}
+              </Button>
+            }
+          />
         </SidebarFooter>
       </Sidebar>
 
