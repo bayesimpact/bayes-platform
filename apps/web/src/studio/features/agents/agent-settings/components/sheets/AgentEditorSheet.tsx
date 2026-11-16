@@ -7,7 +7,7 @@ import {
   SheetTitle,
 } from "@caseai-connect/ui/shad/sheet"
 import { AlertTriangleIcon } from "lucide-react"
-import { type ReactNode, useState } from "react"
+import { type FormEvent, type ReactNode, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
@@ -18,8 +18,10 @@ import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
  * editor's tabs: the user confirms them with Save.
  *
  * Cancel and Save show twice, in the header that stays in view and under the form, so a long
- * form never hides them. The Save buttons submit the form that carries `formId`. Closing the
- * sheet with unsaved changes (button, cross, Escape, click outside) asks first.
+ * form never hides them. Both go through an explicit confirmation: a save applies the settings
+ * at once, so it asks first, whether it comes from a Save button or from Enter in a field; and
+ * closing the sheet with unsaved changes (button, cross, Escape, click outside) asks before it
+ * drops them.
  */
 export function AgentEditorSheet({
   title,
@@ -38,13 +40,35 @@ export function AgentEditorSheet({
   children: ReactNode
 }) {
   const { t } = useTranslation()
-  const [isConfirmingClose, setIsConfirmingClose] = useState(false)
+  const [confirming, setConfirming] = useState<"save" | "close" | null>(null)
+  // Set once the user confirmed a save, so the submit that follows goes through.
+  const isSaveConfirmed = useRef(false)
   // Browser-level leave (refresh / close tab).
   usePreventLeave(isDirty)
 
   const requestClose = () => {
-    if (isDirty) setIsConfirmingClose(true)
+    if (isDirty) setConfirming("close")
     else onClose()
+  }
+
+  // Every submit of the form passes here first, before the form's own handler: the buttons
+  // below, and Enter in a field.
+  const interceptSubmit = (event: FormEvent) => {
+    if (isSaveConfirmed.current) {
+      isSaveConfirmed.current = false
+      return
+    }
+    event.preventDefault()
+    event.stopPropagation()
+    setConfirming("save")
+  }
+
+  const confirmSave = () => {
+    setConfirming(null)
+    const form = document.getElementById(formId)
+    if (!(form instanceof HTMLFormElement)) return
+    isSaveConfirmed.current = true
+    form.requestSubmit()
   }
 
   const actions = (
@@ -70,7 +94,7 @@ export function AgentEditorSheet({
           {actions}
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" onSubmitCapture={interceptSubmit}>
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-6">
             {children}
             <div className="flex justify-end border-t pt-4">{actions}</div>
@@ -79,13 +103,22 @@ export function AgentEditorSheet({
       </SheetContent>
 
       <ConfirmDialog
-        open={isConfirmingClose}
+        open={confirming === "close"}
         title={t("agentSettings:unsavedChanges.title")}
         description={t("agentSettings:unsavedChanges.description")}
         confirmLabel={t("actions:discard")}
         confirmIcon={<AlertTriangleIcon className="size-5" />}
         onConfirm={onClose}
-        onCancel={() => setIsConfirmingClose(false)}
+        onCancel={() => setConfirming(null)}
+      />
+      <ConfirmDialog
+        open={confirming === "save"}
+        title={t("agentSettings:liveSettings.confirmSave.title")}
+        description={t("agentSettings:liveSettings.confirmSave.description")}
+        confirmLabel={t("actions:save")}
+        confirmVariant="default"
+        onConfirm={confirmSave}
+        onCancel={() => setConfirming(null)}
       />
     </Sheet>
   )

@@ -133,7 +133,11 @@
       "refused": "Cette modification n'a pas pu être enregistrée"
     },
     "liveSettings": {
-      "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent dès que vous enregistrez."
+      "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent dès que vous enregistrez.",
+      "confirmSave": {
+        "title": "Appliquer ces réglages maintenant ?",
+        "description": "Ces réglages ne passent pas par le brouillon : ils s'appliquent à l'agent dès l'enregistrement."
+      }
     },
     "create": {
       "button": "Enregistrer la version",
