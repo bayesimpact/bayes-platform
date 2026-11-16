@@ -1,15 +1,20 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connect/ui/shad/empty"
 import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/ui/shad/toggle-group"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import {
+  type AgentSettingsDiffKey,
   agentSettingsDiffLabelKeys,
   listChangedAgentSettingsFields,
 } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
 import { AgentSettingsCreateButton } from "./AgentSettingsCreateButton"
 import { AgentSettingsFieldDiff, agentSettingsFieldDiffId } from "./AgentSettingsFieldDiff"
 import { AgentSettingsRestoreButton } from "./AgentSettingsRestoreButton"
+
+/** How long the button of a changed field stays highlighted after a click. */
+const JUMP_HIGHLIGHT_MS = 800
 
 /**
  * What the selected revision is diffed against: the revision right before it, the published
@@ -47,6 +52,25 @@ export function AgentSettingsCompare({
   const { t } = useTranslation()
   const changedFields = listChangedAgentSettingsFields(before, after)
   const canCompare = availability.previous || availability.current || availability.draft
+
+  // The field the user just jumped to: its button stays highlighted for a moment, as a
+  // confirmation of the click while the diff scrolls into view.
+  const [jumpedField, setJumpedField] = useState<AgentSettingsDiffKey | null>(null)
+  const jumpTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(
+    () => () => {
+      if (jumpTimer.current) clearTimeout(jumpTimer.current)
+    },
+    [],
+  )
+  const jumpToField = (fieldKey: AgentSettingsDiffKey) => {
+    document
+      .getElementById(agentSettingsFieldDiffId(fieldKey))
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+    setJumpedField(fieldKey)
+    if (jumpTimer.current) clearTimeout(jumpTimer.current)
+    jumpTimer.current = setTimeout(() => setJumpedField(null), JUMP_HIGHLIGHT_MS)
+  }
 
   return (
     <div className="flex min-w-0 flex-1 flex-col">
@@ -112,15 +136,13 @@ export function AgentSettingsCompare({
             {t("agentSettings:history.changedFields", { count: changedFields.length })}
           </span>
           {changedFields.map((fieldKey) => (
-            <Badge key={fieldKey} asChild variant="secondary" className="cursor-pointer">
-              <button
-                type="button"
-                onClick={() =>
-                  document
-                    .getElementById(agentSettingsFieldDiffId(fieldKey))
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
-                }
-              >
+            <Badge
+              key={fieldKey}
+              asChild
+              variant={fieldKey === jumpedField ? "default" : "secondary"}
+              className="cursor-pointer transition-colors duration-200"
+            >
+              <button type="button" onClick={() => jumpToField(fieldKey)}>
                 {t(agentSettingsDiffLabelKeys[fieldKey])}
               </button>
             </Badge>
