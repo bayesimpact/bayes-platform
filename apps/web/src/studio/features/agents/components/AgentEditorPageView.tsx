@@ -24,8 +24,8 @@ import type { AgentEditorViewProps } from "./agent-editor-view.types"
 
 /**
  * The agent editor as a page of its own: a layout that does not sit in the Studio's. Its
- * sidebar is the editor's menu, split in two groups: the sections that save by themselves to
- * the draft, and the settings outside the draft, which apply when they are saved.
+ * sidebar is the editor's menu: first the sections that save by themselves to the draft, then,
+ * under "More", the settings outside the draft, which apply when they are saved.
  */
 export function AgentEditorPageView({
   agent,
@@ -68,7 +68,6 @@ export function AgentEditorPageView({
 
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>{t("agentSettings:editor.draftGroup")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {draftSections.map((section) => (
@@ -89,7 +88,7 @@ export function AgentEditorPageView({
 
           {liveSections.length + sheets.length > 0 && (
             <SidebarGroup>
-              <SidebarGroupLabel>{t("agentSettings:editor.liveGroup")}</SidebarGroupLabel>
+              <SidebarGroupLabel>{t("actions:more")}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {liveSections.map((section) => (

@@ -113,8 +113,6 @@
     },
     "editor": {
       "back": "Retour à l'agent",
-      "draftGroup": "Brouillon",
-      "liveGroup": "Hors brouillon",
       "openInstructions": "Ouvrir l'éditeur des instructions"
     },
     "mcpServers": {

@@ -113,8 +113,6 @@
     },
     "editor": {
       "back": "Back to the agent",
-      "draftGroup": "Draft",
-      "liveGroup": "Outside the draft",
       "openInstructions": "Open the instructions editor"
     },
     "mcpServers": {
