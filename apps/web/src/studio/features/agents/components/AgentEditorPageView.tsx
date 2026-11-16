@@ -134,7 +134,7 @@ export function AgentEditorPageView({
             open={isHistoryOpen}
             onOpenChange={setIsHistoryOpen}
             trigger={
-              <Button type="button" variant="outline" className="w-full bg-background">
+              <Button type="button" className="w-full">
                 <HistoryIcon />
                 {t("agentSettings:history.manage")}
               </Button>
