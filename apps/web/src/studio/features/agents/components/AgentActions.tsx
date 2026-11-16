@@ -1,3 +1,4 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import { Settings2Icon, ShieldCheckIcon } from "lucide-react"
@@ -31,11 +32,7 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
 
       {canManageAgent && (
         <ButtonGroup>
-          <NavAgentEdit
-            organizationId={organizationId}
-            projectId={agent.projectId}
-            agentId={agent.id}
-          />
+          <NavAgentEdit organizationId={organizationId} agent={agent} />
 
           <AgentMoreActions
             organizationId={organizationId}
@@ -68,23 +65,30 @@ function NavConversationReview({
   )
 }
 
-function NavAgentEdit({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) {
+/**
+ * Opens the agent editor. It says what the editor will open on: the draft when the agent has
+ * one (or was never published), the published version otherwise.
+ */
+function NavAgentEdit({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const editPath = StudioRoutes.agentEdit.build({ organizationId, projectId, agentId })
-  const handleClick = () => navigate(editPath)
+  const editPath = StudioRoutes.agentEdit.build({
+    organizationId,
+    projectId: agent.projectId,
+    agentId: agent.id,
+  })
+  const hasDraft = agent.draftRevision !== undefined || agent.currentRevision === undefined
   return (
-    <Button variant="outline" onClick={handleClick}>
+    <Button variant="outline" onClick={() => navigate(editPath)}>
       <Settings2Icon />
       {t("actions:edit")}
+      {hasDraft ? (
+        <Badge variant="warning">{t("status:draft")}</Badge>
+      ) : (
+        <Badge variant="secondary">
+          {t("agentSettings:history.revisionBadge", { revision: agent.currentRevision?.number })}
+        </Badge>
+      )}
     </Button>
   )
 }
