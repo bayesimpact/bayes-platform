@@ -31,11 +31,13 @@ import {
 import type { AgentCsvExtractionRun } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.models"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useAbility } from "@/common/hooks/use-ability"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
+import { AgentMembersCard } from "./AgentMembersCard"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
 
 /** Agent view for a conversation agent. A nested route replaces this list entirely. */
@@ -85,11 +87,14 @@ export function ExtractionAgentSessionList() {
   const projectRoute = useGetProjectRoute()
   const organizationId = useCurrentId(selectCurrentOrganizationId)
 
+  const { abilities } = useAbility()
+  const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
+
   const handleBack = () => navigate(projectRoute)
 
   if (outlet) return outlet
   return (
-    <Grid cols={0}>
+    <Grid cols={canManageAgent ? 2 : 1}>
       <GridHeader
         onBack={handleBack}
         title={t("extractionAgentSession:playground.title")}
@@ -97,18 +102,28 @@ export function ExtractionAgentSessionList() {
         action={<AgentActions agent={agent} organizationId={organizationId} />}
       />
 
-      <GridCard className="bg-muted/35 border-r-0 col-span-full">
-        <GridCard.Body>
-          <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
-          <GridCard.Description>
-            {t("extractionAgentSession:create.description")}
-          </GridCard.Description>
-          <div className="flex items-center gap-2">
-            <History agentSessions={agentSessions} />
-            <ExtractionButton />
-          </div>
-        </GridCard.Body>
-      </GridCard>
+      <GridContent>
+        <GridCard className="bg-muted/35">
+          <GridCard.Body>
+            <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
+            <GridCard.Description>
+              {t("extractionAgentSession:create.description")}
+            </GridCard.Description>
+            <div className="flex items-center gap-2">
+              <History agentSessions={agentSessions} />
+              <ExtractionButton />
+            </div>
+          </GridCard.Body>
+        </GridCard>
+
+        {canManageAgent && (
+          <AgentMembersCard
+            agentId={agent.id}
+            organizationId={organizationId}
+            projectId={agent.projectId}
+          />
+        )}
+      </GridContent>
     </Grid>
   )
 }

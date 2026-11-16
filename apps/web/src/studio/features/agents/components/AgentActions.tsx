@@ -1,5 +1,5 @@
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ExternalLinkIcon, PenLineIcon, ShieldCheckIcon, UsersIcon } from "lucide-react"
+import { ExternalLinkIcon, PenLineIcon, ShieldCheckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -8,8 +8,7 @@ import { useAbility } from "@/common/hooks/use-ability"
 import { DeskRoutes } from "@/common/routes/desk-routes"
 import { useAppSelector } from "@/common/store/hooks"
 import { EvalRoutes } from "@/eval/routes/helpers"
-import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
-import { AgentDuplicatorWithTrigger } from "@/studio/features/agents/components/AgentDuplicator"
+import { AgentMoreActions } from "@/studio/features/agents/components/AgentMoreActions"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
@@ -43,23 +42,17 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
 
       {canManageAgent && (
         <>
-          <NavAgentMemberships
-            organizationId={organizationId}
-            projectId={agent.projectId}
-            agentId={agent.id}
-          />
-
           <NavAgentEdit
             organizationId={organizationId}
             projectId={agent.projectId}
             agentId={agent.id}
           />
 
-          {canDuplicateAgent && (
-            <AgentDuplicatorWithTrigger organizationId={organizationId} agent={agent} />
-          )}
-
-          <AgentDeletorWithTrigger organizationId={organizationId} agent={agent} />
+          <AgentMoreActions
+            organizationId={organizationId}
+            agent={agent}
+            canDuplicate={canDuplicateAgent}
+          />
         </>
       )}
     </>
@@ -145,27 +138,6 @@ function NavAgentEdit({
     <Button variant="outline" onClick={handleClick}>
       <PenLineIcon />
       {t("actions:edit")}
-    </Button>
-  )
-}
-
-function NavAgentMemberships({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const path = StudioRoutes.agentMemberships.build({ organizationId, projectId, agentId })
-  const handleClick = () => navigate(path)
-  return (
-    <Button variant="outline" size="lg" onClick={handleClick}>
-      <UsersIcon />
-      {t("agentMembership:members")}
     </Button>
   )
 }
