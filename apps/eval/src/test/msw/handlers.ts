@@ -1,21 +1,25 @@
-import { EvalAccountRoutes, EvalProjectsRoutes } from "@caseai-connect/eval-contracts"
+import {
+  EvalAccountRoutes,
+  EvalAgentsRoutes,
+  EvalOrganizationsRoutes,
+  EvalProjectsRoutes,
+} from "@caseai-connect/eval-contracts"
 import { buildMe } from "../factories/account.factory"
-import { buildMyProject } from "../factories/projects.factory"
+import { buildEvalWorld, type EvalWorld } from "../factories/eval-world.factory"
 import { mockRoute } from "./mock-route"
 
-/** The API as each test starts from it: the signed-in person, an evaluator of one project. */
-export function evalHandlers() {
+/** The routes that read a world: the person's projects, organizations and the agents of each. */
+export function worldHandlers(world: EvalWorld) {
   return [
-    mockRoute(EvalAccountRoutes.getMe, () => buildMe()),
-    mockRoute(EvalProjectsRoutes.getAllMine, () => [buildMyProject()]),
+    mockRoute(EvalProjectsRoutes.getAllMine, () => world.projects),
+    mockRoute(EvalOrganizationsRoutes.getAllMine, () => world.organizations),
+    mockRoute(EvalAgentsRoutes.getAllOfProject, ({ params }) =>
+      world.agents.filter((agent) => agent.projectId === params.projectId),
+    ),
   ]
 }
 
-/** A person who holds no evaluator role: their only project opens the Desk alone. */
-export function noEvaluationAccessHandlers() {
-  return [
-    mockRoute(EvalProjectsRoutes.getAllMine, () => [
-      buildMyProject({ name: "Support", permissions: ["project.read", "desk.ui.read"] }),
-    ]),
-  ]
+/** The API as each test starts from it: the signed-in person, and the main world, built afresh. */
+export function evalHandlers(world: EvalWorld = buildEvalWorld()) {
+  return [mockRoute(EvalAccountRoutes.getMe, () => buildMe()), ...worldHandlers(world)]
 }

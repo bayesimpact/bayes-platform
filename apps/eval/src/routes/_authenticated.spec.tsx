@@ -2,7 +2,8 @@ import { EvalAccountRoutes } from "@caseai-connect/eval-contracts"
 import { screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { claimAutomaticSignIn } from "@/lib/auth/session"
-import { noEvaluationAccessHandlers } from "@/test/msw/handlers"
+import { buildNoEvaluationAccessWorld } from "@/test/factories/eval-world.factory"
+import { worldHandlers } from "@/test/msw/handlers"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
@@ -85,12 +86,12 @@ describe("the access to the app", () => {
   it("opens to the evaluator of a project", async () => {
     renderApp("/eval/")
 
-    expect(await screen.findByRole("main")).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Hello world!" })).toBeInTheDocument()
     expect(screen.queryByText("You cannot evaluate agents yet")).not.toBeInTheDocument()
   })
 
   it("stays closed to a person who evaluates no project, and says why", async () => {
-    server.use(...noEvaluationAccessHandlers())
+    server.use(...worldHandlers(buildNoEvaluationAccessWorld()))
     renderApp("/eval/")
 
     expect(await screen.findByText("You cannot evaluate agents yet")).toBeInTheDocument()

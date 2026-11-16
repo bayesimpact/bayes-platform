@@ -7,6 +7,15 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
+#: src/components/shared/ExternalLink.tsx
+msgid "(opens in a new tab)"
+msgstr "(opens in a new tab)"
+
+#. The button of the person's menu, which shows their name
+#: src/features/account/components/UserMenu.tsx
+msgid "{name}, menu of {email}"
+msgstr "{name}, menu of {email}"
+
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the app is available"
 msgstr "A new version of the app is available"
@@ -24,7 +33,7 @@ msgid "An account is waiting for your email address, but your identity provider 
 msgstr "An account is waiting for your email address, but your identity provider has not verified it yet."
 
 #. Opens the platform's home, which lists the person's apps
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "Back to home"
 msgstr "Back to home"
 
@@ -40,6 +49,11 @@ msgstr "Check your connection, then try again."
 msgid "Contact your administrator."
 msgstr "Contact your administrator."
 
+#. The Control key of a keyboard
+#: src/components/shared/SidebarToggle.tsx
+msgid "Ctrl"
+msgstr "Ctrl"
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Each new sign-in ended at once, so the app stopped starting new ones."
 msgstr "Each new sign-in ended at once, so the app stopped starting new ones."
@@ -48,17 +62,47 @@ msgstr "Each new sign-in ended at once, so the app stopped starting new ones."
 msgid "Email address missing"
 msgstr "Email address missing"
 
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#. The name of the app, next to the logo
+#: src/components/shared/AppLogo.tsx
+msgid "Evaluation"
+msgstr "Evaluation"
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
 msgstr "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
 
-#: src/routes/_authenticated/index.tsx
+#: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/index.tsx
 msgid "Hello world!"
 msgstr "Hello world!"
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Help center"
+msgstr "Help center"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Hide the sidebar"
+msgstr "Hide the sidebar"
+
+#. Opens the platform's home, which lists the person's apps, outside this app
+#: src/features/account/components/UserMenu.tsx
+msgid "Home"
+msgstr "Home"
+
+#: src/components/shared/AppLogo.tsx
+msgid "Home of Evaluation"
+msgstr "Home of Evaluation"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "If it keeps happening, contact your administrator with the message below."
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Language"
+msgstr "Language"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "No agent matches this search."
+msgstr "No agent matches this search."
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
@@ -76,8 +120,25 @@ msgstr "Reload"
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
 
+#: src/components/shared/AppShell.tsx
+msgid "Resize the sidebar"
+msgstr "Resize the sidebar"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Search an agent"
+msgstr "Search an agent"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Search an agent or a project"
+msgstr "Search an agent or a project"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Show the sidebar"
+msgstr "Show the sidebar"
+
 #: src/components/shared/SignInProblemPage.tsx
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#: src/features/account/components/UserMenu.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -88,6 +149,10 @@ msgstr "Sign-in expired"
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Sign-in failed"
 msgstr "Sign-in failed"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Switch agent, current agent: {agentName}"
+msgstr "Switch agent, current agent: {agentName}"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "The app needs it to find your invitations. Contact your administrator."
@@ -126,7 +191,16 @@ msgstr "Try again to sign in. If this page comes back, close the other tabs of t
 msgid "Verify your email"
 msgstr "Verify your email"
 
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
+#: src/features/account/components/UserMenu.tsx
+msgid "Version {version}"
+msgstr "Version {version}"
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "When an agent is created in one of your projects, it appears here."
+msgstr "When an agent is created in one of your projects, it appears here."
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "You cannot evaluate agents yet"
 msgstr "You cannot evaluate agents yet"
 
@@ -137,3 +211,7 @@ msgstr "Your identity provider did not share your email address with the app."
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider refused the sign-in."
 msgstr "Your identity provider refused the sign-in."
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "Your projects have no agent yet"
+msgstr "Your projects have no agent yet"

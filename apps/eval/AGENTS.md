@@ -23,8 +23,8 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   (`features/account`), so a sign-in the API refuses shows before any page.
 - Access: the app opens to a person who holds `evaluation.ui.read` on at least one project, which
   the `project_evaluator` role grants (ADR 0019: the app checks the permission, never the role's
-  name). The same layout loads `GET projects/mine`, and `EvaluationAccessGate`
-  (`features/projects`) shows `NoEvaluationAccessPage` to anyone else. A page of a project checks
+  name). The same layout loads the projects, organizations and agents, and `EvaluationAccessGate`
+  (`features/agents`) shows `NoEvaluationAccessPage` to anyone else. A page of a project checks
   the same permission on that project; the API refuses its routes without it.
 - Configuration: the API will inject `window.__CONFIG__` when it serves the app; in dev, the
   `VITE_*` values of `apps/eval/.env` stand in (see `.env-example`).
@@ -49,7 +49,18 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 
 ## Where things are
 
-- The home: `src/routes/_authenticated/index.tsx`, a greeting for now.
+- The frame: the Desk's, without the sessions and the invitations. `AppShell`
+  (`components/shared/`) holds the sidebar: the agent switcher at the top (`AgentSidebarHeader` in
+  `features/agents`), the person's menu at the bottom (`CurrentUserMenu` in `features/account`, the
+  Desk's without the name edit).
+- The agents: `features/agents` reads `GET projects/mine` and `GET organizations/mine`, keeps the
+  projects that grant `evaluation.ui.read`, then reads each one's
+  `GET .../agents-with-drafts`, drafts included since evaluation runs them, under one query
+  (`evaluationWorkspaceQueryOptions`).
+- The home: `src/routes/_authenticated/index.tsx`, which opens the last agent the person used, or
+  the first one, and says so when their projects have none. A project's URL opens its agent.
+- An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, whose
+  `route.tsx` is the frame and `index.tsx` a greeting for now.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts`, written with `mockRoute`

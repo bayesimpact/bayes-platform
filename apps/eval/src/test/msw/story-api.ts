@@ -1,14 +1,18 @@
 import { getResponse, type RequestHandler } from "msw"
 import { appBasePath } from "@/app/config"
+import { forgetLastAgent } from "@/features/agents"
+import { buildEvalWorld, type EvalWorld } from "../factories/eval-world.factory"
 import { installStableIds } from "../stable-ids"
 import { evalHandlers } from "./handlers"
 
 /** What a story of the whole app sets in its `evaluation` parameter. */
 export type EvalStoryParameters = {
-  /** Handlers that win over the default ones, built on each load so the story starts afresh. */
+  /** The world the mocked API answers from: the main case by default. */
+  world?: () => EvalWorld
+  /** Handlers that win over the world's, built on each load so the story starts afresh. */
   handlers?: () => RequestHandler[]
   /** The page the story opens: the home by default. */
-  url?: string
+  url?: (world: EvalWorld) => string
 }
 
 /** The `parameters` of a story of the whole app, typed. */
@@ -37,10 +41,16 @@ function mockFetch(): void {
   Object.defineProperty(window, "fetch", { value: storyFetch, configurable: true, writable: true })
 }
 
-/** Serves a story from the mocked API, with the same ids on every load, and returns its page. */
+/**
+ * Serves a story's world from the mocked API, with the same ids on every load and no agent
+ * remembered from another story, and returns the page the story opens.
+ */
 export function serveStoryWorld(parameters: EvalStoryParameters = {}): string {
   mockFetch()
+  // The agent a previous story left open would decide which one this story opens.
+  forgetLastAgent()
   installStableIds()
-  storyHandlers = [...(parameters.handlers?.() ?? []), ...evalHandlers()]
-  return parameters.url ?? appBasePath
+  const world = (parameters.world ?? buildEvalWorld)()
+  storyHandlers = [...(parameters.handlers?.() ?? []), ...evalHandlers(world)]
+  return parameters.url?.(world) ?? appBasePath
 }

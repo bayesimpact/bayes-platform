@@ -1,7 +1,8 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router"
+import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { loadMe } from "@/features/account"
-import { EvaluationAccessGate, loadEvaluationProjects } from "@/features/projects"
+import { EvaluationAccessGate, loadEvaluationWorkspace } from "@/features/agents"
 import {
   claimAutomaticSignIn,
   hasSession,
@@ -26,8 +27,9 @@ export const Route = createFileRoute("/_authenticated")({
     await new Promise<never>(() => {})
   },
   loader: async ({ context }) => {
-    await Promise.all([loadMe(context.queryClient), loadEvaluationProjects(context.queryClient)])
+    await Promise.all([loadMe(context.queryClient), loadEvaluationWorkspace(context.queryClient)])
   },
+  pendingComponent: AppShellSkeleton,
   errorComponent: RouteErrorState,
   component: AuthenticatedLayout,
 })

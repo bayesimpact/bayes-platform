@@ -7,6 +7,15 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: fr\n"
 
+#: src/components/shared/ExternalLink.tsx
+msgid "(opens in a new tab)"
+msgstr "(s'ouvre dans un nouvel onglet)"
+
+#. The button of the person's menu, which shows their name
+#: src/features/account/components/UserMenu.tsx
+msgid "{name}, menu of {email}"
+msgstr "{name}, menu de {email}"
+
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the app is available"
 msgstr "Une nouvelle version de l'application est disponible"
@@ -24,7 +33,7 @@ msgid "An account is waiting for your email address, but your identity provider 
 msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
 
 #. Opens the platform's home, which lists the person's apps
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "Back to home"
 msgstr "Retour à l'accueil"
 
@@ -40,6 +49,11 @@ msgstr "Vérifiez votre connexion, puis réessayez."
 msgid "Contact your administrator."
 msgstr "Contactez votre administrateur."
 
+#. The Control key of a keyboard
+#: src/components/shared/SidebarToggle.tsx
+msgid "Ctrl"
+msgstr "Ctrl"
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Each new sign-in ended at once, so the app stopped starting new ones."
 msgstr "Chaque nouvelle connexion s'est arrêtée aussitôt : l'application a cessé d'en lancer."
@@ -48,17 +62,47 @@ msgstr "Chaque nouvelle connexion s'est arrêtée aussitôt : l'application a ce
 msgid "Email address missing"
 msgstr "Adresse email manquante"
 
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#. The name of the app, next to the logo
+#: src/components/shared/AppLogo.tsx
+msgid "Evaluation"
+msgstr "Évaluation"
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
 msgstr "L'évaluation est réservée aux évaluateurs d'un projet. Demandez à un administrateur du projet de vous donner le rôle Évaluateur depuis la page des membres."
 
-#: src/routes/_authenticated/index.tsx
+#: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/index.tsx
 msgid "Hello world!"
 msgstr "Bonjour tout le monde !"
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Help center"
+msgstr "Centre d'aide"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Hide the sidebar"
+msgstr "Masquer la barre latérale"
+
+#. Opens the platform's home, which lists the person's apps, outside this app
+#: src/features/account/components/UserMenu.tsx
+msgid "Home"
+msgstr "Accueil"
+
+#: src/components/shared/AppLogo.tsx
+msgid "Home of Evaluation"
+msgstr "Accueil de l'Évaluation"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-dessous."
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Language"
+msgstr "Langue"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "No agent matches this search."
+msgstr "Aucun agent ne correspond à cette recherche."
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
@@ -76,8 +120,25 @@ msgstr "Recharger"
 msgid "Reload the page to keep going."
 msgstr "Rechargez la page pour continuer."
 
+#: src/components/shared/AppShell.tsx
+msgid "Resize the sidebar"
+msgstr "Redimensionner le panneau latéral"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Search an agent"
+msgstr "Rechercher un agent"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Search an agent or a project"
+msgstr "Rechercher un agent ou un projet"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Show the sidebar"
+msgstr "Afficher la barre latérale"
+
 #: src/components/shared/SignInProblemPage.tsx
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#: src/features/account/components/UserMenu.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "Sign out"
 msgstr "Se déconnecter"
 
@@ -88,6 +149,10 @@ msgstr "Connexion expirée"
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Sign-in failed"
 msgstr "Connexion impossible"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Switch agent, current agent: {agentName}"
+msgstr "Changer d'agent, agent actuel : {agentName}"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "The app needs it to find your invitations. Contact your administrator."
@@ -126,7 +191,16 @@ msgstr "Réessayez de vous connecter. Si cette page revient, fermez les autres o
 msgid "Verify your email"
 msgstr "Vérifiez votre email"
 
-#: src/features/projects/components/NoEvaluationAccessPage.tsx
+#. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
+#: src/features/account/components/UserMenu.tsx
+msgid "Version {version}"
+msgstr "Version {version}"
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "When an agent is created in one of your projects, it appears here."
+msgstr "Quand un agent est créé dans l'un de vos projets, il apparaît ici."
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
 msgid "You cannot evaluate agents yet"
 msgstr "Vous ne pouvez pas encore évaluer d'agents"
 
@@ -137,3 +211,7 @@ msgstr "Votre fournisseur d'identité n'a pas transmis votre adresse e-mail à l
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider refused the sign-in."
 msgstr "Votre fournisseur d’identité a refusé la connexion."
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "Your projects have no agent yet"
+msgstr "Vos projets n'ont pas encore d'agent"

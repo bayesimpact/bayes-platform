@@ -15,23 +15,46 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const { Home, NoEvaluationAccess, PageNotFound } = composeStories(generalStories)
+const { PageNotFound, ProjectsFailToLoad, Loading, ...pageStories } = composeStories(generalStories)
+
+/** Each story of a page, and what it shows once that page loaded: every story is listed. */
+const PAGES = {
+  Home: {
+    Story: pageStories.Home,
+    loaded: () => screen.findByRole("heading", { name: "Hello world!" }),
+  },
+  SeveralProjects: {
+    Story: pageStories.SeveralProjects,
+    loaded: () => screen.findByRole("combobox", { name: /Switch agent/ }),
+  },
+  NoAgent: {
+    Story: pageStories.NoAgent,
+    loaded: () => screen.findByText("Your projects have no agent yet"),
+  },
+  NoEvaluationAccess: {
+    Story: pageStories.NoEvaluationAccess,
+    loaded: () => screen.findByText("You cannot evaluate agents yet"),
+  },
+} satisfies Record<keyof typeof pageStories, unknown>
+
+/** The pages the app shows when something went wrong. */
+const ERROR_PAGES = [
+  "This page could not load",
+  "Page not found",
+  "A new version of the app is available",
+]
+
+const expectNoErrorPage = () => {
+  for (const title of ERROR_PAGES) expect(screen.queryByText(title)).not.toBeInTheDocument()
+}
 
 describe("the stories of the app", () => {
-  it("Home opens the home page", async () => {
-    await Home.load()
-    render(<Home />)
+  it.each(Object.entries(PAGES))("%s opens its page", async (_name, { Story, loaded }) => {
+    await Story.load()
+    render(<Story />)
 
-    expect(await screen.findByRole("heading", { name: "Hello world!" })).toBeInTheDocument()
-    expect(screen.queryByText("Page not found")).not.toBeInTheDocument()
-  })
-
-  it("NoEvaluationAccess says why the app is closed, and shows no page", async () => {
-    await NoEvaluationAccess.load()
-    render(<NoEvaluationAccess />)
-
-    expect(await screen.findByText("You cannot evaluate agents yet")).toBeInTheDocument()
-    expect(screen.queryByRole("main")).not.toBeInTheDocument()
+    expect(await loaded()).toBeInTheDocument()
+    expectNoErrorPage()
   })
 
   it("PageNotFound says so", async () => {
@@ -39,6 +62,23 @@ describe("the stories of the app", () => {
     render(<PageNotFound />)
 
     expect(await screen.findByText("Page not found")).toBeInTheDocument()
+  })
+
+  it("ProjectsFailToLoad shows its error at once, with a retry", async () => {
+    await ProjectsFailToLoad.load()
+    render(<ProjectsFailToLoad />)
+
+    expect(await screen.findByText("This page could not load")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument()
+  })
+
+  it("Loading shows the frame of the app, and no page yet", async () => {
+    await Loading.load()
+    render(<Loading />)
+
+    expect(await screen.findByRole("main")).toBeInTheDocument()
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument()
+    expectNoErrorPage()
   })
 })
 

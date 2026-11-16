@@ -1,6 +1,5 @@
-import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
-import { evaluationProjectsQueryOptions } from "../api/queries"
+import { useEvaluationWorkspace } from "../hooks/use-evaluation-workspace"
 import { NoEvaluationAccessPage } from "./NoEvaluationAccessPage"
 
 export type EvaluationAccessGateProps = {
@@ -13,7 +12,7 @@ export type EvaluationAccessGateProps = {
  * refuses the evaluation routes of a project to anyone without the permission there.
  */
 export function EvaluationAccessGate({ children }: EvaluationAccessGateProps) {
-  const { data: projects } = useSuspenseQuery(evaluationProjectsQueryOptions())
+  const { projects } = useEvaluationWorkspace()
   if (projects.length === 0) return <NoEvaluationAccessPage />
   return children
 }
