@@ -57,16 +57,20 @@ export function AgentEditorSaveStatus({
     )
   }
 
-  return (
-    <output className="flex items-center gap-1.5 text-sm text-muted-foreground">
-      {state === "saving" ? (
-        <>
-          <Loader2Icon className="size-4 animate-spin" />
+  // A save in progress wears the same colours as the saved draft: the label keeps its place
+  // and its colour, and only its text and icon change.
+  if (state === "saving") {
+    return (
+      <Badge asChild variant="warning">
+        <output>
+          <Loader2Icon className="animate-spin" />
           {t("agentSettings:autosave.saving")}
-        </>
-      ) : (
-        t("agentSettings:autosave.hint")
-      )}
-    </output>
+        </output>
+      </Badge>
+    )
+  }
+
+  return (
+    <output className="text-sm text-muted-foreground">{t("agentSettings:autosave.hint")}</output>
   )
 }
