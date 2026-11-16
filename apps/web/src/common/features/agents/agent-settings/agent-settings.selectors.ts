@@ -2,7 +2,12 @@ import { createSelector } from "@reduxjs/toolkit"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
-import { resolveEffectiveRevision } from "./agent-settings.functions"
+import {
+  findDraftVersion,
+  findPublishedVersion,
+  findVersion,
+  resolveEffectiveRevision,
+} from "./agent-settings.functions"
 import type { AgentSettings } from "./agent-settings.models"
 
 const selectAgentSettingsHistoryData = (state: RootState) => state.agentSettings.history
@@ -40,15 +45,19 @@ export const selectAgentSettingsDataByAgentId = ({
       const isValid = agentHistoryData.value.some((settings) => settings.agentId === agent.id)
       if (!isValid) return { status: ADS.Error, error: "Agent settings not found", value: null }
 
-      // An agent that was never published, such as a fresh copy, only has its draft.
+      // The draft comes from the history alone, and the published revision falls back on it.
+      // The agents list and the history load with two requests: after a save that creates or
+      // deletes the draft, the list can name a revision the history does not hold, or miss one
+      // it holds. Reading the list first would then find no settings and take the editor off
+      // the screen while the user types.
+      const versions = agentHistoryData.value
       const publishedRevision = agent.currentRevision?.number
-      const draftRevision = agent.draftRevision?.number
-      const revision = includeDraft
-        ? (draftRevision ?? publishedRevision)
-        : (publishedRevision ?? draftRevision)
-      const currentSettings = agentHistoryData.value.find(
-        (settings) => settings.revision === revision,
-      )
+      const published =
+        (publishedRevision === undefined ? undefined : findVersion(versions, publishedRevision)) ??
+        findPublishedVersion(versions)
+      const draft = findDraftVersion(versions)
+      // An agent that was never published, such as a fresh copy, only has its draft.
+      const currentSettings = includeDraft ? (draft ?? published) : (published ?? draft)
 
       if (!currentSettings)
         return { status: ADS.Error, error: "Current agent settings not found", value: null }
