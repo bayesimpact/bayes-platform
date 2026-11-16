@@ -7,6 +7,7 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -92,6 +93,7 @@ export function GeneralTab({
                 <FormControl>
                   <Input placeholder={t("agent:props.placeholders.name")} {...field} />
                 </FormControl>
+                <FormDescription>{t("agentSettings:props.nameDescription")}</FormDescription>
                 <LiveSettingNotice />
                 <FormMessage />
               </FormItem>

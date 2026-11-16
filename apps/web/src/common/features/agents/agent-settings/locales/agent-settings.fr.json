@@ -4,6 +4,7 @@
     "agentSettingsHistory": "Historique des paramètres de l'agent",
     "selectAgentSettings": "Sélectionner les paramètres de l'agent",
     "props": {
+      "nameDescription": "Ce nom sert à reconnaître l'agent dans le Studio et dans l'application. L'agent ne le connaît pas : si on lui demande comment il s'appelle, il ne répond pas ce nom. Pour lui donner un nom, écrivez-le dans les instructions.",
       "createdAt": "Créé le",
       "instructions": "Instructions",
       "formConfiguration": "Configuration du formulaire",

@@ -4,6 +4,7 @@
     "agentSettingsHistory": "Agent Settings History",
     "selectAgentSettings": "Select Agent Settings",
     "props": {
+      "nameDescription": "This name identifies the agent in the Studio and in the app. The agent does not know it: when asked for its name, it does not answer with this one. To give it a name, write it in the instructions.",
       "createdAt": "Created At",
       "instructions": "Instructions",
       "formConfiguration": "Form Configuration",
