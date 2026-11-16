@@ -1,4 +1,4 @@
-import { type FormEvent, type RefObject, useEffect, useRef } from "react"
+import { type FormEvent, type RefObject, useEffect, useRef, useState } from "react"
 import type { FieldValues, UseFormReturn } from "react-hook-form"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import { type AutosaveArgs, createAutosaver, type TabSaveState } from "./agent-tab-autosave"
@@ -25,7 +25,8 @@ export type AgentTabFormProps = {
  * reject when the request fails. The form must be created with `shouldFocusError: false`: an
  * invalid value must not pull the focus away from the field the user is typing in.
  *
- * Returns the `onSubmit` of the `<form>`: Enter in a field saves now instead of reloading the page.
+ * Returns the `onSubmit` of the `<form>` (Enter in a field saves now instead of reloading the
+ * page), and the state of the save with a way to retry it, for a tab that shows them itself.
  */
 export function useAutosave<TValues extends FieldValues>({
   form,
@@ -35,7 +36,8 @@ export function useAutosave<TValues extends FieldValues>({
   form: UseFormReturn<TValues>
   save: (args: AutosaveArgs<TValues>) => Promise<void>
   saveControl: TabSaveControl
-}): { onSubmit: (event: FormEvent) => void } {
+}): { onSubmit: (event: FormEvent) => void; saveState: TabSaveState; saveNow: () => void } {
+  const [saveState, setSaveState] = useState<TabSaveState>("saved")
   // The autosaver lives as long as the tab: it reads the latest props through this ref.
   const latest = useRef({ save, saveControl })
   useEffect(() => {
@@ -55,7 +57,10 @@ export function useAutosave<TValues extends FieldValues>({
           )()
         }),
       save: (args) => latest.current.save(args),
-      onStateChange: (state) => latest.current.saveControl.onStateChange(state),
+      onStateChange: (state) => {
+        setSaveState(state)
+        latest.current.saveControl.onStateChange(state)
+      },
     })
     control.flushRef.current = () => void autosaver.flush()
     const unsubscribe = form.subscribe({
@@ -72,11 +77,14 @@ export function useAutosave<TValues extends FieldValues>({
     }
   }, [form])
 
+  const saveNow = () => saveControl.flushRef.current?.()
   return {
     onSubmit: (event) => {
       event.preventDefault()
-      saveControl.flushRef.current?.()
+      saveNow()
     },
+    saveState,
+    saveNow,
   }
 }
 

@@ -111,6 +111,12 @@
       "embed": "Intégration",
       "mcpServers": "Serveurs MCP"
     },
+    "editor": {
+      "back": "Retour à l'agent",
+      "draftGroup": "Brouillon",
+      "liveGroup": "Hors brouillon",
+      "openInstructions": "Ouvrir l'éditeur des instructions"
+    },
     "mcpServers": {
       "label": "Serveurs MCP",
       "manage": "Gérer les serveurs",

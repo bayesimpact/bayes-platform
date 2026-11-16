@@ -111,6 +111,12 @@
       "embed": "Embed",
       "mcpServers": "MCP Servers"
     },
+    "editor": {
+      "back": "Back to the agent",
+      "draftGroup": "Draft",
+      "liveGroup": "Outside the draft",
+      "openInstructions": "Open the instructions editor"
+    },
     "mcpServers": {
       "label": "MCP Servers",
       "manage": "Manage servers",

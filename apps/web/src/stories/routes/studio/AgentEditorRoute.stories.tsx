@@ -340,7 +340,7 @@ export const ToolsTabWithFollowUpQuestions: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const toolsTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Tools" },
       { timeout: 10_000 },
     )
@@ -360,7 +360,7 @@ export const ModelTabWithEmbeddingModels: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const modelTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Model" },
       { timeout: 10_000 },
     )
@@ -492,7 +492,7 @@ export const SourcesTab: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const sourcesTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Sources" },
       { timeout: 10_000 },
     )
@@ -541,7 +541,7 @@ export const EmbedTabWithoutHelpCenter: Story = {
 
 /**
  * An extraction agent, as it opens right after its creation: one History and Save version bar,
- * in the page header. The tabs bar adds none of its own.
+ * in the page header.
  */
 export const ExtractionAgent: Story = {
   // An extraction agent has no sources, tools, sub-agents or embedding models.
@@ -591,7 +591,7 @@ export const ExtractionAgent: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await canvas.findByRole("tab", { name: "Output" }, { timeout: 10_000 })
+    await canvas.findByRole("button", { name: "Output" }, { timeout: 10_000 })
     await expect(canvas.getAllByRole("button", { name: /history/i })).toHaveLength(1)
   },
 }

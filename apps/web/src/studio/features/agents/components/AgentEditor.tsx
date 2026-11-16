@@ -1,7 +1,16 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
-import { AlertTriangleIcon, CodeXmlIcon, type LucideIcon, NetworkIcon } from "lucide-react"
+import {
+  AlertTriangleIcon,
+  BracesIcon,
+  CodeXmlIcon,
+  CpuIcon,
+  LibraryBigIcon,
+  type LucideIcon,
+  NetworkIcon,
+  ServerIcon,
+  SlidersHorizontalIcon,
+  TagsIcon,
+  WrenchIcon,
+} from "lucide-react"
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useBlocker } from "react-router-dom"
@@ -18,9 +27,6 @@ import { useAppSelector } from "@/common/store/hooks"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
 import { EmbedSheet } from "@/studio/features/agents/agent-settings/components/sheets/EmbedSheet"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
-import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
-import { AgentSettingsCreateButton } from "../agent-settings/components/AgentSettingsCreateButton"
-import { AgentSettingsHistory } from "../agent-settings/components/AgentSettingsHistory"
 import type { TabSaveState } from "../agent-settings/components/agent-tab-autosave"
 import type { TabSaveControl } from "../agent-settings/components/agent-tab-form.shared"
 import { OrchestrationSheet } from "../agent-settings/components/sheets/OrchestrationSheet"
@@ -31,6 +37,8 @@ import { OutputTab } from "../agent-settings/components/tabs/OutputTab"
 import { SessionCategoriesTab } from "../agent-settings/components/tabs/SessionCategoriesTab"
 import { SourcesTab } from "../agent-settings/components/tabs/SourcesTab"
 import { ToolsTab } from "../agent-settings/components/tabs/ToolsTab"
+import { AgentEditorPageView } from "./AgentEditorPageView"
+import { AgentEditorTabsView } from "./AgentEditorTabsView"
 
 export type AgentEditorOrchestration = {
   agents: Agent[]
@@ -64,6 +72,7 @@ type TabContext = {
 type TabConfig = {
   value: EditorTabKey
   label: string
+  icon: LucideIcon
   /** The tab writes to the draft and saves by itself: the editor shows the state of its save. */
   autosave?: boolean
   render: (context: TabContext) => ReactNode
@@ -86,6 +95,10 @@ type SheetConfig = {
  * are saved: they sit apart from the tabs, behind a button that opens a full-page sheet with
  * its own Save.
  *
+ * Two layouts draw it. `tabs` (the default) puts the editor inside another page, its sections
+ * as tabs. `page` makes it a page of its own, with the sections in a sidebar: the editor's
+ * route uses it, outside the Studio layout.
+ *
  * Only the active tab is mounted. Before the editor switches tab or lets the user navigate
  * away, it saves what waits in the active tab. It prompts with a ConfirmDialog only for changes
  * that cannot be saved (an invalid value, a failed save) or for an open sheet with unsaved
@@ -99,10 +112,18 @@ export function AgentEditor({
   defaultTab,
   onDirtyChange,
   showVersionActions = false,
+  layout = "tabs",
+  onBack,
+  banner,
 }: {
   agent: Agent
   agentSettings: AgentSettings
   className?: string
+  layout?: "tabs" | "page"
+  /** `page` layout: leaves the editor. */
+  onBack?: () => void
+  /** `page` layout: shown above the active section. */
+  banner?: ReactNode
   orchestration?: AgentEditorOrchestration
   /**
    * Which tab to open on (defaults to "general"), or which sheet to open over it. Deep links
@@ -112,8 +133,9 @@ export function AgentEditor({
   /** Reports whether the active tab holds changes the draft does not have yet, e.g. to disable a publish action. */
   onDirtyChange?: (dirty: boolean) => void
   /**
-   * Shows the History and Save version buttons next to the tabs. For a page whose header has no
-   * such buttons, like the extraction agent page that embeds the editor.
+   * `tabs` layout: shows the History and Save version buttons next to the tabs. For a page
+   * whose header has no such buttons, like the extraction agent page that embeds the editor.
+   * The `page` layout always shows them.
    */
   showVersionActions?: boolean
 }) {
@@ -129,6 +151,7 @@ export function AgentEditor({
       {
         value: "general",
         label: t("agentSettings:tabs.general"),
+        icon: SlidersHorizontalIcon,
         autosave: true,
         render: ({ saveControl }) => (
           <GeneralTab agent={agent} agentSettings={agentSettings} saveControl={saveControl} />
@@ -137,6 +160,7 @@ export function AgentEditor({
       {
         value: "model",
         label: t("agentSettings:tabs.model"),
+        icon: CpuIcon,
         autosave: true,
         render: ({ saveControl, openTab }) => (
           <ModelTab
@@ -154,6 +178,7 @@ export function AgentEditor({
       list.push({
         value: "sources",
         label: t("agentSettings:tabs.sources"),
+        icon: LibraryBigIcon,
         autosave: true,
         render: ({ saveControl, openTab }) => (
           <SourcesTab
@@ -167,6 +192,7 @@ export function AgentEditor({
       list.push({
         value: "tools",
         label: t("agentSettings:tabs.tools"),
+        icon: WrenchIcon,
         autosave: true,
         render: ({ saveControl }) => (
           <ToolsTab agentSettings={agentSettings} saveControl={saveControl} />
@@ -177,6 +203,7 @@ export function AgentEditor({
         list.push({
           value: "categories",
           label: t("agentSettings:tabs.categories"),
+          icon: TagsIcon,
           autosave: true,
           render: ({ saveControl }) => (
             <SessionCategoriesTab agentSettings={agentSettings} saveControl={saveControl} />
@@ -217,6 +244,7 @@ export function AgentEditor({
       list.push({
         value: "output",
         label: t("agentSettings:tabs.output"),
+        icon: BracesIcon,
         autosave: true,
         render: ({ saveControl }) => (
           <OutputTab agentSettings={agentSettings} saveControl={saveControl} />
@@ -232,6 +260,7 @@ export function AgentEditor({
       list.push({
         value: "mcpServers",
         label: t("agentSettings:tabs.mcpServers"),
+        icon: ServerIcon,
         render: () => (
           <McpServersTab
             agentId={agent.id}
@@ -332,66 +361,45 @@ export function AgentEditor({
     }
   }
 
+  // Also keyed on the restore count so the active tab form reloads fresh defaults after a
+  // version is restored from the history sheet. The key must not follow the settings
+  // themselves (revision, updatedAt): each automatic save changes them, and a reload would
+  // take the focus away from the field the user is typing in.
+  const activeSection = (
+    <div key={`${activeTab.value}-${restoreCount}`}>
+      {activeTab.render({
+        saveControl: { onStateChange: handleSaveStateChange, flushRef },
+        openTab: requestTabChange,
+      })}
+    </div>
+  )
+  const viewProps = {
+    agent,
+    agentSettings,
+    sections: tabs,
+    sheets,
+    activeSection: activeTab.value,
+    onSelectSection: requestTabChange,
+    onOpenSheet: (value: string) => setNav((prev) => ({ ...prev, sheet: value as SheetKey })),
+    saveState,
+    onRetrySave: () => flushRef.current?.(),
+  }
+
   return (
-    <div className={className}>
-      <Tabs value={nav.active} onValueChange={requestTabChange}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <TabsList>
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.value} value={tab.value}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {/* Not tabs: these settings are outside the draft and open in their own sheet. */}
-            {sheets.map((sheet) => (
-              <Button
-                key={sheet.value}
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setNav((prev) => ({ ...prev, sheet: sheet.value }))}
-              >
-                <sheet.icon className="size-4" />
-                {sheet.label}
-              </Button>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            {activeTab.autosave && (
-              <AgentEditorSaveStatus
-                state={saveState}
-                hasDraft={agentSettings.isDraft}
-                onRetry={() => flushRef.current?.()}
-              />
-            )}
-            {showVersionActions && (
-              <ButtonGroup>
-                <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
-                <AgentSettingsCreateButton
-                  agentSettings={agentSettings}
-                  hasUnsavedChanges={saveState !== "saved"}
-                />
-              </ButtonGroup>
-            )}
-          </div>
-        </div>
-        {/* Also keyed on the restore count so the active tab form reloads fresh defaults after a
-            version is restored from the history sheet. The key must not follow the settings
-            themselves (revision, updatedAt): each automatic save changes them, and a reload
-            would take the focus away from the field the user is typing in. */}
-        <TabsContent
-          key={`${activeTab.value}-${restoreCount}`}
-          value={activeTab.value}
-          className="mt-4"
+    <>
+      {layout === "page" ? (
+        <AgentEditorPageView {...viewProps} onBack={() => onBack?.()} banner={banner}>
+          {activeSection}
+        </AgentEditorPageView>
+      ) : (
+        <AgentEditorTabsView
+          {...viewProps}
+          className={className}
+          showVersionActions={showVersionActions}
         >
-          {activeTab.render({
-            saveControl: { onStateChange: handleSaveStateChange, flushRef },
-            openTab: requestTabChange,
-          })}
-        </TabsContent>
-      </Tabs>
+          {activeSection}
+        </AgentEditorTabsView>
+      )}
 
       {activeSheet?.render({ onDirtyChange: handleSheetDirtyChange, onClose: closeSheet })}
 
@@ -404,6 +412,6 @@ export function AgentEditor({
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
-    </div>
+    </>
   )
 }

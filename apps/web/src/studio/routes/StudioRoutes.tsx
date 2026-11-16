@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { Outlet } from "react-router-dom"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
@@ -64,180 +65,195 @@ export const studioRoutes = {
                 projectRoute: StudioRoutes.project.build,
               }}
             >
-              <StudioLayout>
-                <AgentList />
-              </StudioLayout>
+              <Outlet />
             </RoutesBuilderProvider>
           </ProjectRoute>
         </OrganizationRoute>
       ),
       children: [
         {
-          path: StudioRoutes.documents.path,
-          element: <ProjectDocumentsRoute />,
-        },
-        {
-          path: StudioRoutes.externalSources.path,
-          element: <ExternalSourcesRoute />,
-        },
-        {
-          path: StudioRoutes.mcpServers.path,
+          // The agent editor is a page of its own, outside the Studio layout: its menu takes
+          // the place of the Studio sidebar.
+          path: StudioRoutes.agentEdit.path,
           element: (
-            <RestrictedFeature feature="agent-mcp">
-              <McpServersRoute />
-            </RestrictedFeature>
+            <AgentRoute>
+              <RestrictedAccess ability="canManageAgent">
+                <AgentEditorRoute />
+              </RestrictedAccess>
+            </AgentRoute>
           ),
         },
         {
-          path: StudioRoutes.appInstallations.path,
-          element: <AppInstallationsRoute />,
-        },
-        {
-          path: StudioRoutes.appCatalog.path,
           element: (
-            <RestrictedFeature feature="apps-catalog" returnNull={false}>
-              <AppCatalogRoute />
-            </RestrictedFeature>
+            <StudioLayout>
+              <AgentList />
+            </StudioLayout>
           ),
-        },
-        {
-          path: StudioRoutes.resourceLibraries.path,
-          element: <ResourceLibrariesRoute />,
           children: [
             {
-              path: StudioRoutes.resourceLibraryNew.path,
-              element: <ResourceLibraryCreatorRoute />,
+              path: StudioRoutes.documents.path,
+              element: <ProjectDocumentsRoute />,
             },
             {
-              path: StudioRoutes.resourceLibrary.path,
-              element: <ResourceLibraryEditorRoute />,
+              path: StudioRoutes.externalSources.path,
+              element: <ExternalSourcesRoute />,
+            },
+            {
+              path: StudioRoutes.mcpServers.path,
+              element: (
+                <RestrictedFeature feature="agent-mcp">
+                  <McpServersRoute />
+                </RestrictedFeature>
+              ),
+            },
+            {
+              path: StudioRoutes.appInstallations.path,
+              element: <AppInstallationsRoute />,
+            },
+            {
+              path: StudioRoutes.appCatalog.path,
+              element: (
+                <RestrictedFeature feature="apps-catalog" returnNull={false}>
+                  <AppCatalogRoute />
+                </RestrictedFeature>
+              ),
+            },
+            {
+              path: StudioRoutes.resourceLibraries.path,
+              element: <ResourceLibrariesRoute />,
               children: [
                 {
-                  path: StudioRoutes.resourceNew.path,
-                  element: <ResourceCreatorRoute />,
+                  path: StudioRoutes.resourceLibraryNew.path,
+                  element: <ResourceLibraryCreatorRoute />,
                 },
                 {
-                  path: StudioRoutes.resource.path,
-                  element: <ResourceEditorRoute />,
+                  path: StudioRoutes.resourceLibrary.path,
+                  element: <ResourceLibraryEditorRoute />,
+                  children: [
+                    {
+                      path: StudioRoutes.resourceNew.path,
+                      element: <ResourceCreatorRoute />,
+                    },
+                    {
+                      path: StudioRoutes.resource.path,
+                      element: <ResourceEditorRoute />,
+                    },
+                  ],
                 },
               ],
             },
-          ],
-        },
-        {
-          path: StudioRoutes.projectAnalytics.path,
-          element: (
-            <RestrictedFeature feature="project-analytics" returnNull={false}>
-              <ProjectAnalyticsRoute />
-            </RestrictedFeature>
-          ),
-        },
-        {
-          path: StudioRoutes.projectMemberships.path,
-          element: <ProjectMembershipsRoute />,
-          children: [
             {
-              path: StudioRoutes.projectMembership.path,
-              element: <ProjectMembershipRoute />,
-            },
-          ],
-        },
-        {
-          path: StudioRoutes.projectAdmin.path,
-          element: <ProjectAdminRoute />,
-        },
-        {
-          path: StudioRoutes.reviewCampaigns.path,
-          element: <CampaignsRoute />,
-        },
-        {
-          // The campaign editor and its report open over the list, in a full-screen sheet.
-          path: StudioRoutes.reviewCampaign.path,
-          element: <CampaignsRoute />,
-        },
-        {
-          path: StudioRoutes.reviewCampaignReport.path,
-          element: <CampaignsRoute />,
-        },
-        {
-          path: StudioRoutes.agent.path,
-          element: (
-            <AgentRoute>
-              <StudioAgentRoute>
-                <AgentSessionsHandler />
-              </StudioAgentRoute>
-            </AgentRoute>
-          ),
-          children: [
-            {
-              path: StudioRoutes.agentSession.path,
-              element: <AgentSessionRoute Component={StudioAgentSessionRoute} />,
-            },
-            {
-              // Gated by a safety review grant on the agent, not by agent roles.
-              path: StudioRoutes.agentConversationReview.path,
-              element: <AgentConversationReviewRoute />,
-            },
-            {
-              path: StudioRoutes.agentExtraction.path,
+              path: StudioRoutes.projectAnalytics.path,
               element: (
-                <AgentExtractionRoute
-                  type="playground"
-                  buildCsvRunPath={StudioRoutes.agentExtractionCsvRun.build}
-                  renderVersionPicker={<StudioExtractionVersionPicker />}
-                />
+                <RestrictedFeature feature="project-analytics" returnNull={false}>
+                  <ProjectAnalyticsRoute />
+                </RestrictedFeature>
+              ),
+            },
+            {
+              path: StudioRoutes.projectMemberships.path,
+              element: <ProjectMembershipsRoute />,
+              children: [
+                {
+                  path: StudioRoutes.projectMembership.path,
+                  element: <ProjectMembershipRoute />,
+                },
+              ],
+            },
+            {
+              path: StudioRoutes.projectAdmin.path,
+              element: <ProjectAdminRoute />,
+            },
+            {
+              path: StudioRoutes.reviewCampaigns.path,
+              element: <CampaignsRoute />,
+            },
+            {
+              // The campaign editor and its report open over the list, in a full-screen sheet.
+              path: StudioRoutes.reviewCampaign.path,
+              element: <CampaignsRoute />,
+            },
+            {
+              path: StudioRoutes.reviewCampaignReport.path,
+              element: <CampaignsRoute />,
+            },
+            {
+              path: StudioRoutes.agent.path,
+              element: (
+                <AgentRoute>
+                  <StudioAgentRoute>
+                    <AgentSessionsHandler />
+                  </StudioAgentRoute>
+                </AgentRoute>
               ),
               children: [
                 {
-                  path: StudioRoutes.agentExtractionCsvRun.path,
+                  path: StudioRoutes.agentSession.path,
+                  element: <AgentSessionRoute Component={StudioAgentSessionRoute} />,
+                },
+                {
+                  // Gated by a safety review grant on the agent, not by agent roles.
+                  path: StudioRoutes.agentConversationReview.path,
+                  element: <AgentConversationReviewRoute />,
+                },
+                {
+                  path: StudioRoutes.agentExtraction.path,
                   element: (
-                    <AgentCsvExtractionRunRoute
-                      renderRevisionBadge={(revision) => (
-                        <CurrentAgentRevisionBadge
-                          revision={revision}
-                          tooltipKey="runRevisionTooltip"
-                        />
-                      )}
+                    <AgentExtractionRoute
+                      type="playground"
+                      buildCsvRunPath={StudioRoutes.agentExtractionCsvRun.build}
+                      renderVersionPicker={<StudioExtractionVersionPicker />}
                     />
                   ),
-                },
-                {
-                  path: StudioRoutes.agentExtractionRun.path,
-                  element: (
-                    <AgentExtractionRunRoute
-                      renderRevisionBadge={(revision) => (
-                        <CurrentAgentRevisionBadge
-                          revision={revision}
-                          tooltipKey="runRevisionTooltip"
+                  children: [
+                    {
+                      path: StudioRoutes.agentExtractionCsvRun.path,
+                      element: (
+                        <AgentCsvExtractionRunRoute
+                          renderRevisionBadge={(revision) => (
+                            <CurrentAgentRevisionBadge
+                              revision={revision}
+                              tooltipKey="runRevisionTooltip"
+                            />
+                          )}
                         />
-                      )}
-                    />
-                  ),
-                },
-              ],
-            },
-            {
-              element: <RestrictedAccess ability="canManageAgent" />,
-              children: [
-                {
-                  path: StudioRoutes.agentEdit.path,
-                  element: <AgentEditorRoute />,
-                },
-                {
-                  path: StudioRoutes.agentAnalytics.path,
-                  element: (
-                    <RestrictedFeature feature="project-analytics">
-                      <AgentAnalyticsRoute />
-                    </RestrictedFeature>
-                  ),
+                      ),
+                    },
+                    {
+                      path: StudioRoutes.agentExtractionRun.path,
+                      element: (
+                        <AgentExtractionRunRoute
+                          renderRevisionBadge={(revision) => (
+                            <CurrentAgentRevisionBadge
+                              revision={revision}
+                              tooltipKey="runRevisionTooltip"
+                            />
+                          )}
+                        />
+                      ),
+                    },
+                  ],
                 },
                 {
-                  path: StudioRoutes.feedback.path,
-                  element: <FeedbackRoute />,
-                },
-                {
-                  path: StudioRoutes.agentMemberships.path,
-                  element: <AgentMembershipsRoute />,
+                  element: <RestrictedAccess ability="canManageAgent" />,
+                  children: [
+                    {
+                      path: StudioRoutes.agentAnalytics.path,
+                      element: (
+                        <RestrictedFeature feature="project-analytics">
+                          <AgentAnalyticsRoute />
+                        </RestrictedFeature>
+                      ),
+                    },
+                    {
+                      path: StudioRoutes.feedback.path,
+                      element: <FeedbackRoute />,
+                    },
+                    {
+                      path: StudioRoutes.agentMemberships.path,
+                      element: <AgentMembershipsRoute />,
+                    },
+                  ],
                 },
               ],
             },
