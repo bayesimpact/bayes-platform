@@ -36,6 +36,17 @@ describe("startSandbox", () => {
     expect(frame.srcdoc).toContain(JSON.stringify(sandboxId))
   })
 
+  it("gives the app's frame an opaque origin of its own", async () => {
+    const sandboxId = crypto.randomUUID()
+    const frame = document.createElement("iframe")
+    const started = startSandbox(frame, sandboxId, new AbortController().signal)
+    postFromSandbox({ type: "mcp-app-host/ready", sandboxId })
+    await started
+
+    expect(frame.srcdoc).toContain(`app.setAttribute("sandbox", "${MCP_APP_FRAME_SANDBOX}")`)
+    expect(frame.srcdoc).not.toContain("allow-same-origin")
+  })
+
   it("rejects when its host gives up first", async () => {
     const controller = new AbortController()
     const started = startSandbox(

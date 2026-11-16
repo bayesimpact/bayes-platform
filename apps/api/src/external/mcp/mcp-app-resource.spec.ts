@@ -1,28 +1,58 @@
-import { MCP_APP_MIME_TYPE, McpAppResourceError, readMcpAppHtml } from "./mcp-app-resource"
+import { MCP_APP_MIME_TYPE, McpAppResourceError, readMcpAppResource } from "./mcp-app-resource"
 
-const resourceUri = "ui://patient-summary/mcp-app.html"
+const resourceUri = "ui://summary/mcp-app.html"
 
-describe("readMcpAppHtml", () => {
+describe("readMcpAppResource", () => {
   it("returns HTML for a valid MCP App resource", () => {
-    const html = readMcpAppHtml({
+    const { html, csp } = readMcpAppResource({
       resourceUri,
       resource: {
         contents: [
           {
             uri: resourceUri,
             mimeType: MCP_APP_MIME_TYPE,
-            text: "<html><body>Patient</body></html>",
+            text: "<html><body>Summary</body></html>",
           },
         ],
       },
     })
 
-    expect(html).toContain("Patient")
+    expect(html).toContain("Summary")
+    expect(csp).toBeUndefined()
+  })
+
+  it("returns the domains the app declares in _meta.ui.csp", () => {
+    const { csp } = readMcpAppResource({
+      resourceUri,
+      resource: {
+        contents: [
+          {
+            uri: resourceUri,
+            mimeType: MCP_APP_MIME_TYPE,
+            text: "<html></html>",
+            _meta: {
+              ui: {
+                csp: {
+                  connectDomains: ["https://api.example.com", 42],
+                  resourceDomains: ["https://cdn.example.com"],
+                  frameDomains: "https://not-a-list.example.com",
+                },
+              },
+            },
+          },
+        ],
+      },
+    })
+
+    expect(csp).toEqual({
+      connectDomains: ["https://api.example.com"],
+      resourceDomains: ["https://cdn.example.com"],
+    })
   })
 
   it("rejects undeclared non-ui URIs", () => {
     expect(() =>
-      readMcpAppHtml({
+      readMcpAppResource({
         resourceUri: "https://evil.example/app.html",
         resource: { contents: [] },
       }),
@@ -31,7 +61,7 @@ describe("readMcpAppHtml", () => {
 
   it("rejects a missing resource", () => {
     expect(() =>
-      readMcpAppHtml({
+      readMcpAppResource({
         resourceUri,
         resource: { contents: [] },
       }),
@@ -40,7 +70,7 @@ describe("readMcpAppHtml", () => {
 
   it("rejects the wrong MIME type", () => {
     expect(() =>
-      readMcpAppHtml({
+      readMcpAppResource({
         resourceUri,
         resource: {
           contents: [{ uri: resourceUri, mimeType: "text/html", text: "<html></html>" }],
@@ -51,7 +81,7 @@ describe("readMcpAppHtml", () => {
 
   it("rejects a malformed resource with no HTML payload", () => {
     expect(() =>
-      readMcpAppHtml({
+      readMcpAppResource({
         resourceUri,
         resource: {
           contents: [{ uri: resourceUri, mimeType: MCP_APP_MIME_TYPE }],

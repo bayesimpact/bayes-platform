@@ -1,4 +1,5 @@
 import { AppBridge, type McpUiHostContext } from "@modelcontextprotocol/ext-apps/app-bridge"
+import { buildMcpAppCsp, type McpAppCsp, withMcpAppCsp } from "./csp"
 import { isRecord } from "./is-record"
 import { SandboxTransport, startSandbox } from "./sandbox"
 import { appMessageText, toCallToolResult } from "./tool-result"
@@ -17,6 +18,11 @@ const hostContextOf = (locale: string): McpUiHostContext => ({ ...HOST_CONTEXT, 
 export type McpAppMountOptions = {
   /** The app's HTML, as its MCP server wrote it. */
   html: string
+  /**
+   * The domains the app declares (`_meta.ui.csp`). The app runs under a Content Security Policy
+   * built from them. Without any, the strictest policy applies: no network and no frame.
+   */
+  csp?: McpAppCsp
   /** The host's name and version, which the app reads at the handshake. */
   hostInfo: { name: string; version: string }
   /** The person's language, which the app gets in its host context. */
@@ -63,7 +69,8 @@ function hasUserActivation(): boolean {
 /**
  * Runs an MCP App in the sandbox of a frame rendered with `MCP_APP_FRAME_SANDBOX`, with the
  * official host bridge: the handshake, the tool's input and result, the app's height, and the
- * links and messages it asks for. It runs until `unmount`.
+ * links and messages it asks for. The app runs under a Content Security Policy built from the
+ * domains it declares. It runs until `unmount`.
  *
  * Two paths open a tab, and both need a real click in the app. Its own anchors navigate
  * natively, which the browser allows from a gesture only. `ui/open-link` checks the browser's
@@ -71,7 +78,7 @@ function hasUserActivation(): boolean {
  * power of a plain link in a reply.
  */
 export function mountMcpApp(frame: HTMLIFrameElement, options: McpAppMountOptions): McpAppMount {
-  const { html, hostInfo, getToolData, onMessage, onReady, onFailed } = options
+  const { html, csp, hostInfo, getToolData, onMessage, onReady, onFailed } = options
   const controller = new AbortController()
   const timers: ReturnType<typeof setTimeout>[] = []
   const sandboxId = crypto.randomUUID()
@@ -133,8 +140,8 @@ export function mountMcpApp(frame: HTMLIFrameElement, options: McpAppMountOption
       )
     })
     await bridge.connect(new SandboxTransport(frame, sandboxId))
-    // The HTML travels as data and becomes a blob: the app gets it exactly as its server wrote it.
-    await bridge.sendSandboxResourceReady({ html })
+    // The HTML travels as data, as its server wrote it, behind the policy the host puts first.
+    await bridge.sendSandboxResourceReady({ html: withMcpAppCsp(html, buildMcpAppCsp(csp)) })
     await initialized
     if (controller.signal.aborted) return
     isInitialized = true

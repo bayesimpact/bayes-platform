@@ -19,6 +19,9 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+- (beta) Interactive cards (MCP Apps): each card runs in its own isolated frame, limited to the domains it declares.
+- (beta) Public chat API 1.5: the HTML of an interactive card comes with the domains the card declares (`csp`).
+
 ## [26.11.2] - 2026-11-16
 
 ### Added

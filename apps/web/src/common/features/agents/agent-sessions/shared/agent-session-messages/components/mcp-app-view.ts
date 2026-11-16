@@ -1,9 +1,11 @@
 import type { AgentSessionMcpAppDto, AgentSessionToolCallDto } from "@caseai-connect/api-contracts"
-import { isToolError } from "@caseai-connect/mcp-app-host"
+import { isToolError, type McpAppCsp } from "@caseai-connect/mcp-app-host"
 import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "../agent-session-messages.models"
 
 export type McpAppViewModel = {
   html: string
+  /** The domains the card declares, for its Content Security Policy. */
+  csp?: McpAppCsp
   toolInput: Record<string, unknown>
   toolResult: unknown
 }
@@ -30,21 +32,22 @@ export function hasMcpAppCard(toolCall: AgentSessionToolCallDto): boolean {
 }
 
 /**
- * Current HTML for a card pointer. The HTML embedded on the tool call wins (public chat, stories);
- * otherwise the entry read from the same server, or, for a pointer recorded without a server id,
- * the entry any server returned for that `ui://`.
+ * Current HTML for a card pointer, with the domains the card declares. The HTML embedded on the
+ * tool call wins (stories), and declares none; otherwise the entry read from the same server, or,
+ * for a pointer recorded without a server id, the entry any server returned for that `ui://`.
  */
 export function findMcpAppHtml(
   mcpApp: AgentSessionMcpAppDto,
   htmlEntries: AgentSessionMcpAppHtml[],
-): string | undefined {
-  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return mcpApp.html
+): Pick<McpAppViewModel, "html" | "csp"> | undefined {
+  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return { html: mcpApp.html }
   const entry = htmlEntries.find(
     (candidate) =>
       candidate.resourceUri === mcpApp.resourceUri &&
       (!mcpApp.mcpServerId || candidate.mcpServerId === mcpApp.mcpServerId),
   )
-  return entry && entry.html.trim().length > 0 ? entry.html : undefined
+  if (!entry || entry.html.trim().length === 0) return undefined
+  return entry.csp ? { html: entry.html, csp: entry.csp } : { html: entry.html }
 }
 
 export function getRenderableMcpApp(
@@ -52,11 +55,11 @@ export function getRenderableMcpApp(
   htmlEntries: AgentSessionMcpAppHtml[] = [],
 ): McpAppViewModel | undefined {
   if (!toolCall.mcpApp || !hasMcpAppCard(toolCall)) return undefined
-  const html = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
-  if (html === undefined) return undefined
+  const source = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
+  if (source === undefined) return undefined
 
   return {
-    html,
+    ...source,
     toolInput: toolCall.arguments,
     toolResult: toolCall.result,
   }

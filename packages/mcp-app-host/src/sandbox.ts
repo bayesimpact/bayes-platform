@@ -23,11 +23,15 @@ export const MCP_APP_FRAME_SANDBOX = `allow-scripts ${POPUPS_AND_DOWNLOADS}`
 
 /**
  * The page of the outer frame, which isolates an app from its host. It loads the app's HTML in
- * an inner frame from a blob, once the host sends `ui/notifications/sandbox-resource-ready`, and
- * relays the JSON-RPC messages both ways in an envelope that names the sandbox. A blob makes the
- * app parse as a normal document, Tailwind v4's `@layer` CSS included, and hands it its HTML
- * exactly as its server wrote it. The inner frame's `allow-same-origin` is the origin of this
- * page, which is opaque, and never the host's.
+ * an inner frame through `srcdoc`, once the host sends
+ * `ui/notifications/sandbox-resource-ready`, and relays the JSON-RPC messages both ways in an
+ * envelope that names the sandbox. `srcdoc` makes the app parse as a normal document, Tailwind
+ * v4's `@layer` CSS included, under the policy the host put at its top.
+ *
+ * The inner frame has no `allow-same-origin` either, so the app gets an opaque origin of its
+ * own: it cannot read or rewrite this page, which relays its messages and carries no policy,
+ * and storage and cookies are closed to it. Its Content Security Policy would mean nothing
+ * otherwise: an app that reaches this page runs what it wants from there.
  */
 function sandboxPage(sandboxId: string): string {
   const id = JSON.stringify(sandboxId)
@@ -47,8 +51,8 @@ iframe{display:block;border:0;width:100%;height:100%}
       if (message && message.method === "ui/notifications/sandbox-resource-ready") {
         if (app) return;
         app = document.createElement("iframe");
-        app.setAttribute("sandbox", "allow-scripts allow-same-origin ${POPUPS_AND_DOWNLOADS}");
-        app.src = URL.createObjectURL(new Blob([message.params.html], { type: "text/html" }));
+        app.setAttribute("sandbox", "${MCP_APP_FRAME_SANDBOX}");
+        app.srcdoc = message.params.html;
         document.body.appendChild(app);
         return;
       }

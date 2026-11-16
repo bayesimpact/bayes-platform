@@ -26,13 +26,14 @@ export function McpAppsList({
     <div className="flex flex-col gap-3 empty:hidden">
       {apps.map((app) => {
         if (failedAppIds.includes(app.toolCallId)) return null
-        const html = findMcpAppHtml(app, appsHtml.htmls)
-        if (html !== null) {
+        const source = findMcpAppHtml(app, appsHtml.htmls)
+        if (source !== null) {
           return (
             <McpAppCard
               key={app.toolCallId}
               app={app}
-              html={html}
+              html={source.html}
+              csp={source.csp}
               onMessage={onAppMessage}
               onFailed={onAppFailed}
             />

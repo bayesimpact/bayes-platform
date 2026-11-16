@@ -57,18 +57,32 @@ describe("findMcpAppHtml", () => {
   const entries = [{ ...pointer, html: "<html>live</html>" }]
 
   it("prefers the HTML embedded on the tool call", () => {
-    expect(findMcpAppHtml({ ...pointer, html: "<html>inline</html>" }, entries)).toBe(
-      "<html>inline</html>",
-    )
+    expect(findMcpAppHtml({ ...pointer, html: "<html>inline</html>" }, entries)).toEqual({
+      html: "<html>inline</html>",
+    })
   })
 
   it("resolves the pointer against the entry read from the same server", () => {
-    expect(findMcpAppHtml(pointer, entries)).toBe("<html>live</html>")
+    expect(findMcpAppHtml(pointer, entries)).toEqual({ html: "<html>live</html>" })
     expect(findMcpAppHtml({ ...pointer, mcpServerId: "other-server" }, entries)).toBeUndefined()
   })
 
+  it("keeps the domains the card declares, for its Content Security Policy", () => {
+    const csp = { connectDomains: ["https://api.example.com"] }
+
+    expect(findMcpAppHtml(pointer, [{ ...pointer, html: "<html>live</html>", csp }])).toEqual({
+      html: "<html>live</html>",
+      csp,
+    })
+    expect(
+      getRenderableMcpApp(cardToolCall, [{ ...pointer, html: "<html>live</html>", csp }])?.csp,
+    ).toEqual(csp)
+  })
+
   it("accepts any server's entry for a pointer recorded without a server id", () => {
-    expect(findMcpAppHtml({ ...pointer, mcpServerId: "" }, entries)).toBe("<html>live</html>")
+    expect(findMcpAppHtml({ ...pointer, mcpServerId: "" }, entries)).toEqual({
+      html: "<html>live</html>",
+    })
   })
 
   it("is undefined while nothing has been loaded", () => {

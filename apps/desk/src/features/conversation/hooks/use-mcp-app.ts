@@ -1,4 +1,4 @@
-import { type McpAppMount, mountMcpApp } from "@caseai-connect/mcp-app-host"
+import { type McpAppCsp, type McpAppMount, mountMcpApp } from "@caseai-connect/mcp-app-host"
 import { useLingui } from "@lingui/react/macro"
 import { type RefObject, useEffect, useEffectEvent, useRef, useState } from "react"
 import type { ChatMcpApp } from "../chat-messages"
@@ -11,6 +11,8 @@ export type McpAppStatus = "loading" | "ready" | "failed"
 type UseMcpAppOptions = {
   app: ChatMcpApp
   html: string
+  /** The domains the app declares, for its Content Security Policy. */
+  csp?: McpAppCsp
   /** Puts a text the app proposes in the message box, which the person then sends or not. */
   onMessage: (text: string) => void
   /** Called once when the app cannot render. */
@@ -21,12 +23,13 @@ type UseMcpAppOptions = {
  * Runs an MCP App in the sandbox of a frame, through the host all the platform's apps share
  * (`@caseai-connect/mcp-app-host`): the handshake, the tool's input and result, the app's height,
  * and the links and messages it asks for. The frame talks to the browser outside React, which an
- * effect is for. The card is keyed by its tool call, so the app restarts only for new HTML. The
- * app gets the person's language in its host context, and follows it when they pick another one.
+ * effect is for. The card is keyed by its tool call, so the app restarts only for new HTML or
+ * new declared domains. The app gets the person's language in its host context, and follows it
+ * when they pick another one.
  */
 export function useMcpApp(
   frameRef: RefObject<HTMLIFrameElement | null>,
-  { app, html, onMessage, onFailed }: UseMcpAppOptions,
+  { app, html, csp, onMessage, onFailed }: UseMcpAppOptions,
 ): McpAppStatus {
   const [status, setStatus] = useState<McpAppStatus>("loading")
   const { i18n } = useLingui()
@@ -45,6 +48,7 @@ export function useMcpApp(
     if (!frame) return
     const mounted = mountMcpApp(frame, {
       html,
+      csp,
       hostInfo: HOST_INFO,
       locale: readLocale(),
       getToolData: () => readToolData(),
@@ -62,7 +66,7 @@ export function useMcpApp(
       if (mountRef.current === mounted) mountRef.current = null
       mounted.unmount()
     }
-  }, [frameRef, html])
+  }, [frameRef, html, csp])
 
   // The language lives in React, the app in its frame: an effect tells the app of a new one.
   useEffect(() => {

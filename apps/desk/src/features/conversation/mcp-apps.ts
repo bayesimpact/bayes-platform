@@ -2,17 +2,22 @@ import type { McpAppHtmlOutputDto } from "@caseai-connect/desk-contracts"
 import type { ChatMcpApp } from "./chat-messages"
 
 /**
- * The HTML of an app: the first one of its resource, from its server, or from any server for a
- * pointer saved before servers were named. `null` when the API sent none.
+ * The HTML of an app, with the domains it declares: the first one of its resource, from its
+ * server, or from any server for a pointer saved before servers were named. `null` when the API
+ * sent none.
  */
-export function findMcpAppHtml(app: ChatMcpApp, htmls: McpAppHtmlOutputDto[]): string | null {
-  const match = htmls.find(
-    (entry) =>
-      entry.resourceUri === app.resourceUri &&
-      (app.mcpServerId === null || entry.mcpServerId === app.mcpServerId) &&
-      entry.html.trim() !== "",
+export function findMcpAppHtml(
+  app: ChatMcpApp,
+  htmls: McpAppHtmlOutputDto[],
+): McpAppHtmlOutputDto | null {
+  return (
+    htmls.find(
+      (entry) =>
+        entry.resourceUri === app.resourceUri &&
+        (app.mcpServerId === null || entry.mcpServerId === app.mcpServerId) &&
+        entry.html.trim() !== "",
+    ) ?? null
   )
-  return match?.html ?? null
 }
 
 /**

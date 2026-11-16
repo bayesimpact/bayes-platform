@@ -18,11 +18,19 @@ describe("findMcpAppHtml", () => {
   ]
 
   it("takes the HTML of the app's resource on its server", () => {
-    expect(findMcpAppHtml(app(), htmls)).toBe("<p>card</p>")
+    expect(findMcpAppHtml(app(), htmls)?.html).toBe("<p>card</p>")
   })
 
   it("takes the first server's for a pointer saved before servers were named", () => {
-    expect(findMcpAppHtml(app({ mcpServerId: null }), htmls)).toBe("<p>other</p>")
+    expect(findMcpAppHtml(app({ mcpServerId: null }), htmls)?.html).toBe("<p>other</p>")
+  })
+
+  it("keeps the domains the app declares, for its Content Security Policy", () => {
+    const csp = { connectDomains: ["https://api.example.org"] }
+    const declared = [{ mcpServerId: "server", resourceUri: "ui://card", html: "<p>card</p>", csp }]
+
+    expect(findMcpAppHtml(app(), declared)?.csp).toEqual(csp)
+    expect(findMcpAppHtml(app(), htmls)?.csp).toBeUndefined()
   })
 
   it("finds nothing for blank HTML or another resource", () => {

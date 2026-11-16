@@ -214,7 +214,8 @@ second one starts (section 7).
 
 **The one shared package.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
-and the checks on the links and messages an app asks for. `apps/web`, `apps/web-embed` and the
+the Content Security Policy built from the domains an app declares, and the checks on the links
+and messages an app asks for. `apps/web`, `apps/web-embed` and the
 Desk all import it. It is the security boundary between an MCP server's HTML and the person's
 session, so it has one implementation: its three copies had already drifted (one checked
 the messages it received, two did not), and a fix made in one copy left the two others

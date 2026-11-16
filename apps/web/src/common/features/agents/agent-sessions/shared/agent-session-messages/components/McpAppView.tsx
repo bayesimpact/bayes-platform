@@ -1,4 +1,9 @@
-import { MCP_APP_FRAME_SANDBOX, type McpAppMount, mountMcpApp } from "@caseai-connect/mcp-app-host"
+import {
+  MCP_APP_FRAME_SANDBOX,
+  type McpAppCsp,
+  type McpAppMount,
+  mountMcpApp,
+} from "@caseai-connect/mcp-app-host"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import { cn } from "@caseai-connect/ui/utils"
 import { useEffect, useRef, useState } from "react"
@@ -37,12 +42,15 @@ export function McpAppPlaceholder({ className }: { className?: string }) {
  */
 export function McpAppView({
   html,
+  csp,
   toolInput,
   toolResult,
   onMessage,
   onRenderFailed,
 }: {
   html: string
+  /** The domains the card declares. Without any, it runs with no network and no frame. */
+  csp?: McpAppCsp
   toolInput: unknown
   toolResult: unknown
   /**
@@ -85,6 +93,7 @@ export function McpAppView({
     setIsInitialized(false)
     const mounted = mountMcpApp(iframe, {
       html,
+      csp,
       hostInfo: HOST_INFO,
       locale: localeRef.current,
       getToolData: () => ({ input: toolInput, result: toolResult }),
@@ -106,7 +115,7 @@ export function McpAppView({
       if (mountRef.current === mounted) mountRef.current = null
       mounted.unmount()
     }
-  }, [html, toolInput, toolResult])
+  }, [html, csp, toolInput, toolResult])
 
   if (hasFailed) return null
 

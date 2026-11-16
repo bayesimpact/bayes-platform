@@ -108,8 +108,32 @@ describe("mountMcpApp", () => {
 
     await vi.advanceTimersByTimeAsync(10)
 
-    expect(bridge.resources).toEqual([{ html }])
+    expect(bridge.resources).toHaveLength(1)
+    expect(bridge.resources[0]?.html.endsWith(html)).toBe(true)
     expect(onReady).toHaveBeenCalledTimes(1)
+  })
+
+  it("puts the strictest policy before the HTML of an app that declares no domain", async () => {
+    const { bridge } = mount({ html: "<!doctype html><p>Plans</p>" })
+
+    await vi.advanceTimersByTimeAsync(10)
+
+    const sent = bridge.resources[0]?.html ?? ""
+    expect(sent.startsWith('<!doctype html><meta http-equiv="Content-Security-Policy"')).toBe(true)
+    expect(sent).toContain("connect-src 'none'")
+    expect(sent).toContain("frame-src 'none'")
+  })
+
+  it("opens the policy to the domains the app declares, and to no other", async () => {
+    const { bridge } = mount({
+      csp: { connectDomains: ["https://api.example.org", "'unsafe-eval'"] },
+    })
+
+    await vi.advanceTimersByTimeAsync(10)
+
+    const sent = bridge.resources[0]?.html ?? ""
+    expect(sent).toContain("connect-src https://api.example.org;")
+    expect(sent).not.toContain("unsafe-eval")
   })
 
   it("sends the tool's input and result once the app is ready, then again for a late listener", async () => {
