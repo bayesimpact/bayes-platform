@@ -57,11 +57,11 @@ export function AgentEditorSaveStatus({
     )
   }
 
-  // A save in progress wears the same colours as the saved draft: the label keeps its place
-  // and its colour, and only its text and icon change.
+  // A save in progress wears the primary colour: it stands out from the saved draft's label
+  // that takes its place a moment later.
   if (state === "saving") {
     return (
-      <Badge asChild variant="warning">
+      <Badge asChild variant="default">
         <output>
           <Loader2Icon className="animate-spin" />
           {t("agentSettings:autosave.saving")}
