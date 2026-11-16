@@ -12,7 +12,7 @@ import type { Agent } from "@/common/features/agents/agents.models"
 import { AgentSettingsExplorer } from "./AgentSettingsExplorer"
 
 /**
- * Side sheet holding the revision timeline, per-field diffs and restore. Shared by the
+ * Full-screen sheet holding the revision timeline, per-field diffs and restore. Shared by the
  * editor's history button and the revision badges in the playground, which open it
  * preselected on the revision they label.
  *
@@ -41,7 +41,7 @@ export function AgentSettingsHistorySheet({
   return (
     <Sheet open={open ?? internalOpen} onOpenChange={onOpenChange ?? setInternalOpen}>
       {trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
-      <SheetContent side="right" className="w-full gap-0 sm:max-w-4xl">
+      <SheetContent side="right" className="w-full gap-0 sm:max-w-none">
         <SheetHeader className="border-b">
           <SheetTitle>{t("agentSettings:history.title")}</SheetTitle>
           <SheetDescription>
