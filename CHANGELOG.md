@@ -9,6 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.11.2] - 2026-11-16
+
+### Added
+
 - Desk: an open page tells you when a new version is out, and you reload it when you choose.
 - Message feedback: users can mark an agent reply as a good answer, and the team sees it with the reports.
 
