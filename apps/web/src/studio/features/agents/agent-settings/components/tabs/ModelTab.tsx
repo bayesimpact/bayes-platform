@@ -42,22 +42,21 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { EmbeddingModelManager } from "@/studio/features/project-embedding-models/components/EmbeddingModelManager"
 import { selectCompletedProjectEmbeddingModels } from "@/studio/features/project-embedding-models/project-embedding-models.selectors"
-import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
+import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
 import { AgentTabLink } from "./AgentTabLink"
 import { AgentTabSectionHeader } from "./AgentTabSectionHeader"
 import { ModelOptionsFields } from "./ModelOptionsFields"
 import {
   buildModelTabDefaultValues,
-  buildModelTabSubmit,
+  buildModelTabFields,
   modelOptionsForPickedModel,
 } from "./model-tab.helpers"
-import { TabSaveButton } from "./TabSaveButton"
 
 type FormValues = z.infer<typeof updateAgentSettingsModelSchema>
 
 export function ModelTab({
   agentSettings,
-  onDirtyChange,
+  saveControl,
   onOpenSourcesTab,
 }: AgentTabFormProps & {
   /** Set for agents that search documents: links the embedding model to the documents searched. */
@@ -110,9 +109,9 @@ export function ModelTab({
   )
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    shouldFocusError: false,
     defaultValues: buildModelTabDefaultValues(agentSettings),
   })
-  useReportDirty(form.formState.isDirty, onDirtyChange)
 
   // The priority tier only exists for Gemini 3.x models and needs the project flag. It follows
   // the model currently picked in the form, so switching to another provider hides it.
@@ -120,19 +119,18 @@ export function ModelTab({
   const optionFields = describeModelOptionFields(findAgentModelEntry(catalog, selectedModel))
   const priorityCallsAvailable = isPriorityCallsAvailable({ hasFeature, model: selectedModel })
 
-  const handleSubmit = form.handleSubmit(async (values) => {
-    const { fields, resetValues } = buildModelTabSubmit({
-      values,
-      dirtyFields: form.formState.dirtyFields,
-      priorityCallsAvailable,
-    })
-    await dispatch(updateAgentSettingsModel({ agentId: agentSettings.agentId, fields })).unwrap()
-    form.reset(resetValues)
+  const { onSubmit } = useAutosave({
+    form,
+    saveControl,
+    save: async ({ values, changed }) => {
+      const fields = buildModelTabFields({ values, changed, priorityCallsAvailable })
+      await dispatch(updateAgentSettingsModel({ agentId: agentSettings.agentId, fields })).unwrap()
+    },
   })
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <section className="space-y-4 rounded-lg border p-4">
           <AgentTabSectionHeader
             title={t("agentSettings:model.generation.title")}
@@ -266,12 +264,6 @@ export function ModelTab({
             />
           </section>
         </RestrictedFeature>
-
-        <TabSaveButton
-          isSubmitting={form.formState.isSubmitting}
-          isDirty={form.formState.isDirty}
-          onCancel={() => form.reset()}
-        />
       </form>
     </Form>
   )

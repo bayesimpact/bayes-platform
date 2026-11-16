@@ -10,6 +10,10 @@ const selectAgentSettingsHistoryData = (state: RootState) => state.agentSettings
 const selectPlaygroundRevisions = (state: RootState) =>
   state.agentSettings.playgroundRevisionByAgentId
 
+/** Changes each time a version is restored: the agent editor reloads its forms on it. */
+export const selectAgentSettingsRestoreCount = (state: RootState) =>
+  state.agentSettings.restoreCount
+
 // Current Agent settings by agent ID
 export const selectAgentSettingsDataByAgentId = ({
   agentId,

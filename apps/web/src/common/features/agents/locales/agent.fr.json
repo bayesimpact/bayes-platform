@@ -82,7 +82,6 @@
     },
     "playground": "Playground",
     "notifications": {
-      "updated": "Agent mis à jour avec succès",
       "updateError": "La mise à jour de l'agent a échoué",
       "deleted": "Agent supprimé avec succès",
       "deleteError": "La suppression de l'agent a échoué",

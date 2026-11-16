@@ -13,7 +13,6 @@ import {
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
@@ -24,15 +23,14 @@ import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { PromptVariablesEditor } from "@/studio/features/agents/prompt-variables/PromptVariablesEditor"
-import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "../agent-tab-form.shared"
-import { TabSaveButton } from "./TabSaveButton"
+import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
 
 type FormValues = z.infer<typeof updateAgentSettingsGeneralSchema>
 
 export function GeneralTab({
   agent,
   agentSettings,
-  onDirtyChange,
+  saveControl,
 }: AgentTabFormProps & {
   agent: Agent
 }) {
@@ -47,42 +45,30 @@ export function GeneralTab({
     hasFeature("agent-prompt-variables") && declaredPromptVariables.length > 0
 
   // The {{variables}} defaults are a settings field: edited right under the instructions
-  // that declare them and saved with the same button. The tab remounts on every settings
-  // change (keyed on revision + updatedAt), so the state seeds from the prop.
-  const [promptVariables, setPromptVariables] = useState<Record<string, string>>(() => ({
-    ...(agentSettings.variables ?? {}),
-  }))
-  const promptVariablesDirty =
-    JSON.stringify(promptVariables) !== JSON.stringify(agentSettings.variables ?? {})
-
+  // that declare them, and saved with them.
   const form = useForm<FormValues>({
     resolver: zodResolver(updateAgentSettingsGeneralSchema),
+    shouldFocusError: false,
     defaultValues: {
       name: agent.name,
       instructions: agentSettings.instructions,
       greetingMessage: agentSettings.greetingMessage ?? null,
+      variables: { ...(agentSettings.variables ?? {}) },
     },
   })
-  useReportDirty(form.formState.isDirty || promptVariablesDirty, onDirtyChange)
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    const fields = {
-      ...pickDirtyFields(values, form.formState.dirtyFields),
-      ...(promptVariablesDirty && {
-        variables: variablesPayload(promptVariables),
-      }),
-    }
-    if (Object.keys(fields).length === 0) return
-    await dispatch(updateAgentSettingsGeneral({ agentId: agent.id, fields })).unwrap()
-    // Back to the stored values until the refetch re-seeds the tab (it remounts on the
-    // new updatedAt), so the dirty state clears with the save.
-    form.reset(values)
-    setPromptVariables({ ...(agentSettings.variables ?? {}) })
+  const { onSubmit } = useAutosave({
+    form,
+    saveControl,
+    save: async ({ changed }) => {
+      const fields = { ...changed }
+      if ("variables" in changed) fields.variables = variablesPayload(changed.variables ?? {})
+      await dispatch(updateAgentSettingsGeneral({ agentId: agent.id, fields })).unwrap()
+    },
   })
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -144,25 +130,22 @@ export function GeneralTab({
         />
 
         {showPromptVariables && (
-          <PromptVariablesEditor
-            title={t("agentSettings:promptVariables.title")}
-            description={t("agentSettings:promptVariables.description")}
-            fields={declaredPromptVariables.map((name) => ({
-              name,
-              value: promptVariables[name] ?? "",
-            }))}
-            onChange={setPromptVariables}
+          <FormField
+            control={form.control}
+            name="variables"
+            render={({ field }) => (
+              <PromptVariablesEditor
+                title={t("agentSettings:promptVariables.title")}
+                description={t("agentSettings:promptVariables.description")}
+                fields={declaredPromptVariables.map((name) => ({
+                  name,
+                  value: field.value?.[name] ?? "",
+                }))}
+                onChange={field.onChange}
+              />
+            )}
           />
         )}
-
-        <TabSaveButton
-          isSubmitting={form.formState.isSubmitting}
-          isDirty={form.formState.isDirty || promptVariablesDirty}
-          onCancel={() => {
-            form.reset()
-            setPromptVariables({ ...(agentSettings.variables ?? {}) })
-          }}
-        />
       </form>
     </Form>
   )

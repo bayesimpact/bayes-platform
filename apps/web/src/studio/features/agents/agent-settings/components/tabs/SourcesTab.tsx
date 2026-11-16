@@ -43,10 +43,9 @@ import {
   useResourceLibraries,
 } from "@/studio/features/resource-libraries/resource-libraries.helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
+import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
 import { AgentTabLink } from "./AgentTabLink"
 import { AgentTabSectionHeader } from "./AgentTabSectionHeader"
-import { TabSaveButton } from "./TabSaveButton"
 
 function DocumentTagBadge({
   tagId,
@@ -88,7 +87,7 @@ function DocumentTagBadge({
  */
 export function SourcesTab({
   agentSettings,
-  onDirtyChange,
+  saveControl,
   onOpenModelTab,
 }: AgentTabFormProps & { onOpenModelTab: () => void }) {
   const { t } = useTranslation()
@@ -103,34 +102,38 @@ export function SourcesTab({
 
   const form = useForm<UpdateAgentSettingsSourcesFormDto>({
     resolver: zodResolver(updateAgentSettingsSourcesFormSchema),
+    shouldFocusError: false,
     defaultValues: {
       documentsRagMode: agentSettings.documentsRagMode,
       documentTagIds: agentSettings.documentTagIds,
       resourceLibraryIds: agentSettings.resourceLibraryIds,
     },
   })
-  useReportDirty(form.formState.isDirty, onDirtyChange)
+  const { onSubmit } = useAutosave({
+    form,
+    saveControl,
+    save: async ({ values, previous }) => {
+      // Against the last save, not the `agentSettings` prop: the prop is refetched after each
+      // save and can lag one save behind.
+      const savedTagIds = previous.documentTagIds
+      const tagsToAdd = values.documentTagIds.filter((id) => !savedTagIds.includes(id))
+      const tagsToRemove = savedTagIds.filter((id) => !values.documentTagIds.includes(id))
+      await dispatch(
+        updateAgentSettingsSources({
+          agentId: agentSettings.agentId,
+          fields: { ...values, tagsToAdd, tagsToRemove },
+        }),
+      ).unwrap()
+    },
+  })
 
   // useWatch (not watch) so this component re-renders on changes — the React Compiler memoizes
   // children, so a form-root re-render would not otherwise reach the conditional tag field.
   const documentsRagMode = useWatch({ control: form.control, name: "documentsRagMode" })
 
-  const handleSubmit = form.handleSubmit(async (values) => {
-    const originalTagIds = agentSettings.documentTagIds
-    const tagsToAdd = values.documentTagIds.filter((id) => !originalTagIds.includes(id))
-    const tagsToRemove = originalTagIds.filter((id) => !values.documentTagIds.includes(id))
-    await dispatch(
-      updateAgentSettingsSources({
-        agentId: agentSettings.agentId,
-        fields: { ...values, tagsToAdd, tagsToRemove },
-      }),
-    ).unwrap()
-    form.reset(values)
-  })
-
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <section className="space-y-4 rounded-lg border p-4">
           <AgentTabSectionHeader
             title={t("agentSettings:sources.documents.title")}
@@ -258,12 +261,6 @@ export function SourcesTab({
             )}
           />
         </section>
-
-        <TabSaveButton
-          isSubmitting={form.formState.isSubmitting}
-          isDirty={form.formState.isDirty}
-          onCancel={() => form.reset()}
-        />
       </form>
     </Form>
   )

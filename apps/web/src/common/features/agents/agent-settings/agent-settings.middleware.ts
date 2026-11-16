@@ -53,7 +53,8 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: restoreAgentSettings.fulfilled,
     effect: async (_, listenerApi) => {
-      refresh({ listenerApi })
+      // The thunk already reloaded the agent's settings.
+      listenerApi.dispatch(listAgents({ includeDrafts: true }))
 
       listenerApi.dispatch(
         notificationsActions.show({
@@ -104,15 +105,9 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     actionCreator: updateAgentSettings.fulfilled,
+    // No success notification: the editor saves by itself and shows the state of the save.
     effect: async (_, listenerApi) => {
       refresh({ listenerApi })
-
-      listenerApi.dispatch(
-        notificationsActions.show({
-          titleKey: "agentSettings:notifications.updated",
-          type: "success",
-        }),
-      )
     },
   })
   listenerMiddleware.startListening({

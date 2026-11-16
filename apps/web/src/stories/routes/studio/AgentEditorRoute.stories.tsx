@@ -89,9 +89,8 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
     duplicateOne: async () => {
       throw new Error("duplicateOne is not supported in this story")
     },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
+    // The editor saves the name by itself: the story accepts the save and keeps its seeded data.
+    updateOne: async () => ({ success: true }),
     deleteOne: async () => {
       throw new Error("deleteOne is not supported in this story")
     },
@@ -110,9 +109,9 @@ function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): I
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
     },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
+    // The editor saves each change by itself: the story accepts the save and keeps its seeded
+    // data, so the forms must hold what the user typed.
+    updateOne: async () => ({ success: true }),
   }
 }
 function buildMockProjectEmbeddingModelsService(
@@ -285,6 +284,13 @@ export const ConversationAgent: Story = {
             seed.studio.documentTags(documentTags),
             seed.studio.resourceLibraries(resourceLibraries),
             seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
+            // The Orchestration tab reads the settings of each agent it offers as a sub-agent.
+            ...childAgents.map((childAgent) =>
+              seed.studio.agentHistory({
+                agentId: childAgent.id,
+                versions: [agentSettingsFactory.transient({ agent: childAgent }).build()],
+              }),
+            ),
             // The agent layout above the editor lists the agent's conversations.
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),

@@ -122,10 +122,16 @@
       "title": "Unsaved changes",
       "description": "You have unsaved changes that will be lost. Do you want to discard them?"
     },
+    "autosave": {
+      "hint": "Changes save automatically to the draft",
+      "saving": "Saving…",
+      "saved": "Draft saved",
+      "unsaved": "Unsaved changes"
+    },
     "create": {
       "button": "Save version",
       "noDraft": "No draft to create. Save a change first to create a new draft version.",
-      "unsavedChanges": "Save or discard your changes before publishing.",
+      "unsavedChanges": "Some changes are not saved yet.",
       "optional": "Optional",
       "props": {
         "revisionName": "Version name",
@@ -287,7 +293,6 @@
       "versionRestoreError": "Agent version restore failed",
       "versionPublished": "Agent version published successfully",
       "versionPublishError": "Agent version publication failed",
-      "updated": "Agent updated successfully",
       "updateError": "Agent update failed",
       "embedConfigUpdated": "Embed config updated successfully",
       "embedConfigUpdateError": "Failed to update embed config",

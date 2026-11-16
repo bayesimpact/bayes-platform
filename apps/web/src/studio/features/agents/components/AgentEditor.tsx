@@ -1,22 +1,27 @@
 import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
 import { AlertTriangleIcon } from "lucide-react"
-import { type ReactNode, useMemo, useState } from "react"
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useBlocker } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import { selectAgentSettingsRestoreCount } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
 import { useValue } from "@/common/hooks/use-value"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
+import { useAppSelector } from "@/common/store/hooks"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
 import { EmbedTab } from "@/studio/features/agents/agent-settings/components/tabs/EmbedTab"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
+import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
 import { AgentSettingsCreateButton } from "../agent-settings/components/AgentSettingsCreateButton"
 import { AgentSettingsHistory } from "../agent-settings/components/AgentSettingsHistory"
+import type { TabSaveState } from "../agent-settings/components/agent-tab-autosave"
+import type { TabSaveControl } from "../agent-settings/components/agent-tab-form.shared"
 import { GeneralTab } from "../agent-settings/components/tabs/GeneralTab"
 import { McpServersTab } from "../agent-settings/components/tabs/McpServersTab"
 import { ModelTab } from "../agent-settings/components/tabs/ModelTab"
@@ -44,19 +49,30 @@ export const agentEditorTabKeys = [
 ] as const
 export type TabKey = (typeof agentEditorTabKeys)[number]
 
-type DirtyHandler = (dirty: boolean) => void
-/** Switches tab, asking first when the current one has unsaved changes. */
-type OpenTab = (tab: TabKey) => void
+type TabContext = {
+  /** For a tab that saves by itself. */
+  saveControl: TabSaveControl
+  /** For a tab that saves with a button. */
+  onDirtyChange: (dirty: boolean) => void
+  /** Switches tab, once the current one is saved. */
+  openTab: (tab: TabKey) => void
+}
 type TabConfig = {
   value: TabKey
   label: string
-  render: (onDirtyChange: DirtyHandler, openTab: OpenTab) => ReactNode
+  /** The tab writes to the draft and saves by itself: the editor shows the state of its save. */
+  autosave?: boolean
+  render: (context: TabContext) => ReactNode
 }
 
 /**
  * Agent editor. Each tab is a self-contained form that owns its own save (see the per-tab
- * components). Only the active tab is mounted, so leaving a tab discards its edits; we prompt
- * with a ConfirmDialog before switching tabs or navigating away while a tab has unsaved changes.
+ * components). The tabs that write to the draft save by themselves, a short pause after each
+ * change. The tabs whose changes go live at once (orchestration, embed) keep a Save button.
+ *
+ * Only the active tab is mounted. Before the editor switches tab or lets the user navigate
+ * away, it saves what waits in the active tab. It prompts with a ConfirmDialog only for changes
+ * that cannot be saved: an invalid value, a failed save, or a tab with a Save button.
  */
 export function AgentEditor({
   agent,
@@ -73,7 +89,7 @@ export function AgentEditor({
   orchestration?: AgentEditorOrchestration
   /** Which tab to open on (defaults to "general"). Deep links pass the `?tab=` param through. */
   defaultTab?: TabKey
-  /** Reports whether the active tab has unsaved changes, e.g. to disable a publish action. */
+  /** Reports whether the active tab holds changes the draft does not have yet, e.g. to disable a publish action. */
   onDirtyChange?: (dirty: boolean) => void
   /**
    * Shows the History and Save version buttons next to the tabs. For a page whose header has no
@@ -92,17 +108,19 @@ export function AgentEditor({
       {
         value: "general",
         label: t("agentSettings:tabs.general"),
-        render: (onDirtyChange) => (
-          <GeneralTab agent={agent} agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        autosave: true,
+        render: ({ saveControl }) => (
+          <GeneralTab agent={agent} agentSettings={agentSettings} saveControl={saveControl} />
         ),
       },
       {
         value: "model",
         label: t("agentSettings:tabs.model"),
-        render: (onDirtyChange, openTab) => (
+        autosave: true,
+        render: ({ saveControl, openTab }) => (
           <ModelTab
             agentSettings={agentSettings}
-            onDirtyChange={onDirtyChange}
+            saveControl={saveControl}
             onOpenSourcesTab={isConversation ? () => openTab("sources") : undefined}
           />
         ),
@@ -115,10 +133,11 @@ export function AgentEditor({
       list.push({
         value: "sources",
         label: t("agentSettings:tabs.sources"),
-        render: (onDirtyChange, openTab) => (
+        autosave: true,
+        render: ({ saveControl, openTab }) => (
           <SourcesTab
             agentSettings={agentSettings}
-            onDirtyChange={onDirtyChange}
+            saveControl={saveControl}
             onOpenModelTab={() => openTab("model")}
           />
         ),
@@ -127,8 +146,9 @@ export function AgentEditor({
       list.push({
         value: "tools",
         label: t("agentSettings:tabs.tools"),
-        render: (onDirtyChange) => (
-          <ToolsTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        autosave: true,
+        render: ({ saveControl }) => (
+          <ToolsTab agentSettings={agentSettings} saveControl={saveControl} />
         ),
       })
 
@@ -136,8 +156,9 @@ export function AgentEditor({
         list.push({
           value: "categories",
           label: t("agentSettings:tabs.categories"),
-          render: (onDirtyChange) => (
-            <SessionCategoriesTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+          autosave: true,
+          render: ({ saveControl }) => (
+            <SessionCategoriesTab agentSettings={agentSettings} saveControl={saveControl} />
           ),
         })
       }
@@ -146,7 +167,7 @@ export function AgentEditor({
         list.push({
           value: "orchestration",
           label: t("agentSettings:tabs.orchestration"),
-          render: (onDirtyChange) => (
+          render: ({ onDirtyChange }) => (
             <OrchestrationTab
               agent={agent}
               availableAgents={orchestration.agents}
@@ -161,7 +182,7 @@ export function AgentEditor({
         list.push({
           value: "embed",
           label: t("agentSettings:tabs.embed"),
-          render: (onDirtyChange) => <EmbedTab onDirtyChange={onDirtyChange} />,
+          render: ({ onDirtyChange }) => <EmbedTab onDirtyChange={onDirtyChange} />,
         })
       }
     }
@@ -170,8 +191,9 @@ export function AgentEditor({
       list.push({
         value: "output",
         label: t("agentSettings:tabs.output"),
-        render: (onDirtyChange) => (
-          <OutputTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        autosave: true,
+        render: ({ saveControl }) => (
+          <OutputTab agentSettings={agentSettings} saveControl={saveControl} />
         ),
       })
     }
@@ -201,17 +223,42 @@ export function AgentEditor({
     active: defaultTab ?? "general",
     pending: null,
   })
-  const [dirty, setDirty] = useState(false)
+  const [saveState, setSaveState] = useState<TabSaveState>("saved")
+  // The active tab puts here how to save now what waits for its pause.
+  const flushRef = useRef<(() => void) | null>(null)
+  // A restore replaces the settings under the forms: they reload on it.
+  const restoreCount = useAppSelector(selectAgentSettingsRestoreCount)
 
-  const handleDirtyChange = (next: boolean) => {
-    setDirty(next)
-    onDirtyChange?.(next)
-  }
+  const handleSaveStateChange = useCallback(
+    (next: TabSaveState) => {
+      setSaveState(next)
+      onDirtyChange?.(next !== "saved")
+    },
+    [onDirtyChange],
+  )
+  const handleDirtyChange = useCallback(
+    (dirty: boolean) => handleSaveStateChange(dirty ? "unsaved" : "saved"),
+    [handleSaveStateChange],
+  )
 
   // Browser-level leave (refresh / close tab); in-app navigation is handled by the blocker below.
-  usePreventLeave(dirty)
-  const blocker = useBlocker(dirty)
+  usePreventLeave(saveState !== "saved")
+  const blocker = useBlocker(saveState !== "saved")
   const isLeavingEditor = blocker.state === "blocked"
+  const isLeaving = nav.pending !== null || isLeavingEditor
+
+  // The user asked to leave the tab while it held changes. Save them now, then let the user go.
+  // Changes that cannot be saved stay: the dialog below asks whether to drop them.
+  useEffect(() => {
+    if (!isLeaving) return
+    if (saveState === "saving") {
+      flushRef.current?.()
+      return
+    }
+    if (saveState === "unsaved") return
+    if (nav.pending) setNav({ active: nav.pending, pending: null })
+    else blocker.proceed?.()
+  }, [isLeaving, saveState, nav.pending, blocker])
 
   const activeTab = tabs.find((tab) => tab.value === nav.active) ?? tabs[0]
 
@@ -219,17 +266,17 @@ export function AgentEditor({
 
   const requestTabChange = (next: string) => {
     if (next === nav.active) return
-    if (dirty) {
-      setNav((prev) => ({ ...prev, pending: next as TabKey }))
-    } else {
+    if (saveState === "saved") {
       setNav({ active: next as TabKey, pending: null })
+    } else {
+      setNav((prev) => ({ ...prev, pending: next as TabKey }))
     }
   }
 
   const handleConfirm = () => {
     if (nav.pending) {
       setNav({ active: nav.pending, pending: null })
-      handleDirtyChange(false)
+      handleSaveStateChange("saved")
     } else if (isLeavingEditor) {
       blocker.proceed?.()
     }
@@ -254,28 +301,44 @@ export function AgentEditor({
               </TabsTrigger>
             ))}
           </TabsList>
-          {showVersionActions && (
-            <ButtonGroup>
-              <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
-              <AgentSettingsCreateButton agentSettings={agentSettings} hasUnsavedChanges={dirty} />
-            </ButtonGroup>
-          )}
+          <div className="flex flex-wrap items-center gap-4">
+            {activeTab.autosave && (
+              <AgentEditorSaveStatus
+                state={saveState}
+                hasDraft={agentSettings.isDraft}
+                onRetry={() => flushRef.current?.()}
+              />
+            )}
+            {showVersionActions && (
+              <ButtonGroup>
+                <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
+                <AgentSettingsCreateButton
+                  agentSettings={agentSettings}
+                  hasUnsavedChanges={saveState !== "saved"}
+                />
+              </ButtonGroup>
+            )}
+          </div>
         </div>
-        {/* Also keyed on the revision and updatedAt so the active tab form reloads fresh defaults
-            after a version is restored from the history sheet. Restoring over an existing draft
-            keeps the same revision (the draft is overwritten in place), so revision alone is not
-            enough to detect it. */}
+        {/* Also keyed on the restore count so the active tab form reloads fresh defaults after a
+            version is restored from the history sheet. The key must not follow the settings
+            themselves (revision, updatedAt): each automatic save changes them, and a reload
+            would take the focus away from the field the user is typing in. */}
         <TabsContent
-          key={`${activeTab.value}-${agentSettings.revision}-${agentSettings.updatedAt}`}
+          key={`${activeTab.value}-${restoreCount}`}
           value={activeTab.value}
           className="mt-4"
         >
-          {activeTab.render(handleDirtyChange, requestTabChange)}
+          {activeTab.render({
+            saveControl: { onStateChange: handleSaveStateChange, flushRef },
+            onDirtyChange: handleDirtyChange,
+            openTab: requestTabChange,
+          })}
         </TabsContent>
       </Tabs>
 
       <ConfirmDialog
-        open={nav.pending !== null || isLeavingEditor}
+        open={isLeaving && saveState === "unsaved"}
         title={t("agentSettings:unsavedChanges.title")}
         description={t("agentSettings:unsavedChanges.description")}
         confirmLabel={t("actions:discard")}

@@ -122,10 +122,16 @@
       "title": "Modifications non enregistrées",
       "description": "Vous avez des modifications non enregistrées qui seront perdues. Voulez-vous les abandonner ?"
     },
+    "autosave": {
+      "hint": "Les modifications s'enregistrent automatiquement dans le brouillon",
+      "saving": "Enregistrement…",
+      "saved": "Brouillon enregistré",
+      "unsaved": "Modifications non enregistrées"
+    },
     "create": {
       "button": "Enregistrer la version",
       "noDraft": "Aucun brouillon à créer. Enregistrez une modification pour créer une nouvelle version brouillon.",
-      "unsavedChanges": "Enregistrez ou annulez vos modifications avant de publier.",
+      "unsavedChanges": "Des modifications ne sont pas encore enregistrées.",
       "optional": "Facultatif",
       "props": {
         "revisionName": "Nom de la version",
@@ -287,7 +293,6 @@
       "versionRestoreError": "La restauration de la version de l'agent a échoué",
       "versionPublished": "Version de l'agent publiée avec succès",
       "versionPublishError": "La publication de la version de l'agent a échoué",
-      "updated": "Agent mis à jour avec succès",
       "updateError": "La mise à jour de l'agent a échoué",
       "embedConfigUpdated": "Configuration d'intégration mise à jour avec succès",
       "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
