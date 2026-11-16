@@ -95,7 +95,7 @@ export function buildComparison(
 /**
  * Two-pane version explorer: revision timeline on the left, comparison on the right.
  * `initialRevision` preselects a revision — used when the explorer is opened from a
- * revision badge rather than from the editor's history button.
+ * revision badge rather than from the editor's versions button.
  */
 export function AgentSettingsExplorer({ initialRevision }: { initialRevision?: number }) {
   const agentId = useCurrentId(selectCurrentAgentId)

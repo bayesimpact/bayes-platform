@@ -82,7 +82,6 @@
     },
     "playground": "Playground",
     "notifications": {
-      "updated": "Agent mis à jour avec succès",
       "updateError": "La mise à jour de l'agent a échoué",
       "deleted": "Agent supprimé avec succès",
       "deleteError": "La suppression de l'agent a échoué",
@@ -90,6 +89,15 @@
       "createError": "La création de l'agent a échoué",
       "duplicated": "Agent dupliqué en brouillon",
       "duplicateError": "La duplication de l'agent a échoué"
+    },
+    "evaluationCard": {
+      "description": "Mesurez les réponses de l'agent sur un jeu de données.",
+      "open": "Ouvrir l'évaluation dans un nouvel onglet"
+    },
+    "productionAppCard": {
+      "description": "L'agent tel que ses utilisateurs le voient, dans sa version publiée.",
+      "open": "Ouvrir l'application dans un nouvel onglet",
+      "badge": "Production"
     }
   }
 }

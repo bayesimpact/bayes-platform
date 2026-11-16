@@ -9,6 +9,12 @@
  * Tool name, Tool description), AgentTabSaveButton.tsx (actions:save). Labels are
  * verbatim from the agent / actions locales (EN + FR). Uses the PRODUCT (coral)
  * palette, pinned locally. Derived 2026-07-16.
+ *
+ * Re-derived 2026-11-16: the agent page opens the editor with Edit (AgentActions.tsx); the
+ * editor is a page of its own (AgentEditorPageView.tsx) where Orchestration sits under "More";
+ * it is not part of the draft, so it opens in a full-page sheet with Cancel and Save
+ * (AgentEditorSheet.tsx, OrchestrationSheet.tsx) and asks for a confirmation before it applies
+ * in production.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -32,18 +38,37 @@ const STRINGS = {
     add: "Add", remove: "Remove", enabled: "Enabled", disabled: "Disabled",
     toolName: "Tool name", toolNamePlaceholder: "ask_specialist_agent", description: "Tool description",
     save: "Save",
+    back: "Back", more: "More", manage: "Manage versions", draftSaved: "Draft saved",
+    secGeneral: "General", secModel: "Model", secSources: "Sources", secTools: "Tools", secCategories: "Conversation categories",
+    secMcpServers: "MCP Servers", secOrchestration: "Orchestration", secEmbed: "Embed",
+    liveNotice: "These settings are not part of the draft: they apply in production as soon as you save.",
+    cancel: "Cancel", close: "Close",
+    confirmTitle: "Apply these settings now?",
+    confirmPre: "These settings do not go through the draft: they apply to the agent ", confirmStrong: "in production", confirmPost: " as soon as you save.",
+    agentType: "Conversation", edit: "Edit", verBadge: "v3",
+    newChat: "New Chat", newChatDesc: "Start a chat with your agent.",
+    feedback: "Feedback", feedbackDesc: "Manage feedback on agent messages.",
+    goToApp: "App", production: "Production", appDesc: "The agent as its users see it, in its published version.",
+    goToEval: "Evaluation", evalDesc: "Measure the agent's answers on a dataset.",
+    membersCard: "Members", membersCardDesc: "Everyone who can use this agent, and the roles they hold on it.",
+    nameLabel: "Name", greetingLabel: "Greeting", greetingValue: "Hi! How can I help you today?", greetingCount: "29 / 2,000 characters",
+    instructionsLabel: "Instructions", instructionsCount: "63 characters",
+    instructionsValue: "You are a helpful assistant. Answer concisely and cite sources.",
+    editTitleShort: "Edit Conversation Agent",
     subA: "Billing Assistant", subAInstr: "Answers billing and invoice questions.",
     subB: "Feedback Form", subBInstr: "Collects structured feedback from users.",
     subToolName: "ask_billing_assistant", subToolDesc: "Route specialized requests to Billing Assistant.",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
-      "In Studio, open a conversation agent to edit it.",
-      "Open the Orchestration tab — it appears only for conversation agents.",
-      "With no sub-agents, the agent answers on its own. This is the starting point.",
+      "In Studio, open the conversation agent that will delegate.",
+      "On the agent's page, click Edit.",
+      "In the editor's menu, under More, click Orchestration.",
+      "It opens in a full page. With no sub-agents, the agent answers on its own.",
       "Under Available conversation agents, click Add to delegate to an agent.",
-      "Set the sub-agent's Tool name and Tool description — the model reads these to decide when to delegate.",
+      "Set the sub-agent's Tool name and Tool description. The model reads them to decide when to delegate.",
       "Toggle Enabled to turn a sub-agent on or off, or Remove it with the trash icon.",
-      "Click Save to store the orchestration setup.",
+      "Click Save. Orchestration is not part of the draft: it applies in production.",
+      "Confirm with Save in Apply these settings now? The sub-agents apply at once.",
     ],
   },
   fr: {
@@ -64,46 +89,60 @@ const STRINGS = {
     add: "Ajouter", remove: "Retirer", enabled: "Activé", disabled: "Désactivé",
     toolName: "Nom de l'outil", toolNamePlaceholder: "ask_specialist_agent", description: "Description de l'outil",
     save: "Enregistrer",
+    back: "Retour", more: "Plus", manage: "Gérer les versions", draftSaved: "Brouillon enregistré",
+    secGeneral: "Général", secModel: "Modèle", secSources: "Sources", secTools: "Outils", secCategories: "Catégories de conversation",
+    secMcpServers: "Serveurs MCP", secOrchestration: "Orchestration", secEmbed: "Intégration",
+    liveNotice: "Ces réglages ne font pas partie du brouillon : ils s'appliquent en production dès que vous enregistrez.",
+    cancel: "Annuler", close: "Fermer",
+    confirmTitle: "Appliquer ces réglages maintenant ?",
+    confirmPre: "Ces réglages ne passent pas par le brouillon : ils s'appliquent à l'agent ", confirmStrong: "en production", confirmPost: " dès l'enregistrement.",
+    agentType: "Conversation", edit: "Modifier", verBadge: "v3",
+    newChat: "Nouvelle discussion", newChatDesc: "Démarrez une discussion avec votre agent.",
+    feedback: "Retours utilisateurs", feedbackDesc: "Gérez les retours sur les messages de l'agent.",
+    goToApp: "Application", production: "Production", appDesc: "L'agent tel que ses utilisateurs le voient, dans sa version publiée.",
+    goToEval: "Évaluation", evalDesc: "Mesurez les réponses de l'agent sur un jeu de données.",
+    membersCard: "Membres", membersCardDesc: "Les personnes qui peuvent utiliser cet agent, et leurs rôles sur cet agent.",
+    nameLabel: "Nom", greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Comment puis-je vous aider aujourd’hui ?", greetingCount: "50 / 2\u202f000 caractères",
+    instructionsLabel: "Instructions", instructionsCount: "77 caractères",
+    instructionsValue: "Vous êtes un assistant utile. Répondez de façon concise et citez vos sources.",
+    editTitleShort: "Modifier l'agent conversationnel",
     subA: "Billing Assistant", subAInstr: "Répond aux questions de facturation.",
     subB: "Feedback Form", subBInstr: "Recueille des retours structurés des utilisateurs.",
     subToolName: "ask_billing_assistant", subToolDesc: "Transmettre les demandes spécialisées à Billing Assistant.",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
-      "Dans Studio, ouvrez un agent conversationnel pour le modifier.",
-      "Ouvrez l'onglet Orchestration — il n'apparaît que pour les agents conversationnels.",
-      "Sans sous-agent, l'agent répond seul. C'est le point de départ.",
+      "Dans Studio, ouvrez l'agent conversationnel qui va déléguer.",
+      "Sur la page de l'agent, cliquez sur Modifier.",
+      "Dans le menu de l'éditeur, sous Plus, cliquez sur Orchestration.",
+      "Elle s'ouvre en pleine page. Sans sous-agent, l'agent répond seul.",
       "Sous Agents conversationnels disponibles, cliquez sur Ajouter pour déléguer à un agent.",
-      "Réglez le Nom de l'outil et la Description de l'outil du sous-agent — le modèle les lit pour décider quand déléguer.",
-      "Basculez Activé pour activer/désactiver un sous-agent, ou Retirez-le avec l'icône corbeille.",
-      "Cliquez sur Enregistrer pour sauvegarder la configuration d'orchestration.",
+      "Réglez le Nom de l'outil et la Description de l'outil du sous-agent. Le modèle les lit pour décider quand déléguer.",
+      "Basculez Activé pour activer ou désactiver un sous-agent, ou retirez-le avec l'icône corbeille.",
+      "Cliquez sur Enregistrer. L'orchestration ne fait pas partie du brouillon : elle s'applique en production.",
+      "Confirmez avec Enregistrer dans Appliquer ces réglages maintenant ? Les sous-agents s'appliquent aussitôt.",
     ],
   },
 } as const
 
 const s = STRINGS[lang]
 
-const TABS = [
-  { key: "general", label: s.tabGeneral },
-  { key: "model", label: s.tabModel },
-  { key: "sources", label: s.tabSources },
-  { key: "categories", label: s.tabCategories },
-  { key: "orchestration", label: s.tabOrchestration },
-  { key: "embed", label: s.tabEmbed },
-]
 
 const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
 const formIcon = '<path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/>'
 
 const steps = [
-  { page: "overview", spot: "navAgent1", observe: [] },
-  { page: "orchEmpty", spot: "tab-orchestration", observe: [] },
-  { page: "orchEmpty", spot: "", observe: ["obsEmpty"] },
-  { page: "orchEmpty", spot: "btnAdd", observe: [] },
-  { page: "orchFilled", spot: "", observe: ["obsFields"] },
-  { page: "orchFilled", spot: "", observe: ["obsRow"] },
-  { page: "orchFilled", spot: "btnSave", observe: [] },
+  { page: "overview", sec: "", spot: "navAgent1", observe: [] },
+  { page: "agentPage", sec: "", spot: "btnEdit", observe: [] },
+  { page: "editorGeneral", sec: "general", spot: "sec-orchestration", observe: [] },
+  { page: "sheetEmpty", sec: "general", spot: "", observe: ["obsEmpty"] },
+  { page: "sheetEmpty", sec: "general", spot: "btnAdd", observe: [] },
+  { page: "sheetFilled", sec: "general", spot: "", observe: ["obsFields"] },
+  { page: "sheetFilled", sec: "general", spot: "", observe: ["obsRow"] },
+  { page: "sheetFilled", sec: "general", spot: "btnSave", observe: [] },
+  { page: "confirmSave", under: "sheetFilled", sec: "general", spot: "btnConfirmSave", observe: ["obsConfirmSave"] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
+const titles = { general: s.secGeneral }
 const labels = { prev: s.prev, next: s.next, step: s.step }
 ---
 
@@ -136,10 +175,29 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       </div>
     </aside>
 
+    <!-- The agent editor's own menu, in place of the Studio sidebar -->
+    <aside class="esb">
+      <span class="ebk"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> {s.back}</span>
+      <div class="agent-id"><b><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agentName}</span></b><small>{s.editTitleShort}</small></div>
+      <div class="esb-list">
+        <div class="navitem" data-sec="general" id="sec-general"><svg viewBox="0 0 24 24"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg><span>{s.secGeneral}</span></div>
+        <div class="navitem" data-sec="model" id="sec-model"><svg viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>{s.secModel}</span></div>
+        <div class="navitem" data-sec="sources" id="sec-sources"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.secSources}</span></div>
+        <div class="navitem" data-sec="tools" id="sec-tools"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg><span>{s.secTools}</span></div>
+        <div class="navitem" data-sec="categories" id="sec-categories"><svg viewBox="0 0 24 24"><path d="M13.172 2a2 2 0 0 1 1.414.586l6.71 6.71a2.4 2.4 0 0 1 0 3.408l-4.592 4.592a2.4 2.4 0 0 1-3.408 0l-6.71-6.71A2 2 0 0 1 6 9.172V3a1 1 0 0 1 1-1z"/><path d="M2 7v6.172a2 2 0 0 0 .586 1.414l6.71 6.71a2.4 2.4 0 0 0 3.191.193"/><circle cx="10.5" cy="6.5" r=".5" fill="currentColor"/></svg><span>{s.secCategories}</span></div>
+        <div class="grp-more">{s.more}</div>
+        <div class="navitem" data-sec="mcpServers" id="sec-mcpServers"><svg viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg><span>{s.secMcpServers}</span></div>
+        <div class="navitem" id="sec-orchestration"><svg viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg><span>{s.secOrchestration}</span><svg class="ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+        <div class="navitem" id="sec-embed"><svg viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg><span>{s.secEmbed}</span><svg class="ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+      <div class="esb-foot"><span class="btn wide" id="btnManage"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> {s.manage}</span></div>
+    </aside>
+
     <!-- Main inset -->
     <div class="inset">
       <div class="topbar">
         <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+        <span class="etop"><span class="sec" data-sectitle></span><span class="status" id="obsStatus"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> {s.draftSaved}</span></span>
       </div>
       <div class="canvas">
         <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
@@ -156,15 +214,43 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- editor: Orchestration — empty (steps 2-4) -->
-        <div class="page" data-page="orchEmpty">
-          <div class="page-head">
+        <!-- the agent's page: Edit with its version, the More menu, then the cards -->
+        <div class="page" data-page="agentPage">
+          <div class="page-head ap-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+            <span><span class="ttl">{s.agentName}</span><span class="desc ic"><span>{s.agentType}</span> <svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg></span></span>
+            <span class="ap-acts"><span class="btn outline" id="btnEdit"><svg viewBox="0 0 24 24"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> {s.edit} <span class="vbadge">{s.verBadge}</span></span><span class="btn outline icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span></span>
           </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "orchestration" && "on"]} id={tb.key === "orchestration" ? "tab-orchestration" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody">
+          <div class="cards3">
+            <div class="ecard muted"><b>{s.newChat}</b><p>{s.newChatDesc}</p><span class="btn sm">{s.newChat} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+            <div class="ecard"><b>{s.feedback}</b><p>{s.feedbackDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.goToApp} <span class="vbadge">{s.production}</span></b><p>{s.appDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+            <div class="ecard"><b>{s.goToEval}</b><p>{s.evalDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+            <div class="ecard"><b>{s.membersCard}</b><p>{s.membersCardDesc}</p><span class="gobtn" id="btnMembersCard"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- the agent editor, open on General -->
+        <div class="page" data-page="editorGeneral">
+          <div class="eform">
+            <div class="grid2"><div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agentName}</span></div></div>
+            <div class="fld"><p class="lbl">{s.greetingLabel}<span class="count">{s.greetingCount}</span></p><span class="textarea mono">{s.greetingValue}</span></div>
+            <div class="fld"><p class="lbl">{s.instructionsLabel}<span class="count">{s.instructionsCount}</span></p><span class="textarea mono grow">{s.instructionsValue}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orchestration, empty (steps 4 and 5): a full-page sheet outside the draft, with Cancel and Save -->
+    <div class="page full" data-page="sheetEmpty">
+      <div class="esheet">
+        <div class="es-head">
+          <span><b>{s.tabOrchestration}</b><p>{s.liveNotice}</p></span>
+          <span class="es-acts"><span class="btn outline">{s.close}</span><span class="btn disabled" id="btnSaveIdle">{s.save}</span></span>
+          <span class="closex"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+        </div>
+        <div class="es-body">
+          <div class="es-inner">
               <p class="lbl" style="margin-top:0">{s.selectedTitle}</p>
               <div class="empty" id="obsEmpty">
                 <span class="empty-ic"><svg viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></span>
@@ -184,20 +270,21 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                   <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
                 </div>
               </div>
-            </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- editor: Orchestration — one sub-agent (steps 5-7) -->
-        <div class="page" data-page="orchFilled">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "orchestration" && "on"]}>{tb.label}</span>)}</div>
-            <div class="tabbody">
+    <!-- Orchestration, one sub-agent (steps 6 to 9): a full-page sheet outside the draft, with Cancel and Save -->
+    <div class="page full" data-page="sheetFilled">
+      <div class="esheet">
+        <div class="es-head">
+          <span><b>{s.tabOrchestration}</b><p>{s.liveNotice}</p></span>
+          <span class="es-acts"><span class="btn outline">{s.cancel}</span><span class="btn" id="btnSave">{s.save}</span></span>
+          <span class="closex"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+        </div>
+        <div class="es-body">
+          <div class="es-inner">
               <p class="lbl" style="margin-top:0">{s.selectedTitle}</p>
               <div class="sa-card">
                 <div class="sa-head" id="obsRow">
@@ -221,10 +308,17 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                   <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
                 </div>
               </div>
-            </div>
-            <div class="editor-foot"><span class="btn" id="btnSave">{s.save}</span></div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- the confirmation before the settings apply in production -->
+    <div class="page full" data-page="confirmSave">
+      <div class="scrim"></div>
+      <div class="cmodal" id="obsConfirmSave">
+        <div><b>{s.confirmTitle}</b><p>{s.confirmPre}<strong>{s.confirmStrong}</strong>{s.confirmPost}</p></div>
+        <div class="cm-foot"><span class="btn outline">{s.cancel}</span><span class="btn" id="btnConfirmSave">{s.save}</span></div>
       </div>
     </div>
   </div>
@@ -240,7 +334,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   <div class="progress"><i data-bar></i></div>
 </div>
 
-<script define:vars={{ steps, labels }}>
+<script define:vars={{ steps, labels, titles }}>
   const cs = document.currentScript
   const orw =
     cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("orw")
@@ -271,15 +365,21 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   }
   function render() {
     const step = steps[idx]
-    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page || p.dataset.page === step.under)))
+
+    // The agent editor is a page of its own: its menu takes the place of the Studio sidebar.
+    // A sheet and its confirmation sit over it, so the editor stays visible beneath them.
+    const inEditor = /^(editor|sheet|confirm)/.test(step.page)
+    orw.querySelector(".shell").classList.toggle("in-editor", inEditor)
+    orw.querySelectorAll("[data-sec]").forEach((item) => item.classList.toggle("on", item.dataset.sec === step.sec))
+    orw.querySelector("[data-sectitle]").textContent = titles[step.sec] || ""
     dots.forEach((d, i) => d.classList.toggle("on", i === idx))
     stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
     capText.textContent = step.text
 
-    // Actions have consequences: once the editor is open, the edited agent is the
-    // active item in the AGENTS sidebar list.
-    const editing = step.page.indexOf("orch") === 0
-    q("#navAgent1")?.classList.toggle("on", editing)
+    // Actions have consequences: once the agent is open, it is the active item in the
+    // AGENTS sidebar list.
+    q("#navAgent1")?.classList.toggle("on", step.page !== "overview")
 
     clearMarks()
     const active = idx
@@ -444,6 +544,78 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .orw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
   .orw .progress i.run { animation: orw-fill var(--dur, 6000ms) linear forwards; }
   @keyframes orw-fill { to { width: 100%; } }
+
+  .orw .btn.wide { width: 100%; justify-content: center; }
+  .orw .ecard.muted { background: color-mix(in oklab, var(--muted) 35%, var(--card)); }
+  /* The agent editor: a page of its own, with its menu in place of the Studio sidebar */
+  .orw { --warn-bg: oklch(0.962 0.059 95.617); --warn-fg: oklch(0.476 0.114 61.907); }
+  .orw .shell { position: relative; }
+  .orw .esb { display: none; flex-direction: column; gap: 0.5rem; padding: 0.5rem; min-height: 0; }
+  .orw .shell.in-editor .sb { display: none; }
+  .orw .shell.in-editor .esb { display: flex; }
+  .orw .ebk { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.4rem 0.55rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; }
+  .orw .agent-id { display: flex; flex-direction: column; gap: 0.15rem; padding: 0 0.5rem 0.3rem; }
+  .orw .agent-id b { display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; font-weight: 600; min-width: 0; }
+  .orw .agent-id b span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .orw .agent-id small { font-size: 0.74rem; color: var(--muted-foreground); }
+  .orw .esb-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .orw .esb .navitem svg { color: currentColor; }
+  .orw .esb .navitem .ext { margin-left: auto; font-size: 0.85rem; color: var(--muted-foreground); }
+  .orw .grp-more { font-size: 0.7rem; color: var(--muted-foreground); font-weight: 500; padding: 0.7rem 0.5rem 0.2rem; }
+  .orw .esb-foot { border-top: 1px solid var(--sidebar-border); padding: 0.6rem 0.2rem 0.2rem; }
+  .orw .etop { display: none; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
+  .orw .shell.in-editor .trig { display: none; }
+  .orw .shell.in-editor .etop { display: flex; }
+  .orw .shell.in-editor .canvas { background: var(--background); }
+  .orw .shell.in-editor .fab { display: none; }
+  .orw .etop .sec { font-size: 1.05rem; font-weight: 600; }
+  .orw .status { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 999px; padding: 0.25rem 0.7rem; font-size: 0.78rem; font-weight: 500; background: var(--warn-bg); color: var(--warn-fg); white-space: nowrap; }
+  .orw .page .editor { border: 0; padding: 0; background: transparent; max-width: 40rem; margin: 0 auto; }
+  .orw .eform { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
+  .orw .count { font-weight: 400; color: var(--muted-foreground); margin-left: 0.3rem; }
+  .orw .lbl-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .orw .textarea.grow { min-height: 7rem; }
+  .orw .toolcard { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.45rem; }
+  .orw .tc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
+  .orw .tc-head b { font-size: 0.82rem; font-weight: 500; display: block; }
+  .orw .tc-head .hint { margin-top: 0.15rem; }
+  .orw .page.full { padding: 0; z-index: 9; }
+  .orw .esheet { position: absolute; inset: 0; background: var(--card); color: var(--foreground); display: flex; flex-direction: column; }
+  .orw .es-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.7rem; padding: 0.9rem 3rem 0.9rem 1.1rem; border-bottom: 1px solid var(--border); position: relative; }
+  .orw .es-head b { font-size: 1rem; font-weight: 600; }
+  .orw .es-head p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.25rem 0 0; max-width: 30rem; }
+  .orw .es-head .closex { position: absolute; right: 1rem; top: 1rem; color: var(--muted-foreground); }
+  .orw .es-acts { display: flex; gap: 0.4rem; }
+  .orw .es-body { flex: 1; min-height: 0; overflow: auto; padding: 1rem 1.2rem; }
+  .orw .es-inner { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.6rem; }
+  .orw .page.full .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .orw .cmodal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(400px, 86%); background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; display: flex; flex-direction: column; gap: 0.8rem; }
+  .orw .cmodal b { font-size: 0.98rem; font-weight: 600; }
+  .orw .cmodal p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .orw .cmodal p strong { color: var(--foreground); font-weight: 600; }
+  .orw .cm-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+  @media (max-width: 640px) {
+    .orw .shell.in-editor .esb { display: none; }
+  }
+
+  .orw .hint { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+  .orw .sect { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.6rem 0.75rem; }
+  .orw .sect-ttl { margin: 0; font-weight: 600; }
+
+  /* The agent's page */
+  .orw .ap-head { align-items: center; }
+  .orw .ap-acts { margin-left: auto; display: inline-flex; }
+  .orw .ap-acts .btn { border-radius: 0; }
+  .orw .ap-acts .btn:first-child { border-radius: 8px 0 0 8px; }
+  .orw .ap-acts .btn:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+  .orw .ap-acts .btn.icon { padding: 0.4rem 0.5rem; }
+  .orw .desc.ic { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .orw .vbadge { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.02rem 0.45rem; font-size: 0.68rem; font-weight: 600; background: oklch(0.962 0.044 156.743); color: oklch(0.448 0.119 151.328); }
+  .orw .gobtn { margin-top: auto; align-self: flex-start; width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 999px; display: inline-grid; place-items: center; color: var(--foreground); background: var(--background); }
+  .orw .ecard b { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; }
+  .orw .cards3 .ecard p { font-size: 0.74rem; line-height: 1.4; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+
+  .orw .btn.disabled { opacity: 0.5; }
 
   @media (max-width: 640px) {
     .orw .shell { grid-template-columns: 1fr; height: 560px; }

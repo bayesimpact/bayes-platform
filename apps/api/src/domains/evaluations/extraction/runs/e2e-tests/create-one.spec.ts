@@ -119,9 +119,11 @@ describe("EvaluationExtractionRuns - createOne", () => {
     await expectActivityCreated("evaluationExtractionRun.create")
   })
 
-  it("should pin the latest published agent settings revision on the run when agentSettingsRevision is null", async () => {
-    const { organization, project, dataset, agent } = await createContext()
+  it("should pin the agent settings revision in production on the run when agentSettingsRevision is null", async () => {
+    const { organization, project, dataset, agent, agentSettings } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, { isProduction: false })
     const newerSettings = agentSettingsFactory
+      .production()
       .transient({ organization, project, agent })
       .build({ revision: 2, instructions: "Newer helpful assistant instructions" })
     await repositories.agentSettingsRepository.save(newerSettings)

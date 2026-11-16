@@ -72,9 +72,8 @@ function buildMockAgentsService(listAgents: () => Agent[]): IAgentsSpi {
     duplicateOne: async () => {
       throw new Error("duplicateOne is not supported in this story")
     },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
+    // The editor saves the name by itself: the story accepts the save and keeps its seeded data.
+    updateOne: async () => ({ success: true }),
     deleteOne: async () => {
       throw new Error("deleteOne is not supported in this story")
     },
@@ -266,11 +265,18 @@ export const ConversationAgent: Story = {
             seed.studio.documentTags(documentTags),
             seed.studio.resourceLibraries(resourceLibraries),
             seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
+            // The Orchestration sheet reads the settings of each agent it offers as a sub-agent.
+            ...childAgents.map((childAgent) =>
+              seed.studio.agentHistory({
+                agentId: childAgent.id,
+                versions: [agentSettingsFactory.transient({ agent: childAgent }).build()],
+              }),
+            ),
             // The agent layout above the editor lists the agent's conversations.
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
             seed.studio.projectEmbeddingModels(embeddingModels),
-            // Embedding is on, so the Embed tab shows its snippet, links and public API.
+            // Embedding is on, so the Embed sheet shows its snippet, links and public API.
             seed.studio.agentEmbedConfig(
               agentEmbedConfigFactory
                 .transient({ agent: rawParentAgent })
@@ -324,7 +330,7 @@ export const ToolsTabWithFollowUpQuestions: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const toolsTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Tools" },
       { timeout: 10_000 },
     )
@@ -344,7 +350,7 @@ export const ModelTabWithEmbeddingModels: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const modelTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Model" },
       { timeout: 10_000 },
     )
@@ -480,7 +486,7 @@ export const SourcesTab: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const sourcesTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Sources" },
       { timeout: 10_000 },
     )
@@ -500,7 +506,7 @@ function withHelpCenterUrl(helpCenterUrl: string | undefined) {
 }
 
 /**
- * The Embed tab with embedding on: activation, appearance, the widget snippet, the public page
+ * The Embed sheet with embedding on: activation, appearance, the widget snippet, the public page
  * and the public API. The deployment has a help center, so the widget guide and the API
  * reference are linked.
  */
@@ -511,24 +517,25 @@ export const EmbedTab: Story = {
   decorators: ConversationAgent.decorators,
   beforeEach: withHelpCenterUrl("https://help.example.org"),
   play: async ({ canvasElement }) => {
-    const embedTab = await within(canvasElement).findByRole(
-      "tab",
+    // Embed is not a tab: its button opens the full-page sheet.
+    const embedButton = await within(canvasElement).findByRole(
+      "button",
       { name: "Embed" },
       { timeout: 10_000 },
     )
-    await userEvent.click(embedTab)
+    await userEvent.click(embedButton)
   },
 }
 
-/** The same tab on a deployment without a help center: no links to the guide and the reference. */
+/** The same sheet on a deployment without a help center: no links to the guide and the reference. */
 export const EmbedTabWithoutHelpCenter: Story = {
   ...EmbedTab,
   beforeEach: withHelpCenterUrl(undefined),
 }
 
 /**
- * An extraction agent, as it opens right after its creation: one History and Save version bar,
- * in the page header. The tabs bar adds none of its own.
+ * An extraction agent, as it opens right after its creation: the same editor page as a
+ * conversation agent, with one entry to its versions.
  */
 export const ExtractionAgent: Story = {
   // An extraction agent has no sources, tools, sub-agents or embedding models.
@@ -582,7 +589,7 @@ export const ExtractionAgent: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await canvas.findByRole("tab", { name: "Output" }, { timeout: 10_000 })
-    await expect(canvas.getAllByRole("button", { name: /history/i })).toHaveLength(1)
+    await canvas.findByRole("button", { name: "Output" }, { timeout: 10_000 })
+    await expect(canvas.getAllByRole("button", { name: /versions/i })).toHaveLength(1)
   },
 }

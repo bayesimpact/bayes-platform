@@ -10,6 +10,7 @@ import type {
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+import { getApiErrorMessage } from "@/common/utils/api-error"
 import { updateAgent } from "@/studio/features/agents/agents.thunks"
 import { selectCurrentAgentData } from "../agents.selectors"
 import type { AgentSettings } from "./agent-settings.models"
@@ -30,12 +31,15 @@ export const listAgentSettingsWithDraft = createAsyncThunk<
 
 export const restoreAgentSettings = createAsyncThunk<void, { revision: number }, ThunkConfig>(
   "agentSettings/restoreOne",
-  async ({ revision }, { extra: { services }, getState }) => {
+  async ({ revision }, { dispatch, extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const agentId = getCurrentId({ state, name: "agentId" })
     await services.agentSettings.restoreOne({ organizationId, projectId, agentId, revision })
+    // The editor reloads its forms when the restore is fulfilled: the restored settings must be
+    // in the store by then.
+    await dispatch(listAgentSettingsWithDraft({ agentId }))
   },
 )
 
@@ -72,32 +76,41 @@ export const createAgentSettings = createAsyncThunk<
   )
 })
 
+// The tab thunks below unwrap this one: the editor saves by itself and must know when a save
+// failed, to keep the change marked as unsaved. It rejects with the API's own message, so the
+// editor can say why (a category that conversations already use, for example).
 export const updateAgentSettings = createAsyncThunk<
   void,
   { agentId: string; fields: PartialUpdateAgentSettingsDto },
-  ThunkConfig
->("agentSettings/updateOne", async (payload, { extra: { services }, getState }) => {
-  const state = getState()
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  const params = { organizationId, projectId, agentId: payload.agentId }
+  ThunkConfig & { rejectValue: string }
+>(
+  "agentSettings/updateOne",
+  async (payload, { extra: { services }, getState, rejectWithValue }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId, agentId: payload.agentId }
 
-  await services.agentSettings.updateOne(params, payload.fields)
-})
+    try {
+      await services.agentSettings.updateOne(params, payload.fields)
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
+  },
+)
 
 export const updateAgentSettingsGeneral = createAsyncThunk<
   void,
   { agentId: string; fields: Partial<UpdateAgentSettingsGeneralDto> },
   ThunkConfig
 >("agentSettings/updateGeneral", async ({ agentId, fields }, { dispatch }) => {
-  if (fields.name) {
-    dispatch(updateAgent({ agentId, name: fields.name }))
-  }
-  delete fields.name // name is not part of agent settings, so we remove it before sending to the API
+  // The name belongs to the agent, not to its settings: it has its own endpoint.
+  const { name, ...settingsFields } = fields
+  if (name) await dispatch(updateAgent({ agentId, name })).unwrap()
 
-  if (Object.keys(fields).length === 0) return
+  if (Object.keys(settingsFields).length === 0) return
 
-  await dispatch(updateAgentSettings({ agentId, fields }))
+  await dispatch(updateAgentSettings({ agentId, fields: settingsFields })).unwrap()
 })
 
 export const updateAgentSettingsModel = createAsyncThunk<
@@ -105,7 +118,7 @@ export const updateAgentSettingsModel = createAsyncThunk<
   { agentId: string; fields: Partial<UpdateAgentSettingsModelDto> },
   ThunkConfig
 >("agentSettings/updateModel", async ({ agentId, fields }, { dispatch }) => {
-  await dispatch(updateAgentSettings({ agentId, fields }))
+  await dispatch(updateAgentSettings({ agentId, fields })).unwrap()
 })
 
 export const updateAgentSettingsOutput = createAsyncThunk<
@@ -113,7 +126,7 @@ export const updateAgentSettingsOutput = createAsyncThunk<
   { agentId: string; fields: UpdateAgentSettingsOutputDto },
   ThunkConfig
 >("agentSettings/updateOutput", async ({ agentId, fields }, { dispatch }) => {
-  await dispatch(updateAgentSettings({ agentId, fields }))
+  await dispatch(updateAgentSettings({ agentId, fields })).unwrap()
 })
 
 export const updateAgentSettingsSources = createAsyncThunk<
@@ -121,7 +134,7 @@ export const updateAgentSettingsSources = createAsyncThunk<
   { agentId: string; fields: UpdateAgentSettingsSourcesDto },
   ThunkConfig
 >("agentSettings/updateSources", async ({ agentId, fields }, { dispatch }) => {
-  await dispatch(updateAgentSettings({ agentId, fields }))
+  await dispatch(updateAgentSettings({ agentId, fields })).unwrap()
 })
 
 export const updateAgentSettingsTools = createAsyncThunk<
@@ -129,7 +142,7 @@ export const updateAgentSettingsTools = createAsyncThunk<
   { agentId: string; fields: UpdateAgentSettingsToolsDto },
   ThunkConfig
 >("agentSettings/updateTools", async ({ agentId, fields }, { dispatch }) => {
-  await dispatch(updateAgentSettings({ agentId, fields }))
+  await dispatch(updateAgentSettings({ agentId, fields })).unwrap()
 })
 
 export const updateAgentSettingsCategories = createAsyncThunk<
@@ -137,7 +150,7 @@ export const updateAgentSettingsCategories = createAsyncThunk<
   { agentId: string; fields: UpdateAgentSettingsCategoriesDto },
   ThunkConfig
 >("agentSettings/updateCategories", async ({ agentId, fields }, { dispatch }) => {
-  await dispatch(updateAgentSettings({ agentId, fields }))
+  await dispatch(updateAgentSettings({ agentId, fields })).unwrap()
 })
 
 export const getFillFormOutputJsonSchema = createAsyncThunk<

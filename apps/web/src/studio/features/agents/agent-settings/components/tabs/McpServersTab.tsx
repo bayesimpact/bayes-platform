@@ -29,6 +29,7 @@ import {
   enableMcpServerForAgent,
 } from "@/studio/features/mcp-servers/mcp-servers.thunks"
 import { StudioRoutes } from "@/studio/routes/helpers"
+import { LiveSettingNotice } from "../LiveSettingNotice"
 
 export type AgentMcpServerDisplay = {
   id: string
@@ -92,6 +93,7 @@ export function McpServersTab({
           <ExternalLinkIcon className="size-3.5" />
         </Link>
       </div>
+      <LiveSettingNotice />
       <ItemGroup className="gap-3">
         {mcpServers.map((server) => (
           <Item key={server.id} variant="outline">

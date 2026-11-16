@@ -52,6 +52,49 @@ describe("selectAgentSettingsDataByAgentId", () => {
       selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true })(state).value,
     ).toBe(draft)
   })
+
+  // The agents list and the history load with two requests. After a save that creates or
+  // deletes the draft, one is ahead of the other for a moment: the editor must stay on screen.
+  it("reads the published revision while the agents list still names a deleted draft", () => {
+    const agent = agentFactory
+      .transient({ project })
+      .build({ currentRevision: { number: 1 }, draftRevision: { number: 2 } })
+    const published = agentSettingsFactory.transient({ agent }).build({ revision: 1 })
+    const state = buildState(agent, [published])
+
+    const selected = selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true })(
+      state,
+    )
+
+    expect(selected.status).toBe(ADS.Fulfilled)
+    expect(selected.value).toBe(published)
+  })
+
+  it("reads the new draft while the agents list does not name it yet", () => {
+    const agent = agentFactory.transient({ project }).build({ currentRevision: { number: 1 } })
+    const published = agentSettingsFactory.transient({ agent }).build({ revision: 1 })
+    const draft = agentSettingsFactory.transient({ agent }).build({ revision: 2, isDraft: true })
+    const state = buildState(agent, [draft, published])
+
+    expect(
+      selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true })(state).value,
+    ).toBe(draft)
+    expect(selectAgentSettingsDataByAgentId({ agentId: agent.id })(state).value).toBe(published)
+  })
+
+  it("reads the production revision, and the newest saved one for the editor", () => {
+    const agent = agentFactory.transient({ project }).build({ currentRevision: { number: 1 } })
+    const production = agentSettingsFactory
+      .transient({ agent })
+      .build({ revision: 1, isProduction: true })
+    const newestSaved = agentSettingsFactory.transient({ agent }).build({ revision: 2 })
+    const state = buildState(agent, [newestSaved, production])
+
+    expect(selectAgentSettingsDataByAgentId({ agentId: agent.id })(state).value).toBe(production)
+    expect(
+      selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true })(state).value,
+    ).toBe(newestSaved)
+  })
 })
 
 describe("selectPlaygroundAgentSettings", () => {

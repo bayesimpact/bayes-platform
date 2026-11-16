@@ -1,5 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { AgentSessionReviewCampaignContextModule } from "@/common/context/agent-session-review-campaign-context.module"
 import { AgentSettingsModule } from "@/domains/agents/settings/agent-settings.module"
 import { PdfPagesModule } from "@/domains/documents/pdf-pages/pdf-pages.module"
 import { McpServersModule } from "@/domains/mcp-servers/mcp-servers.module"
@@ -36,6 +37,7 @@ import { ConversationReviewService } from "./review/conversation-review.service"
     McpServersModule,
     PdfPagesModule,
     RbacModule,
+    AgentSessionReviewCampaignContextModule,
     AgentConversationReviewersModule,
   ],
   providers: [

@@ -197,6 +197,7 @@ describe("buildTools", () => {
         documentsRagMode: DocumentsRagMode.None,
         embeddingModel: testAgentSettings.embeddingModel,
         revision: 1,
+        isProduction: true,
       }),
     )
     await agentSubAgentRepository.save(
@@ -257,6 +258,7 @@ describe("buildTools", () => {
     const _childAgentSettings = await agentSettingsRepository.save(
       agentSettingsRepository.create(
         agentSettingsFactory
+          .production()
           .transient({ organization: testOrganization, project: testProject, agent: childAgent })
           .build({
             instructions: "Answer benefits questions",
@@ -291,7 +293,7 @@ describe("buildTools", () => {
     expect(toolDescriptions.benefits_specialist).toBe("Answer benefit eligibility questions.")
   })
 
-  it("should only expose the sub-agents that have a published revision", async () => {
+  it("should only expose the sub-agents that have a revision in production", async () => {
     const {
       agentRepository,
       agentSettingsRepository,
@@ -313,10 +315,10 @@ describe("buildTools", () => {
       featureFlagKey: "agent-orchestration",
     })
     const scope = { organization: testOrganization, project: testProject }
-    // A published child, a fresh copy with only a draft, and a child whose only published
+    // A child in production, a fresh copy with only a draft, and a child whose only saved
     // revision was archived under a draft.
     const children = [
-      { toolName: "published_helper", revisions: [{ revision: 1 }] },
+      { toolName: "published_helper", revisions: [{ revision: 1, isProduction: true }] },
       { toolName: "draft_copy", revisions: [{ revision: 1, isDraft: true }] },
       {
         toolName: "archived_helper",

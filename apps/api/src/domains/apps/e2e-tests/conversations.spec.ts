@@ -98,7 +98,7 @@ describe("Apps - Conversations", () => {
     const agent = agentFactory.transient({ organization, project }).build(overrides)
     await repositories.agentRepository.save(agent)
     await repositories.agentSettingsRepository.save(
-      agentSettingsFactory.transient({ organization, project, agent }).build(),
+      agentSettingsFactory.production().transient({ organization, project, agent }).build(),
     )
     return agent
   }

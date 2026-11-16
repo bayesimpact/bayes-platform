@@ -9,11 +9,29 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Agent instructions: an advanced mode shows the instructions as a diff with the published version and edits them there.
+
 ### Changed
+
+- Agent editor: settings save to the draft automatically, and the editor shows the save status or why a save failed.
+- Agent editor: conversation and extraction agents open in the same full-page editor, with its own menu.
+- Agent version history: the full-screen history lists the changed fields, saves the draft as a version and restores a version.
+- Agent drafts: a draft with the same settings as the published version is deleted.
+- Agent instructions and greeting: both fields show a character count, and the greeting shows its limit of 2,000 characters.
+- Agent page: the page shows the version in edit, the members, the evaluation app and the production app.
+- Studio sidebar: the agent list marks the agents that have a draft.
+- (beta) Agent orchestration and embed: these settings apply in production and keep an explicit save with a confirmation.
+- (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
 
 ### Fixed
 
+- (beta) Interactive cards (MCP Apps): a tool call that failed no longer shows a card.
+
 ### Security
+
+- Review campaigns: testers reach a test conversation only while they are testers of its campaign and that campaign is active.
+- (beta) Interactive cards (MCP Apps): each card runs in its own isolated frame, limited to the domains it declares.
+- (beta) Public chat API 1.5: the HTML of an interactive card comes with the domains the card declares (`csp`).
 
 ## [26.11.2] - 2026-11-16
 

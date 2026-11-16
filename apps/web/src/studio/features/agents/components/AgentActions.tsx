@@ -1,15 +1,14 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ExternalLinkIcon, PenLineIcon, ShieldCheckIcon, UsersIcon } from "lucide-react"
+import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
+import { Settings2Icon, ShieldCheckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCanReviewConversationsOfAgent } from "@/common/features/me/me.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
-import { DeskRoutes } from "@/common/routes/desk-routes"
 import { useAppSelector } from "@/common/store/hooks"
-import { EvalRoutes } from "@/eval/routes/helpers"
-import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
-import { AgentDuplicatorWithTrigger } from "@/studio/features/agents/components/AgentDuplicator"
+import { AgentMoreActions } from "@/studio/features/agents/components/AgentMoreActions"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
@@ -19,20 +18,10 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
     projectId: agent.projectId,
     agentId: agent.id,
   })
-  const isExtractionAgent = agent.type === "extraction"
   // Safety review is granted agent by agent, whatever the caller's role on the agent.
   const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
   return (
     <>
-      {isExtractionAgent && (
-        <NavEvaluation organizationId={organizationId} projectId={agent.projectId} />
-      )}
-
-      {/* The app only lists published agents: a fresh copy appears there once published. */}
-      {agent.currentRevision && (
-        <NavApp organizationId={organizationId} projectId={agent.projectId} agentId={agent.id} />
-      )}
-
       {canReviewConversations && (
         <NavConversationReview
           organizationId={organizationId}
@@ -42,71 +31,17 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
       )}
 
       {canManageAgent && (
-        <>
-          <NavAgentMemberships
+        <ButtonGroup>
+          <NavAgentEdit organizationId={organizationId} agent={agent} />
+
+          <AgentMoreActions
             organizationId={organizationId}
-            projectId={agent.projectId}
-            agentId={agent.id}
+            agent={agent}
+            canDuplicate={canDuplicateAgent}
           />
-
-          {agent.type !== "extraction" && (
-            <NavAgentEdit
-              organizationId={organizationId}
-              projectId={agent.projectId}
-              agentId={agent.id}
-            />
-          )}
-
-          {canDuplicateAgent && (
-            <AgentDuplicatorWithTrigger organizationId={organizationId} agent={agent} />
-          )}
-
-          <AgentDeletorWithTrigger organizationId={organizationId} agent={agent} />
-        </>
+        </ButtonGroup>
       )}
     </>
-  )
-}
-
-function NavApp({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) {
-  const { t } = useTranslation()
-  const deskAgentPath = DeskRoutes.agent.build({ organizationId, projectId, agentId })
-  return (
-    <Button variant="secondary" asChild>
-      <a target="_blank" rel="noopener noreferrer" href={deskAgentPath}>
-        <ExternalLinkIcon />
-        {t("actions:goToApp")}
-      </a>
-    </Button>
-  )
-}
-
-function NavEvaluation({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-  const { abilities } = useAbility()
-  if (!abilities.canAccessEvaluation({ projectId })) return null
-  const extractionPath = EvalRoutes.extraction.build({ organizationId, projectId })
-  return (
-    <Button variant="secondary" asChild>
-      <a target="_blank" rel="noopener noreferrer" href={extractionPath}>
-        <ExternalLinkIcon />
-        {t("actions:goToEval")}
-      </a>
-    </Button>
   )
 }
 
@@ -130,44 +65,30 @@ function NavConversationReview({
   )
 }
 
-function NavAgentEdit({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) {
+/**
+ * Opens the agent editor. It says what the editor will open on: the draft when the agent has
+ * one (or was never published), the published version otherwise.
+ */
+function NavAgentEdit({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const editPath = StudioRoutes.agentEdit.build({ organizationId, projectId, agentId })
-  const handleClick = () => navigate(editPath)
+  const editPath = StudioRoutes.agentEdit.build({
+    organizationId,
+    projectId: agent.projectId,
+    agentId: agent.id,
+  })
+  const hasDraft = agent.draftRevision !== undefined || agent.currentRevision === undefined
   return (
-    <Button variant="outline" onClick={handleClick}>
-      <PenLineIcon />
+    <Button variant="outline" onClick={() => navigate(editPath)}>
+      <Settings2Icon />
       {t("actions:edit")}
-    </Button>
-  )
-}
-
-function NavAgentMemberships({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const path = StudioRoutes.agentMemberships.build({ organizationId, projectId, agentId })
-  const handleClick = () => navigate(path)
-  return (
-    <Button variant="outline" size="lg" onClick={handleClick}>
-      <UsersIcon />
-      {t("agentMembership:members")}
+      {hasDraft ? (
+        <Badge variant="warning">{t("status:draft")}</Badge>
+      ) : (
+        <Badge variant="success">
+          {t("agentSettings:history.revisionBadge", { revision: agent.currentRevision?.number })}
+        </Badge>
+      )}
     </Button>
   )
 }

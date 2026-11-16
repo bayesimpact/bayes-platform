@@ -5,9 +5,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { Trash2Icon } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@caseai-connect/ui/shad/dropdown-menu"
+import { EllipsisIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -16,6 +21,10 @@ import { RouteNames } from "@/common/routes/helpers"
 import { useAppDispatch } from "@/common/store/hooks"
 import { deleteProject } from "@/studio/features/projects/projects.thunks"
 
+/**
+ * The "More" menu of the project page: it holds Delete, kept out of the header's first row,
+ * and the dialog that confirms it.
+ */
 export function ProjectDeletor({ project }: { project: Project }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -31,28 +40,39 @@ export function ProjectDeletor({ project }: { project: Project }) {
   const handleDelete = () => dispatch(deleteProject({ onSuccess }))
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Trash2Icon />
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("project:delete.title")}</DialogTitle>
-          <DialogDescription>
-            {t("project:delete.description", { name: project.name })}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            {t("actions:cancel")}
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon" aria-label={t("actions:more")}>
+            <EllipsisIcon />
           </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            {t("actions:confirm")}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem variant="destructive" onSelect={() => setOpen(true)}>
+            <Trash2Icon />
+            {t("actions:delete")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("project:delete.title")}</DialogTitle>
+            <DialogDescription>
+              {t("project:delete.description", { name: project.name })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              {t("actions:cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              {t("actions:confirm")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

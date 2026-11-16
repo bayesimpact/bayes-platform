@@ -99,3 +99,38 @@ export function requiresUpdateAgentSettings({
   }
   return false
 }
+
+/**
+ * Whether two revisions hold the same settings. Every field is compared by value: two revisions
+ * read from the database never share their objects (form schema, model options, variables).
+ */
+export function hasSameAgentSettings(
+  first: Partial<AgentSettingsUpdateFields>,
+  second: Partial<AgentSettingsUpdateFields>,
+): boolean {
+  return agentSettingsFieldKeys.every((key) =>
+    isSameJsonValue(first[key] ?? null, second[key] ?? null),
+  )
+}
+
+/** Deep equality of two JSON values. The order of an object's keys does not count. */
+function isSameJsonValue(first: unknown, second: unknown): boolean {
+  if (first === second) return true
+  if (typeof first !== "object" || typeof second !== "object" || !first || !second) return false
+  if (Array.isArray(first) || Array.isArray(second)) {
+    return (
+      Array.isArray(first) &&
+      Array.isArray(second) &&
+      first.length === second.length &&
+      first.every((item, index) => isSameJsonValue(item, second[index]))
+    )
+  }
+  const firstEntries = Object.entries(first)
+  const secondRecord = second as Record<string, unknown>
+  return (
+    firstEntries.length === Object.keys(second).length &&
+    firstEntries.every(
+      ([key, value]) => key in secondRecord && isSameJsonValue(value, secondRecord[key]),
+    )
+  )
+}

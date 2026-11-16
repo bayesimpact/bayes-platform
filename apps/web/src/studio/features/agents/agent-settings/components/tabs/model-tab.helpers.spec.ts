@@ -10,7 +10,7 @@ import { organizationFactory } from "@/common/features/organizations/organizatio
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import {
   buildModelTabDefaultValues,
-  buildModelTabSubmit,
+  buildModelTabFields,
   defaultModelOptions,
   modelOptionsForPickedModel,
 } from "./model-tab.helpers"
@@ -82,7 +82,7 @@ describe("buildModelTabDefaultValues", () => {
   })
 })
 
-describe("buildModelTabSubmit", () => {
+describe("buildModelTabFields", () => {
   const values: UpdateAgentSettingsModelDto = {
     model: AgentModel.Gemini35Flash,
     providerOptions: { temperature: 1, ...thinkingOptions("medium") },
@@ -92,48 +92,35 @@ describe("buildModelTabSubmit", () => {
 
   it("saves only the fields the user changed", () => {
     expect(
-      buildModelTabSubmit({
+      buildModelTabFields({
         values,
-        dirtyFields: { model: true },
+        changed: { model: values.model },
         priorityCallsAvailable: true,
       }),
-    ).toEqual({ fields: { model: AgentModel.Gemini35Flash }, resetValues: values })
-  })
-
-  it("saves the model options once the user changed one of them", () => {
-    expect(
-      buildModelTabSubmit({
-        values,
-        dirtyFields: { providerOptions: { temperature: true } },
-        priorityCallsAvailable: true,
-      }).fields,
-    ).toEqual({ providerOptions: values.providerOptions })
+    ).toEqual({ model: AgentModel.Gemini35Flash })
   })
 
   it("switches the priority tier off when the picked model cannot offer it", () => {
     const withPriority = { ...values, model: AgentModel.Gemini25Flash, priorityCallsEnabled: true }
 
     expect(
-      buildModelTabSubmit({
+      buildModelTabFields({
         values: withPriority,
-        dirtyFields: { model: true },
+        changed: { model: withPriority.model },
         priorityCallsAvailable: false,
       }),
-    ).toEqual({
-      fields: { model: AgentModel.Gemini25Flash, priorityCallsEnabled: false },
-      resetValues: { ...withPriority, priorityCallsEnabled: false },
-    })
+    ).toEqual({ model: AgentModel.Gemini25Flash, priorityCallsEnabled: false })
   })
 
-  it("keeps the priority tier when the picked model offers it", () => {
+  it("keeps the priority tier on when the model offers it", () => {
     const withPriority = { ...values, priorityCallsEnabled: true }
 
     expect(
-      buildModelTabSubmit({
+      buildModelTabFields({
         values: withPriority,
-        dirtyFields: { priorityCallsEnabled: true },
+        changed: { model: withPriority.model },
         priorityCallsAvailable: true,
       }),
-    ).toEqual({ fields: { priorityCallsEnabled: true }, resetValues: withPriority })
+    ).toEqual({ model: withPriority.model })
   })
 })

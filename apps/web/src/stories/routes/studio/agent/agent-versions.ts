@@ -146,9 +146,9 @@ export function buildAgentVersionsBackend(initial: { agent: Agent; versions: Age
     restoreOne: async () => {
       throw new Error("restoreOne is not supported in this story")
     },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
+    // The editor saves each change by itself: the story accepts the save and keeps its seeded
+    // data, so the forms must hold what the user typed.
+    updateOne: async () => ({ success: true }),
   }
 
   return { agentSettings, getAgent: () => agent, getVersions: () => versions }

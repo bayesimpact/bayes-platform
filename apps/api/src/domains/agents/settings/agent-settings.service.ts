@@ -8,6 +8,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   extractAgentSettingsUpdateFields,
+  hasSameAgentSettings,
   requiresUpdateAgentSettings,
 } from "@/domains/agents/settings/agent.settings.functions"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -381,8 +382,12 @@ export class AgentSettingsService {
             }),
           },
         })
-      )
-        return last
+      ) {
+        // Nothing to write. A draft that already equals the newest saved revision still goes
+        // away: restoring that revision over such a draft must leave none.
+        if (!last.isDraft) return last
+        return (await this.discardDraftWithoutChanges({ connectScope, draft: last })) ?? last
+      }
 
       isDraft = last.isDraft
       if (isDraft) revision = last.revision
@@ -419,7 +424,8 @@ export class AgentSettingsService {
       if (!updated) {
         throw new NotFoundException(`AgentSettings with id ${last.id} not found`)
       }
-      return updated
+      const latestSaved = await this.discardDraftWithoutChanges({ connectScope, draft: updated })
+      return latestSaved ?? updated
     } else {
       return await this.agentSettingsConnectRepository.createAndSave(connectScope, {
         ...(previousSettings ?? {}),
@@ -429,6 +435,49 @@ export class AgentSettingsService {
         isDraft: true,
       })
     }
+  }
+
+  /**
+   * Deletes a draft that holds the same settings as the newest saved revision, and returns that
+   * revision: an edit the author took back, or a restore of that revision, leaves no draft behind.
+   * The newest saved revision is the one the draft was copied from and the one the editor shows
+   * once the draft is gone, whichever revision is in production: comparing with an older
+   * production revision would delete a restore of it and bring the newer settings back.
+   *
+   * What ran on the draft (a playground session, a run) moves to that revision first: it holds
+   * the same settings, and deleting the draft would otherwise delete those sessions with it. The
+   * draft stays when the agent was never saved: it is its only revision.
+   */
+  private async discardDraftWithoutChanges({
+    connectScope,
+    draft,
+  }: {
+    connectScope: RequiredConnectScope
+    draft: AgentSettings
+  }): Promise<AgentSettings | undefined> {
+    const latestSaved = await this.agentSettingsRepository.findLatestSaved(
+      connectScope,
+      draft.agentId,
+    )
+    if (!latestSaved || !hasSameAgentSettings(latestSaved, draft)) return undefined
+
+    // One unit: the lock on the draft holds back a session that starts on it and another edit
+    // of it, so nothing can point at the draft between the move and the delete, and what the
+    // comparison reads is what the delete acts on.
+    const isDeleted = await this.transactionService.run(async () => {
+      const lockedDraft = await this.agentSettingsRepository.findDraftForUpdate(
+        connectScope,
+        draft.id,
+      )
+      if (!lockedDraft || !hasSameAgentSettings(latestSaved, lockedDraft)) return false
+      await this.agentSettingsRepository.moveRunsToRevision({
+        fromAgentSettingsId: lockedDraft.id,
+        toAgentSettingsId: latestSaved.id,
+      })
+      await this.agentSettingsRepository.deleteDraft(connectScope, lockedDraft.id)
+      return true
+    })
+    return isDeleted ? latestSaved : undefined
   }
 
   async updateAllSettings({

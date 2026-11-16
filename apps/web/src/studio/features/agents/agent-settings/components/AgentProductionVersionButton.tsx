@@ -18,8 +18,23 @@ import { AgentSettingsHistorySheet } from "./AgentSettingsHistorySheet"
  *
  * The label comes from the agent itself, so everyone sees it. The history is only loaded for
  * managers: others get the label alone.
+ *
+ * `onOpenHistory` hands the click to a history the caller already owns (the agent editor gates
+ * it on its pending saves), instead of the button's own. `className` sizes it to its place.
+ * `stacked` puts the version number on its own line, larger, with the version's name and
+ * description under it: the agent editor's sidebar has the height for it, not the width.
  */
-export function AgentProductionVersionButton({ agent }: { agent: Agent }) {
+export function AgentProductionVersionButton({
+  agent,
+  onOpenHistory,
+  className,
+  stacked = false,
+}: {
+  agent: Agent
+  onOpenHistory?: () => void
+  className?: string
+  stacked?: boolean
+}) {
   const { t } = useTranslation()
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
@@ -31,13 +46,34 @@ export function AgentProductionVersionButton({ agent }: { agent: Agent }) {
   const production = agent.currentRevision
   if (!production) {
     return (
-      <span className="inline-flex h-9 items-center rounded-md border border-dashed border-amber-400 px-3 text-sm font-medium text-amber-800">
+      <span
+        className={cn(
+          "inline-flex h-9 items-center rounded-md border border-dashed border-amber-400 px-3 text-sm font-medium text-amber-800",
+          className,
+        )}
+      >
         {t("agentSettings:production.none")}
       </span>
     )
   }
 
-  const label = (
+  const name = production.name?.trim()
+  const description = production.description?.trim()
+  const label = stacked ? (
+    <span className="flex min-w-0 flex-col items-start gap-0.5 text-left">
+      <span className="flex items-center gap-2">
+        <ProductionDot />
+        {t("agentSettings:production.badge")}
+        <span className="text-base font-semibold">v{production.number}</span>
+      </span>
+      {name && <span className="w-full truncate font-medium">{name}</span>}
+      {description && (
+        <span className="line-clamp-2 w-full whitespace-normal text-xs font-normal text-green-800/80">
+          {description}
+        </span>
+      )}
+    </span>
+  ) : (
     <>
       <ProductionDot />
       {t("agentSettings:production.pill", { revision: production.number })}
@@ -48,6 +84,7 @@ export function AgentProductionVersionButton({ agent }: { agent: Agent }) {
       )}
     </>
   )
+  const stackedClassName = stacked && "h-auto items-start py-2"
   const pillClassName =
     "border-green-300 bg-green-50 text-green-900 hover:bg-green-100 hover:text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-200"
 
@@ -57,6 +94,8 @@ export function AgentProductionVersionButton({ agent }: { agent: Agent }) {
         className={cn(
           "inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium",
           pillClassName,
+          stackedClassName,
+          className,
         )}
       >
         {label}
@@ -70,25 +109,27 @@ export function AgentProductionVersionButton({ agent }: { agent: Agent }) {
         <TooltipTrigger asChild>
           <Button
             variant="outline"
-            className={pillClassName}
+            className={cn(pillClassName, stackedClassName, className)}
             aria-haspopup="dialog"
-            aria-expanded={open}
-            onClick={() => setOpen(true)}
+            aria-expanded={onOpenHistory ? undefined : open}
+            onClick={() => (onOpenHistory ? onOpenHistory() : setOpen(true))}
           >
             {label}
-            <HistoryIcon className="size-4" />
+            <HistoryIcon className={cn("ml-auto size-4", stacked && "mt-0.5")} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>{t("agentSettings:production.openHistory")}</TooltipContent>
       </Tooltip>
       {/* Controlled rather than through the sheet's trigger: a Tooltip root would swallow the
           click handler the trigger injects. */}
-      <AgentSettingsHistorySheet
-        agent={agent}
-        initialRevision={production.number}
-        open={open}
-        onOpenChange={setOpen}
-      />
+      {!onOpenHistory && (
+        <AgentSettingsHistorySheet
+          agent={agent}
+          initialRevision={production.number}
+          open={open}
+          onOpenChange={setOpen}
+        />
+      )}
     </>
   )
 }

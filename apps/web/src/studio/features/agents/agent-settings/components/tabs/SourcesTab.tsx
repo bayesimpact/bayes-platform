@@ -9,7 +9,6 @@ import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -43,10 +42,10 @@ import {
   useResourceLibraries,
 } from "@/studio/features/resource-libraries/resource-libraries.helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
+import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
+import { LiveSettingNotice } from "../LiveSettingNotice"
 import { AgentTabLink } from "./AgentTabLink"
 import { AgentTabSectionHeader } from "./AgentTabSectionHeader"
-import { TabSaveButton } from "./TabSaveButton"
 
 function DocumentTagBadge({
   tagId,
@@ -88,7 +87,7 @@ function DocumentTagBadge({
  */
 export function SourcesTab({
   agentSettings,
-  onDirtyChange,
+  saveControl,
   onOpenModelTab,
 }: AgentTabFormProps & { onOpenModelTab: () => void }) {
   const { t } = useTranslation()
@@ -103,34 +102,38 @@ export function SourcesTab({
 
   const form = useForm<UpdateAgentSettingsSourcesFormDto>({
     resolver: zodResolver(updateAgentSettingsSourcesFormSchema),
+    shouldFocusError: false,
     defaultValues: {
       documentsRagMode: agentSettings.documentsRagMode,
       documentTagIds: agentSettings.documentTagIds,
       resourceLibraryIds: agentSettings.resourceLibraryIds,
     },
   })
-  useReportDirty(form.formState.isDirty, onDirtyChange)
+  const { onSubmit } = useAutosave({
+    form,
+    saveControl,
+    save: async ({ values, previous }) => {
+      // Against the last save, not the `agentSettings` prop: the prop is refetched after each
+      // save and can lag one save behind.
+      const savedTagIds = previous.documentTagIds
+      const tagsToAdd = values.documentTagIds.filter((id) => !savedTagIds.includes(id))
+      const tagsToRemove = savedTagIds.filter((id) => !values.documentTagIds.includes(id))
+      await dispatch(
+        updateAgentSettingsSources({
+          agentId: agentSettings.agentId,
+          fields: { ...values, tagsToAdd, tagsToRemove },
+        }),
+      ).unwrap()
+    },
+  })
 
   // useWatch (not watch) so this component re-renders on changes — the React Compiler memoizes
   // children, so a form-root re-render would not otherwise reach the conditional tag field.
   const documentsRagMode = useWatch({ control: form.control, name: "documentsRagMode" })
 
-  const handleSubmit = form.handleSubmit(async (values) => {
-    const originalTagIds = agentSettings.documentTagIds
-    const tagsToAdd = values.documentTagIds.filter((id) => !originalTagIds.includes(id))
-    const tagsToRemove = originalTagIds.filter((id) => !values.documentTagIds.includes(id))
-    await dispatch(
-      updateAgentSettingsSources({
-        agentId: agentSettings.agentId,
-        fields: { ...values, tagsToAdd, tagsToRemove },
-      }),
-    ).unwrap()
-    form.reset(values)
-  })
-
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <section className="space-y-4 rounded-lg border p-4">
           <AgentTabSectionHeader
             title={t("agentSettings:sources.documents.title")}
@@ -189,6 +192,7 @@ export function SourcesTab({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("agentSettings:props.documentTags")}</FormLabel>
+                  <LiveSettingNotice />
                   <div className="flex flex-wrap gap-2 items-center">
                     {field.value.map((tagId) => (
                       <DocumentTagBadge
@@ -217,19 +221,23 @@ export function SourcesTab({
             name="resourceLibraryIds"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>{t("resourceLibrary:agentTab.label")}</FormLabel>
-                  <Link
-                    to={resourceLibrariesPath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    {t("resourceLibrary:manage")}
-                    <ExternalLinkIcon className="size-3.5" />
-                  </Link>
-                </div>
-                <FormDescription>{t("resourceLibrary:agentTab.description")}</FormDescription>
+                {/* The same header as the Documents section, so the two titles match. */}
+                <AgentTabSectionHeader
+                  title={t("resourceLibrary:agentTab.label")}
+                  description={t("resourceLibrary:agentTab.description")}
+                  action={
+                    <Link
+                      to={resourceLibrariesPath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      {t("resourceLibrary:manage")}
+                      <ExternalLinkIcon className="size-3.5" />
+                    </Link>
+                  }
+                />
+                <LiveSettingNotice />
                 <FormControl>
                   <div className="flex flex-wrap items-center gap-2">
                     {field.value.map((libraryId) => (
@@ -258,12 +266,6 @@ export function SourcesTab({
             )}
           />
         </section>
-
-        <TabSaveButton
-          isSubmitting={form.formState.isSubmitting}
-          isDirty={form.formState.isDirty}
-          onCancel={() => form.reset()}
-        />
       </form>
     </Form>
   )

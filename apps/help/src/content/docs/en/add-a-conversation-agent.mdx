@@ -4,7 +4,7 @@ highlight: conversation
 description: Create a conversation agent that chats with users, grounded in your workspace's documents and resource libraries.
 category: guides-agents
 order: 1
-updated: 2026-10-30
+updated: 2026-11-16
 ---
 
 import AddConversationAgentWalkthrough from "@/components/AddConversationAgentWalkthrough.astro"
@@ -20,11 +20,26 @@ workspace overview (or the **+** next to **Agents** in the left sidebar).
 
 ## How the editor works
 
-Once created, the agent opens in an editor with tabs — for a conversation agent:
-**General**, **Model**, **Sources** (documents and resource libraries), and (when
-they're available) **Conversation categories**, [**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed).
-**Each tab is its own form and saves on its own** — click **Save** on a tab to keep
-its changes; the editor warns you before you leave a tab with unsaved changes.
+Once created, the agent opens in its **editor**, a page of its own. Its left menu
+shows **Back** (to leave the editor), the agent's name with *Edit Conversation Agent*,
+then the sections:
+
+- **General**, **Model**, **Sources**, **Tools** and, when your workspace has
+  categories, **Conversation categories**. These sections write to the agent's
+  **draft**.
+- Under **More**: [**MCP Servers**](/en/mcp-servers),
+  [**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed), when
+  they are enabled. These settings are not part of the draft: they apply to the agent
+  in production.
+- At the bottom, **Manage versions** opens the [version history](/en/agent-version-history).
+
+**There is no Save button in the draft sections.** Each change saves by itself to the
+draft, a moment after you stop typing. The status at the top right of the editor
+tells you where it stands: **Saving…**, then **Draft saved**. Users keep talking to
+the published version until you save the draft as a version. Three settings are the
+exception: the **Document Tags** and the **Resource libraries** in **Sources**, and the
+**Conversation categories**, are saved on the agent itself and apply at once. A new agent has no
+published version yet: it reaches its users once you click **Save version**.
 
 ## The full flow at a glance
 
@@ -49,18 +64,36 @@ by default).
 ### 3. Name the agent and create it
 
 Type a **Name** (at least 3 characters), then click **Create**. Your agent is
-created with sensible defaults and opens in the editor.
+created with sensible defaults and its editor opens on **General**.
 
 ### 4. General
 
-Set the **Name**, the **Locale** (the language the agent works in), the **Greeting**
-(the first message it sends) and the **Instructions** (what defines its behaviour
-and tone). Click **Save**.
+Set the:
+
+- **Name**: how the agent appears in your workspace.
+- **Greeting**: the first message the agent sends when a conversation starts. The
+  count next to the label shows its length and its maximum, for example *29 / 2,000
+  characters*.
+- **Instructions**: what defines the agent's behaviour and tone. The count next to the
+  label shows its length.
+
+Both text areas grow with their text. Once the agent has a published version and you
+change the instructions, an **Advanced mode** button appears next to **Instructions**.
+It shows your instructions as a diff with the published ones, and you can edit them
+right in the diff. Click it again to go back to the plain field.
+
+When your instructions declare `{{variables}}` and the option is enabled for your
+workspace, a **Prompt variables** box under the instructions sets their default
+values.
+
+Each change saves by itself: the status at the top right reads **Draft saved**.
 
 ### 5. Model
 
-Open the **Model** tab, choose the **Model** and a **Temperature** (higher = more
-varied, lower = more focused). **Save**.
+Click **Model** in the menu. Under **Answer generation**, choose the **Model** and its
+options, such as the **Temperature** (higher = more varied, lower = more focused) or
+the **Thinking level**, depending on the model. Under **Document search**, choose the
+**Embedding model** used to search your documents.
 
 **Priority calls** (optional). On Gemini 3.x models, turn on **Priority calls** to get
 a lower and more stable response time, useful for agents exposed to many users at
@@ -70,72 +103,119 @@ request it.
 
 ### 6. Sources: documents
 
-Open the **Sources** tab. Its first section, **Documents**, sets what the agent
-searches to answer. Choose the **Answer source**:
+Click **Sources**. Its first section, **Documents**, sets what the agent searches to
+answer. Choose the **Answer source**:
 
-- **Answer from model knowledge only** — no documents consulted.
-- **Search across all documents** — every document in the workspace.
-- **Search by document tags** — only documents with the **Document Tags** you pick.
+- **Answer from model knowledge only**: no documents consulted.
+- **Search across all documents**: every document in the workspace.
+- **Search by document tags**: only documents with the **Document Tags** you pick.
 
 See [Documents](/en/documents) to upload and tag documents first.
 
 ### 7. Sources: resource libraries
 
-Still in the **Sources** tab, the **Resource libraries** section attaches the
-**libraries** the agent can surface during a conversation. Click **Add library**,
-pick one, and it appears as a tag. Use **Manage libraries** to open the library
-manager. Click **Save** once for the whole tab: it keeps the documents and the
-libraries together. See [Resource libraries](/en/resource-libraries) to create them
-first.
+Still in **Sources**, the **Resource libraries** section attaches the **libraries**
+the agent can surface during a conversation. Click **Add library**, pick one, and it
+appears as a tag. Use **Manage libraries** to open the library manager. See
+[Resource libraries](/en/resource-libraries) to create them first.
 
-### 8. Conversation categories
+### 8. Tools
 
-If your workspace has conversation categories, open the **Conversation categories**
-tab and tick those that apply to this agent (**Select all** adds them all).
-Categories already used in this agent's conversations can't be unchecked. **Save**.
+Click **Tools**. Each tool has a switch:
 
-### 9. Orchestration
+- **Form filling**: the agent fills a structured form from the user's answers. When
+  on, you define the form's fields (see [Add a form agent](/en/add-a-form-agent)).
+- **Suggest follow-up questions**: after an answer, the agent suggests short questions
+  the user can click. Set the **Maximum per answer** and, optionally, **Instructions**
+  on when and how to write them.
+- **Memory** (when enabled for your workspace): **Off**, **Ask before saving** or
+  **Save automatically**.
 
-When orchestration is enabled, open the **Orchestration** tab to add **sub-agents**
-this agent can delegate to. Pick from **Available conversation agents**, give each a
-**Tool name** and **Tool description**, and enable it. **Save**.
+### 9. Conversation categories
 
-### 10. Embed
+If your workspace has conversation categories, click **Conversation categories** and
+tick those that apply to this agent (**Select all** adds them all). Categories
+already used in this agent's conversations can't be unchecked.
 
-When embedding is enabled, open the **Embed** tab to put the agent on an external
-site: toggle **Enable embed**, copy the **Embed snippet**, and set the **Allowed
-origins**, **Widget title**, **Logo URL** and **Brand color**. Click **Update**.
+### 10. Orchestration
 
-## Version history
+When orchestration is enabled, click **Orchestration** under **More**. It opens in a
+full page that reads *These settings are not part of the draft: they apply in
+production as soon as you save.* Add **sub-agents** from **Available conversation
+agents**, give each a **Tool name** and **Tool description**, and enable it. Click
+**Save**, then confirm in **Apply these settings now?**. See
+[Orchestration](/en/agent-orchestration).
 
-Every save creates a new **version** of the agent. Open **History** (top right of the
-editor, showing the current **v number**) to browse past versions in a side panel,
-**compare** what changed (**Changes in this version** or **Compare with current**),
-and **Restore this version** — which copies those settings as a new current version
-without deleting anything. See [Version history](/en/agent-version-history) for the
-full walkthrough.
+### 11. Embed
+
+When embedding is enabled, click **Embed** under **More**. It opens in a full page
+too. Turn on **Enable embed**, set the **Appearance** (**Widget title**, **Logo URL**,
+**Brand color**, **Banner text**), and copy the code under **Widget on a website**.
+Click **Save**, then confirm. See [Embed](/en/agent-embed).
+
+### 12. Save the draft as a version
+
+When the draft is ready, click **Manage versions** at the bottom of the menu (or the
+**Draft saved** status). In the version history, the draft is selected: click **Save
+version**, name it if you wish, and click **Save version** again. The agent now runs
+with this version, and users can reach it. See [Version history](/en/agent-version-history).
+
+## The agent's page
+
+Click the agent in the **Agents** list of the left sidebar to open its page. At the top
+right:
+
+- **Edit** opens the editor. Its badge tells you what the editor opens on: **Draft**
+  when the agent has a draft (or was never published), or the published version, for
+  example **v3**.
+- The **More** button (three dots) holds **Duplicate** and **Delete**.
+
+Under the agent's name, cards lead to its other pages: **New Chat** (the playground),
+**Feedback**, **App** with a **Production** badge (*The agent as its users see it, in
+its published version.*, shown once the agent is published), **Evaluation**, and
+**Members** (see [Invite a user](/en/add-a-user)). Some cards only show when you can
+use them.
+
+**Duplicate an agent.** In **More**, click **Duplicate**. The **Duplicate Agent**
+dialog explains that the copy gets the settings, tools, sub-agents and sources, and
+starts as a draft; conversations, analytics and embed settings are not copied. Set the
+**Name** (by default the agent's name followed by *(copy)*). When the agent has both a
+draft and a published version, choose the **Settings to copy**: **Draft (version
+*n*)** or **Published version *n***. Click **Duplicate**: the copy opens in its editor.
+
+**Delete an agent.** In **More**, click **Delete**. The **Delete Agent** dialog asks
+*Are you sure you want to delete "name"? This action is irreversible.* Click
+**Delete** to confirm, or **Cancel**.
 
 ## Tips
 
-- Write the **Instructions** in the same language as the agent's **Locale**.
+- Write the **Instructions** in the language your users speak.
 - Use **Search by document tags** to keep answers scoped to the right documents in a
   large workspace.
-- Remember to **Save** each tab — changes on one tab aren't kept when you move to
-  another without saving.
-- **Conversation categories**, **Orchestration**, **Embed** and **MCP Servers** only
-  appear when the workspace has categories or those features are enabled — you may see
-  fewer tabs.
+- Change the draft freely: users see nothing until you click **Save version**, except
+  for document tags, resource libraries and conversation categories, which apply at
+  once.
+- **Conversation categories**, **MCP Servers**, **Orchestration** and **Embed** only
+  appear when the workspace has categories or those features are enabled. You may
+  see fewer sections.
+- The agent's page shows what the editor opens on: its **Edit** button carries a
+  **Draft** badge when the agent has a draft, or the published version (for example
+  **v3**) when it has none.
 
 ## Troubleshooting
 
-- **The Create button is disabled** — the **Name** must be at least 3 characters.
-- **The agent ignores my documents** — check the **Answer source** on **Sources**;
+- **The Create button is disabled.** The **Name** must be at least 3 characters.
+- **The agent ignores my documents.** Check the **Answer source** in **Sources**:
   "Answer from model knowledge only" consults no documents.
-- **No tags to choose** — the **Search by document tags** option and the
-  **Document Tags** picker only show once your documents are tagged; see
+- **No tags to choose.** The **Search by document tags** option and the **Document
+  Tags** picker only show once your documents are tagged; see
   [Documents](/en/documents).
-- **My changes disappeared** — each tab saves separately. Click **Save** (or
-  **Update** on **Embed**) before switching; the editor warns you when changes are
-  unsaved.
-- **I don't see the Orchestration or Embed tab** — they're optional features; ask
-  your workspace **Owner** or an **Admin** if they aren't enabled.
+- **The status reads Unsaved changes.** A change could not be saved. Either a value is
+  invalid, and the field says why (for example *Name must be at least 3
+  characters*), or the save failed, and a red box above the fields, **This change
+  could not be saved**, gives the reason. Fix the value, or click **Retry**. If you
+  leave the section, the **Unsaved changes** dialog asks whether to **Discard** them.
+- **Users don't see my changes.** They are in the draft. Click **Manage versions**,
+  then **Save version**.
+- **I don't see Orchestration or Embed.** They are optional features, for conversation
+  agents only. Contact the Bayes team to have them enabled for your workspace.

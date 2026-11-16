@@ -4,7 +4,7 @@ highlight: formulaire
 description: Créez un agent de formulaire qui guide un utilisateur pour remplir un formulaire, en collectant des réponses structurées conformes à un schéma que vous définissez.
 category: guides-agents
 order: 3
-updated: 2026-07-22
+updated: 2026-11-16
 ---
 
 import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
@@ -22,12 +22,26 @@ formulaire guidé.
 
 ## Comment fonctionne un agent de formulaire
 
-Vous définissez les **champs à collecter** dans l'onglet **Formulaire** (par exemple
-`full_name` et `email`), un **Message d'accueil** par lequel l'agent commence, et des
-**Instructions** décrivant comment il doit guider l'utilisateur. Un agent de
-formulaire dispose de trois onglets de configuration — **Général**, **Modèle** et
-**Formulaire** — et **chaque onglet est un formulaire à part qui s'enregistre
-séparément** (l'éditeur vous avertit avant de quitter un onglet non enregistré).
+Le choix **Formulaire** crée un **agent conversationnel** avec l'outil **Remplissage de
+formulaire** activé. Vous définissez les **champs à collecter** dans **Outils**, sous
+**Remplissage de formulaire** (par exemple `full_name` et `email`), un **Message
+d'accueil** par lequel l'agent commence, et des **Instructions** décrivant comment il
+doit guider l'utilisateur. Sur la page de l'agent et dans son éditeur, l'agent
+apparaît comme un agent conversationnel.
+
+Une fois créé, l'agent s'ouvre dans son **éditeur**, une page à part entière. Son
+menu de gauche affiche **Retour**, le nom de l'agent avec *Modifier l'agent
+conversationnel*, puis les sections d'un agent conversationnel : **Général**,
+**Modèle**, **Sources**, **Outils** et, quand votre espace de travail a des
+catégories, **Catégories de conversation**. Sous **Plus** viennent **Serveurs MCP**,
+**Orchestration** et **Intégration** quand ils sont activés. En bas, **Gérer les
+versions** ouvre l'[historique des versions](/fr/agent-version-history). Voir
+[Ajouter un agent conversationnel](/fr/add-a-conversation-agent) pour chaque section.
+
+**Il n'y a pas de bouton Enregistrer.** Chaque modification s'enregistre d'elle-même
+dans le **brouillon** de l'agent, un court instant après votre dernière frappe. Le
+statut en haut à droite affiche **Enregistrement…**, puis **Brouillon enregistré**. Un
+nouvel agent atteint ses utilisateurs une fois le brouillon enregistré comme version.
 
 ## Le parcours complet en un coup d'œil
 
@@ -48,95 +62,104 @@ la barre latérale gauche).
 ### 2. Choisir le type Formulaire
 
 Dans la boîte de dialogue **Nouvel agent**, sous **Type d'agent**, sélectionnez
-**Formulaire**. Le type détermine ce que fait l'agent : choisissez-le avant de
-continuer.
+**Formulaire**. Ce choix crée un agent conversationnel déjà prêt à remplir un
+formulaire : instructions par défaut, outil **Remplissage de formulaire** activé et
+formulaire d'exemple.
 
 ### 3. Nommer l'agent et le créer
 
 Saisissez un **Nom** (au moins 3 caractères) dans le champ **Nom**, puis cliquez sur
-**Créer**. Votre agent est créé avec des valeurs par défaut pertinentes et s'ouvre
-dans l'éditeur.
+**Créer**. Votre agent est créé et son éditeur s'ouvre sur **Général**.
 
 ### 4. Régler l'essentiel dans Général
 
-L'éditeur s'ouvre sur l'onglet **Général**. Définissez :
+Définissez :
 
-- le **Nom** — la façon dont l'agent apparaît dans votre espace de travail ;
-- la **Langue** — la langue dans laquelle l'agent travaille ;
-- le **Message d'accueil** — le premier message envoyé au début d'une conversation ;
-- les **Instructions** — comment l'agent doit guider l'utilisateur à travers le
-  formulaire.
+- le **Nom** : comment l'agent apparaît dans votre espace de travail ;
+- le **Message d'accueil** : le premier message envoyé par l'agent au début d'une
+  conversation. Le compteur à côté du libellé indique sa longueur et son maximum
+  (2 000 caractères) ;
+- les **Instructions** : comment l'agent doit guider l'utilisateur dans le
+  formulaire. Le compteur à côté du libellé indique leur longueur.
 
-Cliquez sur **Enregistrer**.
+Les deux zones de texte s'agrandissent avec leur contenu. Une fois que l'agent a une
+version publiée et que vous modifiez les instructions, un bouton **Mode avancé** à
+côté d'**Instructions** montre les différences avec les instructions publiées, et vous
+pouvez les modifier directement dedans. Chaque modification s'enregistre d'elle-même :
+le statut en haut à droite affiche **Brouillon enregistré**.
 
 ### 5. Choisir le modèle dans Modèle
 
-Ouvrez l'onglet **Modèle**, choisissez le **Modèle** qui pilote l'agent et une
-**Température** (une valeur basse donne des questions plus stables et prévisibles).
-**Enregistrez**.
+Cliquez sur **Modèle** dans le menu. Sous **Génération des réponses**, choisissez le
+**Modèle** qui pilote l'agent et ses options, comme la **Température** (une valeur
+basse donne des questions plus stables et prévisibles).
 
-### 6. Construire le formulaire dans Formulaire
+### 6. Construire le formulaire dans Outils
 
-Ouvrez l'onglet **Formulaire** et construisez les champs que l'agent collecte
-**visuellement** — sans JSON. Cliquez sur **Ajouter un champ** et, pour chaque champ,
+Cliquez sur **Outils**. L'interrupteur **Remplissage de formulaire** est activé.
+Dessous : *Définissez les champs du formulaire que l'agent doit remplir. L'ordre des
+champs est l'ordre dans lequel l'agent pose ses questions.* Construisez les champs
+**visuellement**, sans JSON. Cliquez sur **Ajouter un champ** et, pour chaque champ,
 définissez :
 
-- **Nom du champ** — la clé sous laquelle la réponse est stockée (par ex.
+- **Nom du champ** : la clé sous laquelle la réponse est stockée (par ex.
   `full_name`).
-- **Type** — **Texte**, **Nombre**, **Oui / Non**, **Liste** ou **Choix**. **Nombre**
+- **Type** : **Texte**, **Nombre**, **Oui / Non**, **Liste** ou **Choix**. **Nombre**
   propose une plage min/max optionnelle, et **Choix** permet de définir les valeurs
   autorisées.
-- **Description** — la question ou l'indice que l'agent utilise pour demander ce
+- **Description** : la question ou l'indice que l'agent utilise pour demander ce
   champ.
-- **Obligatoire** — activez-le pour les réponses obligatoires.
+- **Obligatoire** : activez-le pour les réponses requises.
 
-Supprimez un champ avec son icône **corbeille**.
+Supprimez un champ avec son icône **corbeille**. Pour maîtriser l'ordre des
+questions, activez **Poser les questions dans cet ordre** et **glissez** les lignes
+dans l'ordre voulu ; désactivez-le pour laisser l'assistant choisir l'ordre.
 
-Pour contrôler l'ordre dans lequel l'agent pose les questions, activez **Poser les
-questions dans cet ordre** et **glissez** les lignes dans l'ordre souhaité ;
-désactivez-le pour laisser l'assistant choisir l'ordre lui-même. Besoin d'un contrôle
-plus fin ? Cliquez sur **Mode avancé** (en haut à droite) pour éditer le JSON brut, et
-**Éditeur visuel** pour revenir. Cliquez sur **Enregistrer** — et rappelez-vous que
-chaque onglet s'enregistre séparément.
+### 7. Modifier le formulaire en JSON
 
-## Historique des versions
+Besoin d'un contrôle plus fin ? Cliquez sur **Mode avancé** (en haut à droite de la
+liste des champs) pour éditer le JSON brut, et sur **Éditeur visuel** pour revenir.
 
-Chaque enregistrement crée une nouvelle **version** de l'agent. Ouvrez **Historique**
-(en haut à droite de l'éditeur, avec le **v numéro** actuel) pour parcourir les
-versions passées dans un panneau latéral, **comparer** les changements
-(**Changements de cette version** ou **Comparer avec l'actuelle**), et **Restaurer
-cette version** — ce qui copie ces paramètres comme nouvelle version actuelle sans
-rien supprimer. Voir [Historique des versions](/fr/agent-version-history) pour le
-guide complet.
+### 8. Enregistrer le brouillon comme version
+
+Quand le brouillon est prêt, cliquez sur **Gérer les versions** en bas du menu (ou sur
+le statut **Brouillon enregistré**). Le brouillon est sélectionné : cliquez sur
+**Enregistrer la version**, nommez-la si vous le voulez, et cliquez à nouveau sur
+**Enregistrer la version**. Les utilisateurs parlent désormais à cette version. Voir
+[Historique des versions](/fr/agent-version-history).
 
 ## Conseils
 
-- Gardez des **descriptions** de champs claires — l'agent s'en sert pour formuler
+- Gardez des **descriptions** de champs claires : l'agent s'en sert pour formuler
   chaque question et pour décider quoi enregistrer.
 - Utilisez **Poser les questions dans cet ordre** quand la séquence compte (par ex.
   demander un nom avant une préférence) ; laissez-le désactivé pour que l'agent
   s'adapte.
-- Le **Message d'accueil** donne le ton ; rédigez-le dans la même langue que la
-  **Langue** de l'agent.
+- Le **Message d'accueil** donne le ton ; rédigez-le dans la langue de vos
+  utilisateurs.
 - Utilisez une **Température basse** (par exemple `0.2`) pour que l'agent pose des
   questions cohérentes plutôt que d'improviser.
 - Les réponses déjà collectées sont conservées d'un tour à l'autre : une valeur que
   l'agent ne connaît pas n'efface jamais une réponse enregistrée. Pour corriger une
   réponse, l'utilisateur donne simplement la nouvelle valeur.
-- Chaque onglet s'enregistre séparément — les modifications d'un onglet ne sont pas
-  conservées si vous passez à un autre sans enregistrer.
+- Tout agent conversationnel peut collecter un formulaire : activez le **Remplissage
+  de formulaire** dans ses **Outils**.
 
 ## Dépannage
 
-- **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
-  caractères.
-- **Je ne vois pas le type de champ dont j'ai besoin** — l'éditeur visuel couvre
+- **Le bouton Créer est désactivé.** Le **Nom** doit comporter au moins 3 caractères.
+- **Je ne vois pas le type de champ dont j'ai besoin.** L'éditeur visuel couvre
   **Texte**, **Nombre**, **Oui / Non**, **Liste** et **Choix** ; utilisez le **Mode
   avancé** (JSON brut) pour des **objets imbriqués**.
-- **L'agent pose les questions dans le mauvais ordre** — activez **Poser les questions
+- **L'agent pose les questions dans le mauvais ordre.** Activez **Poser les questions
   dans cet ordre** et glissez les champs dans la séquence voulue.
-- **Mes modifications ont disparu** — chaque onglet s'enregistre séparément ; cliquez
-  sur **Enregistrer** avant de changer d'onglet (l'éditeur vous avertit).
-- **Je ne vois pas d'onglet Formulaire** — assurez-vous d'avoir créé un agent
-  **Formulaire** (les agents conversationnels discutent, les agents d'extraction
-  affichent plutôt un onglet **Sortie**).
+- **Je ne vois pas les champs du formulaire.** Ouvrez **Outils** et vérifiez que le
+  **Remplissage de formulaire** est activé : les champs n'apparaissent que dans ce
+  cas.
+- **Le statut affiche Modifications non enregistrées.** Une valeur n'est pas valide,
+  et le champ indique pourquoi, ou l'enregistrement a échoué, et un encadré rouge
+  au-dessus des champs, **Cette modification n'a pas pu être enregistrée**, en donne
+  la raison. Corrigez la valeur, ou cliquez sur **Réessayer**.
+- **Les utilisateurs voient encore l'ancien formulaire.** Vos modifications sont dans
+  le brouillon. Cliquez sur **Gérer les versions**, puis sur **Enregistrer la
+  version**.
