@@ -126,11 +126,11 @@
       "description": "Vous avez des modifications non enregistrées qui seront perdues. Voulez-vous les abandonner ?"
     },
     "autosave": {
-      "hint": "Les modifications s'enregistrent automatiquement dans le brouillon",
       "saving": "Enregistrement…",
       "saved": "Brouillon enregistré",
       "unsaved": "Modifications non enregistrées",
-      "refused": "Cette modification n'a pas pu être enregistrée"
+      "refused": "Cette modification n'a pas pu être enregistrée",
+      "publishedVersion": "Version {{revision}} · publiée"
     },
     "liveSettings": {
       "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent en production dès que vous enregistrez.",

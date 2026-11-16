@@ -15,12 +15,15 @@ const labelSize = "px-3 py-1 text-sm [&>svg]:size-3.5"
 export function AgentEditorSaveStatus({
   state,
   hasDraft,
+  revision,
   onRetry,
   onOpenHistory,
 }: {
   state: TabSaveState
   /** The agent has a draft: without one, there is nothing saved to report yet. */
   hasDraft: boolean
+  /** The revision the editor shows: the draft's, or the published one when there is no draft. */
+  revision: number
   onRetry: () => void
   /** Makes the saved draft a button that opens the version history, where the draft is saved as a version. */
   onOpenHistory?: () => void
@@ -78,7 +81,24 @@ export function AgentEditorSaveStatus({
     )
   }
 
+  // No draft: the editor shows the version the agent runs, in the colour of what is published.
+  const currentVersion = t("agentSettings:autosave.publishedVersion", { revision })
+  if (onOpenHistory) {
+    return (
+      <Badge
+        asChild
+        variant="success"
+        className={cn(labelSize, "cursor-pointer hover:brightness-95")}
+      >
+        <button type="button" aria-haspopup="dialog" onClick={onOpenHistory}>
+          {currentVersion}
+        </button>
+      </Badge>
+    )
+  }
   return (
-    <output className="text-sm text-muted-foreground">{t("agentSettings:autosave.hint")}</output>
+    <Badge asChild variant="success" className={labelSize}>
+      <output>{currentVersion}</output>
+    </Badge>
   )
 }

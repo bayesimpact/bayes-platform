@@ -152,6 +152,7 @@ export function AgentEditorPageView({
               <AgentEditorSaveStatus
                 state={saveState}
                 hasDraft={agentSettings.isDraft}
+                revision={agentSettings.revision}
                 onRetry={onRetrySave}
                 onOpenHistory={() => setIsHistoryOpen(true)}
               />
