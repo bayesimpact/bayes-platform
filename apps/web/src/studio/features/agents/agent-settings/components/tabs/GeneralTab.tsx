@@ -3,6 +3,7 @@ import {
   GREETING_MESSAGE_MAX_LENGTH,
   updateAgentSettingsGeneralSchema,
 } from "@caseai-connect/api-contracts"
+import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Form,
   FormControl,
@@ -14,15 +15,17 @@ import {
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { GitCompareIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
+import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsGeneral } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { PromptVariablesEditor } from "@/studio/features/agents/prompt-variables/PromptVariablesEditor"
 import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
 
@@ -32,9 +35,16 @@ export function GeneralTab({
   agent,
   agentSettings,
   saveControl,
+  onViewChanges,
 }: AgentTabFormProps & {
   agent: Agent
+  /** Opens the version history, to compare the instructions with the published ones. */
+  onViewChanges: () => void
 }) {
+  // Undefined for an agent that was never published: it has nothing to compare with.
+  const publishedInstructions = useAppSelector(
+    selectAgentSettingsDataByAgentId({ agentId: agent.id }),
+  ).value?.instructions
   const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const hasGreetingMessage = agent.type === "conversation"
@@ -124,15 +134,25 @@ export function GeneralTab({
           name="instructions"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                {t("agentSettings:props.instructions")}
-                <span className="font-normal text-muted-foreground">
-                  {t("agentSettings:props.characterCount", {
-                    count: field.value.length,
-                    formattedCount: field.value.length.toLocaleString(i18n.language),
-                  })}
-                </span>
-              </FormLabel>
+              <div className="flex min-h-8 items-center justify-between gap-4">
+                <FormLabel>
+                  {t("agentSettings:props.instructions")}
+                  <span className="font-normal text-muted-foreground">
+                    {t("agentSettings:props.characterCount", {
+                      count: field.value.length,
+                      formattedCount: field.value.length.toLocaleString(i18n.language),
+                    })}
+                  </span>
+                </FormLabel>
+                {/* Only while the instructions differ from the published ones: the history then
+                    opens on the draft, whose diff is the one against the published version. */}
+                {publishedInstructions !== undefined && field.value !== publishedInstructions && (
+                  <Button type="button" variant="outline" size="sm" onClick={onViewChanges}>
+                    <GitCompareIcon />
+                    {t("agentSettings:history.viewChanges")}
+                  </Button>
+                )}
+              </div>
               <FormControl>
                 {/* It grows with its text, with no height limit: the page scrolls, not the field. */}
                 <Textarea

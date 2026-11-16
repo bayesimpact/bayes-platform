@@ -29,6 +29,9 @@ export type AgentEditorViewProps = {
   onOpenSheet: (value: string) => void
   saveState: TabSaveState
   onRetrySave: () => void
+  /** The version history, opened from the layout or from a section. */
+  isHistoryOpen: boolean
+  onHistoryOpenChange: (open: boolean) => void
   /** The active section. */
   children: ReactNode
 }

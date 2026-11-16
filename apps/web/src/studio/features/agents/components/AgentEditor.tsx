@@ -68,6 +68,8 @@ type TabContext = {
   saveControl: TabSaveControl
   /** Switches tab, once the current one is saved. */
   openTab: (tab: EditorTabKey) => void
+  /** Opens the version history, after saving what waits in the tab so the history shows it. */
+  openHistory: () => void
 }
 type TabConfig = {
   value: EditorTabKey
@@ -141,8 +143,13 @@ export function AgentEditor({
         label: t("agentSettings:tabs.general"),
         icon: SlidersHorizontalIcon,
         autosave: true,
-        render: ({ saveControl }) => (
-          <GeneralTab agent={agent} agentSettings={agentSettings} saveControl={saveControl} />
+        render: ({ saveControl, openHistory }) => (
+          <GeneralTab
+            agent={agent}
+            agentSettings={agentSettings}
+            saveControl={saveControl}
+            onViewChanges={openHistory}
+          />
         ),
       },
       {
@@ -268,11 +275,15 @@ export function AgentEditor({
     /** The open sheet, and whether it holds changes the user did not save. */
     sheet: SheetKey | null
     sheetDirty: boolean
-  }>(() =>
-    isSheetKey(defaultTab)
-      ? { active: "general", pending: null, sheet: defaultTab, sheetDirty: false }
-      : { active: defaultTab ?? "general", pending: null, sheet: null, sheetDirty: false },
-  )
+    /** The version history is open. */
+    history: boolean
+  }>(() => ({
+    active: isSheetKey(defaultTab) ? "general" : (defaultTab ?? "general"),
+    pending: null,
+    sheet: isSheetKey(defaultTab) ? defaultTab : null,
+    sheetDirty: false,
+    history: false,
+  }))
   const [save, setSave] = useState<{ state: TabSaveState; reason?: string }>({ state: "saved" })
   const saveState = save.state
   // The active tab puts here how to save now what waits for its pause.
@@ -322,6 +333,11 @@ export function AgentEditor({
 
   if (!activeTab) return <ErrorRoute error="Tab not found" />
 
+  const openHistory = () => {
+    flushRef.current?.()
+    setNav((prev) => ({ ...prev, history: true }))
+  }
+
   const activeSheet = sheets.find((sheet) => sheet.value === nav.sheet)
 
   const requestTabChange = (next: string) => {
@@ -367,6 +383,7 @@ export function AgentEditor({
       {activeTab.render({
         saveControl: { onStateChange: handleSaveStateChange, flushRef },
         openTab: requestTabChange,
+        openHistory,
       })}
     </div>
   )
@@ -380,6 +397,8 @@ export function AgentEditor({
     onOpenSheet: (value: string) => setNav((prev) => ({ ...prev, sheet: value as SheetKey })),
     saveState,
     onRetrySave: () => flushRef.current?.(),
+    isHistoryOpen: nav.history,
+    onHistoryOpenChange: (open: boolean) => setNav((prev) => ({ ...prev, history: open })),
   }
 
   return (

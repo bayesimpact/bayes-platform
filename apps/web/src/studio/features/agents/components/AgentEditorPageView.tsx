@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
 } from "@caseai-connect/ui/shad/sidebar"
 import { ArrowLeftIcon, ExternalLinkIcon, HistoryIcon } from "lucide-react"
-import { type ReactNode, useState } from "react"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
@@ -37,6 +37,8 @@ export function AgentEditorPageView({
   onOpenSheet,
   saveState,
   onRetrySave,
+  isHistoryOpen,
+  onHistoryOpenChange,
   onBack,
   banner,
   children,
@@ -48,8 +50,6 @@ export function AgentEditorPageView({
   const { t } = useTranslation()
   // The same icon as in the Studio sidebar: it tells a conversation agent from an extraction one.
   const AgentTypeIcon = getAgentIcon(agent.type)
-  // Two entries open the version history: the button of the menu and the saved draft's badge.
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const active = sections.find((section) => section.value === activeSection)
   const draftSections = sections.filter((section) => section.autosave)
   const liveSections = sections.filter((section) => !section.autosave)
@@ -132,7 +132,7 @@ export function AgentEditorPageView({
           <AgentSettingsHistorySheet
             agent={agent}
             open={isHistoryOpen}
-            onOpenChange={setIsHistoryOpen}
+            onOpenChange={onHistoryOpenChange}
             trigger={
               <Button type="button" className="w-full">
                 <HistoryIcon />
@@ -154,7 +154,7 @@ export function AgentEditorPageView({
                 hasDraft={agentSettings.isDraft}
                 revision={agentSettings.revision}
                 onRetry={onRetrySave}
-                onOpenHistory={() => setIsHistoryOpen(true)}
+                onOpenHistory={() => onHistoryOpenChange(true)}
               />
             )}
           </div>

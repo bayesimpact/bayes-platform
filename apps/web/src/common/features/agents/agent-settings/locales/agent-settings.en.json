@@ -184,7 +184,8 @@
       "draft": "Draft",
       "manage": "Manage versions",
       "changedFields_one": "{{count}} changed field:",
-      "changedFields_other": "{{count}} changed fields:"
+      "changedFields_other": "{{count}} changed fields:",
+      "viewChanges": "View changes"
     },
     "version": {
       "ariaLabel": "Settings version new messages run with",

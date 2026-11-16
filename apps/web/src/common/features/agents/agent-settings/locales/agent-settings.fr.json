@@ -184,7 +184,8 @@
       "draft": "Brouillon",
       "manage": "Gérer les versions",
       "changedFields_one": "{{count}} champ modifié :",
-      "changedFields_other": "{{count}} champs modifiés :"
+      "changedFields_other": "{{count}} champs modifiés :",
+      "viewChanges": "Voir les modifications"
     },
     "version": {
       "ariaLabel": "Version des paramètres utilisée par les nouveaux messages",
