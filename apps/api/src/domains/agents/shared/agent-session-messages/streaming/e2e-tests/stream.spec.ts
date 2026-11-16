@@ -17,6 +17,11 @@ import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.f
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../../test/rbac-test.helpers"
 import { StreamingModule } from "../streaming.module"
@@ -69,6 +74,25 @@ describe("AgentSessionMessagesRoutes.stream", () => {
         agentType: "conversation",
         params: { agentSession: { type: sessionType } },
       })
+    // The tester route checks the caller's tester role on the session's campaign, which is active.
+    if (sessionType === "review_campaign_tester") {
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .transient({ organization, project, campaign, user })
+          .build({ roleKeys: ["review_campaign_tester"] }),
+      })
+      await repositories.conversationAgentSessionRepository.update(
+        { id: agentSession.id },
+        { campaignId: campaign.id },
+      )
+    }
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id

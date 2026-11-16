@@ -22,9 +22,15 @@ import {
   createOrganizationWithAgentMessage,
 } from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
-import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
+import {
+  addUserToReviewCampaign,
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import { reviewCampaignStatusErrorMessage } from "@/domains/review-campaigns/review-campaign-status"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -286,7 +292,7 @@ describe("Agent Session Messages - Auth", () => {
     describeChecks(subject, 201)
   })
 
-  // A campaign role gives the live session keys on the campaign's project, without a project row.
+  // The tester routes check the tester's keys on the campaign of the session, which must be active.
   describe("review campaign participants", () => {
     const createCampaignParticipantContext = async (
       roleKey: ReviewCampaignRoleKey = "review_campaign_tester",
@@ -330,8 +336,37 @@ describe("Agent Session Messages - Auth", () => {
       agentSessionId = agentSession.id
       messageId = agentMessage.id
       accessToken = "token"
-      return { campaign }
+      return { organization, project, agent, agentSettings, campaign, user }
     }
+
+    type TesterContext = Awaited<ReturnType<typeof createCampaignParticipantContext>>
+
+    /** Makes the caller a tester of a second, active campaign of the same project. */
+    const joinAnotherActiveCampaign = async ({
+      organization,
+      project,
+      agent,
+      agentSettings,
+      user,
+    }: TesterContext) => {
+      const otherCampaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .transient({ organization, project, campaign: otherCampaign, user })
+          .build({ roleKeys: ["review_campaign_tester"] }),
+      })
+    }
+
+    const leaveCampaign = ({ campaign, user }: TesterContext) =>
+      setup.dataSource
+        .getRepository(RoleGrant)
+        .softDelete({ userId: user.id, resourceType: "review_campaign", resourceId: campaign.id })
 
     const closeCampaign = (campaignId: string) =>
       repositories.reviewCampaignRepository.update(
@@ -385,7 +420,27 @@ describe("Agent Session Messages - Auth", () => {
       const { campaign } = await createCampaignParticipantContext()
       await closeCampaign(campaign.id)
 
+      expectResponse(await listMessages(), 403, reviewCampaignStatusErrorMessage("closed"))
+      expectResponse(await presignAttachment(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+
+    it("keeps the session of a closed campaign shut for a tester of another active campaign of the project", async () => {
+      const context = await createCampaignParticipantContext()
+      await joinAnotherActiveCampaign(context)
+      await closeCampaign(context.campaign.id)
+
+      expectResponse(await listMessages(), 403, reviewCampaignStatusErrorMessage("closed"))
+      expectResponse(await getMessage(), 403, reviewCampaignStatusErrorMessage("closed"))
+      expectResponse(await presignAttachment(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+
+    it("forbids someone removed from the session's campaign, even as a tester of another active campaign of the project", async () => {
+      const context = await createCampaignParticipantContext()
+      await joinAnotherActiveCampaign(context)
+      await leaveCampaign(context)
+
       expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await getMessage(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       expectResponse(await presignAttachment(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 

@@ -24,6 +24,8 @@ import { AgentSessionContextResolver } from "./resolvers/agent-session-context.r
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionInCampaignContextResolver } from "./resolvers/agent-session-in-campaign-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSessionReviewCampaignContextResolver } from "./resolvers/agent-session-review-campaign-context.resolver"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentContextResolver } from "./resolvers/document-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagContextResolver } from "./resolvers/document-tag-context.resolver"
@@ -57,6 +59,7 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "agent",
   "agentMembership",
   "agentSession",
+  "agentSessionReviewCampaign",
   "agentCsvExtractionRun",
   "document",
   "documentTag",
@@ -100,6 +103,8 @@ export class ResourceContextGuard implements CanActivate {
     @Optional() reviewCampaignContextResolver?: ReviewCampaignContextResolver,
     @Optional()
     agentSessionInCampaignContextResolver?: AgentSessionInCampaignContextResolver,
+    @Optional()
+    agentSessionReviewCampaignContextResolver?: AgentSessionReviewCampaignContextResolver,
   ) {
     const resolverEntries: Array<[ContextResource, ContextResolver]> = []
     if (organizationContextResolver) {
@@ -184,6 +189,12 @@ export class ResourceContextGuard implements CanActivate {
       resolverEntries.push([
         agentSessionInCampaignContextResolver.resource,
         agentSessionInCampaignContextResolver,
+      ])
+    }
+    if (agentSessionReviewCampaignContextResolver) {
+      resolverEntries.push([
+        agentSessionReviewCampaignContextResolver.resource,
+        agentSessionReviewCampaignContextResolver,
       ])
     }
     this.resolverMap = new Map(resolverEntries)

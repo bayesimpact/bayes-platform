@@ -28,6 +28,7 @@ import {
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import { reviewCampaignStatusErrorMessage } from "@/domains/review-campaigns/review-campaign-status"
 import { ReviewCampaignsModule } from "@/domains/review-campaigns/review-campaigns.module"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import { userFactory } from "@/domains/users/user.factory"
@@ -371,7 +372,7 @@ describe("Invitations - acceptOne", () => {
         { status: "closed", closedAt: new Date() },
       )
 
-      expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await listMessages(), 403, reviewCampaignStatusErrorMessage("closed"))
     })
 
     it("refuses while the campaign is not active", async () => {
