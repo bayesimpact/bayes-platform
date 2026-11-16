@@ -8,7 +8,7 @@ import {
 } from "@caseai-connect/ui/shad/sheet"
 import { AlertTriangleIcon } from "lucide-react"
 import { type FormEvent, type ReactNode, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
 
@@ -114,7 +114,12 @@ export function AgentEditorSheet({
       <ConfirmDialog
         open={confirming === "save"}
         title={t("agentSettings:liveSettings.confirmSave.title")}
-        description={t("agentSettings:liveSettings.confirmSave.description")}
+        description={
+          <Trans
+            i18nKey="agentSettings:liveSettings.confirmSave.description"
+            components={{ strong: <strong className="font-semibold text-foreground" /> }}
+          />
+        }
         confirmLabel={t("actions:save")}
         confirmVariant="default"
         onConfirm={confirmSave}

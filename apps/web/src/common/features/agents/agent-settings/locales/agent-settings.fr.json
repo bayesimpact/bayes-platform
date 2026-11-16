@@ -136,7 +136,7 @@
       "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent en production dès que vous enregistrez.",
       "confirmSave": {
         "title": "Appliquer ces réglages maintenant ?",
-        "description": "Ces réglages ne passent pas par le brouillon : ils s'appliquent à l'agent en production dès l'enregistrement."
+        "description": "Ces réglages ne passent pas par le brouillon : ils s'appliquent à l'agent <strong>en production</strong> dès l'enregistrement."
       }
     },
     "create": {
