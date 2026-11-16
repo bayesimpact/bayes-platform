@@ -62,7 +62,7 @@ export function AgentEditorPageView({
         <SidebarHeader className="gap-3">
           <Button type="button" variant="ghost" className="justify-start" onClick={onBack}>
             <ArrowLeftIcon />
-            {t("agentSettings:editor.back")}
+            {t("actions:back")}
           </Button>
           <div className="px-2">
             <p className="flex items-center gap-2 font-medium">

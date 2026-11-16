@@ -114,9 +114,6 @@
       "embed": "Embed",
       "mcpServers": "MCP Servers"
     },
-    "editor": {
-      "back": "Back to the agent"
-    },
     "mcpServers": {
       "label": "MCP Servers",
       "manage": "Manage servers",

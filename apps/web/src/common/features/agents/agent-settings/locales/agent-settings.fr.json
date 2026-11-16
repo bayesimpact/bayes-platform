@@ -114,9 +114,6 @@
       "embed": "Intégration",
       "mcpServers": "Serveurs MCP"
     },
-    "editor": {
-      "back": "Retour à l'agent"
-    },
     "mcpServers": {
       "label": "Serveurs MCP",
       "manage": "Gérer les serveurs",
