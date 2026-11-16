@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
 } from "@caseai-connect/ui/shad/sidebar"
 import { ArrowLeftIcon, ExternalLinkIcon, HistoryIcon } from "lucide-react"
-import type { ReactNode } from "react"
+import { type ReactNode, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
 import { AgentSettingsHistorySheet } from "../agent-settings/components/AgentSettingsHistorySheet"
@@ -45,6 +45,8 @@ export function AgentEditorPageView({
   banner?: ReactNode
 }) {
   const { t } = useTranslation()
+  // Two entries open the version history: the button of the menu and the saved draft's badge.
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const active = sections.find((section) => section.value === activeSection)
   const draftSections = sections.filter((section) => section.autosave)
   const liveSections = sections.filter((section) => !section.autosave)
@@ -123,6 +125,8 @@ export function AgentEditorPageView({
         <SidebarFooter className="border-t p-3">
           <AgentSettingsHistorySheet
             agent={agent}
+            open={isHistoryOpen}
+            onOpenChange={setIsHistoryOpen}
             trigger={
               <Button type="button" variant="outline" className="w-full bg-background">
                 <HistoryIcon />
@@ -143,6 +147,7 @@ export function AgentEditorPageView({
                 state={saveState}
                 hasDraft={agentSettings.isDraft}
                 onRetry={onRetrySave}
+                onOpenHistory={() => setIsHistoryOpen(true)}
               />
             )}
           </div>

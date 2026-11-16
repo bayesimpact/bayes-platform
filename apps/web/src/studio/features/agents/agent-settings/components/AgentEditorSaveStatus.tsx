@@ -13,6 +13,7 @@ export function AgentEditorSaveStatus({
   hasDraft,
   onRetry,
   hideHint = false,
+  onOpenHistory,
 }: {
   state: TabSaveState
   /** The agent has a draft: without one, there is nothing saved to report yet. */
@@ -20,6 +21,8 @@ export function AgentEditorSaveStatus({
   onRetry: () => void
   /** For a place that already says that changes save by themselves. */
   hideHint?: boolean
+  /** Makes the saved draft a button that opens the version history, where the draft is saved as a version. */
+  onOpenHistory?: () => void
 }) {
   const { t } = useTranslation()
   if (hideHint && state === "saved" && !hasDraft) return null
@@ -38,6 +41,16 @@ export function AgentEditorSaveStatus({
 
   // A saved draft wears the colours of the Draft label, so it reads as the draft's state.
   if (state === "saved" && hasDraft) {
+    if (onOpenHistory) {
+      return (
+        <Badge asChild variant="warning" className="cursor-pointer hover:brightness-95">
+          <button type="button" aria-haspopup="dialog" onClick={onOpenHistory}>
+            <CheckIcon />
+            {t("agentSettings:autosave.saved")}
+          </button>
+        </Badge>
+      )
+    }
     return (
       <Badge asChild variant="warning">
         <output>
