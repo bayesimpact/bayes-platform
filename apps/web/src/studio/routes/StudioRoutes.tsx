@@ -84,12 +84,15 @@ export const studioRoutes = {
           ),
         },
         {
+          // A layout route without a path only renders when one of its children matches: the
+          // project's own page is its index child, or the project URL would show nothing.
           element: (
             <StudioLayout>
-              <AgentList />
+              <Outlet />
             </StudioLayout>
           ),
           children: [
+            { index: true, element: <AgentList /> },
             {
               path: StudioRoutes.documents.path,
               element: <ProjectDocumentsRoute />,
