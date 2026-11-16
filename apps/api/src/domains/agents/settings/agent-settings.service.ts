@@ -4,8 +4,11 @@ import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   extractAgentSettingsUpdateFields,
+  hasSameAgentSettings,
   requiresUpdateAgentSettings,
 } from "@/domains/agents/settings/agent.settings.functions"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -58,6 +61,8 @@ export class AgentSettingsService {
     private readonly projectRepository: ProjectRepository,
 
     private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
+
+    private readonly transactionService: TransactionService,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
     this.agentSettingsConnectRepository = new ConnectRepository(
@@ -361,7 +366,8 @@ export class AgentSettingsService {
       if (!updated) {
         throw new NotFoundException(`AgentSettings with id ${last.id} not found`)
       }
-      return updated
+      const published = await this.discardDraftWithoutChanges({ connectScope, draft: updated })
+      return published ?? updated
     } else {
       return await this.agentSettingsConnectRepository.createAndSave(connectScope, {
         ...(previousSettings ?? {}),
@@ -371,6 +377,38 @@ export class AgentSettingsService {
         isDraft: true,
       })
     }
+  }
+
+  /**
+   * Deletes a draft that holds the same settings as the newest published revision, and returns
+   * that revision: an edit the author took back leaves no draft behind. The draft stays when
+   * the agent was never published (it is its only revision), and when a session or a run ran on
+   * it (deleting the draft would delete them too).
+   */
+  private async discardDraftWithoutChanges({
+    connectScope,
+    draft,
+  }: {
+    connectScope: RequiredConnectScope
+    draft: AgentSettings
+  }): Promise<AgentSettings | undefined> {
+    const published = await this.findLastPublished({ connectScope, agentId: draft.agentId })
+    if (!published || !hasSameAgentSettings(published, draft)) return undefined
+
+    // The check and the delete are one unit. The lock on the draft holds back a session that
+    // starts on it and another edit of it: once the lock is taken, what the check reads is what
+    // the delete acts on. Without it, a session started in between would be deleted in cascade.
+    const isDeleted = await this.transactionService.run(async () => {
+      const lockedDraft = await this.agentSettingsRepository.findDraftForUpdate(
+        connectScope,
+        draft.id,
+      )
+      if (!lockedDraft || !hasSameAgentSettings(published, lockedDraft)) return false
+      if (await this.agentSettingsRepository.isRunBySomething(lockedDraft.id)) return false
+      await this.agentSettingsRepository.deleteDraft(connectScope, lockedDraft.id)
+      return true
+    })
+    return isDeleted ? published : undefined
   }
 
   async updateAllSettings({

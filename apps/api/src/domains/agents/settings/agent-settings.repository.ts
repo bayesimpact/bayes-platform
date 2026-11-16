@@ -51,6 +51,60 @@ export class AgentSettingsRepository {
     return this.connectRepo().createAndSave(connectScope, { ...fields, isDraft: true })
   }
 
+  /**
+   * Reads a draft and locks its row until the ambient transaction ends. Postgres then holds back
+   * every write that would point a session or a run at this draft, and every other change to it.
+   * Null when the draft is gone. Call it inside `transactionService.run()`.
+   */
+  async findDraftForUpdate(
+    connectScope: RequiredConnectScope,
+    agentSettingsId: string,
+  ): Promise<AgentSettings | null> {
+    return this.repo().findOne({
+      where: {
+        id: agentSettingsId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+        isDraft: true,
+      },
+      lock: { mode: "pessimistic_write" },
+    })
+  }
+
+  /**
+   * Whether a session, a run or a campaign ran on this revision. Their foreign keys cascade: a
+   * revision that something ran on must never be deleted, or its sessions go with it. The tables
+   * come from the entity metadata, so a new table that points at a revision is covered at once.
+   */
+  async isRunBySomething(agentSettingsId: string): Promise<boolean> {
+    const manager = this.transactionService.getManager()
+    for (const metadata of manager.connection.entityMetadatas) {
+      for (const foreignKey of metadata.foreignKeys) {
+        if (foreignKey.referencedEntityMetadata.target !== AgentSettings) continue
+        const [column] = foreignKey.columns
+        if (!column) continue
+        const isReferenced = await manager
+          .getRepository(metadata.target)
+          .createQueryBuilder("referencing")
+          .withDeleted()
+          .where(`referencing.${column.propertyName} = :agentSettingsId`, { agentSettingsId })
+          .getExists()
+        if (isReferenced) return true
+      }
+    }
+    return false
+  }
+
+  /** Removes a draft for good, so the next draft takes its revision number. */
+  async deleteDraft(connectScope: RequiredConnectScope, agentSettingsId: string): Promise<void> {
+    await this.repo().delete({
+      id: agentSettingsId,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      isDraft: true,
+    })
+  }
+
   private async findLatestWhere(
     connectScope: RequiredConnectScope,
     where: { agentId: string; isDraft?: false },

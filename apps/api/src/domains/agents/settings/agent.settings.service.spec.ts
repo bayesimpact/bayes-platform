@@ -11,6 +11,7 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AgentsService } from "@/domains/agents/agents.service"
+import { extractionAgentSessionFactory } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import {
   agentSettingsValuesRev1,
@@ -23,6 +24,7 @@ import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import {
   createOrganizationWithAgent,
+  createOrganizationWithAgentSession,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { createResourceLibraryForProject } from "@/domains/resource-libraries/resource-library.factory"
@@ -521,6 +523,116 @@ describe("AgentSettings", () => {
       expect(allSavedSettings[0]?.revision).toBe(savedSettings.revision)
       expect(allSavedSettings[0]?.isDraft).toBeTruthy()
     })
+    describe("a draft that goes back to the published settings", () => {
+      const editThenTakeBack = async ({
+        connectScope,
+        agentId,
+        beforeTakingBack,
+      }: {
+        connectScope: { organizationId: string; projectId: string }
+        agentId: string
+        beforeTakingBack?: (draft: AgentSettings) => Promise<void>
+      }) => {
+        const { agentSettings: draft } = await service.updateAllSettings({
+          connectScope,
+          agentId,
+          fieldsToUpdate: { ...agentSettingsValuesRev1, instructions: "An edit to take back" },
+        })
+        expect(draft.isDraft).toBe(true)
+        await beforeTakingBack?.(draft)
+
+        const { agentSettings } = await service.updateAllSettings({
+          connectScope,
+          agentId,
+          fieldsToUpdate: agentSettingsValuesRev1,
+        })
+        const revisions = await service.getAll({ connectScope, agentId, includesDraft: true })
+        return { draft, agentSettings, revisions }
+      }
+
+      it("is deleted, and the published revision is the current one again", async () => {
+        const { organization, project, agent } = await createAgentWithSettings(
+          setup,
+          repositories,
+          true,
+        )
+        const connectScope = { organizationId: organization.id, projectId: project.id }
+
+        const { agentSettings, revisions } = await editThenTakeBack({
+          connectScope,
+          agentId: agent.id,
+        })
+
+        expect(agentSettings.isDraft).toBe(false)
+        expect(agentSettings.revision).toBe(1)
+        expect(revisions.map((revision) => revision.revision)).toEqual([1])
+      })
+
+      it("frees its revision number for the next draft", async () => {
+        const { organization, project, agent } = await createAgentWithSettings(
+          setup,
+          repositories,
+          true,
+        )
+        const connectScope = { organizationId: organization.id, projectId: project.id }
+        await editThenTakeBack({ connectScope, agentId: agent.id })
+
+        const { agentSettings: nextDraft } = await service.updateAllSettings({
+          connectScope,
+          agentId: agent.id,
+          fieldsToUpdate: { ...agentSettingsValuesRev1, instructions: "Another edit" },
+        })
+
+        expect(nextDraft.isDraft).toBe(true)
+        expect(nextDraft.revision).toBe(2)
+      })
+
+      it("is kept once a session ran on it, with that session", async () => {
+        const { organization, project, agent, user, document } =
+          await createOrganizationWithAgentSession({
+            repositories,
+            agentType: "extraction",
+            params: { agentSettings: agentSettingsValuesRev1 },
+          })
+        if (!document) throw new Error("The extraction session fixture has no document")
+        const connectScope = { organizationId: organization.id, projectId: project.id }
+
+        let sessionOnDraftId = ""
+        const { agentSettings, revisions } = await editThenTakeBack({
+          connectScope,
+          agentId: agent.id,
+          beforeTakingBack: async (draft) => {
+            const sessionOnDraft = extractionAgentSessionFactory
+              .transient({ organization, project, user, agent, agentSettings: draft, document })
+              .build()
+            await repositories.extractionAgentSessionRepository.save(sessionOnDraft)
+            sessionOnDraftId = sessionOnDraft.id
+          },
+        })
+
+        expect(agentSettings.isDraft).toBe(true)
+        expect(revisions.map((revision) => revision.revision)).toEqual([2, 1])
+        expect(
+          await repositories.extractionAgentSessionRepository.findOneBy({ id: sessionOnDraftId }),
+        ).not.toBeNull()
+      })
+
+      it("is kept when the agent was never published", async () => {
+        const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+          agentSettings: { ...agentSettingsValuesRev1, isDraft: true },
+        })
+        const connectScope = { organizationId: organization.id, projectId: project.id }
+
+        const { agentSettings, revisions } = await editThenTakeBack({
+          connectScope,
+          agentId: agent.id,
+        })
+
+        expect(agentSettings.isDraft).toBe(true)
+        expect(revisions).toHaveLength(1)
+      })
+    })
+
     it("updateAllSettings should create a draft revision with the updated fields", async () => {
       const { organization, project, agent } = await createOrganizationWithAgent(repositories)
 
@@ -547,8 +659,12 @@ describe("AgentSettings", () => {
     })
 
     it("updateAllSettings should update greetingMessage and clear it with an empty string", async () => {
-      const { organization, project, agent, agentSettings } =
-        await createOrganizationWithAgent(repositories)
+      // The published revision has a greeting: clearing it in the draft is a change, so the
+      // draft stays (a draft that goes back to the published settings is deleted).
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agentSettings: { greetingMessage: "Published greeting" } },
+      )
       const connectScope = { organizationId: organization.id, projectId: project.id }
 
       await service.updateAllSettings({
