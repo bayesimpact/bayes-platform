@@ -93,7 +93,9 @@
         "medium": "Medium",
         "high": "High"
       },
-      "modelOptions": "Model options"
+      "modelOptions": "Model options",
+      "characterCount_one": "{{formattedCount}} character",
+      "characterCount_other": "{{formattedCount}} characters"
     },
     "defaultPromptDialog": {
       "title": "Instructions",

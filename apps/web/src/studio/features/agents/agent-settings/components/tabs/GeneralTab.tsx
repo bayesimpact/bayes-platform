@@ -34,7 +34,7 @@ export function GeneralTab({
 }: AgentTabFormProps & {
   agent: Agent
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const hasGreetingMessage = agent.type === "conversation"
   const project = useValue(selectCurrentProjectData)
@@ -115,7 +115,15 @@ export function GeneralTab({
           name="instructions"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("agentSettings:props.instructions")}</FormLabel>
+              <FormLabel>
+                {t("agentSettings:props.instructions")}
+                <span className="font-normal text-muted-foreground">
+                  {t("agentSettings:props.characterCount", {
+                    count: field.value.length,
+                    formattedCount: field.value.length.toLocaleString(i18n.language),
+                  })}
+                </span>
+              </FormLabel>
               <FormControl>
                 {/* It grows with its text, with no height limit: the page scrolls, not the field. */}
                 <Textarea
