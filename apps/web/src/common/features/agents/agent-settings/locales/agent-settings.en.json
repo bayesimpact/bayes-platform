@@ -95,7 +95,8 @@
       },
       "modelOptions": "Model options",
       "characterCount_one": "{{formattedCount}} character",
-      "characterCount_other": "{{formattedCount}} characters"
+      "characterCount_other": "{{formattedCount}} characters",
+      "characterCountWithMax": "{{current}} / {{max}} characters"
     },
     "defaultPromptDialog": {
       "title": "Instructions",

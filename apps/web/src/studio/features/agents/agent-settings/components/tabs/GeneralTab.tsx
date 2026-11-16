@@ -1,5 +1,6 @@
 import {
   extractPromptVariables,
+  GREETING_MESSAGE_MAX_LENGTH,
   updateAgentSettingsGeneralSchema,
 } from "@caseai-connect/api-contracts"
 import {
@@ -91,7 +92,15 @@ export function GeneralTab({
             name="greetingMessage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("agentSettings:props.greeting")}</FormLabel>
+                <FormLabel>
+                  {t("agentSettings:props.greeting")}
+                  <span className="font-normal text-muted-foreground">
+                    {t("agentSettings:props.characterCountWithMax", {
+                      current: (field.value ?? "").length.toLocaleString(i18n.language),
+                      max: GREETING_MESSAGE_MAX_LENGTH.toLocaleString(i18n.language),
+                    })}
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder={t("agentSettings:props.placeholders.greeting")}
