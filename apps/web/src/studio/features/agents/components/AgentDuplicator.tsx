@@ -7,7 +7,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
 import {
   Form,
@@ -32,38 +31,37 @@ import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { duplicateAgent } from "../agents.thunks"
 
-/** Duplicate button of an agent: asks for the copy's name, then opens the copy's editor. */
-export function AgentDuplicatorWithTrigger({
+/**
+ * Dialog that duplicates an agent: asks for the copy's name, then opens the copy's editor. Its
+ * caller opens it (the "More" menu of the agent page).
+ */
+export function AgentDuplicatorDialog({
   organizationId,
   agent,
+  open,
+  onClose,
 }: {
   organizationId: string
   agent: Agent
+  open: boolean
+  onClose: () => void
 }) {
-  const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
   // While the copy is made, the dialog cannot be closed: a second copy could start, and the
   // first copy's editor would still open later.
   const [duplicating, setDuplicating] = useState(false)
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen || !duplicating) setOpen(nextOpen)
+    if (!nextOpen && !duplicating) onClose()
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <CopyIcon />
-          {t("actions:duplicate")}
-        </Button>
-      </DialogTrigger>
       <DialogContent showCloseButton={!duplicating}>
         <DuplicateForm
           organizationId={organizationId}
           agent={agent}
           onDuplicatingChange={setDuplicating}
-          onDuplicated={() => setOpen(false)}
+          onDuplicated={onClose}
         />
       </DialogContent>
     </Dialog>
@@ -127,11 +125,8 @@ function DuplicateForm({
             onSuccess: (copy) => {
               finish()
               onDuplicated()
-              // The editor of an extraction agent is its agent page.
-              const editorRoute =
-                copy.type === "extraction" ? StudioRoutes.agent : StudioRoutes.agentEdit
               navigate(
-                editorRoute.build({
+                StudioRoutes.agentEdit.build({
                   organizationId,
                   projectId: copy.projectId,
                   agentId: copy.id,

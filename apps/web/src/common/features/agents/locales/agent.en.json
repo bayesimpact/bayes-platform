@@ -82,7 +82,6 @@
     },
     "playground": "Playground",
     "notifications": {
-      "updated": "Agent updated successfully",
       "updateError": "Agent update failed",
       "deleted": "Agent deleted successfully",
       "deleteError": "Agent deletion failed",
@@ -90,6 +89,15 @@
       "createError": "Agent creation failed",
       "duplicated": "Agent duplicated as a draft",
       "duplicateError": "Agent duplication failed"
+    },
+    "evaluationCard": {
+      "description": "Measure the agent's answers on a dataset.",
+      "open": "Open the evaluation in a new tab"
+    },
+    "productionAppCard": {
+      "description": "The agent as its users see it, in its published version.",
+      "open": "Open the app in a new tab",
+      "badge": "Production"
     }
   }
 }

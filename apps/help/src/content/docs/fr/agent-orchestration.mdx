@@ -4,7 +4,7 @@ highlight: Orchestration
 description: Transformez un agent conversationnel en orchestrateur qui délègue des parties de la conversation à des sous-agents — rattachez d'autres agents comme outils, décrivez quand utiliser chacun, et activez-les ou désactivez-les.
 category: guides-agents
 order: 5
-updated: 2026-07-22
+updated: 2026-11-16
 ---
 
 import OrchestrationWalkthrough from "@/components/OrchestrationWalkthrough.astro"
@@ -15,17 +15,19 @@ la conversation à d'autres agents, appelés **sous-agents**. L'agent principal
 correspond à la spécialité d'un sous-agent, il lui **délègue** et réintègre sa réponse
 dans la sienne.
 
-L'orchestration se configure sur l'onglet **Orchestration** de l'éditeur d'un **agent
-conversationnel**, dans **Studio**. C'est une fonctionnalité optionnelle : l'onglet
-n'apparaît que si l'orchestration est activée pour votre espace de travail et que vous
-modifiez un agent **conversationnel** (les agents d'extraction et de formulaire ne
-l'ont pas). Dans la barre d'onglets de l'éditeur, il se situe après **Catégories de
-conversation** et avant [**Intégration**](/fr/agent-embed).
+L'orchestration se configure dans l'éditeur d'un **agent conversationnel** (un agent
+de formulaire en est un), dans **Studio** : **Orchestration** se trouve dans le menu
+de gauche de l'éditeur, sous **Plus**. Elle ne fait pas partie du brouillon de
+l'agent : elle s'ouvre en pleine page avec son propre bouton **Enregistrer**, et vos
+modifications s'appliquent à l'agent **en production** dès que vous les enregistrez.
+Elle n'a pas de versions dans l'[historique des versions](/fr/agent-version-history).
+C'est une fonctionnalité optionnelle : l'entrée n'apparaît que si l'orchestration est
+activée pour votre espace de travail. Les agents d'extraction ne l'ont pas.
 
 > **À faire activer.** L'orchestration s'active espace de travail par espace de
-> travail. Si l'éditeur de votre agent conversationnel n'a pas d'onglet
-> **Orchestration**, c'est que la fonctionnalité n'est pas encore activée — contactez
-> l'équipe Bayes pour en faire la demande.
+> travail. Si l'éditeur de votre agent conversationnel n'a pas d'entrée
+> **Orchestration** sous **Plus**, c'est que la fonctionnalité n'est pas encore
+> activée. Contactez l'équipe Bayes pour en faire la demande.
 
 ## Comment fonctionne l'orchestration
 
@@ -44,6 +46,9 @@ conversation** et avant [**Intégration**](/fr/agent-embed).
   dans la liste des disponibles.
 - Les sous-agents **désactivés** restent configurés mais ne sont pas proposés au
   modèle. Vous pouvez rattacher jusqu'à **20** sous-agents.
+- Un sous-agent fonctionne avec sa version **publiée**. Un agent jamais publié porte un
+  badge **Brouillon** dans la liste et n'est proposé à l'orchestrateur qu'une fois
+  publié.
 
 ## Le parcours complet en un coup d'œil
 
@@ -59,18 +64,28 @@ bouton à cliquer et la zone à observer.
 
 Dans **Studio**, ouvrez l'agent **conversationnel** que vous voulez transformer en
 orchestrateur (depuis la liste **Agents** de la barre latérale gauche, ou sa carte sur
-la vue d'ensemble de l'espace de travail). L'éditeur de l'agent s'ouvre. Vous devez
-avoir le droit de gérer l'agent.
+la vue d'ensemble de l'espace de travail). Sa page s'ouvre. Vous devez avoir le droit
+de gérer l'agent.
 
-### 2. Ouvrir l'onglet Orchestration
+### 2. Ouvrir l'éditeur de l'agent
 
-Dans la barre d'onglets de l'éditeur, cliquez sur **Orchestration**. Si vous ne le
-voyez pas, l'onglet n'est pas activé pour votre espace de travail, ou vous n'êtes pas
-sur un agent **conversationnel** (voir Dépannage).
+En haut à droite de la page de l'agent, cliquez sur **Modifier**. Le bouton indique sur
+quoi l'éditeur s'ouvre : un badge **Brouillon**, ou la version publiée (par exemple
+**v3**).
 
-### 3. Comprendre le point de départ
+### 3. Ouvrir Orchestration
 
-L'onglet comporte deux sections :
+Dans le menu de gauche de l'éditeur, sous **Plus**, cliquez sur **Orchestration** (elle
+porte une icône de lien externe : elle s'ouvre par-dessus l'éditeur). Si vous ne la
+voyez pas, la fonctionnalité n'est pas activée pour votre espace de travail, ou vous
+n'êtes pas sur un agent **conversationnel** (voir Dépannage).
+
+### 4. Comprendre le point de départ
+
+**Orchestration** s'ouvre en pleine page. Son en-tête indique *Ces réglages ne font pas
+partie du brouillon : ils s'appliquent en production dès que vous enregistrez.*, avec
+**Fermer** et **Enregistrer** en haut à droite (ils apparaissent aussi en bas de la
+page). La page comporte deux sections :
 
 - **Sous-agents** (en haut) — les agents auxquels cet orchestrateur délègue. Avant
   d'en ajouter, un état vide s'affiche : **Aucun sous-agent** / *Cet agent répond
@@ -78,19 +93,21 @@ L'onglet comporte deux sections :
 - **Agents conversationnels disponibles** (en dessous) — les agents que vous pouvez
   rattacher.
 
-### 4. Ajouter un sous-agent
+### 5. Ajouter un sous-agent
 
 Sous **Agents conversationnels disponibles**, chaque candidat est présenté sur une
 carte avec son **nom** et ses instructions. Cliquez sur **Ajouter** sur celui auquel
 vous voulez déléguer. Il remonte dans la liste **Sous-agents** avec des valeurs par
-défaut et disparaît de la liste des disponibles.
+défaut et disparaît de la liste des disponibles. Un agent jamais publié affiche un
+badge **Brouillon** : vous pouvez l'ajouter, mais l'orchestrateur ne l'utilise qu'une
+fois publié.
 
 > La liste contient vos autres agents **conversationnels et de formulaire**. S'il n'y
 > en a aucun, elle affiche **Aucun autre agent conversationnel n'est disponible.** —
 > créez d'abord un agent conversationnel ou de formulaire (les agents d'extraction ne
 > sont pas éligibles).
 
-### 5. Configurer le sous-agent
+### 6. Configurer le sous-agent
 
 Chaque sous-agent rattaché a trois champs :
 
@@ -109,7 +126,7 @@ Chaque sous-agent rattaché a trois champs :
     formulaire ou à un entretien que le sous-agent doit mener lui-même. L'en-tête de la
     session indique à qui l'usager parle, et chaque réponse nomme l'agent qui l'a écrite.
 
-### 6. Activer, désactiver ou retirer
+### 7. Activer, désactiver ou retirer
 
 Chaque ligne de sous-agent affiche un badge **Activé** / **Désactivé** et un
 **interrupteur** :
@@ -119,12 +136,22 @@ Chaque ligne de sous-agent affiche un badge **Activé** / **Désactivé** et un
 - Cliquez sur l'icône **corbeille** (**Retirer**) pour le détacher complètement — il
   revient dans la liste **Agents conversationnels disponibles**.
 
-### 7. Enregistrer
+### 8. Enregistrer
 
-Cliquez sur **Enregistrer**. Le bouton reste désactivé tant que vous n'avez rien
-modifié, et l'ensemble des sous-agents est enregistré d'un bloc. Si vous changez
-d'onglet ou quittez avec des modifications non enregistrées, une boîte de dialogue
-**Modifications non enregistrées** vous demande si vous voulez les abandonner.
+Cliquez sur **Enregistrer**, en haut ou en bas de la page. Le bouton reste grisé tant
+que vous n'avez rien modifié, et l'ensemble des sous-agents est enregistré d'un bloc.
+Dès que vous modifiez quelque chose, **Fermer** devient **Annuler**. Annuler, la croix
+de fermeture, Échap ou un clic hors de la page avec des modifications non enregistrées
+ouvre la boîte de dialogue **Modifications non enregistrées**, qui vous demande s'il
+faut les **Abandonner**.
+
+### 9. Confirmer
+
+La boîte de dialogue **Appliquer ces réglages maintenant ?** indique *Ces réglages ne
+passent pas par le brouillon : ils s'appliquent à l'agent **en production** dès
+l'enregistrement.* Cliquez sur **Enregistrer** pour les appliquer, ou sur **Annuler**
+pour revenir à la page. Appuyer sur Entrée dans un champ demande la même
+confirmation.
 
 ## Ce qui se passe à l'exécution
 
@@ -163,10 +190,16 @@ les champs restés vides, sans modifier une réponse déjà enregistrée.
 
 ## Dépannage
 
-- **Je ne vois pas l'onglet Orchestration** — il n'apparaît que pour les agents
-  **conversationnels**, uniquement si l'orchestration est activée pour l'espace de
-  travail, et seulement si vous pouvez gérer l'agent. Les agents d'extraction et de
-  formulaire ne l'affichent jamais.
+- **Je ne vois pas Orchestration dans l'éditeur** — elle n'apparaît sous **Plus** que
+  pour les agents **conversationnels** (agents de formulaire compris), uniquement si
+  l'orchestration est activée pour l'espace de travail, et seulement si vous pouvez
+  gérer l'agent. Les agents d'extraction ne l'affichent jamais.
+- **Mes sous-agents sont actifs mais absents de l'historique des versions** — c'est
+  normal : l'orchestration ne fait pas partie du brouillon et n'a pas de versions.
+  Restaurer une version ne change pas les sous-agents.
+- **Un sous-agent avec un badge Brouillon n'est jamais appelé** — il n'a jamais été
+  publié. Ouvrez l'éditeur de cet agent, puis **Gérer les versions** et **Enregistrer
+  la version**.
 - **Aucun agent dans Agents conversationnels disponibles** — le message **Aucun autre
   agent conversationnel n'est disponible.** signifie qu'il n'y a aucun agent éligible.
   Créez d'abord un autre agent **conversationnel** ou **de formulaire** ; les agents

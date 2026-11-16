@@ -7,6 +7,7 @@ import type {
 import {
   extractAgentSettingsCreateFields,
   extractAgentSettingsUpdateFields,
+  hasSameAgentSettings,
   requiresUpdateAgentSettings,
 } from "./agent.settings.functions"
 
@@ -190,5 +191,46 @@ describe("requiresNewAgentSettingsRevision", () => {
         } as Partial<AgentSettingsUpdateFields>,
       }),
     ).toBe(false)
+  })
+})
+
+describe("hasSameAgentSettings", () => {
+  it("is true for two revisions with the same values, objects included", () => {
+    const copy = structuredClone(fullFields)
+
+    expect(hasSameAgentSettings(fullFields, copy)).toBe(true)
+  })
+
+  it("is false when a text field differs", () => {
+    expect(hasSameAgentSettings(fullFields, { ...fullFields, instructions: "Be brief" })).toBe(
+      false,
+    )
+  })
+
+  it("does not count the order of an object's keys", () => {
+    const schema = { type: "object", properties: { title: { type: "string" } } }
+    const reordered = { properties: { title: { type: "string" } }, type: "object" }
+
+    expect(
+      hasSameAgentSettings(
+        { ...fullFields, outputJsonSchema: schema },
+        { ...fullFields, outputJsonSchema: reordered },
+      ),
+    ).toBe(true)
+  })
+
+  it("is false when the form schema differs", () => {
+    expect(
+      hasSameAgentSettings(fullFields, { ...fullFields, outputJsonSchema: { type: "array" } }),
+    ).toBe(false)
+  })
+
+  it("treats a missing value and null as the same", () => {
+    expect(
+      hasSameAgentSettings(
+        { ...fullFields, greetingMessage: null },
+        { ...fullFields, greetingMessage: undefined },
+      ),
+    ).toBe(true)
   })
 })

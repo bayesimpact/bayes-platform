@@ -207,30 +207,46 @@ down, mirroring the platform (`SidebarContent` is `flex-1`). Implement with
 `.grp-label.stack { margin-top: auto }`. The active nav item uses
 `bg-sidebar-accent`.
 
-## Agent editor reference (verified 2026-10-30 — RE-VERIFY before reuse)
+## Agent editor reference (verified 2026-11-16 — RE-VERIFY before reuse)
 
-Source of truth: `AgentCreator.tsx` (dialog) + `AgentEditor.tsx` (tab order &
-conditions) + each `Agent*Tab.tsx`.
+Source of truth: `AgentCreator.tsx` (dialog), `AgentActions.tsx` and
+`AgentMoreActions.tsx` (agent page), `AgentEditor.tsx` (sections, sheets and their
+conditions), `AgentEditorPageView.tsx` (layout), `AgentEditorSaveStatus.tsx`,
+`sheets/AgentEditorSheet.tsx`, `AgentSettingsHistorySheet.tsx` and each `tabs/*Tab.tsx`.
 
 - **Create:** New Agent dialog → **Agent type** [Conversation / Extraction / Form] →
   **Name** (≥3 chars) → **Create** → navigates to the editor. Conversation is the
-  default type.
-- **Editor = tabs; each tab is its own form with its own `Save` button
-  (`actions:save`)** — EXCEPT the **Embed** tab, which saves with **`Update`**
-  (`actions:update`). Leaving a tab with unsaved changes prompts a confirm dialog.
-- **Conversation** tabs: General, Model, Sources, Tools, then
-  **Conversation categories** (only if the project has categories), **Orchestration**
-  (flag `agent-orchestration`), **Embed** (flag `agent-embed`).
-- **Extraction / Form** (non-conversation): General, Model, **Output** (labeled
-  **Form** for form agents). No Sources / Tools / Categories /
-  Orchestration / Embed.
-- **General** fields: Name, Locale, **Greeting** (conversation & form only),
-  **Instructions** (`agent:props.instructions` — NOT "Default Prompt", renamed). ·
-  **Model:** Model, Temperature. · **Sources** (one form, one **Save**): a
-  **Documents** section (Answer source `documentsRagMode`: model-only / all documents
-  / by tags + Document Tags), then a **Resource libraries** section (label
-  `resourceLibrary:agentTab.label`, **Add library** (hardcoded EN), **Manage
-  libraries**).
+  default type. **Form is not an agent type**: it creates a conversation agent with
+  the **Form filling** tool on (`agent-form.shared.ts`).
+- **Agent page:** **Edit** (`settings-2` icon) with a **Draft** badge or the published
+  version (`v3`), then a **More** menu (`ellipsis`) with **Duplicate** and **Delete**.
+  Cards: New Chat, Feedback, App (Production, once published), Evaluation, Members.
+- **Editor = a page of its own**, outside the Studio layout: its left menu (Back, agent
+  name, *Edit Conversation/Extraction Agent*) replaces the Studio sidebar. Walkthroughs
+  show it with the `.esb` menu and the `in-editor` class on `.shell`.
+- **Draft sections save by themselves** (no Save button): a status at the top right
+  reads **Saving…**, **Draft saved**, **Version n · published** (no draft) or
+  **Unsaved changes** + **Retry**. Document tags, resource libraries and conversation
+  categories are saved on the agent itself: they apply at once.
+- **Conversation** sections: General, Model, Sources, Tools, then **Conversation
+  categories** (only if the project has categories). Under **More**: **MCP Servers**
+  (flag `agent-mcp`, a section whose switches apply at once), **Orchestration** (flag
+  `agent-orchestration`) and **Embed** (flag `agent-embed`). Orchestration and Embed
+  open a full-page sheet with **Cancel/Close** and **Save**, then the **Apply these
+  settings now?** confirmation: they apply in production, outside the draft.
+- **Extraction** sections: General, Model, **Output**; MCP Servers under More when the
+  project has non-built-in servers.
+- **Manage versions** (bottom of the menu) opens the full-screen version history:
+  versions list, three comparisons, changed fields, **Save version** on the draft,
+  **Restore this version** on older ones.
+- **General** fields: Name, **Greeting** (conversation only, count with a 2,000 max),
+  **Instructions** (count; **Advanced mode** diff with the published instructions once
+  they differ), Prompt variables (flag `agent-prompt-variables`). No Locale field. ·
+  **Model:** Answer generation (Model + its options such as Temperature), Priority
+  calls (flag), Document search (embedding model, conversation only). · **Sources:** a
+  **Documents** section (Answer source + Document Tags), then a **Resource libraries**
+  section (**Add library** hardcoded EN, **Manage libraries**). · **Tools:** Form
+  filling, Suggest follow-up questions, Memory (flag `agent-memory`).
 
 ---
 

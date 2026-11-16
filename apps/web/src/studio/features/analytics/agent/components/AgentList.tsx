@@ -1,4 +1,5 @@
 import { Button } from "@caseai-connect/ui/shad/button"
+import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import { Settings2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link, useOutlet } from "react-router-dom"
@@ -28,7 +29,7 @@ export function AgentList() {
         title={project.name}
         description={t("project:project")}
         action={
-          <>
+          <ButtonGroup>
             <Button variant="outline" asChild>
               <Link
                 to={StudioRoutes.projectAdmin.build({
@@ -41,7 +42,7 @@ export function AgentList() {
               </Link>
             </Button>
             <ProjectDeletor project={project} />
-          </>
+          </ButtonGroup>
         }
       />
 

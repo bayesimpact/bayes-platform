@@ -24,7 +24,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.2",
     "@modelcontextprotocol/ext-apps": "^1.7.5",
-    "@pierre/diffs": "^1.2.12",
+    "@pierre/diffs": "^1.6.4",
     "@reduxjs/toolkit": "^2.11.2",
     "@tabler/icons-react": "^3.37.1",
     "@tailwindcss/vite": "^4.1.18",

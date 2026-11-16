@@ -4,6 +4,13 @@
  * real Studio interface (same shell, exact Lucide icons, real brand logo). Shares
  * the exact FORM of the other help-center walkthroughs — only the content differs.
  * Pass `lang="fr"` for the French copy.
+ *
+ * Re-derived 2026-11-16 from AgentCreator.tsx, agent-form.shared.ts, AgentEditor.tsx,
+ * AgentEditorPageView.tsx and ToolsTab.tsx: the Form choice creates a conversation agent with
+ * the Form filling tool on, so its editor is a conversation agent's (General, Model, Sources,
+ * Tools, then MCP Servers, Orchestration and Embed under "More") and the form's fields live
+ * in Tools > Form filling. Every change saves by itself to the draft (AgentEditorSaveStatus):
+ * no Save button, no Locale field.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -30,11 +37,15 @@ const STRINGS = {
     dialogDesc: "Choose the type before configuring your agent.",
     typeLabel: "Agent type", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Form",
     nameLabel: "Name", namePlaceholder: "Enter agent name", agentName: "Contact Form",
-    editTitle: "Edit Form Agent", editDesc: "Edit details for this form agent",
-    tabGeneral: "General", tabModel: "Model", tabForm: "Form",
-    localeLabel: "Locale", localeValue: "EN",
-    greetingLabel: "Greeting", greetingValue: "Hi! I'll help you fill out this form. Let's get started.",
-    promptLabel: "Instructions",
+    editTitle: "Edit Conversation Agent",
+    back: "Back", more: "More", manage: "Manage versions", draftSaved: "Draft saved",
+    secGeneral: "General", secModel: "Model", secSources: "Sources", secTools: "Tools",
+    secMcpServers: "MCP Servers", secOrchestration: "Orchestration", secEmbed: "Embed",
+    greetingLabel: "Greeting", greetingValue: "Hi! I'll help you fill out this form. Let's get started.", greetingCount: "56 / 2,000 characters",
+    promptLabel: "Instructions", promptCount: "124 characters",
+    genTitle: "Answer generation", genDesc: "The model that writes the agent's answers.", modelValue: "Gemini 3.5 Flash (Vertex3)",
+    fillFormTitle: "Form filling", fillFormDesc: "Let the agent fill a structured form from the user's answers during the conversation.",
+    schemaDesc: "Define the form fields the agent should fill. The field order is the order in which the agent asks its questions.",
     promptValue: "Your main task is to help the user fill out the form by asking questions and providing guidance. Ask one question at a time.",
     modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.2",
     save: "Save",
@@ -49,11 +60,12 @@ const STRINGS = {
     steps: [
       "On the workspace overview, open the New Agent card and click Create.",
       "In the New Agent dialog, choose the Form type.",
-      "Give your agent a name, then click Create.",
-      "General: set the Name, Locale, Greeting and Instructions, then Save.",
-      "Model: choose the Model and Temperature, then Save.",
-      "Form: add the fields to collect, set Required, and drag to order the questions — then Save.",
+      "Give your agent a name, then click Create. The agent editor opens.",
+      "General: set the Name, Greeting and Instructions. Each change saves to the draft by itself, and the status reads Draft saved.",
+      "Model: choose the Model and its options, such as the Temperature.",
+      "Tools: Form filling is on. Add the fields to collect, set Required, and drag to order the questions.",
       "Prefer JSON? Advanced mode opens the raw schema editor.",
+      "When the draft is ready, click Manage versions, then Save version. Users then talk to the new version.",
     ],
   },
   fr: {
@@ -68,11 +80,15 @@ const STRINGS = {
     dialogDesc: "Choisissez le type avant de configurer votre agent.",
     typeLabel: "Type d'agent", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Formulaire",
     nameLabel: "Nom", namePlaceholder: "Entrez le nom de l'agent", agentName: "Contact Form",
-    editTitle: "Modifier l'agent de formulaire", editDesc: "Modifier les détails de cet agent de formulaire",
-    tabGeneral: "Général", tabModel: "Modèle", tabForm: "Formulaire",
-    localeLabel: "Langue", localeValue: "EN",
-    greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Je vais vous aider à remplir ce formulaire. Commençons.",
-    promptLabel: "Instructions",
+    editTitle: "Modifier l'agent conversationnel",
+    back: "Retour", more: "Plus", manage: "Gérer les versions", draftSaved: "Brouillon enregistré",
+    secGeneral: "Général", secModel: "Modèle", secSources: "Sources", secTools: "Outils",
+    secMcpServers: "Serveurs MCP", secOrchestration: "Orchestration", secEmbed: "Intégration",
+    greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Je vais vous aider à remplir ce formulaire. Commençons.", greetingCount: "65 / 2\u202f000 caractères",
+    promptLabel: "Instructions", promptCount: "144 caractères",
+    genTitle: "Génération des réponses", genDesc: "Le modèle qui rédige les réponses de l'agent.", modelValue: "Gemini 3.5 Flash (Vertex3)",
+    fillFormTitle: "Remplissage de formulaire", fillFormDesc: "Permet à l'agent de remplir un formulaire structuré à partir des réponses de l'utilisateur pendant la conversation.",
+    schemaDesc: "Définissez les champs du formulaire que l'agent doit remplir. L'ordre des champs est l'ordre dans lequel l'agent pose ses questions.",
     promptValue: "Votre tâche principale est d'aider l'utilisateur à remplir le formulaire en posant des questions et en le guidant. Posez une question à la fois.",
     modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.2",
     save: "Enregistrer",
@@ -87,11 +103,12 @@ const STRINGS = {
     steps: [
       "Sur la vue d'ensemble de l'espace de travail, ouvrez la carte Nouvel agent et cliquez sur Créer.",
       "Dans la boîte de dialogue Nouvel agent, choisissez le type Formulaire.",
-      "Donnez un nom à votre agent, puis cliquez sur Créer.",
-      "Général : définissez le Nom, la Langue, le Message d'accueil et les Instructions, puis Enregistrez.",
-      "Modèle : choisissez le Modèle et la Température, puis Enregistrez.",
-      "Formulaire : ajoutez les champs à collecter, réglez Obligatoire, et glissez pour ordonner les questions — puis Enregistrez.",
+      "Donnez un nom à votre agent, puis cliquez sur Créer. L'éditeur de l'agent s'ouvre.",
+      "Général : définissez le Nom, le Message d'accueil et les Instructions. Chaque modification s'enregistre d'elle-même dans le brouillon, et le statut affiche Brouillon enregistré.",
+      "Modèle : choisissez le Modèle et ses options, comme la Température.",
+      "Outils : le Remplissage de formulaire est activé. Ajoutez les champs à collecter, réglez Obligatoire, et glissez pour ordonner les questions.",
       "Vous préférez le JSON ? Le Mode avancé ouvre l'éditeur de schéma brut.",
+      "Quand le brouillon est prêt, cliquez sur Gérer les versions, puis sur Enregistrer la version. Les utilisateurs parlent alors à la nouvelle version.",
     ],
   },
 } as const
@@ -99,14 +116,17 @@ const STRINGS = {
 const s = STRINGS[lang]
 
 const steps = [
-  { page: "overview", spot: "btnCreate", observe: [] },
-  { page: "typeDialog", spot: "btnTypeForm", observe: ["obsTypeRow"] },
-  { page: "typeDialog", spot: "btnCreateConfirm", observe: ["obsNameField"] },
-  { page: "editorGeneral", spot: "", observe: ["obsGeneral"] },
-  { page: "editorModel", spot: "tabModel", observe: ["obsModel"] },
-  { page: "editorForm", spot: "tabForm", observe: ["obsSchema"] },
-  { page: "editorForm", spot: "btnSave", observe: [] },
+  { page: "overview", sec: "", spot: "btnCreate", observe: [] },
+  { page: "typeDialog", sec: "", spot: "btnTypeForm", observe: ["obsTypeRow"] },
+  { page: "typeDialog", sec: "", spot: "btnCreateConfirm", observe: ["obsNameField"] },
+  { page: "editorGeneral", sec: "general", spot: "", observe: ["obsGeneral", "obsStatus"] },
+  { page: "editorModel", sec: "model", spot: "sec-model", observe: ["obsModel"] },
+  { page: "editorTools", sec: "tools", spot: "sec-tools", observe: ["obsSchema"] },
+  { page: "editorTools", sec: "tools", spot: "btnAdvanced", observe: [] },
+  { page: "editorTools", sec: "tools", spot: "btnManage", observe: ["obsStatus"] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const titles = { general: s.secGeneral, model: s.secModel, tools: s.secTools }
 
 const labels = { prev: s.prev, next: s.next, step: s.step }
 ---
@@ -141,10 +161,28 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       </div>
     </aside>
 
+    <!-- The agent editor's own menu, in place of the Studio sidebar -->
+    <aside class="esb">
+      <span class="ebk"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> {s.back}</span>
+      <div class="agent-id"><b><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agentName}</span></b><small>{s.editTitle}</small></div>
+      <div class="esb-list">
+        <div class="navitem" data-sec="general" id="sec-general"><svg viewBox="0 0 24 24"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg><span>{s.secGeneral}</span></div>
+        <div class="navitem" data-sec="model" id="sec-model"><svg viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>{s.secModel}</span></div>
+        <div class="navitem" data-sec="sources" id="sec-sources"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.secSources}</span></div>
+        <div class="navitem" data-sec="tools" id="sec-tools"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg><span>{s.secTools}</span></div>
+        <div class="grp-more">{s.more}</div>
+        <div class="navitem" data-sec="mcpServers" id="sec-mcpServers"><svg viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg><span>{s.secMcpServers}</span></div>
+        <div class="navitem" id="sec-orchestration"><svg viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg><span>{s.secOrchestration}</span><svg class="ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+        <div class="navitem" id="sec-embed"><svg viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg><span>{s.secEmbed}</span><svg class="ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+      <div class="esb-foot"><span class="btn wide" id="btnManage"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> {s.manage}</span></div>
+    </aside>
+
     <!-- Main inset -->
     <div class="inset">
       <div class="topbar">
         <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+        <span class="etop"><span class="sec" data-sectitle></span><span class="status" id="obsStatus"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> {s.draftSaved}</span></span>
       </div>
       <div class="canvas">
         <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
@@ -184,64 +222,38 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
 
         <!-- editor: General tab (step 4) -->
         <div class="page" data-page="editorGeneral">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
           <div class="editor">
-            <div class="tablist">
-              <span class="tab on">{s.tabGeneral}</span>
-              <span class="tab">{s.tabModel}</span>
-              <span class="tab">{s.tabForm}</span>
-            </div>
             <div class="tabbody" id="obsGeneral">
               <div class="grid2">
                 <div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agentName}</span></div>
-                <div class="fld"><p class="lbl">{s.localeLabel}</p><span class="select"><span>{s.localeValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
               </div>
-              <div class="fld"><p class="lbl">{s.greetingLabel}</p><span class="textarea">{s.greetingValue}</span></div>
-              <div class="fld"><p class="lbl">{s.promptLabel}</p><span class="textarea">{s.promptValue}</span></div>
+              <div class="fld"><p class="lbl">{s.greetingLabel}<span class="count">{s.greetingCount}</span></p><span class="textarea mono">{s.greetingValue}</span></div>
+              <div class="fld"><p class="lbl">{s.promptLabel}<span class="count">{s.promptCount}</span></p><span class="textarea mono grow">{s.promptValue}</span></div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 
         <!-- editor: Model tab (step 5) -->
         <div class="page" data-page="editorModel">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
           <div class="editor">
-            <div class="tablist">
-              <span class="tab">{s.tabGeneral}</span>
-              <span class="tab on" id="tabModel">{s.tabModel}</span>
-              <span class="tab">{s.tabForm}</span>
-            </div>
-            <div class="tabbody" id="obsModel">
+            <div class="tabbody sect" id="obsModel">
+              <p class="lbl sect-ttl">{s.genTitle}</p>
+              <p class="hint">{s.genDesc}</p>
               <div class="grid2">
-                <div class="fld"><p class="lbl">{s.modelLabel}</p><span class="select muted-select"><span>{s.modelPlaceholder}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+                <div class="fld"><p class="lbl">{s.modelLabel}</p><span class="select"><span>{s.modelValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
                 <div class="fld"><p class="lbl">{s.tempLabel}</p><span class="input block">{s.tempValue}</span></div>
               </div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 
-        <!-- editor: Form tab (step 6) -->
-        <div class="page" data-page="editorForm">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
+        <!-- editor: Tools, the Form filling tool (steps 6 to 8) -->
+        <div class="page" data-page="editorTools">
           <div class="editor">
-            <div class="tablist">
-              <span class="tab">{s.tabGeneral}</span>
-              <span class="tab">{s.tabModel}</span>
-              <span class="tab on" id="tabForm">{s.tabForm}</span>
-            </div>
-            <div class="tabbody" id="obsSchema">
-              <div class="builder-top"><span class="modebtn"><svg viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg> {s.builderAdvanced}</span></div>
+            <div class="tabbody toolcard" id="obsSchema">
+              <div class="tc-head"><span><b>{s.fillFormTitle}</b><p class="hint">{s.fillFormDesc}</p></span><span class="switch on"><i></i></span></div>
+              <p class="hint">{s.schemaDesc}</p>
+              <div class="builder-top"><span class="modebtn" id="btnAdvanced"><svg viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg> {s.builderAdvanced}</span></div>
               <div class="ordertoggle"><span class="switch on"><i></i></span><span>{s.orderToggle}</span></div>
               <div class="sbuilder">
                 <div class="sb-head"><span></span><span class="ta-c">#</span><span>{s.bName}</span><span>{s.bType}</span><span class="ta-c">{s.bReq}</span><span></span></div>
@@ -264,7 +276,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                 <span class="btn outline sm addfield"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.builderAddField}</span>
               </div>
             </div>
-            <div class="editor-foot"><span class="btn" id="btnSave">{s.save}</span></div>
           </div>
         </div>
 
@@ -283,7 +294,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   <div class="progress"><i data-bar></i></div>
 </div>
 
-<script define:vars={{ steps, labels }}>
+<script define:vars={{ steps, labels, titles }}>
   const cs = document.currentScript
   const faw =
     cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("faw")
@@ -319,9 +330,13 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
     capText.textContent = step.text
 
-    const created = step.page.indexOf("editor") === 0
-    const navNew = q("#navNewAgent")
-    if (navNew) { navNew.classList.toggle("hidden", !created); navNew.classList.toggle("on", created) }
+
+    // Once created, the agent opens in its editor, a page of its own whose menu takes the
+    // place of the Studio sidebar.
+    const inEditor = step.page.indexOf("editor") === 0 || step.page.indexOf("sheet") === 0
+    faw.querySelector(".shell").classList.toggle("in-editor", inEditor)
+    faw.querySelectorAll("[data-sec]").forEach((item) => item.classList.toggle("on", item.dataset.sec === step.sec))
+    faw.querySelector("[data-sectitle]").textContent = titles[step.sec] || ""
 
     clearMarks()
     const active = idx
@@ -496,6 +511,61 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .faw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
   .faw .progress i.run { animation: faw-fill var(--dur, 6000ms) linear forwards; }
   @keyframes faw-fill { to { width: 100%; } }
+
+  /* The agent editor: a page of its own, with its menu in place of the Studio sidebar */
+  .faw { --warn-bg: oklch(0.962 0.059 95.617); --warn-fg: oklch(0.476 0.114 61.907); }
+  .faw .shell { position: relative; }
+  .faw .esb { display: none; flex-direction: column; gap: 0.5rem; padding: 0.5rem; min-height: 0; }
+  .faw .shell.in-editor .sb { display: none; }
+  .faw .shell.in-editor .esb { display: flex; }
+  .faw .ebk { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.4rem 0.55rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; }
+  .faw .agent-id { display: flex; flex-direction: column; gap: 0.15rem; padding: 0 0.5rem 0.3rem; }
+  .faw .agent-id b { display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; font-weight: 600; min-width: 0; }
+  .faw .agent-id b span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .faw .agent-id small { font-size: 0.74rem; color: var(--muted-foreground); }
+  .faw .esb-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .faw .esb .navitem svg { color: currentColor; }
+  .faw .esb .navitem .ext { margin-left: auto; font-size: 0.85rem; color: var(--muted-foreground); }
+  .faw .grp-more { font-size: 0.7rem; color: var(--muted-foreground); font-weight: 500; padding: 0.7rem 0.5rem 0.2rem; }
+  .faw .esb-foot { border-top: 1px solid var(--sidebar-border); padding: 0.6rem 0.2rem 0.2rem; }
+  .faw .etop { display: none; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
+  .faw .shell.in-editor .trig { display: none; }
+  .faw .shell.in-editor .etop { display: flex; }
+  .faw .shell.in-editor .canvas { background: var(--background); }
+  .faw .shell.in-editor .fab { display: none; }
+  .faw .etop .sec { font-size: 1.05rem; font-weight: 600; }
+  .faw .status { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 999px; padding: 0.25rem 0.7rem; font-size: 0.78rem; font-weight: 500; background: var(--warn-bg); color: var(--warn-fg); white-space: nowrap; }
+  .faw .page .editor { border: 0; padding: 0; background: transparent; max-width: 40rem; margin: 0 auto; }
+  .faw .eform { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
+  .faw .count { font-weight: 400; color: var(--muted-foreground); margin-left: 0.3rem; }
+  .faw .lbl-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .faw .textarea.grow { min-height: 7rem; }
+  .faw .toolcard { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.45rem; }
+  .faw .tc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
+  .faw .tc-head b { font-size: 0.82rem; font-weight: 500; display: block; }
+  .faw .tc-head .hint { margin-top: 0.15rem; }
+  .faw .page.full { padding: 0; z-index: 9; }
+  .faw .esheet { position: absolute; inset: 0; background: var(--card); color: var(--foreground); display: flex; flex-direction: column; }
+  .faw .es-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.7rem; padding: 0.9rem 3rem 0.9rem 1.1rem; border-bottom: 1px solid var(--border); position: relative; }
+  .faw .es-head b { font-size: 1rem; font-weight: 600; }
+  .faw .es-head p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.25rem 0 0; max-width: 30rem; }
+  .faw .es-head .closex { position: absolute; right: 1rem; top: 1rem; color: var(--muted-foreground); }
+  .faw .es-acts { display: flex; gap: 0.4rem; }
+  .faw .es-body { flex: 1; min-height: 0; overflow: auto; padding: 1rem 1.2rem; }
+  .faw .es-inner { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.6rem; }
+  .faw .page.full .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .faw .cmodal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(400px, 86%); background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; display: flex; flex-direction: column; gap: 0.8rem; }
+  .faw .cmodal b { font-size: 0.98rem; font-weight: 600; }
+  .faw .cmodal p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .faw .cmodal p strong { color: var(--foreground); font-weight: 600; }
+  .faw .cm-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+  @media (max-width: 640px) {
+    .faw .shell.in-editor .esb { display: none; }
+  }
+
+  .faw .hint { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+  .faw .sect { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.6rem 0.75rem; }
+  .faw .sect-ttl { margin: 0; font-weight: 600; }
 
   @media (max-width: 640px) {
     .faw .shell { grid-template-columns: 1fr; height: 560px; }

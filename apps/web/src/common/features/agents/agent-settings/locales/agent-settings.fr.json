@@ -4,6 +4,7 @@
     "agentSettingsHistory": "Historique des paramètres de l'agent",
     "selectAgentSettings": "Sélectionner les paramètres de l'agent",
     "props": {
+      "nameDescription": "Ce nom sert à reconnaître l'agent dans le Studio et dans l'application. L'agent ne le connaît pas : si on lui demande comment il s'appelle, il ne répond pas ce nom. Pour lui donner un nom, écrivez-le dans les instructions.",
       "createdAt": "Créé le",
       "instructions": "Instructions",
       "formConfiguration": "Configuration du formulaire",
@@ -93,7 +94,10 @@
         "medium": "Moyen",
         "high": "Élevé"
       },
-      "modelOptions": "Options du modèle"
+      "modelOptions": "Options du modèle",
+      "characterCount_one": "{{formattedCount}} caractère",
+      "characterCount_other": "{{formattedCount}} caractères",
+      "characterCountWithMax": "{{current}} / {{max}} caractères"
     },
     "defaultPromptDialog": {
       "title": "Instructions",
@@ -122,10 +126,25 @@
       "title": "Modifications non enregistrées",
       "description": "Vous avez des modifications non enregistrées qui seront perdues. Voulez-vous les abandonner ?"
     },
+    "autosave": {
+      "saving": "Enregistrement…",
+      "saved": "Brouillon enregistré",
+      "unsaved": "Modifications non enregistrées",
+      "refused": "Cette modification n'a pas pu être enregistrée",
+      "unsavedBeforeVersions": "Corrigez les modifications non enregistrées avant de gérer les versions",
+      "publishedVersion": "Version {{revision}} · publiée"
+    },
+    "liveSettings": {
+      "immediate": "Un changement ici s'applique immédiatement <strong>en production</strong>.",
+      "notice": "Les changements ici s'appliquent à l'agent en production dès l'enregistrement.",
+      "confirmSave": {
+        "title": "Appliquer ces réglages maintenant ?",
+        "description": "Ces changements s'appliquent à l'agent <strong>en production</strong> dès l'enregistrement."
+      }
+    },
     "create": {
       "button": "Enregistrer la version",
       "noDraft": "Aucun brouillon à créer. Enregistrez une modification pour créer une nouvelle version brouillon.",
-      "unsavedChanges": "Enregistrez ou annulez vos modifications avant de publier.",
       "optional": "Facultatif",
       "props": {
         "revisionName": "Nom de la version",
@@ -142,7 +161,6 @@
       }
     },
     "history": {
-      "button": "Historique",
       "title": "Historique des versions",
       "description": "Parcourez, comparez et restaurez les paramètres précédents de {{name}}.",
       "loadError": "Échec du chargement de l'historique des versions",
@@ -166,7 +184,11 @@
         "title": "Restaurer la version {{revision}} ?",
         "description": "Les paramètres de la version {{revision}} seront copiés comme nouvelle version et deviendront les paramètres actuels. Aucune version n'est supprimée."
       },
-      "draft": "Brouillon"
+      "draft": "Brouillon",
+      "manage": "Gérer les versions",
+      "changedFields_one": "{{count}} champ modifié :",
+      "changedFields_other": "{{count}} champs modifiés :",
+      "advancedMode": "Mode avancé"
     },
     "version": {
       "ariaLabel": "Version des paramètres utilisée par les nouveaux messages",
@@ -287,8 +309,6 @@
       "versionRestoreError": "La restauration de la version de l'agent a échoué",
       "versionPublished": "Version de l'agent publiée avec succès",
       "versionPublishError": "La publication de la version de l'agent a échoué",
-      "updated": "Agent mis à jour avec succès",
-      "updateError": "La mise à jour de l'agent a échoué",
       "embedConfigUpdated": "Configuration d'intégration mise à jour avec succès",
       "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
       "subAgentsUpdated": "Sous-agents mis à jour avec succès",
