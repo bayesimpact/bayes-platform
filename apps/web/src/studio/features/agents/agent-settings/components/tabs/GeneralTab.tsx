@@ -83,7 +83,7 @@ export function GeneralTab({
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-4">
         {/* A little more room under the name's description than between two fields. */}
-        <div className="grid gap-4 pb-3 md:grid-cols-2">
+        <div className="pb-3">
           <FormField
             control={form.control}
             name="name"
@@ -91,7 +91,12 @@ export function GeneralTab({
               <FormItem>
                 <FormLabel>{t("agent:props.name")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t("agent:props.placeholders.name")} {...field} />
+                  {/* The field keeps half the width; its description takes the whole line. */}
+                  <Input
+                    placeholder={t("agent:props.placeholders.name")}
+                    className="md:w-1/2"
+                    {...field}
+                  />
                 </FormControl>
                 <FormDescription>{t("agentSettings:props.nameDescription")}</FormDescription>
                 <FormMessage />
