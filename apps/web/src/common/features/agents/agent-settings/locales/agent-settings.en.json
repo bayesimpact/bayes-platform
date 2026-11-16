@@ -183,7 +183,9 @@
         "description": "The settings of version {{revision}} will be copied as a new version and become the current settings. No version is deleted."
       },
       "draft": "Draft",
-      "manage": "Manage versions"
+      "manage": "Manage versions",
+      "changedFields_one": "{{count}} changed field:",
+      "changedFields_other": "{{count}} changed fields:"
     },
     "version": {
       "ariaLabel": "Settings version new messages run with",

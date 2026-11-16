@@ -3,9 +3,12 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connec
 import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/ui/shad/toggle-group"
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
-import { listChangedAgentSettingsFields } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
+import {
+  agentSettingsDiffLabelKeys,
+  listChangedAgentSettingsFields,
+} from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
 import { AgentSettingsCreateButton } from "./AgentSettingsCreateButton"
-import { AgentSettingsFieldDiff } from "./AgentSettingsFieldDiff"
+import { AgentSettingsFieldDiff, agentSettingsFieldDiffId } from "./AgentSettingsFieldDiff"
 import { AgentSettingsRestoreButton } from "./AgentSettingsRestoreButton"
 
 /**
@@ -100,6 +103,30 @@ export function AgentSettingsCompare({
           </p>
         )}
       </div>
+
+      {/* A long diff hides the ones under it: this line, which never scrolls away, names every
+          changed field and jumps to its diff. */}
+      {canCompare && changedFields.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 border-b px-6 py-3">
+          <span className="text-sm text-muted-foreground">
+            {t("agentSettings:history.changedFields", { count: changedFields.length })}
+          </span>
+          {changedFields.map((fieldKey) => (
+            <Badge key={fieldKey} asChild variant="secondary" className="cursor-pointer">
+              <button
+                type="button"
+                onClick={() =>
+                  document
+                    .getElementById(agentSettingsFieldDiffId(fieldKey))
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
+                {t(agentSettingsDiffLabelKeys[fieldKey])}
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
 
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
         {!canCompare ? (

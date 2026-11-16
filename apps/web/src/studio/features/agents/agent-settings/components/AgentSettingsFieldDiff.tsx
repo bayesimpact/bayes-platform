@@ -64,6 +64,10 @@ function useHighlighterReady(lang: SupportedLanguages): boolean {
   return ready
 }
 
+/** The DOM id of a field's diff, so the list of changed fields can scroll to it. */
+export const agentSettingsFieldDiffId = (fieldKey: AgentSettingsDiffKey) =>
+  `agent-settings-diff-${fieldKey}`
+
 /** Diff of a single versioned settings field between two revisions, rendered with @pierre/diffs. */
 export function AgentSettingsFieldDiff({
   fieldKey,
@@ -87,7 +91,7 @@ export function AgentSettingsFieldDiff({
   }, [name, fieldKey, before, after])
 
   return (
-    <section className="space-y-2">
+    <section id={agentSettingsFieldDiffId(fieldKey)} className="scroll-mt-4 space-y-2">
       <h4 className="text-sm font-medium">{t(agentSettingsDiffLabelKeys[fieldKey])}</h4>
       <div className="overflow-hidden rounded-md border">
         {ready ? (
