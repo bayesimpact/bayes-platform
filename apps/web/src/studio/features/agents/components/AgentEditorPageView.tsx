@@ -17,6 +17,7 @@ import {
 import { ArrowLeftIcon, ExternalLinkIcon, HistoryIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
 import { AgentSettingsHistorySheet } from "../agent-settings/components/AgentSettingsHistorySheet"
 import type { AgentEditorViewProps } from "./agent-editor-view.types"
@@ -45,6 +46,8 @@ export function AgentEditorPageView({
   banner?: ReactNode
 }) {
   const { t } = useTranslation()
+  // The same icon as in the Studio sidebar: it tells a conversation agent from an extraction one.
+  const AgentTypeIcon = getAgentIcon(agent.type)
   // Two entries open the version history: the button of the menu and the saved draft's badge.
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const active = sections.find((section) => section.value === activeSection)
@@ -61,9 +64,14 @@ export function AgentEditorPageView({
             <ArrowLeftIcon />
             {t("agentSettings:editor.back")}
           </Button>
-          <div className="px-2">
-            <p className="truncate font-medium">{agent.name}</p>
-            <p className="text-sm text-muted-foreground">{t(`agent:update.${agent.type}.title`)}</p>
+          <div className="flex items-start gap-2 px-2">
+            <AgentTypeIcon className="mt-1 size-4 shrink-0" />
+            <div className="min-w-0">
+              <p className="truncate font-medium">{agent.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {t(`agent:update.${agent.type}.title`)}
+              </p>
+            </div>
           </div>
         </SidebarHeader>
 
