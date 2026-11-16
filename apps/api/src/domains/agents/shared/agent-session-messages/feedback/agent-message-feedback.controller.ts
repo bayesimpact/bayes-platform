@@ -45,15 +45,13 @@ export class AgentMessageFeedbackController {
   ): Promise<typeof AgentMessageFeedbackRoutes.createOne.response> {
     const user = request.user
 
-    const feedback = await this.feedbackService.createFeedback({
+    await this.feedbackService.createFeedback({
       connectScope: getRequiredConnectScope(request),
       userId: user.id,
       agentMessageId,
       rating: payload.rating,
       content: payload.content,
     })
-
-    if (!feedback) throw new Error("Failed to create feedback")
 
     return { data: { success: true } }
   }

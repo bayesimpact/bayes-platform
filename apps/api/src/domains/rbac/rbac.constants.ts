@@ -692,8 +692,6 @@ export const REVIEW_CAMPAIGN_ROLE_PERMISSIONS = {
     REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
     PROJECT_READ_PERMISSION,
     TESTER_UI_READ_PERMISSION,
-    AGENT_CONVERSATION_SESSION_READ_PERMISSION,
-    AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
     PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
   ],
   review_campaign_reviewer: [
@@ -709,18 +707,16 @@ export const REVIEW_CAMPAIGN_ROLE_PERMISSIONS = {
 
 /**
  * Project permissions a review campaign role gives on the campaign's project, without a project
- * role: both roles see the project and open their app on it, and a tester chats in their own
- * campaign sessions. Only the tester routes check the session keys on the project: the live
- * session routes check them on the agent, where a campaign role gives nothing. Every
- * non-`review_campaign.*` key of REVIEW_CAMPAIGN_ROLE_PERMISSIONS must be listed here
- * (rbac.constants.spec.ts checks it).
+ * role: both roles see the project and open their app on it, and a tester leaves feedback on
+ * the messages of their own campaign sessions. No session key is among them: the tester routes
+ * check the tester's keys on the session's campaign, and the live session routes check theirs on
+ * the agent. Every non-`review_campaign.*` key of REVIEW_CAMPAIGN_ROLE_PERMISSIONS must be listed
+ * here (rbac.constants.spec.ts checks it).
  */
 export const PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN = [
   PROJECT_READ_PERMISSION,
   TESTER_UI_READ_PERMISSION,
   REVIEWER_UI_READ_PERMISSION,
-  AGENT_CONVERSATION_SESSION_READ_PERMISSION,
-  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
 ] as const
 
