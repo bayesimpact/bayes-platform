@@ -112,8 +112,7 @@
       "mcpServers": "Serveurs MCP"
     },
     "editor": {
-      "back": "Retour à l'agent",
-      "openInstructions": "Ouvrir l'éditeur des instructions"
+      "back": "Retour à l'agent"
     },
     "mcpServers": {
       "label": "Serveurs MCP",

@@ -2,7 +2,6 @@ import {
   extractPromptVariables,
   updateAgentSettingsGeneralSchema,
 } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Form,
   FormControl,
@@ -14,8 +13,6 @@ import {
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { PencilIcon } from "lucide-react"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
@@ -27,7 +24,6 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { PromptVariablesEditor } from "@/studio/features/agents/prompt-variables/PromptVariablesEditor"
 import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
-import { InstructionsSheet } from "../sheets/InstructionsSheet"
 
 type FormValues = z.infer<typeof updateAgentSettingsGeneralSchema>
 
@@ -60,8 +56,7 @@ export function GeneralTab({
       variables: { ...(agentSettings.variables ?? {}) },
     },
   })
-  const [isEditingInstructions, setIsEditingInstructions] = useState(false)
-  const { onSubmit, saveState, saveNow } = useAutosave({
+  const { onSubmit } = useAutosave({
     form,
     saveControl,
     save: async ({ changed }) => {
@@ -120,57 +115,16 @@ export function GeneralTab({
           name="instructions"
           render={({ field }) => (
             <FormItem>
-              {/* The instructions are long: the tab shows the start of them, and a full-page
-                  sheet gives the room to write them. */}
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-sm font-medium leading-none">
-                  {t("agentSettings:props.instructions")}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditingInstructions(true)}
-                >
-                  <PencilIcon className="size-4" />
-                  {t("actions:edit")}
-                </Button>
-              </div>
-              <button
-                type="button"
-                aria-label={t("agentSettings:editor.openInstructions")}
-                onClick={() => setIsEditingInstructions(true)}
-                className="w-full rounded-md border bg-muted/40 px-3 py-2 text-left transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-              >
-                {field.value ? (
-                  <span className="line-clamp-6 font-mono text-sm break-words whitespace-pre-wrap">
-                    {field.value}
-                  </span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">
-                    {t("agentSettings:props.placeholders.instructions")}
-                  </span>
-                )}
-              </button>
+              <FormLabel>{t("agentSettings:props.instructions")}</FormLabel>
+              <FormControl>
+                {/* It grows with its text, with no height limit: the page scrolls, not the field. */}
+                <Textarea
+                  placeholder={t("agentSettings:props.placeholders.instructions")}
+                  className="min-h-40 resize-none font-mono"
+                  {...field}
+                />
+              </FormControl>
               <FormMessage />
-
-              <InstructionsSheet
-                open={isEditingInstructions}
-                onClose={() => setIsEditingInstructions(false)}
-                saveState={saveState}
-                hasDraft={agentSettings.isDraft}
-                onRetrySave={saveNow}
-              >
-                <FormControl>
-                  <Textarea
-                    aria-label={t("agentSettings:props.instructions")}
-                    placeholder={t("agentSettings:props.placeholders.instructions")}
-                    className="min-h-0 flex-1 resize-none font-mono [field-sizing:fixed]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </InstructionsSheet>
             </FormItem>
           )}
         />

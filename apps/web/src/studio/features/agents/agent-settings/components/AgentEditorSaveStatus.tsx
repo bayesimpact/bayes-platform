@@ -12,20 +12,16 @@ export function AgentEditorSaveStatus({
   state,
   hasDraft,
   onRetry,
-  hideHint = false,
   onOpenHistory,
 }: {
   state: TabSaveState
   /** The agent has a draft: without one, there is nothing saved to report yet. */
   hasDraft: boolean
   onRetry: () => void
-  /** For a place that already says that changes save by themselves. */
-  hideHint?: boolean
   /** Makes the saved draft a button that opens the version history, where the draft is saved as a version. */
   onOpenHistory?: () => void
 }) {
   const { t } = useTranslation()
-  if (hideHint && state === "saved" && !hasDraft) return null
 
   if (state === "unsaved") {
     return (
