@@ -43,6 +43,7 @@ import {
 } from "@/studio/features/resource-libraries/resource-libraries.helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
+import { LiveSettingNotice } from "../LiveSettingNotice"
 import { AgentTabLink } from "./AgentTabLink"
 import { AgentTabSectionHeader } from "./AgentTabSectionHeader"
 
@@ -191,6 +192,7 @@ export function SourcesTab({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("agentSettings:props.documentTags")}</FormLabel>
+                  <LiveSettingNotice />
                   <div className="flex flex-wrap gap-2 items-center">
                     {field.value.map((tagId) => (
                       <DocumentTagBadge
@@ -235,6 +237,7 @@ export function SourcesTab({
                     </Link>
                   }
                 />
+                <LiveSettingNotice />
                 <FormControl>
                   <div className="flex flex-wrap items-center gap-2">
                     {field.value.map((libraryId) => (

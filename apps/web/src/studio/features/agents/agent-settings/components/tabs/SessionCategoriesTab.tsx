@@ -14,6 +14,7 @@ import { selectCurrentProjectData } from "@/common/features/projects/projects.se
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
+import { LiveSettingNotice } from "../LiveSettingNotice"
 
 export function SessionCategoriesTab({ agentSettings, saveControl }: AgentTabFormProps) {
   const { t } = useTranslation()
@@ -39,6 +40,7 @@ export function SessionCategoriesTab({ agentSettings, saveControl }: AgentTabFor
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-4">
+        <LiveSettingNotice />
         <FormField
           control={form.control}
           name="projectAgentSessionCategoryIds"
