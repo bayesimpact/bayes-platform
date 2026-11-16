@@ -625,15 +625,13 @@ describe("AgentSettings", () => {
         const connectScope = { organizationId: organization.id, projectId: project.id }
         // A draft left behind with the published settings, as older versions of the API did.
         const published = await service.getLast({ connectScope, agentId: agent.id })
-        const leftover = agentSettingsFactory
-          .transient({ organization, project, agent })
-          .build({
-            ...agentSettingsValuesRev1,
-            outputJsonSchema: null,
-            embeddingModel: published.embeddingModel,
-            revision: 2,
-            isDraft: true,
-          })
+        const leftover = agentSettingsFactory.transient({ organization, project, agent }).build({
+          ...agentSettingsValuesRev1,
+          outputJsonSchema: null,
+          embeddingModel: published.embeddingModel,
+          revision: 2,
+          isDraft: true,
+        })
         await setup.getRepository(AgentSettings).save(leftover)
 
         const { agentSettings } = await service.updateAllSettings({
