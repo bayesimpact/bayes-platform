@@ -1,5 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { AgentSessionReviewCampaignContextModule } from "@/common/context/agent-session-review-campaign-context.module"
 import {
   moduleFeatures,
   moduleImports,
@@ -22,8 +23,9 @@ import { StreamingLlmService } from "./streaming-llm.service"
     forwardRef(() => AgentLlmModule),
     forwardRef(() => ConversationAgentSessionsModule),
     RbacModule,
+    AgentSessionReviewCampaignContextModule,
   ],
-  providers: [...moduleProviders, StreamingLlmService, ActiveAgentScopeService],
+  providers: [...moduleProviders, ActiveAgentScopeService, StreamingLlmService],
   controllers: [
     LiveStreamingController,
     PlaygroundStreamingController,
