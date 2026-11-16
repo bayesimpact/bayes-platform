@@ -4,7 +4,7 @@ highlight: form
 description: Create a form agent that guides a user through filling out a form, collecting structured answers that match a schema you define.
 category: guides-agents
 order: 3
-updated: 2026-07-22
+updated: 2026-11-16
 ---
 
 import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
@@ -20,11 +20,23 @@ the **Form** type is what turns the agent into a guided form.
 
 ## How a form agent works
 
-You define the **fields to collect** on the **Form** tab (for example `full_name` and
-`email`), a **Greeting** the agent opens with, and **Instructions** describing how it
-should guide the user. A form agent has three configuration tabs — **General**,
-**Model** and **Form** — and **each tab is its own form that saves on its own** (the
-editor warns you before you leave a tab with unsaved changes).
+The **Form** choice creates a **conversation agent** with the **Form filling** tool
+turned on. You define the **fields to collect** in **Tools**, under **Form filling**
+(for example `full_name` and `email`), a **Greeting** the agent opens with, and
+**Instructions** describing how it should guide the user. On the agent's page and in
+its editor, the agent shows as a conversation agent.
+
+Once created, the agent opens in its **editor**, a page of its own. Its left menu
+shows **Back**, the agent's name with *Edit Conversation Agent*, then the sections of
+a conversation agent: **General**, **Model**, **Sources**, **Tools** and, when your
+workspace has categories, **Conversation categories**. Under **More** come **MCP
+Servers**, **Orchestration** and **Embed** when they are enabled. At the bottom,
+**Manage versions** opens the [version history](/en/agent-version-history). See
+[Add a conversation agent](/en/add-a-conversation-agent) for every section.
+
+**There is no Save button.** Each change saves by itself to the agent's **draft**, a
+moment after you stop typing. The status at the top right reads **Saving…**, then
+**Draft saved**. A new agent reaches its users once you save the draft as a version.
 
 ## The full flow at a glance
 
@@ -43,83 +55,92 @@ also use the **+** next to **Agents** in the left sidebar).
 
 ### 2. Choose the Form type
 
-In the **New Agent** dialog, under **Agent type**, select **Form**. The type
-determines what the agent does, so pick it before continuing.
+In the **New Agent** dialog, under **Agent type**, select **Form**. It creates a
+conversation agent already set up to fill a form: default instructions, the **Form
+filling** tool on, and a sample form.
 
 ### 3. Name the agent and create it
 
 Type a **Name** (at least 3 characters) in the **Name** field, then click
-**Create**. Your agent is created with sensible defaults and opens in the editor.
+**Create**. Your agent is created and its editor opens on **General**.
 
-### 4. Set the basics on General
+### 4. Set the basics in General
 
-The editor opens on the **General** tab. Set the:
+Set the:
 
-- **Name** — how the agent appears in your workspace.
-- **Locale** — the language the agent works in.
-- **Greeting** — the first message the agent sends when a conversation starts.
-- **Instructions** — how the agent should guide the user through the form.
+- **Name**: how the agent appears in your workspace.
+- **Greeting**: the first message the agent sends when a conversation starts. The
+  count next to the label shows its length and its maximum (2,000 characters).
+- **Instructions**: how the agent should guide the user through the form. The count
+  next to the label shows their length.
 
-Click **Save**.
+Both text areas grow with their text. Once the agent has a published version and you
+change the instructions, an **Advanced mode** button next to **Instructions** shows
+the diff with the published instructions, and you can edit them in it. Each change
+saves by itself: the status at the top right reads **Draft saved**.
 
-### 5. Pick the model on Model
+### 5. Pick the model in Model
 
-Open the **Model** tab, choose the **Model** that powers the agent and a
-**Temperature** (lower values give steadier, more predictable questions). **Save**.
+Click **Model** in the menu. Under **Answer generation**, choose the **Model** that
+powers the agent and its options, such as the **Temperature** (lower values give
+steadier, more predictable questions).
 
-### 6. Build the form on Form
+### 6. Build the form in Tools
 
-Open the **Form** tab and build the fields the agent collects **visually** — no JSON
-required. Click **Add field** and, for each field, set:
+Click **Tools**. The **Form filling** switch is on. Under it, *Define the form fields
+the agent should fill. The field order is the order in which the agent asks its
+questions.* Build the fields **visually**, with no JSON. Click **Add field** and, for
+each field, set:
 
-- **Field name** — the key the answer is stored under (e.g. `full_name`).
-- **Type** — **Text**, **Number**, **Yes / No**, **List**, or **Choice**. **Number**
+- **Field name**: the key the answer is stored under (e.g. `full_name`).
+- **Type**: **Text**, **Number**, **Yes / No**, **List**, or **Choice**. **Number**
   offers an optional min/max range, and **Choice** lets you define the allowed values.
-- **Description** — the question or hint the agent uses to ask for this field.
-- **Required** — toggle on for mandatory answers.
+- **Description**: the question or hint the agent uses to ask for this field.
+- **Required**: toggle on for mandatory answers.
 
-Remove a field with its **trash** icon.
+Remove a field with its **trash** icon. To control the order in which the agent asks,
+turn on **Ask questions in this order** and **drag** the rows into the order you
+want; turn it off to let the assistant choose the order itself.
 
-To control the order in which the agent asks, turn on **Ask questions in this order**
-and **drag** the rows into the order you want; turn it off to let the assistant choose
-the order itself. Need finer control? Click **Advanced mode** (top right) to edit the
-raw JSON, and **Visual editor** to switch back. Click **Save** — and remember each tab
-saves on its own.
+### 7. Edit the form as JSON
 
-## Version history
+Need finer control? Click **Advanced mode** (top right of the field list) to edit the
+raw JSON, and **Visual editor** to switch back.
 
-Every save creates a new **version** of the agent. Open **History** (top right of the
-editor, showing the current **v number**) to browse past versions in a side panel,
-**compare** what changed (**Changes in this version** or **Compare with current**),
-and **Restore this version** — which copies those settings as a new current version
-without deleting anything. See [Version history](/en/agent-version-history) for the
-full walkthrough.
+### 8. Save the draft as a version
+
+When the draft is ready, click **Manage versions** at the bottom of the menu (or the
+**Draft saved** status). The draft is selected: click **Save version**, name it if you
+wish, and click **Save version** again. Users now talk to this version. See
+[Version history](/en/agent-version-history).
 
 ## Tips
 
-- Keep field **descriptions** clear — the agent uses them to phrase each question
+- Keep field **descriptions** clear: the agent uses them to phrase each question
   and to decide what to store.
 - Use **Ask questions in this order** when the sequence matters (e.g. ask for a name
   before a preference); leave it off to let the agent adapt.
-- The **Greeting** sets the tone; write it in the same language as the agent's
-  **Locale**.
+- The **Greeting** sets the tone; write it in the language your users speak.
 - Use a **low Temperature** (for example `0.2`) so the agent asks consistent
   questions rather than improvising.
 - Answers already collected are kept from one turn to the next: a value the agent
   does not know never erases a stored answer. To correct an answer, the user simply
   gives the new value.
-- Each tab saves separately — changes on one tab aren't kept when you move to
-  another without saving.
+- Any conversation agent can collect a form: turn on **Form filling** in its
+  **Tools**.
 
 ## Troubleshooting
 
-- **The Create button is disabled** — the **Name** must be at least 3 characters.
-- **I don't see the field type I need** — the visual editor covers **Text**,
+- **The Create button is disabled.** The **Name** must be at least 3 characters.
+- **I don't see the field type I need.** The visual editor covers **Text**,
   **Number**, **Yes / No**, **List** and **Choice**; use **Advanced mode** (raw JSON)
   for **nested objects**.
-- **The agent asks questions in the wrong order** — turn on **Ask questions in this
+- **The agent asks questions in the wrong order.** Turn on **Ask questions in this
   order** and drag the fields into the sequence you want.
-- **My changes disappeared** — each tab saves separately; click **Save** before
-  switching tabs (the editor warns you when changes are unsaved).
-- **I don't see a Form tab** — make sure you created a **Form** agent (conversation
-  agents chat, extraction agents show an **Output** tab instead).
+- **I don't see the form's fields.** Open **Tools** and check that **Form filling** is
+  on: the fields only show when it is.
+- **The status reads Unsaved changes.** A value is invalid, and the field says why, or
+  the save failed, and a red box above the fields, **This change could not be
+  saved**, gives the reason. Fix the value, or click **Retry**.
+- **Users still get the old form.** Your changes are in the draft. Click **Manage
+  versions**, then **Save version**.

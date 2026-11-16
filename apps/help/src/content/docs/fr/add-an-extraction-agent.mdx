@@ -4,7 +4,7 @@ highlight: extraction
 description: Créez un agent d'extraction qui lit un document téléversé et renvoie des données structurées conformes à un schéma JSON que vous définissez.
 category: guides-agents
 order: 2
-updated: 2026-07-22
+updated: 2026-11-16
 ---
 
 import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
@@ -21,13 +21,25 @@ qui fait que l'agent extrait des données plutôt que de tenir une conversation.
 
 ## Comment fonctionne un agent d'extraction
 
-Vous définissez les **champs à capturer** dans l'onglet **Sortie** (par exemple
+Vous définissez les **champs à capturer** dans la section **Sortie** (par exemple
 `title` et `summary`) et rédigez des **Instructions** indiquant à l'agent quoi
 extraire. Lorsque l'agent s'exécute sur un document, il renvoie un objet JSON
-conforme à ces champs. Un agent d'extraction dispose de trois onglets de
-configuration — **Général**, **Modèle** et **Sortie** — aucun réglage de conversation
-ou de message d'accueil — et **chaque onglet s'enregistre séparément** (l'éditeur
-vous avertit avant de quitter un onglet non enregistré).
+conforme à ces champs.
+
+Une fois créé, l'agent s'ouvre dans son **éditeur**, une page à part entière. Son
+menu de gauche affiche **Retour**, le nom de l'agent avec *Modifier l'agent
+d'extraction*, puis trois sections : **Général**, **Modèle** et **Sortie**. Il n'y a
+pas de réglages de conversation ni de message d'accueil. Sous **Plus**, **Serveurs
+MCP** apparaît quand la fonctionnalité est activée et que votre espace de travail a
+des serveurs. En bas, **Gérer les versions** ouvre l'[historique des
+versions](/fr/agent-version-history).
+
+**Il n'y a pas de bouton Enregistrer.** Chaque modification s'enregistre d'elle-même
+dans le **brouillon** de l'agent, un court instant après votre dernière frappe. Le
+statut en haut à droite affiche **Enregistrement…**, puis **Brouillon enregistré**.
+Les extractions lancées depuis la page de l'agent dans Studio utilisent le brouillon.
+Les autres utilisent la version publiée : enregistrez donc le brouillon comme version
+quand il est prêt.
 
 ## Le parcours complet en un coup d'œil
 
@@ -54,61 +66,63 @@ continuer.
 ### 3. Nommer l'agent et le créer
 
 Saisissez un **Nom** (au moins 3 caractères) dans le champ **Nom**, puis cliquez sur
-**Créer**. Votre agent est créé avec des valeurs par défaut pertinentes et s'ouvre
-dans l'éditeur.
+**Créer**. Votre agent est créé avec des valeurs par défaut pertinentes et son éditeur
+s'ouvre sur **Général**.
 
 ### 4. Régler l'essentiel dans Général
 
-L'éditeur s'ouvre sur l'onglet **Général**. Définissez :
+Définissez :
 
-- le **Nom** — la façon dont l'agent apparaît dans votre espace de travail ;
-- la **Langue** — la langue dans laquelle l'agent travaille ;
-- les **Instructions** — ce que l'agent doit extraire de chaque document.
+- le **Nom** : comment l'agent apparaît dans votre espace de travail ;
+- les **Instructions** : ce que l'agent doit extraire de chaque document. Le compteur
+  à côté du libellé indique leur longueur, et la zone de texte s'agrandit avec le
+  texte.
 
-Cliquez sur **Enregistrer**.
+Une fois que l'agent a une version publiée et que vous modifiez les instructions, un
+bouton **Mode avancé** apparaît à côté d'**Instructions** : il montre les différences
+avec les instructions publiées, et vous pouvez les modifier directement dedans. Chaque
+modification s'enregistre d'elle-même : le statut en haut à droite affiche **Brouillon
+enregistré**.
 
 ### 5. Choisir le modèle dans Modèle
 
-Ouvrez l'onglet **Modèle** et choisissez le **Modèle** qui pilote l'agent, ainsi
-qu'une **Température** (une valeur basse donne des extractions plus régulières et
-littérales). **Enregistrez**.
+Cliquez sur **Modèle** dans le menu. Sous **Génération des réponses**, choisissez le
+**Modèle** qui pilote l'agent et ses options, comme la **Température** (une valeur
+basse donne des extractions plus régulières et littérales).
 
 ### 6. Définir la sortie dans Sortie
 
-Ouvrez l'onglet **Sortie** et construisez les champs à extraire **visuellement** —
-sans JSON. Cliquez sur **Ajouter un champ** et, pour chaque champ, définissez :
+Cliquez sur **Sortie** et construisez les champs à extraire **visuellement**, sans
+JSON. Cliquez sur **Ajouter un champ** et, pour chaque champ, définissez :
 
-- **Nom du champ** — la clé sous laquelle il est stocké (par ex. `title`).
-- **Type** — **Texte**, **Nombre**, **Oui / Non**, **Liste** ou **Choix**. **Nombre**
+- **Nom du champ** : la clé sous laquelle il est stocké (par ex. `title`).
+- **Type** : **Texte**, **Nombre**, **Oui / Non**, **Liste** ou **Choix**. **Nombre**
   propose une plage min/max optionnelle, et **Choix** permet de définir les valeurs
   autorisées.
-- **Description** — l'indice que l'agent utilise pour décider quoi y mettre.
-- **Obligatoire** — activez-le pour les champs que l'agent doit remplir.
+- **Description** : l'indice que l'agent utilise pour décider quoi y mettre.
+- **Obligatoire** : activez-le pour les champs que l'agent doit remplir.
 
-Supprimez un champ avec son icône **corbeille**. Vous préférez éditer le schéma à la
-main ? Cliquez sur **Mode avancé** (en haut à droite) pour passer à un éditeur JSON
-brut, et **Éditeur visuel** pour revenir. Cliquez sur **Enregistrer**.
+Supprimez un champ avec son icône **corbeille**.
 
-### 7. Enregistrer chaque onglet
+### 7. Modifier le schéma en JSON
 
-Comme chaque onglet est un formulaire à part, cliquez sur **Enregistrer** sur chaque
-onglet modifié (ou **Annuler** pour abandonner les modifications d'un onglet). L'agent
-d'extraction est alors prêt à s'exécuter sur des documents — voir
-[Lancer une extraction](/fr/run-an-extraction).
+Vous préférez éditer le schéma à la main ? Cliquez sur **Mode avancé** (en haut à
+droite de la liste des champs) pour passer à un éditeur JSON brut, et sur **Éditeur
+visuel** pour revenir. Le JSON doit rester un objet valide pour que la modification
+s'enregistre.
 
-## Historique des versions
+### 8. Enregistrer le brouillon comme version
 
-Chaque enregistrement crée une nouvelle **version** de l'agent. Ouvrez **Historique**
-(en haut à droite de l'éditeur, avec le **v numéro** actuel) pour parcourir les
-versions passées dans un panneau latéral, **comparer** les changements
-(**Changements de cette version** ou **Comparer avec l'actuelle**), et **Restaurer
-cette version** — ce qui copie ces paramètres comme nouvelle version actuelle sans
-rien supprimer. Voir [Historique des versions](/fr/agent-version-history) pour le
-guide complet.
+Quand le brouillon est prêt, cliquez sur **Gérer les versions** en bas du menu (ou sur
+le statut **Brouillon enregistré**). Le brouillon est sélectionné : cliquez sur
+**Enregistrer la version**, nommez-la si vous le voulez, et cliquez à nouveau sur
+**Enregistrer la version**. L'agent utilise alors cette version. Voir [Historique des
+versions](/fr/agent-version-history), puis [Lancer une
+extraction](/fr/run-an-extraction).
 
 ## Conseils
 
-- Gardez des **descriptions** de champs claires dans le schéma — l'agent s'en sert
+- Gardez des **descriptions** de champs claires dans le schéma : l'agent s'en sert
   pour décider quoi mettre dans chaque champ.
 - Utilisez une **Température basse** (par exemple `0.2`) pour l'extraction : vous
   voulez une sortie fidèle et reproductible plutôt que des réponses créatives.
@@ -117,19 +131,24 @@ guide complet.
 - L'éditeur visuel propose des champs **Texte**, **Nombre**, **Oui / Non**, **Liste**
   et **Choix**. Pour des **objets imbriqués**, passez en **Mode avancé** et éditez le
   JSON.
+- Testez le brouillon depuis la page de l'agent avant de l'enregistrer comme version.
 
 ## Dépannage
 
-- **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
-  caractères.
-- **Je ne vois pas le type de champ dont j'ai besoin** — l'éditeur visuel couvre
+- **Le bouton Créer est désactivé.** Le **Nom** doit comporter au moins 3 caractères.
+- **Je ne vois pas le type de champ dont j'ai besoin.** L'éditeur visuel couvre
   **Texte**, **Nombre**, **Oui / Non**, **Liste** et **Choix** ; utilisez le **Mode
   avancé** (JSON brut) pour des **objets imbriqués**.
-- **Mon schéma ne s'enregistre pas en Mode avancé** — il doit être un objet JSON
-  valide ; l'éditeur affiche *Le schéma JSON de sortie doit être un objet JSON valide*
-  et vous maintient en Mode avancé jusqu'à correction.
-- **Je ne vois pas d'onglet Sortie** — seuls les agents non conversationnels en ont
-  un. Assurez-vous d'avoir créé un agent **Extraction** (les agents conversationnels
+- **Mon schéma ne s'enregistre pas en Mode avancé.** Il doit être un objet JSON
+  valide. L'éditeur affiche *Le schéma JSON de sortie doit être un objet JSON valide*,
+  et le statut affiche **Modifications non enregistrées** jusqu'à correction.
+- **Le statut affiche Modifications non enregistrées.** Une valeur n'est pas valide,
+  et le champ indique pourquoi, ou l'enregistrement a échoué, et un encadré rouge
+  au-dessus des champs, **Cette modification n'a pas pu être enregistrée**, en donne
+  la raison. Corrigez la valeur, ou cliquez sur **Réessayer**.
+- **Je ne vois pas de section Sortie.** Seuls les agents d'extraction en ont une.
+  Assurez-vous d'avoir créé un agent **Extraction** (les agents conversationnels
   discutent à la place).
-- **Les valeurs extraites semblent incorrectes** — affinez les **descriptions** des
-  champs et les **Instructions**, puis cliquez sur **Enregistrer** et réessayez.
+- **Les valeurs extraites semblent incorrectes.** Affinez les **descriptions** des
+  champs et les **Instructions**, puis relancez l'extraction. Enregistrez le brouillon
+  comme version une fois les résultats corrects.

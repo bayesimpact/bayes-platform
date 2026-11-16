@@ -11,6 +11,9 @@
  * agentMembership, invitations and actions locales (EN + FR). People are invited by email:
  * each gets a pending invitation (listed under the grid, revocable) and becomes a member
  * once they accept it on their home page. No email is sent.
+ *
+ * Re-derived 2026-11-16 from AgentSessionListHeader.tsx and AgentActions.tsx: the agent page
+ * shows Edit with its version and a More menu; Members is a card with an arrow button.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -24,6 +27,11 @@ const STRINGS = {
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
     agentType: "Conversation",
     goToApp: "App", edit: "Edit", membersBtn: "Members",
+    verBadge: "v3", production: "Production",
+    feedback: "Feedback", feedbackDesc: "Manage feedback on agent messages.",
+    appDesc: "The agent as its users see it, in its published version.",
+    goToEval: "Evaluation", evalDesc: "Measure the agent's answers on a dataset.",
+    membersCard: "Members", membersCardDesc: "Everyone who can use this agent, and the roles they hold on it.",
     newChat: "New Chat", newChatDesc: "Start a chat with your agent.",
     listTitle: "Members of Bayes Assistant", listDesc: "Invite users who can use your agent.",
     addCardTitle: "Invite users",
@@ -40,7 +48,7 @@ const STRINGS = {
     prev: "Prev", next: "Next", step: "Step",
     steps: [
       "Open the agent you want to give access to.",
-      "On the agent's page, click Members.",
+      "On the agent's page, click the arrow of the Members card.",
       "On the Invite users card, click Invite.",
       "Enter each email address, then click Add to put it in the list.",
       "Check the addresses, then click Invite.",
@@ -58,6 +66,11 @@ const STRINGS = {
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
     agentType: "Conversation",
     goToApp: "Application", edit: "Modifier", membersBtn: "Membres",
+    verBadge: "v3", production: "Production",
+    feedback: "Retours utilisateurs", feedbackDesc: "Gérez les retours sur les messages de l'agent.",
+    appDesc: "L'agent tel que ses utilisateurs le voient, dans sa version publiée.",
+    goToEval: "Évaluation", evalDesc: "Mesurez les réponses de l'agent sur un jeu de données.",
+    membersCard: "Membres", membersCardDesc: "Les personnes qui peuvent utiliser cet agent, et leurs rôles sur cet agent.",
     newChat: "Nouvelle discussion", newChatDesc: "Démarrez une discussion avec votre agent.",
     listTitle: "Membres de Bayes Assistant", listDesc: "Invitez les personnes qui peuvent utiliser votre agent.",
     addCardTitle: "Inviter des utilisateurs",
@@ -74,7 +87,7 @@ const STRINGS = {
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
       "Ouvrez l'agent auquel vous voulez donner accès.",
-      "Sur la page de l'agent, cliquez sur Membres.",
+      "Sur la page de l'agent, cliquez sur la flèche de la carte Membres.",
       "Sur la carte Inviter des utilisateurs, cliquez sur Inviter.",
       "Saisissez chaque adresse email, puis cliquez sur Ajouter pour la mettre dans la liste.",
       "Vérifiez les adresses, puis cliquez sur Inviter.",
@@ -90,7 +103,7 @@ const s = STRINGS[lang]
 
 const steps = [
   { page: "overview", sources: false, nav: "", spot: "cardAgent", observe: [] },
-  { page: "agentPage", sources: false, nav: "agent", spot: "btnMembers", observe: [] },
+  { page: "agentPage", sources: false, nav: "agent", spot: "btnMembersCard", observe: [] },
   { page: "membersList", sources: false, nav: "agent", spot: "btnOpenAdd", observe: [] },
   { page: "addDialog", sources: false, nav: "agent", spot: "btnAdd", observe: ["obsEmailField"] },
   { page: "addDialog", sources: false, nav: "agent", spot: "btnSubmit", observe: ["obsChip"] },
@@ -158,17 +171,17 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
 
         <!-- agent page (step 2) -->
         <div class="page" data-page="agentPage">
-          <div class="page-head">
+          <div class="page-head ap-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.agent1}</span><span class="desc ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agentType}</span></span>
-            <span class="right">
-              <span class="btn secondary"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> {s.goToApp}</span>
-              <span class="btn outline" id="btnMembers"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg> {s.membersBtn}</span>
-              <span class="btn outline"><svg viewBox="0 0 24 24"><path d="M13 21h8"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg> {s.edit}</span>
-            </span>
+            <span><span class="ttl">{s.agent1}</span><span class="desc ic"><span>{s.agentType}</span> <svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg></span></span>
+            <span class="ap-acts"><span class="btn outline" id="btnEdit"><svg viewBox="0 0 24 24"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> {s.edit} <span class="vbadge">{s.verBadge}</span></span><span class="btn outline icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span></span>
           </div>
           <div class="cards3">
-            <div class="ecard"><b>{s.newChat}</b><p>{s.newChatDesc}</p><span class="btn sm">{s.newChat} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+            <div class="ecard muted"><b>{s.newChat}</b><p>{s.newChatDesc}</p><span class="btn sm">{s.newChat} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+            <div class="ecard"><b>{s.feedback}</b><p>{s.feedbackDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.goToApp} <span class="vbadge">{s.production}</span></b><p>{s.appDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+            <div class="ecard"><b>{s.goToEval}</b><p>{s.evalDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+            <div class="ecard"><b>{s.membersCard}</b><p>{s.membersCardDesc}</p><span class="gobtn" id="btnMembersCard"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
           </div>
         </div>
 
@@ -510,6 +523,19 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .amw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
   .amw .progress i.run { animation: amw-fill var(--dur, 6000ms) linear forwards; }
   @keyframes amw-fill { to { width: 100%; } }
+
+  /* The agent's page */
+  .amw .ap-head { align-items: center; }
+  .amw .ap-acts { margin-left: auto; display: inline-flex; }
+  .amw .ap-acts .btn { border-radius: 0; }
+  .amw .ap-acts .btn:first-child { border-radius: 8px 0 0 8px; }
+  .amw .ap-acts .btn:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+  .amw .ap-acts .btn.icon { padding: 0.4rem 0.5rem; }
+  .amw .desc.ic { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .amw .vbadge { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.02rem 0.45rem; font-size: 0.68rem; font-weight: 600; background: oklch(0.962 0.044 156.743); color: oklch(0.448 0.119 151.328); }
+  .amw .gobtn { margin-top: auto; align-self: flex-start; width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 999px; display: inline-grid; place-items: center; color: var(--foreground); background: var(--background); }
+  .amw .ecard b { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; }
+  .amw .cards3 .ecard p { font-size: 0.74rem; line-height: 1.4; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
 
   @media (max-width: 640px) {
     .amw .shell { grid-template-columns: 1fr; height: 560px; }

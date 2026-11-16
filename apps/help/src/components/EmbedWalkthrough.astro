@@ -1,13 +1,14 @@
 ---
 /**
- * Walkthrough of the agent Embed tab (embedding a conversation agent as a chat
- * widget on external sites). Derived from the real components (verified, not copied
- * blind): AgentEditor.tsx (tab gating: conversation-only, flag `agent-embed`, last
- * tab after Orchestration) and AgentEmbedTab.tsx (Enable embed switch, read-only
- * Embed snippet + Copy, snippet hint, Allowed origins, Widget title, Logo URL,
- * Brand color, Banner text, Update) plus the read-only Public page link under the
- * snippet. Labels verbatim from the agent / actions locales (EN + FR).
- * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16, updated 2026-09-07.
+ * Walkthrough of the agent's Embed settings (a conversation agent as a chat widget, a public
+ * page or a public API). Derived from the real components (verified, not copied blind):
+ * AgentActions.tsx (Edit on the agent page), AgentEditorPageView.tsx (Embed under "More",
+ * flag `agent-embed`, conversation agents only), AgentEditorSheet.tsx (full-page sheet,
+ * Cancel and Save, the confirmation before it applies in production) and EmbedSheet.tsx
+ * (Enable embed, Appearance, Widget on a website with Allowed origins, Public page, Public
+ * API). Labels verbatim from the agentSettings / agent / actions locales (EN + FR).
+ * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16, updated 2026-09-07,
+ * rebuilt for the editor page and its sheets 2026-11-16.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -16,6 +17,7 @@ const { lang = "en" } = Astro.props as { lang?: Lang }
 const SNIPPET =
   "<scr" + 'ipt src="https://app.example.com/launcher.js" data-token="emb_1a2b3c4d"></scr' + "ipt>"
 const PUBLIC_PAGE_URL = "https://app.example.com/index.html?embedToken=emb_1a2b3c4d&displayMode=drawer"
+const API_BASE_URL = "https://api.example.com/public/v1/agents/emb_1a2b3c4d"
 
 const STRINGS = {
   en: {
@@ -29,20 +31,10 @@ const STRINGS = {
     editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
     tabGeneral: "General", tabModel: "Model", tabSources: "Sources",
     tabCategories: "Conversation categories", tabOrchestration: "Orchestration", tabEmbed: "Embed",
+    editTitleShort: "Edit Conversation Agent",
     enabledLabel: "Enable embed",
-    enabledDescription: "Allow Helpful Assistant to be embedded on external websites via an iframe.",
-    snippetLabel: "Embed snippet",
-    snippetDescription:
-      "Paste this <scr" +
-      "ipt> tag before the closing </body> tag on any page where you want the chat widget to appear.",
-    snippetValue: SNIPPET,
-    snippetHint: "Optional attributes: data-color, data-locale, data-display-mode, data-hint.",
-    publicPageLabel: "Public page link",
-    publicPageDescription: "Share this link, or a QR code of it, to make Helpful Assistant available without a host website.",
-    publicPageValue: PUBLIC_PAGE_URL,
-    allowedOriginsLabel: "Allowed origins",
-    allowedOriginsDescription: "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
-    allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
+    enabledDescription: "Makes Helpful Assistant available outside the platform: the widget, the public page and the public API. When off, all three stop working.",
+    appearanceTitle: "Appearance", appearanceDescription: "Shown in the header of the widget and of the public page.",
     titleLabel: "Widget title",
     titleDescription: "Title shown in the chat header. Defaults to Helpful Assistant when left empty.",
     logoUrlLabel: "Logo URL",
@@ -52,18 +44,54 @@ const STRINGS = {
     primaryColorDescription: "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb).",
     colorValue: "#2563eb",
     bannerTextLabel: "Banner text",
-    bannerTextDescription: "Optional notice pinned above the conversation, on the public page and in the widget.",
+    bannerTextDescription: "Optional notice pinned above the conversation, on the public page and in the widget. Use it to state the context, such as a test version or the intended audience.",
     bannerTextPlaceholder: "Test version, for the pilot team only",
-    update: "Update",
+    snippetLabel: "Widget on a website",
+    snippetDescription:
+      "Paste this <scr" +
+      "ipt> tag before the closing </body> tag on each page where the chat widget must appear.",
+    snippetValue: SNIPPET,
+    snippetHint: 'Optional attributes: data-color="#2563eb" (button color), data-locale="fr" (widget language), data-display-mode="drawer" (side panel instead of bubble), data-hint="Need help?" (tooltip shown on load and hover).',
+    allowedOriginsLabel: "Allowed origins",
+    allowedOriginsDescription: "Leave empty for now. The widget calls the platform from https://app.example.com, not from your website: a list without this address blocks the widget. The check of the website that shows the widget is not available yet.",
+    allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
+    widgetGuideLink: "Read the widget guide",
+    publicPageLabel: "Public page",
+    publicPageDescription: "Share this link, or a QR code of it, to make Helpful Assistant available without a host website.",
+    publicPageValue: PUBLIC_PAGE_URL,
+    publicPageHint: "The page only works while embedding is enabled. Add &locale=fr to force the language.",
+    apiTitle: "Public API", apiDescription: "To build your own chat interface, call the API directly instead of using the widget.",
+    apiBaseUrlLabel: "Base URL", apiBaseUrlDescription: "Every route of the API starts with this URL. It contains the embed token of this agent.",
+    apiBaseUrlValue: API_BASE_URL, apiReferenceLink: "Read the API reference",
+    save: "Save",
+    back: "Back", more: "More", manage: "Manage versions", draftSaved: "Draft saved",
+    secGeneral: "General", secModel: "Model", secSources: "Sources", secTools: "Tools", secCategories: "Conversation categories",
+    secMcpServers: "MCP Servers", secOrchestration: "Orchestration", secEmbed: "Embed",
+    liveNotice: "These settings are not part of the draft: they apply in production as soon as you save.",
+    cancel: "Cancel", close: "Close",
+    confirmTitle: "Apply these settings now?",
+    confirmPre: "These settings do not go through the draft: they apply to the agent ", confirmStrong: "in production", confirmPost: " as soon as you save.",
+    agentType: "Conversation", edit: "Edit", verBadge: "v3",
+    newChat: "New Chat", newChatDesc: "Start a chat with your agent.",
+    feedback: "Feedback", feedbackDesc: "Manage feedback on agent messages.",
+    goToApp: "App", production: "Production", appDesc: "The agent as its users see it, in its published version.",
+    goToEval: "Evaluation", evalDesc: "Measure the agent's answers on a dataset.",
+    membersCard: "Members", membersCardDesc: "Everyone who can use this agent, and the roles they hold on it.",
+    nameLabel: "Name", greetingLabel: "Greeting", greetingValue: "Hi! How can I help you today?", greetingCount: "29 / 2,000 characters",
+    instructionsLabel: "Instructions", instructionsCount: "63 characters",
+    instructionsValue: "You are a helpful assistant. Answer concisely and cite sources.",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
-      "In Studio, open a conversation agent to edit it.",
-      "Open the Embed tab — it appears only for conversation agents.",
-      "Turn on Enable embed to allow the agent on external sites.",
-      "Copy the Embed snippet for your site, or the Public page link to share the agent without a website.",
-      "Set Allowed origins to control which sites may embed the widget.",
-      "Customize the Widget title, Logo URL, Brand color and Banner text.",
-      "Click Update to save the embed configuration.",
+      "In Studio, open the conversation agent you want to embed.",
+      "On the agent's page, click Edit.",
+      "In the editor's menu, under More, click Embed. It opens in a full page.",
+      "Turn on Enable embed: the widget, the public page and the public API start working.",
+      "Under Appearance, set the Widget title, Logo URL, Brand color and Banner text.",
+      "Under Widget on a website, copy the tag for your site. Leave Allowed origins empty for now.",
+      "Under Public page, copy the link to share the agent without a website.",
+      "Under Public API, copy the Base URL to build your own chat interface.",
+      "Click Save. Embed is not part of the draft: it applies in production.",
+      "Confirm with Save in Apply these settings now? The settings apply at once.",
     ],
   },
   fr: {
@@ -77,20 +105,10 @@ const STRINGS = {
     editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
     tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources",
     tabCategories: "Catégories de conversation", tabOrchestration: "Orchestration", tabEmbed: "Intégration",
+    editTitleShort: "Modifier l'agent conversationnel",
     enabledLabel: "Activer l'intégration",
-    enabledDescription: "Permettre à Helpful Assistant d'être intégré sur des sites externes via un iframe.",
-    snippetLabel: "Extrait d'intégration",
-    snippetDescription:
-      "Collez cette balise <scr" +
-      "ipt> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
-    snippetValue: SNIPPET,
-    snippetHint: "Attributs optionnels : data-color, data-locale, data-display-mode, data-hint.",
-    publicPageLabel: "Lien de la page publique",
-    publicPageDescription: "Partagez ce lien, ou un QR code de ce lien, pour rendre Helpful Assistant accessible sans site hôte.",
-    publicPageValue: PUBLIC_PAGE_URL,
-    allowedOriginsLabel: "Origines autorisées",
-    allowedOriginsDescription: "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
-    allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
+    enabledDescription: "Rend Helpful Assistant disponible hors de la plateforme : widget, page publique et API publique. Désactivée, les trois cessent de fonctionner.",
+    appearanceTitle: "Apparence", appearanceDescription: "Affichée dans l'en-tête du widget et de la page publique.",
     titleLabel: "Titre du widget",
     titleDescription: "Titre affiché dans l'en-tête du chat. Correspond au nom Helpful Assistant si laissé vide.",
     logoUrlLabel: "URL du logo",
@@ -100,18 +118,54 @@ const STRINGS = {
     primaryColorDescription: "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb).",
     colorValue: "#2563eb",
     bannerTextLabel: "Texte du bandeau",
-    bannerTextDescription: "Message optionnel affiché en permanence au-dessus de la conversation, sur la page publique et dans le widget.",
+    bannerTextDescription: "Message optionnel affiché en permanence au-dessus de la conversation, sur la page publique et dans le widget. Utilisez-le pour préciser le contexte, par exemple une version de test ou le public visé.",
     bannerTextPlaceholder: "Version de test, réservée à l'équipe pilote",
-    update: "Mettre à jour",
+    snippetLabel: "Widget sur un site",
+    snippetDescription:
+      "Collez cette balise <scr" +
+      "ipt> avant la balise </body> fermante sur chaque page où le widget de chat doit apparaître.",
+    snippetValue: SNIPPET,
+    snippetHint: 'Attributs optionnels : data-color="#2563eb" (couleur du bouton), data-locale="fr" (langue du widget), data-display-mode="drawer" (panneau latéral au lieu d\'une bulle), data-hint="Besoin d\'aide ?" (infobulle affichée au chargement et au survol).',
+    allowedOriginsLabel: "Origines autorisées",
+    allowedOriginsDescription: "Laissez vide pour l'instant. Le widget appelle la plateforme depuis https://app.example.com, pas depuis votre site : une liste sans cette adresse bloque le widget. La vérification du site qui affiche le widget n'est pas encore disponible.",
+    allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
+    widgetGuideLink: "Lire le guide du widget",
+    publicPageLabel: "Page publique",
+    publicPageDescription: "Partagez ce lien, ou un QR code de ce lien, pour rendre Helpful Assistant accessible sans site hôte.",
+    publicPageValue: PUBLIC_PAGE_URL,
+    publicPageHint: "La page ne fonctionne que lorsque l'intégration est activée. Ajoutez &locale=fr pour forcer la langue.",
+    apiTitle: "API publique", apiDescription: "Pour construire votre propre interface de chat, appelez directement l'API à la place du widget.",
+    apiBaseUrlLabel: "URL de base", apiBaseUrlDescription: "Toutes les routes de l'API commencent par cette URL. Elle contient le token d'intégration de cet agent.",
+    apiBaseUrlValue: API_BASE_URL, apiReferenceLink: "Lire la référence de l'API",
+    save: "Enregistrer",
+    back: "Retour", more: "Plus", manage: "Gérer les versions", draftSaved: "Brouillon enregistré",
+    secGeneral: "Général", secModel: "Modèle", secSources: "Sources", secTools: "Outils", secCategories: "Catégories de conversation",
+    secMcpServers: "Serveurs MCP", secOrchestration: "Orchestration", secEmbed: "Intégration",
+    liveNotice: "Ces réglages ne font pas partie du brouillon : ils s'appliquent en production dès que vous enregistrez.",
+    cancel: "Annuler", close: "Fermer",
+    confirmTitle: "Appliquer ces réglages maintenant ?",
+    confirmPre: "Ces réglages ne passent pas par le brouillon : ils s'appliquent à l'agent ", confirmStrong: "en production", confirmPost: " dès l'enregistrement.",
+    agentType: "Conversation", edit: "Modifier", verBadge: "v3",
+    newChat: "Nouvelle discussion", newChatDesc: "Démarrez une discussion avec votre agent.",
+    feedback: "Retours utilisateurs", feedbackDesc: "Gérez les retours sur les messages de l'agent.",
+    goToApp: "Application", production: "Production", appDesc: "L'agent tel que ses utilisateurs le voient, dans sa version publiée.",
+    goToEval: "Évaluation", evalDesc: "Mesurez les réponses de l'agent sur un jeu de données.",
+    membersCard: "Membres", membersCardDesc: "Les personnes qui peuvent utiliser cet agent, et leurs rôles sur cet agent.",
+    nameLabel: "Nom", greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Comment puis-je vous aider aujourd’hui ?", greetingCount: "50 / 2\u202f000 caractères",
+    instructionsLabel: "Instructions", instructionsCount: "77 caractères",
+    instructionsValue: "Vous êtes un assistant utile. Répondez de façon concise et citez vos sources.",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
-      "Dans Studio, ouvrez un agent conversationnel pour le modifier.",
-      "Ouvrez l'onglet Intégration — il n'apparaît que pour les agents conversationnels.",
-      "Activez « Activer l'intégration » pour autoriser l'agent sur des sites externes.",
-      "Copiez l'extrait d'intégration pour votre site, ou le Lien de la page publique pour partager l'agent sans site web.",
-      "Définissez les Origines autorisées pour contrôler quels sites peuvent intégrer le widget.",
-      "Personnalisez le Titre du widget, l'URL du logo, la Couleur principale et le Texte du bandeau.",
-      "Cliquez sur Mettre à jour pour enregistrer la configuration d'intégration.",
+      "Dans Studio, ouvrez l'agent conversationnel à intégrer.",
+      "Sur la page de l'agent, cliquez sur Modifier.",
+      "Dans le menu de l'éditeur, sous Plus, cliquez sur Intégration. Elle s'ouvre en pleine page.",
+      "Activez Activer l'intégration : le widget, la page publique et l'API publique se mettent à fonctionner.",
+      "Sous Apparence, réglez le Titre du widget, l'URL du logo, la Couleur principale et le Texte du bandeau.",
+      "Sous Widget sur un site, copiez la balise pour votre site. Laissez les Origines autorisées vides pour l'instant.",
+      "Sous Page publique, copiez le lien pour partager l'agent sans site web.",
+      "Sous API publique, copiez l'URL de base pour construire votre propre interface de chat.",
+      "Cliquez sur Enregistrer. L'intégration ne fait pas partie du brouillon : elle s'applique en production.",
+      "Confirmez avec Enregistrer dans Appliquer ces réglages maintenant ? Les réglages s'appliquent aussitôt.",
     ],
   },
 } as const
@@ -121,25 +175,21 @@ const s = STRINGS[lang]
 const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
 const formIcon = '<path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/>'
 
-const TABS = [
-  { key: "general", label: s.tabGeneral },
-  { key: "model", label: s.tabModel },
-  { key: "sources", label: s.tabSources },
-  { key: "categories", label: s.tabCategories },
-  { key: "orchestration", label: s.tabOrchestration },
-  { key: "embed", label: s.tabEmbed },
-]
 
 const steps = [
-  { page: "overview", spot: "navAgent1", observe: [] },
-  { page: "embed", spot: "tab-embed", observe: [] },
-  { page: "embed", spot: "", observe: ["obsEnable"] },
-  { page: "embed", spot: "", observe: ["obsSnippet", "obsPublicPage"] },
-  { page: "embed", spot: "", observe: ["obsOrigins"] },
-  { page: "embed", spot: "", observe: ["obsBranding"] },
-  { page: "embed", spot: "btnUpdate", observe: [] },
+  { page: "overview", sec: "", spot: "navAgent1", observe: [] },
+  { page: "agentPage", sec: "", spot: "btnEdit", observe: [] },
+  { page: "editorGeneral", sec: "general", spot: "sec-embed", observe: [] },
+  { page: "sheetEmbed", sec: "general", spot: "", observe: ["obsEnable"] },
+  { page: "sheetEmbed", sec: "general", spot: "", observe: ["obsBranding"] },
+  { page: "sheetEmbed", sec: "general", spot: "", observe: ["obsSnippet"] },
+  { page: "sheetEmbed", sec: "general", spot: "", observe: ["obsPublicPage"] },
+  { page: "sheetEmbed", sec: "general", spot: "", observe: ["obsApi"] },
+  { page: "sheetEmbed", sec: "general", spot: "btnSave", observe: [] },
+  { page: "confirmSave", under: "sheetEmbed", sec: "general", spot: "btnConfirmSave", observe: ["obsConfirmSave"] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
+const titles = { general: s.secGeneral }
 const labels = { prev: s.prev, next: s.next, step: s.step }
 ---
 
@@ -172,10 +222,29 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       </div>
     </aside>
 
+    <!-- The agent editor's own menu, in place of the Studio sidebar -->
+    <aside class="esb">
+      <span class="ebk"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> {s.back}</span>
+      <div class="agent-id"><b><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agentName}</span></b><small>{s.editTitleShort}</small></div>
+      <div class="esb-list">
+        <div class="navitem" data-sec="general" id="sec-general"><svg viewBox="0 0 24 24"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg><span>{s.secGeneral}</span></div>
+        <div class="navitem" data-sec="model" id="sec-model"><svg viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>{s.secModel}</span></div>
+        <div class="navitem" data-sec="sources" id="sec-sources"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.secSources}</span></div>
+        <div class="navitem" data-sec="tools" id="sec-tools"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg><span>{s.secTools}</span></div>
+        <div class="navitem" data-sec="categories" id="sec-categories"><svg viewBox="0 0 24 24"><path d="M13.172 2a2 2 0 0 1 1.414.586l6.71 6.71a2.4 2.4 0 0 1 0 3.408l-4.592 4.592a2.4 2.4 0 0 1-3.408 0l-6.71-6.71A2 2 0 0 1 6 9.172V3a1 1 0 0 1 1-1z"/><path d="M2 7v6.172a2 2 0 0 0 .586 1.414l6.71 6.71a2.4 2.4 0 0 0 3.191.193"/><circle cx="10.5" cy="6.5" r=".5" fill="currentColor"/></svg><span>{s.secCategories}</span></div>
+        <div class="grp-more">{s.more}</div>
+        <div class="navitem" data-sec="mcpServers" id="sec-mcpServers"><svg viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg><span>{s.secMcpServers}</span></div>
+        <div class="navitem" id="sec-orchestration"><svg viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg><span>{s.secOrchestration}</span><svg class="ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+        <div class="navitem" id="sec-embed"><svg viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg><span>{s.secEmbed}</span><svg class="ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+      <div class="esb-foot"><span class="btn wide" id="btnManage"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> {s.manage}</span></div>
+    </aside>
+
     <!-- Main inset -->
     <div class="inset">
       <div class="topbar">
         <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+        <span class="etop"><span class="sec" data-sectitle></span><span class="status" id="obsStatus"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> {s.draftSaved}</span></span>
       </div>
       <div class="canvas">
         <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
@@ -192,71 +261,82 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- editor: Embed (steps 2-7) -->
-        <div class="page" data-page="embed">
-          <div class="page-head">
+        <!-- the agent's page: Edit with its version, the More menu, then the cards -->
+        <div class="page" data-page="agentPage">
+          <div class="page-head ap-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+            <span><span class="ttl">{s.agentName}</span><span class="desc ic"><span>{s.agentType}</span> <svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg></span></span>
+            <span class="ap-acts"><span class="btn outline" id="btnEdit"><svg viewBox="0 0 24 24"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> {s.edit} <span class="vbadge">{s.verBadge}</span></span><span class="btn outline icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span></span>
           </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "embed" && "on"]} id={tb.key === "embed" ? "tab-embed" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody">
-              <div class="switchrow" id="obsEnable">
-                <span class="sw-txt"><b>{s.enabledLabel}</b><small>{s.enabledDescription}</small></span>
-                <span class="switch on"><i></i></span>
-              </div>
-
-              <div class="fld" id="obsSnippet">
-                <p class="lbl">{s.snippetLabel}</p>
-                <p class="hint">{s.snippetDescription}</p>
-                <div class="snippet-row">
-                  <span class="textarea mono">{s.snippetValue}</span>
-                  <span class="iconbtn"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
-                </div>
-                <p class="hint">{s.snippetHint}</p>
-              </div>
-
-              <div class="fld" id="obsPublicPage">
-                <p class="lbl">{s.publicPageLabel}</p>
-                <p class="hint">{s.publicPageDescription}</p>
-                <div class="snippet-row">
-                  <span class="input block mono">{s.publicPageValue}</span>
-                  <span class="iconbtn"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
-                </div>
-              </div>
-
-              <div class="fld" id="obsOrigins">
-                <p class="lbl">{s.allowedOriginsLabel}</p>
-                <p class="hint">{s.allowedOriginsDescription}</p>
-                <span class="input block muted-txt">{s.allowedOriginsPlaceholder}</span>
-              </div>
-
-              <div id="obsBranding">
-                <div class="fld">
-                  <p class="lbl">{s.titleLabel}</p>
-                  <p class="hint">{s.titleDescription}</p>
-                  <span class="input block muted-txt">{s.agentName}</span>
-                </div>
-                <div class="fld">
-                  <p class="lbl">{s.logoUrlLabel}</p>
-                  <p class="hint">{s.logoUrlDescription}</p>
-                  <span class="input block muted-txt">{s.logoUrlPlaceholder}</span>
-                </div>
-                <div class="fld">
-                  <p class="lbl">{s.primaryColorLabel}</p>
-                  <p class="hint">{s.primaryColorDescription}</p>
-                  <span class="colorrow"><i class="swatch"></i><span class="input block mono">{s.colorValue}</span></span>
-                </div>
-                <div class="fld">
-                  <p class="lbl">{s.bannerTextLabel}</p>
-                  <p class="hint">{s.bannerTextDescription}</p>
-                  <span class="textarea muted-txt">{s.bannerTextPlaceholder}</span>
-                </div>
-              </div>
-            </div>
-            <div class="editor-foot"><span class="btn" id="btnUpdate">{s.update}</span></div>
+          <div class="cards3">
+            <div class="ecard muted"><b>{s.newChat}</b><p>{s.newChatDesc}</p><span class="btn sm">{s.newChat} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+            <div class="ecard"><b>{s.feedback}</b><p>{s.feedbackDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.goToApp} <span class="vbadge">{s.production}</span></b><p>{s.appDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+            <div class="ecard"><b>{s.goToEval}</b><p>{s.evalDesc}</p><span class="gobtn"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+            <div class="ecard"><b>{s.membersCard}</b><p>{s.membersCardDesc}</p><span class="gobtn" id="btnMembersCard"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
           </div>
         </div>
+
+        <!-- the agent editor, open on General -->
+        <div class="page" data-page="editorGeneral">
+          <div class="eform">
+            <div class="grid2"><div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agentName}</span></div></div>
+            <div class="fld"><p class="lbl">{s.greetingLabel}<span class="count">{s.greetingCount}</span></p><span class="textarea mono">{s.greetingValue}</span></div>
+            <div class="fld"><p class="lbl">{s.instructionsLabel}<span class="count">{s.instructionsCount}</span></p><span class="textarea mono grow">{s.instructionsValue}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Embed (steps 4 to 10): a full-page sheet outside the draft, with Cancel and Save -->
+    <div class="page full" data-page="sheetEmbed">
+      <div class="esheet">
+        <div class="es-head">
+          <span><b>{s.tabEmbed}</b><p>{s.liveNotice}</p></span>
+          <span class="es-acts"><span class="btn outline">{s.cancel}</span><span class="btn" id="btnSave">{s.save}</span></span>
+          <span class="closex"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+        </div>
+        <div class="es-body">
+          <div class="es-inner">
+            <div class="esect switchrow" id="obsEnable">
+              <span class="sw-txt"><b>{s.enabledLabel}</b><small>{s.enabledDescription}</small></span>
+              <span class="switch on"><i></i></span>
+            </div>
+            <div class="esect" id="obsBranding">
+              <span class="sw-txt"><b>{s.appearanceTitle}</b><small>{s.appearanceDescription}</small></span>
+              <div class="fld"><p class="lbl">{s.titleLabel}</p><p class="hint">{s.titleDescription}</p><span class="input block muted-txt">{s.agentName}</span></div>
+              <div class="fld"><p class="lbl">{s.logoUrlLabel}</p><p class="hint">{s.logoUrlDescription}</p><span class="input block muted-txt">{s.logoUrlPlaceholder}</span></div>
+              <div class="fld"><p class="lbl">{s.primaryColorLabel}</p><p class="hint">{s.primaryColorDescription}</p><span class="colorrow"><i class="swatch"></i><span class="input block mono">{s.colorValue}</span></span></div>
+              <div class="fld"><p class="lbl">{s.bannerTextLabel}</p><p class="hint">{s.bannerTextDescription}</p><span class="textarea muted-txt">{s.bannerTextPlaceholder}</span></div>
+            </div>
+            <div class="esect" id="obsSnippet">
+              <span class="sw-txt"><b>{s.snippetLabel}</b><small>{s.snippetDescription}</small></span>
+              <div class="snippet-row"><span class="textarea mono">{s.snippetValue}</span><span class="iconbtn"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span></div>
+              <p class="hint">{s.snippetHint}</p>
+              <div class="fld"><p class="lbl">{s.allowedOriginsLabel}</p><p class="hint">{s.allowedOriginsDescription}</p><span class="input block muted-txt">{s.allowedOriginsPlaceholder}</span></div>
+              <span class="helplink"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> {s.widgetGuideLink}</span>
+            </div>
+            <div class="esect" id="obsPublicPage">
+              <span class="sw-txt"><b>{s.publicPageLabel}</b><small>{s.publicPageDescription}</small></span>
+              <div class="snippet-row"><span class="input block mono">{s.publicPageValue}</span><span class="iconbtn"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span></div>
+              <p class="hint">{s.publicPageHint}</p>
+            </div>
+            <div class="esect" id="obsApi">
+              <span class="sw-txt"><b>{s.apiTitle}</b><small>{s.apiDescription}</small></span>
+              <div class="fld"><p class="lbl">{s.apiBaseUrlLabel}</p><p class="hint">{s.apiBaseUrlDescription}</p><div class="snippet-row"><span class="input block mono">{s.apiBaseUrlValue}</span><span class="iconbtn"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span></div></div>
+              <span class="helplink"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> {s.apiReferenceLink}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- the confirmation before the settings apply in production -->
+    <div class="page full" data-page="confirmSave">
+      <div class="scrim"></div>
+      <div class="cmodal" id="obsConfirmSave">
+        <div><b>{s.confirmTitle}</b><p>{s.confirmPre}<strong>{s.confirmStrong}</strong>{s.confirmPost}</p></div>
+        <div class="cm-foot"><span class="btn outline">{s.cancel}</span><span class="btn" id="btnConfirmSave">{s.save}</span></div>
       </div>
     </div>
   </div>
@@ -272,7 +352,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   <div class="progress"><i data-bar></i></div>
 </div>
 
-<script define:vars={{ steps, labels }}>
+<script define:vars={{ steps, labels, titles }}>
   const cs = document.currentScript
   const ebw =
     cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("ebw")
@@ -303,14 +383,21 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   }
   function render() {
     const step = steps[idx]
-    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page || p.dataset.page === step.under)))
+
+    // The agent editor is a page of its own: its menu takes the place of the Studio sidebar.
+    // A sheet and its confirmation sit over it, so the editor stays visible beneath them.
+    const inEditor = /^(editor|sheet|confirm)/.test(step.page)
+    ebw.querySelector(".shell").classList.toggle("in-editor", inEditor)
+    ebw.querySelectorAll("[data-sec]").forEach((item) => item.classList.toggle("on", item.dataset.sec === step.sec))
+    ebw.querySelector("[data-sectitle]").textContent = titles[step.sec] || ""
     dots.forEach((d, i) => d.classList.toggle("on", i === idx))
     stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
     capText.textContent = step.text
 
     // Actions have consequences: once the editor is open, the edited agent is the
     // active item in the AGENTS sidebar list.
-    const editing = step.page === "embed"
+    const editing = step.page !== "overview"
     q("#navAgent1")?.classList.toggle("on", editing)
 
     clearMarks()
@@ -319,6 +406,10 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       if (active !== idx) return
       if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
       step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+      // The sheet scrolls: bring the zone to watch into view.
+      const target = step.observe.length ? q("#" + step.observe[0]) : null
+      const box = target?.closest(".es-body")
+      if (box) box.scrollTop = Math.max(0, target.offsetTop - box.offsetTop - 12)
     }, 260)
 
     bar.classList.remove("run"); void bar.offsetWidth
@@ -459,6 +550,84 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .ebw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
   .ebw .progress i.run { animation: ebw-fill var(--dur, 6000ms) linear forwards; }
   @keyframes ebw-fill { to { width: 100%; } }
+
+  .ebw .btn.wide { width: 100%; justify-content: center; }
+  .ebw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .ebw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .ebw .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  /* The agent editor: a page of its own, with its menu in place of the Studio sidebar */
+  .ebw { --warn-bg: oklch(0.962 0.059 95.617); --warn-fg: oklch(0.476 0.114 61.907); }
+  .ebw .shell { position: relative; }
+  .ebw .esb { display: none; flex-direction: column; gap: 0.5rem; padding: 0.5rem; min-height: 0; }
+  .ebw .shell.in-editor .sb { display: none; }
+  .ebw .shell.in-editor .esb { display: flex; }
+  .ebw .ebk { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.4rem 0.55rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; }
+  .ebw .agent-id { display: flex; flex-direction: column; gap: 0.15rem; padding: 0 0.5rem 0.3rem; }
+  .ebw .agent-id b { display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; font-weight: 600; min-width: 0; }
+  .ebw .agent-id b span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ebw .agent-id small { font-size: 0.74rem; color: var(--muted-foreground); }
+  .ebw .esb-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .ebw .esb .navitem svg { color: currentColor; }
+  .ebw .esb .navitem .ext { margin-left: auto; font-size: 0.85rem; color: var(--muted-foreground); }
+  .ebw .grp-more { font-size: 0.7rem; color: var(--muted-foreground); font-weight: 500; padding: 0.7rem 0.5rem 0.2rem; }
+  .ebw .esb-foot { border-top: 1px solid var(--sidebar-border); padding: 0.6rem 0.2rem 0.2rem; }
+  .ebw .etop { display: none; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
+  .ebw .shell.in-editor .trig { display: none; }
+  .ebw .shell.in-editor .etop { display: flex; }
+  .ebw .shell.in-editor .canvas { background: var(--background); }
+  .ebw .shell.in-editor .fab { display: none; }
+  .ebw .etop .sec { font-size: 1.05rem; font-weight: 600; }
+  .ebw .status { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 999px; padding: 0.25rem 0.7rem; font-size: 0.78rem; font-weight: 500; background: var(--warn-bg); color: var(--warn-fg); white-space: nowrap; }
+  .ebw .page .editor { border: 0; padding: 0; background: transparent; max-width: 40rem; margin: 0 auto; }
+  .ebw .eform { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
+  .ebw .count { font-weight: 400; color: var(--muted-foreground); margin-left: 0.3rem; }
+  .ebw .lbl-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .ebw .textarea.grow { min-height: 7rem; }
+  .ebw .toolcard { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.45rem; }
+  .ebw .tc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
+  .ebw .tc-head b { font-size: 0.82rem; font-weight: 500; display: block; }
+  .ebw .tc-head .hint { margin-top: 0.15rem; }
+  .ebw .page.full { padding: 0; z-index: 9; }
+  .ebw .esheet { position: absolute; inset: 0; background: var(--card); color: var(--foreground); display: flex; flex-direction: column; }
+  .ebw .es-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.7rem; padding: 0.9rem 3rem 0.9rem 1.1rem; border-bottom: 1px solid var(--border); position: relative; }
+  .ebw .es-head b { font-size: 1rem; font-weight: 600; }
+  .ebw .es-head p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.25rem 0 0; max-width: 30rem; }
+  .ebw .es-head .closex { position: absolute; right: 1rem; top: 1rem; color: var(--muted-foreground); }
+  .ebw .es-acts { display: flex; gap: 0.4rem; }
+  .ebw .es-body { flex: 1; min-height: 0; overflow: auto; padding: 1rem 1.2rem; }
+  .ebw .es-inner { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.6rem; }
+  .ebw .page.full .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .ebw .cmodal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(400px, 86%); background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; display: flex; flex-direction: column; gap: 0.8rem; }
+  .ebw .cmodal b { font-size: 0.98rem; font-weight: 600; }
+  .ebw .cmodal p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .ebw .cmodal p strong { color: var(--foreground); font-weight: 600; }
+  .ebw .cm-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+  .ebw .esect { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .ebw .esect.switchrow { flex-direction: row; align-items: center; justify-content: space-between; }
+  .ebw .helplink { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; color: var(--muted-foreground); text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .ebw .shell.in-editor .esb { display: none; }
+  }
+
+  .ebw .hint { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+  .ebw .sect { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.6rem 0.75rem; }
+  .ebw .sect-ttl { margin: 0; font-weight: 600; }
+
+  /* The agent's page */
+  .ebw .ap-head { align-items: center; }
+  .ebw .ap-acts { margin-left: auto; display: inline-flex; }
+  .ebw .ap-acts .btn { border-radius: 0; }
+  .ebw .ap-acts .btn:first-child { border-radius: 8px 0 0 8px; }
+  .ebw .ap-acts .btn:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+  .ebw .ap-acts .btn.icon { padding: 0.4rem 0.5rem; }
+  .ebw .desc.ic { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .ebw .vbadge { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.02rem 0.45rem; font-size: 0.68rem; font-weight: 600; background: oklch(0.962 0.044 156.743); color: oklch(0.448 0.119 151.328); }
+  .ebw .gobtn { margin-top: auto; align-self: flex-start; width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 999px; display: inline-grid; place-items: center; color: var(--foreground); background: var(--background); }
+  .ebw .ecard b { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; }
+  .ebw .cards3 .ecard p { font-size: 0.74rem; line-height: 1.4; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+
+  .ebw .btn.disabled { opacity: 0.5; }
 
   @media (max-width: 640px) {
     .ebw .shell { grid-template-columns: 1fr; height: 560px; }

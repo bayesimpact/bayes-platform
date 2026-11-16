@@ -4,7 +4,7 @@ highlight: Embed
 description: Make a conversation agent available outside the platform — as a chat widget on your own website or as a standalone public page shared by link or QR code — with your branding and an optional banner.
 category: guides-agents
 order: 6
-updated: 2026-09-07
+updated: 2026-11-16
 ---
 
 import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
@@ -19,34 +19,36 @@ platform, in two ways:
   a **public page link** you can share directly or print as a **QR code**. No website
   is needed, which suits a pilot, an event or a test access.
 
-Embedding is configured on the **Embed** tab of a **conversation agent's** editor, in
-**Studio**. It's an optional feature: the tab only appears when your workspace has
-embedding enabled and you're editing a **conversation** agent (extraction and form
-agents don't have it). In the editor's tab row it's the last tab, after
-[**Orchestration**](/en/agent-orchestration) — unless the **MCP Servers** tab is
-enabled, which sits after it.
+Embedding is configured in the editor of a **conversation agent** (a form agent is
+one too), in **Studio**: **Embed** sits in the editor's left menu, under **More**. It
+is not part of the agent's draft: it opens in a full page with its own **Save**, and
+your changes apply to the agent **in production** as soon as you save them. It has no
+versions in the [version history](/en/agent-version-history). It's an optional
+feature: the entry only appears when your workspace has embedding enabled. Extraction
+agents don't have it.
 
 > **Ask to have it enabled.** Embedding is turned on per workspace. If your
-> conversation agent's editor has no **Embed** tab, the feature isn't enabled for
-> your workspace yet — contact the Bayes team to request it.
+> conversation agent's editor has no **Embed** entry under **More**, the feature isn't
+> enabled for your workspace yet. Contact the Bayes team to request it.
 
 ## How embedding works
 
-- Each conversation agent has its own **embed snippet** — a `<script>` tag carrying a
-  unique token. Adding that snippet to a web page loads the chat widget for that
-  agent.
-- The same token gives the agent a **public page link**. Anyone who opens it gets
-  the full chat, without any host website.
-- The snippet and the link exist whether or not embedding is on, but the widget and
-  the public page only work once **Enable embed** is turned on. Turning it off takes
-  them offline immediately, which is how you end a temporary access.
-- You control **which sites** may load the widget with **Allowed origins**, and you
-  can **customize its appearance** (title, logo, brand color) plus a few optional
+- Each conversation agent has its own **embed token**. The `<script>` tag under
+  **Widget on a website** carries it: adding that tag to a web page loads the chat
+  widget for that agent.
+- The same token gives the agent a **public page** link. Anyone who opens it gets the
+  full chat, without any host website. It also gives the **Base URL** of the
+  [public API](/en/public-chat-api), to build your own chat interface.
+- The tag, the link and the URL exist whether or not embedding is on, but the widget,
+  the public page and the public API only work once **Enable embed** is on. Turning it
+  off takes all three offline immediately, which is how you end a temporary access.
+- You can **customize the appearance** (title, logo, brand color) plus a few optional
   `data-` attributes on the script tag.
 - An optional **banner text** stays pinned above the conversation, on the public page
   and in the widget, so visitors always see the context (for example *Test version,
   for the pilot team only*) even if the link is forwarded.
-- Changes are saved with **Update** (this tab uses **Update**, not Save).
+- Visitors talk to the agent's **published** version. Changes in the draft reach them
+  once you save the draft as a version.
 
 ## The full flow at a glance
 
@@ -61,76 +63,98 @@ watch.
 ### 1. Open a conversation agent
 
 In **Studio**, open the **conversation** agent you want to embed (from the **Agents**
-list in the left sidebar, or its card on the workspace overview). This opens the agent
-editor. You need permission to manage the agent.
+list in the left sidebar, or its card on the workspace overview). Its page opens. You
+need permission to manage the agent.
 
-### 2. Open the Embed tab
+### 2. Open the agent editor
 
-In the editor's tab row, click **Embed** — the last tab (unless the **MCP Servers**
-tab is enabled, which sits after it). If you don't see it, the
-tab is either not enabled for your workspace or you're not on a **conversation** agent
-(see Troubleshooting).
+At the top right of the agent's page, click **Edit**. The button shows what the editor
+opens on: a **Draft** badge, or the published version (for example **v3**).
 
-### 3. Enable embed
+### 3. Open Embed
 
-Turn on **Enable embed**. Its description reads *Allow `<agent name>` to be embedded on
-external websites via an iframe.* While it's off, the snippet is still generated but
-the widget won't load on your site.
+In the editor's left menu, under **More**, click **Embed** (it carries an
+external-link icon: it opens over the editor). **Embed** opens in a full page. Its
+header reads *These settings are not part of the draft: they apply in production as
+soon as you save.*, with **Close** and **Save** at the top right (they also show at
+the bottom of the page). If you don't see **Embed**, the feature is either not enabled
+for your workspace or you're not on a **conversation** agent (see Troubleshooting).
 
-### 4. Copy the embed snippet
+### 4. Enable embed
 
-Under **Embed snippet**, you'll find a read-only `<script>` tag. Click the **copy**
-button next to it, then, as the description says, *paste this `<script>` tag before the
-closing `</body>` tag* on any page where you want the widget to appear.
+Turn on **Enable embed**. Its description reads *Makes `<agent name>` available outside
+the platform: the widget, the public page and the public API. When off, all three
+stop working.*
 
-The hint lists **optional attributes** you can add to the tag to tweak the widget:
+### 5. Customize the appearance
 
-- **`data-color`** — the chat button color (e.g. `#2563eb`).
-- **`data-locale`** — the widget language (e.g. `fr`).
-- **`data-display-mode`** — set to `drawer` for a side panel instead of a bubble.
-- **`data-hint`** — a tooltip shown on load and on hover (e.g. `Need help?`).
+Under **Appearance** (*Shown in the header of the widget and of the public page.*),
+four optional fields control how the chat looks:
 
-Below the snippet, **Public page link** is the URL of the standalone page. Copy it with
-the **copy** button and share it as a link or a QR code when you have no website to
-host the widget. Append `&locale=fr` to force the language of the page.
-
-### 5. Restrict the allowed origins
-
-In **Allowed origins**, enter a **comma-separated list** of the sites permitted to
-load the widget (for example `https://app.example.com, https://staging.example.com`).
-As the description notes, **leave it empty to allow all origins** — but for production
-it's safer to list only your own domains. If you use the **public page link**, keep
-the list empty: the page has no host website to allow.
-
-### 6. Customize the widget's appearance
-
-Four optional fields control how the widget looks:
-
-- **Widget title** — the title shown in the chat header. Left empty, it **defaults to
+- **Widget title**: the title shown in the chat header. Left empty, it **defaults to
   the agent's name**.
-- **Logo URL** — the URL of a logo image shown in the chat header (e.g.
+- **Logo URL**: the URL of a logo image shown in the chat header (e.g.
   `https://example.com/logo.png`).
-- **Brand color** — the primary color of the chat header. Pick it with the color
+- **Brand color**: the primary color of the chat header. Pick it with the color
   swatch or type a **hex value** (e.g. `#2563eb`).
-- **Banner text** — an optional notice pinned above the conversation, on the public
+- **Banner text**: an optional notice pinned above the conversation, on the public
   page and in the widget. State the context there: a test version, the intended
   audience, a validity period. Leave it empty to show no banner.
 
-### 7. Update
+### 6. Put the widget on a website
 
-Click **Update** to save the configuration. Your changes — enabled state, allowed
-origins, title, logo, color and banner — take effect for the widget and the public
-page.
+Under **Widget on a website**, you'll find a read-only `<script>` tag. Click the
+**copy** button next to it, then, as the description says, *paste this `<script>` tag
+before the closing `</body>` tag on each page where the chat widget must appear.*
+
+The hint lists **optional attributes** you can add to the tag:
+
+- **`data-color`**: the chat button color (e.g. `#2563eb`).
+- **`data-locale`**: the widget language (e.g. `fr`).
+- **`data-display-mode`**: set to `drawer` for a side panel instead of a bubble.
+- **`data-hint`**: a tooltip shown on load and on hover (e.g. `Need help?`).
+
+Below, **Allowed origins** reads *Leave empty for now.* The widget calls the platform
+from the platform's own address, not from your website, so a list without that
+address blocks the widget. The check of the website that shows the widget is not
+available yet. **Read the widget guide** opens this page.
+
+### 7. Share the public page
+
+Under **Public page**, copy the link with the **copy** button. Share it as a link or a
+QR code when you have no website to host the widget. The page only works while
+embedding is enabled. Append `&locale=fr` to force the language of the page.
+
+### 8. Use the public API
+
+Under **Public API**, copy the **Base URL**: every route of the API starts with it,
+and it contains the embed token of this agent. **Read the API reference** opens the
+[public chat API](/en/public-chat-api) reference.
+
+### 9. Save
+
+Click **Save**, at the top or at the bottom of the page. The button stays greyed out
+until you've made a change. Once you've changed something, **Close** becomes
+**Cancel**. Cancel, the close cross, Escape or a click outside the page with unsaved
+changes opens the **Unsaved changes** dialog, which asks whether to **Discard** them.
+
+### 10. Confirm
+
+The **Apply these settings now?** dialog reads *These settings do not go through the
+draft: they apply to the agent **in production** as soon as you save.* Click **Save**
+to apply them, or **Cancel** to go back to the page. Your changes (enabled state,
+allowed origins, title, logo, color and banner) then take effect for the widget, the
+public page and the public API.
 
 ## Tips
 
-- Keep **Enable embed** off until you've set your **Allowed origins** and branding, so
-  the widget only goes live once it's ready.
-- List your real domains in **Allowed origins** for production; an empty list allows
-  **any** site to embed the agent.
+- Keep **Enable embed** off until your appearance and banner are set, so the widget
+  only goes live once it's ready.
+- Leave **Allowed origins** empty for now: a list without the platform's own address
+  blocks the widget.
 - Use `data-display-mode="drawer"` when you want a side panel rather than a floating
   bubble, and `data-locale` to force the widget's language.
-- The **Widget title** falls back to the agent's name — set it explicitly if you want
+- The **Widget title** falls back to the agent's name: set it explicitly if you want
   a different heading for visitors.
 - For a temporary access shared by link or QR code, set a **Banner text** that says
   who the agent is for, then turn **Enable embed** off when the access ends.
@@ -140,19 +164,21 @@ page.
 
 ## Troubleshooting
 
-- **I don't see the Embed tab** — it appears only for **conversation** agents, only
-  when the workspace has embedding enabled, and only if you can manage the agent.
-  Extraction and form agents never show it.
-- **The widget doesn't appear on my site** — check that **Enable embed** is on, that
-  the snippet is pasted before `</body>`, and that your site's origin is in **Allowed
-  origins** (or that the list is empty).
-- **The widget loads on the wrong sites** — an empty **Allowed origins** list allows
-  every origin; add your specific domains to restrict it.
-- **The header shows the agent's name, not my title** — **Widget title** is empty, so
-  it defaults to the agent's name; enter a title and **Update**.
-- **The public page shows "not available"** — **Enable embed** is off, or **Allowed
-  origins** is not empty. Turn embedding on and clear the origins list.
-- **The banner doesn't show** — **Banner text** is empty or you didn't click
-  **Update**; the banner only appears when the text is set.
-- **Related:** the embedded widget is a conversation agent — see
+- **I don't see Embed in the editor**: it appears under **More** only for
+  **conversation** agents (form agents included), only when the workspace has
+  embedding enabled, and only if you can manage the agent. Extraction agents never
+  show it.
+- **The widget doesn't appear on my site**: check that **Enable embed** is on and
+  saved, that the tag is pasted before `</body>`, and that **Allowed origins** is
+  empty.
+- **The header shows the agent's name, not my title**: **Widget title** is empty, so
+  it defaults to the agent's name; enter a title, then **Save** and confirm.
+- **The public page shows "not available"**: **Enable embed** is off, or **Allowed
+  origins** is not empty. Turn embedding on, clear the origins list, then **Save** and
+  confirm.
+- **The banner doesn't show**: **Banner text** is empty, or you didn't save and
+  confirm. The banner only appears when the text is set.
+- **Visitors don't see my latest changes to the agent**: the widget runs the
+  published version. Open **Manage versions** in the editor and **Save version**.
+- **Related:** the embedded widget is a conversation agent; see
   [Add a conversation agent](/en/add-a-conversation-agent) to configure what it says.

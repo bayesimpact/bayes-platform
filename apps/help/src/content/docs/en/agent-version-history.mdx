@@ -1,29 +1,48 @@
 ---
 title: Version history
 highlight: history
-description: Every time you save an agent, its settings are versioned — browse past versions, compare exactly what changed, and restore any earlier version in one click.
+description: Your changes go to a draft. Save the draft as a version when it is ready, compare versions field by field, and restore an older one.
 category: guides-agents
 order: 7
-updated: 2026-07-22
+updated: 2026-11-16
 ---
 
 import VersionHistoryWalkthrough from "@/components/VersionHistoryWalkthrough.astro"
 
-Every agent keeps a **version history** of its settings. Each time you save a tab in
-the editor, the platform records a new **version** — so you can look back at how the
-agent was configured before, **compare** what changed, and **restore** an earlier
-version if a change didn't work out.
+Every agent keeps a **version history** of its settings. The changes you make in the
+agent editor save by themselves to a **draft**. Users keep talking to the published
+version until you **save the draft as a version**. The history lets you see what
+changed, publish the draft, and **restore** an older version if a change did not work
+out.
 
-It's available on **every agent** (conversation, extraction, form) from the **History**
-button in the top right of the agent editor — no matter which tab you're on.
+It is available on **every agent** (conversation, extraction, form). Open it from the
+**Manage versions** button at the bottom of the agent editor's menu, whatever section
+you are on.
 
-## What's tracked
+## Draft and versions
 
-A version captures the agent's saved settings, and the comparison highlights exactly
-which of them changed between two versions, field by field — for example
-**Instructions**, **Greeting**, **Model**, **Temperature**, **Locale**, the **Answer
-source** mode, and the **output schema**. Restoring never deletes anything: it
-copies an old version's settings into a **new** current version.
+- **The draft.** Every change in the editor's sections (**General**, **Model**,
+  **Sources**, **Tools**, **Conversation categories**, **Output**) saves by itself to
+  the draft, a moment after you stop typing. There is no Save button. The status at
+  the top right of the editor reads **Saving…**, then **Draft saved**. If you undo
+  your changes and the draft matches the published version again, the draft is
+  removed.
+- **A version.** **Save version** turns the draft into a numbered version. The agent
+  then runs with it: users, the app and the embed talk to this version. Your next
+  change starts a new draft.
+- **What is tracked.** The comparison shows, field by field, what changed between two
+  versions: for example **Instructions**, **Greeting**, **Model**, **Model options**,
+  **Answer source**, **Embedding model**, **Priority calls**, **Form filling**,
+  **Output JSON Schema**, **Prompt variables** and the follow-up question settings.
+- **Not tracked.** **MCP Servers**, **Orchestration** and **Embed** are not part of
+  the draft. They apply to the agent in production as soon as you save them, so they
+  have no versions. The same goes for three settings inside the draft sections: the
+  **Document Tags** and the **Resource libraries** of **Sources**, and the ticked
+  **Conversation categories**. They save by themselves like the rest, but on the agent
+  itself: they apply at once and a restore does not change them.
+
+Restoring never deletes anything: it copies an old version's settings into a **new**
+version, which becomes the current one.
 
 ## The full flow at a glance
 
@@ -35,62 +54,96 @@ watch.
 
 ## Step by step
 
-### 1. Open History
+### 1. Open the version history
 
-In the agent editor, click **History** at the top right. The button carries a badge
-showing the **current version** (e.g. **v3**). A panel slides in from the right.
+In the agent editor, click **Manage versions** at the bottom of the left menu. You can
+also click the status at the top right of the editor: **Draft saved** when the agent
+has a draft, or **Version *n* · published** when it has none.
 
 ### 2. Browse the versions
 
-The **Version history** panel lists every saved version, **newest first**. Each row
-shows **Version *n*** and when it was saved; the latest one is marked **Current**.
+**Version history** opens full screen, with the description *Browse, compare and
+restore previous settings of* your agent. The left column lists every version,
+**newest first**. Each row shows **Version *n***, its name and description if it has
+any, and when it was saved. The draft carries a **Draft** badge, and the version the
+agent runs with carries a **Current** badge. When the agent has a draft, it is
+selected first. Click a row to select another version.
 
 ### 3. Choose what to compare
 
-Select an older version, then pick a comparison mode:
+Above the comparison, pick what the selected version is compared with:
 
-- **Changes in this version** — what changed between the selected version and the one
+- **Changes in this version**: what changed between the selected version and the one
   just before it.
-- **Compare with current** — the difference between the selected version and the
-  current settings.
+- **Compare with current**: the difference between the selected version and the
+  published version.
+- **Compare with draft**: the difference between the selected version and the draft.
+  It only shows when the agent has a draft.
 
-A caption tells you which two versions you're comparing. If there's only one version,
-you'll see **Only one version**; if two versions are identical, **No differences**.
+An option is greyed out when it does not apply to the selected version. A caption
+tells you which two versions you see, for example *Showing changes from version 2 to
+version 3.* With a single version, you see **Only one version**. When two versions
+are identical, you see **No differences**.
 
 ### 4. Read the diff
 
-The comparison shows a **field-by-field diff** of everything that changed — removed
-text in red, added text in green — so you can see exactly how the settings differed
-(instructions, model, temperature, and so on).
+A line names every field that changed, for example *2 changed fields:*
+**Instructions** **Greeting**. Click a field name to jump to its diff. Each diff shows
+the removed text in red and the added text in green.
 
-### 5. Restore a version
+### 5. Save the draft as a version
 
-Found a version you want back? Click **Restore this version**. (The button is
-disabled on the **Current** version — there's nothing to restore.)
+Select the version with the **Draft** badge. Click **Save version** at the top right
+of the comparison.
 
-### 6. Confirm the restore
+### 6. Name the version and confirm
 
-A dialog — **Restore version *n*?** — explains that the version's settings will be
-**copied as a new version** and become the current settings, and that **no version is
-deleted**. Confirm to apply it; the editor reloads with the restored settings as the
-new current version.
+The **Save version *n*?** dialog explains: *Version n becomes the settings this agent
+runs with. Later changes start a new draft version.* Fill in, if you wish:
+
+- **Version name** (placeholder *Name this version*). **Optional**.
+- **Version description** (placeholder *Describe what changed in this version*).
+  **Optional**.
+
+Click **Save version**. The version loses its **Draft** badge and gets the **Current**
+badge. The editor status now reads **Version *n* · published**.
+
+### 7. Restore an older version
+
+Select an older version in the list, then click **Restore this version** at the top
+right of the comparison. The button is greyed out on the newest version: there is
+nothing to restore.
+
+### 8. Confirm the restore
+
+The **Restore version *n*?** dialog explains that *The settings of version n will be
+copied as a new version and become the current settings. No version is deleted.*
+Click **Restore this version** to apply it, or **Cancel**. The editor reloads with the
+restored settings.
 
 ## Tips
 
-- Save often — each save is a restore point, so you can experiment freely and roll
-  back.
-- Use **Compare with current** to review everything that changed since a known-good
-  version before restoring.
-- Restoring is safe and reversible: it creates a new version, so you can always
-  restore forward again.
+- Change the agent freely: users only see your changes once you click **Save
+  version**.
+- Test the draft before you save it as a version: in the playground of the agent page,
+  the version selector can run the draft.
+- Give important versions a **Version name**, such as *Shorter answers*: you find
+  them faster in the list.
+- Use **Compare with current** to review everything that changed since the published
+  version before you save the draft.
+- Restoring is safe: it creates a new version, so you can always restore forward
+  again.
 
 ## Troubleshooting
 
-- **I don't see the History button** — it's in the top right of the **agent editor**;
-  open an agent and make sure you're on its edit screen.
-- **The panel says "Only one version"** — the agent has been saved just once; there's
-  nothing to compare until you save a change.
-- **Restore is disabled** — you've selected the **Current** version; pick an older one
-  to restore it.
-- **A change broke the agent** — open **History**, find the last good version, and
-  **Restore** it — nothing you've saved is lost.
+- **I don't see Manage versions.** It is at the bottom of the agent editor's left menu.
+  On a narrow screen, open the menu with the sidebar button first.
+- **The panel says "Only one version".** The agent has a single version. There is
+  nothing to compare yet.
+- **My draft disappeared.** You undid your changes, so the draft matched the published
+  version and was removed. The status reads **Version *n* · published**.
+- **Users still get the old answers.** Your changes are in the draft. Open the
+  history, select the draft and click **Save version**.
+- **Restore is greyed out.** You selected the newest version. Pick an older one.
+- **A change broke the agent.** Open the history, find the last good version, and
+  **Restore** it. Nothing you saved is lost.
