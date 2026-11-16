@@ -85,7 +85,7 @@ function NavAgentEdit({ organizationId, agent }: { organizationId: string; agent
       {hasDraft ? (
         <Badge variant="warning">{t("status:draft")}</Badge>
       ) : (
-        <Badge variant="secondary">
+        <Badge variant="success">
           {t("agentSettings:history.revisionBadge", { revision: agent.currentRevision?.number })}
         </Badge>
       )}
