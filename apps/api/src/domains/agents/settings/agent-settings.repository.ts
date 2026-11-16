@@ -12,14 +12,18 @@ export class AgentSettingsRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
   /**
-   * The newest published revision of the agent, or null when it has none: an agent that was never
-   * published, such as a fresh copy, only has a draft.
+   * The revision in production, or null when the agent has none: an agent that was never saved,
+   * such as a fresh copy, only has a draft.
    */
-  async findLatestPublished(
+  async findProduction(
     connectScope: RequiredConnectScope,
     agentId: string,
   ): Promise<AgentSettings | null> {
-    return this.findLatestWhere(connectScope, { agentId, isDraft: false })
+    const [production] = await this.connectRepo().find(connectScope, {
+      where: { agentId, isProduction: true },
+      take: 1,
+    })
+    return production ?? null
   }
 
   /** The newest revision of the agent, draft included, or null when it has none. */
@@ -30,17 +34,43 @@ export class AgentSettingsRepository {
     return this.findLatestWhere(connectScope, { agentId })
   }
 
-  /** The agents among `agentIds` that have a published revision. */
-  async findAgentIdsWithPublishedRevision(
+  /** The agents among `agentIds` that have a revision in production. */
+  async findAgentIdsInProduction(
     connectScope: RequiredConnectScope,
     agentIds: readonly string[],
   ): Promise<string[]> {
     if (agentIds.length === 0) return []
-    const publishedSettings = await this.connectRepo().find(connectScope, {
-      where: { agentId: In([...agentIds]), isDraft: false, isArchived: false },
+    const productionSettings = await this.connectRepo().find(connectScope, {
+      where: { agentId: In([...agentIds]), isProduction: true },
       select: { id: true, agentId: true },
     })
-    return [...new Set(publishedSettings.map((agentSettings) => agentSettings.agentId))]
+    return productionSettings.map((agentSettings) => agentSettings.agentId)
+  }
+
+  /**
+   * Puts one revision of the agent in production and takes the previous one out. Two writes: call
+   * it inside `transactionService.run()`, or the unique index may see two revisions in production.
+   *
+   * Raw SQL leaves `updated_at` alone: it tells when the version was written, and choosing the
+   * production version changes neither of them.
+   */
+  async setProduction(
+    connectScope: RequiredConnectScope,
+    { agentId, agentSettingsId }: { agentId: string; agentSettingsId: string },
+  ): Promise<void> {
+    const { organizationId, projectId } = connectScope
+    const manager = this.transactionService.getManager()
+    await manager.query(
+      `UPDATE "agent_settings" SET "is_production" = false
+       WHERE "organization_id" = $1 AND "project_id" = $2 AND "agent_id" = $3
+         AND "is_production" = true`,
+      [organizationId, projectId, agentId],
+    )
+    await manager.query(
+      `UPDATE "agent_settings" SET "is_production" = true
+       WHERE "organization_id" = $1 AND "project_id" = $2 AND "agent_id" = $3 AND "id" = $4`,
+      [organizationId, projectId, agentId, agentSettingsId],
+    )
   }
 
   /** A draft revision of the agent: no live session runs it until it is published. */
@@ -53,7 +83,7 @@ export class AgentSettingsRepository {
 
   private async findLatestWhere(
     connectScope: RequiredConnectScope,
-    where: { agentId: string; isDraft?: false },
+    where: { agentId: string },
   ): Promise<AgentSettings | null> {
     const [latest] = await this.connectRepo().find(connectScope, {
       where: { ...where, isArchived: false },

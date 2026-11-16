@@ -200,7 +200,7 @@ const runEvaluationInputSchema = z.object({
     .union([z.number().int().positive(), z.literal("draft")])
     .optional()
     .describe(
-      'Version of the agent to evaluate: a revision number from get_agent, or "draft" for its draft. The latest published version when left out.',
+      'Version of the agent to evaluate: a revision number from get_agent, or "draft" for its draft. The version in production when left out.',
     ),
   judgeModel: z
     .enum(AgentModel)

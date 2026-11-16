@@ -39,9 +39,26 @@ export const restoreAgentSettings = createAsyncThunk<void, { revision: number },
   },
 )
 
+export const setProductionAgentSettings = createAsyncThunk<void, { revision: number }, ThunkConfig>(
+  "agentSettings/setProduction",
+  async ({ revision }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    await services.agentSettings.setProduction({ organizationId, projectId, agentId, revision })
+  },
+)
+
 export const createAgentSettings = createAsyncThunk<
   void,
-  { revision: number; revisionName?: string; revisionDesc?: string; onSuccess: () => void },
+  {
+    revision: number
+    revisionName?: string
+    revisionDesc?: string
+    setAsProduction?: boolean
+    onSuccess: () => void
+  },
   ThunkConfig
 >("agentSettings/createOne", async (payload, { extra: { services }, getState }) => {
   const { revision, ...publishPayload } = payload

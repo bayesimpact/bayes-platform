@@ -36,15 +36,17 @@ export const selectAgentSettingsDataByAgentId = ({
       const isValid = agentHistoryData.value.some((settings) => settings.agentId === agent.id)
       if (!isValid) return { status: ADS.Error, error: "Agent settings not found", value: null }
 
-      // An agent that was never published, such as a fresh copy, only has its draft.
-      const publishedRevision = agent.currentRevision?.number
+      // With the draft, the editor works on the newest revision: the draft, else the newest saved
+      // one, which the next edit starts from. It is not the production revision when the managers
+      // keep an older one live. Without the draft, the production revision, else the draft of an
+      // agent never saved, such as a fresh copy.
+      const productionRevision = agent.currentRevision?.number
       const draftRevision = agent.draftRevision?.number
-      const revision = includeDraft
-        ? (draftRevision ?? publishedRevision)
-        : (publishedRevision ?? draftRevision)
-      const currentSettings = agentHistoryData.value.find(
-        (settings) => settings.revision === revision,
-      )
+      const currentSettings = includeDraft
+        ? agentHistoryData.value[0]
+        : agentHistoryData.value.find(
+            (settings) => settings.revision === (productionRevision ?? draftRevision),
+          )
 
       if (!currentSettings)
         return { status: ADS.Error, error: "Current agent settings not found", value: null }

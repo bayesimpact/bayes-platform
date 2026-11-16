@@ -133,28 +133,31 @@
         "placeholders": {
           "revisionName": "Nommez cette version",
           "revisionDesc": "Décrivez ce qui a changé dans cette version"
-        }
+        },
+        "setAsProduction": "Mettre cette version en production"
       },
       "dialog": {
         "title": "Enregistrer la version {{revision}} ?",
-        "description": "La version {{revision}} devient les paramètres utilisés par cet agent. Les modifications suivantes créeront une nouvelle version brouillon.",
+        "description": "La version {{revision}} est figée. Les modifications suivantes créeront une nouvelle version brouillon.",
         "submit": "Enregistrer la version"
-      }
+      },
+      "setAsProductionDescription": "Le Desk, l'embed et l'API publique démarreront les nouvelles conversations avec elle. Sinon, la version {{current}} reste en production.",
+      "firstVersionProduction": "C'est la première version enregistrée de l'agent : elle passe en production."
     },
     "history": {
       "button": "Historique",
       "title": "Historique des versions",
-      "description": "Parcourez, comparez et restaurez les paramètres précédents de {{name}}.",
+      "description": "Parcourez, comparez et restaurez les versions de {{name}}, et choisissez celle en production.",
       "loadError": "Échec du chargement de l'historique des versions",
       "revisionLabel": "Version {{revision}}",
-      "currentBadge": "Actuelle",
+      "currentBadge": "En production",
       "revisionBadge": "v{{revision}}",
       "revisionBadgeAria": "Version {{revision}} des paramètres de l'agent",
       "messageRevisionTooltip": "Répondu avec la version {{revision}}",
       "runRevisionTooltip": "Extrait avec la version {{revision}}",
       "headerRevisionTooltip": "Les nouveaux messages utilisent la version {{revision}}",
       "compareWithPrevious": "Changements de cette version",
-      "compareWithCurrent": "Comparer avec l'actuelle",
+      "compareWithCurrent": "Comparer avec la production",
       "compareWithDraft": "Comparer avec le brouillon",
       "comparing": "Changements de la version {{before}} à la version {{after}}.",
       "noChangesTitle": "Aucune différence",
@@ -164,7 +167,7 @@
       "restore": "Restaurer cette version",
       "restoreDialog": {
         "title": "Restaurer la version {{revision}} ?",
-        "description": "Les paramètres de la version {{revision}} seront copiés comme nouvelle version et deviendront les paramètres actuels. Aucune version n'est supprimée."
+        "description": "Les paramètres de la version {{revision}} sont copiés dans le brouillon. Vous pouvez les modifier, puis les enregistrer comme nouvelle version. La version en production ne change pas."
       },
       "draft": "Brouillon"
     },
@@ -173,7 +176,7 @@
       "extractionAriaLabel": "Version des paramètres utilisée par les extractions",
       "placeholder": "Sélectionner une version",
       "item": "v{{revision}} — {{detail}}",
-      "current": "Actuelle ({{date}})"
+      "current": "En production ({{date}})"
     },
     "orchestration": {
       "selectedTitle": "Sous-agents",
@@ -285,14 +288,16 @@
     "notifications": {
       "versionRestored": "Version de l'agent restaurée avec succès",
       "versionRestoreError": "La restauration de la version de l'agent a échoué",
-      "versionPublished": "Version de l'agent publiée avec succès",
+      "versionPublished": "Version de l'agent enregistrée",
       "versionPublishError": "La publication de la version de l'agent a échoué",
       "updated": "Agent mis à jour avec succès",
       "updateError": "La mise à jour de l'agent a échoué",
       "embedConfigUpdated": "Configuration d'intégration mise à jour avec succès",
       "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
       "subAgentsUpdated": "Sous-agents mis à jour avec succès",
-      "subAgentsUpdateError": "La mise à jour des sous-agents a échoué"
+      "subAgentsUpdateError": "La mise à jour des sous-agents a échoué",
+      "productionSet": "La version {{revision}} est en production",
+      "productionSetError": "Impossible de changer la version en production"
     },
     "sources": {
       "documents": {
@@ -300,6 +305,26 @@
         "description": "Les documents du projet dans lesquels l'agent cherche pour répondre.",
         "embeddingModel": "Modèle d'embedding : {{model}}"
       }
+    },
+    "production": {
+      "badge": "En production",
+      "saved": "Enregistrée",
+      "pill": "En production : v{{revision}}",
+      "none": "Pas en production",
+      "noneDescription": "Enregistrez une version pour rendre cet agent disponible dans le Desk, l'embed et l'API publique.",
+      "set": "Mettre en production",
+      "dialog": {
+        "title": "Mettre la version {{revision}} en production ?",
+        "description": "Le Desk, l'embed, l'API publique et les agents qui appellent celui-ci démarreront les nouvelles conversations avec la version {{revision}}. Les conversations déjà commencées gardent leur version.",
+        "replaces": "La version {{current}} sort de la production. Elle reste dans l'historique, et vous pouvez la remettre à tout moment."
+      },
+      "editing": {
+        "draft": "Vous modifiez le brouillon de la version {{revision}}. Enregistrez-le, puis mettez-le en production.",
+        "saved": "Vous voyez la version {{revision}}. Elle n'est pas en production.",
+        "production": "Vous voyez la version en production. Vos modifications iront dans un nouveau brouillon."
+      },
+      "description": "Le Desk, l'embed et l'API publique démarrent les nouvelles conversations avec cette version.",
+      "openHistory": "Ouvrir l'historique des versions pour changer la version en production"
     }
   }
 }

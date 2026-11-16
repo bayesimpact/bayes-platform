@@ -4,11 +4,12 @@ import { HistoryIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { AgentRevisionStatusBadge } from "./AgentRevisionStatusBadge"
 import { AgentSettingsHistorySheet } from "./AgentSettingsHistorySheet"
 
 /**
  * Entry point of the agent settings versioning UI in the editor: a trigger button showing
- * the current revision, opening the version history sheet.
+ * the revision being edited and where it stands, opening the version history sheet.
  *
  * The history itself is loaded by `StudioAgentRoute` for the whole agent subtree, so the
  * playground can label revisions too.
@@ -32,9 +33,7 @@ export function AgentSettingsHistory({
           <HistoryIcon className="size-4" />
           {t("agentSettings:history.button")}
           <Badge variant="secondary">v{agentSettings.revision}</Badge>
-          <Badge variant={agentSettings.isDraft ? "warning" : "success"}>
-            {agentSettings.isDraft ? t("status:draft") : t("status:published")}
-          </Badge>
+          <AgentRevisionStatusBadge version={agentSettings} />
         </Button>
       }
     />

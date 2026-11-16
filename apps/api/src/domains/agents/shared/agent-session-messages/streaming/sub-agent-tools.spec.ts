@@ -62,7 +62,7 @@ describe("buildSubAgentTools", () => {
       conversationAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
       agentSettingsService: {
         getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async () => ({
         toolDescriptions: {},
@@ -156,7 +156,7 @@ describe("buildSubAgentTools", () => {
       } as never,
       agentSettingsService: {
         getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async ({
         onExecute,
@@ -308,7 +308,7 @@ describe("buildSubAgentTools", () => {
       conversationAgentSessionsService: { findOrCreateSubSession } as never,
       agentSettingsService: {
         getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async () => ({
         toolDescriptions: {},
@@ -443,7 +443,7 @@ describe("buildSubAgentTools", () => {
       conversationAgentSessionsService: { findOrCreateSubSession } as never,
       agentSettingsService: {
         getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async () => ({
         toolDescriptions: {},
@@ -545,7 +545,7 @@ describe("buildSubAgentTools", () => {
       conversationAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
       agentSettingsService: {
         getLast,
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set<string>()),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set<string>()),
       } as never,
       buildTools: jest.fn() as never,
       generateMasterPrompt: () => "system prompt",

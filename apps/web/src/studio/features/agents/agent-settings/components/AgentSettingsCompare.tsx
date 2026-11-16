@@ -5,9 +5,10 @@ import type { AgentSettings } from "@/common/features/agents/agent-settings/agen
 import { listChangedAgentSettingsFields } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
 import { AgentSettingsFieldDiff } from "./AgentSettingsFieldDiff"
 import { AgentSettingsRestoreButton } from "./AgentSettingsRestoreButton"
+import { AgentSettingsSetProductionButton } from "./AgentSettingsSetProductionButton"
 
 /**
- * What the selected revision is diffed against: the revision right before it, the published
+ * What the selected revision is diffed against: the revision right before it, the production
  * version the agent runs with, or the pending draft.
  */
 export type AgentSettingsCompareMode = "previous" | "current" | "draft"
@@ -16,7 +17,7 @@ export type AgentSettingsCompareAvailability = Record<AgentSettingsCompareMode, 
 
 /**
  * Right pane of the version history: pick what the selected revision is compared against,
- * review the per-field diffs, and restore the selected revision.
+ * review the per-field diffs, put the selected revision in production or restore it.
  */
 export function AgentSettingsCompare({
   before,
@@ -64,7 +65,10 @@ export function AgentSettingsCompare({
             </ToggleGroupItem>
           )}
         </ToggleGroup>
-        <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+        <div className="flex items-center gap-2">
+          <AgentSettingsSetProductionButton selected={selected} />
+          <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4">

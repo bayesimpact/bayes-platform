@@ -151,7 +151,7 @@ export class AgentsController {
     })
     const results = await Promise.all(
       agents.map(async (agent) => {
-        const agentSettings = await this.agentSettingsService.findLastPublished({
+        const agentSettings = await this.agentSettingsService.findProduction({
           connectScope,
           agentId: agent.id,
         })
@@ -191,15 +191,14 @@ export class AgentsController {
     })
     const results = await Promise.all(
       agents.map(async (agent) => {
-        const currentAgentSettings = await this.agentSettingsService.findLastPublished({
+        const currentAgentSettings = await this.agentSettingsService.findProduction({
           connectScope,
           agentId: agent.id,
         })
 
-        const draftAgentSettings = await this.agentSettingsService.getLast({
+        const draftAgentSettings = await this.agentSettingsService.getLatest({
           connectScope,
           agentId: agent.id,
-          includesDraft: true,
         })
 
         const hasDraft =

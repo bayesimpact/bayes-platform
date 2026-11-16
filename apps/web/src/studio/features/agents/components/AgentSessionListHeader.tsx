@@ -11,6 +11,7 @@ import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useGetAgentRoute, useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
+import { AgentProductionBar } from "../agent-settings/components/AgentProductionBar"
 import { AgentActions } from "./AgentActions"
 import { AgentAnalyticsCard } from "./AgentAnalyticsCard"
 import { FeedbackButton } from "./FeedbackButton"
@@ -71,6 +72,8 @@ export function AgentSessionListHeader({
           showAgentActions ? <AgentActions agent={agent} organizationId={organizationId} /> : null
         }
       />
+
+      <AgentProductionBar agent={agent} />
 
       <GridContent>
         <CreateSessionButton

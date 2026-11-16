@@ -268,17 +268,16 @@ export class McpAgentToolsService {
     const canCreateAgents = await this.canCreateAgents(caller, projectId)
     const value = await Promise.all(
       agents.map(async (agent): Promise<McpAgent[]> => {
-        const publishedSettings = await this.agentSettingsService.findLastPublished({
+        const publishedSettings = await this.agentSettingsService.findProduction({
           connectScope,
           agentId: agent.id,
         })
         if (!publishedSettings && !(await this.canSeeDraft(caller.userId, agent.id))) return []
         const settings =
           publishedSettings ??
-          (await this.agentSettingsService.getLast({
+          (await this.agentSettingsService.getLatest({
             connectScope,
             agentId: agent.id,
-            includesDraft: true,
           }))
         const target = { ...connectScope, agentId: agent.id }
         return [
@@ -322,7 +321,7 @@ export class McpAgentToolsService {
       agentId,
       ...(seesDraft ? { includesDraft: true as const } : {}),
     })
-    const published = revisions.find((settings) => !settings.isDraft)
+    const published = revisions.find((settings) => settings.isProduction)
     const draft = revisions.find((settings) => settings.isDraft)
     const shown = published ?? draft
     if (!shown) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
@@ -411,7 +410,7 @@ export class McpAgentToolsService {
           type: agent.type,
           model: agentSettings.model,
           published:
-            (await this.agentSettingsService.findLastPublished({ connectScope, agentId })) !==
+            (await this.agentSettingsService.findProduction({ connectScope, agentId })) !==
             undefined,
           draftRevision: agentSettings.revision,
           canUpdate: true,

@@ -6,7 +6,7 @@ import { projectFactory } from "@/common/features/projects/projects.factory"
 import { agentSettingsFactory } from "./agent-settings.factory"
 import {
   findDraftVersion,
-  findPublishedVersion,
+  findProductionVersion,
   findVersion,
   resolveEffectiveRevision,
   resolveMessageRevision,
@@ -16,20 +16,28 @@ const project = projectFactory.transient({ organization: organizationFactory.bui
 const agent = agentFactory.transient({ project }).build()
 
 /** Revisions newest first, as the history endpoint returns them. */
-const buildVersions = (...revisions: { revision: number; isDraft?: boolean }[]) =>
-  revisions.map(({ revision, isDraft }) =>
-    agentSettingsFactory.transient({ agent }).build({ id: "agent-id", revision, isDraft }),
+const buildVersions = (
+  ...revisions: { revision: number; isDraft?: boolean; isProduction?: boolean }[]
+) =>
+  revisions.map(({ revision, isDraft, isProduction }) =>
+    agentSettingsFactory
+      .transient({ agent })
+      .build({ id: "agent-id", revision, isDraft, isProduction }),
   )
 
-describe("findPublishedVersion", () => {
-  it("returns the newest non-draft version", () => {
-    const versions = buildVersions({ revision: 5, isDraft: true }, { revision: 4 }, { revision: 3 })
+describe("findProductionVersion", () => {
+  it("returns the production version, even when newer versions are saved", () => {
+    const versions = buildVersions(
+      { revision: 5, isDraft: true },
+      { revision: 4 },
+      { revision: 3, isProduction: true },
+    )
 
-    expect(findPublishedVersion(versions)?.revision).toBe(4)
+    expect(findProductionVersion(versions)?.revision).toBe(3)
   })
 
-  it("returns undefined when every version is a draft", () => {
-    expect(findPublishedVersion(buildVersions({ revision: 1, isDraft: true }))).toBeUndefined()
+  it("returns undefined when nothing was ever saved", () => {
+    expect(findProductionVersion(buildVersions({ revision: 1, isDraft: true }))).toBeUndefined()
   })
 })
 
@@ -115,10 +123,10 @@ describe("resolveEffectiveRevision", () => {
     expect(resolveEffectiveRevision({ versions, chosenRevision: undefined })).toBe(5)
   })
 
-  it("defaults to the published version when there is no draft", () => {
-    const versions = buildVersions({ revision: 4 }, { revision: 3 })
+  it("defaults to the production version when there is no draft", () => {
+    const versions = buildVersions({ revision: 4 }, { revision: 3, isProduction: true })
 
-    expect(resolveEffectiveRevision({ versions, chosenRevision: undefined })).toBe(4)
+    expect(resolveEffectiveRevision({ versions, chosenRevision: undefined })).toBe(3)
   })
 
   it("falls back to the default when the chosen revision left the list", () => {

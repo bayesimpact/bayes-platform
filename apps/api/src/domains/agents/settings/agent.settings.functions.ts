@@ -24,6 +24,7 @@ export function toAgentSettingsFields(agentSettings: AgentSettings): AgentSettin
     revisionDesc,
     isDraft,
     isArchived,
+    isProduction,
     ...fields
   } = agentSettings
   return fields

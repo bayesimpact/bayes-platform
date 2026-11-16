@@ -37,6 +37,7 @@ import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { StudioRoutes } from "@/studio/routes/helpers"
+import { AgentProductionBar } from "../agent-settings/components/AgentProductionBar"
 import { AgentActions } from "./AgentActions"
 import { AgentEditor } from "./AgentEditor"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
@@ -104,6 +105,13 @@ export function ExtractionAgentSessionList() {
         title={t("extractionAgentSession:playground.title")}
         description={t("extractionAgentSession:playground.description")}
         action={<AgentActions agent={agent} organizationId={organizationId} />}
+      />
+
+      {/* Managers edit the settings further down this page, so the band also says which revision
+          that editor shows. */}
+      <AgentProductionBar
+        agent={agent}
+        agentSettings={canManageAgent ? agentSettings : undefined}
       />
 
       <GridCard

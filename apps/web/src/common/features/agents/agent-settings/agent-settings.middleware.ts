@@ -3,6 +3,7 @@ import {
   createAgentSettings,
   listAgentSettingsWithDraft,
   restoreAgentSettings,
+  setProductionAgentSettings,
   updateAgentSettings,
 } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
@@ -69,6 +70,32 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           titleKey: "agentSettings:notifications.versionRestoreError",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: setProductionAgentSettings.fulfilled,
+    effect: async (action, listenerApi) => {
+      refresh({ listenerApi })
+
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "agentSettings:notifications.productionSet",
+          titleValues: { revision: action.meta.arg.revision },
+          type: "success",
+        }),
+      )
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: setProductionAgentSettings.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "agentSettings:notifications.productionSetError",
           type: "error",
         }),
       )

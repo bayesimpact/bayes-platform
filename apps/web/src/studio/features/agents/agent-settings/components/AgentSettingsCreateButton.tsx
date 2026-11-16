@@ -1,5 +1,6 @@
 import { agentSettingsCreateSchema } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -28,11 +29,14 @@ import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import { createAgentSettings } from "@/common/features/agents/agent-settings/agent-settings.thunks"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 
 /**
- * Publishes the agent's draft revision. Saving any tab creates or updates a draft revision;
- * publishing freezes it and makes it the settings the agent actually runs with. Disabled while
+ * Saves the agent's draft revision. Saving any tab creates or updates a draft revision; saving
+ * the version freezes it. It goes in production only when asked, or when it is the agent's first
+ * saved revision. Disabled while
  * there is no draft to publish, or while the editor has unsaved changes (`hasUnsavedChanges`) —
  * publishing would freeze the draft without them.
  */
@@ -88,12 +92,16 @@ function PublishForm({
 }) {
   const { t } = useTranslation("agentSettings")
   const dispatch = useAppDispatch()
+  // Nothing in production yet: the API puts the first saved revision there whatever is asked.
+  const productionRevision = useValue(selectCurrentAgentData).currentRevision?.number
+  const isFirstVersion = productionRevision === undefined
 
   const form = useForm<FormValues>({
     resolver: zodResolver(agentSettingsCreateSchema),
     defaultValues: {
       revisionName: agentSettings.name ?? "",
       revisionDesc: agentSettings.description ?? "",
+      setAsProduction: isFirstVersion,
     },
   })
 
@@ -105,6 +113,7 @@ function PublishForm({
         // published version keeps no name/description at all.
         revisionName: values.revisionName?.trim() || undefined,
         revisionDesc: values.revisionDesc?.trim() || undefined,
+        setAsProduction: isFirstVersion || !!values.setAsProduction,
         onSuccess,
       }),
     )
@@ -153,6 +162,30 @@ function PublishForm({
                 </FormControl>
                 <FormDescription>{t("create.optional")}</FormDescription>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="setAsProduction"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start gap-3 rounded-md border p-3">
+                <FormControl>
+                  <Checkbox
+                    checked={isFirstVersion || !!field.value}
+                    disabled={isFirstVersion}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                </FormControl>
+                <div className="flex flex-col gap-1">
+                  <FormLabel>{t("create.props.setAsProduction")}</FormLabel>
+                  <FormDescription>
+                    {isFirstVersion
+                      ? t("create.firstVersionProduction")
+                      : t("create.setAsProductionDescription", { current: productionRevision })}
+                  </FormDescription>
+                </div>
               </FormItem>
             )}
           />

@@ -19,6 +19,7 @@ export type AgentSettingsFields = Omit<
   | "revisionDesc"
   | "isDraft"
   | "isArchived"
+  | "isProduction"
 >
 
 export type AgentSettingsCreateFields = Pick<

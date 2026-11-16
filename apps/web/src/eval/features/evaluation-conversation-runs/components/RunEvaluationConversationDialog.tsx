@@ -292,7 +292,7 @@ function AgentVersionField({
   const { t } = useTranslation()
 
   // The newest non-draft revision: the one the agent actually runs with.
-  const publishedRevision = history.find((agentVersion) => !agentVersion.isDraft)?.revision
+  const publishedRevision = history.find((agentVersion) => agentVersion.isProduction)?.revision
 
   const buildVersionDetail = (agentVersion: AgentSettings) => {
     if (agentVersion.isDraft) return t("status:draft")

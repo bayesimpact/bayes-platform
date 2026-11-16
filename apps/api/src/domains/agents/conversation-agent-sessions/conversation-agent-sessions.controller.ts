@@ -130,7 +130,7 @@ export abstract class ConversationAgentSessionsController {
         const session = sessionByAgentId.get(subAgent.childAgentId)
         if (!session || !subAgent.childAgent) return []
 
-        const settings = await this.agentSettingsService.getLastPublishedOrDraft({
+        const settings = await this.agentSettingsService.getProductionOrDraft({
           connectScope,
           agentId: subAgent.childAgentId,
         })
@@ -171,7 +171,7 @@ export abstract class ConversationAgentSessionsController {
     )
     const entries = await Promise.all(
       [...agentIds].map(async (agentId) => {
-        const settings = await this.agentSettingsService.getLastPublishedOrDraft({
+        const settings = await this.agentSettingsService.getProductionOrDraft({
           connectScope,
           agentId,
         })

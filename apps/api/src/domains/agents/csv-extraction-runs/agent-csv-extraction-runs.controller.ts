@@ -106,7 +106,7 @@ export abstract class AgentCsvExtractionRunsController {
    *
    * Choosing a version is gated on the caller's project roles. Admins and owners are exactly the
    * roles that can list the versions, since the settings history endpoint sits behind the same
-   * check. Everyone else keeps getting the newest published revision.
+   * check. Everyone else keeps getting the revision in production.
    */
   private async resolveAgentSettings({
     connectScope,
@@ -120,7 +120,7 @@ export abstract class AgentCsvExtractionRunsController {
     revision: number | undefined
   }): Promise<AgentSettings> {
     if (revision === undefined) {
-      return this.agentSettingsService.getLast({ connectScope, agentId })
+      return this.agentSettingsService.getProduction({ connectScope, agentId })
     }
     // `agent_settings.revision` is a Postgres `integer`; anything outside its 32-bit signed range
     // reaches TypeORM as-is and produces a driver error instead of a clean rejection here.

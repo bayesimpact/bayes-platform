@@ -1,6 +1,4 @@
 import { DOCUMENT_READ_PERMISSION } from "@caseai-connect/api-contracts"
-import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { Grid, GridHeader } from "@/common/components/grid/Grid"
@@ -22,8 +20,7 @@ import {
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
 import { projectEmbeddingModelsActions } from "@/studio/features/project-embedding-models/project-embedding-models.slice"
 import { selectAgentSettingsDataByAgentId } from "../../common/features/agents/agent-settings/agent-settings.selectors"
-import { AgentSettingsCreateButton } from "../features/agents/agent-settings/components/AgentSettingsCreateButton"
-import { AgentSettingsHistory } from "../features/agents/agent-settings/components/AgentSettingsHistory"
+import { AgentProductionBar } from "../features/agents/agent-settings/components/AgentProductionBar"
 
 export function AgentEditorRoute() {
   const agent = useValue(selectCurrentAgentData)
@@ -76,7 +73,6 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
   const navigate = useNavigate()
   const agentRoute = useGetAgentRoute()
   const handleBack = () => navigate(agentRoute)
-  const [editorDirty, setEditorDirty] = useState(false)
 
   // Optional deep link: ?tab=embed opens the editor on that tab (falls back to "general").
   const [searchParams] = useSearchParams()
@@ -91,16 +87,9 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
         onBack={handleBack}
         title={t(`agent:update.${agent.type}.title`)}
         description={t(`agent:update.${agent.type}.description`)}
-        action={
-          <ButtonGroup>
-            <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
-            <AgentSettingsCreateButton
-              agentSettings={agentSettings}
-              hasUnsavedChanges={editorDirty}
-            />
-          </ButtonGroup>
-        }
       />
+
+      <AgentProductionBar agent={agent} agentSettings={agentSettings} />
 
       <AgentEditor
         key={agent.id}
@@ -109,7 +98,7 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
         className="bg-white p-6"
         orchestration={orchestration}
         defaultTab={defaultTab}
-        onDirtyChange={setEditorDirty}
+        showVersionActions
       />
     </Grid>
   )

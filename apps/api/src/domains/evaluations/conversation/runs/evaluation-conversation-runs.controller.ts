@@ -112,7 +112,7 @@ export class EvaluationConversationRunsController {
     agentSettingsRevision: number | null | undefined
   }): Promise<AgentSettings> {
     if (typeof agentSettingsRevision !== "number") {
-      return this.agentSettingsService.getLast({ connectScope, agentId })
+      return this.agentSettingsService.getProduction({ connectScope, agentId })
     }
     const agentSettings = await this.agentSettingsService.get({
       connectScope,

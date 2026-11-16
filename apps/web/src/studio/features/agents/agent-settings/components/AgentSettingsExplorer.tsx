@@ -44,10 +44,10 @@ export function buildComparison(
   const latest = versions[0]
   if (!latest) return null
 
-  // The draft (at most one, always the newest revision) and the published version the agent
-  // actually runs with — the two things an older revision can be compared against.
+  // The draft (at most one, always the newest revision) and the production version the agent
+  // actually runs with — the two things another revision can be compared against.
   const draft = latest.isDraft ? latest : undefined
-  const published = versions.find((version) => !version.isDraft)
+  const production = versions.find((version) => version.isProduction)
 
   // Default selection, until the user picks a revision from the timeline: the pending draft when
   // there is one (its diff against the last published version is what users open the history for),
@@ -59,11 +59,12 @@ export function buildComparison(
   const selected = versions[selectedIndex] ?? latest
   const previous = versions[selectedIndex + 1]
 
-  // A comparison target only makes sense when it is strictly newer than the selected version,
-  // otherwise the diff would run backwards or against the selection itself.
+  // The draft target only makes sense when it is strictly newer than the selected version,
+  // otherwise the diff would run backwards or against the selection itself. Production can sit
+  // below newer saved revisions, so it is compared with any other revision.
   const availability: AgentSettingsCompareAvailability = {
     previous: previous !== undefined,
-    current: published !== undefined && selected.revision < published.revision,
+    current: production !== undefined && selected.revision !== production.revision,
     draft: draft !== undefined && selected.revision < draft.revision,
   }
 
@@ -71,9 +72,14 @@ export function buildComparison(
     ? mode
     : (modeFallbackOrder.find((candidate) => availability[candidate]) ?? "previous")
 
-  const newer = effectiveMode === "draft" ? draft : published
+  const target = (effectiveMode === "draft" ? draft : production) ?? selected
+  // The diff always reads from the older revision to the newer one.
   const [before, after] =
-    effectiveMode === "previous" ? [previous ?? selected, selected] : [selected, newer ?? selected]
+    effectiveMode === "previous"
+      ? [previous ?? selected, selected]
+      : selected.revision < target.revision
+        ? [selected, target]
+        : [target, selected]
 
   return {
     selected,
