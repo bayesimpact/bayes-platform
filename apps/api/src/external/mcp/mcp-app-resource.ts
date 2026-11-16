@@ -1,4 +1,15 @@
+import type { McpAppCspDto } from "@caseai-connect/api-contracts"
+
 export const MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
+
+const CSP_DOMAIN_KEYS = [
+  "connectDomains",
+  "resourceDomains",
+  "frameDomains",
+  "baseUriDomains",
+] as const satisfies ReadonlyArray<keyof McpAppCspDto>
+const MAX_CSP_DOMAINS_PER_KEY = 32
+const MAX_CSP_DOMAIN_LENGTH = 253
 
 export type McpResourceReadResult = {
   contents?: Array<{
@@ -6,7 +17,14 @@ export type McpResourceReadResult = {
     mimeType?: string
     text?: string
     blob?: string
+    _meta?: unknown
   }>
+}
+
+/** An MCP App card as read from its server: its HTML and the domains it declares. */
+export type McpAppResource = {
+  html: string
+  csp?: McpAppCspDto
 }
 
 export class McpAppResourceError extends Error {
@@ -31,16 +49,41 @@ function decodeHtml(content: { text?: string; blob?: string }): string | undefin
 }
 
 /**
- * Validates a `resources/read` result and returns the MCP App HTML.
+ * The domains of `_meta.ui.csp`, keeping only lists of strings. The client checks each domain
+ * again before it writes the policy, so this only drops what is not even the right shape.
+ */
+export function readMcpAppCsp(meta: unknown): McpAppCspDto | undefined {
+  if (!meta || typeof meta !== "object" || !("ui" in meta)) return undefined
+  const ui = meta.ui
+  if (!ui || typeof ui !== "object" || !("csp" in ui)) return undefined
+  const csp = ui.csp
+  if (!csp || typeof csp !== "object") return undefined
+
+  const declared: McpAppCspDto = {}
+  for (const key of CSP_DOMAIN_KEYS) {
+    const domains: unknown = (csp as Record<string, unknown>)[key]
+    if (!Array.isArray(domains)) continue
+    declared[key] = domains
+      .filter(
+        (domain): domain is string =>
+          typeof domain === "string" && domain.length > 0 && domain.length <= MAX_CSP_DOMAIN_LENGTH,
+      )
+      .slice(0, MAX_CSP_DOMAINS_PER_KEY)
+  }
+  return Object.keys(declared).length > 0 ? declared : undefined
+}
+
+/**
+ * Validates a `resources/read` result and returns the MCP App HTML with the domains it declares.
  * Only `ui://` URIs with `text/html;profile=mcp-app` are accepted.
  */
-export function readMcpAppHtml({
+export function readMcpAppResource({
   resourceUri,
   resource,
 }: {
   resourceUri: string
   resource: McpResourceReadResult
-}): string {
+}): McpAppResource {
   if (!resourceUri.startsWith("ui://")) {
     throw new McpAppResourceError(`Unsupported MCP App resource URI: ${resourceUri}`)
   }
@@ -65,5 +108,6 @@ export function readMcpAppHtml({
     throw new McpAppResourceError(`Malformed MCP App resource: ${resourceUri}`)
   }
 
-  return html
+  const csp = readMcpAppCsp(content._meta)
+  return csp ? { html, csp } : { html }
 }

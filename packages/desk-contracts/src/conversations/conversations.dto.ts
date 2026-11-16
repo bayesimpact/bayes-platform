@@ -188,11 +188,24 @@ export const attachmentParamsSchema = conversationParamsSchema.extend({
   attachmentDocumentId: z.uuid(),
 })
 
+/**
+ * The domains an MCP App declares in its resource metadata (`_meta.ui.csp`): the Desk builds the
+ * app's Content Security Policy from them.
+ */
+const mcpAppCspSchema = z.object({
+  connectDomains: z.array(z.string()).optional(),
+  resourceDomains: z.array(z.string()).optional(),
+  frameDomains: z.array(z.string()).optional(),
+  baseUriDomains: z.array(z.string()).optional(),
+})
+
 /** The current HTML of an MCP App a conversation's replies show. */
 export const mcpAppHtmlOutputSchema = z.object({
   mcpServerId: z.string(),
   resourceUri: z.string(),
   html: z.string(),
+  // Left out by the API, not null, when the app declares no domain: the strictest policy applies.
+  csp: mcpAppCspSchema.optional(),
 })
 
 export type McpAppHtmlOutputDto = z.output<typeof mcpAppHtmlOutputSchema>

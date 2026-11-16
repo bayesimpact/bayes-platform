@@ -23,6 +23,10 @@ holds what is specific to the Desk.
   `features/agents`), and the person's invitations every minute. It keeps the agents whose
   `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API
   also lists the agents a project evaluator only reads.
+- MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
+  (`packages/mcp-app-host`), the one package the Desk shares with `apps/web` and `apps/web-embed`
+  (ADR 0031, section 2.4). The Desk keeps what is its own: the `useMcpApp` hook and `McpAppCard`
+  in `features/conversation`, the placeholder, and the lookup of an app's HTML (`mcp-apps.ts`).
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It signs in with the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its session is the one every app

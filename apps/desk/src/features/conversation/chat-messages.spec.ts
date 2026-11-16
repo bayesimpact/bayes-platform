@@ -47,6 +47,32 @@ describe("toChatMessages", () => {
       ["assistant", "completed", ["lookup_knowledge_base"]],
     ])
   })
+
+  it("shows the app of a tool call that worked, and none for one that failed or has no result", () => {
+    const mcpApp = { mcpServerId: crypto.randomUUID(), resourceUri: "ui://releases/card" }
+    const call = (id: string, result?: unknown) => ({
+      id,
+      name: "list_releases",
+      arguments: { product: "notes" },
+      mcpApp,
+      result,
+    })
+    const [reply] = toChatMessages([
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "Here are the releases.",
+        status: "completed",
+        toolCalls: [
+          call("failed", { content: [{ type: "text", text: "Timed out" }], isError: true }),
+          call("pending"),
+          call("worked", { content: [{ type: "text", text: "3 releases" }] }),
+        ],
+      },
+    ])
+
+    expect(reply?.mcpApps.map((app) => app.toolCallId)).toEqual(["worked"])
+  })
 })
 
 describe("follow-up questions", () => {
