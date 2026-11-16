@@ -125,6 +125,10 @@ export function ModelTab({
     save: async ({ values, changed }) => {
       const fields = buildModelTabFields({ values, changed, priorityCallsAvailable })
       await dispatch(updateAgentSettingsModel({ agentId: agentSettings.agentId, fields })).unwrap()
+      // The form follows what was saved: without it, the hidden toggle would come back on when
+      // the user returns to a model that offers the tier, while the draft has it off.
+      if (fields.priorityCallsEnabled === false && values.priorityCallsEnabled)
+        form.setValue("priorityCallsEnabled", false)
     },
   })
 

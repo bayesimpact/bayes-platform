@@ -130,6 +130,7 @@
       "saved": "Brouillon enregistré",
       "unsaved": "Modifications non enregistrées",
       "refused": "Cette modification n'a pas pu être enregistrée",
+      "unsavedBeforeVersions": "Corrigez les modifications non enregistrées avant de gérer les versions",
       "publishedVersion": "Version {{revision}} · publiée"
     },
     "liveSettings": {
@@ -306,7 +307,6 @@
       "versionRestoreError": "La restauration de la version de l'agent a échoué",
       "versionPublished": "Version de l'agent publiée avec succès",
       "versionPublishError": "La publication de la version de l'agent a échoué",
-      "updateError": "La mise à jour de l'agent a échoué",
       "embedConfigUpdated": "Configuration d'intégration mise à jour avec succès",
       "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
       "subAgentsUpdated": "Sous-agents mis à jour avec succès",

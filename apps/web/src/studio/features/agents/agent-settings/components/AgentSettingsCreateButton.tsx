@@ -31,7 +31,7 @@ import { createAgentSettings } from "@/common/features/agents/agent-settings/age
 import { useAppDispatch } from "@/common/store/hooks"
 
 /**
- * Publishes the agent's draft revision. Saving any tab creates or updates a draft revision;
+ * Publishes the agent's draft revision. The editor keeps its changes in a draft revision;
  * publishing freezes it and makes it the settings the agent actually runs with. Disabled while
  * there is no draft to publish.
  */

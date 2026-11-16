@@ -20,8 +20,11 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
-import { agentSettingsDiffFileNames } from "@/common/features/agents/agent-settings/agent-settings.functions"
-import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import {
+  agentSettingsDiffFileNames,
+  findPublishedVersion,
+} from "@/common/features/agents/agent-settings/agent-settings.functions"
+import { selectAgentSettingsHistoryDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsGeneral } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
@@ -41,9 +44,8 @@ export function GeneralTab({
 }: AgentTabFormProps & { agent: Agent }) {
   const [isDiffRequested, setIsDiffRequested] = useState(false)
   // Undefined for an agent that was never published: it has nothing to compare with.
-  const publishedInstructions = useAppSelector(
-    selectAgentSettingsDataByAgentId({ agentId: agent.id }),
-  ).value?.instructions
+  const versions = useAppSelector(selectAgentSettingsHistoryDataByAgentId({ agentId: agent.id }))
+  const publishedInstructions = findPublishedVersion(versions.value ?? [])?.instructions
   const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const hasGreetingMessage = agent.type === "conversation"
@@ -168,6 +170,10 @@ export function GeneralTab({
                   // The diff with the published instructions takes the place of the field, and
                   // the instructions are edited in it.
                   <TextDiff
+                    // The editor keeps the text it was opened with: a new published version
+                    // must restart it from the field, or the next keystroke would bring the
+                    // old text back.
+                    key={publishedInstructions}
                     name={agentSettingsDiffFileNames.instructions}
                     before={publishedInstructions}
                     after={field.value}

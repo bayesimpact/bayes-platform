@@ -19,12 +19,13 @@ import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import { selectAgentSettingsRestoreCount } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
 import { useValue } from "@/common/hooks/use-value"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
-import { useAppSelector } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
 import { EmbedSheet } from "@/studio/features/agents/agent-settings/components/sheets/EmbedSheet"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
@@ -108,7 +109,6 @@ export function AgentEditor({
   agentSettings,
   orchestration,
   defaultTab,
-  onDirtyChange,
   onBack,
   banner,
 }: {
@@ -124,9 +124,8 @@ export function AgentEditor({
    * pass the `?tab=` param through.
    */
   defaultTab?: TabKey
-  /** Reports whether the active tab holds changes the draft does not have yet, e.g. to disable a publish action. */
-  onDirtyChange?: (dirty: boolean) => void
 }) {
+  const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
@@ -284,13 +283,11 @@ export function AgentEditor({
   // A restore replaces the settings under the forms: they reload on it.
   const restoreCount = useAppSelector(selectAgentSettingsRestoreCount)
 
-  const handleSaveStateChange = useCallback(
-    (next: TabSaveState, reason?: string) => {
-      setSave({ state: next, reason })
-      onDirtyChange?.(next !== "saved")
-    },
-    [onDirtyChange],
-  )
+  const handleSaveStateChange = useCallback((next: TabSaveState, reason?: string) => {
+    setSave({ state: next, reason })
+    // The history waited for this save, and the save failed: it stays closed.
+    if (next === "unsaved") setNav((prev) => (prev.history ? { ...prev, history: false } : prev))
+  }, [])
   const handleSheetDirtyChange = useCallback(
     (dirty: boolean) =>
       setNav((prev) => (prev.sheetDirty === dirty ? prev : { ...prev, sheetDirty: dirty })),
@@ -335,6 +332,20 @@ export function AgentEditor({
     } else {
       setNav((prev) => ({ ...prev, pending: next as EditorTabKey }))
     }
+  }
+
+  const requestHistory = (open: boolean) => {
+    if (open && saveState === "unsaved") {
+      dispatch(
+        notificationsActions.show({
+          type: "error",
+          titleKey: "agentSettings:autosave.unsavedBeforeVersions",
+        }),
+      )
+      return
+    }
+    if (open && saveState === "saving") flushRef.current?.()
+    setNav((prev) => ({ ...prev, history: open }))
   }
 
   const handleConfirm = () => {
@@ -384,8 +395,10 @@ export function AgentEditor({
     onOpenSheet: (value: string) => setNav((prev) => ({ ...prev, sheet: value as SheetKey })),
     saveState,
     onRetrySave: () => flushRef.current?.(),
-    isHistoryOpen: nav.history,
-    onHistoryOpenChange: (open: boolean) => setNav((prev) => ({ ...prev, history: open })),
+    // Publishing and restoring act on the draft: the history only opens once the draft holds
+    // everything the tab shows.
+    isHistoryOpen: nav.history && saveState === "saved",
+    onHistoryOpenChange: requestHistory,
   }
 
   return (

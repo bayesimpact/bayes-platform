@@ -130,6 +130,7 @@
       "saved": "Draft saved",
       "unsaved": "Unsaved changes",
       "refused": "This change could not be saved",
+      "unsavedBeforeVersions": "Fix the unsaved changes before you manage versions",
       "publishedVersion": "Version {{revision}} · published"
     },
     "liveSettings": {
@@ -306,7 +307,6 @@
       "versionRestoreError": "Agent version restore failed",
       "versionPublished": "Agent version published successfully",
       "versionPublishError": "Agent version publication failed",
-      "updateError": "Agent update failed",
       "embedConfigUpdated": "Embed config updated successfully",
       "embedConfigUpdateError": "Failed to update embed config",
       "subAgentsUpdated": "Sub-agents updated successfully",

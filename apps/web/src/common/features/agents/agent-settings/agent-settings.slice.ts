@@ -19,12 +19,18 @@ interface State {
    * saves do not change it, so typing is never interrupted by a reload.
    */
   restoreCount: number
+  /**
+   * The last history request sent per agent. The editor reloads the history after each of its
+   * saves: an older answer that comes back last must not replace a newer one.
+   */
+  latestHistoryRequestId: Record<Agent["id"], string>
 }
 
 const initialState: State = {
   history: {},
   playgroundRevisionByAgentId: {},
   restoreCount: 0,
+  latestHistoryRequestId: {},
 }
 
 const slice = createSlice({
@@ -48,6 +54,7 @@ const slice = createSlice({
       })
       .addCase(listAgentSettingsWithDraft.pending, (state, action) => {
         const agentId = action.meta.arg.agentId
+        state.latestHistoryRequestId[agentId] = action.meta.requestId
         if (!state.history[agentId])
           state.history[agentId] = {
             status: ADS.Loading,
@@ -57,6 +64,7 @@ const slice = createSlice({
       })
       .addCase(listAgentSettingsWithDraft.fulfilled, (state, action) => {
         const agentId = action.meta.arg.agentId
+        if (state.latestHistoryRequestId[agentId] !== action.meta.requestId) return
         state.history[agentId] = {
           status: ADS.Fulfilled,
           error: null,
@@ -65,6 +73,7 @@ const slice = createSlice({
       })
       .addCase(listAgentSettingsWithDraft.rejected, (state, action) => {
         const agentId = action.meta.arg.agentId
+        if (state.latestHistoryRequestId[agentId] !== action.meta.requestId) return
         state.history[agentId] = {
           status: ADS.Error,
           value: null,

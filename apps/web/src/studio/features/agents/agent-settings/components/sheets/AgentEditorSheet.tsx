@@ -69,6 +69,9 @@ export function AgentEditorSheet({
     if (!(form instanceof HTMLFormElement)) return
     isSaveConfirmed.current = true
     form.requestSubmit()
+    // The browser sends no submit when its own validation refuses the form (a malformed URL):
+    // the confirmation must not stay valid for the next submit.
+    isSaveConfirmed.current = false
   }
 
   const actions = (

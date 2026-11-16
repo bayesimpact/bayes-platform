@@ -110,16 +110,6 @@ function registerListeners() {
       refresh({ listenerApi })
     },
   })
-  listenerMiddleware.startListening({
-    actionCreator: updateAgentSettings.rejected,
-    effect: async (_, listenerApi) => {
-      listenerApi.dispatch(
-        notificationsActions.show({
-          titleKey: "agentSettings:notifications.updateError",
-          type: "error",
-        }),
-      )
-    },
-  })
+  // No error notification either: the editor shows the failed save, with its reason.
 }
 export const agentSettingsMiddleware = { listenerMiddleware, registerListeners }
