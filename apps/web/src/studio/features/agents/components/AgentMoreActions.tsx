@@ -33,9 +33,8 @@ export function AgentMoreActions({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline">
+          <Button variant="outline" size="icon" aria-label={t("actions:more")}>
             <EllipsisIcon />
-            {t("actions:more")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
