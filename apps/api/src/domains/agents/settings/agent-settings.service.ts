@@ -329,8 +329,12 @@ export class AgentSettingsService {
             }),
           },
         })
-      )
-        return last
+      ) {
+        // Nothing to write. A draft that already equals the published revision still goes
+        // away: restoring the published version over such a draft must leave none.
+        if (!last.isDraft) return last
+        return (await this.discardDraftWithoutChanges({ connectScope, draft: last })) ?? last
+      }
 
       isDraft = last.isDraft
       if (isDraft) revision = last.revision

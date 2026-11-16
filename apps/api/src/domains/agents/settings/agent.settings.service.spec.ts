@@ -618,6 +618,39 @@ describe("AgentSettings", () => {
         expect(session?.agentSettingsId).toBe(agentSettings.id)
       })
 
+      it("is deleted by a save that changes nothing, when it already equals the published revision", async () => {
+        const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+          agentSettings: { ...agentSettingsValuesRev1, outputJsonSchema: null },
+        })
+        const connectScope = { organizationId: organization.id, projectId: project.id }
+        // A draft left behind with the published settings, as older versions of the API did.
+        const published = await service.getLast({ connectScope, agentId: agent.id })
+        const leftover = agentSettingsFactory
+          .transient({ organization, project, agent })
+          .build({
+            ...agentSettingsValuesRev1,
+            outputJsonSchema: null,
+            embeddingModel: published.embeddingModel,
+            revision: 2,
+            isDraft: true,
+          })
+        await setup.getRepository(AgentSettings).save(leftover)
+
+        const { agentSettings } = await service.updateAllSettings({
+          connectScope,
+          agentId: agent.id,
+          fieldsToUpdate: { instructions: agentSettingsValuesRev1.instructions },
+        })
+
+        expect(agentSettings.isDraft).toBe(false)
+        const revisions = await service.getAll({
+          connectScope,
+          agentId: agent.id,
+          includesDraft: true,
+        })
+        expect(revisions.map((revision) => revision.revision)).toEqual([1])
+      })
+
       it("is kept when the agent was never published", async () => {
         const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
           agentSettings: { ...agentSettingsValuesRev1, isDraft: true },
