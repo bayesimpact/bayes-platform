@@ -90,14 +90,14 @@
       "duplicated": "Agent dupliqué en brouillon",
       "duplicateError": "La duplication de l'agent a échoué"
     },
-    "goToProductionApp": "Application (production)",
     "evaluationCard": {
       "description": "Mesurez les réponses de l'agent sur un jeu de données.",
       "open": "Ouvrir l'évaluation dans un nouvel onglet"
     },
     "productionAppCard": {
       "description": "L'agent tel que ses utilisateurs le voient, dans sa version publiée.",
-      "open": "Ouvrir l'application dans un nouvel onglet"
+      "open": "Ouvrir l'application dans un nouvel onglet",
+      "badge": "Production"
     }
   }
 }

@@ -1,7 +1,9 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Item } from "@caseai-connect/ui/shad/item"
 import { cn } from "@caseai-connect/ui/utils"
 import { CircleCheckIcon, ExternalLinkIcon, type LucideIcon, MessageSquareIcon } from "lucide-react"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -20,7 +22,7 @@ function AgentExternalAppCard({
   icon: Icon,
   withBorderBottom,
 }: {
-  title: string
+  title: ReactNode
   description: string
   /** Accessible name of the link. */
   openLabel: string
@@ -102,7 +104,12 @@ export function AgentProductionAppCard({
   const { t } = useTranslation()
   return (
     <AgentExternalAppCard
-      title={t("agent:goToProductionApp")}
+      title={
+        <>
+          {t("actions:goToApp")}
+          <Badge variant="success">{t("agent:productionAppCard.badge")}</Badge>
+        </>
+      }
       description={t("agent:productionAppCard.description")}
       openLabel={t("agent:productionAppCard.open")}
       href={DeskRoutes.agent.build({ organizationId, projectId, agentId })}
