@@ -9,7 +9,6 @@ import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -220,19 +219,22 @@ export function SourcesTab({
             name="resourceLibraryIds"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>{t("resourceLibrary:agentTab.label")}</FormLabel>
-                  <Link
-                    to={resourceLibrariesPath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    {t("resourceLibrary:manage")}
-                    <ExternalLinkIcon className="size-3.5" />
-                  </Link>
-                </div>
-                <FormDescription>{t("resourceLibrary:agentTab.description")}</FormDescription>
+                {/* The same header as the Documents section, so the two titles match. */}
+                <AgentTabSectionHeader
+                  title={t("resourceLibrary:agentTab.label")}
+                  description={t("resourceLibrary:agentTab.description")}
+                  action={
+                    <Link
+                      to={resourceLibrariesPath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      {t("resourceLibrary:manage")}
+                      <ExternalLinkIcon className="size-3.5" />
+                    </Link>
+                  }
+                />
                 <FormControl>
                   <div className="flex flex-wrap items-center gap-2">
                     {field.value.map((libraryId) => (
