@@ -1,8 +1,12 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { cn } from "@caseai-connect/ui/utils"
 import { AlertTriangleIcon, CheckIcon, Loader2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { TabSaveState } from "./agent-tab-autosave"
+
+/** Larger than a plain badge: this label is the only sign of the automatic save. */
+const labelSize = "px-3 py-1 text-sm [&>svg]:size-3.5"
 
 /**
  * Where the active tab stands with its automatic save. It stands in for the Save button the
@@ -39,7 +43,11 @@ export function AgentEditorSaveStatus({
   if (state === "saved" && hasDraft) {
     if (onOpenHistory) {
       return (
-        <Badge asChild variant="warning" className="cursor-pointer hover:brightness-95">
+        <Badge
+          asChild
+          variant="warning"
+          className={cn(labelSize, "cursor-pointer hover:brightness-95")}
+        >
           <button type="button" aria-haspopup="dialog" onClick={onOpenHistory}>
             <CheckIcon />
             {t("agentSettings:autosave.saved")}
@@ -48,7 +56,7 @@ export function AgentEditorSaveStatus({
       )
     }
     return (
-      <Badge asChild variant="warning">
+      <Badge asChild variant="warning" className={labelSize}>
         <output>
           <CheckIcon />
           {t("agentSettings:autosave.saved")}
@@ -61,7 +69,7 @@ export function AgentEditorSaveStatus({
   // that takes its place a moment later.
   if (state === "saving") {
     return (
-      <Badge asChild variant="default">
+      <Badge asChild variant="default" className={labelSize}>
         <output>
           <Loader2Icon className="animate-spin" />
           {t("agentSettings:autosave.saving")}
