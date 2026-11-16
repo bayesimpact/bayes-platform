@@ -156,7 +156,7 @@ export function GeneralTab({
                       onClick={() => setIsDiffRequested(!isDiffShown)}
                     >
                       {isDiffShown ? <PencilIcon /> : <GitCompareIcon />}
-                      {isDiffShown ? t("actions:edit") : t("agentSettings:history.viewChanges")}
+                      {isDiffShown ? t("actions:edit") : t("agentSettings:history.advancedMode")}
                     </Button>
                   )}
                 </div>

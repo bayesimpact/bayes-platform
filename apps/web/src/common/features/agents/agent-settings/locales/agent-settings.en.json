@@ -185,7 +185,7 @@
       "manage": "Manage versions",
       "changedFields_one": "{{count}} changed field:",
       "changedFields_other": "{{count}} changed fields:",
-      "viewChanges": "View changes"
+      "advancedMode": "Advanced mode"
     },
     "version": {
       "ariaLabel": "Settings version new messages run with",

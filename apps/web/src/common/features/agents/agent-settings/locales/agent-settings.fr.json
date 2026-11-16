@@ -185,7 +185,7 @@
       "manage": "Gérer les versions",
       "changedFields_one": "{{count}} champ modifié :",
       "changedFields_other": "{{count}} champs modifiés :",
-      "viewChanges": "Voir les modifications"
+      "advancedMode": "Mode avancé"
     },
     "version": {
       "ariaLabel": "Version des paramètres utilisée par les nouveaux messages",
