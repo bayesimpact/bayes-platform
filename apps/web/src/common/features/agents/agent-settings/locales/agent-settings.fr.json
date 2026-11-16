@@ -128,6 +128,9 @@
       "saved": "Brouillon enregistré",
       "unsaved": "Modifications non enregistrées"
     },
+    "liveSettings": {
+      "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent dès que vous enregistrez."
+    },
     "create": {
       "button": "Enregistrer la version",
       "noDraft": "Aucun brouillon à créer. Enregistrez une modification pour créer une nouvelle version brouillon.",

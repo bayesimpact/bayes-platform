@@ -81,8 +81,8 @@ export function useAutosave<TValues extends FieldValues>({
 }
 
 /**
- * For a tab that still saves with a button (its changes go live at once, they are not part of
- * the draft): report its dirty state up to the editor, and clear it when the tab unmounts.
+ * For a sheet that saves with a button (its changes go live at once, they are not part of the
+ * draft): report its dirty state up to the editor, and clear it when the sheet unmounts.
  */
 export function useReportDirty(isDirty: boolean, onDirtyChange: (dirty: boolean) => void): void {
   useEffect(() => {

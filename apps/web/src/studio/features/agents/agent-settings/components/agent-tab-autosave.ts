@@ -4,8 +4,8 @@ import { cloneDeep, isEqual } from "lodash"
  * Where a tab stands with its changes:
  * - `saved`: the draft holds everything the tab shows.
  * - `saving`: a change waits for its save, or the save is running. It needs nothing from the user.
- * - `unsaved`: the changes cannot be saved as they are (invalid value, failed request), or the
- *   tab saves with a button and the user did not press it. Leaving the tab loses them.
+ * - `unsaved`: the changes cannot be saved as they are (invalid value, failed request). Leaving
+ *   the tab loses them.
  */
 export type TabSaveState = "saved" | "saving" | "unsaved"
 

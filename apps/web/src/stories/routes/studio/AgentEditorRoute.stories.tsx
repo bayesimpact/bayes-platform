@@ -284,7 +284,7 @@ export const ConversationAgent: Story = {
             seed.studio.documentTags(documentTags),
             seed.studio.resourceLibraries(resourceLibraries),
             seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
-            // The Orchestration tab reads the settings of each agent it offers as a sub-agent.
+            // The Orchestration sheet reads the settings of each agent it offers as a sub-agent.
             ...childAgents.map((childAgent) =>
               seed.studio.agentHistory({
                 agentId: childAgent.id,
@@ -295,7 +295,7 @@ export const ConversationAgent: Story = {
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
             seed.studio.projectEmbeddingModels(embeddingModels),
-            // Embedding is on, so the Embed tab shows its snippet, links and public API.
+            // Embedding is on, so the Embed sheet shows its snippet, links and public API.
             seed.studio.agentEmbedConfig(
               agentEmbedConfigFactory
                 .transient({ agent: rawParentAgent })
@@ -512,7 +512,7 @@ function withHelpCenterUrl(helpCenterUrl: string | undefined) {
 }
 
 /**
- * The Embed tab with embedding on: activation, appearance, the widget snippet, the public page
+ * The Embed sheet with embedding on: activation, appearance, the widget snippet, the public page
  * and the public API. The deployment has a help center, so the widget guide and the API
  * reference are linked.
  */
@@ -523,16 +523,17 @@ export const EmbedTab: Story = {
   decorators: ConversationAgent.decorators,
   beforeEach: withHelpCenterUrl("https://help.example.org"),
   play: async ({ canvasElement }) => {
-    const embedTab = await within(canvasElement).findByRole(
-      "tab",
+    // Embed is not a tab: its button opens the full-page sheet.
+    const embedButton = await within(canvasElement).findByRole(
+      "button",
       { name: "Embed" },
       { timeout: 10_000 },
     )
-    await userEvent.click(embedTab)
+    await userEvent.click(embedButton)
   },
 }
 
-/** The same tab on a deployment without a help center: no links to the guide and the reference. */
+/** The same sheet on a deployment without a help center: no links to the guide and the reference. */
 export const EmbedTabWithoutHelpCenter: Story = {
   ...EmbedTab,
   beforeEach: withHelpCenterUrl(undefined),
