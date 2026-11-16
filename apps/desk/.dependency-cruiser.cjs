@@ -16,15 +16,16 @@ module.exports = {
       name: "no-other-app",
       severity: "error",
       comment:
-        "The Desk imports nothing from another app or from a package another app owns: its only " +
-        "workspace dependency is @caseai-connect/desk-contracts.",
+        "The Desk imports nothing from another app or from a package another app owns. Its " +
+        "workspace dependencies are @caseai-connect/desk-contracts and the one package no app " +
+        "owns, @caseai-connect/mcp-app-host (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/desk.
           "^\\.\\./(?!\\.\\./|desk/)[^/]+/",
-          "^\\.\\./\\.\\./packages/(?!desk-contracts/)",
-          "node_modules/@caseai-connect/(?!desk-contracts)",
+          "^\\.\\./\\.\\./packages/(?!(desk-contracts|mcp-app-host)/)",
+          "node_modules/@caseai-connect/(?!(desk-contracts|mcp-app-host)(/|$))",
           "node_modules/@repo/",
         ],
       },

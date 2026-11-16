@@ -1,18 +1,33 @@
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js"
 import { type JSONRPCMessage, JSONRPCMessageSchema } from "@modelcontextprotocol/sdk/types.js"
-import { isRecord } from "@/lib/is-record"
+import { isRecord } from "./is-record"
 
-/** The envelope of every message between the Desk and an app's sandbox. */
-const ENVELOPE_TYPE = "desk/mcp-app"
+/** The envelope of every message between a host and an app's sandbox. */
+const ENVELOPE_TYPE = "mcp-app-host/rpc"
 /** The ping the sandbox sends once its script runs, before the app loads. */
-const READY_TYPE = "desk/mcp-app-ready"
+const READY_TYPE = "mcp-app-host/ready"
 
 /**
- * The page of the outer frame, which isolates an app from the Desk: it has no `allow-same-origin`,
- * so its origin is opaque. It loads the app's HTML in an inner frame from a blob, once the Desk
- * sends `ui/notifications/sandbox-resource-ready`, and relays the JSON-RPC messages both ways in
- * an envelope that names the sandbox. Popups and downloads are allowed on both frames, as an inner
- * frame inherits the restrictions of the outer one.
+ * What both frames allow besides scripts. An inner frame inherits the restrictions of the outer
+ * one, so an app's own `<a target="_blank">` or `window.open` only works when both carry these.
+ * `allow-popups-to-escape-sandbox` makes the opened tab a normal page, and `allow-downloads` lets
+ * that tab save a file: a browser judges a download by the frame that started the navigation.
+ */
+const POPUPS_AND_DOWNLOADS = "allow-popups allow-popups-to-escape-sandbox allow-downloads"
+
+/**
+ * The `sandbox` attribute of the outer frame, the one a host renders: scripts, popups and
+ * downloads, and no `allow-same-origin`, so its origin is opaque and it cannot reach the host.
+ */
+export const MCP_APP_FRAME_SANDBOX = `allow-scripts ${POPUPS_AND_DOWNLOADS}`
+
+/**
+ * The page of the outer frame, which isolates an app from its host. It loads the app's HTML in
+ * an inner frame from a blob, once the host sends `ui/notifications/sandbox-resource-ready`, and
+ * relays the JSON-RPC messages both ways in an envelope that names the sandbox. A blob makes the
+ * app parse as a normal document, Tailwind v4's `@layer` CSS included, and hands it its HTML
+ * exactly as its server wrote it. The inner frame's `allow-same-origin` is the origin of this
+ * page, which is opaque, and never the host's.
  */
 function sandboxPage(sandboxId: string): string {
   const id = JSON.stringify(sandboxId)
@@ -32,7 +47,7 @@ iframe{display:block;border:0;width:100%;height:100%}
       if (message && message.method === "ui/notifications/sandbox-resource-ready") {
         if (app) return;
         app = document.createElement("iframe");
-        app.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads");
+        app.setAttribute("sandbox", "allow-scripts allow-same-origin ${POPUPS_AND_DOWNLOADS}");
         app.src = URL.createObjectURL(new Blob([message.params.html], { type: "text/html" }));
         document.body.appendChild(app);
         return;
@@ -49,10 +64,6 @@ iframe{display:block;border:0;width:100%;height:100%}
 </script></body></html>`
 }
 
-/** The sandbox attributes of the outer frame: scripts, popups and downloads, an opaque origin. */
-export const SANDBOX_FRAME_PERMISSIONS =
-  "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads"
-
 /** Whether a posted message is an envelope of this type from this sandbox. */
 function isEnvelopeOf(
   data: unknown,
@@ -63,9 +74,10 @@ function isEnvelopeOf(
 }
 
 /**
- * Loads the sandbox page into the outer frame, and resolves once its script runs. Messages are
- * told apart by the sandbox's random id: an opaque origin cannot be checked, and two cards of a
- * conversation must not read each other's replies.
+ * Loads the sandbox page into the outer frame, and resolves once its script runs. It waits for
+ * the page's own ping and not for `load`, which a frame just added fires for its blank page
+ * first. Messages are told apart by the sandbox's random id: an opaque origin cannot be checked,
+ * and two cards of a conversation must not read each other's replies.
  */
 export function startSandbox(
   frame: HTMLIFrameElement,
@@ -87,7 +99,7 @@ export function startSandbox(
   })
 }
 
-/** The MCP transport of the Desk's side of one app, over the sandbox's envelopes. */
+/** The MCP transport of the host's side of one app, over the sandbox's envelopes. */
 export class SandboxTransport implements Transport {
   onclose?: () => void
   onerror?: (error: Error) => void

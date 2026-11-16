@@ -11,6 +11,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
+
 ### Fixed
 
 ### Security

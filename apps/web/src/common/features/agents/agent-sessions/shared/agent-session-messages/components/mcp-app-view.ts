@@ -80,26 +80,6 @@ function hasReplyText(content: string, toolCalls: AgentSessionToolCallDto[] | un
 }
 
 /**
- * Text of a message an MCP App proposes for the conversation (`ui/message`): its text blocks,
- * joined. Empty when it carries no text, since the chat input only takes text.
- */
-export function getMcpAppMessageText(content: unknown[]): string {
-  return content
-    .flatMap((block: unknown) =>
-      block &&
-      typeof block === "object" &&
-      "type" in block &&
-      block.type === "text" &&
-      "text" in block &&
-      typeof block.text === "string"
-        ? [block.text.trim()]
-        : [],
-    )
-    .filter((text) => text.length > 0)
-    .join("\n\n")
-}
-
-/**
  * Text fallback for an MCP App card that gave up rendering: the `text` parts of the tool
  * result's `content` (the MCP `CallToolResult` shape), joined so nothing is lost when the model
  * wrote no prose because it expected the card to speak for the tool.
@@ -128,14 +108,4 @@ export function getFailedMcpAppFallbackText(
     .map((toolCall) => getMcpAppToolResultText(toolCall.result))
     .filter((text) => text.length > 0)
     .join("\n\n")
-}
-
-/** Only `http:`/`https:` links are safe to open in a new tab from an MCP App. */
-export function isOpenableLink(url: string): boolean {
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-  } catch {
-    return false
-  }
 }

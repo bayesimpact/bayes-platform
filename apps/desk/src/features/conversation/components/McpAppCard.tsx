@@ -1,8 +1,8 @@
+import { MCP_APP_FRAME_SANDBOX } from "@caseai-connect/mcp-app-host"
 import { useLingui } from "@lingui/react/macro"
 import { useRef } from "react"
 import type { ChatMcpApp } from "../chat-messages"
 import { useMcpApp } from "../hooks/use-mcp-app"
-import { SANDBOX_FRAME_PERMISSIONS } from "../mcp-app-sandbox"
 import { McpAppPlaceholder } from "./McpAppPlaceholder"
 
 export type McpAppCardProps = {
@@ -33,7 +33,7 @@ export function McpAppCard({ app, html, onMessage, onFailed }: McpAppCardProps) 
       <iframe
         ref={frameRef}
         title={t`Interactive card`}
-        sandbox={SANDBOX_FRAME_PERMISSIONS}
+        sandbox={MCP_APP_FRAME_SANDBOX}
         className={status === "ready" ? "block h-18 w-full" : "invisible block h-18 w-full"}
       />
       {status === "loading" ? <McpAppPlaceholder /> : null}
