@@ -74,7 +74,7 @@ function NavApp({
     <Button variant="secondary" asChild>
       <a target="_blank" rel="noopener noreferrer" href={deskAgentPath}>
         <ExternalLinkIcon />
-        {t("actions:goToApp")}
+        {t("agent:goToProductionApp")}
       </a>
     </Button>
   )

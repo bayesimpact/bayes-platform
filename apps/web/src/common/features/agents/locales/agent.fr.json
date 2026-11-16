@@ -89,6 +89,7 @@
       "createError": "La création de l'agent a échoué",
       "duplicated": "Agent dupliqué en brouillon",
       "duplicateError": "La duplication de l'agent a échoué"
-    }
+    },
+    "goToProductionApp": "Application (production)"
   }
 }

@@ -89,6 +89,7 @@
       "createError": "Agent creation failed",
       "duplicated": "Agent duplicated as a draft",
       "duplicateError": "Agent duplication failed"
-    }
+    },
+    "goToProductionApp": "App (production)"
   }
 }
