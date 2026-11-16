@@ -34,7 +34,6 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { PromptVariablesEditor } from "@/studio/features/agents/prompt-variables/PromptVariablesEditor"
 import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
-import { LiveSettingNotice } from "../LiveSettingNotice"
 import { TextDiff } from "../TextDiff"
 
 type FormValues = z.infer<typeof updateAgentSettingsGeneralSchema>
@@ -94,7 +93,6 @@ export function GeneralTab({
                   <Input placeholder={t("agent:props.placeholders.name")} {...field} />
                 </FormControl>
                 <FormDescription>{t("agentSettings:props.nameDescription")}</FormDescription>
-                <LiveSettingNotice />
                 <FormMessage />
               </FormItem>
             )}
