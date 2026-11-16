@@ -136,7 +136,7 @@
     },
     "liveSettings": {
       "immediate": "Un changement ici s'applique immédiatement <strong>en production</strong>.",
-      "notice": "Ces réglages ne font pas partie du brouillon : ils s'appliquent en production dès que vous enregistrez.",
+      "notice": "Les changements ici s'appliquent à l'agent en production dès l'enregistrement.",
       "confirmSave": {
         "title": "Appliquer ces réglages maintenant ?",
         "description": "Ces changements s'appliquent à l'agent <strong>en production</strong> dès l'enregistrement."

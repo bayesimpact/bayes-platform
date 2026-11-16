@@ -136,7 +136,7 @@
     },
     "liveSettings": {
       "immediate": "A change here applies at once <strong>in production</strong>.",
-      "notice": "These settings are not part of the draft: they apply in production as soon as you save.",
+      "notice": "Changes here apply to the agent in production as soon as you save.",
       "confirmSave": {
         "title": "Apply these settings now?",
         "description": "These changes apply to the agent <strong>in production</strong> as soon as you save."
