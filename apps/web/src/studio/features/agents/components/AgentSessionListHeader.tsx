@@ -13,6 +13,7 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { AgentActions } from "./AgentActions"
 import { AgentAnalyticsCard } from "./AgentAnalyticsCard"
+import { AgentEvaluationCard } from "./AgentEvaluationCard"
 import { AgentMembersCard } from "./AgentMembersCard"
 import { FeedbackButton } from "./FeedbackButton"
 import { PlaygroundAgentSessionCreator } from "./PlaygroundAgentSessionCreator"
@@ -54,9 +55,12 @@ export function AgentSessionListHeader({
   const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
   const showAgentActions = canManageAgent || canReviewConversations
 
+  const canOpenEvaluation = abilities.canAccessEvaluation({ projectId })
+
   const headerCardCount = (1 + // Create Session button
     (showAgentAnalytics ? 1 : 0) +
-    (canManageAgent ? 2 : 0)) as 1 | 2 | 3 | 4 // Feedback and Members
+    (canManageAgent ? 2 : 0) + // Feedback and Members
+    (canOpenEvaluation ? 1 : 0)) as 1 | 2 | 3 | 4 | 5
   return (
     <Grid cols={headerCardCount}>
       <GridHeader
@@ -93,6 +97,15 @@ export function AgentSessionListHeader({
         {canManageAgent && (
           <FeedbackButton
             agentId={agent.id}
+            organizationId={organizationId}
+            projectId={projectId}
+            withBorderBottom={withBorderBottom}
+          />
+        )}
+
+        {canOpenEvaluation && (
+          <AgentEvaluationCard
+            agentType={agent.type}
             organizationId={organizationId}
             projectId={projectId}
             withBorderBottom={withBorderBottom}

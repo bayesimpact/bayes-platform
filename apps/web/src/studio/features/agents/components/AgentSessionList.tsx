@@ -37,6 +37,7 @@ import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
+import { AgentEvaluationCard } from "./AgentEvaluationCard"
 import { AgentMembersCard } from "./AgentMembersCard"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
 
@@ -89,12 +90,13 @@ export function ExtractionAgentSessionList() {
 
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
+  const canOpenEvaluation = abilities.canAccessEvaluation({ projectId: agent.projectId })
 
   const handleBack = () => navigate(projectRoute)
 
   if (outlet) return outlet
   return (
-    <Grid cols={canManageAgent ? 2 : 1}>
+    <Grid cols={(1 + (canOpenEvaluation ? 1 : 0) + (canManageAgent ? 1 : 0)) as 1 | 2 | 3}>
       <GridHeader
         onBack={handleBack}
         title={t("extractionAgentSession:playground.title")}
@@ -115,6 +117,14 @@ export function ExtractionAgentSessionList() {
             </div>
           </GridCard.Body>
         </GridCard>
+
+        {canOpenEvaluation && (
+          <AgentEvaluationCard
+            agentType={agent.type}
+            organizationId={organizationId}
+            projectId={agent.projectId}
+          />
+        )}
 
         {canManageAgent && (
           <AgentMembersCard

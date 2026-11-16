@@ -90,6 +90,10 @@
       "duplicated": "Agent dupliqué en brouillon",
       "duplicateError": "La duplication de l'agent a échoué"
     },
-    "goToProductionApp": "Application (production)"
+    "goToProductionApp": "Application (production)",
+    "evaluationCard": {
+      "description": "Mesurez les réponses de l'agent sur un jeu de données.",
+      "open": "Ouvrir l'évaluation dans un nouvel onglet"
+    }
   }
 }

@@ -90,6 +90,10 @@
       "duplicated": "Agent duplicated as a draft",
       "duplicateError": "Agent duplication failed"
     },
-    "goToProductionApp": "App (production)"
+    "goToProductionApp": "App (production)",
+    "evaluationCard": {
+      "description": "Measure the agent's answers on a dataset.",
+      "open": "Open the evaluation in a new tab"
+    }
   }
 }

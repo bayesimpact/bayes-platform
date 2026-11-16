@@ -8,7 +8,6 @@ import { selectCanReviewConversationsOfAgent } from "@/common/features/me/me.sel
 import { useAbility } from "@/common/hooks/use-ability"
 import { DeskRoutes } from "@/common/routes/desk-routes"
 import { useAppSelector } from "@/common/store/hooks"
-import { EvalRoutes } from "@/eval/routes/helpers"
 import { AgentMoreActions } from "@/studio/features/agents/components/AgentMoreActions"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
@@ -19,15 +18,10 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
     projectId: agent.projectId,
     agentId: agent.id,
   })
-  const isExtractionAgent = agent.type === "extraction"
   // Safety review is granted agent by agent, whatever the caller's role on the agent.
   const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
   return (
     <>
-      {isExtractionAgent && (
-        <NavEvaluation organizationId={organizationId} projectId={agent.projectId} />
-      )}
-
       {/* The app only lists published agents: a fresh copy appears there once published. */}
       {agent.currentRevision && (
         <NavApp organizationId={organizationId} projectId={agent.projectId} agentId={agent.id} />
@@ -76,27 +70,6 @@ function NavApp({
       <a target="_blank" rel="noopener noreferrer" href={deskAgentPath}>
         <ExternalLinkIcon />
         {t("agent:goToProductionApp")}
-      </a>
-    </Button>
-  )
-}
-
-function NavEvaluation({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-  const { abilities } = useAbility()
-  if (!abilities.canAccessEvaluation({ projectId })) return null
-  const extractionPath = EvalRoutes.extraction.build({ organizationId, projectId })
-  return (
-    <Button variant="secondary" asChild>
-      <a target="_blank" rel="noopener noreferrer" href={extractionPath}>
-        <ExternalLinkIcon />
-        {t("actions:goToEval")}
       </a>
     </Button>
   )
