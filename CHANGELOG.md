@@ -15,6 +15,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- (beta) Interactive cards (MCP Apps): a tool call that failed no longer shows a card.
+
 ### Security
 
 ## [26.11.2] - 2026-11-16

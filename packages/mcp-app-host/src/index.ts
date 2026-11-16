@@ -1,3 +1,3 @@
 export { type McpAppMount, type McpAppMountOptions, mountMcpApp } from "./mount"
 export { MCP_APP_FRAME_SANDBOX } from "./sandbox"
-export { toolResultText } from "./tool-result"
+export { isToolError, toolResultText } from "./tool-result"

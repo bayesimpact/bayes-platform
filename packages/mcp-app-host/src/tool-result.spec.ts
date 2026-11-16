@@ -1,6 +1,6 @@
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js"
 import { describe, expect, it } from "vitest"
-import { appMessageText, toCallToolResult, toolResultText } from "./tool-result"
+import { appMessageText, isToolError, toCallToolResult, toolResultText } from "./tool-result"
 
 describe("the texts of tools and apps", () => {
   it("reads the text blocks of a tool result and of a message an app proposes", () => {
@@ -20,6 +20,19 @@ describe("the texts of tools and apps", () => {
     expect(toolResultText({ content: "not a list" })).toBe("")
     expect(toolResultText({ content: [{ type: "text", text: "   " }] })).toBe("")
     expect(appMessageText([])).toBe("")
+  })
+})
+
+describe("isToolError", () => {
+  it("tells a failed tool call by the `isError` of its result", () => {
+    expect(isToolError({ content: [{ type: "text", text: "Not found" }], isError: true })).toBe(
+      true,
+    )
+    expect(isToolError({ content: [{ type: "text", text: "Done." }], isError: false })).toBe(false)
+    expect(isToolError({ content: [{ type: "text", text: "Done." }] })).toBe(false)
+    expect(isToolError({ isError: "true" })).toBe(false)
+    expect(isToolError(undefined)).toBe(false)
+    expect(isToolError("isError")).toBe(false)
   })
 })
 

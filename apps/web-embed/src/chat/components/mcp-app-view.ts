@@ -3,6 +3,7 @@ import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionToolCallDto,
 } from "@caseai-connect/api-contracts"
+import { isToolError } from "@caseai-connect/mcp-app-host"
 
 export type McpAppViewModel = {
   html: string
@@ -20,11 +21,17 @@ export function hasMcpAppPointer(
 }
 
 /**
- * A tool call that shows an MCP App card: it points at one and has a result to hand it. Its HTML
- * may still be loading, so this says a card belongs here, not that it can render yet.
+ * A tool call that shows an MCP App card: it points at one and has a result to hand it, which is
+ * not an error. A failed call shows none: the model reads the error and often calls the tool
+ * again. Its HTML may still be loading, so this says a card belongs here, not that it can render
+ * yet.
  */
 export function hasMcpAppCard(toolCall: AgentSessionToolCallDto): boolean {
-  return typeof toolCall.mcpApp?.resourceUri === "string" && toolCall.result !== undefined
+  return (
+    typeof toolCall.mcpApp?.resourceUri === "string" &&
+    toolCall.result !== undefined &&
+    !isToolError(toolCall.result)
+  )
 }
 
 /**
@@ -49,7 +56,7 @@ export function getRenderableMcpApp(
   toolCall: AgentSessionToolCallDto,
   htmlEntries: AgentSessionMcpAppHtmlDto[] = [],
 ): McpAppViewModel | undefined {
-  if (!toolCall.mcpApp || toolCall.result === undefined) return undefined
+  if (!toolCall.mcpApp || !hasMcpAppCard(toolCall)) return undefined
   const html = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
   if (html === undefined) return undefined
 

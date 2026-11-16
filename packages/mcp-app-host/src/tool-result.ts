@@ -36,6 +36,15 @@ export function toCallToolResult(result: unknown): CallToolResult {
   )
 }
 
+/**
+ * Whether a tool call failed, as MCP says it: its result carries `isError`. A host shows no app
+ * for it: the app has no data to show, and the model reads the error and often calls the tool
+ * again, which then shows its app once.
+ */
+export function isToolError(result: unknown): boolean {
+  return isRecord(result) && result.isError === true
+}
+
 /** The text of a tool result, which a host shows instead of an app that could not render. */
 export function toolResultText(result: unknown): string {
   return textsOf(parseCallToolResult(result)?.content ?? []).join("\n")

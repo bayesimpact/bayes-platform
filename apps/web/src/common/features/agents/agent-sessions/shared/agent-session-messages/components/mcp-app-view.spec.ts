@@ -40,6 +40,17 @@ describe("hasMcpAppCard", () => {
     expect(hasMcpAppCard({ ...cardToolCall, result: undefined })).toBe(false)
     expect(hasMcpAppCard(baseToolCall)).toBe(false)
   })
+
+  it("shows no card for a tool call that failed", () => {
+    const failed: AgentSessionToolCallDto = {
+      ...cardToolCall,
+      result: { content: [{ type: "text", text: "Error fetching the report" }], isError: true },
+    }
+
+    expect(hasMcpAppCard(failed)).toBe(false)
+    expect(getRenderableMcpApp(failed)).toBeUndefined()
+    expect(getReplyBubbleText("The export failed.", [failed], [])).toBe("The export failed.")
+  })
 })
 
 describe("findMcpAppHtml", () => {
