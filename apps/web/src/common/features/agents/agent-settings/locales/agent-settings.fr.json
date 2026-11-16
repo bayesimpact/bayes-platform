@@ -179,7 +179,8 @@
         "title": "Restaurer la version {{revision}} ?",
         "description": "Les paramètres de la version {{revision}} seront copiés comme nouvelle version et deviendront les paramètres actuels. Aucune version n'est supprimée."
       },
-      "draft": "Brouillon"
+      "draft": "Brouillon",
+      "manage": "Gérer les versions"
     },
     "version": {
       "ariaLabel": "Version des paramètres utilisée par les nouveaux messages",

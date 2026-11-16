@@ -1,8 +1,8 @@
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,12 +14,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@caseai-connect/ui/shad/sidebar"
-import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
+import { ArrowLeftIcon, ExternalLinkIcon, HistoryIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
 import { AgentSettingsCreateButton } from "../agent-settings/components/AgentSettingsCreateButton"
-import { AgentSettingsHistory } from "../agent-settings/components/AgentSettingsHistory"
+import { AgentSettingsHistorySheet } from "../agent-settings/components/AgentSettingsHistorySheet"
 import type { AgentEditorViewProps } from "./agent-editor-view.types"
 
 /**
@@ -118,6 +118,23 @@ export function AgentEditorPageView({
             </SidebarGroup>
           )}
         </SidebarContent>
+
+        {/* The versions concern the whole agent, not one section: their entry stays in the menu. */}
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <AgentSettingsHistorySheet
+                agent={agent}
+                trigger={
+                  <SidebarMenuButton>
+                    <HistoryIcon />
+                    <span>{t("agentSettings:history.manage")}</span>
+                  </SidebarMenuButton>
+                }
+              />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
 
       <SidebarInset className="min-w-0">
@@ -132,13 +149,10 @@ export function AgentEditorPageView({
                 onRetry={onRetrySave}
               />
             )}
-            <ButtonGroup>
-              <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
-              <AgentSettingsCreateButton
-                agentSettings={agentSettings}
-                hasUnsavedChanges={saveState !== "saved"}
-              />
-            </ButtonGroup>
+            <AgentSettingsCreateButton
+              agentSettings={agentSettings}
+              hasUnsavedChanges={saveState !== "saved"}
+            />
           </div>
         </header>
 

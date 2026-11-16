@@ -1,3 +1,4 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { AlertTriangleIcon, CheckIcon, Loader2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -35,17 +36,24 @@ export function AgentEditorSaveStatus({
     )
   }
 
+  // A saved draft wears the colours of the Draft label, so it reads as the draft's state.
+  if (state === "saved" && hasDraft) {
+    return (
+      <Badge asChild variant="warning">
+        <output>
+          <CheckIcon />
+          {t("agentSettings:autosave.saved")}
+        </output>
+      </Badge>
+    )
+  }
+
   return (
     <output className="flex items-center gap-1.5 text-sm text-muted-foreground">
       {state === "saving" ? (
         <>
           <Loader2Icon className="size-4 animate-spin" />
           {t("agentSettings:autosave.saving")}
-        </>
-      ) : hasDraft ? (
-        <>
-          <CheckIcon className="size-4" />
-          {t("agentSettings:autosave.saved")}
         </>
       ) : (
         t("agentSettings:autosave.hint")

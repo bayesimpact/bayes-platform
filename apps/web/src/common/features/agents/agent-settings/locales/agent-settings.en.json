@@ -179,7 +179,8 @@
         "title": "Restore version {{revision}}?",
         "description": "The settings of version {{revision}} will be copied as a new version and become the current settings. No version is deleted."
       },
-      "draft": "Draft"
+      "draft": "Draft",
+      "manage": "Manage versions"
     },
     "version": {
       "ariaLabel": "Settings version new messages run with",
