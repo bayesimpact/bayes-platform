@@ -5,7 +5,10 @@ import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function BreadcrumbReviewCampaigns() {
   const { isRoute } = useIsRoute()
-  const isReviewCampaignsRoute = isRoute(StudioRoutes.reviewCampaigns.path)
+  const isReviewCampaignsRoute =
+    isRoute(StudioRoutes.reviewCampaigns.path) ||
+    isRoute(StudioRoutes.reviewCampaign.path) ||
+    isRoute(StudioRoutes.reviewCampaignReport.path)
   const { t } = useTranslation("reviewCampaigns")
   if (!isReviewCampaignsRoute) return null
   return <BreadcrumbItem>{t("reviewCampaigns")}</BreadcrumbItem>

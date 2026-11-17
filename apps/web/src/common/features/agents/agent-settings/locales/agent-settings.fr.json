@@ -4,6 +4,7 @@
     "agentSettingsHistory": "Historique des paramètres de l'agent",
     "selectAgentSettings": "Sélectionner les paramètres de l'agent",
     "props": {
+      "nameDescription": "Ce nom sert à reconnaître l'agent dans le Studio et dans l'application. L'agent ne le connaît pas : si on lui demande comment il s'appelle, il ne répond pas ce nom. Pour lui donner un nom, écrivez-le dans les instructions.",
       "createdAt": "Créé le",
       "instructions": "Instructions",
       "formConfiguration": "Configuration du formulaire",
@@ -94,7 +95,10 @@
         "medium": "Moyen",
         "high": "Élevé"
       },
-      "modelOptions": "Options du modèle"
+      "modelOptions": "Options du modèle",
+      "characterCount_one": "{{formattedCount}} caractère",
+      "characterCount_other": "{{formattedCount}} caractères",
+      "characterCountWithMax": "{{current}} / {{max}} caractères"
     },
     "defaultPromptDialog": {
       "title": "Instructions",
@@ -123,10 +127,25 @@
       "title": "Modifications non enregistrées",
       "description": "Vous avez des modifications non enregistrées qui seront perdues. Voulez-vous les abandonner ?"
     },
+    "autosave": {
+      "saving": "Enregistrement…",
+      "saved": "Brouillon enregistré",
+      "unsaved": "Modifications non enregistrées",
+      "refused": "Cette modification n'a pas pu être enregistrée",
+      "unsavedBeforeVersions": "Corrigez les modifications non enregistrées avant de gérer les versions",
+      "publishedVersion": "Version {{revision}} · publiée"
+    },
+    "liveSettings": {
+      "immediate": "Un changement ici s'applique immédiatement <strong>en production</strong>.",
+      "notice": "Les changements ici s'appliquent à l'agent en production dès l'enregistrement.",
+      "confirmSave": {
+        "title": "Appliquer ces réglages maintenant ?",
+        "description": "Ces changements s'appliquent à l'agent <strong>en production</strong> dès l'enregistrement."
+      }
+    },
     "create": {
       "button": "Enregistrer la version",
       "noDraft": "Aucun brouillon à créer. Enregistrez une modification pour créer une nouvelle version brouillon.",
-      "unsavedChanges": "Enregistrez ou annulez vos modifications avant de publier.",
       "optional": "Facultatif",
       "props": {
         "revisionName": "Nom de la version",
@@ -143,7 +162,6 @@
       }
     },
     "history": {
-      "button": "Historique",
       "title": "Historique des versions",
       "description": "Parcourez, comparez et restaurez les paramètres précédents de {{name}}.",
       "loadError": "Échec du chargement de l'historique des versions",
@@ -167,7 +185,11 @@
         "title": "Restaurer la version {{revision}} ?",
         "description": "Les paramètres de la version {{revision}} seront copiés comme nouvelle version et deviendront les paramètres actuels. Aucune version n'est supprimée."
       },
-      "draft": "Brouillon"
+      "draft": "Brouillon",
+      "manage": "Gérer les versions",
+      "changedFields_one": "{{count}} champ modifié :",
+      "changedFields_other": "{{count}} champs modifiés :",
+      "advancedMode": "Mode avancé"
     },
     "version": {
       "ariaLabel": "Version des paramètres utilisée par les nouveaux messages",
@@ -203,15 +225,15 @@
       "loading": "Chargement de la configuration d'intégration…",
       "loadError": "Impossible de charger la configuration d'intégration.",
       "enabledLabel": "Activer l'intégration",
-      "enabledDescription": "Permettre à {{name}} d'être intégré sur des sites externes via un iframe.",
-      "snippetLabel": "Extrait d'intégration",
-      "snippetDescription": "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
+      "enabledDescription": "Rend {{name}} disponible hors de la plateforme : widget, page publique et API publique. Désactivée, les trois cessent de fonctionner.",
+      "snippetLabel": "Widget sur un site",
+      "snippetDescription": "Collez cette balise <script> avant la balise </body> fermante sur chaque page où le widget de chat doit apparaître.",
       "snippetHint": "Attributs optionnels : data-color=\"#2563eb\" (couleur du bouton), data-locale=\"fr\" (langue du widget), data-display-mode=\"drawer\" (panneau latéral au lieu d'une bulle), data-hint=\"Besoin d'aide ?\" (infobulle affichée au chargement et au survol).",
-      "publicPageLabel": "Lien de la page publique",
+      "publicPageLabel": "Page publique",
       "publicPageDescription": "Partagez ce lien, ou un QR code de ce lien, pour rendre {{name}} accessible sans site hôte.",
       "publicPageHint": "La page ne fonctionne que lorsque l'intégration est activée. Ajoutez &locale=fr pour forcer la langue.",
       "allowedOriginsLabel": "Origines autorisées",
-      "allowedOriginsDescription": "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
+      "allowedOriginsDescription": "Laissez vide pour l'instant. Le widget appelle la plateforme depuis {{embedOrigin}}, pas depuis votre site : une liste sans cette adresse bloque le widget. La vérification du site qui affiche le widget n'est pas encore disponible.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
       "titleLabel": "Titre du widget",
       "titleDescription": "Titre affiché dans l'en-tête du chat. Correspond au nom {{name}} si laissé vide.",
@@ -222,7 +244,19 @@
       "primaryColorDescription": "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb).",
       "bannerTextLabel": "Texte du bandeau",
       "bannerTextDescription": "Message optionnel affiché en permanence au-dessus de la conversation, sur la page publique et dans le widget. Utilisez-le pour préciser le contexte, par exemple une version de test ou le public visé.",
-      "bannerTextPlaceholder": "Version de test, réservée à l'équipe pilote"
+      "bannerTextPlaceholder": "Version de test, réservée à l'équipe pilote",
+      "appearance": {
+        "title": "Apparence",
+        "description": "Affichée dans l'en-tête du widget et de la page publique."
+      },
+      "apiSection": {
+        "title": "API publique",
+        "description": "Pour construire votre propre interface de chat, appelez directement l'API à la place du widget."
+      },
+      "apiBaseUrlLabel": "URL de base",
+      "apiBaseUrlDescription": "Toutes les routes de l'API commencent par cette URL. Elle contient le token d'intégration de cet agent.",
+      "apiReferenceLink": "Lire la référence de l'API",
+      "widgetGuideLink": "Lire le guide du widget"
     },
     "promptVariables": {
       "title": "Variables de prompt",
@@ -276,8 +310,6 @@
       "versionRestoreError": "La restauration de la version de l'agent a échoué",
       "versionPublished": "Version de l'agent publiée avec succès",
       "versionPublishError": "La publication de la version de l'agent a échoué",
-      "updated": "Agent mis à jour avec succès",
-      "updateError": "La mise à jour de l'agent a échoué",
       "embedConfigUpdated": "Configuration d'intégration mise à jour avec succès",
       "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
       "subAgentsUpdated": "Sous-agents mis à jour avec succès",

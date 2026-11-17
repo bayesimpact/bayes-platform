@@ -5,12 +5,15 @@ import { listAgents, listAvailableModels } from "./agents.thunks"
 
 interface State {
   data: AsyncData<Agent[]>
+  /** The last list request sent: an older answer that arrives after it is stale. */
+  latestListRequestId: string | null
   /** The model catalog of the current project, loaded by the routes that read it. */
   availableModels: AsyncData<AgentModelsCatalog>
 }
 
 const initialState: State = {
   data: defaultAsyncData,
+  latestListRequestId: null,
   availableModels: defaultAsyncData,
 }
 
@@ -24,7 +27,8 @@ const slice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(listAgents.pending, (state) => {
+      .addCase(listAgents.pending, (state, action) => {
+        state.latestListRequestId = action.meta.requestId
         if (!ADS.isFulfilled(state.data)) state.data.status = ADS.Loading
         state.data.error = null
       })
@@ -36,6 +40,8 @@ const slice = createSlice({
         }
       })
       .addCase(listAgents.rejected, (state, action) => {
+        // The thunk rejects a stale answer: only the latest request sets the state.
+        if (action.meta.requestId !== state.latestListRequestId) return
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to list agents"
       })

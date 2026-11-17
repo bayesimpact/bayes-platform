@@ -88,8 +88,9 @@ function WithData({
                 icon: getAgentIcon(agent.type),
               }}
               itemOptions={
-                // An agent that was never published, such as a fresh copy.
-                !agent.currentRevision && (
+                // An agent with changes waiting to be published, or one that was never published,
+                // such as a fresh copy. Only the Studio lists drafts: the other apps never show it.
+                (agent.draftRevision || !agent.currentRevision) && (
                   <Badge variant="warning" className="ml-auto">
                     {t("status:draft")}
                   </Badge>

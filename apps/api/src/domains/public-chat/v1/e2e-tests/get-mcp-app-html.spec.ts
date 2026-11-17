@@ -133,13 +133,25 @@ describe("PublicChat - getMcpAppHtml", () => {
     const mcpServerId = randomUUID()
     await saveReplyWithCard(context, mcpServerId)
     readLiveHtml.mockResolvedValue(
-      new Map([[`${mcpServerId}::${resourceUri}`, "<html>card</html>"]]),
+      new Map([
+        [
+          `${mcpServerId}::${resourceUri}`,
+          { html: "<html>card</html>", csp: { resourceDomains: ["https://cdn.example.com"] } },
+        ],
+      ]),
     )
 
     const response = await subject()
 
     expect(response.status).toBe(200)
-    expect(response.body.data).toEqual([{ mcpServerId, resourceUri, html: "<html>card</html>" }])
+    expect(response.body.data).toEqual([
+      {
+        mcpServerId,
+        resourceUri,
+        html: "<html>card</html>",
+        csp: { resourceDomains: ["https://cdn.example.com"] },
+      },
+    ])
     expect(readLiveHtml).toHaveBeenCalledWith(
       expect.objectContaining({
         agentId: context.agent.id,

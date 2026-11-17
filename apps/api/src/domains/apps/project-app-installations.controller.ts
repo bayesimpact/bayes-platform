@@ -17,6 +17,7 @@ import {
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ActiveAppInstallationSummary } from "./app-installation.repository"
+import { toAppInstallerDto } from "./app-installer"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppsService } from "./apps.service"
 
@@ -33,7 +34,11 @@ export class ProjectAppInstallationsController {
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof ProjectAppInstallationsRoutes.getAll.response> {
     const installations = await this.appsService.listActiveInstallations(request.project.id)
-    return { data: installations.map(toAppInstallationSummaryDto) }
+    return {
+      data: installations.map((installation) =>
+        toAppInstallationSummaryDto(installation, request.user.id),
+      ),
+    }
   }
 
   @Post(ProjectAppInstallationsRoutes.revokeOne.path)
@@ -61,6 +66,7 @@ export class ProjectAppInstallationsController {
 
 function toAppInstallationSummaryDto(
   installation: ActiveAppInstallationSummary,
+  viewerUserId: string,
 ): AppInstallationSummaryDto {
   return {
     id: installation.id,
@@ -70,5 +76,6 @@ function toAppInstallationSummaryDto(
     appUrl: installation.appUrl,
     permissions: installation.permissions,
     createdAt: installation.createdAt.getTime(),
+    installedBy: toAppInstallerDto(installation.installer, viewerUserId),
   }
 }

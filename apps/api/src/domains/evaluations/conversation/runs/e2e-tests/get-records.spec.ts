@@ -134,6 +134,7 @@ describe("EvaluationConversationRuns - getRecords", () => {
     expect(res.body.data.records[0]!.input).toBe("What is 1+1?")
     expect(res.body.data.records[0]!.expectedOutput).toBe("2")
     expect(res.body.data.records[0]!.output).toBe("The answer is 2")
+    expect(res.body.data.records[0]!.formState).toBeNull()
     expect(res.body.data.records[0]!.score).toBe(4)
     expect(res.body.data.records[0]!.traceUrl).toBe(
       "https://traces.example.org/redirects/sessions/trace-1",
@@ -141,6 +142,27 @@ describe("EvaluationConversationRuns - getRecords", () => {
     expect(res.body.data.total).toBe(1)
     expect(res.body.data.page).toBe(0)
     expect(res.body.data.limit).toBe(10)
+  })
+
+  it("returns the filled form next to the answer, including an empty form", async () => {
+    const { runRecord } = await createContext()
+    const formState = { title: "Request", summary: "Compare options", count: 0, enabled: false }
+    await repositories.evaluationConversationRunRecordRepository.update(runRecord.id, { formState })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.records[0]).toMatchObject({
+      output: "The answer is 2",
+      formState,
+    })
+
+    await repositories.evaluationConversationRunRecordRepository.update(runRecord.id, {
+      formState: {},
+    })
+    const emptyResponse = await subject()
+    expectResponse(emptyResponse, 200)
+    expect(emptyResponse.body.data.records[0]!.formState).toEqual({})
   })
 
   it("should return empty list when no records exist", async () => {

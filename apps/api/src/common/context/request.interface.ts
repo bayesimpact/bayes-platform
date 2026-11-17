@@ -84,6 +84,13 @@ export interface EndpointRequestWithAgentSession<
   agentSession: T
 }
 
+/** A tester's session with its review campaign (the `agentSessionReviewCampaign` context). */
+export interface EndpointRequestWithAgentSessionReviewCampaign<
+  T extends ConversationAgentSession | ExtractionAgentSession,
+> extends EndpointRequestWithAgentSession<T> {
+  reviewCampaign: ReviewCampaign
+}
+
 export interface EndpointRequestWithEvaluationExtractionDataset extends EndpointRequestWithProject {
   evaluationExtractionDataset: EvaluationExtractionDataset
 }

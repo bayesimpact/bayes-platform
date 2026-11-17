@@ -19,7 +19,6 @@ import type {
   ExtractionAgentSessions,
 } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import { selectCurrentExtractionAgentSessionsData } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
-import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import {
   selectCurrentAgentData,
   selectCurrentAgentId,
@@ -38,7 +37,8 @@ import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
-import { AgentEditor } from "./AgentEditor"
+import { AgentEvaluationCard, AgentProductionAppCard } from "./AgentExternalAppCard"
+import { AgentMembersCard } from "./AgentMembersCard"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
 
 /** Agent view for a conversation agent. A nested route replaces this list entirely. */
@@ -81,9 +81,6 @@ export function ConversationAgentSessionList() {
 /** Agent view for an extraction agent. A nested extraction run route replaces it entirely. */
 export function ExtractionAgentSessionList() {
   const agent = useValue(selectCurrentAgentData)
-  const agentSettings = useValue(
-    selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true }),
-  )
   const agentSessions = useValue(selectCurrentExtractionAgentSessionsData)
   const outlet = useOutlet()
   const { t } = useTranslation()
@@ -93,12 +90,19 @@ export function ExtractionAgentSessionList() {
 
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
+  const canOpenEvaluation = abilities.canAccessEvaluation({ projectId: agent.projectId })
+
+  // The app only lists published agents: a fresh copy appears there once published.
+  const isPublished = agent.currentRevision !== undefined
+  // Three cards a row at most: beyond that they wrap to a second row.
+  const cardCount =
+    1 + (isPublished ? 1 : 0) + (canOpenEvaluation ? 1 : 0) + (canManageAgent ? 1 : 0)
 
   const handleBack = () => navigate(projectRoute)
 
   if (outlet) return outlet
   return (
-    <Grid cols={0}>
+    <Grid cols={Math.min(cardCount, 3) as 1 | 2 | 3}>
       <GridHeader
         onBack={handleBack}
         title={t("extractionAgentSession:playground.title")}
@@ -106,29 +110,44 @@ export function ExtractionAgentSessionList() {
         action={<AgentActions agent={agent} organizationId={organizationId} />}
       />
 
-      <GridCard
-        className={cn("bg-muted/35 border-r-0 col-span-full", canManageAgent && "border-b")}
-      >
-        <GridCard.Body>
-          <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
-          <GridCard.Description>
-            {t("extractionAgentSession:create.description")}
-          </GridCard.Description>
-          <div className="flex items-center gap-2">
-            <History agentSessions={agentSessions} />
-            <ExtractionButton />
-          </div>
-        </GridCard.Body>
-      </GridCard>
+      <GridContent>
+        <GridCard className="bg-muted/35">
+          <GridCard.Body>
+            <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
+            <GridCard.Description>
+              {t("extractionAgentSession:create.description")}
+            </GridCard.Description>
+            <div className="flex items-center gap-2">
+              <History agentSessions={agentSessions} />
+              <ExtractionButton />
+            </div>
+          </GridCard.Body>
+        </GridCard>
 
-      {canManageAgent && (
-        <AgentEditor
-          key={agent.id}
-          agent={agent}
-          agentSettings={agentSettings}
-          className="bg-white p-6"
-        />
-      )}
+        {isPublished && (
+          <AgentProductionAppCard
+            agentId={agent.id}
+            organizationId={organizationId}
+            projectId={agent.projectId}
+          />
+        )}
+
+        {canOpenEvaluation && (
+          <AgentEvaluationCard
+            agentType={agent.type}
+            organizationId={organizationId}
+            projectId={agent.projectId}
+          />
+        )}
+
+        {canManageAgent && (
+          <AgentMembersCard
+            agentId={agent.id}
+            organizationId={organizationId}
+            projectId={agent.projectId}
+          />
+        )}
+      </GridContent>
     </Grid>
   )
 }

@@ -36,7 +36,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
   protected readonly type = "playground"
 
   @Post(Routes.createOne.path)
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION, "agent")
   @TrackActivity({ action: "agentCsvExtractionRun.create" })
   createOne(
     @Req() request: EndpointRequestWithAgent,
@@ -47,7 +47,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
 
   @Post(Routes.executeOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION, "agent")
   @TrackActivity({ action: "agentCsvExtractionRun.execute" })
   executeOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -58,7 +58,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
 
   @Post(Routes.retryOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION, "agent")
   @TrackActivity({ action: "agentCsvExtractionRun.retry" })
   retryOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -68,7 +68,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
 
   @Post(Routes.cancelOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION, "agent")
   @TrackActivity({ action: "agentCsvExtractionRun.cancel" })
   cancelOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -78,20 +78,20 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
 
   @Get(Routes.getOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "agent")
   getOne(@Req() request: EndpointRequestWithAgentCsvExtractionRun): typeof Routes.getOne.response {
     return this.handleGetOne(request)
   }
 
   @Get(Routes.getAll.path)
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "agent")
   getAll(@Req() request: EndpointRequestWithAgent): Promise<typeof Routes.getAll.response> {
     return this.handleGetAll(request)
   }
 
   @Get(Routes.getRecords.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "agent")
   getRecords(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
     @Query("page") page?: string,
@@ -104,7 +104,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
 
   @Get(Routes.getExportTemporaryUrl.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "agent")
   getExportTemporaryUrl(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
   ): Promise<typeof Routes.getExportTemporaryUrl.response> {
@@ -113,7 +113,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
 
   @Delete(Routes.deleteOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION, "agent")
   @TrackActivity({ action: "agentCsvExtractionRun.delete" })
   deleteOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -121,7 +121,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
     return this.handleDeleteOne(request)
   }
 
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "agent")
   @Sse(Routes.streamRunStatus.path, { method: 0 /* GET */ })
   streamRunStatus(
     @Req() request: EndpointRequestWithAgent,
@@ -130,7 +130,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
   }
 
   @Get(Routes.getFileColumns.path)
-  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "agent")
   getFileColumns(
     @Req() request: EndpointRequestWithAgent & { params: { documentId?: string } },
   ): Promise<typeof Routes.getFileColumns.response> {

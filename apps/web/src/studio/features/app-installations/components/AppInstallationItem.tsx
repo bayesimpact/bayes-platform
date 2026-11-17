@@ -8,12 +8,14 @@ import {
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { EllipsisVerticalIcon, ExternalLinkIcon, ShieldCheckIcon, UnplugIcon } from "lucide-react"
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
+import { useInstallerLabel } from "@/common/features/app-installers/components/use-installer-label"
 import { AppPermissionsDialog } from "@/common/features/oauth-consent/components/AppPermissionsDialog"
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
+import { InstallerName } from "./InstallerName"
 
 /**
  * Without `onRevoke`, the caller cannot revoke and the card menu has no revoke item.
@@ -29,6 +31,7 @@ export function AppInstallationItem({
   showAppUrl?: boolean
 }) {
   const { t } = useTranslation()
+  const installerLabel = useInstallerLabel()
   const [isConfirmingRevoke, setIsConfirmingRevoke] = useState(false)
   const [isShowingPermissions, setIsShowingPermissions] = useState(false)
   const hasPermissions = appInstallation.permissions.length > 0
@@ -42,9 +45,21 @@ export function AppInstallationItem({
             <div className="flex min-w-0 flex-col">
               <GridCard.Title className="truncate">{appInstallation.appName}</GridCard.Title>
               <span className="text-sm text-muted-foreground">
-                {t("appInstallations:installedOn", {
-                  date: buildDate(appInstallation.createdAt, "d MMMM yyyy"),
-                })}
+                <Trans
+                  i18nKey="appInstallations:installedBy"
+                  values={{
+                    installer: installerLabel(appInstallation.installedBy),
+                    date: buildDate(appInstallation.createdAt, "d MMMM yyyy"),
+                  }}
+                  components={{
+                    installer: (
+                      <InstallerName
+                        installer={appInstallation.installedBy}
+                        appName={appInstallation.appName}
+                      />
+                    ),
+                  }}
+                />
               </span>
             </div>
           </div>

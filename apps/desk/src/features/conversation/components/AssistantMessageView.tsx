@@ -1,4 +1,5 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import { toolResultText } from "@caseai-connect/mcp-app-host"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { CopyButton } from "@/components/shared/CopyButton"
@@ -9,10 +10,11 @@ import { MemoryProposals } from "@/features/memory"
 import { QUOTABLE_ATTRIBUTE } from "../annotation"
 import { type ChatMessage, isBeingWritten, isLocalMessageId } from "../chat-messages"
 import type { TaskChecks } from "../hooks/use-task-checks"
-import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
+import { type AppsHtml, hasMeaningfulText, unavailableApps } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { FollowUpQuestions } from "./FollowUpQuestions"
+import { GoodReplyButton } from "./GoodReplyButton"
 import { McpAppsList } from "./McpAppsList"
 import { MessageActions } from "./MessageActions"
 import { ReplyError } from "./ReplyError"
@@ -124,7 +126,10 @@ export function AssistantMessageView({
             <CopyButton text={text} label={t`Copy the reply`} />
             {/* A local reply gets its id once the persisted messages replace it. */}
             {isLocalMessageId(message.id) ? null : (
-              <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+              <>
+                <GoodReplyButton conversation={conversation} agentMessageId={message.id} />
+                <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+              </>
             )}
             {message.createdAt !== null ? (
               <RelativeTime

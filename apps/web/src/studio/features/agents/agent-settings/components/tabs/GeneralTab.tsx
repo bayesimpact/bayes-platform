@@ -1,10 +1,13 @@
 import {
   extractPromptVariables,
+  GREETING_MESSAGE_MAX_LENGTH,
   updateAgentSettingsGeneralSchema,
 } from "@caseai-connect/api-contracts"
+import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -13,30 +16,38 @@ import {
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { GitCompareIcon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
+import {
+  agentSettingsDiffFileNames,
+  findPublishedVersion,
+} from "@/common/features/agents/agent-settings/agent-settings.functions"
+import { selectAgentSettingsHistoryDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsGeneral } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { PromptVariablesEditor } from "@/studio/features/agents/prompt-variables/PromptVariablesEditor"
-import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "../agent-tab-form.shared"
-import { TabSaveButton } from "./TabSaveButton"
+import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
+import { TextDiff } from "../TextDiff"
 
 type FormValues = z.infer<typeof updateAgentSettingsGeneralSchema>
 
 export function GeneralTab({
   agent,
   agentSettings,
-  onDirtyChange,
-}: AgentTabFormProps & {
-  agent: Agent
-}) {
-  const { t } = useTranslation()
+  saveControl,
+}: AgentTabFormProps & { agent: Agent }) {
+  const [isDiffRequested, setIsDiffRequested] = useState(false)
+  // Undefined for an agent that was never published: it has nothing to compare with.
+  const versions = useAppSelector(selectAgentSettingsHistoryDataByAgentId({ agentId: agent.id }))
+  const publishedInstructions = findPublishedVersion(versions.value ?? [])?.instructions
+  const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const hasGreetingMessage = agent.type === "conversation"
   const project = useValue(selectCurrentProjectData)
@@ -47,43 +58,32 @@ export function GeneralTab({
     hasFeature("agent-prompt-variables") && declaredPromptVariables.length > 0
 
   // The {{variables}} defaults are a settings field: edited right under the instructions
-  // that declare them and saved with the same button. The tab remounts on every settings
-  // change (keyed on revision + updatedAt), so the state seeds from the prop.
-  const [promptVariables, setPromptVariables] = useState<Record<string, string>>(() => ({
-    ...(agentSettings.variables ?? {}),
-  }))
-  const promptVariablesDirty =
-    JSON.stringify(promptVariables) !== JSON.stringify(agentSettings.variables ?? {})
-
+  // that declare them, and saved with them.
   const form = useForm<FormValues>({
     resolver: zodResolver(updateAgentSettingsGeneralSchema),
+    shouldFocusError: false,
     defaultValues: {
       name: agent.name,
       instructions: agentSettings.instructions,
       greetingMessage: agentSettings.greetingMessage ?? null,
+      variables: { ...(agentSettings.variables ?? {}) },
     },
   })
-  useReportDirty(form.formState.isDirty || promptVariablesDirty, onDirtyChange)
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    const fields = {
-      ...pickDirtyFields(values, form.formState.dirtyFields),
-      ...(promptVariablesDirty && {
-        variables: variablesPayload(promptVariables),
-      }),
-    }
-    if (Object.keys(fields).length === 0) return
-    await dispatch(updateAgentSettingsGeneral({ agentId: agent.id, fields })).unwrap()
-    // Back to the stored values until the refetch re-seeds the tab (it remounts on the
-    // new updatedAt), so the dirty state clears with the save.
-    form.reset(values)
-    setPromptVariables({ ...(agentSettings.variables ?? {}) })
+  const { onSubmit } = useAutosave({
+    form,
+    saveControl,
+    save: async ({ changed }) => {
+      const fields = { ...changed }
+      if ("variables" in changed) fields.variables = variablesPayload(changed.variables ?? {})
+      await dispatch(updateAgentSettingsGeneral({ agentId: agent.id, fields })).unwrap()
+    },
   })
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
+      <form onSubmit={onSubmit} className="space-y-4">
+        {/* A little more room under the name's description than between two fields. */}
+        <div className="pb-3">
           <FormField
             control={form.control}
             name="name"
@@ -91,8 +91,14 @@ export function GeneralTab({
               <FormItem>
                 <FormLabel>{t("agent:props.name")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t("agent:props.placeholders.name")} {...field} />
+                  {/* The field keeps half the width; its description takes the whole line. */}
+                  <Input
+                    placeholder={t("agent:props.placeholders.name")}
+                    className="md:w-1/2"
+                    {...field}
+                  />
                 </FormControl>
+                <FormDescription>{t("agentSettings:props.nameDescription")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -105,12 +111,20 @@ export function GeneralTab({
             name="greetingMessage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("agentSettings:props.greeting")}</FormLabel>
+                <FormLabel>
+                  {t("agentSettings:props.greeting")}
+                  <span className="font-normal text-muted-foreground">
+                    {t("agentSettings:props.characterCountWithMax", {
+                      current: (field.value ?? "").length.toLocaleString(i18n.language),
+                      max: GREETING_MESSAGE_MAX_LENGTH.toLocaleString(i18n.language),
+                    })}
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder={t("agentSettings:props.placeholders.greeting")}
-                    rows={3}
-                    className="min-h-40 max-h-96 font-mono"
+                    // Two lines tall when empty, then as tall as its text: the page scrolls.
+                    className="min-h-16 resize-none font-mono"
                     {...field}
                     value={field.value ?? ""}
                     onChange={(event) =>
@@ -127,42 +141,85 @@ export function GeneralTab({
         <FormField
           control={form.control}
           name="instructions"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("agentSettings:props.instructions")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("agentSettings:props.placeholders.instructions")}
-                  rows={8}
-                  className="min-h-40 max-h-96 font-mono"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            // Nothing to compare for an agent that was never published.
+            const isDiffShown = isDiffRequested && publishedInstructions !== undefined
+            // The button stays while the diff is open, even once the text is back to the
+            // published one: the diff must not close under the user's cursor.
+            const canShowDiff =
+              isDiffShown ||
+              (publishedInstructions !== undefined && field.value !== publishedInstructions)
+            return (
+              <FormItem>
+                <div className="flex min-h-8 items-center justify-between gap-4">
+                  <FormLabel>
+                    {t("agentSettings:props.instructions")}
+                    <span className="font-normal text-muted-foreground">
+                      {t("agentSettings:props.characterCount", {
+                        count: field.value.length,
+                        formattedCount: field.value.length.toLocaleString(i18n.language),
+                      })}
+                    </span>
+                  </FormLabel>
+                  {canShowDiff && (
+                    <Button
+                      type="button"
+                      variant={isDiffShown ? "default" : "outline"}
+                      size="sm"
+                      aria-pressed={isDiffShown}
+                      onClick={() => setIsDiffRequested(!isDiffShown)}
+                    >
+                      <GitCompareIcon />
+                      {t("agentSettings:history.advancedMode")}
+                    </Button>
+                  )}
+                </div>
+                {isDiffShown ? (
+                  // The diff with the published instructions takes the place of the field, and
+                  // the instructions are edited in it.
+                  <TextDiff
+                    // The editor keeps the text it was opened with: a new published version
+                    // must restart it from the field, or the next keystroke would bring the
+                    // old text back.
+                    key={publishedInstructions}
+                    name={agentSettingsDiffFileNames.instructions}
+                    before={publishedInstructions}
+                    after={field.value}
+                    onChange={field.onChange}
+                  />
+                ) : (
+                  <FormControl>
+                    {/* It grows with its text, with no height limit: the page scrolls, not the field. */}
+                    <Textarea
+                      placeholder={t("agentSettings:props.placeholders.instructions")}
+                      className="min-h-40 resize-none font-mono"
+                      {...field}
+                    />
+                  </FormControl>
+                )}
+                <FormMessage />
+              </FormItem>
+            )
+          }}
         />
 
         {showPromptVariables && (
-          <PromptVariablesEditor
-            title={t("agentSettings:promptVariables.title")}
-            description={t("agentSettings:promptVariables.description")}
-            fields={declaredPromptVariables.map((name) => ({
-              name,
-              value: promptVariables[name] ?? "",
-            }))}
-            onChange={setPromptVariables}
+          <FormField
+            control={form.control}
+            name="variables"
+            render={({ field }) => (
+              <PromptVariablesEditor
+                title={t("agentSettings:promptVariables.title")}
+                description={t("agentSettings:promptVariables.description")}
+                fields={declaredPromptVariables.map((name) => ({
+                  name,
+                  value: field.value?.[name] ?? "",
+                }))}
+                onChange={field.onChange}
+              />
+            )}
           />
         )}
-
-        <TabSaveButton
-          isSubmitting={form.formState.isSubmitting}
-          isDirty={form.formState.isDirty || promptVariablesDirty}
-          onCancel={() => {
-            form.reset()
-            setPromptVariables({ ...(agentSettings.variables ?? {}) })
-          }}
-        />
       </form>
     </Form>
   )

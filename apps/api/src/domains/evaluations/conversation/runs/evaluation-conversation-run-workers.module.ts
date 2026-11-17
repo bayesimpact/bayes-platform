@@ -16,6 +16,7 @@ import { EvaluationConversationRunProcessorService } from "./evaluation-conversa
 import { EvaluationConversationRunStarterService } from "./evaluation-conversation-run-starter.service"
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
 import { QueueMetricsService } from "./queue-metrics.service"
+import { EvaluationConversationRunRecordRepository } from "./records/evaluation-conversation-run-record.repository"
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { QueueMetricsService } from "./queue-metrics.service"
     EvaluationConversationRunStarterService,
     EvaluationConversationRunWorker,
     EvaluationConversationRunProcessorService,
+    EvaluationConversationRunRecordRepository,
     EvaluationConversationRunStatusNotifierService,
     EvaluationConversationRunGraderLlmService,
     EvaluationConversationRunLlmService,

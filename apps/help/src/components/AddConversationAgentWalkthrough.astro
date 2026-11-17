@@ -2,13 +2,16 @@
 /**
  * Walkthrough of the "add a conversation agent" flow. Derived from the real
  * components (verified, not copied blind): AgentCreator.tsx (dialog),
- * AgentEditor.tsx (tab order + conditions) and each tab component
- * (AgentGeneralTab/ModelTab/SourcesTab/SessionCategoriesTab/
- * OrchestrationTab + AgentEmbedTab). Labels are verbatim from the agent /
- * resourceLibrary / actions locales (EN + FR). Depicts the fully-provisioned
- * conversation agent (all 6 tabs: categories + orchestration + embed enabled). The
- * Sources tab holds the documents and the resource libraries (re-derived 2026-10-30).
- * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-13.
+ * AgentEditor.tsx (sections, sheets and their conditions), AgentEditorPageView.tsx (the
+ * editor as a page of its own: Back, agent name, draft sections, the "More" group, the
+ * "Manage versions" button, the save status in the header), AgentEditorSaveStatus.tsx,
+ * GeneralTab.tsx (character counts, Advanced mode), ModelTab.tsx, SourcesTab.tsx,
+ * ToolsTab.tsx, SessionCategoriesTab.tsx, AgentEditorSheet.tsx (full-page sheet with Cancel
+ * and Save, then a confirmation), OrchestrationSheet.tsx and EmbedSheet.tsx. Labels are
+ * verbatim from the agent / agentSettings / resourceLibrary / actions locales (EN + FR).
+ * Depicts the fully-provisioned conversation agent: categories, MCP servers, orchestration
+ * and embed enabled. Uses the PRODUCT (coral) palette, pinned locally.
+ * Derived 2026-07-13, rebuilt for the editor page and its automatic save 2026-11-16.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -18,136 +21,152 @@ const STRINGS = {
     org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
     agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
     settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
-    documents: "Documents", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    members: "Members", admin: "Admin",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
-    conversation: "Conversation", extraction: "Extraction", form: "Form",
+    conversation: "Conversation", extraction: "Extraction",
     newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
     create: "Create",
     dialogDesc: "Choose the type before configuring your agent.",
     typeLabel: "Agent type", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Form",
-    nameLabel: "Name", namePlaceholder: "Enter agent name", agentName: "Helpful Assistant",
-    editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
-    tabGeneral: "General", tabModel: "Model", tabSources: "Sources",
-    tabCategories: "Conversation categories", tabOrchestration: "Orchestration", tabEmbed: "Embed",
-    localeLabel: "Locale", localeValue: "EN",
-    greetingLabel: "Greeting", greetingValue: "Hi! How can I help you today?",
-    instructionsLabel: "Instructions",
+    nameLabel: "Name", agentName: "Helpful Assistant",
+    back: "Back", editTitle: "Edit Conversation Agent", more: "More", manage: "Manage versions", draftSaved: "Draft saved",
+    secGeneral: "General", secModel: "Model", secSources: "Sources", secTools: "Tools",
+    secCategories: "Conversation categories", secMcp: "MCP Servers", secOrchestration: "Orchestration", secEmbed: "Embed",
+    greetingLabel: "Greeting", greetingValue: "Hi! How can I help you today?", greetingCount: "29 / 2,000 characters",
+    instructionsLabel: "Instructions", instructionsCount: "132 characters",
     instructionsValue: "You are a helpful assistant. Answer the user's questions clearly and, when relevant, base your answers on the workspace's documents.",
-    modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.7",
+    genTitle: "Answer generation", genDesc: "The model that writes the agent's answers.",
+    modelLabel: "Model", modelValue: "Gemini 3.5 Flash (Vertex3)", tempLabel: "Temperature", tempValue: "0.7",
     docsTitle: "Documents", docsDesc: "The workspace's documents the agent searches to answer.",
     answerSourceLabel: "Answer source", answerSourceValue: "Search by document tags",
     docTagsLabel: "Document Tags", tag1: "Getting started", tag2: "Product",
-    resourcesLabel: "Resource libraries", manage: "Manage libraries",
+    resourcesLabel: "Resource libraries", manageLibraries: "Manage libraries",
     resourcesDesc: "The assistant can surface resources from the selected libraries when a user's request matches a resource's title or description.",
     sampleLibrary: "Getting started", addLibrary: "Add library",
+    fillFormTitle: "Form filling", fillFormDesc: "Let the agent fill a structured form from the user's answers during the conversation.",
+    followTitle: "Suggest follow-up questions", followDesc: "After an answer, the agent can suggest short questions that the user can click to continue the conversation.",
+    followMax: "Maximum per answer",
+    memoryTitle: "Memory", memoryDesc: "Let the agent remember facts about each signed-in user between conversations. Users see and delete what it remembers.", memoryOff: "Off",
     catInUse: "Categories already used in this agent's conversations cannot be unchecked.",
     selectAll: "Select all", cat1: "Product", cat2: "Pricing", cat3: "Support",
+    liveNotice: "These settings are not part of the draft: they apply in production as soon as you save.",
+    cancel: "Cancel", save: "Save",
     subAgentsTitle: "Sub-agents", availableTitle: "Available conversation agents",
     toolName: "Tool name", toolDesc: "Tool description", enabled: "Enabled", add: "Add",
-    subToolName: "ask_extraction_agent", subToolDesc: "Route document-extraction requests to Extraction Agent.",
-    embedEnabled: "Enable embed", embedSnippet: "Embed snippet",
-    embedSnippetValue:
-      "<scr" + 'ipt src="https://app.example.com/launcher.js" data-token="agt_1a2b3c"></scr' + "ipt>",
-    allowedOrigins: "Allowed origins", allowedOriginsValue: "https://app.example.com",
-    widgetTitle: "Widget title", logoUrl: "Logo URL", brandColor: "Brand color", brandColorValue: "#2563eb",
-    save: "Save", update: "Update",
+    subToolName: "ask_support_agent", subToolDesc: "Route specialized requests to Support Agent.", subAgentName: "Support Agent",
+    embedEnabled: "Enable embed", embedEnabledDesc: "Makes Helpful Assistant available outside the platform: the widget, the public page and the public API. When off, all three stop working.",
+    appearanceTitle: "Appearance", widgetTitle: "Widget title", brandColor: "Brand color", brandColorValue: "#2563eb",
+    snippetLabel: "Widget on a website",
+    snippetValue: "<scr" + 'ipt src="https://app.example.com/launcher.js" data-token="agt_1a2b3c"></scr' + "ipt>",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
       "On the workspace overview, open the New Agent card and click Create.",
       "In the New Agent dialog, keep the Conversation type.",
-      "Give your agent a name, then click Create.",
-      "General: set the Name, Locale, Greeting and Instructions, then Save.",
-      "Model: choose the Model and Temperature, then Save.",
-      "Sources: under Documents, choose the Answer source — model only, all documents, or by tags.",
-      "Sources: under Resource libraries, attach the libraries the agent can surface, then Save.",
+      "Give your agent a name, then click Create. The agent editor opens.",
+      "General: set the Name, Greeting and Instructions. Each change saves to the draft by itself, and the status reads Draft saved.",
+      "Model: choose the Model and its options, such as the Temperature.",
+      "Sources: under Documents, choose the Answer source: model only, all documents, or by tags.",
+      "Sources: under Resource libraries, add the libraries the agent can surface.",
+      "Tools: turn on Form filling, follow-up questions or Memory if the agent needs them.",
       "Conversation categories: tick the categories that apply to this agent.",
-      "Orchestration: add sub-agents this agent can delegate to.",
-      "Embed: enable the widget, copy the snippet, set origins and branding, then Update.",
+      "Under More, Orchestration opens full page. It applies in production: click Save, then confirm.",
+      "Embed opens full page too: enable the widget, set its appearance, then Save and confirm.",
+      "When the draft is ready, click Manage versions, then Save version. Users then talk to the new version.",
     ],
   },
   fr: {
     org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
     agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
     settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
-    documents: "Documents", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    members: "Membres", admin: "Admin",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
-    conversation: "Conversation", extraction: "Extraction", form: "Formulaire",
+    conversation: "Conversation", extraction: "Extraction",
     newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques en fonction de son type et de sa configuration.",
     create: "Créer",
     dialogDesc: "Choisissez le type avant de configurer votre agent.",
     typeLabel: "Type d'agent", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Formulaire",
-    nameLabel: "Nom", namePlaceholder: "Entrez le nom de l'agent", agentName: "Helpful Assistant",
-    editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
-    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources",
-    tabCategories: "Catégories de conversation", tabOrchestration: "Orchestration", tabEmbed: "Intégration",
-    localeLabel: "Langue", localeValue: "EN",
-    greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
-    instructionsLabel: "Instructions",
+    nameLabel: "Nom", agentName: "Helpful Assistant",
+    back: "Retour", editTitle: "Modifier l'agent conversationnel", more: "Plus", manage: "Gérer les versions", draftSaved: "Brouillon enregistré",
+    secGeneral: "Général", secModel: "Modèle", secSources: "Sources", secTools: "Outils",
+    secCategories: "Catégories de conversation", secMcp: "Serveurs MCP", secOrchestration: "Orchestration", secEmbed: "Intégration",
+    greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Comment puis-je vous aider aujourd’hui ?", greetingCount: "50 / 2 000 caractères",
+    instructionsLabel: "Instructions", instructionsCount: "161 caractères",
     instructionsValue: "Vous êtes un assistant utile. Répondez clairement aux questions de l'utilisateur et, si pertinent, appuyez vos réponses sur les documents de l'espace de travail.",
-    modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.7",
+    genTitle: "Génération des réponses", genDesc: "Le modèle qui rédige les réponses de l'agent.",
+    modelLabel: "Modèle", modelValue: "Gemini 3.5 Flash (Vertex3)", tempLabel: "Température", tempValue: "0.7",
     docsTitle: "Documents", docsDesc: "Les documents de l'espace de travail dans lesquels l'agent cherche pour répondre.",
     answerSourceLabel: "Source de réponse", answerSourceValue: "Recherche dans les documents étiquetés",
     docTagsLabel: "Étiquettes de document", tag1: "Getting started", tag2: "Product",
-    resourcesLabel: "Bibliothèques de ressources", manage: "Gérer les bibliothèques",
+    resourcesLabel: "Bibliothèques de ressources", manageLibraries: "Gérer les bibliothèques",
     resourcesDesc: "L'assistant peut proposer des ressources des bibliothèques sélectionnées lorsqu'une demande de l'utilisateur correspond au titre ou à la description d'une ressource.",
     sampleLibrary: "Getting started", addLibrary: "Add library",
+    fillFormTitle: "Remplissage de formulaire", fillFormDesc: "Permet à l'agent de remplir un formulaire structuré à partir des réponses de l'utilisateur pendant la conversation.",
+    followTitle: "Suggérer des questions de relance", followDesc: "Après une réponse, l'agent peut suggérer des questions courtes. L'utilisateur clique sur une question pour continuer la conversation.",
+    followMax: "Maximum par réponse",
+    memoryTitle: "Mémoire", memoryDesc: "Permet à l'agent de se souvenir d'informations sur chaque utilisateur connecté d'une conversation à l'autre. Les utilisateurs voient et suppriment ce qu'il retient.", memoryOff: "Désactivée",
     catInUse: "Les catégories déjà utilisées dans les conversations de cet agent ne peuvent pas être décochées.",
     selectAll: "Tout sélectionner", cat1: "Product", cat2: "Pricing", cat3: "Support",
+    liveNotice: "Ces réglages ne font pas partie du brouillon : ils s'appliquent en production dès que vous enregistrez.",
+    cancel: "Annuler", save: "Enregistrer",
     subAgentsTitle: "Sous-agents", availableTitle: "Agents conversationnels disponibles",
     toolName: "Nom de l'outil", toolDesc: "Description de l'outil", enabled: "Activé", add: "Ajouter",
-    subToolName: "ask_extraction_agent", subToolDesc: "Router les demandes d'extraction de documents vers Extraction Agent.",
-    embedEnabled: "Activer l'intégration", embedSnippet: "Extrait d'intégration",
-    embedSnippetValue:
-      "<scr" + 'ipt src="https://app.example.com/launcher.js" data-token="agt_1a2b3c"></scr' + "ipt>",
-    allowedOrigins: "Origines autorisées", allowedOriginsValue: "https://app.example.com",
-    widgetTitle: "Titre du widget", logoUrl: "URL du logo", brandColor: "Couleur principale", brandColorValue: "#2563eb",
-    save: "Enregistrer", update: "Mettre à jour",
+    subToolName: "ask_support_agent", subToolDesc: "Transmettre les demandes spécialisées à Support Agent.", subAgentName: "Support Agent",
+    embedEnabled: "Activer l'intégration", embedEnabledDesc: "Rend Helpful Assistant disponible hors de la plateforme : widget, page publique et API publique. Désactivée, les trois cessent de fonctionner.",
+    appearanceTitle: "Apparence", widgetTitle: "Titre du widget", brandColor: "Couleur principale", brandColorValue: "#2563eb",
+    snippetLabel: "Widget sur un site",
+    snippetValue: "<scr" + 'ipt src="https://app.example.com/launcher.js" data-token="agt_1a2b3c"></scr' + "ipt>",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
       "Sur la vue d'ensemble de l'espace de travail, ouvrez la carte Nouvel agent et cliquez sur Créer.",
       "Dans la boîte de dialogue Nouvel agent, gardez le type Conversation.",
-      "Donnez un nom à votre agent, puis cliquez sur Créer.",
-      "Général : définissez le Nom, la Langue, le Message d'accueil et les Instructions, puis Enregistrez.",
-      "Modèle : choisissez le Modèle et la Température, puis Enregistrez.",
-      "Sources : sous Documents, choisissez la Source de réponse — le modèle, tous les documents, ou par étiquettes.",
-      "Sources : sous Bibliothèques de ressources, rattachez les bibliothèques que l'agent peut proposer, puis Enregistrez.",
+      "Donnez un nom à votre agent, puis cliquez sur Créer. L'éditeur de l'agent s'ouvre.",
+      "Général : définissez le Nom, le Message d'accueil et les Instructions. Chaque modification s'enregistre d'elle-même dans le brouillon, et le statut affiche Brouillon enregistré.",
+      "Modèle : choisissez le Modèle et ses options, comme la Température.",
+      "Sources : sous Documents, choisissez la Source de réponse : le modèle, tous les documents, ou par étiquettes.",
+      "Sources : sous Bibliothèques de ressources, ajoutez les bibliothèques que l'agent peut proposer.",
+      "Outils : activez le Remplissage de formulaire, les questions de relance ou la Mémoire si l'agent en a besoin.",
       "Catégories de conversation : cochez les catégories qui s'appliquent à cet agent.",
-      "Orchestration : ajoutez des sous-agents auxquels cet agent peut déléguer.",
-      "Intégration : activez le widget, copiez l'extrait, réglez origines et marque, puis Mettez à jour.",
+      "Sous Plus, Orchestration s'ouvre en pleine page. Elle s'applique en production : cliquez sur Enregistrer, puis confirmez.",
+      "Intégration s'ouvre aussi en pleine page : activez le widget, réglez son apparence, puis Enregistrez et confirmez.",
+      "Quand le brouillon est prêt, cliquez sur Gérer les versions, puis sur Enregistrer la version. Les utilisateurs parlent alors à la nouvelle version.",
     ],
   },
 } as const
 
 const s = STRINGS[lang]
 
-const TABS = [
-  { key: "general", label: s.tabGeneral },
-  { key: "model", label: s.tabModel },
-  { key: "sources", label: s.tabSources },
-  { key: "categories", label: s.tabCategories },
-  { key: "orchestration", label: s.tabOrchestration },
-  { key: "embed", label: s.tabEmbed },
-]
-
+// `sec` is the active entry of the editor's menu; a page whose name starts with "editor" or
+// "sheet" sits in the agent editor, which replaces the Studio sidebar with its own menu.
 const steps = [
-  { page: "overview", spot: "btnCreate", observe: [] },
-  { page: "typeDialog", spot: "btnTypeConversation", observe: ["obsTypeRow"] },
-  { page: "typeDialog", spot: "btnCreateConfirm", observe: ["obsNameField"] },
-  { page: "editorGeneral", spot: "", observe: ["obsGeneral"] },
-  { page: "editorModel", spot: "tab-model", observe: ["obsModel"] },
-  { page: "editorSources", spot: "tab-sources", observe: ["obsSources"] },
-  { page: "editorSources", spot: "btnAddLibrary", observe: ["obsResources"] },
-  { page: "editorCategories", spot: "tab-categories", observe: ["obsCategories"] },
-  { page: "editorOrchestration", spot: "tab-orchestration", observe: ["obsOrchestration"] },
-  { page: "editorEmbed", spot: "tab-embed", observe: ["obsEmbed"] },
+  { page: "overview", sec: "", spot: "btnCreate", observe: [] },
+  { page: "typeDialog", sec: "", spot: "btnTypeConversation", observe: ["obsTypeRow"] },
+  { page: "typeDialog", sec: "", spot: "btnCreateConfirm", observe: ["obsNameField"] },
+  { page: "editorGeneral", sec: "general", spot: "", observe: ["obsGeneral", "obsStatus"] },
+  { page: "editorModel", sec: "model", spot: "sec-model", observe: ["obsModel"] },
+  { page: "editorSources", sec: "sources", spot: "sec-sources", observe: ["obsSources"] },
+  { page: "editorSources", sec: "sources", spot: "btnAddLibrary", observe: ["obsResources"] },
+  { page: "editorTools", sec: "tools", spot: "sec-tools", observe: ["obsTools"] },
+  { page: "editorCategories", sec: "categories", spot: "sec-categories", observe: ["obsCategories"] },
+  { page: "sheetOrchestration", sec: "categories", spot: "btnOrchSave", observe: ["obsOrchestration"] },
+  { page: "sheetEmbed", sec: "categories", spot: "btnEmbedSave", observe: ["obsEmbed"] },
+  { page: "editorGeneral", sec: "general", spot: "btnManage", observe: ["obsStatus"] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
+const titles = {
+  general: s.secGeneral, model: s.secModel, sources: s.secSources, tools: s.secTools, categories: s.secCategories,
+}
 const labels = { prev: s.prev, next: s.next, step: s.step }
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+const extIcon = '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'
+const checkIcon = '<path d="M20 6 9 17l-5-5"/>'
+const chevDown = '<path d="m6 9 6 6 6-6"/>'
+const xIcon = '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
 ---
 
 <div class="caw" role="group" aria-label={s.newAgent}>
   <div class="shell">
-    <!-- Sidebar -->
+    <!-- Studio sidebar (steps 1 to 3) -->
     <aside class="sb">
       <div class="sb-head">
         <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
@@ -155,9 +174,8 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       </div>
       <div class="sb-scroll">
         <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
-        <div class="navitem hidden" id="navNewAgent"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agentName}</span></div>
-        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
-        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.conversationAgent}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
 
@@ -175,10 +193,29 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       </div>
     </aside>
 
+    <!-- The agent editor's own menu (steps 4 to 12) -->
+    <aside class="esb">
+      <span class="ebk"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> {s.back}</span>
+      <div class="agent-id"><b><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agentName}</span></b><small>{s.editTitle}</small></div>
+      <div class="esb-list">
+        <div class="navitem" data-sec="general" id="sec-general"><svg viewBox="0 0 24 24"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg><span>{s.secGeneral}</span></div>
+        <div class="navitem" data-sec="model" id="sec-model"><svg viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg><span>{s.secModel}</span></div>
+        <div class="navitem" data-sec="sources" id="sec-sources"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.secSources}</span></div>
+        <div class="navitem" data-sec="tools" id="sec-tools"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg><span>{s.secTools}</span></div>
+        <div class="navitem" data-sec="categories" id="sec-categories"><svg viewBox="0 0 24 24"><path d="M13.172 2a2 2 0 0 1 1.414.586l6.71 6.71a2.4 2.4 0 0 1 0 3.408l-4.592 4.592a2.4 2.4 0 0 1-3.408 0l-6.71-6.71A2 2 0 0 1 6 9.172V3a1 1 0 0 1 1-1z"/><path d="M2 7v6.172a2 2 0 0 0 .586 1.414l6.71 6.71a2.4 2.4 0 0 0 3.191.193"/><circle cx="10.5" cy="6.5" r=".5" fill="currentColor"/></svg><span>{s.secCategories}</span></div>
+        <div class="grp-more">{s.more}</div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg><span>{s.secMcp}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg><span>{s.secOrchestration}</span><svg class="ext" viewBox="0 0 24 24" set:html={extIcon}></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg><span>{s.secEmbed}</span><svg class="ext" viewBox="0 0 24 24" set:html={extIcon}></svg></div>
+      </div>
+      <div class="esb-foot"><span class="btn wide" id="btnManage"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> {s.manage}</span></div>
+    </aside>
+
     <!-- Main inset -->
     <div class="inset">
       <div class="topbar">
         <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+        <span class="etop"><span class="sec" data-sectitle></span><span class="status" id="obsStatus"><svg viewBox="0 0 24 24" set:html={checkIcon}></svg> {s.draftSaved}</span></span>
       </div>
       <div class="canvas">
         <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
@@ -189,7 +226,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
             <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.studio}</span></span>
           </div>
           <div class="cards3">
-            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
             <div class="ecard"><span class="cat">{s.extraction}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
             <div class="ecard muted">
               <b>{s.newAgent}</b>
@@ -199,7 +236,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- New Agent dialog (steps 2 & 3) -->
+        <!-- New Agent dialog (steps 2 and 3) -->
         <div class="page" data-page="typeDialog">
           <div class="scrim"></div>
           <div class="modal">
@@ -216,149 +253,131 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- editor: General (step 4) -->
+        <!-- editor: General (steps 4 and 12) -->
         <div class="page" data-page="editorGeneral">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "general" && "on"]}>{tb.label}</span>)}</div>
-            <div class="tabbody" id="obsGeneral">
-              <div class="grid2">
-                <div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agentName}</span></div>
-                <div class="fld"><p class="lbl">{s.localeLabel}</p><span class="select"><span>{s.localeValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
-              </div>
-              <div class="fld"><p class="lbl">{s.greetingLabel}</p><span class="textarea">{s.greetingValue}</span></div>
-              <div class="fld"><p class="lbl">{s.instructionsLabel}</p><span class="textarea">{s.instructionsValue}</span></div>
-            </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          <div class="eform" id="obsGeneral">
+            <div class="grid2"><div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agentName}</span></div></div>
+            <div class="fld"><p class="lbl">{s.greetingLabel}<span class="count">{s.greetingCount}</span></p><span class="textarea mono">{s.greetingValue}</span></div>
+            <div class="fld"><p class="lbl">{s.instructionsLabel}<span class="count">{s.instructionsCount}</span></p><span class="textarea mono grow">{s.instructionsValue}</span></div>
           </div>
         </div>
 
         <!-- editor: Model (step 5) -->
         <div class="page" data-page="editorModel">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "model" && "on"]} id={tb.key === "model" ? "tab-model" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody" id="obsModel">
+          <div class="eform" id="obsModel">
+            <div class="sect">
+              <p class="lbl sect-ttl">{s.genTitle}</p>
+              <p class="hint">{s.genDesc}</p>
               <div class="grid2">
-                <div class="fld"><p class="lbl">{s.modelLabel}</p><span class="select muted-select"><span>{s.modelPlaceholder}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+                <div class="fld"><p class="lbl">{s.modelLabel}</p><span class="select"><span>{s.modelValue}</span><svg viewBox="0 0 24 24" set:html={chevDown}></svg></span></div>
                 <div class="fld"><p class="lbl">{s.tempLabel}</p><span class="input block">{s.tempValue}</span></div>
               </div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 
         <!-- editor: Sources, documents then resource libraries (steps 6 and 7) -->
         <div class="page" data-page="editorSources">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "sources" && "on"]} id={tb.key === "sources" ? "tab-sources" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody">
-              <div class="sect" id="obsSources">
-                <p class="lbl sect-ttl">{s.docsTitle}</p>
-                <p class="hint">{s.docsDesc}</p>
-                <div class="grid2">
-                  <div class="fld"><p class="lbl">{s.answerSourceLabel}</p><span class="select"><span>{s.answerSourceValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
-                </div>
-                <div class="fld">
-                  <p class="lbl">{s.docTagsLabel}</p>
-                  <div class="row">
-                    <span class="badge">{s.tag1} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
-                    <span class="badge">{s.tag2} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
-                  </div>
-                </div>
+          <div class="eform">
+            <div class="sect" id="obsSources">
+              <p class="lbl sect-ttl">{s.docsTitle}</p>
+              <p class="hint">{s.docsDesc}</p>
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.answerSourceLabel}</p><span class="select"><span>{s.answerSourceValue}</span><svg viewBox="0 0 24 24" set:html={chevDown}></svg></span></div>
               </div>
-              <div class="sect" id="obsResources">
-                <div class="res-head"><p class="lbl" style="margin:0">{s.resourcesLabel}</p><span class="manage">{s.manage} <svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
-                <p class="hint">{s.resourcesDesc}</p>
+              <div class="fld">
+                <p class="lbl">{s.docTagsLabel}</p>
                 <div class="row">
-                  <span class="badge">{s.sampleLibrary} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
-                  <span class="btn outline sm" id="btnAddLibrary"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addLibrary}</span>
+                  <span class="badge">{s.tag1} <svg viewBox="0 0 24 24" set:html={xIcon}></svg></span>
+                  <span class="badge">{s.tag2} <svg viewBox="0 0 24 24" set:html={xIcon}></svg></span>
                 </div>
               </div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+            <div class="sect" id="obsResources">
+              <div class="res-head"><p class="lbl" style="margin:0">{s.resourcesLabel}</p><span class="manage">{s.manageLibraries} <svg viewBox="0 0 24 24" set:html={extIcon}></svg></span></div>
+              <p class="hint">{s.resourcesDesc}</p>
+              <div class="row" style="margin-top:0.5rem">
+                <span class="badge">{s.sampleLibrary} <svg viewBox="0 0 24 24" set:html={xIcon}></svg></span>
+                <span class="btn outline sm" id="btnAddLibrary"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addLibrary}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- editor: Conversation categories (step 8) -->
+        <!-- editor: Tools (step 8) -->
+        <div class="page" data-page="editorTools">
+          <div class="eform" id="obsTools">
+            <div class="toolcard"><div class="tc-head"><span><b>{s.fillFormTitle}</b><p class="hint">{s.fillFormDesc}</p></span><span class="switch"><i></i></span></div></div>
+            <div class="toolcard">
+              <div class="tc-head"><span><b>{s.followTitle}</b><p class="hint">{s.followDesc}</p></span><span class="switch on"><i></i></span></div>
+              <div class="grid2"><div class="fld"><p class="lbl">{s.followMax}</p><span class="input block">3</span></div></div>
+            </div>
+            <div class="toolcard"><div class="tc-head"><span><b>{s.memoryTitle}</b><p class="hint">{s.memoryDesc}</p></span><span class="select" style="min-width:8rem"><span>{s.memoryOff}</span><svg viewBox="0 0 24 24" set:html={chevDown}></svg></span></div></div>
+          </div>
+        </div>
+
+        <!-- editor: Conversation categories (step 9) -->
         <div class="page" data-page="editorCategories">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "categories" && "on"]} id={tb.key === "categories" ? "tab-categories" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody" id="obsCategories">
-              <div class="checks">
-                <span class="checkrow"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>{s.cat1}</span>
-                <span class="checkrow"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>{s.cat2}</span>
-                <span class="checkrow"><span class="cbx"></span>{s.cat3}</span>
-              </div>
-              <span class="btn outline sm" style="margin-top:0.7rem">{s.selectAll}</span>
-              <p class="hint">{s.catInUse}</p>
+          <div class="eform" id="obsCategories">
+            <div class="checks">
+              <span class="checkrow"><span class="cbx on"><svg viewBox="0 0 24 24" set:html={checkIcon}></svg></span>{s.cat1}</span>
+              <span class="checkrow"><span class="cbx on"><svg viewBox="0 0 24 24" set:html={checkIcon}></svg></span>{s.cat2}</span>
+              <span class="checkrow"><span class="cbx"></span>{s.cat3}</span>
             </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+            <span class="btn outline sm" style="align-self:flex-start">{s.selectAll}</span>
+            <p class="hint">{s.catInUse}</p>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- editor: Orchestration (step 9) -->
-        <div class="page" data-page="editorOrchestration">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "orchestration" && "on"]} id={tb.key === "orchestration" ? "tab-orchestration" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody" id="obsOrchestration">
-              <p class="lbl" style="margin-top:0">{s.subAgentsTitle}</p>
-              <div class="subagent">
-                <span class="sa-head"><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><span class="switch on"><i></i></span><span class="sa-en">{s.enabled}</span></span>
-                <div class="grid2">
-                  <div class="fld"><p class="lbl">{s.toolName}</p><span class="input block mono">{s.subToolName}</span></div>
-                  <div class="fld"><p class="lbl">{s.toolDesc}</p><span class="input block">{s.subToolDesc}</span></div>
-                </div>
-              </div>
-              <p class="lbl">{s.availableTitle}</p>
-              <div class="avail">
-                <span class="pill">{s.conversationAgent}</span>
-                <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
-              </div>
-            </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
-          </div>
+    <!-- Orchestration, a full-page sheet outside the draft (step 10) -->
+    <div class="page full" data-page="sheetOrchestration">
+      <div class="esheet">
+        <div class="es-head">
+          <span><b>{s.secOrchestration}</b><p>{s.liveNotice}</p></span>
+          <span class="es-acts"><span class="btn outline">{s.cancel}</span><span class="btn" id="btnOrchSave">{s.save}</span></span>
+          <span class="closex"><svg viewBox="0 0 24 24" set:html={xIcon}></svg></span>
         </div>
-
-        <!-- editor: Embed (step 10) -->
-        <div class="page" data-page="editorEmbed">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "embed" && "on"]} id={tb.key === "embed" ? "tab-embed" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody" id="obsEmbed">
-              <div class="switchrow"><span class="sw-lbl">{s.embedEnabled}</span><span class="switch on"><i></i></span></div>
-              <div class="fld"><p class="lbl">{s.embedSnippet}</p><span class="textarea mono">{s.embedSnippetValue}</span></div>
+        <div class="es-body">
+          <div class="es-inner" id="obsOrchestration">
+            <p class="lbl" style="margin:0">{s.subAgentsTitle}</p>
+            <div class="subagent">
+              <span class="sa-head"><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.subAgentName}</b><span class="switch on"><i></i></span><span class="sa-en">{s.enabled}</span></span>
               <div class="grid2">
-                <div class="fld"><p class="lbl">{s.allowedOrigins}</p><span class="input block">{s.allowedOriginsValue}</span></div>
+                <div class="fld"><p class="lbl">{s.toolName}</p><span class="input block mono">{s.subToolName}</span></div>
+                <div class="fld"><p class="lbl">{s.toolDesc}</p><span class="input block">{s.subToolDesc}</span></div>
+              </div>
+            </div>
+            <p class="lbl">{s.availableTitle}</p>
+            <div class="avail">
+              <span class="pill">{s.conversationAgent}</span>
+              <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Embed, a full-page sheet outside the draft (step 11) -->
+    <div class="page full" data-page="sheetEmbed">
+      <div class="esheet">
+        <div class="es-head">
+          <span><b>{s.secEmbed}</b><p>{s.liveNotice}</p></span>
+          <span class="es-acts"><span class="btn outline">{s.cancel}</span><span class="btn" id="btnEmbedSave">{s.save}</span></span>
+          <span class="closex"><svg viewBox="0 0 24 24" set:html={xIcon}></svg></span>
+        </div>
+        <div class="es-body">
+          <div class="es-inner" id="obsEmbed">
+            <div class="toolcard"><div class="tc-head"><span><b>{s.embedEnabled}</b><p class="hint">{s.embedEnabledDesc}</p></span><span class="switch on"><i></i></span></div></div>
+            <div class="toolcard">
+              <b style="font-size:0.82rem;font-weight:500">{s.appearanceTitle}</b>
+              <div class="grid2">
                 <div class="fld"><p class="lbl">{s.widgetTitle}</p><span class="input block">{s.agentName}</span></div>
-              </div>
-              <div class="grid2">
-                <div class="fld"><p class="lbl">{s.logoUrl}</p><span class="input block muted-select">https://…/logo.png</span></div>
                 <div class="fld"><p class="lbl">{s.brandColor}</p><span class="colorrow"><i class="swatch"></i><span class="input block mono">{s.brandColorValue}</span></span></div>
               </div>
             </div>
-            <div class="editor-foot"><span class="btn" id="btnSave">{s.update}</span></div>
+            <div class="toolcard"><b style="font-size:0.82rem;font-weight:500">{s.snippetLabel}</b><span class="textarea mono">{s.snippetValue}</span></div>
           </div>
         </div>
       </div>
@@ -376,14 +395,17 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   <div class="progress"><i data-bar></i></div>
 </div>
 
-<script define:vars={{ steps, labels }}>
+<script define:vars={{ steps, labels, titles }}>
   const cs = document.currentScript
   const caw =
     cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("caw")
       ? cs.previousElementSibling
       : document.querySelector(".caw")
   const q = (sel) => caw.querySelector(sel)
+  const shell = q(".shell")
   const pages = [...caw.querySelectorAll(".page")]
+  const secItems = [...caw.querySelectorAll("[data-sec]")]
+  const secTitle = q("[data-sectitle]")
   const dotsWrap = caw.querySelector("[data-dots]")
   const bar = caw.querySelector("[data-bar]")
   const capText = caw.querySelector("[data-captext]")
@@ -412,14 +434,12 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
     capText.textContent = step.text
 
-    // Actions have consequences: once the agent is created (editor steps), it
-    // appears in the AGENTS sidebar list and becomes the active item.
-    const created = step.page.indexOf("editor") === 0
-    const navNew = q("#navNewAgent")
-    if (navNew) {
-      navNew.classList.toggle("hidden", !created)
-      navNew.classList.toggle("on", created)
-    }
+    // Actions have consequences: once created, the agent opens in its editor, a page of its
+    // own whose menu takes the place of the Studio sidebar.
+    const inEditor = step.page.indexOf("editor") === 0 || step.page.indexOf("sheet") === 0
+    shell.classList.toggle("in-editor", inEditor)
+    secItems.forEach((item) => item.classList.toggle("on", item.dataset.sec === step.sec))
+    secTitle.textContent = titles[step.sec] || ""
 
     clearMarks()
     const active = idx
@@ -603,6 +623,56 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .caw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
   .caw .progress i.run { animation: caw-fill var(--dur, 6000ms) linear forwards; }
   @keyframes caw-fill { to { width: 100%; } }
+
+  /* The agent editor: a page of its own, with its menu in place of the Studio sidebar */
+  .caw { --warn-bg: oklch(0.962 0.059 95.617); --warn-fg: oklch(0.476 0.114 61.907); }
+  .caw .shell { position: relative; }
+  .caw .esb { display: none; flex-direction: column; gap: 0.5rem; padding: 0.5rem; min-height: 0; }
+  .caw .shell.in-editor .sb { display: none; }
+  .caw .shell.in-editor .esb { display: flex; }
+  .caw .ebk { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.4rem 0.55rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; }
+  .caw .agent-id { display: flex; flex-direction: column; gap: 0.15rem; padding: 0 0.5rem 0.3rem; }
+  .caw .agent-id b { display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; font-weight: 600; min-width: 0; }
+  .caw .agent-id b span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .caw .agent-id small { font-size: 0.74rem; color: var(--muted-foreground); }
+  .caw .esb-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .caw .esb .navitem svg { color: currentColor; }
+  .caw .esb .navitem .ext { margin-left: auto; font-size: 0.85rem; color: var(--muted-foreground); }
+  .caw .grp-more { font-size: 0.7rem; color: var(--muted-foreground); font-weight: 500; padding: 0.7rem 0.5rem 0.2rem; }
+  .caw .esb-foot { border-top: 1px solid var(--sidebar-border); padding: 0.6rem 0.2rem 0.2rem; }
+  .caw .etop { display: none; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
+  .caw .shell.in-editor .trig { display: none; }
+  .caw .shell.in-editor .etop { display: flex; }
+  .caw .shell.in-editor .canvas { background: var(--background); }
+  .caw .shell.in-editor .fab { display: none; }
+  .caw .etop .sec { font-size: 1.05rem; font-weight: 600; }
+  .caw .status { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 999px; padding: 0.25rem 0.7rem; font-size: 0.78rem; font-weight: 500; background: var(--warn-bg); color: var(--warn-fg); white-space: nowrap; }
+  .caw .eform { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
+  .caw .count { font-weight: 400; color: var(--muted-foreground); margin-left: 0.3rem; }
+  .caw .lbl-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .caw .textarea.grow { min-height: 7rem; }
+  .caw .toolcard { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.45rem; }
+  .caw .tc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
+  .caw .tc-head b { font-size: 0.82rem; font-weight: 500; display: block; }
+  .caw .tc-head .hint { margin-top: 0.15rem; }
+  .caw .page.full { padding: 0; z-index: 9; }
+  .caw .esheet { position: absolute; inset: 0; background: var(--card); color: var(--foreground); display: flex; flex-direction: column; }
+  .caw .es-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.7rem; padding: 0.9rem 3rem 0.9rem 1.1rem; border-bottom: 1px solid var(--border); position: relative; }
+  .caw .es-head b { font-size: 1rem; font-weight: 600; }
+  .caw .es-head p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.25rem 0 0; max-width: 30rem; }
+  .caw .es-head .closex { position: absolute; right: 1rem; top: 1rem; color: var(--muted-foreground); }
+  .caw .es-acts { display: flex; gap: 0.4rem; }
+  .caw .es-body { flex: 1; min-height: 0; overflow: auto; padding: 1rem 1.2rem; }
+  .caw .es-inner { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.6rem; }
+  .caw .page.full .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .caw .cmodal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(400px, 86%); background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; display: flex; flex-direction: column; gap: 0.8rem; }
+  .caw .cmodal b { font-size: 0.98rem; font-weight: 600; }
+  .caw .cmodal p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .caw .cmodal p strong { color: var(--foreground); font-weight: 600; }
+  .caw .cm-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+  @media (max-width: 640px) {
+    .caw .shell.in-editor .esb { display: none; }
+  }
 
   @media (max-width: 640px) {
     .caw .shell { grid-template-columns: 1fr; height: 560px; }

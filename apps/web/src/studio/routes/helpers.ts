@@ -22,7 +22,8 @@ const projectAnalytics = project.extend("/analytics")
 const projectMemberships = project.extend("/members")
 const projectMembership = projectMemberships.extend("/:memberUserId")
 const reviewCampaigns = project.extend("/review-campaigns")
-const reviewCampaignReport = reviewCampaigns.extend("/:reviewCampaignId/report")
+const reviewCampaign = reviewCampaigns.extend("/:reviewCampaignId")
+const reviewCampaignReport = reviewCampaign.extend("/report")
 const projectAdmin = project.extend("/admin")
 
 // AGENT-LEVEL
@@ -65,6 +66,7 @@ export const StudioRoutes = {
   resourceLibrary,
   resourceLibraryNew,
   resourceNew,
+  reviewCampaign,
   reviewCampaignReport,
   reviewCampaigns,
 }

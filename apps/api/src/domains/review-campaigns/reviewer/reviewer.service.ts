@@ -26,6 +26,9 @@ import type {
 import { ReviewerSessionReview } from "../reviewer-session-reviews/reviewer-session-review.entity"
 import { TesterSessionFeedback } from "../tester-session-feedbacks/tester-session-feedback.entity"
 
+// The roles a reviewer reads in a session transcript. Tool calls stay out of it.
+const TRANSCRIPT_ROLES: AgentMessage["role"][] = ["user", "assistant"]
+
 export type SubmitReviewerReviewFields = {
   overallRating: number
   comment?: string | null
@@ -127,6 +130,9 @@ export class ReviewerService {
         .select("message.session_id", "sessionId")
         .addSelect("COUNT(*)::int", "count")
         .where("message.session_id IN (:...sessionIds)", { sessionIds })
+        // Same roles as the transcript in getSessionForReview: the count matches what the
+        // reviewer reads, without the tool calls.
+        .andWhere("message.role IN (:...roles)", { roles: TRANSCRIPT_ROLES })
         .groupBy("message.session_id")
         .getRawMany<{ sessionId: string; count: number }>(),
       this.reviewRepository
@@ -198,7 +204,7 @@ export class ReviewerService {
     // whether the caller has already reviewed.
     const [transcript, callerReview, allReviews, testerFeedback, session] = await Promise.all([
       this.agentMessageRepository.find({
-        where: { sessionId, role: In(["user", "assistant"]) },
+        where: { sessionId, role: In(TRANSCRIPT_ROLES) },
         order: { createdAt: "ASC" },
       }),
       this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),

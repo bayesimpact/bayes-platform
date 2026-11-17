@@ -14,9 +14,13 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { agentFactory } from "@/domains/agents/agent.factory"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithAgentSession,
+} from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import {
@@ -382,6 +386,53 @@ describe("ExtractionAgentSessions - Auth", () => {
     it("forbids an organization admin who holds no project role", async () => {
       const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("forbids a person invited to another agent of the project", async () => {
+      const { otherAgent } = await createInvitedAgentMemberContext()
+      agentId = otherAgent.id
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  // Accepting an invitation on one agent gives project_member on the project and agent_member on
+  // that agent. The live routes check the agent, so the other agents of the project stay closed.
+  const createInvitedAgentMemberContext = async () => {
+    const { organization, project, agent, user } = await createOrganizationWithAgent(repositories, {
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      organizationMembership: { roleKeys: ["org_member"] },
+      projectMembership: { roleKeys: ["project_member"] },
+      agentMembership: { roleKeys: ["agent_member"] },
+      agent: { type: "extraction" },
+    })
+    const otherAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ type: "extraction" }),
+    )
+    authSubject = user.authSubject!
+    organizationId = organization.id
+    projectId = project.id
+    accessToken = "token"
+    return { agent, otherAgent }
+  }
+
+  describe("a person invited to one agent", () => {
+    const subject = () =>
+      request({
+        route: ExtractionAgentSessionsRoutes.live.getAll,
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("can list the runs of their agent", async () => {
+      const { agent } = await createInvitedAgentMemberContext()
+      agentId = agent.id
+      expectResponse(await subject(), 201)
+    })
+
+    it("cannot list the runs of another agent of the project", async () => {
+      const { otherAgent } = await createInvitedAgentMemberContext()
+      agentId = otherAgent.id
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })

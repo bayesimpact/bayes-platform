@@ -140,10 +140,22 @@ export type MessageParamsDto = z.output<typeof messageParamsSchema>
 /** The longest report a person can write on a reply. */
 export const MESSAGE_FEEDBACK_MAX_LENGTH = 2000
 
-/** A problem the person reports on one of the agent's replies. */
-export const messageFeedbackInputSchema = z.strictObject({
-  content: z.string().trim().min(1).max(MESSAGE_FEEDBACK_MAX_LENGTH),
-})
+/** A thumbs-up on one of the agent's replies, or a problem the person reports with it. */
+export const messageFeedbackRatingSchema = z.enum(["positive", "negative"])
+
+/** The text a person writes about one of the agent's replies. */
+export const messageFeedbackContentSchema = z.string().trim().max(MESSAGE_FEEDBACK_MAX_LENGTH)
+
+/** What the person says of one of the agent's replies. A thumbs-up needs no text, a report does. */
+export const messageFeedbackInputSchema = z
+  .strictObject({
+    rating: messageFeedbackRatingSchema,
+    content: messageFeedbackContentSchema.optional(),
+  })
+  .refine((feedback) => feedback.rating === "positive" || Boolean(feedback.content), {
+    path: ["content"],
+    message: "A report needs a text",
+  })
 
 export type MessageFeedbackInputDto = z.input<typeof messageFeedbackInputSchema>
 
@@ -176,11 +188,24 @@ export const attachmentParamsSchema = conversationParamsSchema.extend({
   attachmentDocumentId: z.uuid(),
 })
 
+/**
+ * The domains an MCP App declares in its resource metadata (`_meta.ui.csp`): the Desk builds the
+ * app's Content Security Policy from them.
+ */
+const mcpAppCspSchema = z.object({
+  connectDomains: z.array(z.string()).optional(),
+  resourceDomains: z.array(z.string()).optional(),
+  frameDomains: z.array(z.string()).optional(),
+  baseUriDomains: z.array(z.string()).optional(),
+})
+
 /** The current HTML of an MCP App a conversation's replies show. */
 export const mcpAppHtmlOutputSchema = z.object({
   mcpServerId: z.string(),
   resourceUri: z.string(),
   html: z.string(),
+  // Left out by the API, not null, when the app declares no domain: the strictest policy applies.
+  csp: mcpAppCspSchema.optional(),
 })
 
 export type McpAppHtmlOutputDto = z.output<typeof mcpAppHtmlOutputSchema>

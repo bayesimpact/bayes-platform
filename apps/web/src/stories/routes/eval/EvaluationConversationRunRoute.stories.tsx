@@ -27,6 +27,7 @@ import { buildMockConversationDatasetsService, buildMockConversationRunsService 
 type StoryArgs = StudioStoryArgs & {
   runStatus: EvaluationConversationRunStatus
   withRecords?: boolean
+  withForms?: boolean
 }
 
 const RUN_STATUSES: EvaluationConversationRunStatus[] = [
@@ -67,6 +68,7 @@ function buildSummary(runStatus: EvaluationConversationRunStatus) {
 function buildRunRecords(
   run: EvaluationConversationRun,
   runStatus: EvaluationConversationRunStatus,
+  withForms = false,
 ): EvaluationConversationRunRecord[] {
   const recordFactory = evaluationConversationRunRecordFactory.transient({ run })
   if (runStatus === "pending" || runStatus === "running") {
@@ -95,10 +97,23 @@ function buildRunRecords(
       score: null,
     })
   }
+  if (withForms) {
+    return [
+      recordFactory.build({
+        status: "graded",
+        formState: {
+          title: "Product information",
+          summary: "The user would like to compare the available options before choosing a plan.",
+        },
+      }),
+      recordFactory.build({ status: "graded", formState: {} }),
+      recordFactory.build({ status: "graded", formState: null }),
+    ]
+  }
   return recordFactory.buildList(RECORD_TOTAL, { status: "graded" })
 }
 
-const decorator = buildDecorator<StoryArgs>(({ runStatus, withRecords, ...args }) => {
+const decorator = buildDecorator<StoryArgs>(({ runStatus, withRecords, withForms, ...args }) => {
   const { baseSeeds, project, agents } = buildStudioData(args)
   const dataset = evaluationConversationDatasetFactory
     .transient({ project })
@@ -110,7 +125,7 @@ const decorator = buildDecorator<StoryArgs>(({ runStatus, withRecords, ...args }
     summary: buildSummary(runStatus),
     agentSettings: { revision: 2 },
   })
-  const records = withRecords ? buildRunRecords(run, runStatus) : []
+  const records = withRecords ? buildRunRecords(run, runStatus, withForms) : []
   const paginatedRecords = {
     records,
     total: records.length,
@@ -143,12 +158,14 @@ const meta = {
     ...studioStoryArgTypes,
     runStatus: { control: "select", options: RUN_STATUSES },
     withRecords: { control: "boolean" },
+    withForms: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
     runStatus: "completed",
     withRecords: true,
+    withForms: false,
   },
   render: render({ routes: evalRoutes, path: EvalRoutes.conversationRun.path }),
 } satisfies Meta<StoryArgs>
@@ -174,5 +191,10 @@ export const Failed: Story = {
   args: {
     runStatus: "failed",
   },
+  decorators: [decorator],
+}
+
+export const WithForms: Story = {
+  args: { runStatus: "completed", withForms: true },
   decorators: [decorator],
 }

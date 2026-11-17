@@ -452,7 +452,7 @@ describe("Agent Settings - updateOne", () => {
     })
     expectResponse(setResponse, 200)
 
-    let updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
       where: { agentId, revision: 2 },
     })
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
@@ -461,10 +461,11 @@ describe("Agent Settings - updateOne", () => {
     const clearResponse = await subject({ payload: { greetingMessage: "" } })
     expectResponse(clearResponse, 200)
 
-    updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
-      where: { agentId, revision: 2 },
-    })
-    expect(updatedAgentSettings?.greetingMessage).toBeNull()
+    // The published revision has no greeting either: the cleared draft holds the same settings,
+    // so it is deleted and the published revision is the current one again.
+    const revisions = await repositories.agentSettingsRepository.find({ where: { agentId } })
+    expect(revisions.map((revision) => revision.revision)).toEqual([1])
+    expect(revisions[0]?.greetingMessage).toBeNull()
   })
 
   it("should update and clear variables", async () => {
@@ -473,7 +474,7 @@ describe("Agent Settings - updateOne", () => {
     const setResponse = await subject({ payload: { variables: { topic: "the product tour" } } })
     expectResponse(setResponse, 200)
 
-    let updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
       where: { agentId, revision: 2 },
     })
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
@@ -482,10 +483,11 @@ describe("Agent Settings - updateOne", () => {
     const clearResponse = await subject({ payload: { variables: null } })
     expectResponse(clearResponse, 200)
 
-    updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
-      where: { agentId, revision: 2 },
-    })
-    expect(updatedAgentSettings?.variables).toBeNull()
+    // The published revision has no variables either: the cleared draft holds the same
+    // settings, so it is deleted and the published revision is the current one again.
+    const revisions = await repositories.agentSettingsRepository.find({ where: { agentId } })
+    expect(revisions.map((revision) => revision.revision)).toEqual([1])
+    expect(revisions[0]?.variables).toBeNull()
   })
 
   it("does not start a draft when resending the variables unchanged", async () => {

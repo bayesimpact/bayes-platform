@@ -77,7 +77,10 @@ export function AgentSettingsVersionSelect({
 
   return (
     <Select
-      value={revision !== undefined ? String(revision) : undefined}
+      // A revision missing from the list (none chosen yet, or one the caller did not check) maps
+      // to "", so Radix shows the placeholder. Passing it through would leave the trigger blank:
+      // the value is set, so no placeholder, and there is no version to label (issue #640).
+      value={selectedVersion ? String(selectedVersion.revision) : ""}
       onValueChange={(value) => {
         const parsed = Number.parseInt(value, 10)
         if (!Number.isNaN(parsed)) handleRevisionChange(parsed)

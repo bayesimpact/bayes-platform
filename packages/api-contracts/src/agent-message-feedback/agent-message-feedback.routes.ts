@@ -1,9 +1,15 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { AgentMessageFeedbackDto } from "./agent-message-feedback.dto"
+import type {
+  AgentMessageFeedbackDto,
+  CreateAgentMessageFeedbackDto,
+} from "./agent-message-feedback.dto"
 
 export const AgentMessageFeedbackRoutes = {
-  createOne: defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<{ content: string }>>({
+  createOne: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<CreateAgentMessageFeedbackDto>
+  >({
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/agent-messages/:agentMessageId/feedbacks",
   }),

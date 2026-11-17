@@ -1,28 +1,30 @@
 ---
 title: Message feedback
 highlight: feedback
-description: Read the problems users reported on an agent's messages — each report shows the exact message, its session and message IDs, and the reporter's comment.
+description: Read what users said of an agent's messages — each entry shows the exact message, its session and message IDs, a thumbs-up or a reported problem, and the reporter's comment.
 category: guides-eval
 order: 7
-updated: 2026-07-22
+updated: 2026-11-13
 ---
 
 import MessageFeedbackWalkthrough from "@/components/MessageFeedbackWalkthrough.astro"
 
-While chatting, a user can flag a weak or wrong answer with **Report a problem with
-this message**. **Message feedback** is where you — as someone who manages the agent —
-read those reports, so you can spot recurring problems and improve the agent.
+While chatting, a user can give a good answer a thumbs-up, or flag a weak or wrong
+answer with **Report a problem with this message**. **Message feedback** is where you
+— as someone who manages the agent — read them, so you can spot recurring problems
+and improve the agent.
 
 Feedback is **per agent**: you open it from an agent's page in **Studio**, and it
-lists every report left on that agent's messages. It's visible only to people who can
+lists every thumbs-up and report left on that agent's messages. It's visible only to people who can
 **manage** the agent (workspace owners and admins); it isn't behind a feature flag.
 
 ## Where feedback comes from
 
-Reports are created by end users in a **conversation**, not in Studio. Under any
-assistant reply, a thumbs button opens **Report a problem with this message**; the
-user writes a free-text comment and clicks **Send**. Each comment becomes one entry on
-this page. See [Chat with an agent](/en/chat-with-an-agent) for the user's side.
+Feedback is created by end users in a **conversation**, not in Studio. Under any
+assistant reply, the thumbs-up sends a positive feedback in one click, with no
+comment. The thumbs-down opens **Report a problem with this message**; the user writes
+a free-text comment and clicks **Send**. Each thumbs-up and each comment becomes one
+entry on this page. See [Chat with an agent](/en/chat-with-an-agent) for the user's side.
 
 ## The full flow at a glance
 
@@ -52,11 +54,11 @@ The top card of each entry is the **exact agent message** that was reported, sho
 it appeared to the user. Below it, a small line gives the **Session ID** and the
 **Message ID** so you can trace which conversation and message it came from.
 
-### 4. Read the report
+### 4. Read the feedback
 
-The card below it is the report itself: the **date** it was sent, then the reporter's
-free-text **comment**. There's no rating or category — just the message and the
-comment. The reporter's identity isn't shown, and there are no per-row actions.
+The card below it is the feedback itself: a thumbs-up **Good answer** or a
+thumbs-down **Reported problem**, the **date** it was sent, then the reporter's
+free-text **comment**. A thumbs-up usually has no comment. The reporter's identity isn't shown, and there are no per-row actions.
 
 ### 5. The empty state
 

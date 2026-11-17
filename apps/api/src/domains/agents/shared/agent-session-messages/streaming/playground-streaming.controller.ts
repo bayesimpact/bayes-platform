@@ -36,7 +36,7 @@ export class PlaygroundStreamingController extends StreamingController {
 
   @Sse(Routes.stream.path, { method: RequestMethod.POST })
   @HttpCode(HttpStatus.OK)
-  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION, "project")
+  @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION, "agent")
   stream(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Body() body: typeof Routes.stream.request,

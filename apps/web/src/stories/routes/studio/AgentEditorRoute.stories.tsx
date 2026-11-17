@@ -6,7 +6,7 @@ import {
   EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { userEvent, within } from "storybook/test"
+import { expect, userEvent, within } from "storybook/test"
 import {
   agentFactory,
   agentModelsCatalogFactory,
@@ -19,6 +19,7 @@ import type { AgentSettings } from "@/common/features/agents/agent-settings/agen
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
+import { runtimeConfig } from "@/config/runtime-config"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -27,6 +28,7 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
+import { agentEmbedConfigFactory } from "@/studio/features/agent-embed-configs/agent-embed-configs.factory"
 import { agentSubAgentFactory } from "@/studio/features/agent-sub-agents/agent-sub-agents.factory"
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 import { projectEmbeddingModelFactory } from "@/studio/features/project-embedding-models/project-embedding-models.factory"
@@ -87,9 +89,8 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
     duplicateOne: async () => {
       throw new Error("duplicateOne is not supported in this story")
     },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
+    // The editor saves the name by itself: the story accepts the save and keeps its seeded data.
+    updateOne: async () => ({ success: true }),
     deleteOne: async () => {
       throw new Error("deleteOne is not supported in this story")
     },
@@ -108,9 +109,9 @@ function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): I
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
     },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
+    // The editor saves each change by itself: the story accepts the save and keeps its seeded
+    // data, so the forms must hold what the user typed.
+    updateOne: async () => ({ success: true }),
   }
 }
 function buildMockProjectEmbeddingModelsService(
@@ -283,10 +284,23 @@ export const ConversationAgent: Story = {
             seed.studio.documentTags(documentTags),
             seed.studio.resourceLibraries(resourceLibraries),
             seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
+            // The Orchestration sheet reads the settings of each agent it offers as a sub-agent.
+            ...childAgents.map((childAgent) =>
+              seed.studio.agentHistory({
+                agentId: childAgent.id,
+                versions: [agentSettingsFactory.transient({ agent: childAgent }).build()],
+              }),
+            ),
             // The agent layout above the editor lists the agent's conversations.
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
             seed.studio.projectEmbeddingModels(embeddingModels),
+            // Embedding is on, so the Embed sheet shows its snippet, links and public API.
+            seed.studio.agentEmbedConfig(
+              agentEmbedConfigFactory
+                .transient({ agent: rawParentAgent })
+                .build({ isEnabled: true }),
+            ),
             embeddingSeeds,
           ),
           services: {
@@ -326,7 +340,7 @@ export const ToolsTabWithFollowUpQuestions: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const toolsTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Tools" },
       { timeout: 10_000 },
     )
@@ -346,7 +360,7 @@ export const ModelTabWithEmbeddingModels: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const modelTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Model" },
       { timeout: 10_000 },
     )
@@ -478,10 +492,106 @@ export const SourcesTab: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const sourcesTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Sources" },
       { timeout: 10_000 },
     )
     await userEvent.click(sourcesTab)
+  },
+}
+
+/** Sets the help center URL of the deployment for one story, then puts the previous one back. */
+function withHelpCenterUrl(helpCenterUrl: string | undefined) {
+  return () => {
+    const previous = runtimeConfig.helpCenterUrl
+    runtimeConfig.helpCenterUrl = helpCenterUrl
+    return () => {
+      runtimeConfig.helpCenterUrl = previous
+    }
+  }
+}
+
+/**
+ * The Embed sheet with embedding on: activation, appearance, the widget snippet, the public page
+ * and the public API. The deployment has a help center, so the widget guide and the API
+ * reference are linked.
+ */
+export const EmbedTab: Story = {
+  args: {
+    featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "agent-embed"],
+  },
+  decorators: ConversationAgent.decorators,
+  beforeEach: withHelpCenterUrl("https://help.example.org"),
+  play: async ({ canvasElement }) => {
+    // Embed is not a tab: its button opens the full-page sheet.
+    const embedButton = await within(canvasElement).findByRole(
+      "button",
+      { name: "Embed" },
+      { timeout: 10_000 },
+    )
+    await userEvent.click(embedButton)
+  },
+}
+
+/** The same sheet on a deployment without a help center: no links to the guide and the reference. */
+export const EmbedTabWithoutHelpCenter: Story = {
+  ...EmbedTab,
+  beforeEach: withHelpCenterUrl(undefined),
+}
+
+/**
+ * An extraction agent, as it opens right after its creation: the same editor page as a
+ * conversation agent, with one entry to its versions.
+ */
+export const ExtractionAgent: Story = {
+  // An extraction agent has no sources, tools, sub-agents or embedding models.
+  argTypes: {
+    withSubAgents: { control: false },
+    withPriorityCalls: { control: false },
+    unpublished: { control: false },
+    withEmbeddingModels: { control: false },
+    withSources: { control: false },
+    withFollowUpQuestions: { control: false },
+  },
+  args: { withDraft: false },
+  decorators: [
+    buildDecorator<StoryArgs>(({ withDraft, withDeprecatedModel, ...args }) => {
+      const { baseSeeds, agents } = buildStudioData({ ...args, withAgents: true })
+      const [firstAgent] = agents
+      if (!firstAgent) {
+        throw new Error("Agent editor route story requires an agent")
+      }
+      const agent = { ...firstAgent, name: "Helpful Assistant", type: "extraction" as const }
+      const publishedSettings = agentSettingsFactory.transient({ agent }).build({
+        name: "Helpful Assistant",
+        instructions: "Extract the title and summary of the document.",
+        revision: 1,
+        isDraft: false,
+        model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
+      })
+      // With a draft, an unpublished revision 2 sits on top of the published revision 1.
+      const versions = withDraft
+        ? [{ ...publishedSettings, revision: 2, isDraft: true }, publishedSettings]
+        : [publishedSettings]
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([agent], { currentId: agent.id }),
+          seed.studio.agentHistory({ agentId: agent.id, versions }),
+          seed.extractionAgentSessions({ [agent.id]: { csvSessions: [], others: [] } }),
+          seed.studio.mcpServers([]),
+        ),
+        services: {
+          agents: buildMockAgentsService([agent]),
+          agentSettings: buildMockAgentSettingsService(versions),
+        },
+      }
+    }),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByRole("button", { name: "Output" }, { timeout: 10_000 })
+    await expect(canvas.getAllByRole("button", { name: /versions/i })).toHaveLength(1)
   },
 }

@@ -253,11 +253,13 @@ export const FOLLOW_UP_SUGGESTIONS_MAX = 4
 /** Value of `followUpSuggestionsMax` on a new agent. */
 export const FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX = 2
 export const FOLLOW_UP_SUGGESTIONS_INSTRUCTIONS_MAX_LENGTH = 2000
+/** Longest greeting an agent can send. The editor shows it next to the field. */
+export const GREETING_MESSAGE_MAX_LENGTH = 2000
 
 // Every editable agent field lives on a settings revision. This is the single source of truth
 // for their validation; the create/update payload schemas below are all derived from it.
 export const agentSettingsValidationSchema = z.object({
-  greetingMessage: z.string().max(2000).optional(),
+  greetingMessage: z.string().max(GREETING_MESSAGE_MAX_LENGTH).optional(),
   instructions: z.string(),
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),
@@ -346,7 +348,11 @@ export const updateAgentSettingsOutputSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema,
 })
 
-const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
+const greetingMessageUpdateSchema = z
+  .string()
+  .max(GREETING_MESSAGE_MAX_LENGTH)
+  .nullable()
+  .optional()
 
 export const updateAgentSettingsGeneralSchema = agentSettingsValidationSchema
   .pick({ instructions: true, variables: true })

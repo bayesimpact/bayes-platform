@@ -72,7 +72,10 @@ export function SidebarLayout({
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset>
+      {/* `min-w-0` lets the page shrink beside the sidebar. Without it, a table wider than the
+          page (a CSV with many columns) stretches the page past the window instead of scrolling
+          inside its own box. */}
+      <SidebarInset className="min-w-0">
         <LayoutHeader
           hideIcon={hideIcon}
           title={

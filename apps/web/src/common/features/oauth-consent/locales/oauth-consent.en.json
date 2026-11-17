@@ -129,7 +129,8 @@
       }
     },
     "notifications": {
-      "approveError": "Access could not be granted"
+      "approveError": "Access could not be granted",
+      "alreadyInstalled": "Someone just installed this app on that workspace. Reload the page to see who."
     },
     "appResource": {
       "document": "Documents",
@@ -156,6 +157,16 @@
         "requested": "What {{name}} asks for when someone connects it. The person who connects it chooses what to grant.",
         "granted": "What {{name}} can do on this project."
       }
+    },
+    "installedByMe": "Installed by you. Installing it again reconnects it.",
+    "installedBy": "Installed by {{installer}}",
+    "reconnect": "Reconnect {{name}}",
+    "alreadyInstalled": {
+      "title": "{{name}} is already installed on this workspace",
+      "byMember": "<installer/> installed it. Ask them if you need it reconnected or its permissions changed. To use {{name}} yourself, ask them to invite you in the app.",
+      "byFormerMember": "The person who installed it can no longer manage the apps of this workspace. You can reconnect it: the permissions you grant here replace its current ones, and its current tokens stop working. You then become its installer.",
+      "replace": "To replace that installation, revoke it from the workspace's <settings>installed apps</settings>, then install {{name}} again. {{name}} stops at once, and the conversations of the old installation are not carried over.",
+      "error": "Pick another workspace, or revoke the current installation first."
     }
   }
 }

@@ -1,8 +1,11 @@
 import type { AgentSessionMcpAppDto, AgentSessionToolCallDto } from "@caseai-connect/api-contracts"
+import { isToolError, type McpAppCsp } from "@caseai-connect/mcp-app-host"
 import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "../agent-session-messages.models"
 
 export type McpAppViewModel = {
   html: string
+  /** The domains the card declares, for its Content Security Policy. */
+  csp?: McpAppCsp
   toolInput: Record<string, unknown>
   toolResult: unknown
 }
@@ -15,41 +18,48 @@ export function hasMcpAppPointer(messages: Pick<AgentSessionMessage, "toolCalls"
 }
 
 /**
- * A tool call that shows an MCP App card: it points at one and has a result to hand it. Its HTML
- * may still be loading, so this says a card belongs here, not that it can render yet.
+ * A tool call that shows an MCP App card: it points at one and has a result to hand it, which is
+ * not an error. A failed call shows none: the model reads the error and often calls the tool
+ * again. Its HTML may still be loading, so this says a card belongs here, not that it can render
+ * yet.
  */
 export function hasMcpAppCard(toolCall: AgentSessionToolCallDto): boolean {
-  return typeof toolCall.mcpApp?.resourceUri === "string" && toolCall.result !== undefined
+  return (
+    typeof toolCall.mcpApp?.resourceUri === "string" &&
+    toolCall.result !== undefined &&
+    !isToolError(toolCall.result)
+  )
 }
 
 /**
- * Current HTML for a card pointer. The HTML embedded on the tool call wins (public chat, stories);
- * otherwise the entry read from the same server, or, for a pointer recorded without a server id,
- * the entry any server returned for that `ui://`.
+ * Current HTML for a card pointer, with the domains the card declares. The HTML embedded on the
+ * tool call wins (stories), and declares none; otherwise the entry read from the same server, or,
+ * for a pointer recorded without a server id, the entry any server returned for that `ui://`.
  */
 export function findMcpAppHtml(
   mcpApp: AgentSessionMcpAppDto,
   htmlEntries: AgentSessionMcpAppHtml[],
-): string | undefined {
-  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return mcpApp.html
+): Pick<McpAppViewModel, "html" | "csp"> | undefined {
+  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return { html: mcpApp.html }
   const entry = htmlEntries.find(
     (candidate) =>
       candidate.resourceUri === mcpApp.resourceUri &&
       (!mcpApp.mcpServerId || candidate.mcpServerId === mcpApp.mcpServerId),
   )
-  return entry && entry.html.trim().length > 0 ? entry.html : undefined
+  if (!entry || entry.html.trim().length === 0) return undefined
+  return entry.csp ? { html: entry.html, csp: entry.csp } : { html: entry.html }
 }
 
 export function getRenderableMcpApp(
   toolCall: AgentSessionToolCallDto,
   htmlEntries: AgentSessionMcpAppHtml[] = [],
 ): McpAppViewModel | undefined {
-  if (!toolCall.mcpApp || toolCall.result === undefined) return undefined
-  const html = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
-  if (html === undefined) return undefined
+  if (!toolCall.mcpApp || !hasMcpAppCard(toolCall)) return undefined
+  const source = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
+  if (source === undefined) return undefined
 
   return {
-    html,
+    ...source,
     toolInput: toolCall.arguments,
     toolResult: toolCall.result,
   }
@@ -77,26 +87,6 @@ function hasReplyText(content: string, toolCalls: AgentSessionToolCallDto[] | un
   if (content.trim().length === 0) return false
   if (!(toolCalls ?? []).some(hasMcpAppCard)) return true
   return /[\p{L}\p{N}]/u.test(content)
-}
-
-/**
- * Text of a message an MCP App proposes for the conversation (`ui/message`): its text blocks,
- * joined. Empty when it carries no text, since the chat input only takes text.
- */
-export function getMcpAppMessageText(content: unknown[]): string {
-  return content
-    .flatMap((block: unknown) =>
-      block &&
-      typeof block === "object" &&
-      "type" in block &&
-      block.type === "text" &&
-      "text" in block &&
-      typeof block.text === "string"
-        ? [block.text.trim()]
-        : [],
-    )
-    .filter((text) => text.length > 0)
-    .join("\n\n")
 }
 
 /**
@@ -128,14 +118,4 @@ export function getFailedMcpAppFallbackText(
     .map((toolCall) => getMcpAppToolResultText(toolCall.result))
     .filter((text) => text.length > 0)
     .join("\n\n")
-}
-
-/** Only `http:`/`https:` links are safe to open in a new tab from an MCP App. */
-export function isOpenableLink(url: string): boolean {
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-  } catch {
-    return false
-  }
 }

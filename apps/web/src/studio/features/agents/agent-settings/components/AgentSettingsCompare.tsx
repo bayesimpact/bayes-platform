@@ -1,10 +1,20 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connect/ui/shad/empty"
 import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/ui/shad/toggle-group"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
-import { listChangedAgentSettingsFields } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
-import { AgentSettingsFieldDiff } from "./AgentSettingsFieldDiff"
+import {
+  type AgentSettingsDiffKey,
+  agentSettingsDiffLabelKeys,
+  listChangedAgentSettingsFields,
+} from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
+import { AgentSettingsCreateButton } from "./AgentSettingsCreateButton"
+import { AgentSettingsFieldDiff, agentSettingsFieldDiffId } from "./AgentSettingsFieldDiff"
 import { AgentSettingsRestoreButton } from "./AgentSettingsRestoreButton"
+
+/** How long the button of a changed field stays highlighted after a click. */
+const JUMP_HIGHLIGHT_MS = 800
 
 /**
  * What the selected revision is diffed against: the revision right before it, the published
@@ -16,7 +26,8 @@ export type AgentSettingsCompareAvailability = Record<AgentSettingsCompareMode, 
 
 /**
  * Right pane of the version history: pick what the selected revision is compared against,
- * review the per-field diffs, and restore the selected revision.
+ * review the per-field diffs, and act on the selected revision: save the draft as a version,
+ * or restore an older revision.
  */
 export function AgentSettingsCompare({
   before,
@@ -42,9 +53,52 @@ export function AgentSettingsCompare({
   const changedFields = listChangedAgentSettingsFields(before, after)
   const canCompare = availability.previous || availability.current || availability.draft
 
+  // The field the user just jumped to: its button stays highlighted for a moment, as a
+  // confirmation of the click while the diff scrolls into view.
+  const [jumpedField, setJumpedField] = useState<AgentSettingsDiffKey | null>(null)
+  const jumpTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(
+    () => () => {
+      if (jumpTimer.current) clearTimeout(jumpTimer.current)
+    },
+    [],
+  )
+  const jumpToField = (fieldKey: AgentSettingsDiffKey) => {
+    document
+      .getElementById(agentSettingsFieldDiffId(fieldKey))
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+    setJumpedField(fieldKey)
+    if (jumpTimer.current) clearTimeout(jumpTimer.current)
+    jumpTimer.current = setTimeout(() => setJumpedField(null), JUMP_HIGHLIGHT_MS)
+  }
+
   return (
     <div className="flex min-w-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b p-4">
+      {/* First what is selected and the one action on it, then what it is compared with: the
+          action no longer shares a line with the comparison switch. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            {t("agentSettings:history.revisionLabel", { revision: selected.revision })}
+            {selected.isDraft && <Badge variant="warning">{t("status:draft")}</Badge>}
+          </h3>
+          {selected.name?.trim() && (
+            <p className="truncate text-sm text-muted-foreground">{selected.name}</p>
+          )}
+        </div>
+        {/* The draft is the newest revision: there is nothing to restore it from, and saving it
+            as a version is the one thing left to do with it. */}
+        {selected.isDraft ? (
+          <AgentSettingsCreateButton
+            agentSettings={selected}
+            buttonProps={{ size: "default", className: undefined }}
+          />
+        ) : (
+          <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 border-b px-6 py-3">
         <ToggleGroup
           type="single"
           variant="outline"
@@ -64,10 +118,39 @@ export function AgentSettingsCompare({
             </ToggleGroupItem>
           )}
         </ToggleGroup>
-        <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+        {canCompare && (
+          <p className="text-sm text-muted-foreground">
+            {t("agentSettings:history.comparing", {
+              before: before.revision,
+              after: after.revision,
+            })}
+          </p>
+        )}
       </div>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4">
+      {/* A long diff hides the ones under it: this line, which never scrolls away, names every
+          changed field and jumps to its diff. */}
+      {canCompare && changedFields.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 border-b px-6 py-3">
+          <span className="text-sm text-muted-foreground">
+            {t("agentSettings:history.changedFields", { count: changedFields.length })}
+          </span>
+          {changedFields.map((fieldKey) => (
+            <Badge
+              key={fieldKey}
+              asChild
+              variant={fieldKey === jumpedField ? "default" : "secondary"}
+              className="cursor-pointer transition-colors duration-200"
+            >
+              <button type="button" onClick={() => jumpToField(fieldKey)}>
+                {t(agentSettingsDiffLabelKeys[fieldKey])}
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
         {!canCompare ? (
           <Empty>
             <EmptyHeader>
@@ -77,34 +160,22 @@ export function AgentSettingsCompare({
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
+        ) : changedFields.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>{t("agentSettings:history.noChangesTitle")}</EmptyTitle>
+              <EmptyDescription>{t("agentSettings:history.noChangesDescription")}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
-          <>
-            <p className="text-sm text-muted-foreground">
-              {t("agentSettings:history.comparing", {
-                before: before.revision,
-                after: after.revision,
-              })}
-            </p>
-            {changedFields.length === 0 ? (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>{t("agentSettings:history.noChangesTitle")}</EmptyTitle>
-                  <EmptyDescription>
-                    {t("agentSettings:history.noChangesDescription")}
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              changedFields.map((fieldKey) => (
-                <AgentSettingsFieldDiff
-                  key={fieldKey}
-                  fieldKey={fieldKey}
-                  before={before}
-                  after={after}
-                />
-              ))
-            )}
-          </>
+          changedFields.map((fieldKey) => (
+            <AgentSettingsFieldDiff
+              key={fieldKey}
+              fieldKey={fieldKey}
+              before={before}
+              after={after}
+            />
+          ))
         )}
       </div>
     </div>

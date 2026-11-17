@@ -11,6 +11,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -61,6 +62,13 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       organization,
       project,
       user: { email: "member@example.com", authSubject: "oidc|member" },
+    })
+    // A plain member opens sessions through a role on the agent, as an invitation to it gives.
+    await addUserToAgent({
+      repositories,
+      agent,
+      user: addedUser,
+      membership: { roleKeys: ["agent_member"] },
     })
     const { addedUser: anotherUser } = await addMemberByEmailToProject({
       repositories,

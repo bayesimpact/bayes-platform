@@ -24,6 +24,9 @@ This repository keeps what an environment is made of, since it changes with the 
   volumes. A pull request that adds a service or a workspace updates it in the same change.
 - [init.sh](init.sh): installs the dependencies in those volumes when `package-lock.json` changed,
   then builds what the dev servers need.
+- [workers.Dockerfile](workers.Dockerfile): the image of the workers, the Node image plus Docling
+  on the CPU build of Torch, so documents are extracted as in production. Its first build takes
+  several minutes; later ones reuse its layers until `requirements-docling.txt` changes.
 - [db-init.sh](db-init.sh): copies the main checkout's database into `connect_wt_<name>` and
   creates an empty `connect_wt_<name>__test`.
 - [`infra/database`](../database): the shared stack (Postgres, Redis, Traefik, Phoenix,

@@ -24,15 +24,13 @@ import {
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { updateAgentSettingsTools } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import { useAppDispatch } from "@/common/store/hooks"
-import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "../agent-tab-form.shared"
+import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
 import { OutputSchemaField } from "../OutputSchemaField"
-import { TabSaveButton } from "./TabSaveButton"
 
 /**
  * Optional tools of a conversation agent. Each tool is a list entry with an
@@ -40,12 +38,13 @@ import { TabSaveButton } from "./TabSaveButton"
  * currently only) entry; its config is the form definition (the agent's
  * outputJsonSchema).
  */
-export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
+export function ToolsTab({ agentSettings, saveControl }: AgentTabFormProps) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const form = useForm<UpdateAgentSettingsToolsDto>({
     resolver: zodResolver(updateAgentSettingsToolsSchema),
+    shouldFocusError: false,
     defaultValues: {
       fillFormEnabled: agentSettings.fillFormEnabled,
       outputJsonSchema: agentSettings.outputJsonSchema,
@@ -55,37 +54,28 @@ export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
       followUpSuggestionsMax: agentSettings.followUpSuggestionsMax,
     },
   })
-  useReportDirty(form.formState.isDirty, onDirtyChange)
-
-  // Remount key for the schema editor: bumping it re-seeds the builder/textarea
-  // from the form value (used on cancel, since both hold their own editing state).
-  const [editorVersion, setEditorVersion] = useState(0)
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    // PATCH only what changed — re-sending an unchanged outputJsonSchema would
-    // mint a spurious agent-settings revision. Enabling the tool always sends
-    // the schema alongside the flag (the API requires them together).
-    const changedFields = pickDirtyFields(values, form.formState.dirtyFields)
-    const fields: UpdateAgentSettingsToolsDto = {
-      fillFormEnabled: values.fillFormEnabled,
-      ...changedFields,
-      ...(values.fillFormEnabled ? { outputJsonSchema: values.outputJsonSchema } : {}),
-    }
-    await dispatch(updateAgentSettingsTools({ agentId: agentSettings.agentId, fields })).unwrap()
-    form.reset(values)
+  const { onSubmit } = useAutosave({
+    form,
+    saveControl,
+    save: async ({ values, changed }) => {
+      // PATCH only what changed — re-sending an unchanged outputJsonSchema would
+      // mint a spurious agent-settings revision. Enabling the tool always sends
+      // the schema alongside the flag (the API requires them together).
+      const fields: UpdateAgentSettingsToolsDto = {
+        fillFormEnabled: values.fillFormEnabled,
+        ...changed,
+        ...(values.fillFormEnabled ? { outputJsonSchema: values.outputJsonSchema } : {}),
+      }
+      await dispatch(updateAgentSettingsTools({ agentId: agentSettings.agentId, fields })).unwrap()
+    },
   })
-
-  const handleCancel = () => {
-    form.reset()
-    setEditorVersion((previous) => previous + 1)
-  }
 
   const fillFormEnabled = form.watch("fillFormEnabled")
   const followUpSuggestionsEnabled = form.watch("followUpSuggestionsEnabled")
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <div className="rounded-lg border p-4 space-y-4">
           <FormField
             control={form.control}
@@ -113,7 +103,6 @@ export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
                     {t("agentSettings:tools.fillForm.schemaDescription")}
                   </FormDescription>
                   <OutputSchemaField
-                    key={editorVersion}
                     value={field.value}
                     onChange={(schema) => field.onChange(schema)}
                     allowOrdering
@@ -235,12 +224,6 @@ export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
             />
           </div>
         </RestrictedFeature>
-
-        <TabSaveButton
-          isSubmitting={form.formState.isSubmitting}
-          isDirty={form.formState.isDirty}
-          onCancel={handleCancel}
-        />
       </form>
     </Form>
   )

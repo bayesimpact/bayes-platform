@@ -9,15 +9,56 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- Desk: an open page now tells you when a new version is out, and you reload it when you choose.
+- Agent instructions: an advanced mode shows the instructions as a diff with the published version and edits them there.
+
+### Changed
+
+- Agent editor: settings save to the draft automatically, and the editor shows the save status or why a save failed.
+- Agent editor: conversation and extraction agents open in the same full-page editor, with its own menu.
+- Agent version history: the full-screen history lists the changed fields, saves the draft as a version and restores a version.
+- Agent drafts: a draft with the same settings as the published version is deleted.
+- Agent instructions and greeting: both fields show a character count, and the greeting shows its limit of 2,000 characters.
+- Agent page: the page shows the version in edit, the members, the evaluation app and the production app.
+- Studio sidebar: the agent list marks the agents that have a draft.
+- (beta) Agent orchestration and embed: these settings apply in production and keep an explicit save with a confirmation.
+- (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
+
+### Fixed
+
+- (beta) Interactive cards (MCP Apps): a tool call that failed no longer shows a card.
+
+### Security
+
+- Review campaigns: testers reach a test conversation only while they are testers of its campaign and that campaign is active.
+- (beta) Interactive cards (MCP Apps): each card runs in its own isolated frame, limited to the domains it declares.
+- (beta) Public chat API 1.5: the HTML of an interactive card comes with the domains the card declares (`csp`).
+
+## [26.11.2] - 2026-11-16
+
+### Added
+
+- Desk: an open page tells you when a new version is out, and you reload it when you choose.
+- Message feedback: users can mark an agent reply as a good answer, and the team sees it with the reports.
 
 ### Changed
 
 - Evaluator role: workspace owners and admins can give themselves the evaluator role, or take it away.
+- App installs: connected apps show who installed them, and a colleague cannot reconnect an app over its installer.
 
 ### Fixed
 
+- Agent creation: a quick double submit creates one agent, and each new agent shows its actions, delete included.
+- Review campaigns: transcripts match what testers saw, and the full report and end-of-phase survey open reliably.
+- Extraction agents: the edit page shows the version history and save actions once.
+- Agent settings: a direct link to an agent's settings or extraction playground opens the page without an error.
+- CSV extraction: a CSV with many columns scrolls inside its results table instead of stretching the page.
+- Extraction evaluations: run records show each scored field by name, and the run setup scrolls with many fields.
+- Conversation evaluations: form-enabled agents fill forms during runs, and reviewers can read the collected fields.
+- (beta) MCP servers: a direct link to a project's MCP servers page opens the page without an error.
+
 ### Security
+
+- Agents: a person invited to one agent can no longer chat with or run extractions on the project's other agents.
 
 ## [26.11.1] - 2026-11-09
 

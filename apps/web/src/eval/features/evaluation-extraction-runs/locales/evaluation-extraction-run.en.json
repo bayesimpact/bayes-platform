@@ -50,6 +50,7 @@
       "mismatch": "Mismatch",
       "error": "Error",
       "fyi": "FYI",
+      "fieldStatus": "{{field}}: {{status}}",
       "noRecords": "No records found",
       "processing": "Processing records...",
       "processingDescription": "{{processed}} of {{total}} records processed. This may take a few minutes.",

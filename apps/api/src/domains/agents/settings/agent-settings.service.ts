@@ -4,8 +4,11 @@ import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   extractAgentSettingsUpdateFields,
+  hasSameAgentSettings,
   requiresUpdateAgentSettings,
 } from "@/domains/agents/settings/agent.settings.functions"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -58,6 +61,8 @@ export class AgentSettingsService {
     private readonly projectRepository: ProjectRepository,
 
     private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
+
+    private readonly transactionService: TransactionService,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
     this.agentSettingsConnectRepository = new ConnectRepository(
@@ -324,8 +329,12 @@ export class AgentSettingsService {
             }),
           },
         })
-      )
-        return last
+      ) {
+        // Nothing to write. A draft that already equals the published revision still goes
+        // away: restoring the published version over such a draft must leave none.
+        if (!last.isDraft) return last
+        return (await this.discardDraftWithoutChanges({ connectScope, draft: last })) ?? last
+      }
 
       isDraft = last.isDraft
       if (isDraft) revision = last.revision
@@ -361,7 +370,8 @@ export class AgentSettingsService {
       if (!updated) {
         throw new NotFoundException(`AgentSettings with id ${last.id} not found`)
       }
-      return updated
+      const published = await this.discardDraftWithoutChanges({ connectScope, draft: updated })
+      return published ?? updated
     } else {
       return await this.agentSettingsConnectRepository.createAndSave(connectScope, {
         ...(previousSettings ?? {}),
@@ -371,6 +381,43 @@ export class AgentSettingsService {
         isDraft: true,
       })
     }
+  }
+
+  /**
+   * Deletes a draft that holds the same settings as the newest published revision, and returns
+   * that revision: an edit the author took back, or a restore of the published version, leaves
+   * no draft behind. What ran on the draft (a playground session, a run) moves to the published
+   * revision first: it holds the same settings, and deleting the draft would otherwise delete
+   * those sessions with it. The draft stays when the agent was never published: it is its only
+   * revision.
+   */
+  private async discardDraftWithoutChanges({
+    connectScope,
+    draft,
+  }: {
+    connectScope: RequiredConnectScope
+    draft: AgentSettings
+  }): Promise<AgentSettings | undefined> {
+    const published = await this.findLastPublished({ connectScope, agentId: draft.agentId })
+    if (!published || !hasSameAgentSettings(published, draft)) return undefined
+
+    // One unit: the lock on the draft holds back a session that starts on it and another edit
+    // of it, so nothing can point at the draft between the move and the delete, and what the
+    // comparison reads is what the delete acts on.
+    const isDeleted = await this.transactionService.run(async () => {
+      const lockedDraft = await this.agentSettingsRepository.findDraftForUpdate(
+        connectScope,
+        draft.id,
+      )
+      if (!lockedDraft || !hasSameAgentSettings(published, lockedDraft)) return false
+      await this.agentSettingsRepository.moveRunsToRevision({
+        fromAgentSettingsId: lockedDraft.id,
+        toAgentSettingsId: published.id,
+      })
+      await this.agentSettingsRepository.deleteDraft(connectScope, lockedDraft.id)
+      return true
+    })
+    return isDeleted ? published : undefined
   }
 
   async updateAllSettings({

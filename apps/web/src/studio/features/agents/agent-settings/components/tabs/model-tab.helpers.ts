@@ -1,9 +1,7 @@
 import type { UpdateAgentSettingsModelDto } from "@caseai-connect/api-contracts"
-import type { UseFormReturn } from "react-hook-form"
 import { findAgentModelEntry } from "@/common/features/agents/agent-model.helpers"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { AgentModelsCatalog } from "@/common/features/agents/agents.models"
-import { pickDirtyFields } from "../agent-tab-form.shared"
 
 /** The default options of a model: what a model starts on when it is picked. */
 export function defaultModelOptions(
@@ -46,24 +44,17 @@ export function buildModelTabDefaultValues(
 /**
  * What the model tab saves: the fields the user changed, plus switching the priority tier off
  * when the newly picked model cannot offer it (the toggle is hidden, so the user cannot do it).
- * `resetValues` is what the form shows once saved.
  */
-export function buildModelTabSubmit({
+export function buildModelTabFields({
   values,
-  dirtyFields,
+  changed,
   priorityCallsAvailable,
 }: {
   values: UpdateAgentSettingsModelDto
-  dirtyFields: UseFormReturn<UpdateAgentSettingsModelDto>["formState"]["dirtyFields"]
+  changed: Partial<UpdateAgentSettingsModelDto>
   priorityCallsAvailable: boolean
-}): { fields: Partial<UpdateAgentSettingsModelDto>; resetValues: UpdateAgentSettingsModelDto } {
-  const fields = pickDirtyFields(values, dirtyFields)
+}): Partial<UpdateAgentSettingsModelDto> {
+  const fields = { ...changed }
   if (!priorityCallsAvailable && values.priorityCallsEnabled) fields.priorityCallsEnabled = false
-  return {
-    fields,
-    resetValues: {
-      ...values,
-      priorityCallsEnabled: fields.priorityCallsEnabled ?? values.priorityCallsEnabled,
-    },
-  }
+  return fields
 }

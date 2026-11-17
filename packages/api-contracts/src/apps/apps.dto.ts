@@ -185,6 +185,16 @@ export type AppCatalogEntryDto = {
   installed: boolean
 }
 
+/**
+ * Who installed an app on a project, as the caller sees them. A former member can no longer
+ * install apps on the project: they left it, lost the permission, or have no account any more.
+ * There is nobody to ask, so whoever approves the app next takes the installation over.
+ */
+export type AppInstallerDto =
+  | { kind: "me" }
+  | { kind: "member"; name: string | null; email: string }
+  | { kind: "former-member" }
+
 export type AppInstallationSummaryDto = {
   id: string
   appName: string
@@ -194,6 +204,7 @@ export type AppInstallationSummaryDto = {
   appUrl: string | null
   permissions: string[]
   createdAt: TimeType
+  installedBy: AppInstallerDto
 }
 
 export type AppMeResponseDto = {

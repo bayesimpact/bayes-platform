@@ -17,7 +17,8 @@ const slice = createSlice({
   reducers: {
     reset: () => initialState,
     mount: () => {},
-    unmount: () => {},
+    // Clears the report, so another campaign's report never shows while its own one loads.
+    unmount: () => initialState,
   },
   extraReducers: (builder) => {
     builder

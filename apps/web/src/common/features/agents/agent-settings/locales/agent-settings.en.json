@@ -4,6 +4,7 @@
     "agentSettingsHistory": "Agent Settings History",
     "selectAgentSettings": "Select Agent Settings",
     "props": {
+      "nameDescription": "This name identifies the agent in the Studio and in the app. The agent does not know it: when asked for its name, it does not answer with this one. To give it a name, write it in the instructions.",
       "createdAt": "Created At",
       "instructions": "Instructions",
       "formConfiguration": "Form Configuration",
@@ -94,7 +95,10 @@
         "medium": "Medium",
         "high": "High"
       },
-      "modelOptions": "Model options"
+      "modelOptions": "Model options",
+      "characterCount_one": "{{formattedCount}} character",
+      "characterCount_other": "{{formattedCount}} characters",
+      "characterCountWithMax": "{{current}} / {{max}} characters"
     },
     "defaultPromptDialog": {
       "title": "Instructions",
@@ -123,10 +127,25 @@
       "title": "Unsaved changes",
       "description": "You have unsaved changes that will be lost. Do you want to discard them?"
     },
+    "autosave": {
+      "saving": "Saving…",
+      "saved": "Draft saved",
+      "unsaved": "Unsaved changes",
+      "refused": "This change could not be saved",
+      "unsavedBeforeVersions": "Fix the unsaved changes before you manage versions",
+      "publishedVersion": "Version {{revision}} · published"
+    },
+    "liveSettings": {
+      "immediate": "A change here applies at once <strong>in production</strong>.",
+      "notice": "Changes here apply to the agent in production as soon as you save.",
+      "confirmSave": {
+        "title": "Apply these settings now?",
+        "description": "These changes apply to the agent <strong>in production</strong> as soon as you save."
+      }
+    },
     "create": {
       "button": "Save version",
       "noDraft": "No draft to create. Save a change first to create a new draft version.",
-      "unsavedChanges": "Save or discard your changes before publishing.",
       "optional": "Optional",
       "props": {
         "revisionName": "Version name",
@@ -143,7 +162,6 @@
       }
     },
     "history": {
-      "button": "History",
       "title": "Version history",
       "description": "Browse, compare and restore previous settings of {{name}}.",
       "loadError": "Failed to load version history",
@@ -167,7 +185,11 @@
         "title": "Restore version {{revision}}?",
         "description": "The settings of version {{revision}} will be copied as a new version and become the current settings. No version is deleted."
       },
-      "draft": "Draft"
+      "draft": "Draft",
+      "manage": "Manage versions",
+      "changedFields_one": "{{count}} changed field:",
+      "changedFields_other": "{{count}} changed fields:",
+      "advancedMode": "Advanced mode"
     },
     "version": {
       "ariaLabel": "Settings version new messages run with",
@@ -203,15 +225,15 @@
       "loading": "Loading embed configuration…",
       "loadError": "Failed to load embed configuration.",
       "enabledLabel": "Enable embed",
-      "enabledDescription": "Allow {{name}} to be embedded on external websites via an iframe.",
-      "snippetLabel": "Embed snippet",
-      "snippetDescription": "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
+      "enabledDescription": "Makes {{name}} available outside the platform: the widget, the public page and the public API. When off, all three stop working.",
+      "snippetLabel": "Widget on a website",
+      "snippetDescription": "Paste this <script> tag before the closing </body> tag on each page where the chat widget must appear.",
       "snippetHint": "Optional attributes: data-color=\"#2563eb\" (button color), data-locale=\"fr\" (widget language), data-display-mode=\"drawer\" (side panel instead of bubble), data-hint=\"Need help?\" (tooltip shown on load and hover).",
-      "publicPageLabel": "Public page link",
+      "publicPageLabel": "Public page",
       "publicPageDescription": "Share this link, or a QR code of it, to make {{name}} available without a host website.",
       "publicPageHint": "The page only works while embedding is enabled. Add &locale=fr to force the language.",
       "allowedOriginsLabel": "Allowed origins",
-      "allowedOriginsDescription": "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
+      "allowedOriginsDescription": "Leave empty for now. The widget calls the platform from {{embedOrigin}}, not from your website: a list without this address blocks the widget. The check of the website that shows the widget is not available yet.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
       "titleLabel": "Widget title",
       "titleDescription": "Title shown in the chat header. Defaults to {{name}} when left empty.",
@@ -222,7 +244,19 @@
       "primaryColorDescription": "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb).",
       "bannerTextLabel": "Banner text",
       "bannerTextDescription": "Optional notice pinned above the conversation, on the public page and in the widget. Use it to state the context, such as a test version or the intended audience.",
-      "bannerTextPlaceholder": "Test version, for the pilot team only"
+      "bannerTextPlaceholder": "Test version, for the pilot team only",
+      "appearance": {
+        "title": "Appearance",
+        "description": "Shown in the header of the widget and of the public page."
+      },
+      "apiSection": {
+        "title": "Public API",
+        "description": "To build your own chat interface, call the API directly instead of using the widget."
+      },
+      "apiBaseUrlLabel": "Base URL",
+      "apiBaseUrlDescription": "Every route of the API starts with this URL. It contains the embed token of this agent.",
+      "apiReferenceLink": "Read the API reference",
+      "widgetGuideLink": "Read the widget guide"
     },
     "promptVariables": {
       "title": "Prompt variables",
@@ -276,8 +310,6 @@
       "versionRestoreError": "Agent version restore failed",
       "versionPublished": "Agent version published successfully",
       "versionPublishError": "Agent version publication failed",
-      "updated": "Agent updated successfully",
-      "updateError": "Agent update failed",
       "embedConfigUpdated": "Embed config updated successfully",
       "embedConfigUpdateError": "Failed to update embed config",
       "subAgentsUpdated": "Sub-agents updated successfully",

@@ -10,6 +10,8 @@ import type {
   InvitationOutputDto,
   McpAppHtmlOutputDto,
   MemoryOutputDto,
+  MessageFeedbackInputDto,
+  MessageParamsDto,
   MyOrganizationOutputDto,
   MyProjectOutputDto,
   ProjectAgentOutputDto,
@@ -50,8 +52,8 @@ export type DeskWorld = {
   csvExtractionRuns: Record<string, CsvExtractionRunDetailOutputDto[]>
   /** The messages of each conversation, oldest first. */
   messages: Record<string, ConversationMessageOutputDto[]>
-  /** The problems reported on the agents' replies. */
-  feedbacks: { agentMessageId: string; content: string }[]
+  /** The thumbs-up and the problems reported on the agents' replies. */
+  feedbacks: (Pick<MessageParamsDto, "agentMessageId"> & MessageFeedbackInputDto)[]
   /** What each agent remembers about the person. */
   memories: Record<string, MemoryOutputDto[]>
   /** The person's pending invitations, with the agent each one gives access to once accepted. */
@@ -359,6 +361,28 @@ export function buildSeveralAgentsWorld(): DeskWorld {
   addMessages(world, assistant.id)
   addMessages(world, writer.id)
   addExtractionHistory(world, reader)
+  return world
+}
+
+/**
+ * The several agents of one project, where the person may only read "Writing Helper", as a project
+ * evaluator with no role on it does: the API lists it, with no key to open a session.
+ */
+export function buildReadOnlyAgentWorld(): DeskWorld {
+  const world = buildSeveralAgentsWorld()
+  world.agents = world.agents.map((agent) =>
+    agent.name === "Writing Helper" ? { ...agent, permissions: [] } : agent,
+  )
+  return world
+}
+
+/**
+ * A project opens the Desk, and the person reads its agent with no key to open a session, as a
+ * project evaluator with no role on the agent does.
+ */
+export function buildOnlyReadOnlyAgentsWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  world.agents = world.agents.map((agent) => ({ ...agent, permissions: [] }))
   return world
 }
 

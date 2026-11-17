@@ -52,6 +52,7 @@ import type {
   EvaluationExtractionRun,
   EvaluationExtractionRunRecord,
 } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.models"
+import type { AgentEmbedConfig } from "@/studio/features/agent-embed-configs/agent-embed-configs.models"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
@@ -371,6 +372,10 @@ export const seed = {
 
     projectEmbeddingModels(projectEmbeddingModels: ProjectEmbeddingModel[]): StoryPreloadedState {
       return { projectEmbeddingModels: { data: ads.fulfilled(projectEmbeddingModels) } }
+    },
+
+    agentEmbedConfig(agentEmbedConfig: AgentEmbedConfig): StoryPreloadedState {
+      return { agentEmbedConfigs: { data: ads.fulfilled(agentEmbedConfig) } }
     },
 
     resourceLibraries(resourceLibraries: ResourceLibrary[]): StoryPreloadedState {

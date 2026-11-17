@@ -7,7 +7,7 @@ export * from "./agent-membership/agent-membership.dto"
 export { AgentMembershipRoutes } from "./agent-membership/agent-membership.routes"
 
 // Agent Message Feedback
-export type * from "./agent-message-feedback/agent-message-feedback.dto"
+export * from "./agent-message-feedback/agent-message-feedback.dto"
 export { AgentMessageFeedbackRoutes } from "./agent-message-feedback/agent-message-feedback.routes"
 // Agent CSV Extraction Runs
 export * from "./agents/agent-csv-extraction-runs/agent-csv-extraction-runs.dto"

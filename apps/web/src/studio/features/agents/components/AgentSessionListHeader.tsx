@@ -13,6 +13,8 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { AgentActions } from "./AgentActions"
 import { AgentAnalyticsCard } from "./AgentAnalyticsCard"
+import { AgentEvaluationCard, AgentProductionAppCard } from "./AgentExternalAppCard"
+import { AgentMembersCard } from "./AgentMembersCard"
 import { FeedbackButton } from "./FeedbackButton"
 import { PlaygroundAgentSessionCreator } from "./PlaygroundAgentSessionCreator"
 
@@ -53,9 +55,19 @@ export function AgentSessionListHeader({
   const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
   const showAgentActions = canManageAgent || canReviewConversations
 
-  const headerCardCount = (1 + // Create Session button
+  const canOpenEvaluation = abilities.canAccessEvaluation({ projectId })
+  // The app only lists published agents: a fresh copy appears there once published.
+  const isPublished = agent.currentRevision !== undefined
+
+  const headerCards =
+    1 + // Create Session button
     (showAgentAnalytics ? 1 : 0) +
-    (canManageAgent ? 1 : 0)) as 1 | 2 | 3
+    (canManageAgent ? 2 : 0) + // Feedback and Members
+    (canOpenEvaluation ? 1 : 0) +
+    (isPublished ? 1 : 0) // App (production)
+  // Three cards a row at most: beyond that they wrap to a second row, and the grid stretches
+  // the last one to fill it. Five in one row left no room for their text.
+  const headerCardCount = Math.min(headerCards, 3) as 1 | 2 | 3
   return (
     <Grid cols={headerCardCount}>
       <GridHeader
@@ -91,6 +103,33 @@ export function AgentSessionListHeader({
 
         {canManageAgent && (
           <FeedbackButton
+            agentId={agent.id}
+            organizationId={organizationId}
+            projectId={projectId}
+            withBorderBottom={withBorderBottom}
+          />
+        )}
+
+        {isPublished && (
+          <AgentProductionAppCard
+            agentId={agent.id}
+            organizationId={organizationId}
+            projectId={projectId}
+            withBorderBottom={withBorderBottom}
+          />
+        )}
+
+        {canOpenEvaluation && (
+          <AgentEvaluationCard
+            agentType={agent.type}
+            organizationId={organizationId}
+            projectId={projectId}
+            withBorderBottom={withBorderBottom}
+          />
+        )}
+
+        {canManageAgent && (
+          <AgentMembersCard
             agentId={agent.id}
             organizationId={organizationId}
             projectId={projectId}

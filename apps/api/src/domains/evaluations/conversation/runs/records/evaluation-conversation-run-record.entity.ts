@@ -50,6 +50,10 @@ export class EvaluationConversationRunRecord extends ConnectEntityBase {
   @Column({ name: "output", type: "text", nullable: true })
   output!: string | null
 
+  // Null for old runs or agents without fillForm; {} when no field was filled.
+  @Column({ name: "form_state", type: "jsonb", nullable: true })
+  formState!: Record<string, unknown> | null
+
   @Column({ name: "score", type: "int", nullable: true })
   score!: number | null
 

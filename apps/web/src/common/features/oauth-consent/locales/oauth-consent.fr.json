@@ -129,6 +129,7 @@
       }
     },
     "notifications": {
+      "alreadyInstalled": "Quelqu'un vient d'installer cette app sur cet espace. Rechargez la page pour voir qui.",
       "approveError": "L'accès n'a pas pu être accordé"
     },
     "appResource": {
@@ -156,6 +157,16 @@
         "requested": "Ce que {{name}} demande quand on le connecte. La personne qui le connecte choisit ce qu'elle accorde.",
         "granted": "Ce que {{name}} peut faire sur ce projet."
       }
+    },
+    "installedByMe": "Installée par vous. L'installer à nouveau la reconnecte.",
+    "installedBy": "Installée par {{installer}}",
+    "reconnect": "Reconnecter {{name}}",
+    "alreadyInstalled": {
+      "title": "{{name}} est déjà installée sur cet espace",
+      "byMember": "<installer/> l'a installée. Demandez-lui si elle doit être reconnectée ou si ses permissions doivent changer. Pour utiliser {{name}} vous-même, demandez-lui de vous inviter dans l'app.",
+      "byFormerMember": "La personne qui l'a installée ne peut plus gérer les apps de cet espace. Vous pouvez la reconnecter : les permissions que vous accordez ici remplacent ses permissions actuelles, et ses jetons actuels cessent de fonctionner. Vous devenez alors son installateur.",
+      "replace": "Pour remplacer cette installation, révoquez-la depuis les <settings>apps installées</settings> de l'espace, puis installez {{name}} à nouveau. {{name}} s'arrête aussitôt, et les conversations de l'ancienne installation ne sont pas reprises.",
+      "error": "Choisissez un autre espace, ou révoquez d'abord l'installation actuelle."
     }
   }
 }

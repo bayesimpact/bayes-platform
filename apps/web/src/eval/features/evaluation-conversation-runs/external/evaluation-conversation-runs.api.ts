@@ -121,6 +121,7 @@ function toEvaluationConversationRunRecord(
     input: dto.input,
     expectedOutput: dto.expectedOutput,
     output: dto.output,
+    formState: dto.formState ?? null,
     score: dto.score,
     errorDetails: dto.errorDetails,
     traceUrl: dto.traceUrl,

@@ -1,10 +1,13 @@
 import { DOCUMENT_READ_PERMISSION } from "@caseai-connect/api-contracts"
-import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { Grid, GridHeader } from "@/common/components/grid/Grid"
-import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { agentSettingsActions } from "@/common/features/agents/agent-settings/agent-settings.slice"
+import {
+  selectAgentsData,
+  selectAvailableModelsData,
+  selectCurrentAgentData,
+} from "@/common/features/agents/agents.selectors"
+import { agentsActions } from "@/common/features/agents/agents.slice"
+import { DeprecatedModelBanner } from "@/common/features/agents/components/DeprecatedModelBanner"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
@@ -19,21 +22,36 @@ import {
   agentEditorTabKeys,
   type TabKey,
 } from "@/studio/features/agents/components/AgentEditor"
+import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
 import { projectEmbeddingModelsActions } from "@/studio/features/project-embedding-models/project-embedding-models.slice"
 import { selectAgentSettingsDataByAgentId } from "../../common/features/agents/agent-settings/agent-settings.selectors"
-import { AgentSettingsCreateButton } from "../features/agents/agent-settings/components/AgentSettingsCreateButton"
-import { AgentSettingsHistory } from "../features/agents/agent-settings/components/AgentSettingsHistory"
 
+/**
+ * The agent editor, as a page of its own. It sits outside the Studio layout: the editor's menu
+ * takes the place of the Studio sidebar. So it loads what that layout and the agent pages load
+ * for their own screens: the project's model catalog and the agent's settings.
+ */
 export function AgentEditorRoute() {
   const agent = useValue(selectCurrentAgentData)
   const project = useValue(selectCurrentProjectData)
   const subAgents = useAppSelector(selectAgentSubAgentsData)
+  const agentModels = useAppSelector(selectAvailableModelsData)
+  // The project mount lists the MCP servers, and the editor reads them: a deep link can arrive first.
+  const mcpServers = useAppSelector(selectMcpServersData)
   const agentSettings = useAppSelector(
     selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true }),
   )
   const hasOrchestration =
     agent.type === "conversation" && project.featureFlags.includes("agent-orchestration")
 
+  useMount({
+    actions: {
+      mount: agentsActions.mountAvailableModels,
+      unmount: agentsActions.unmountAvailableModels,
+    },
+    refreshOn: [project.id],
+  })
+  useMount({ actions: agentSettingsActions, refreshOn: [agent.id] })
   useMount({ actions: agentSubAgentsActions, condition: hasOrchestration })
   // Listing the project's embedding models needs the right to see its documents.
   useMount({
@@ -45,14 +63,14 @@ export function AgentEditorRoute() {
 
   if (hasOrchestration) {
     return (
-      <AsyncRoute data={[agentSettings, subAgents]}>
+      <AsyncRoute data={[agentSettings, agentModels, subAgents, mcpServers]}>
         <WithOrchestrationData />
       </AsyncRoute>
     )
   }
 
   return (
-    <AsyncRoute data={[agentSettings]}>
+    <AsyncRoute data={[agentSettings, agentModels, mcpServers]}>
       <WithData />
     </AsyncRoute>
   )
@@ -69,13 +87,10 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
   const agentSettings = useValue(
     selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true }),
   )
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const agentRoute = useGetAgentRoute()
-  const handleBack = () => navigate(agentRoute)
-  const [editorDirty, setEditorDirty] = useState(false)
 
-  // Optional deep link: ?tab=embed opens the editor on that tab (falls back to "general").
+  // Optional deep link: ?tab=embed opens the editor on that section (falls back to "general").
   const [searchParams] = useSearchParams()
   const tabParam = searchParams.get("tab")
   const defaultTab = agentEditorTabKeys.includes(tabParam as TabKey)
@@ -83,31 +98,14 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
     : undefined
 
   return (
-    <Grid cols={0}>
-      <GridHeader
-        onBack={handleBack}
-        title={t(`agent:update.${agent.type}.title`)}
-        description={t(`agent:update.${agent.type}.description`)}
-        action={
-          <ButtonGroup>
-            <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
-            <AgentSettingsCreateButton
-              agentSettings={agentSettings}
-              hasUnsavedChanges={editorDirty}
-            />
-          </ButtonGroup>
-        }
-      />
-
-      <AgentEditor
-        key={agent.id}
-        agent={agent}
-        agentSettings={agentSettings}
-        className="bg-white p-6"
-        orchestration={orchestration}
-        defaultTab={defaultTab}
-        onDirtyChange={setEditorDirty}
-      />
-    </Grid>
+    <AgentEditor
+      key={agent.id}
+      agent={agent}
+      agentSettings={agentSettings}
+      orchestration={orchestration}
+      defaultTab={defaultTab}
+      onBack={() => navigate(agentRoute)}
+      banner={<DeprecatedModelBanner model={agentSettings.model} />}
+    />
   )
 }

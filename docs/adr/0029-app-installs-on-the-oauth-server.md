@@ -59,6 +59,19 @@ grant with its refresh token. The service user model does not change.**
   just granted, a new grant replaces the previous ones, and the refresh
   tokens of those stop working. An app that lost its refresh token recovers
   the same way.
+* The person who installed the app reconnects it, as long as they still hold
+  `project.app_installation.create` on the workspace. Meanwhile the approval
+  of anyone else is refused before anything changes, so that nobody cuts a
+  colleague's tokens or rewrites the permissions they granted without
+  knowing it. To replace the installation on purpose, another owner or admin
+  revokes it and installs the app again. The new installation reaches the
+  workspace's document sources, which are not checked against the
+  installation that created them, but not the conversations of the old one.
+* Once the installer can no longer install apps on the workspace (they left
+  it, lost the permission, or no user is recorded), any owner or admin
+  reconnects the app. The consent page says what that does, and whoever
+  approves becomes the installer. The same RBAC check decides what the
+  consent page and the studio show and what the approval accepts.
 * Who installs: workspace owners and admins, through the new project
   permission `project.app_installation.create`, next to the existing
   `project.app_installation.read` and `revoke`. It is never inherited from
@@ -87,7 +100,9 @@ grant with its refresh token. The service user model does not change.**
   which only those endpoints checked.
 * Installations made with the old flow lose their credentials but stay
   active. Their apps cannot call the API until they reconnect from the
-  consent page, which keeps the installation and what is tied to it.
+  consent page, which keeps the installation and what is tied to it. The
+  rule of 2.2 applies: their installer reconnects them, and anyone who can
+  install apps does once the installer no longer can.
 
 ## 3. Consequences
 
