@@ -93,10 +93,11 @@ function registerListeners() {
   })
   listenerMiddleware.startListening({
     actionCreator: setProductionAgentSettings.rejected,
-    effect: async (_, listenerApi) => {
+    effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
           titleKey: "agentSettings:notifications.productionSetError",
+          description: action.payload || undefined,
           type: "error",
         }),
       )

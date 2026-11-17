@@ -169,7 +169,6 @@
       "description": "Browse, compare and restore the versions of {{name}}, and choose the one in production.",
       "loadError": "Failed to load version history",
       "revisionLabel": "Version {{revision}}",
-      "currentBadge": "In production",
       "revisionBadge": "v{{revision}}",
       "revisionBadgeAria": "Version {{revision}} of the agent settings",
       "messageRevisionTooltip": "Answered with version {{revision}}",

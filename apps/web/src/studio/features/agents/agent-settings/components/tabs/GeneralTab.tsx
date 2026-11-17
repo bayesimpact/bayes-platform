@@ -144,9 +144,11 @@ export function GeneralTab({
           control={form.control}
           name="instructions"
           render={({ field }) => {
-            // Always offered once the agent has a saved version, even with no change: nothing to
-            // compare for an agent never saved.
-            const canShowDiff = savedInstructions !== undefined
+            // Always offered once the agent has a saved version, even with no change. Nothing to
+            // compare for an agent never saved, and nothing to show while both texts are empty:
+            // the plain field takes them.
+            const canShowDiff =
+              savedInstructions !== undefined && (savedInstructions !== "" || field.value !== "")
             const isDiffShown = isDiffRequested && canShowDiff
             return (
               <FormItem>

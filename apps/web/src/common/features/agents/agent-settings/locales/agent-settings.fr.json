@@ -169,7 +169,6 @@
       "description": "Parcourez, comparez et restaurez les versions de {{name}}, et choisissez celle en production.",
       "loadError": "Échec du chargement de l'historique des versions",
       "revisionLabel": "Version {{revision}}",
-      "currentBadge": "En production",
       "revisionBadge": "v{{revision}}",
       "revisionBadgeAria": "Version {{revision}} des paramètres de l'agent",
       "messageRevisionTooltip": "Répondu avec la version {{revision}}",

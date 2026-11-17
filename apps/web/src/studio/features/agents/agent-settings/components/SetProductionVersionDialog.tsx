@@ -26,21 +26,27 @@ export function SetProductionVersionDialog({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [isConfirming, setIsConfirming] = useState(false)
+  // The API's reason when the change failed: the dialog stays open on it.
+  const [error, setError] = useState<string | null>(null)
+
+  const handleClose = () => {
+    setError(null)
+    onClose()
+  }
 
   const handleConfirm = async () => {
     if (revision === null) return
     setIsConfirming(true)
-    let isDone = false
-    try {
-      await dispatch(setProductionAgentSettings({ revision })).unwrap()
-      isDone = true
-    } catch {
-      // The agent settings middleware shows the error notification.
-    } finally {
-      setIsConfirming(false)
+    setError(null)
+    const result = await dispatch(setProductionAgentSettings({ revision }))
+    setIsConfirming(false)
+    if (setProductionAgentSettings.fulfilled.match(result)) {
       onClose()
+      onDone?.()
+      return
     }
-    if (isDone) onDone?.()
+    // The agent settings middleware also shows the error notification.
+    setError(result.payload || t("agentSettings:notifications.productionSetError"))
   }
 
   const description = [
@@ -60,8 +66,9 @@ export function SetProductionVersionDialog({
       confirmIcon={<RocketIcon className="size-5" />}
       confirmVariant="default"
       isConfirming={isConfirming}
+      error={error}
       onConfirm={handleConfirm}
-      onCancel={onClose}
+      onCancel={handleClose}
     />
   )
 }

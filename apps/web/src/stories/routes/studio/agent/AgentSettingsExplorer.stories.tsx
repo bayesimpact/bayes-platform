@@ -144,17 +144,20 @@ const olderProductionVersions: AgentSettings[] = [
   ...versions.map((version) => ({ ...version, isProduction: version.revision === 2 })),
 ]
 
+/** The same agent, as the agents list names its versions for that history. */
+const agentWithOlderProduction = agentFactory.transient({ project }).build({
+  id: agent.id,
+  type: agent.type,
+  name: agent.name,
+  currentRevision: { number: 2 },
+  latestSavedRevision: { number: 4 },
+  draftRevision: { number: 5 },
+})
+
 export const OlderVersionInProduction: Story = {
   decorators: [
     withRedux({
-      state: seedHistory(
-        {
-          ...agent,
-          currentRevision: { number: 2, updatedAt: Date.now() },
-          draftRevision: { number: 5, updatedAt: Date.now() },
-        },
-        olderProductionVersions,
-      ),
+      state: seedHistory(agentWithOlderProduction, olderProductionVersions),
     }),
   ],
 }
