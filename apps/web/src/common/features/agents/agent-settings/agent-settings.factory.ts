@@ -75,6 +75,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     variables: (params.variables as Record<string, string> | undefined) ?? null,
     isDraft: !!params.isDraft,
     isArchived: !!params.isArchived,
+    isProduction: !!params.isProduction,
     model: params.model ?? defaultAgentModels.agent,
     projectAgentSessionCategoryIds: params.projectAgentSessionCategoryIds ?? [],
     providerOptions:

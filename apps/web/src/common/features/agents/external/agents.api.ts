@@ -69,6 +69,9 @@ const toAgent = (dto: AgentWithDraftDto): Agent => ({
   permissions: dto.permissions,
   ...(dto.currentRevision && { currentRevision: toAgentRevision(dto.currentRevision) }),
   ...(dto.draftRevision && { draftRevision: toAgentRevision(dto.draftRevision) }),
+  ...(dto.latestSavedRevision && {
+    latestSavedRevision: toAgentRevision(dto.latestSavedRevision),
+  }),
 })
 
 const toAgentRevision = (dto: AgentRevisionDto): AgentRevisionDto => ({

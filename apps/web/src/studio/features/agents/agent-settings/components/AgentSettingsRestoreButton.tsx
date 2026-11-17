@@ -40,7 +40,12 @@ export function AgentSettingsRestoreButton({
   if (!canManageAgent) return null
   return (
     <>
-      <Button size="sm" disabled={disabled || isRestoring} onClick={() => setConfirmOpen(true)}>
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={disabled || isRestoring}
+        onClick={() => setConfirmOpen(true)}
+      >
         <RotateCcwIcon className="size-4" />
         {t("agentSettings:history.restore")}
       </Button>

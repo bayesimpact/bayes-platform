@@ -107,7 +107,10 @@ describe("ReviewCampaigns - createOne", () => {
 
   it("rejects an agent that was never published, such as a fresh copy", async () => {
     const { agent } = await createContext()
-    await repositories.agentSettingsRepository.update({ agentId: agent.id }, { isDraft: true })
+    await repositories.agentSettingsRepository.update(
+      { agentId: agent.id },
+      { isDraft: true, isProduction: false },
+    )
 
     expectResponse(
       await subject({ payload: { agentId: agent.id, name: "Copy Campaign" } }),

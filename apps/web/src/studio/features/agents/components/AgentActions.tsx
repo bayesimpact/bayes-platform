@@ -66,8 +66,9 @@ function NavConversationReview({
 }
 
 /**
- * Opens the agent editor. It says what the editor will open on: the draft when the agent has
- * one (or was never published), the published version otherwise.
+ * Opens the agent editor. It names the version the editor and the playground work on: the draft
+ * when the agent has one, the newest saved version otherwise. That version is green only when it
+ * is also the one in production.
  */
 function NavAgentEdit({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { t } = useTranslation()
@@ -77,7 +78,9 @@ function NavAgentEdit({ organizationId, agent }: { organizationId: string; agent
     projectId: agent.projectId,
     agentId: agent.id,
   })
-  const hasDraft = agent.draftRevision !== undefined || agent.currentRevision === undefined
+  const latestSaved = agent.latestSavedRevision ?? agent.currentRevision
+  const hasDraft = agent.draftRevision !== undefined || latestSaved === undefined
+  const isInProduction = latestSaved?.number === agent.currentRevision?.number
   return (
     <Button variant="outline" onClick={() => navigate(editPath)}>
       <Settings2Icon />
@@ -85,8 +88,8 @@ function NavAgentEdit({ organizationId, agent }: { organizationId: string; agent
       {hasDraft ? (
         <Badge variant="warning">{t("status:draft")}</Badge>
       ) : (
-        <Badge variant="success">
-          {t("agentSettings:history.revisionBadge", { revision: agent.currentRevision?.number })}
+        <Badge variant={isInProduction ? "success" : "secondary"}>
+          {t("agentSettings:history.revisionBadge", { revision: latestSaved?.number })}
         </Badge>
       )}
     </Button>

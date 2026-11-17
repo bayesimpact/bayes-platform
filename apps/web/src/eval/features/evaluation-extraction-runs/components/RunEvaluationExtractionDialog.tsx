@@ -38,7 +38,7 @@ import { z } from "zod"
 import { Loader } from "@/common/components/Loader"
 import { RunScopeSelector } from "@/common/components/shared/RunScopeSelector"
 import {
-  findPublishedVersion,
+  findProductionVersion,
   findVersion,
 } from "@/common/features/agents/agent-settings/agent-settings.functions"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
@@ -221,7 +221,7 @@ function RunEvaluationExtractionForm({
   // an agent that was never published, such as a fresh copy.
   const effectiveRevision =
     selectedRevision ??
-    (history ? ((findPublishedVersion(history) ?? history[0])?.revision ?? null) : null)
+    (history ? ((findProductionVersion(history) ?? history[0])?.revision ?? null) : null)
   const selectedVersion =
     history && effectiveRevision !== null ? findVersion(history, effectiveRevision) : undefined
 
@@ -434,13 +434,13 @@ function AgentVersionField({
 }) {
   const { t } = useTranslation()
 
-  // The newest non-draft revision: the one the agent actually runs with.
-  const publishedRevision = findPublishedVersion(history)?.revision
+  // The revision in production: the one the app, the embed and the public API run.
+  const productionRevision = findProductionVersion(history)?.revision
 
   const buildVersionDetail = (agentVersion: AgentSettings) => {
     if (agentVersion.isDraft) return t("status:draft")
-    if (agentVersion.revision === publishedRevision)
-      return t("evaluationExtractionRun:version.current", {
+    if (agentVersion.revision === productionRevision)
+      return t("evaluationExtractionRun:version.production", {
         date: buildDate(agentVersion.updatedAt),
       })
     return buildDate(agentVersion.updatedAt)

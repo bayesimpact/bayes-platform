@@ -101,7 +101,7 @@ export type McpEvaluationRunRecord = {
 
 export type McpPage<Item> = { items: Item[]; total: number; page: number; limit: number }
 
-/** The agent version a run evaluates: a revision number, the draft, or the latest published one. */
+/** The agent version a run evaluates: a revision number, the draft, or the one in production. */
 export type McpAgentRevisionChoice = number | "draft" | undefined
 
 /**
@@ -380,7 +380,7 @@ export class McpEvaluationToolsService {
   }
 
   /**
-   * The settings the run pins: a given revision, the draft, or the latest published one. The
+   * The settings the run pins: a given revision, the draft, or the one in production. The
    * person must see the agent, and its draft when the revision is one.
    */
   private async resolveAgentSettings(
@@ -395,7 +395,7 @@ export class McpEvaluationToolsService {
     const { agentId, agentRevision } = input
     const settings =
       agentRevision === undefined
-        ? await this.agentSettingsService.findLastPublished({ connectScope, agentId })
+        ? await this.agentSettingsService.findProduction({ connectScope, agentId })
         : agentRevision === "draft"
           ? await this.findDraft(connectScope, agentId)
           : await this.agentSettingsService.get({ connectScope, agentId, revision: agentRevision })

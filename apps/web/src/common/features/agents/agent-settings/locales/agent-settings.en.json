@@ -132,7 +132,8 @@
       "unsaved": "Unsaved changes",
       "refused": "This change could not be saved",
       "unsavedBeforeVersions": "Fix the unsaved changes before you manage versions",
-      "publishedVersion": "Version {{revision}} · published"
+      "productionVersion": "v{{revision}} · in production",
+      "savedVersion": "v{{revision}} · saved"
     },
     "liveSettings": {
       "immediate": "A change here applies at once <strong>in production</strong>.",
@@ -152,27 +153,29 @@
         "placeholders": {
           "revisionName": "Name this version",
           "revisionDesc": "Describe what changed in this version"
-        }
+        },
+        "setAsProduction": "Put this version in production"
       },
       "dialog": {
         "title": "Save version {{revision}}?",
-        "description": "Version {{revision}} becomes the settings this agent runs with. Later changes start a new draft version.",
+        "description": "Version {{revision}} is frozen. Later changes start a new draft version.",
         "submit": "Save version"
-      }
+      },
+      "setAsProductionDescription": "The app, the embed and the public API will start new conversations with it. Otherwise version {{current}} stays in production.",
+      "firstVersionProduction": "This is the first saved version of the agent, so it goes in production."
     },
     "history": {
       "title": "Version history",
-      "description": "Browse, compare and restore previous settings of {{name}}.",
+      "description": "Browse, compare and restore the versions of {{name}}, and choose the one in production.",
       "loadError": "Failed to load version history",
       "revisionLabel": "Version {{revision}}",
-      "currentBadge": "Current",
       "revisionBadge": "v{{revision}}",
       "revisionBadgeAria": "Version {{revision}} of the agent settings",
       "messageRevisionTooltip": "Answered with version {{revision}}",
       "runRevisionTooltip": "Extracted with version {{revision}}",
       "headerRevisionTooltip": "New messages run with version {{revision}}",
       "compareWithPrevious": "Changes in this version",
-      "compareWithCurrent": "Compare with current",
+      "compareWithCurrent": "Compare with production",
       "compareWithDraft": "Compare with draft",
       "comparing": "Showing changes from version {{before}} to version {{after}}.",
       "noChangesTitle": "No differences",
@@ -182,7 +185,7 @@
       "restore": "Restore this version",
       "restoreDialog": {
         "title": "Restore version {{revision}}?",
-        "description": "The settings of version {{revision}} will be copied as a new version and become the current settings. No version is deleted."
+        "description": "The settings of version {{revision}} are copied into the draft, so you can edit them and save them as a new version. The version in production does not change."
       },
       "draft": "Draft",
       "manage": "Manage versions",
@@ -195,7 +198,7 @@
       "extractionAriaLabel": "Settings version extractions run with",
       "placeholder": "Select a version",
       "item": "v{{revision}} — {{detail}}",
-      "current": "Current ({{date}})"
+      "current": "In production ({{date}})"
     },
     "orchestration": {
       "selectedTitle": "Sub-agents",
@@ -307,12 +310,14 @@
     "notifications": {
       "versionRestored": "Agent version restored successfully",
       "versionRestoreError": "Agent version restore failed",
-      "versionPublished": "Agent version published successfully",
+      "versionPublished": "Agent version saved",
       "versionPublishError": "Agent version publication failed",
       "embedConfigUpdated": "Embed config updated successfully",
       "embedConfigUpdateError": "Failed to update embed config",
       "subAgentsUpdated": "Sub-agents updated successfully",
-      "subAgentsUpdateError": "Failed to update sub-agents"
+      "subAgentsUpdateError": "Failed to update sub-agents",
+      "productionSet": "Version {{revision}} is now in production",
+      "productionSetError": "Could not change the version in production"
     },
     "sources": {
       "documents": {
@@ -320,6 +325,20 @@
         "description": "The project's documents the agent searches to answer.",
         "embeddingModel": "Embedding model: {{model}}"
       }
+    },
+    "production": {
+      "badge": "In production",
+      "saved": "Saved",
+      "none": "Not in production",
+      "noneDescription": "Save a version to make this agent available in the app, the embed and the public API.",
+      "set": "Put in production",
+      "dialog": {
+        "title": "Put version {{revision}} in production?",
+        "description": "The app, the embed, the public API and the agents that call this one will start new conversations with version {{revision}}. Conversations already started keep their version.",
+        "replaces": "Version {{current}} leaves production. It stays in the history, and you can put it back at any time."
+      },
+      "description": "The app, the embed and the public API start new conversations with this version.",
+      "openHistory": "Open the version history to change the version in production"
     }
   }
 }

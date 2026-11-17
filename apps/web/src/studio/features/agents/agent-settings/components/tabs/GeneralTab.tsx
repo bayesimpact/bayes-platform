@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import {
   agentSettingsDiffFileNames,
-  findPublishedVersion,
+  findLatestSavedVersion,
 } from "@/common/features/agents/agent-settings/agent-settings.functions"
 import { selectAgentSettingsHistoryDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsGeneral } from "@/common/features/agents/agent-settings/agent-settings.thunks"
@@ -44,9 +44,11 @@ export function GeneralTab({
   saveControl,
 }: AgentTabFormProps & { agent: Agent }) {
   const [isDiffRequested, setIsDiffRequested] = useState(false)
-  // Undefined for an agent that was never published: it has nothing to compare with.
+  // The draft is compared with the newest saved version, the one it started from, not with the
+  // version in production, which can be older. Undefined for an agent never saved: it has nothing
+  // to compare with. Without a draft the field holds that same version: the diff shows no change.
   const versions = useAppSelector(selectAgentSettingsHistoryDataByAgentId({ agentId: agent.id }))
-  const publishedInstructions = findPublishedVersion(versions.value ?? [])?.instructions
+  const savedInstructions = findLatestSavedVersion(versions.value ?? [])?.instructions
   const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const hasGreetingMessage = agent.type === "conversation"
@@ -142,13 +144,12 @@ export function GeneralTab({
           control={form.control}
           name="instructions"
           render={({ field }) => {
-            // Nothing to compare for an agent that was never published.
-            const isDiffShown = isDiffRequested && publishedInstructions !== undefined
-            // The button stays while the diff is open, even once the text is back to the
-            // published one: the diff must not close under the user's cursor.
+            // Always offered once the agent has a saved version, even with no change. Nothing to
+            // compare for an agent never saved, and nothing to show while both texts are empty:
+            // the plain field takes them.
             const canShowDiff =
-              isDiffShown ||
-              (publishedInstructions !== undefined && field.value !== publishedInstructions)
+              savedInstructions !== undefined && (savedInstructions !== "" || field.value !== "")
+            const isDiffShown = isDiffRequested && canShowDiff
             return (
               <FormItem>
                 <div className="flex min-h-8 items-center justify-between gap-4">
@@ -175,15 +176,15 @@ export function GeneralTab({
                   )}
                 </div>
                 {isDiffShown ? (
-                  // The diff with the published instructions takes the place of the field, and
-                  // the instructions are edited in it.
+                  // The diff with the saved instructions takes the place of the field, and the
+                  // instructions are edited in it.
                   <TextDiff
-                    // The editor keeps the text it was opened with: a new published version
-                    // must restart it from the field, or the next keystroke would bring the
-                    // old text back.
-                    key={publishedInstructions}
+                    // The editor keeps the text it was opened with: a newly saved version must
+                    // restart it from the field, or the next keystroke would bring the old text
+                    // back.
+                    key={savedInstructions}
                     name={agentSettingsDiffFileNames.instructions}
-                    before={publishedInstructions}
+                    before={savedInstructions}
                     after={field.value}
                     onChange={field.onChange}
                   />

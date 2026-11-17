@@ -35,11 +35,13 @@ export function toAgentWithDraftDto({
   agent,
   currentAgentSettings,
   draftAgentSettings,
+  latestSavedAgentSettings,
   permissions,
 }: {
   agent: Agent
   currentAgentSettings?: AgentSettings
   draftAgentSettings?: AgentSettings
+  latestSavedAgentSettings?: AgentSettings
   permissions: string[]
 }): AgentWithDraftDto {
   return {
@@ -47,6 +49,9 @@ export function toAgentWithDraftDto({
     id: agent.id,
     currentRevision: currentAgentSettings ? toAgentRevisionDto(currentAgentSettings) : undefined,
     draftRevision: draftAgentSettings ? toAgentRevisionDto(draftAgentSettings) : undefined,
+    latestSavedRevision: latestSavedAgentSettings
+      ? toAgentRevisionDto(latestSavedAgentSettings)
+      : undefined,
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,

@@ -256,10 +256,13 @@ describe("PublicChat - streamReply and streamMessages", () => {
       }),
     )
     const childSettings = await repositories.agentSettingsRepository.save(
-      agentSettingsFactory.transient({ organization, project, agent: child }).build({
-        fillFormEnabled: true,
-        outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
-      }),
+      agentSettingsFactory
+        .production()
+        .transient({ organization, project, agent: child })
+        .build({
+          fillFormEnabled: true,
+          outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
+        }),
     )
     await repositories.agentSubAgentRepository.save(
       agentSubAgentFactory

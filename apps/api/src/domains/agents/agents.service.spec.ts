@@ -416,10 +416,9 @@ describe("AgentsService", () => {
       expect(updatedAgent?.name).toBe("Updated Template")
 
       // Renaming an agent must not create a new settings revision.
-      const lastAgentSettings = await agentSettingsService.getLast({
+      const lastAgentSettings = await agentSettingsService.getLatest({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
-        includesDraft: true,
       })
       expect(lastAgentSettings.revision).toBe(agentSettings.revision)
       expect(lastAgentSettings.isDraft).toBeFalsy()

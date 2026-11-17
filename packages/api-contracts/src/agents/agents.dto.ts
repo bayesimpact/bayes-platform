@@ -40,6 +40,12 @@ export type AgentDto = {
 export type AgentWithDraftDto = Omit<AgentDto, "currentRevision"> & {
   currentRevision?: AgentRevisionDto
   draftRevision?: AgentRevisionDto
+  /**
+   * The newest saved revision, which the playground runs when there is no draft. It is newer
+   * than `currentRevision` when the managers keep an older version in production. Missing while
+   * the agent was never saved.
+   */
+  latestSavedRevision?: AgentRevisionDto
 }
 
 const agentSubAgentToolNameSchema = z

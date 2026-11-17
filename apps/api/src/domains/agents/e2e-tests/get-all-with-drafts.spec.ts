@@ -85,6 +85,7 @@ describe("Agents - getAllWithDrafts", () => {
       revisionDesc?: string
       isDraft?: boolean
       isArchived?: boolean
+      isProduction?: boolean
     }>
   }) => {
     const agent = agentFactory.transient({ organization, project }).build({ name })
@@ -105,7 +106,12 @@ describe("Agents - getAllWithDrafts", () => {
       user,
       name: "Drafted Agent",
       revisions: [
-        { revision: 1, revisionName: "Published", revisionDesc: "Live for everyone" },
+        {
+          revision: 1,
+          revisionName: "Published",
+          revisionDesc: "Live for everyone",
+          isProduction: true,
+        },
         { revision: 2, revisionName: "Draft", revisionDesc: "Work in progress", isDraft: true },
       ],
     })
@@ -142,7 +148,7 @@ describe("Agents - getAllWithDrafts", () => {
       project,
       user,
       name: "Clean Agent",
-      revisions: [{ revision: 1, revisionName: "Published" }],
+      revisions: [{ revision: 1, revisionName: "Published", isProduction: true }],
     })
 
     const response = await subject()
@@ -153,7 +159,7 @@ describe("Agents - getAllWithDrafts", () => {
     expect(response.body.data[0]?.draftRevision).toBeUndefined()
   })
 
-  it("should report the latest published revision as current when a draft was published", async () => {
+  it("should report the revision in production as current when a draft was published", async () => {
     const { organization, project, user } = await createContext()
     await createAgentWithRevisions({
       organization,
@@ -162,7 +168,7 @@ describe("Agents - getAllWithDrafts", () => {
       name: "Republished Agent",
       revisions: [
         { revision: 1, revisionName: "First" },
-        { revision: 2, revisionName: "Second" },
+        { revision: 2, revisionName: "Second", isProduction: true },
       ],
     })
 
@@ -174,6 +180,50 @@ describe("Agents - getAllWithDrafts", () => {
     expect(response.body.data[0]?.draftRevision).toBeUndefined()
   })
 
+  it("should return the newest saved revision when an older one is in production", async () => {
+    const { organization, project, user } = await createContext()
+    await createAgentWithRevisions({
+      organization,
+      project,
+      user,
+      name: "Older In Production",
+      revisions: [
+        { revision: 1, revisionName: "First", isProduction: true },
+        { revision: 2, revisionName: "Second" },
+        { revision: 3, revisionName: "Archived", isArchived: true },
+        { revision: 4, revisionName: "Draft", isDraft: true },
+      ],
+    })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data[0]?.currentRevision?.number).toBe(1)
+    expect(response.body.data[0]?.latestSavedRevision?.number).toBe(2)
+    expect(response.body.data[0]?.latestSavedRevision?.name).toBe("Second")
+    expect(response.body.data[0]?.draftRevision?.number).toBe(4)
+  })
+
+  it("should return the newest revision as the latest saved one when there is no draft", async () => {
+    const { organization, project, user } = await createContext()
+    await createAgentWithRevisions({
+      organization,
+      project,
+      user,
+      name: "No Draft",
+      revisions: [
+        { revision: 1, isProduction: true },
+        { revision: 2, revisionName: "Newest" },
+      ],
+    })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data[0]?.latestSavedRevision?.number).toBe(2)
+    expect(response.body.data[0]?.draftRevision).toBeUndefined()
+  })
+
   it("should skip archived revisions when resolving the current revision", async () => {
     const { organization, project, user } = await createContext()
     await createAgentWithRevisions({
@@ -182,7 +232,7 @@ describe("Agents - getAllWithDrafts", () => {
       user,
       name: "Archived Agent",
       revisions: [
-        { revision: 1, revisionName: "First" },
+        { revision: 1, revisionName: "First", isProduction: true },
         { revision: 2, revisionName: "Archived", isArchived: true },
       ],
     })
@@ -201,14 +251,17 @@ describe("Agents - getAllWithDrafts", () => {
       project,
       user,
       name: "With Draft",
-      revisions: [{ revision: 1 }, { revision: 2, isDraft: true }],
+      revisions: [
+        { revision: 1, isProduction: true },
+        { revision: 2, isDraft: true },
+      ],
     })
     await createAgentWithRevisions({
       organization,
       project,
       user,
       name: "Without Draft",
-      revisions: [{ revision: 1 }],
+      revisions: [{ revision: 1, isProduction: true }],
     })
 
     const response = await subject()
@@ -234,7 +287,7 @@ describe("Agents - getAllWithDrafts", () => {
       project,
       user,
       name: "Published Agent",
-      revisions: [{ revision: 1 }],
+      revisions: [{ revision: 1, isProduction: true }],
     })
 
     const response = await subject()
@@ -242,6 +295,7 @@ describe("Agents - getAllWithDrafts", () => {
     expectResponse(response, 200)
     const byName = new Map(response.body.data.map((agent) => [agent.name, agent]))
     expect(byName.get("Copied Agent")?.currentRevision).toBeUndefined()
+    expect(byName.get("Copied Agent")?.latestSavedRevision).toBeUndefined()
     expect(byName.get("Copied Agent")?.draftRevision?.number).toBe(1)
     expect(byName.get("Published Agent")?.currentRevision?.number).toBe(1)
   })

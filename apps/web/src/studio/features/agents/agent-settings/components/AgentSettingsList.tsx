@@ -1,8 +1,8 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
 import { cn } from "@caseai-connect/ui/utils"
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import { buildDate, buildSince } from "@/common/utils/build-date"
+import { AgentRevisionStatusBadge } from "./AgentRevisionStatusBadge"
 
 /** Timeline of an agent's settings revisions, newest first. */
 export function AgentSettingsList({
@@ -15,9 +15,6 @@ export function AgentSettingsList({
   onSelect: (revision: number) => void
 }) {
   const { t } = useTranslation()
-  // The published revision the agent actually runs with: the newest one that is not a draft.
-  const currentRevision = versions.find((version) => !version.isDraft)?.revision
-
   return (
     <aside className="w-fit min-w-52 max-w-72 shrink-0 overflow-y-auto border-r">
       <ol>
@@ -34,9 +31,8 @@ export function AgentSettingsList({
             >
               <span className="flex items-center justify-between gap-2 text-sm font-medium">
                 {t("agentSettings:history.revisionLabel", { revision: version.revision })}
-                {version.isDraft && <Badge variant="warning">{t("status:draft")}</Badge>}
-                {version.revision === currentRevision && (
-                  <Badge variant="success">{t("agentSettings:history.currentBadge")}</Badge>
+                {(version.isDraft || version.isProduction) && (
+                  <AgentRevisionStatusBadge version={version} />
                 )}
               </span>
               {version.name?.trim() && (

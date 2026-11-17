@@ -105,7 +105,7 @@ export class EvaluationExtractionRunsController {
     agentSettingsRevision: number | null | undefined
   }) {
     if (typeof agentSettingsRevision !== "number") {
-      return this.agentSettingsService.getLast({ connectScope, agentId })
+      return this.agentSettingsService.getProduction({ connectScope, agentId })
     }
     if (
       !(

@@ -125,6 +125,12 @@ export type AgentSettingsDto = {
   variables: Record<string, string> | null
   isArchived: boolean
   isDraft: boolean
+  /**
+   * The saved revision every live channel runs with (Desk, embed, public API, sub-agents...).
+   * Chosen by the agent's managers: saving a new revision does not move it, except the very
+   * first one. At most one revision per agent carries it, and never the draft.
+   */
+  isProduction: boolean
   mcpServers: AgentMcpServerDto[]
   model: AgentModel
   name?: string
@@ -399,5 +405,10 @@ export type PartialUpdateAgentSettingsDto = z.infer<typeof partialUpdateAgentSet
 export const agentSettingsCreateSchema = z.object({
   revisionName: z.string().optional(),
   revisionDesc: z.string().optional(),
+  /**
+   * Also make the saved revision the production one. Ignored for the agent's first saved
+   * revision, which always becomes production since there is nothing else to run.
+   */
+  setAsProduction: z.boolean().optional(),
 })
 export type CreateAgentSettingsDto = z.infer<typeof agentSettingsCreateSchema>

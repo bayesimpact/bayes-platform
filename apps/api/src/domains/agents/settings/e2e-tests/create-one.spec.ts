@@ -86,6 +86,13 @@ describe("Agent Settings - createOne", () => {
     return { organization, project, agent, user }
   }
 
+  const findProductionRevision = async () =>
+    (
+      await repositories.agentSettingsRepository.findOne({
+        where: { agentId, isProduction: true },
+      })
+    )?.revision
+
   const subject = async (payload?: typeof AgentSettingsRoutes.createOne.request) =>
     request({
       route: AgentSettingsRoutes.createOne,
@@ -121,16 +128,43 @@ describe("Agent Settings - createOne", () => {
     expect(updatedAgentSettings?.revisionName).toBe("revisionName")
     expect(updatedAgentSettings?.revisionDesc).toBe("revisionDesc")
     await expectActivityCreated("agentSettings.create")
+    // Saving a version does not move production.
+    expect(await findProductionRevision()).toBe(1)
   })
-  it("should updated a published revision - not draft", async () => {
+
+  it("should put the saved version in production when asked", async () => {
     await createContext()
 
-    const initialAgentSettings = await repositories.agentSettingsRepository.findOne({
-      where: { agentId, revision: 1 },
+    revision = "3"
+    const response = await subject({
+      payload: { revisionName: "revisionName", setAsProduction: true },
     })
-    expect(initialAgentSettings?.isDraft).toBeFalsy()
-    expect(initialAgentSettings?.revisionName).not.toBe("revisionName")
-    expect(initialAgentSettings?.revisionDesc).not.toBe("revisionDesc")
+    expectResponse(response, 201)
+
+    expect(await findProductionRevision()).toBe(3)
+  })
+
+  it("should put the first saved version in production", async () => {
+    const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
+      agentSettings: { ...agentSettingsValuesRev1, isDraft: true },
+    })
+    organizationId = organization.id
+    projectId = project.id
+    agentId = agent.id
+    authSubject = user.authSubject!
+    expect(await findProductionRevision()).toBeUndefined()
+
+    revision = "1"
+    const response = await subject({ payload: { revisionName: "First version" } })
+    expectResponse(response, 201)
+
+    expect(await findProductionRevision()).toBe(1)
+  })
+
+  it("should rename a saved version out of production", async () => {
+    await createContext()
+    revision = "3"
+    expectResponse(await subject({ payload: { setAsProduction: true } }), 201)
 
     revision = "1"
     const response = await subject({
@@ -148,7 +182,26 @@ describe("Agent Settings - createOne", () => {
     expect(updatedAgentSettings?.isDraft).toBeFalsy()
     expect(updatedAgentSettings?.revisionName).toBe("revisionName")
     expect(updatedAgentSettings?.revisionDesc).toBe("revisionDesc")
-    await expectActivityCreated("agentSettings.create")
+    expect(await findProductionRevision()).toBe(3)
+  })
+
+  it("should refuse to change the version in production", async () => {
+    await createContext()
+
+    revision = "1"
+    const response = await subject({
+      payload: {
+        revisionName: "revisionName",
+        revisionDesc: "revisionDesc",
+      },
+    })
+    expectResponse(response, 422, "The version in production cannot be changed")
+
+    const productionSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 1 },
+    })
+    expect(productionSettings?.revisionName).toBe("FirstRev")
+    expect(productionSettings?.revisionDesc).toBe("The first revision")
   })
   it("should fail with an archived revision - archived", async () => {
     await createContext()

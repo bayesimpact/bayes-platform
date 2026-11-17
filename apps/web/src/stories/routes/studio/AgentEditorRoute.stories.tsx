@@ -16,11 +16,14 @@ import { conversationAgentSessionFactory } from "@/common/features/agents/agent-
 import type { IConversationAgentSessionsSpi } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.spi"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
-import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import { runtimeConfig } from "@/config/runtime-config"
 import { buildDecorator, render } from "@/stories/decorators"
+import {
+  buildAgentVersions,
+  buildAgentVersionsBackend,
+} from "@/stories/routes/studio/agent/agent-versions"
 import {
   buildStudioData,
   type StudioStoryArgs,
@@ -53,35 +56,15 @@ type StoryArgs = StudioStoryArgs & {
   withSources?: boolean
   /** The agent suggests follow-up questions, with instructions (Tools tab). */
   withFollowUpQuestions?: boolean
-}
-
-/** Older revisions of the agent so the version history sheet has content to compare. */
-function buildVersions(agentSettings: AgentSettings): AgentSettings[] {
-  return [
-    { ...agentSettings },
-    {
-      ...agentSettings,
-      revision: 2,
-      isDraft: false,
-      name: "Stricter sourcing",
-      description: "Requires the agent to cite a source for every factual claim.",
-      instructions: `${agentSettings.instructions}\nAlways cite your sources.`,
-    },
-    {
-      ...agentSettings,
-      revision: 1,
-      isDraft: false,
-      name: "Initial setup",
-      instructions: "You are a helpful assistant.",
-    },
-  ]
+  /** Saved revision in production; the newest saved one when unset. */
+  productionRevision?: number
 }
 
 /** Serves the seeded data back so history/restore interactions work inside the story. */
-function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
+function buildMockAgentsService(listAgents: () => Agent[]): IAgentsSpi {
   return {
-    getAll: async () => agents,
-    getAllWithDrafts: async () => agents,
+    getAll: async () => listAgents(),
+    getAllWithDrafts: async () => listAgents(),
     getAvailableModels: async () => agentModelsCatalogFactory.build(),
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
@@ -94,24 +77,6 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
     deleteOne: async () => {
       throw new Error("deleteOne is not supported in this story")
     },
-  }
-}
-function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): IAgentSettingsSpi {
-  return {
-    getAllWithDraft: async () => agentSettingsHistory,
-    getFillFormOutputJsonSchema: async ({ revision }) =>
-      agentSettingsHistory.find((agentSettings) => agentSettings.revision === revision)
-        ?.outputJsonSchema,
-
-    restoreOne: async () => {
-      throw new Error("restoreOne is not supported in this story")
-    },
-    createOne: async () => {
-      throw new Error("createOne is not supported in this story")
-    },
-    // The editor saves each change by itself: the story accepts the save and keeps its seeded
-    // data, so the forms must hold what the user typed.
-    updateOne: async () => ({ success: true }),
   }
 }
 function buildMockProjectEmbeddingModelsService(
@@ -155,6 +120,7 @@ const meta = {
     withEmbeddingModels: { control: "boolean" },
     withSources: { control: "boolean" },
     withFollowUpQuestions: { control: "boolean" },
+    productionRevision: { control: { type: "number", min: 1 } },
   },
   args: {
     ...studioStoryArgs,
@@ -187,6 +153,7 @@ export const ConversationAgent: Story = {
         withEmbeddingModels,
         withSources,
         withFollowUpQuestions,
+        productionRevision,
         ...args
       }) => {
         const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
@@ -271,10 +238,24 @@ export const ConversationAgent: Story = {
               ]
             : []
 
-        const allAgents = [rawParentAgent, ...childAgents]
-        const versions = unpublished
-          ? [{ ...parentAgentSettings, revision: 1, isDraft: true }]
-          : buildVersions(parentAgentSettings)
+        // A copy never saved only has its draft; otherwise saved revisions, the draft on top.
+        const backend = buildAgentVersionsBackend(
+          unpublished
+            ? {
+                agent: rawParentAgent,
+                versions: [{ ...parentAgentSettings, revision: 1, isDraft: true }],
+              }
+            : buildAgentVersions({
+                agent: rawParentAgent,
+                base: parentAgentSettings,
+                savedCount: withDraft ? 2 : 3,
+                productionRevision,
+                withDraft,
+              }),
+        )
+        const parentAgent = backend.getAgent()
+        const allAgents = [parentAgent, ...childAgents]
+        const versions = backend.getVersions()
 
         return {
           state: mergeSeeds(
@@ -304,14 +285,23 @@ export const ConversationAgent: Story = {
             embeddingSeeds,
           ),
           services: {
-            agents: buildMockAgentsService(allAgents),
-            agentSettings: buildMockAgentSettingsService(versions),
+            agents: buildMockAgentsService(() => [backend.getAgent(), ...childAgents]),
+            agentSettings: backend.agentSettings,
             projectEmbeddingModels: buildMockProjectEmbeddingModelsService(embeddingModels),
           },
         }
       },
     ),
   ],
+}
+
+/**
+ * The managers keep version 1 in production while versions 2 and 3 are saved: the editor works on
+ * the newest one, and the header says plainly that another version is live.
+ */
+export const ConversationAgentOlderVersionInProduction: Story = {
+  args: { withDraft: false, productionRevision: 1 },
+  decorators: ConversationAgent.decorators,
 }
 
 /** A fresh copy of an agent opens here: its settings are a draft that was never published. */
@@ -398,6 +388,7 @@ export const GeneralTabWithPromptVariables: Story = {
         description: "Answers questions about a given topic.",
         revision: 3,
         isDraft: false,
+        isProduction: true,
         model: defaultAgentModels.agent,
         instructions: "You are a helpful assistant. Answer the user's questions about {{topic}}.",
         variables: { topic: "The new pricing page" } as Record<string, string>,
@@ -413,8 +404,9 @@ export const GeneralTabWithPromptVariables: Story = {
           seed.studio.mcpServers([]),
         ),
         services: {
-          agents: buildMockAgentsService([agent]),
-          agentSettings: buildMockAgentSettingsService([agentSettings]),
+          agents: buildMockAgentsService(() => [agent]),
+          agentSettings: buildAgentVersionsBackend({ agent, versions: [agentSettings] })
+            .agentSettings,
         },
       }
     }),
@@ -455,6 +447,7 @@ export const PlaygroundSessionStartWithPromptVariables: Story = {
         description: "Answers questions about a given topic.",
         revision: 3,
         isDraft: false,
+        isProduction: true,
         model: defaultAgentModels.agent,
         instructions: "You are a helpful assistant. Answer the user's questions about {{topic}}.",
         variables: { topic: "The new pricing page" } as Record<string, string>,
@@ -470,8 +463,9 @@ export const PlaygroundSessionStartWithPromptVariables: Story = {
           seed.studio.mcpServers([]),
         ),
         services: {
-          agents: buildMockAgentsService([agent]),
-          agentSettings: buildMockAgentSettingsService([agentSettings]),
+          agents: buildMockAgentsService(() => [agent]),
+          agentSettings: buildAgentVersionsBackend({ agent, versions: [agentSettings] })
+            .agentSettings,
           conversationAgentSessions: buildMockConversationAgentSessionsService(),
         },
       }
@@ -567,11 +561,15 @@ export const ExtractionAgent: Story = {
         instructions: "Extract the title and summary of the document.",
         revision: 1,
         isDraft: false,
+        isProduction: true,
         model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
       })
       // With a draft, an unpublished revision 2 sits on top of the published revision 1.
       const versions = withDraft
-        ? [{ ...publishedSettings, revision: 2, isDraft: true }, publishedSettings]
+        ? [
+            { ...publishedSettings, revision: 2, isDraft: true, isProduction: false },
+            publishedSettings,
+          ]
         : [publishedSettings]
 
       return {
@@ -583,8 +581,8 @@ export const ExtractionAgent: Story = {
           seed.studio.mcpServers([]),
         ),
         services: {
-          agents: buildMockAgentsService([agent]),
-          agentSettings: buildMockAgentSettingsService(versions),
+          agents: buildMockAgentsService(() => [agent]),
+          agentSettings: buildAgentVersionsBackend({ agent, versions }).agentSettings,
         },
       }
     }),

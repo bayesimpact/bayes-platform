@@ -30,6 +30,10 @@ export const AgentSettingsRoutes = {
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId/settings/:revision/createOne",
   }),
+  setProduction: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/settings/:revision/setProduction",
+  }),
   archiveOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId/settings/:revision/archiveOne",

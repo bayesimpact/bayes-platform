@@ -135,7 +135,7 @@ export async function buildSubAgentTools({
   })
   // A sub-agent answers with its published settings: one that was never published, such as a
   // fresh copy, is not offered until it is.
-  const publishedChildAgentIds = await agentSettingsService.listPublishedAgentIds({
+  const publishedChildAgentIds = await agentSettingsService.listAgentIdsInProduction({
     connectScope,
     agentIds: subAgents.map((subAgent) => subAgent.childAgentId),
   })
@@ -247,7 +247,7 @@ async function runSubAgentTool({
       `Sub-agent "${childAgent.name}" (${childAgent.id}) is an extraction agent, which is not supported as a sub-agent.`,
     )
   }
-  const childAgentSettings = await agentSettingsService.getLast({
+  const childAgentSettings = await agentSettingsService.getProduction({
     connectScope: agentSessionScope.connectScope,
     agentId: childAgent.id,
   })

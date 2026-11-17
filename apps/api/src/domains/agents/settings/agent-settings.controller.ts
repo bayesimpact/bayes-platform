@@ -149,19 +149,37 @@ export class AgentSettingsController {
         `Revision ${revision} not found for agent with id ${request.agent.id}`,
       )
     }
-    const { revisionName, revisionDesc } = payload
+    const { revisionName, revisionDesc, setAsProduction } = payload
     const updated = await this.agentSettingsService.publish({
       connectScope,
       agentId: request.agent.id,
       revision,
       revisionName,
       revisionDesc,
+      setAsProduction,
     })
     if (!updated) {
       throw new UnprocessableEntityException(
         `Unable to publish revision ${revision} for agent with id ${request.agent.id}`,
       )
     }
+    return { data: { success: true } }
+  }
+
+  // Picks the saved revision every live channel runs with. Whoever may save a version may choose
+  // it: saving used to be what moved production.
+  @Post(AgentSettingsRoutes.setProduction.path)
+  @CheckPermission(AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION, "agent")
+  @TrackActivity({ action: "agentSettings.setProduction", entityFrom: "agent" })
+  async setProduction(
+    @Req() request: EndpointRequestWithAgent,
+    @Param("revision") revisionParam: string,
+  ): Promise<typeof AgentSettingsRoutes.setProduction.response> {
+    await this.agentSettingsService.setProduction({
+      connectScope: getRequiredConnectScope(request),
+      agentId: request.agent.id,
+      revision: parseRevision(revisionParam),
+    })
     return { data: { success: true } }
   }
 

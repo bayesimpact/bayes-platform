@@ -62,11 +62,13 @@ describe("Agent Settings - archiveOne", () => {
   })
 
   const createContext = async () => {
+    // Revision 1 is saved but out of production, so it may be archived.
     const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
       agentSettings: {
         ...agentSettingsValuesRev1,
         revisionName: "FirstRev",
         revisionDesc: "The first revision",
+        isProduction: false,
       },
     })
     const agentSettings2 = agentSettingsFactory
@@ -112,6 +114,23 @@ describe("Agent Settings - archiveOne", () => {
     })
     expect(updatedAgentSettings?.isArchived).toBeTruthy()
     await expectActivityCreated("agentSettings.archive")
+  })
+
+  it("should refuse to archive the version in production", async () => {
+    await createContext()
+    await repositories.agentSettingsRepository.update(
+      { agentId, revision: 1 },
+      { isProduction: true },
+    )
+
+    revision = "1"
+    const response = await subject()
+    expectResponse(response, 422, "The version in production cannot be archived")
+
+    const productionSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 1 },
+    })
+    expect(productionSettings?.isArchived).toBe(false)
   })
 
   it("should fail with a draft revision - draft", async () => {

@@ -102,7 +102,7 @@ export abstract class ExtractionAgentSessionsController {
    * A playground run with no explicit revision uses the draft when there is one. The extraction
    * screen renders before its settings history has loaded, so the client cannot always name a
    * revision, and defaulting that window to the published one would run a version the picker does
-   * not claim. A live run keeps using the newest published revision; it can never reach here with
+   * not claim. A live run keeps using the revision in production; it can never reach here with
    * a revision, that is rejected in the handler.
    */
   private async resolveAgentSettings({
@@ -116,8 +116,8 @@ export abstract class ExtractionAgentSessionsController {
   }): Promise<AgentSettings> {
     if (revision === undefined) {
       return this.type === "playground"
-        ? this.agentSettingsService.getLast({ connectScope, agentId, includesDraft: true })
-        : this.agentSettingsService.getLast({ connectScope, agentId })
+        ? this.agentSettingsService.getLatest({ connectScope, agentId })
+        : this.agentSettingsService.getProduction({ connectScope, agentId })
     }
 
     const agentSettings = await this.agentSettingsService.get({ connectScope, agentId, revision })
@@ -245,7 +245,8 @@ export abstract class ExtractionAgentSessionsController {
 
 function toSummaryDto(agentSessionType: BaseAgentSessionType) {
   return (entity: ExtractionAgentSession): ExtractionAgentSessionSummaryDto => {
-    const traceUrl = agentSessionType === "live" ? undefined : telemetryTraceUrl(entity.traceId)
+    const traceUrl =
+      agentSessionType === "playground" ? telemetryTraceUrl(entity.traceId) : undefined
     return {
       id: entity.id,
       agentId: entity.agentId,
