@@ -203,10 +203,15 @@ export class AgentsController {
 
         const hasDraft =
           draftAgentSettings.isDraft && currentAgentSettings?.id !== draftAgentSettings.id
+        // What the playground runs without a draft: the newest revision when it is saved.
+        const latestSavedAgentSettings = draftAgentSettings.isDraft
+          ? await this.agentSettingsService.findLatestSaved({ connectScope, agentId: agent.id })
+          : draftAgentSettings
         return toAgentWithDraftDto({
           agent,
           currentAgentSettings,
           draftAgentSettings: hasDraft ? draftAgentSettings : undefined,
+          latestSavedAgentSettings,
           permissions: permissionsByAgentId.get(agent.id) ?? [],
         })
       }),

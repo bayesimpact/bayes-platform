@@ -98,24 +98,39 @@ describe("AgentSettings", () => {
       })
       assertOnSettings(agentSettingsValuesRev3Draft, settings)
     })
-    it("getProductionOrDraft should prefer the published revision over a newer draft", async () => {
+    it("getLastSavedOrDraft should prefer the saved revision over a newer draft", async () => {
       const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
 
-      const settings = await service.getProductionOrDraft({
+      const settings = await service.getLastSavedOrDraft({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
       })
 
       assertOnSettings(agentSettingsValuesRev1, settings)
     })
-    it("getProductionOrDraft should return the draft of an agent that was never published", async () => {
+    it("getLastSavedOrDraft should return the newest saved revision, not an older one in production", async () => {
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+        agentSettings: { revision: 1 },
+      })
+      const newestSaved = agentSettingsFactory
+        .transient({ organization, project, agent })
+        .build({ revision: 2 })
+      await setup.getRepository(AgentSettings).save(newestSaved)
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+
+      const settings = await service.getLastSavedOrDraft({ connectScope, agentId: agent.id })
+
+      expect(settings.id).toBe(newestSaved.id)
+      expect((await service.getProduction({ connectScope, agentId: agent.id })).revision).toBe(1)
+    })
+    it("getLastSavedOrDraft should return the draft of an agent that was never saved", async () => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
         repositories,
         { agentSettings: { isDraft: true } },
       )
       const connectScope = { organizationId: organization.id, projectId: project.id }
 
-      const settings = await service.getProductionOrDraft({ connectScope, agentId: agent.id })
+      const settings = await service.getLastSavedOrDraft({ connectScope, agentId: agent.id })
 
       expect(settings.id).toBe(agentSettings.id)
       expect(await service.findProduction({ connectScope, agentId: agent.id })).toBeUndefined()

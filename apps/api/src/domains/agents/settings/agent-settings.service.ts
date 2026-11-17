@@ -156,8 +156,22 @@ export class AgentSettingsService {
     return (await this.agentSettingsRepository.findProduction(connectScope, agentId)) ?? undefined
   }
 
-  /** The revision in production, or the draft of an agent that was never saved. */
-  async getProductionOrDraft({
+  /**
+   * The newest saved revision, or undefined while the agent was never saved. It is newer than the
+   * revision in production when the managers keep an older one live.
+   */
+  async findLatestSaved({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<AgentSettings | undefined> {
+    return (await this.agentSettingsRepository.findLatestSaved(connectScope, agentId)) ?? undefined
+  }
+
+  /** The newest saved revision, or the draft of an agent that was never saved. */
+  async getLastSavedOrDraft({
     connectScope,
     agentId,
   }: {
@@ -165,7 +179,7 @@ export class AgentSettingsService {
     agentId: string
   }): Promise<AgentSettings> {
     return (
-      (await this.findProduction({ connectScope, agentId })) ??
+      (await this.findLatestSaved({ connectScope, agentId })) ??
       this.getLatest({ connectScope, agentId })
     )
   }

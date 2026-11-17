@@ -80,10 +80,14 @@ export function buildAgentVersions({
   return { agent: withRevisions(agent, versions), versions }
 }
 
-/** The agent's `currentRevision` and `draftRevision`, read from its history. */
+/**
+ * The agent's `currentRevision`, `draftRevision` and `latestSavedRevision`, read from its
+ * history, newest first.
+ */
 function withRevisions(agent: Agent, versions: AgentSettings[]): Agent {
   const production = versions.find((version) => version.isProduction)
   const draft = versions.find((version) => version.isDraft)
+  const latestSaved = versions.find((version) => !version.isDraft && !version.isArchived)
   return {
     ...agent,
     currentRevision: production
@@ -97,6 +101,9 @@ function withRevisions(agent: Agent, versions: AgentSettings[]): Agent {
       : undefined,
     draftRevision: draft
       ? { number: draft.revision, name: draft.name, updatedAt: draft.updatedAt }
+      : undefined,
+    latestSavedRevision: latestSaved
+      ? { number: latestSaved.revision, name: latestSaved.name, updatedAt: latestSaved.updatedAt }
       : undefined,
   }
 }

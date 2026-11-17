@@ -245,7 +245,8 @@ export abstract class ExtractionAgentSessionsController {
 
 function toSummaryDto(agentSessionType: BaseAgentSessionType) {
   return (entity: ExtractionAgentSession): ExtractionAgentSessionSummaryDto => {
-    const traceUrl = agentSessionType === "live" ? undefined : telemetryTraceUrl(entity.traceId)
+    const traceUrl =
+      agentSessionType === "playground" ? telemetryTraceUrl(entity.traceId) : undefined
     return {
       id: entity.id,
       agentId: entity.agentId,
