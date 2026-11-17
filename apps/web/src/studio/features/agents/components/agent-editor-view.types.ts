@@ -15,18 +15,15 @@ export type AgentEditorSection = {
 
 /**
  * What a layout of the agent editor needs to draw it. The editor keeps the state (active
- * section, state of the save, open sheet); a layout only places the navigation, the state of
+ * section, state of the save); a layout only places the navigation, the state of
  * the save, the version buttons and the active section.
  */
 export type AgentEditorViewProps = {
   agent: Agent
   agentSettings: AgentSettings
   sections: AgentEditorSection[]
-  /** The settings outside the draft that open in a full-page sheet. */
-  sheets: AgentEditorSection[]
   activeSection: string
   onSelectSection: (value: string) => void
-  onOpenSheet: (value: string) => void
   saveState: TabSaveState
   onRetrySave: () => void
   /** The version history, opened from the layout or from a section. */

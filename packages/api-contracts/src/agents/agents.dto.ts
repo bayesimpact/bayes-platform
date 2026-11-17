@@ -66,10 +66,13 @@ const agentSubAgentToolNameSchema = z
 export const agentSubAgentModeSchema = z.enum(["relay", "handoff"])
 export type AgentSubAgentMode = z.infer<typeof agentSubAgentModeSchema>
 
+/** Longest description of a sub-agent's tool, in characters. */
+export const SUB_AGENT_DESCRIPTION_MAX_LENGTH = 2000
+
 const replaceAgentSubAgentSchema = z.object({
   childAgentId: z.string().uuid(),
   toolName: agentSubAgentToolNameSchema,
-  description: z.string().trim().max(2000).default(""),
+  description: z.string().trim().max(SUB_AGENT_DESCRIPTION_MAX_LENGTH).default(""),
   enabled: z.boolean(),
   mode: agentSubAgentModeSchema.default("relay"),
 })

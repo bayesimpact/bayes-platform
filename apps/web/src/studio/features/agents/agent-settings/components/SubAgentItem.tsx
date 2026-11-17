@@ -1,3 +1,4 @@
+import { SUB_AGENT_DESCRIPTION_MAX_LENGTH } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
@@ -21,7 +22,9 @@ import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { Trash2Icon } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import type { AgentSubAgentFormValue } from "./tabs/SubAgentsTab"
@@ -37,7 +40,8 @@ export function SubAgentItem({
   onUpdate: (fields: Partial<Omit<AgentSubAgentFormValue, "id" | "agentId">>) => void
   onRemove: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const [isConfirmingRemove, setIsConfirmingRemove] = useState(false)
 
   if (!agent) return null
 
@@ -92,7 +96,7 @@ export function SubAgentItem({
                 size="icon"
                 className="size-8 text-muted-foreground hover:text-destructive"
                 aria-label={t("agentSettings:orchestration.remove")}
-                onClick={onRemove}
+                onClick={() => setIsConfirmingRemove(true)}
               >
                 <Trash2Icon className="size-4" />
               </Button>
@@ -101,7 +105,18 @@ export function SubAgentItem({
           </Tooltip>
         </ItemActions>
       </Item>
-      <div className="grid gap-4 border-t p-4 md:grid-cols-[minmax(12rem,18rem)_1fr]">
+      <div className="grid gap-4 border-t p-4 md:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor={`sub-agent-tool-name-${subAgent.id}`}>
+            {t("agentSettings:orchestration.toolName")}
+          </FieldLabel>
+          <Input
+            id={`sub-agent-tool-name-${subAgent.id}`}
+            value={subAgent.toolName}
+            placeholder={t("agentSettings:orchestration.toolNamePlaceholder")}
+            onChange={(event) => onUpdate({ toolName: event.target.value })}
+          />
+        </Field>
         <Field>
           <FieldLabel htmlFor={`sub-agent-mode-${subAgent.id}`}>
             {t("agentSettings:orchestration.mode")}
@@ -126,31 +141,35 @@ export function SubAgentItem({
               : t("agentSettings:orchestration.modeRelayHint")}
           </p>
         </Field>
-        <div className="hidden md:block" />
-        <Field>
-          <FieldLabel htmlFor={`sub-agent-tool-name-${subAgent.id}`}>
-            {t("agentSettings:orchestration.toolName")}
-          </FieldLabel>
-          <Input
-            id={`sub-agent-tool-name-${subAgent.id}`}
-            value={subAgent.toolName}
-            placeholder={t("agentSettings:orchestration.toolNamePlaceholder")}
-            onChange={(event) => onUpdate({ toolName: event.target.value })}
-          />
-        </Field>
-        <Field>
+        <Field className="md:col-span-2">
           <FieldLabel htmlFor={`sub-agent-description-${subAgent.id}`}>
             {t("agentSettings:orchestration.description")}
+            <span className="font-normal text-muted-foreground">
+              {t("agentSettings:props.characterCountWithMax", {
+                current: subAgent.description.length.toLocaleString(i18n.language),
+                max: SUB_AGENT_DESCRIPTION_MAX_LENGTH.toLocaleString(i18n.language),
+              })}
+            </span>
           </FieldLabel>
           <Textarea
             id={`sub-agent-description-${subAgent.id}`}
             value={subAgent.description}
-            rows={2}
-            className="min-h-20"
+            // Three lines tall by default, then as tall as its text.
+            className="min-h-20 resize-none"
             onChange={(event) => onUpdate({ description: event.target.value })}
           />
         </Field>
       </div>
+
+      {/* Removing drops the tool name and the description the user wrote: it asks first. */}
+      <ConfirmDialog
+        open={isConfirmingRemove}
+        title={t("agentSettings:orchestration.removeConfirm.title", { name: agent.name })}
+        description={t("agentSettings:orchestration.removeConfirm.description")}
+        confirmLabel={t("agentSettings:orchestration.remove")}
+        onConfirm={onRemove}
+        onCancel={() => setIsConfirmingRemove(false)}
+      />
     </div>
   )
 }

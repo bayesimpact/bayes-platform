@@ -191,7 +191,8 @@
       "manage": "Gérer les versions",
       "changedFields_one": "{{count}} champ modifié :",
       "changedFields_other": "{{count}} champs modifiés :",
-      "advancedMode": "Mode avancé"
+      "advancedMode": "Mode avancé",
+      "advancedModeHint": "Vous comparez le brouillon avec la v{{revision}}, la dernière version enregistrée. Vos modifications vont dans le brouillon."
     },
     "version": {
       "ariaLabel": "Version des paramètres utilisée par les nouveaux messages",
@@ -209,6 +210,10 @@
       "missingAgent": "Agent manquant",
       "add": "Ajouter",
       "remove": "Retirer",
+      "removeConfirm": {
+        "title": "Retirer {{name}} des sous-agents ?",
+        "description": "Le nom de l'outil et sa description seront perdus."
+      },
       "enabled": "Activé",
       "disabled": "Désactivé",
       "toolName": "Nom de l'outil",

@@ -27,14 +27,14 @@ import { useValue } from "@/common/hooks/use-value"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
-import { EmbedSheet } from "@/studio/features/agents/agent-settings/components/sheets/EmbedSheet"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
 import type { TabSaveState } from "../agent-settings/components/agent-tab-autosave"
 import type { TabSaveControl } from "../agent-settings/components/agent-tab-form.shared"
-import { OrchestrationSheet } from "../agent-settings/components/sheets/OrchestrationSheet"
+import { EmbedTab } from "../agent-settings/components/tabs/EmbedTab"
 import { GeneralTab } from "../agent-settings/components/tabs/GeneralTab"
 import { McpServersTab } from "../agent-settings/components/tabs/McpServersTab"
 import { ModelTab } from "../agent-settings/components/tabs/ModelTab"
+import { OrchestrationTab } from "../agent-settings/components/tabs/OrchestrationTab"
 import { OutputTab } from "../agent-settings/components/tabs/OutputTab"
 import { SessionCategoriesTab } from "../agent-settings/components/tabs/SessionCategoriesTab"
 import { SourcesTab } from "../agent-settings/components/tabs/SourcesTab"
@@ -54,19 +54,18 @@ const tabKeys = [
   "tools",
   "categories",
   "mcpServers",
+  "orchestration",
+  "embed",
 ] as const
-/** The settings outside the draft: each opens in a full-page sheet with its own Save. */
-const sheetKeys = ["orchestration", "embed"] as const
-/** What a `?tab=` deep link can open: a tab, or one of the sheets. */
-export const agentEditorTabKeys = [...tabKeys, ...sheetKeys] as const
-export type TabKey = (typeof agentEditorTabKeys)[number]
-type EditorTabKey = (typeof tabKeys)[number]
-type SheetKey = (typeof sheetKeys)[number]
-
-const isSheetKey = (key: TabKey | undefined): key is SheetKey => sheetKeys.includes(key as SheetKey)
+/** What a `?tab=` deep link can open. */
+export const agentEditorTabKeys = tabKeys
+export type TabKey = (typeof tabKeys)[number]
+type EditorTabKey = TabKey
 
 type TabContext = {
   saveControl: TabSaveControl
+  /** For a tab with its own Save: tells the editor whether it holds unsaved changes. */
+  onDirtyChange: (dirty: boolean) => void
   /** Switches tab, once the current one is saved. */
   openTab: (tab: EditorTabKey) => void
 }
@@ -78,31 +77,20 @@ type TabConfig = {
   autosave?: boolean
   render: (context: TabContext) => ReactNode
 }
-type SheetContext = {
-  onDirtyChange: (dirty: boolean) => void
-  onClose: () => void
-}
-type SheetConfig = {
-  value: SheetKey
-  label: string
-  icon: LucideIcon
-  render: (context: SheetContext) => ReactNode
-}
 
 /**
  * Agent editor. Each tab is a self-contained form that owns its own save (see the per-tab
  * components). The tabs write to the draft and save by themselves, a short pause after each
  * change. The settings that are not part of the draft (orchestration, embed) go live when they
- * are saved: they sit apart from the tabs, behind a button that opens a full-page sheet with
- * its own Save.
+ * are saved: their tabs sit under "More" in the menu and have their own Save.
  *
  * It is a page of its own, outside the Studio layout, with its sections in a sidebar
  * (`AgentEditorPageView`), for conversation and extraction agents alike.
  *
  * Only the active tab is mounted. Before the editor switches tab or lets the user navigate
  * away, it saves what waits in the active tab. It prompts with a ConfirmDialog only for changes
- * that cannot be saved (an invalid value, a failed save) or for an open sheet with unsaved
- * changes.
+ * that cannot be saved (an invalid value, a failed save) or for a tab with its own Save that
+ * holds unsaved changes.
  */
 export function AgentEditor({
   agent,
@@ -119,10 +107,7 @@ export function AgentEditor({
   /** Shown above the active section. */
   banner?: ReactNode
   orchestration?: AgentEditorOrchestration
-  /**
-   * Which tab to open on (defaults to "general"), or which sheet to open over it. Deep links
-   * pass the `?tab=` param through.
-   */
+  /** Which tab to open on (defaults to "general"). Deep links pass the `?tab=` param through. */
   defaultTab?: TabKey
 }) {
   const dispatch = useAppDispatch()
@@ -131,9 +116,10 @@ export function AgentEditor({
   const { hasFeature } = useFeatureFlags(project)
   const projectMcpServers = useValue(selectMcpServersData)
 
-  const { tabs, sheets } = useMemo<{ tabs: TabConfig[]; sheets: SheetConfig[] }>(() => {
+  const tabs = useMemo<TabConfig[]>(() => {
     const isConversation = agent.type === "conversation"
-    const sheets: SheetConfig[] = []
+    // The tabs with their own Save: they come last, after the MCP servers.
+    const liveTabs: TabConfig[] = []
     const list: TabConfig[] = [
       {
         value: "general",
@@ -199,30 +185,27 @@ export function AgentEditor({
       }
 
       if (hasFeature("agent-orchestration") && orchestration) {
-        sheets.push({
+        liveTabs.push({
           value: "orchestration",
           label: t("agentSettings:tabs.orchestration"),
           icon: NetworkIcon,
-          render: ({ onDirtyChange, onClose }) => (
-            <OrchestrationSheet
+          render: ({ onDirtyChange }) => (
+            <OrchestrationTab
               agent={agent}
               availableAgents={orchestration.agents}
               subAgents={orchestration.subAgents}
               onDirtyChange={onDirtyChange}
-              onClose={onClose}
             />
           ),
         })
       }
 
       if (hasFeature("agent-embed")) {
-        sheets.push({
+        liveTabs.push({
           value: "embed",
           label: t("agentSettings:tabs.embed"),
           icon: CodeXmlIcon,
-          render: ({ onDirtyChange, onClose }) => (
-            <EmbedSheet onDirtyChange={onDirtyChange} onClose={onClose} />
-          ),
+          render: ({ onDirtyChange }) => <EmbedTab onDirtyChange={onDirtyChange} />,
         })
       }
     }
@@ -258,22 +241,20 @@ export function AgentEditor({
       })
     }
 
-    return { tabs: list, sheets }
+    return [...list, ...liveTabs]
   }, [agent, agentSettings, project, hasFeature, orchestration, projectMcpServers, t])
 
   const [nav, setNav] = useState<{
     active: EditorTabKey
     pending: EditorTabKey | null
-    /** The open sheet, and whether it holds changes the user did not save. */
-    sheet: SheetKey | null
-    sheetDirty: boolean
+    /** The active tab has its own Save and holds changes the user did not save. */
+    liveDirty: boolean
     /** The version history is open. */
     history: boolean
   }>(() => ({
-    active: isSheetKey(defaultTab) ? "general" : (defaultTab ?? "general"),
+    active: defaultTab ?? "general",
     pending: null,
-    sheet: isSheetKey(defaultTab) ? defaultTab : null,
-    sheetDirty: false,
+    liveDirty: false,
     history: false,
   }))
   const [save, setSave] = useState<{ state: TabSaveState; reason?: string }>({ state: "saved" })
@@ -288,24 +269,20 @@ export function AgentEditor({
     // The history waited for this save, and the save failed: it stays closed.
     if (next === "unsaved") setNav((prev) => (prev.history ? { ...prev, history: false } : prev))
   }, [])
-  const handleSheetDirtyChange = useCallback(
+  const handleLiveDirtyChange = useCallback(
     (dirty: boolean) =>
-      setNav((prev) => (prev.sheetDirty === dirty ? prev : { ...prev, sheetDirty: dirty })),
-    [],
-  )
-  const closeSheet = useCallback(
-    () => setNav((prev) => ({ ...prev, sheet: null, sheetDirty: false })),
+      setNav((prev) => (prev.liveDirty === dirty ? prev : { ...prev, liveDirty: dirty })),
     [],
   )
 
   // Browser-level leave (refresh / close tab); in-app navigation is handled by the blocker below.
-  // An open sheet guards its own changes against a browser-level leave.
+  // A tab with its own Save guards its changes against a browser-level leave.
   usePreventLeave(saveState !== "saved")
-  const blocker = useBlocker(saveState !== "saved" || nav.sheetDirty)
+  const blocker = useBlocker(saveState !== "saved" || nav.liveDirty)
   const isLeavingEditor = blocker.state === "blocked"
   const isLeaving = nav.pending !== null || isLeavingEditor
   // Changes that would be lost: the dialog below asks whether to drop them.
-  const hasUnsavableChanges = saveState === "unsaved" || nav.sheetDirty
+  const hasUnsavableChanges = saveState === "unsaved" || nav.liveDirty
 
   // The user asked to leave the tab while it held changes. Save them now, then let the user go.
   useEffect(() => {
@@ -323,11 +300,9 @@ export function AgentEditor({
 
   if (!activeTab) return <ErrorRoute error="Tab not found" />
 
-  const activeSheet = sheets.find((sheet) => sheet.value === nav.sheet)
-
   const requestTabChange = (next: string) => {
     if (next === nav.active) return
-    if (saveState === "saved") {
+    if (saveState === "saved" && !nav.liveDirty) {
       setNav((prev) => ({ ...prev, active: next as EditorTabKey, pending: null }))
     } else {
       setNav((prev) => ({ ...prev, pending: next as EditorTabKey }))
@@ -381,6 +356,7 @@ export function AgentEditor({
       )}
       {activeTab.render({
         saveControl: { onStateChange: handleSaveStateChange, flushRef },
+        onDirtyChange: handleLiveDirtyChange,
         openTab: requestTabChange,
       })}
     </div>
@@ -389,10 +365,8 @@ export function AgentEditor({
     agent,
     agentSettings,
     sections: tabs,
-    sheets,
     activeSection: activeTab.value,
     onSelectSection: requestTabChange,
-    onOpenSheet: (value: string) => setNav((prev) => ({ ...prev, sheet: value as SheetKey })),
     saveState,
     onRetrySave: () => flushRef.current?.(),
     // Publishing and restoring act on the draft: the history only opens once the draft holds
@@ -406,8 +380,6 @@ export function AgentEditor({
       <AgentEditorPageView {...viewProps} onBack={() => onBack?.()} banner={banner}>
         {activeSection}
       </AgentEditorPageView>
-
-      {activeSheet?.render({ onDirtyChange: handleSheetDirtyChange, onClose: closeSheet })}
 
       <ConfirmDialog
         open={isLeaving && hasUnsavableChanges}

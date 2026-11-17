@@ -265,7 +265,7 @@ export const ConversationAgent: Story = {
             seed.studio.documentTags(documentTags),
             seed.studio.resourceLibraries(resourceLibraries),
             seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
-            // The Orchestration sheet reads the settings of each agent it offers as a sub-agent.
+            // The Orchestration section shows the instructions of each agent it offers as a sub-agent.
             ...childAgents.map((childAgent) =>
               seed.studio.agentHistory({
                 agentId: childAgent.id,
@@ -276,7 +276,7 @@ export const ConversationAgent: Story = {
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
             seed.studio.projectEmbeddingModels(embeddingModels),
-            // Embedding is on, so the Embed sheet shows its snippet, links and public API.
+            // Embedding is on, so the Embed section shows its snippet, links and public API.
             seed.studio.agentEmbedConfig(
               agentEmbedConfigFactory
                 .transient({ agent: rawParentAgent })
@@ -506,9 +506,10 @@ function withHelpCenterUrl(helpCenterUrl: string | undefined) {
 }
 
 /**
- * The Embed sheet with embedding on: activation, appearance, the widget snippet, the public page
- * and the public API. The deployment has a help center, so the widget guide and the API
- * reference are linked.
+ * The Embed section with embedding on: activation, appearance, the widget snippet, the public
+ * page and the public API. It shows beside the menu, like the other sections, with its own Save
+ * that stays in view while the form scrolls. The deployment has a help center, so the widget
+ * guide and the API reference are linked.
  */
 export const EmbedTab: Story = {
   args: {
@@ -517,7 +518,6 @@ export const EmbedTab: Story = {
   decorators: ConversationAgent.decorators,
   beforeEach: withHelpCenterUrl("https://help.example.org"),
   play: async ({ canvasElement }) => {
-    // Embed is not a tab: its button opens the full-page sheet.
     const embedButton = await within(canvasElement).findByRole(
       "button",
       { name: "Embed" },
@@ -527,10 +527,88 @@ export const EmbedTab: Story = {
   },
 }
 
-/** The same sheet on a deployment without a help center: no links to the guide and the reference. */
+/** The same section on a deployment without a help center: no links to the guide and the reference. */
 export const EmbedTabWithoutHelpCenter: Story = {
   ...EmbedTab,
   beforeEach: withHelpCenterUrl(undefined),
+}
+
+/** Opens the Orchestration section from the editor's menu. */
+async function openOrchestration(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement)
+  const orchestrationButton = await canvas.findByRole(
+    "button",
+    { name: "Orchestration" },
+    { timeout: 10_000 },
+  )
+  await userEvent.click(orchestrationButton)
+  return canvas
+}
+
+/**
+ * The Orchestration section with one sub-agent: its tool name and its mode side by side, then
+ * its description with the character count. Under it, the agents that can still be added. The
+ * section shows beside the menu, with its own Save: a change applies in production at once.
+ */
+export const OrchestrationTab: Story = {
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    await expect(await canvas.findByDisplayValue("ask_research_agent")).toBeVisible()
+    // Nothing changed yet: there is nothing to save.
+    await expect(canvas.getByRole("button", { name: "Save" })).toBeDisabled()
+  },
+}
+
+/** No sub-agent yet: the empty state, then every other conversation agent of the project. */
+export const OrchestrationTabWithoutSubAgents: Story = {
+  args: { withSubAgents: false },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    await openOrchestration(canvasElement)
+  },
+}
+
+/**
+ * The user adds a sub-agent, then asks for another section without saving: the editor asks
+ * before it drops the change.
+ */
+export const OrchestrationTabLeftWithUnsavedChanges: Story = {
+  args: { withSubAgents: false },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    const [addButton] = await canvas.findAllByRole("button", { name: "Add" })
+    if (!addButton) throw new Error("The story needs an agent to add as a sub-agent")
+    await userEvent.click(addButton)
+    await expect(canvas.getByRole("button", { name: "Save" })).toBeEnabled()
+    await userEvent.click(canvas.getByRole("button", { name: "General" }))
+    // The dialog renders outside the canvas.
+    await expect(await within(document.body).findByRole("dialog")).toBeVisible()
+  },
+}
+
+/** Removing a sub-agent drops its tool name and its description: it asks first. */
+export const OrchestrationTabRemoveSubAgent: Story = {
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: "Remove" }))
+    await expect(await within(document.body).findByRole("dialog")).toBeVisible()
+  },
+}
+
+/** The instructions of an agent that can be added, read-only, in a full-page sheet. */
+export const OrchestrationTabAgentInstructions: Story = {
+  args: { withSubAgents: false },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    const [instructionsButton] = await canvas.findAllByRole("button", { name: "Instructions" })
+    if (!instructionsButton) throw new Error("The story needs an agent to add as a sub-agent")
+    await userEvent.click(instructionsButton)
+    await expect(await within(document.body).findByRole("dialog")).toBeVisible()
+  },
 }
 
 /**
