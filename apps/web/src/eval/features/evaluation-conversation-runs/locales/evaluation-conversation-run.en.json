@@ -7,7 +7,7 @@
     "selectAgentDescription": "Choose which conversation agent to evaluate against this dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Select an agent",
-    "noAgents": "No conversation agents available in this project.",
+    "noAgents": "No conversation agent with a saved version in this project.",
     "version": {
       "label": "Version",
       "placeholder": "Select a version",

@@ -7,7 +7,7 @@
     "selectAgentDescription": "Choisissez l'agent de conversation à évaluer sur ce dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Sélectionner un agent",
-    "noAgents": "Aucun agent de conversation disponible dans ce projet.",
+    "noAgents": "Aucun agent de conversation avec une version enregistrée dans ce projet.",
     "version": {
       "label": "Version",
       "placeholder": "Sélectionner une version",

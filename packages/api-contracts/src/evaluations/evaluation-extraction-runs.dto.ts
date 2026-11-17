@@ -74,7 +74,7 @@ export type EvaluationExtractionRunRecordDto = {
 export const createEvaluationExtractionRunSchema = z.object({
   evaluationExtractionDatasetId: z.string(),
   agentId: z.string(),
-  // Agent-settings revision to pin on the run; null pins the latest published revision.
+  // Saved agent-settings revision to pin on the run; null pins the revision in production.
   agentSettingsRevision: z.number().int().nullable(),
   keyMapping: z.array(
     z.object({

@@ -7,11 +7,13 @@
     "selectAgentDescription": "Choose which extraction agent to evaluate against this dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Select an agent",
+    "noAgents": "No extraction agent with a saved version in this project.",
     "agentSettingsUnavailable": "This agent's configuration could not be loaded.",
     "version": {
       "label": "Version",
       "placeholder": "Select a version",
       "loading": "Loading versions...",
+      "noSaved": "This agent has no saved version.",
       "item": "v{{revision}} — {{detail}}",
       "production": "In production ({{date}})",
       "revision": "v{{revision}}"

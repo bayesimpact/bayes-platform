@@ -204,6 +204,49 @@ describe("EvaluationExtractionRuns - createOne", () => {
     expect(runs).toHaveLength(0)
   })
 
+  it("should reject if the requested agent settings revision is a draft", async () => {
+    const { organization, project, dataset, agent } = await createContext()
+    const draftSettings = agentSettingsFactory
+      .draft()
+      .transient({ organization, project, agent })
+      .build({ revision: 2 })
+    await repositories.agentSettingsRepository.save(draftSettings)
+
+    const res = await subject({
+      payload: {
+        evaluationExtractionDatasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: 2,
+        keyMapping: [],
+      },
+    })
+
+    expectResponse(res, 422, "Revision 2 is a draft and cannot be evaluated")
+    const runs = await evaluationExtractionRunRepository.find()
+    expect(runs).toHaveLength(0)
+  })
+
+  it("should pin the revision in production, not a newer draft, when agentSettingsRevision is null", async () => {
+    const { organization, project, dataset, agent, agentSettings } = await createContext()
+    const draftSettings = agentSettingsFactory
+      .draft()
+      .transient({ organization, project, agent })
+      .build({ revision: 2 })
+    await repositories.agentSettingsRepository.save(draftSettings)
+
+    const res = await subject({
+      payload: {
+        evaluationExtractionDatasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        keyMapping: [{ agentOutputKey: "age", datasetColumnId: "col1", mode: "scored" }],
+      },
+    })
+
+    expectResponse(res, 201)
+    expect(res.body.data.agentRevision).toBe(agentSettings.revision)
+  })
+
   it("should reject if the requested agent settings revision is out of range", async () => {
     const { dataset, agent } = await createContext()
 

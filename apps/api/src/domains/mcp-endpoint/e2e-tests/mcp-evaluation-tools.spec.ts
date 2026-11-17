@@ -32,6 +32,7 @@ import { McpEndpointModule } from "../mcp-endpoint.module"
 import {
   DATASET_NOT_FOUND_ERROR,
   EVALUATED_AGENT_NOT_FOUND_ERROR,
+  EVALUATED_VERSION_IS_DRAFT_ERROR,
   EVALUATION_PROJECT_NOT_FOUND_ERROR,
   RUN_NOT_FOUND_ERROR,
 } from "../mcp-evaluation-tools.service"
@@ -355,7 +356,7 @@ describe("MCP endpoint - evaluation tools", () => {
       return datasetId
     }
 
-    it("evaluates the draft without publishing it, then reads the run back", async () => {
+    it("evaluates a given published version, then reads the run back", async () => {
       const { project, user } = await createContext()
       const client = await connect([project.id])
       const agentId = await createAgentWithDraft(client, project.id)
@@ -365,7 +366,7 @@ describe("MCP endpoint - evaluation tools", () => {
         projectId: project.id,
         agentId,
         datasetId,
-        agentRevision: "draft",
+        agentRevision: 1,
         judgeInstructions: "Penalize answers longer than two sentences.",
       })
       const runId: string = started.output.run.id
@@ -381,8 +382,8 @@ describe("MCP endpoint - evaluation tools", () => {
       expect(started.output.run).toMatchObject({
         status: "pending",
         agentId,
-        agentRevision: 2,
-        agentRevisionIsDraft: true,
+        agentRevision: 1,
+        agentRevisionIsDraft: false,
         datasetId,
         judgeModel: AgentModel.Gemini35FlashLite,
         judgeInstructions: "Penalize answers longer than two sentences.",
@@ -390,7 +391,7 @@ describe("MCP endpoint - evaluation tools", () => {
       expect(mockEnqueueExecuteRun).toHaveBeenCalledWith(
         expect.objectContaining({ evaluationConversationRunId: runId, recordLimit: null }),
       )
-      expect(fetched.output.run).toMatchObject({ id: runId, agentRevision: 2 })
+      expect(fetched.output.run).toMatchObject({ id: runId, agentRevision: 1 })
       expect(listed.output).toMatchObject({ items: [{ id: runId }], total: 1, page: 0, limit: 50 })
       expect(records.output).toMatchObject({ items: [], total: 0 })
       expect(agent.output.agent).toMatchObject({
@@ -459,10 +460,28 @@ describe("MCP endpoint - evaluation tools", () => {
       await client.close()
     })
 
-    it.each([
-      { case: "the draft of an agent that has none", agentRevision: "draft" as const },
-      { case: "a version that does not exist", agentRevision: 7 },
-    ])("answers $case as not found", async ({ agentRevision }) => {
+    it("refuses to evaluate the draft", async () => {
+      const { project } = await createContext()
+      const client = await connect([project.id])
+      const agentId = await createAgentWithDraft(client, project.id)
+      const datasetId = await createDataset(client, project.id)
+
+      const { isError, text } = await call(client, "run_evaluation", {
+        projectId: project.id,
+        agentId,
+        datasetId,
+        agentRevision: 2,
+      })
+
+      expect(isError).toBe(true)
+      expect(text).toBe(EVALUATED_VERSION_IS_DRAFT_ERROR)
+      expect(await setup.getRepository(EvaluationConversationRun).count()).toBe(0)
+      expect(mockEnqueueExecuteRun).not.toHaveBeenCalled()
+      await client.close()
+    })
+
+    it("answers a version that does not exist as not found", async () => {
+      const agentRevision = 7
       const { project } = await createContext()
       const client = await connect([project.id])
       const created = await call(client, "create_agent", {

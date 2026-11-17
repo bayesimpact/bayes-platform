@@ -65,7 +65,7 @@ type KeyMappingEntry = {
 
 type RunFormValues = {
   agentId: string
-  // null = no explicit choice; the latest published revision is used once history loads.
+  // null = no explicit choice; the revision in production is used once history loads.
   selectedRevision: number | null
   keyMapping: KeyMappingEntry[]
   runScope: "all" | "limited"
@@ -153,8 +153,9 @@ function RunEvaluationExtractionForm({
   const isExecuting = useAppSelector(selectIsExecuting)
   const agentsData = useValue(selectAgentsData)
 
+  // A run evaluates a saved version: an agent that was never saved has none.
   const extractionAgents = useMemo(() => {
-    return agentsData.filter((agent) => agent.type === "extraction")
+    return agentsData.filter((agent) => agent.type === "extraction" && agent.currentRevision)
   }, [agentsData])
 
   const targetColumns = useMemo(
@@ -209,16 +210,16 @@ function RunEvaluationExtractionForm({
   const limitedCount = watch("limitedCount")
   const keyMapping = watch("keyMapping")
 
+  // The saved versions only: a run never evaluates a draft.
   const agentSettingsHistoryData = useAppSelector(
-    selectAgentSettingsHistoryDataByAgentId({ agentId: selectedAgentId, includeDraft: true }),
+    selectAgentSettingsHistoryDataByAgentId({ agentId: selectedAgentId }),
   )
   const history = ADS.isFulfilled(agentSettingsHistoryData)
     ? agentSettingsHistoryData.value
     : undefined
 
-  // The user's explicit pick, defaulting to the latest published revision — the
-  // version the server would pin if the payload carried none — or to the draft of
-  // an agent that was never published, such as a fresh copy.
+  // The user's explicit pick, defaulting to the revision in production: the
+  // version the server would pin if the payload carried none.
   const effectiveRevision =
     selectedRevision ??
     (history ? ((findProductionVersion(history) ?? history[0])?.revision ?? null) : null)
@@ -316,6 +317,10 @@ function RunEvaluationExtractionForm({
             onAgentChange={handleAgentChange}
           />
 
+          {extractionAgents.length === 0 && (
+            <p className="text-sm text-muted-foreground">{t("evaluationExtractionRun:noAgents")}</p>
+          )}
+
           {selectedAgentId &&
             (ADS.isError(agentSettingsHistoryData) ? (
               <p className="text-sm text-destructive">
@@ -323,6 +328,11 @@ function RunEvaluationExtractionForm({
               </p>
             ) : !history ? (
               <Loader />
+            ) : effectiveRevision === null ? (
+              // The agent list and a cached history can disagree for a moment.
+              <p className="text-sm text-muted-foreground">
+                {t("evaluationExtractionRun:version.noSaved")}
+              </p>
             ) : (
               <>
                 <AgentVersionField
@@ -438,7 +448,6 @@ function AgentVersionField({
   const productionRevision = findProductionVersion(history)?.revision
 
   const buildVersionDetail = (agentVersion: AgentSettings) => {
-    if (agentVersion.isDraft) return t("status:draft")
     if (agentVersion.revision === productionRevision)
       return t("evaluationExtractionRun:version.production", {
         date: buildDate(agentVersion.updatedAt),

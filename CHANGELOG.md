@@ -23,6 +23,10 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Agent orchestration and embed: these settings apply in production and keep an explicit save with a confirmation.
 - (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
 
+### Removed
+
+- Evaluations: a new run evaluates a saved agent version only, in the Evaluation app and through MCP.
+
 ### Fixed
 
 - (beta) Interactive cards (MCP Apps): a tool call that failed no longer shows a card.
