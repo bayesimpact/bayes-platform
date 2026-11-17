@@ -4,8 +4,8 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-11-06
-apiVersion: "1.5"
+updated: 2026-11-17
+apiVersion: "1.6"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -38,7 +38,7 @@ All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **1.5**. The major version is in the path (`v1`). Minor versions
+This page documents version **1.6**. The major version is in the path (`v1`). Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -298,6 +298,7 @@ Sends the visitor's message and returns the reply as
 | Body field | Type | Description |
 |---|---|---|
 | `payload.content` | string, required | The visitor's message. Must not be empty |
+| `payload.citations` | `"inline"`, optional | Keep the source markers in the text (see [inline citations](#inline-citations)) |
 
 ```bash
 curl -N -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/stream" \
@@ -315,6 +316,20 @@ Status: `200` with `Content-Type: text/event-stream`. Errors before the stream s
 
 After the final event, read the session again to get the persisted reply and its
 `toolCalls`. The stream carries text only.
+
+#### Inline citations
+
+When the agent answers from its documents, it marks each sentence with the passages it
+relies on, such as `[c1]` or `[c1, c3]`. By default the server removes these markers, and the
+cited passages come in the `toolCalls[]` entry named `sources` of the persisted reply.
+
+Send `payload.citations: "inline"` to keep the markers in the `chunk` events and in
+`end.fullContent`, and show each source next to the sentence it supports. In the `sources`
+entry, `arguments.sources[].chunks[].alias` gives the marker of each passage (`c1`, `c2`…).
+A marker can be split across two `chunk` events: parse the text you have received so far,
+not each event alone. The persisted reply never holds the markers, with or without this
+option. Any other value of `citations` ends the stream with the error
+`Invalid citations mode`.
 
 ### Send a message in the URL (deprecated)
 
@@ -396,6 +411,7 @@ data: {"type":"error","messageId":"","error":"User content must not be empty"}
 | `Invalid request body` | The `POST` body has no `payload` object, or `payload.content` is not a string |
 | `Invalid query format` | `q` is not valid JSON (deprecated `GET` route) |
 | `User content must not be empty` | `payload.content` is missing or blank |
+| `Invalid citations mode` | `payload.citations` is present and is not `"inline"` |
 | `Agent not found` | The agent was deleted |
 | `Internal server error` | Server fault. Retry later |
 

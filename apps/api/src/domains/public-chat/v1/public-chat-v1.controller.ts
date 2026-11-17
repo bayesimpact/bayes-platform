@@ -113,7 +113,7 @@ export class PublicChatV1Controller extends PublicChatController {
    */
   private buildStream(
     publicSession: PublicAgentSession,
-    readUserContent: () => string,
+    readRequest: () => StreamRequest,
   ): Observable<StreamEvent> {
     return new Observable<StreamEvent>((subscriber) => {
       let messageId = ""
@@ -133,16 +133,21 @@ export class PublicChatV1Controller extends PublicChatController {
         subscriber.complete()
       }
 
-      let userContent: string
+      let streamRequest: StreamRequest
       try {
-        userContent = readUserContent()
+        streamRequest = readRequest()
       } catch (error) {
         fail(error)
         return
       }
       void (async () => {
         try {
-          const events = this.publicChatService.streamResponse(publicSession, userContent, forward)
+          const events = this.publicChatService.streamResponse(
+            publicSession,
+            streamRequest.content,
+            forward,
+            { inlineCitations: streamRequest.citations === "inline" },
+          )
           for await (const event of events) forward(event)
           subscriber.complete()
         } catch (error) {
@@ -164,18 +169,20 @@ function toStreamEvent(payload: StreamEventPayload): StreamEvent {
   return { data: JSON.stringify(payload) } as StreamEvent
 }
 
-function parseStreamQuery(query: string): string {
+type StreamRequest = { content: string; citations?: "inline" }
+
+function parseStreamQuery(query: string): StreamRequest {
   let parsedQuery: typeof PublicChatRoutes.streamMessages.request
   try {
     parsedQuery = JSON.parse(query) as typeof PublicChatRoutes.streamMessages.request
   } catch {
     throw new BadRequestException("Invalid query format")
   }
-  return requireUserContent(parsedQuery)
+  return { content: requireUserContent(parsedQuery), citations: readCitations(parsedQuery) }
 }
 
 /** The body is untyped on the wire: anything but `{ payload: { content: string } }` is refused. */
-function parseStreamBody(body: unknown): string {
+function parseStreamBody(body: unknown): StreamRequest {
   const payload = (body as { payload?: unknown } | null)?.payload
   if (typeof payload !== "object" || payload === null) {
     throw new BadRequestException("Invalid request body")
@@ -184,7 +191,18 @@ function parseStreamBody(body: unknown): string {
   if (content !== undefined && typeof content !== "string") {
     throw new BadRequestException("Invalid request body")
   }
-  return requireUserContent(body as typeof PublicChatRoutes.streamReply.request)
+  const request = body as typeof PublicChatRoutes.streamReply.request
+  return { content: requireUserContent(request), citations: readCitations(request) }
+}
+
+/** Only `inline` changes anything; any other value is refused so a typo does not pass silently. */
+function readCitations(
+  request: typeof PublicChatRoutes.streamMessages.request,
+): "inline" | undefined {
+  const citations = (request.payload as { citations?: unknown } | undefined)?.citations
+  if (citations === undefined) return undefined
+  if (citations !== "inline") throw new BadRequestException("Invalid citations mode")
+  return "inline"
 }
 
 function requireUserContent(request: typeof PublicChatRoutes.streamMessages.request): string {
