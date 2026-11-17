@@ -1,7 +1,7 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { cn } from "@caseai-connect/ui/utils"
-import { HistoryIcon } from "lucide-react"
+import { CheckIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { selectAgentSettingsHistoryDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
@@ -65,7 +65,7 @@ export function AgentProductionVersionButton({
       <span className="flex items-center gap-2">
         <ProductionDot />
         {t("agentSettings:production.badge")}
-        <span className="text-base font-bold">v{production.number}</span>
+        <span className="font-bold">v{production.number}</span>
       </span>
       {name && <span className={cn("w-full font-medium", textClassName)}>{name}</span>}
       {description && (
@@ -106,7 +106,7 @@ export function AgentProductionVersionButton({
             onClick={() => (onOpenHistory ? onOpenHistory() : setOpen(true))}
           >
             {label}
-            <HistoryIcon className="mt-0.5 ml-auto size-4" />
+            <CheckIcon className="mt-0.5 ml-auto size-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>{t("agentSettings:production.openHistory")}</TooltipContent>

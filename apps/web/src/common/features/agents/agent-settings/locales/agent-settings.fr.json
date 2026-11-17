@@ -132,8 +132,8 @@
       "unsaved": "Modifications non enregistrées",
       "refused": "Cette modification n'a pas pu être enregistrée",
       "unsavedBeforeVersions": "Corrigez les modifications non enregistrées avant de gérer les versions",
-      "productionVersion": "Version {{revision}} · en production",
-      "savedVersion": "Version {{revision}} · enregistrée"
+      "productionVersion": "v{{revision}} · en production",
+      "savedVersion": "v{{revision}} · enregistrée"
     },
     "liveSettings": {
       "immediate": "Un changement ici s'applique immédiatement <strong>en production</strong>.",

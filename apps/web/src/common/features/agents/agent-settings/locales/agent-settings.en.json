@@ -132,8 +132,8 @@
       "unsaved": "Unsaved changes",
       "refused": "This change could not be saved",
       "unsavedBeforeVersions": "Fix the unsaved changes before you manage versions",
-      "productionVersion": "Version {{revision}} · in production",
-      "savedVersion": "Version {{revision}} · saved"
+      "productionVersion": "v{{revision}} · in production",
+      "savedVersion": "v{{revision}} · saved"
     },
     "liveSettings": {
       "immediate": "A change here applies at once <strong>in production</strong>.",
