@@ -56,7 +56,7 @@ export abstract class AISDKVllmProviderBase<
 
   /**
    * One line per tool, `- name: description` then its parameters, for the
-   * models that read their tools in the system prompt (Mistral, MedGemma).
+   * models that read their tools in the system prompt (MedGemma).
    * Undefined when there is no tool.
    */
   protected describeToolsForPrompt(tools: ToolSet): string[] | undefined {
