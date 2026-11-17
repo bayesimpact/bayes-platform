@@ -24,7 +24,7 @@ const MCP_SERVER_INSTRUCTIONS = [
   "To change an existing agent, call list_agents with the project's id, then update_agent with the agent's id: only the agents with canUpdate set to true can be changed. update_agent edits the draft; the user publishes it in the studio.",
   "To start a variant of an existing agent, call duplicate_agent with the agent's id from list_agents and a new name: only the agents with canDuplicate set to true can be copied. The copy is a new agent of the same project whose settings are a draft (published is false): nothing uses it until the user publishes it in the studio.",
   "Call get_agent before changing an agent: it returns the instructions of its published version and of its draft, and its versions.",
-  'To evaluate a conversation agent, put questions and expected answers in a dataset (list_evaluation_datasets, create_evaluation_dataset, add_dataset_records), then call run_evaluation. A run can evaluate the draft (agentRevision: "draft"), so the user can compare versions before publishing one in the studio. Wait for a run on the draft to finish before changing the draft again.',
+  "To evaluate a conversation agent, put questions and expected answers in a dataset (list_evaluation_datasets, create_evaluation_dataset, add_dataset_records), then call run_evaluation. A run evaluates a published version only, never the draft: to evaluate changes made with update_agent, ask the user to publish the draft in the studio first. Pass agentRevision to compare published versions.",
   "A run is asynchronous: call get_evaluation_run until its status is completed, failed or cancelled, then read each answer and its score with list_evaluation_run_records. Read the answers, not only the average score: a low score says that an answer is wrong, the answer says why.",
 ].join(" ")
 
@@ -197,10 +197,12 @@ const runEvaluationInputSchema = z.object({
   agentId: z.uuid().describe("Id of a conversation agent of the project, from list_agents."),
   datasetId: z.uuid().describe("Id of a dataset of the project, from list_evaluation_datasets."),
   agentRevision: z
-    .union([z.number().int().positive(), z.literal("draft")])
+    .number()
+    .int()
+    .positive()
     .optional()
     .describe(
-      'Version of the agent to evaluate: a revision number from get_agent, or "draft" for its draft. The version in production when left out.',
+      "Published version of the agent to evaluate: a revision number from get_agent whose isDraft is false. The version in production when left out.",
     ),
   judgeModel: z
     .enum(AgentModel)
@@ -450,7 +452,7 @@ export function buildAgentCreationMcpServer({
     {
       title: "Run evaluation",
       description:
-        "Evaluates a conversation agent on a dataset: the agent answers each record, then a judge model scores each answer from 1 to 5 against the expected one. The run starts at once and finishes in the background: follow it with get_evaluation_run. It calls language models for every record. Nothing is published. A run on the draft reads the draft as it goes: do not change it with update_agent until the run is completed, failed or cancelled, or its answers mix two versions.",
+        "Evaluates a conversation agent on a dataset: the agent answers each record, then a judge model scores each answer from 1 to 5 against the expected one. The run starts at once and finishes in the background: follow it with get_evaluation_run. It calls language models for every record. It evaluates a published version, never the draft: the user publishes the draft in the studio before its changes can be evaluated.",
       inputSchema: runEvaluationInputSchema,
       outputSchema: z.looseObject({ run: runSchema }),
       annotations: {

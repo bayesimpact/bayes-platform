@@ -132,6 +132,12 @@ export class EvaluationExtractionRunsController {
         `Revision ${agentSettingsRevision} is archived and cannot be run`,
       )
     }
+    // A run evaluates a saved version: a draft still changes under the run.
+    if (agentSettings.isDraft) {
+      throw new UnprocessableEntityException(
+        `Revision ${agentSettingsRevision} is a draft and cannot be evaluated`,
+      )
+    }
     return agentSettings
   }
 

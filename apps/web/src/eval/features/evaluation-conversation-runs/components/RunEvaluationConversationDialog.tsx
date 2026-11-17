@@ -80,8 +80,9 @@ export function RunEvaluationConversationDialog({
   const judgeModels = useMemo(() => buildAgentModelOptions(catalog), [catalog])
   const defaultJudgeModel = catalog.defaults.judge
 
+  // A run evaluates a saved version: an agent that was never saved has none.
   const conversationAgents = useMemo(() => {
-    return agentsData.filter((agent) => agent.type === "conversation")
+    return agentsData.filter((agent) => agent.type === "conversation" && agent.currentRevision)
   }, [agentsData])
 
   // Contract schema extended with the dialog-only fields and translated
@@ -118,8 +119,9 @@ export function RunEvaluationConversationDialog({
 
   const selectedAgentId = watch("agentId")
 
+  // The saved versions only: a run never evaluates a draft.
   const agentSettingsHistory = useValue(
-    selectAgentSettingsHistoryDataByAgentId({ agentId: selectedAgentId ?? "", includeDraft: true }),
+    selectAgentSettingsHistoryDataByAgentId({ agentId: selectedAgentId ?? "" }),
   )
 
   const selectedRevision = watch("selectedRevision")
@@ -295,7 +297,6 @@ function AgentVersionField({
   const productionRevision = history.find((agentVersion) => agentVersion.isProduction)?.revision
 
   const buildVersionDetail = (agentVersion: AgentSettings) => {
-    if (agentVersion.isDraft) return t("status:draft")
     if (agentVersion.revision === productionRevision)
       return t("evaluationConversationRun:version.production", {
         date: buildDate(agentVersion.updatedAt),

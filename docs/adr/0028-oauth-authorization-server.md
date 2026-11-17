@@ -77,10 +77,11 @@ for apps. MCP clients use it first.**
 * Two grantable permissions cover conversation evaluations, checked on the
   project (added 2026-11-02, issue #1106). `evaluation.conversation.dataset.update`
   lets the client read, create and fill datasets.
-  `evaluation.conversation.run.create` lets it start runs, on the draft too,
-  and read their results. Each one covers a family of tools, and the person
-  must hold every RBAC permission a tool uses. A run evaluates a draft without
-  publishing it, so a person still decides what the agent's users get.
+  `evaluation.conversation.run.create` lets it start runs and read their
+  results. Each one covers a family of tools, and the person must hold every
+  RBAC permission a tool uses. A run evaluates a published version only
+  (changed 2026-11-16: a run on the draft read the draft as it changed), so a
+  person publishes the draft in the studio before a client evaluates it.
 * The client acts as the person. An action is allowed only when the person
   holds the permission on the project now (RBAC, ADR 0019) and granted it to
   the client on that project. Losing a role takes the right away from the
