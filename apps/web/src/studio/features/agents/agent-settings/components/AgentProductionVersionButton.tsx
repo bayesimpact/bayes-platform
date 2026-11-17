@@ -66,9 +66,10 @@ export function AgentProductionVersionButton({
         {t("agentSettings:production.badge")}
         <span className="text-base font-semibold">v{production.number}</span>
       </span>
-      {name && <span className="w-full truncate font-medium">{name}</span>}
+      {/* Shown in full, over several lines if need be: the sidebar has the height for it. */}
+      {name && <span className="w-full whitespace-normal break-words font-medium">{name}</span>}
       {description && (
-        <span className="line-clamp-2 w-full whitespace-normal text-xs font-normal text-green-800/80">
+        <span className="w-full whitespace-normal break-words text-xs font-normal text-green-800/80">
           {description}
         </span>
       )}
