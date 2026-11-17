@@ -113,9 +113,10 @@ export function AgentSessionListHeader({
           />
         )}
 
-        {isPublished && (
+        {agent.currentRevision && (
           <AgentProductionAppCard
             agentId={agent.id}
+            productionRevision={agent.currentRevision.number}
             organizationId={organizationId}
             projectId={projectId}
             withBorderBottom={withBorderBottom}

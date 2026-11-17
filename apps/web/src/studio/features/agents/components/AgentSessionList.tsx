@@ -127,9 +127,10 @@ export function ExtractionAgentSessionList() {
           </GridCard.Body>
         </GridCard>
 
-        {isPublished && (
+        {agent.currentRevision && (
           <AgentProductionAppCard
             agentId={agent.id}
+            productionRevision={agent.currentRevision.number}
             organizationId={organizationId}
             projectId={agent.projectId}
           />
