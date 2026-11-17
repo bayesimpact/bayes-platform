@@ -135,7 +135,6 @@ export function AgentEditorPageView({
             agent={agent}
             onOpenHistory={() => onHistoryOpenChange(true)}
             className="w-full justify-start"
-            stacked
           />
           <AgentSettingsHistorySheet
             agent={agent}

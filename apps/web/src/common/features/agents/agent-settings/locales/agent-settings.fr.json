@@ -161,7 +161,7 @@
         "description": "La version {{revision}} est figée. Les modifications suivantes créeront une nouvelle version brouillon.",
         "submit": "Enregistrer la version"
       },
-      "setAsProductionDescription": "Le Desk, l'embed et l'API publique démarreront les nouvelles conversations avec elle. Sinon, la version {{current}} reste en production.",
+      "setAsProductionDescription": "L'application, l'embed et l'API publique démarreront les nouvelles conversations avec elle. Sinon, la version {{current}} reste en production.",
       "firstVersionProduction": "C'est la première version enregistrée de l'agent : elle passe en production."
     },
     "history": {
@@ -330,16 +330,15 @@
     "production": {
       "badge": "En production",
       "saved": "Enregistrée",
-      "pill": "En production : v{{revision}}",
       "none": "Pas en production",
-      "noneDescription": "Enregistrez une version pour rendre cet agent disponible dans le Desk, l'embed et l'API publique.",
+      "noneDescription": "Enregistrez une version pour rendre cet agent disponible dans l'application, l'embed et l'API publique.",
       "set": "Mettre en production",
       "dialog": {
         "title": "Mettre la version {{revision}} en production ?",
-        "description": "Le Desk, l'embed, l'API publique et les agents qui appellent celui-ci démarreront les nouvelles conversations avec la version {{revision}}. Les conversations déjà commencées gardent leur version.",
+        "description": "L'application, l'embed, l'API publique et les agents qui appellent celui-ci démarreront les nouvelles conversations avec la version {{revision}}. Les conversations déjà commencées gardent leur version.",
         "replaces": "La version {{current}} sort de la production. Elle reste dans l'historique, et vous pouvez la remettre à tout moment."
       },
-      "description": "Le Desk, l'embed et l'API publique démarrent les nouvelles conversations avec cette version.",
+      "description": "L'application, l'embed et l'API publique démarrent les nouvelles conversations avec cette version.",
       "openHistory": "Ouvrir l'historique des versions pour changer la version en production"
     }
   }

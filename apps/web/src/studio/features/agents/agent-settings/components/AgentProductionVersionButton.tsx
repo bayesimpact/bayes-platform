@@ -19,21 +19,20 @@ import { AgentSettingsHistorySheet } from "./AgentSettingsHistorySheet"
  * The label comes from the agent itself, so everyone sees it. The history is only loaded for
  * managers: others get the label alone.
  *
+ * The version number comes first, larger, with the version's name and description under it, one
+ * above the other. Both show in full, over several lines when they are wider than their place.
+ *
  * `onOpenHistory` hands the click to a history the caller already owns (the agent editor gates
  * it on its pending saves), instead of the button's own. `className` sizes it to its place.
- * `stacked` puts the version number on its own line, larger, with the version's name and
- * description under it: the agent editor's sidebar has the height for it, not the width.
  */
 export function AgentProductionVersionButton({
   agent,
   onOpenHistory,
   className,
-  stacked = false,
 }: {
   agent: Agent
   onOpenHistory?: () => void
   className?: string
-  stacked?: boolean
 }) {
   const { t } = useTranslation()
   const { abilities } = useAbility()
@@ -59,33 +58,24 @@ export function AgentProductionVersionButton({
 
   const name = production.name?.trim()
   const description = production.description?.trim()
-  const label = stacked ? (
+  // Shown in full: a long text runs over several lines rather than being cut.
+  const textClassName = "whitespace-normal break-words"
+  const label = (
     <span className="flex min-w-0 flex-col items-start gap-0.5 text-left">
       <span className="flex items-center gap-2">
         <ProductionDot />
         {t("agentSettings:production.badge")}
-        <span className="text-base font-semibold">v{production.number}</span>
+        <span className="text-base font-bold">v{production.number}</span>
       </span>
-      {/* Shown in full, over several lines if need be: the sidebar has the height for it. */}
-      {name && <span className="w-full whitespace-normal break-words font-medium">{name}</span>}
+      {name && <span className={cn("w-full font-medium", textClassName)}>{name}</span>}
       {description && (
-        <span className="w-full whitespace-normal break-words text-xs font-normal text-green-800/80">
+        <span className={cn("w-full text-xs font-normal text-green-800/80", textClassName)}>
           {description}
         </span>
       )}
     </span>
-  ) : (
-    <>
-      <ProductionDot />
-      {t("agentSettings:production.pill", { revision: production.number })}
-      {production.name?.trim() && (
-        <span className="hidden max-w-40 truncate font-normal text-green-800/80 sm:inline">
-          {production.name}
-        </span>
-      )}
-    </>
   )
-  const stackedClassName = stacked && "h-auto items-start py-2"
+  const layoutClassName = "h-auto max-w-full items-start py-2"
   const pillClassName =
     "border-green-300 bg-green-50 text-green-900 hover:bg-green-100 hover:text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-200"
 
@@ -95,7 +85,7 @@ export function AgentProductionVersionButton({
         className={cn(
           "inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium",
           pillClassName,
-          stackedClassName,
+          layoutClassName,
           className,
         )}
       >
@@ -110,13 +100,13 @@ export function AgentProductionVersionButton({
         <TooltipTrigger asChild>
           <Button
             variant="outline"
-            className={cn(pillClassName, stackedClassName, className)}
+            className={cn(pillClassName, layoutClassName, className)}
             aria-haspopup="dialog"
             aria-expanded={onOpenHistory ? undefined : open}
             onClick={() => (onOpenHistory ? onOpenHistory() : setOpen(true))}
           >
             {label}
-            <HistoryIcon className={cn("ml-auto size-4", stacked && "mt-0.5")} />
+            <HistoryIcon className="mt-0.5 ml-auto size-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>{t("agentSettings:production.openHistory")}</TooltipContent>

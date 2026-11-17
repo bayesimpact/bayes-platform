@@ -161,7 +161,7 @@
         "description": "Version {{revision}} is frozen. Later changes start a new draft version.",
         "submit": "Save version"
       },
-      "setAsProductionDescription": "The Desk, the embed and the public API will start new conversations with it. Otherwise version {{current}} stays in production.",
+      "setAsProductionDescription": "The app, the embed and the public API will start new conversations with it. Otherwise version {{current}} stays in production.",
       "firstVersionProduction": "This is the first saved version of the agent, so it goes in production."
     },
     "history": {
@@ -330,16 +330,15 @@
     "production": {
       "badge": "In production",
       "saved": "Saved",
-      "pill": "In production: v{{revision}}",
       "none": "Not in production",
-      "noneDescription": "Save a version to make this agent available in the Desk, the embed and the public API.",
+      "noneDescription": "Save a version to make this agent available in the app, the embed and the public API.",
       "set": "Put in production",
       "dialog": {
         "title": "Put version {{revision}} in production?",
-        "description": "The Desk, the embed, the public API and the agents that call this one will start new conversations with version {{revision}}. Conversations already started keep their version.",
+        "description": "The app, the embed, the public API and the agents that call this one will start new conversations with version {{revision}}. Conversations already started keep their version.",
         "replaces": "Version {{current}} leaves production. It stays in the history, and you can put it back at any time."
       },
-      "description": "The Desk, the embed and the public API start new conversations with this version.",
+      "description": "The app, the embed and the public API start new conversations with this version.",
       "openHistory": "Open the version history to change the version in production"
     }
   }
