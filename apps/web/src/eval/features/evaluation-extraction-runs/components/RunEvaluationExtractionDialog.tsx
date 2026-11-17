@@ -434,13 +434,13 @@ function AgentVersionField({
 }) {
   const { t } = useTranslation()
 
-  // The newest non-draft revision: the one the agent actually runs with.
-  const publishedRevision = findProductionVersion(history)?.revision
+  // The revision in production: the one the app, the embed and the public API run.
+  const productionRevision = findProductionVersion(history)?.revision
 
   const buildVersionDetail = (agentVersion: AgentSettings) => {
     if (agentVersion.isDraft) return t("status:draft")
-    if (agentVersion.revision === publishedRevision)
-      return t("evaluationExtractionRun:version.current", {
+    if (agentVersion.revision === productionRevision)
+      return t("evaluationExtractionRun:version.production", {
         date: buildDate(agentVersion.updatedAt),
       })
     return buildDate(agentVersion.updatedAt)

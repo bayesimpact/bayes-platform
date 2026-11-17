@@ -13,7 +13,7 @@
       "placeholder": "Sélectionner une version",
       "loading": "Chargement des versions...",
       "item": "v{{revision}} — {{detail}}",
-      "current": "Actuelle ({{date}})",
+      "production": "En production ({{date}})",
       "revision": "v{{revision}}"
     },
     "judgeModel": {
