@@ -163,8 +163,15 @@ export function GeneralTab({
                     </span>
                   </FormLabel>
                   {canShowDiff && (
-                    <label className="flex items-center gap-2 font-medium text-sm">
-                      <Switch checked={isDiffShown} onCheckedChange={setIsDiffRequested} />
+                    <label
+                      htmlFor="agent-instructions-advanced-mode"
+                      className="flex items-center gap-2 font-medium text-sm"
+                    >
+                      <Switch
+                        id="agent-instructions-advanced-mode"
+                        checked={isDiffShown}
+                        onCheckedChange={setIsDiffRequested}
+                      />
                       {t("agentSettings:history.advancedMode")}
                     </label>
                   )}
