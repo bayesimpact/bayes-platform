@@ -154,6 +154,7 @@ export function SubAgentItem({
           <Textarea
             id={`sub-agent-description-${subAgent.id}`}
             value={subAgent.description}
+            maxLength={SUB_AGENT_DESCRIPTION_MAX_LENGTH}
             // Three lines tall by default, then as tall as its text.
             className="min-h-20 resize-none"
             onChange={(event) => onUpdate({ description: event.target.value })}

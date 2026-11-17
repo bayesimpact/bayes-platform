@@ -41,17 +41,22 @@ export function OrchestrationTab({
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
   const handleSubmit = form.handleSubmit(async (data) => {
-    await dispatch(
-      agentSubAgentsActions.updateAll({
-        subAgents: data.subAgents.map((subAgent) => ({
-          childAgentId: subAgent.agentId,
-          toolName: subAgent.toolName,
-          description: subAgent.description,
-          enabled: subAgent.enabled,
-          mode: subAgent.mode,
-        })),
-      }),
-    ).unwrap()
+    try {
+      await dispatch(
+        agentSubAgentsActions.updateAll({
+          subAgents: data.subAgents.map((subAgent) => ({
+            childAgentId: subAgent.agentId,
+            toolName: subAgent.toolName,
+            description: subAgent.description,
+            enabled: subAgent.enabled,
+            mode: subAgent.mode,
+          })),
+        }),
+      ).unwrap()
+    } catch {
+      // A refused save keeps the form as the user left it, so they can fix it and save again.
+      return
+    }
     form.reset(data)
   })
 

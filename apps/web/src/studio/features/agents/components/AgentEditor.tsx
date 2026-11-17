@@ -46,7 +46,8 @@ export type AgentEditorOrchestration = {
   subAgents: AgentSubAgent[]
 }
 
-const tabKeys = [
+/** The tabs of the editor, which are also what a `?tab=` deep link can open. */
+export const agentEditorTabKeys = [
   "general",
   "model",
   "output",
@@ -57,20 +58,17 @@ const tabKeys = [
   "orchestration",
   "embed",
 ] as const
-/** What a `?tab=` deep link can open. */
-export const agentEditorTabKeys = tabKeys
-export type TabKey = (typeof tabKeys)[number]
-type EditorTabKey = TabKey
+export type TabKey = (typeof agentEditorTabKeys)[number]
 
 type TabContext = {
   saveControl: TabSaveControl
   /** For a tab with its own Save: tells the editor whether it holds unsaved changes. */
   onDirtyChange: (dirty: boolean) => void
   /** Switches tab, once the current one is saved. */
-  openTab: (tab: EditorTabKey) => void
+  openTab: (tab: TabKey) => void
 }
 type TabConfig = {
-  value: EditorTabKey
+  value: TabKey
   label: string
   icon: LucideIcon
   /** The tab writes to the draft and saves by itself: the editor shows the state of its save. */
@@ -245,8 +243,8 @@ export function AgentEditor({
   }, [agent, agentSettings, project, hasFeature, orchestration, projectMcpServers, t])
 
   const [nav, setNav] = useState<{
-    active: EditorTabKey
-    pending: EditorTabKey | null
+    active: TabKey
+    pending: TabKey | null
     /** The active tab has its own Save and holds changes the user did not save. */
     liveDirty: boolean
     /** The version history is open. */
@@ -303,14 +301,15 @@ export function AgentEditor({
   const requestTabChange = (next: string) => {
     if (next === nav.active) return
     if (saveState === "saved" && !nav.liveDirty) {
-      setNav((prev) => ({ ...prev, active: next as EditorTabKey, pending: null }))
+      setNav((prev) => ({ ...prev, active: next as TabKey, pending: null }))
     } else {
-      setNav((prev) => ({ ...prev, pending: next as EditorTabKey }))
+      setNav((prev) => ({ ...prev, pending: next as TabKey }))
     }
   }
 
   const requestHistory = (open: boolean) => {
-    if (open && saveState === "unsaved") {
+    // A restore reloads the active tab: the changes a tab with its own Save holds would be lost.
+    if (open && (saveState === "unsaved" || nav.liveDirty)) {
       dispatch(
         notificationsActions.show({
           type: "error",
