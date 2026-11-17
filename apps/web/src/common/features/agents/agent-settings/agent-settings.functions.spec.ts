@@ -6,6 +6,7 @@ import { projectFactory } from "@/common/features/projects/projects.factory"
 import { agentSettingsFactory } from "./agent-settings.factory"
 import {
   findDraftVersion,
+  findLatestSavedVersion,
   findProductionVersion,
   findVersion,
   resolveEffectiveRevision,
@@ -38,6 +39,22 @@ describe("findProductionVersion", () => {
 
   it("returns undefined when nothing was ever saved", () => {
     expect(findProductionVersion(buildVersions({ revision: 1, isDraft: true }))).toBeUndefined()
+  })
+})
+
+describe("findLatestSavedVersion", () => {
+  it("returns the newest saved version, even when an older one is in production", () => {
+    const versions = buildVersions(
+      { revision: 5, isDraft: true },
+      { revision: 4 },
+      { revision: 3, isProduction: true },
+    )
+
+    expect(findLatestSavedVersion(versions)?.revision).toBe(4)
+  })
+
+  it("returns undefined when nothing was ever saved", () => {
+    expect(findLatestSavedVersion(buildVersions({ revision: 1, isDraft: true }))).toBeUndefined()
   })
 })
 
@@ -123,10 +140,10 @@ describe("resolveEffectiveRevision", () => {
     expect(resolveEffectiveRevision({ versions, chosenRevision: undefined })).toBe(5)
   })
 
-  it("defaults to the production version when there is no draft", () => {
+  it("defaults to the newest saved version, not an older one in production, when there is no draft", () => {
     const versions = buildVersions({ revision: 4 }, { revision: 3, isProduction: true })
 
-    expect(resolveEffectiveRevision({ versions, chosenRevision: undefined })).toBe(3)
+    expect(resolveEffectiveRevision({ versions, chosenRevision: undefined })).toBe(4)
   })
 
   it("falls back to the default when the chosen revision left the list", () => {
