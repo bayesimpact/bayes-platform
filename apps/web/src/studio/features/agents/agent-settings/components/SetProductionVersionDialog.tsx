@@ -13,12 +13,15 @@ export function SetProductionVersionDialog({
   revision,
   currentRevision,
   onClose,
+  onDone,
 }: {
   /** The revision to put in production; `null` keeps the dialog closed. */
   revision: number | null
   /** The revision in production now, when there is one. */
   currentRevision: number | undefined
   onClose: () => void
+  /** Called once the revision is in production, after the dialog closed. */
+  onDone?: () => void
 }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -27,14 +30,17 @@ export function SetProductionVersionDialog({
   const handleConfirm = async () => {
     if (revision === null) return
     setIsConfirming(true)
+    let isDone = false
     try {
       await dispatch(setProductionAgentSettings({ revision })).unwrap()
+      isDone = true
     } catch {
       // The agent settings middleware shows the error notification.
     } finally {
       setIsConfirming(false)
       onClose()
     }
+    if (isDone) onDone?.()
   }
 
   const description = [
