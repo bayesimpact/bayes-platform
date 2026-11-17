@@ -9,6 +9,7 @@ import {
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { getCurrentId } from "../../helpers"
 import { notificationsActions } from "../../notifications/notifications.slice"
+import { hasAgentSessionChanged } from "../agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
 import { listAgents } from "../agents.thunks"
 import { agentSettingsActions } from "./agent-settings.slice"
 
@@ -26,6 +27,16 @@ const refresh = ({
 }
 
 function registerListeners() {
+  // A new chat or another session opens on the newest version: the version picked in the
+  // previous session does not follow the user.
+  listenerMiddleware.startListening({
+    predicate: (_action, currentState, originalState) =>
+      hasAgentSessionChanged(originalState, currentState),
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(agentSettingsActions.resetPlaygroundRevisions())
+    },
+  })
+
   listenerMiddleware.startListening({
     actionCreator: listAgents.fulfilled,
     effect: async (action, listenerApi) => {
