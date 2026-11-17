@@ -191,7 +191,8 @@
       "manage": "Manage versions",
       "changedFields_one": "{{count}} changed field:",
       "changedFields_other": "{{count}} changed fields:",
-      "advancedMode": "Advanced mode"
+      "advancedMode": "Advanced mode",
+      "advancedModeHint": "You compare the draft with v{{revision}}, the last saved version. Your changes go to the draft."
     },
     "version": {
       "ariaLabel": "Settings version new messages run with",
@@ -209,6 +210,10 @@
       "missingAgent": "Missing agent",
       "add": "Add",
       "remove": "Remove",
+      "removeConfirm": {
+        "title": "Remove {{name}} from the sub-agents?",
+        "description": "The tool name and its description will be lost."
+      },
       "enabled": "Enabled",
       "disabled": "Disabled",
       "toolName": "Tool name",

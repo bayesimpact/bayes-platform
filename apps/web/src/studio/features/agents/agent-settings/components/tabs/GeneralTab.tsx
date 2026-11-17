@@ -3,7 +3,6 @@ import {
   GREETING_MESSAGE_MAX_LENGTH,
   updateAgentSettingsGeneralSchema,
 } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Form,
   FormControl,
@@ -14,9 +13,9 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { GitCompareIcon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -48,7 +47,8 @@ export function GeneralTab({
   // version in production, which can be older. Undefined for an agent never saved: it has nothing
   // to compare with. Without a draft the field holds that same version: the diff shows no change.
   const versions = useAppSelector(selectAgentSettingsHistoryDataByAgentId({ agentId: agent.id }))
-  const savedInstructions = findLatestSavedVersion(versions.value ?? [])?.instructions
+  const latestSavedVersion = findLatestSavedVersion(versions.value ?? [])
+  const savedInstructions = latestSavedVersion?.instructions
   const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const hasGreetingMessage = agent.type === "conversation"
@@ -163,18 +163,26 @@ export function GeneralTab({
                     </span>
                   </FormLabel>
                   {canShowDiff && (
-                    <Button
-                      type="button"
-                      variant={isDiffShown ? "default" : "outline"}
-                      size="sm"
-                      aria-pressed={isDiffShown}
-                      onClick={() => setIsDiffRequested(!isDiffShown)}
+                    <label
+                      htmlFor="agent-instructions-advanced-mode"
+                      className="flex items-center gap-2 font-medium text-sm"
                     >
-                      <GitCompareIcon />
+                      <Switch
+                        id="agent-instructions-advanced-mode"
+                        checked={isDiffShown}
+                        onCheckedChange={setIsDiffRequested}
+                      />
                       {t("agentSettings:history.advancedMode")}
-                    </Button>
+                    </label>
                   )}
                 </div>
+                {isDiffShown && latestSavedVersion && (
+                  <p className="text-muted-foreground text-sm">
+                    {t("agentSettings:history.advancedModeHint", {
+                      revision: latestSavedVersion.revision,
+                    })}
+                  </p>
+                )}
                 {isDiffShown ? (
                   // The diff with the saved instructions takes the place of the field, and the
                   // instructions are edited in it.

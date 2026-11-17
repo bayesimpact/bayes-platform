@@ -20,7 +20,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent drafts: a draft with the same settings as the last saved version is deleted.
 - Agent instructions and greeting: both fields show a character count, and the greeting shows its limit of 2,000 characters.
 - Agent page: the page shows the version in edit, the members, the evaluation app and the production app.
-- (beta) Agent orchestration and embed: these settings apply in production and keep an explicit save with a confirmation.
+- (beta) Agent orchestration and embed: both sections of the editor apply in production and keep an explicit save with a confirmation.
+- (beta) Agent orchestration: managers read the instructions of an agent before they add it, and confirm before they remove a sub-agent.
 - (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
 
 ### Removed
