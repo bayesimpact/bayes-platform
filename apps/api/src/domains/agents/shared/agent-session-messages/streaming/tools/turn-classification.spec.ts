@@ -92,6 +92,8 @@ describe("resolveSources", () => {
       "chunk-3",
     ])
     expect(sources[0]?.chunks[0]?.partialContent).toHaveLength(501)
+    // The alias lets a client match the `[c1]` markers of an inline answer (public API 1.6).
+    expect(sources[0]?.chunks.map((citedChunk) => citedChunk.alias)).toEqual(["c1", "c3"])
     expect(unknownChunkIds).toEqual(["c9"])
   })
 })

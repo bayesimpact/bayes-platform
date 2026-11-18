@@ -309,6 +309,30 @@ describe("PublicChat - contract v1", () => {
       expect(chunks.every((event) => event.messageId === startMessageId)).toBe(true)
     })
 
+    it.each([
+      [
+        "GET ?q=",
+        () => stream(JSON.stringify({ payload: { content: "Hello", citations: "inline" } })),
+      ],
+      ["POST body", () => streamReply({ payload: { content: "Hello", citations: "inline" } })],
+    ])("accepts citations: inline and ends the stream normally (1.6, %s)", async (_name, send) => {
+      await createContext()
+      const response = await send()
+      expect(response.status).toBe(200)
+      const types = parseDataEvents(response.text).map((event) => event.type)
+      expect(types[0]).toBe("start")
+      expect(types.at(-1)).toBe("end")
+    })
+
+    it("rejects an unknown citations mode as one error event inside the stream", async () => {
+      await createContext()
+      const response = await streamReply({ payload: { content: "Hello", citations: "footnotes" } })
+      expect(response.status).toBe(200)
+      expect(parseDataEvents(response.text)).toEqual([
+        { type: "error", messageId: "", error: "Invalid citations mode" },
+      ])
+    })
+
     it("rejects an invalid q payload as one error event inside the stream, not as a JSON error", async () => {
       await createContext()
       const response = await stream("not-json")

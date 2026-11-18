@@ -4,11 +4,11 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-11-06
-apiVersion: "1.5"
+updated: 2026-11-17
+apiVersion: "1.6"
 ---
 
-This page lists every version of the public chat API. The current version is **1.5**.
+This page lists every version of the public chat API. The current version is **1.6**.
 Minor versions add things and keep existing clients working. Major versions can break
 clients and come with a deprecation period. See the
 [versioning and deprecation policy](/en/public-chat-api-versioning).
@@ -33,6 +33,21 @@ clients and come with a deprecation period. See the
   ### Migration
   - ... (mandatory for a major version)
 */}
+
+## 1.6 (2026-11-17)
+
+### Added
+
+- `payload.citations: "inline"` on [send a message](/en/public-chat-api#send-a-message-and-stream-the-reply):
+  the streamed text keeps the source markers (`[c1]`, `[c1, c3]`), so a client can show each
+  source next to the sentence it supports. See [inline citations](/en/public-chat-api#inline-citations).
+- `alias` on each chunk of the `sources` tool call: the marker of that passage in an inline
+  answer.
+
+### Migration
+
+- None. Without `citations`, the stream is unchanged, and a client that ignores `alias` keeps
+  working.
 
 ## 1.5 (2026-11-16)
 
