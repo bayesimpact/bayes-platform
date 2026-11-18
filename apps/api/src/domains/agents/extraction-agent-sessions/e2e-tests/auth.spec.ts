@@ -63,6 +63,8 @@ describe("ExtractionAgentSessions - Auth", () => {
   let agentId: string | null = randomUUID()
   let documentId: string = randomUUID()
   let agentSessionId: string | null = randomUUID()
+  /** The user `createContextForRole` seeded: the caller, unless a test switches to someone else. */
+  let seededUserId: string = randomUUID()
   let accessToken: string | null = "token"
   let authSubject = `oidc|${randomUUID()}`
 
@@ -129,6 +131,7 @@ describe("ExtractionAgentSessions - Auth", () => {
     projectId = project.id
     agentId = agent.id
     agentSessionId = agentSession.id
+    seededUserId = user.id
     if (document) documentId = document.id
     return { organization, project, agent, agentSettings, document, type }
   }
@@ -229,13 +232,20 @@ describe("ExtractionAgentSessions - Auth", () => {
   }
 
   describe("executeOne", () => {
-    const subject = async (type: BaseAgentSessionTypeDto) =>
-      request({
+    // A live run reads only a file its caller uploaded for a run, so the seeded document is made
+    // the seeded user's: only the permission check then stands between a caller and the route.
+    const subject = async (type: BaseAgentSessionTypeDto) => {
+      await repositories.documentRepository.update(
+        { id: documentId },
+        { sourceType: "extraction", userId: seededUserId },
+      )
+      return request({
         route: ExtractionAgentSessionsRoutes[type].executeOne,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
         request: { payload: { documentId } },
       })
+    }
 
     describeContextChecks(subject)
     describeRoleChecks(subject)

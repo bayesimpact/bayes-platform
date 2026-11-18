@@ -109,7 +109,7 @@ describe("Invitations - acceptOne", () => {
       return { organization, project, invitee, invitation }
     }
 
-    it("gives project and organization admin access, and marks the invitation accepted", async () => {
+    it("gives project admin access without any organization admin role, and marks the invitation accepted", async () => {
       const { organization, project, invitee, invitation } = await createContext()
 
       expectResponse(await subject(invitation.id), 201)
@@ -129,7 +129,7 @@ describe("Invitations - acceptOne", () => {
             organizationId: organization.id,
           })
         )?.roleKeys,
-      ).toEqual(["org_admin"])
+      ).toEqual(["org_member"])
       const acceptedInvitation = await repositories.invitationRepository.findOneByOrFail({
         id: invitation.id,
       })

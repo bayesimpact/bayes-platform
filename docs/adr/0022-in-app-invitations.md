@@ -64,8 +64,9 @@ declines it in the app after signing in. Emailing the invitation is optional.**
 
 Matching the invitation to an account, and not to an email at sign-in time,
 keeps a single place where an email is trusted: the verified-email link in
-`UsersService.findOrCreate`. An account created from an unverified email
-never sees invitations sent to that address.
+`UsersService.findOrCreate`. No account is created or linked from an
+unverified email, so nobody sees invitations sent to an address they did
+not prove they own.
 
 Keeping the accept step in the app needs no email infrastructure, so it
 works with any provider, like the rest of ADR 0021.

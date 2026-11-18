@@ -13,7 +13,7 @@
       "signInRefused": {
         "emailNotVerified": {
           "title": "Verify your email",
-          "message": "An account is waiting for your email address, but your identity provider has not verified it yet.",
+          "message": "Your identity provider has not verified your email address yet.",
           "hint": "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then click try again."
         },
         "emailRequired": {

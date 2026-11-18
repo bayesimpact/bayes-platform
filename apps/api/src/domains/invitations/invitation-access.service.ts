@@ -141,8 +141,9 @@ export class InvitationAccessService {
           await this.grantAgents({ userId, agentIds: target.agentIds })
           return
         }
-        // Project admins are organization admins and admins of every agent, as before.
-        await this.organizationMembershipsService.upsertOrganizationAdminMembership({
+        // A project admin manages the project and every agent of it, not the organization: the
+        // organization row is a member one, as for every other invitation.
+        await this.organizationMembershipsService.upsertOrganizationMemberMembership({
           userId,
           organizationId: target.organizationId,
         })

@@ -11,11 +11,14 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
+import { agentMessageFactory } from "../agent-messages.factory"
 
 describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
   let app: INestApplication<App>
@@ -54,8 +57,11 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
   })
 
   const createContext = async () => {
-    const { organization, user, project, agent, agentSession } =
-      await createOrganizationWithAgentSession({ repositories, agentType: "conversation" })
+    const context = await createOrganizationWithAgentSession({
+      repositories,
+      agentType: "conversation",
+    })
+    const { organization, user, project, agent, agentSession } = context
 
     organizationId = organization.id
     projectId = project.id
@@ -63,7 +69,37 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
     agentSessionId = agentSession.id
     authSubject = user.authSubject!
 
-    return { organization, project }
+    return context
+  }
+
+  type Context = Awaited<ReturnType<typeof createContext>>
+
+  /** Puts the attachment on a new message of a conversation, as sending the turn does. */
+  const sendMessageWithAttachment = async ({
+    context,
+    session,
+    attachmentDocumentId,
+  }: {
+    context: Context
+    session: ConversationAgentSession
+    attachmentDocumentId: string
+  }) => {
+    const { organization, project, agentSettings } = context
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory
+        .user()
+        .transient({ organization, project, session, agentSettings })
+        .build({ attachmentDocumentId }),
+    )
+  }
+
+  const presignAttachment = async (): Promise<string> => {
+    const response = await subject({
+      fileName: "support-notes.pdf",
+      mimeType: "application/pdf",
+      size: 1234,
+    })
+    return response.body.data.attachmentDocumentId
   }
 
   const subject = async (
@@ -116,18 +152,43 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
     )
   })
 
-  it("should return a temporary URL for an attachment document", async () => {
-    await createContext()
-    const presignResponse = await subject({
-      fileName: "support-notes.pdf",
-      mimeType: "application/pdf",
-      size: 1234,
+  it("should return a temporary URL for the attachment of a message of the conversation", async () => {
+    const context = await createContext()
+    const attachmentDocumentId = await presignAttachment()
+    await sendMessageWithAttachment({
+      context,
+      session: context.agentSession,
+      attachmentDocumentId,
     })
 
-    const response = await getTemporaryUrlSubject(presignResponse.body.data.attachmentDocumentId)
+    const response = await getTemporaryUrlSubject(attachmentDocumentId)
 
     expectResponse(response, 201)
     expect(response.body.data.url).toContain("/documents/")
+  })
+
+  it("should answer 404 for an attachment no message of the conversation carries", async () => {
+    await createContext()
+    const attachmentDocumentId = await presignAttachment()
+
+    const response = await getTemporaryUrlSubject(attachmentDocumentId)
+
+    expectResponse(response, 404, "Attachment document not found")
+  })
+
+  it("should answer 404 for the attachment of another conversation of the project", async () => {
+    const context = await createContext()
+    const { organization, project, user, agent } = context
+    const attachmentDocumentId = await presignAttachment()
+    const otherSession = conversationAgentSessionFactory
+      .transient({ organization, project, user, agent })
+      .build()
+    await repositories.conversationAgentSessionRepository.save(otherSession)
+    await sendMessageWithAttachment({ context, session: otherSession, attachmentDocumentId })
+
+    const response = await getTemporaryUrlSubject(attachmentDocumentId)
+
+    expectResponse(response, 404, "Attachment document not found")
   })
 
   it("should reject unsupported attachment document MIME types", async () => {

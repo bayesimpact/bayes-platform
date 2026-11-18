@@ -80,6 +80,7 @@ export abstract class ExtractionAgentSessionsController {
     }
 
     const connectScope = getRequiredConnectScope(request)
+    await this.assertRunDocument(request, documentId)
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
       agentId: request.agent.id,
@@ -94,6 +95,27 @@ export abstract class ExtractionAgentSessionsController {
       type: this.type,
     })
     return { data: { runId: run.id } }
+  }
+
+  /**
+   * The document a run reads is one the caller may read. A live run, open to every member, reads
+   * only a file its caller uploaded for a run: the project's other documents sit behind
+   * `document.read`, and a colleague's upload is theirs. Only the playground routes, for admins
+   * and owners, may run on any document of the project. Anything else answers 404, as if absent.
+   */
+  private async assertRunDocument(
+    request: EndpointRequestWithAgent,
+    documentId: string,
+  ): Promise<void> {
+    const document = await this.documentsService.findById({
+      connectScope: getRequiredConnectScope(request),
+      documentId,
+    })
+    const isCallerUpload =
+      document?.sourceType === "extraction" && document.userId === request.user.id
+    if (!document || (this.type !== "playground" && !isCallerUpload)) {
+      throw new NotFoundException(`Document ${documentId} not found`)
+    }
   }
 
   /**
@@ -139,7 +161,10 @@ export abstract class ExtractionAgentSessionsController {
         (event) =>
           event.organizationId === connectScope.organizationId &&
           event.projectId === connectScope.projectId &&
-          event.agentId === request.agent.id,
+          event.agentId === request.agent.id &&
+          // A run is its creator's: a colleague's run, or one of the other type, is not followed.
+          event.runType === this.type &&
+          event.userId === request.user.id,
       ),
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )

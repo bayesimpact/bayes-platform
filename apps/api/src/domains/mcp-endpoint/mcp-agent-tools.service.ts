@@ -20,13 +20,13 @@ import { AgentsService } from "@/domains/agents/agents.service"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectRepository } from "@/domains/projects/project.repository"
+import { canReadAgentSettings } from "@/domains/rbac/agent-settings-access"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_CREATE_PERMISSION,
   AGENT_DUPLICATE_PERMISSION,
   AGENT_READ_PERMISSION,
-  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
   AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
@@ -243,7 +243,7 @@ export class McpAgentToolsService {
   /**
    * Agents of a granted project the person is a member of, with whether update_agent can change
    * them. An agent that was never published, such as a fresh copy, is only a draft, so it is
-   * listed to the people who can see or edit drafts, as in the studio.
+   * listed to the people who can read its settings, as in the studio.
    */
   async listAgents(caller: McpCaller, projectId: string): Promise<McpResult<McpAgent[]>> {
     const canReadProject =
@@ -272,7 +272,7 @@ export class McpAgentToolsService {
           connectScope,
           agentId: agent.id,
         })
-        if (!publishedSettings && !(await this.canSeeDraft(caller.userId, agent.id))) return []
+        if (!publishedSettings && !(await this.canReadSettings(caller.userId, agent.id))) return []
         const settings =
           publishedSettings ??
           (await this.agentSettingsService.getLatest({
@@ -299,8 +299,9 @@ export class McpAgentToolsService {
   }
 
   /**
-   * One agent of a granted project, with its published version, its draft when the person can
-   * see drafts, and its versions, so a client reads what it changes and picks what a run pins.
+   * One agent of a granted project, with its published version, its draft and its versions, so
+   * a client reads what it changes and picks what a run pins. Only for the people who can read
+   * the agent's settings, as over HTTP: the versions hold the agent's instructions.
    */
   async getAgent(caller: McpCaller, agentId: string): Promise<McpResult<McpAgentDetails>> {
     const agent = await this.agentRepository.findSummaryWithScopeById(agentId)
@@ -311,15 +312,15 @@ export class McpAgentToolsService {
       (await this.permissionService.has(caller.userId, AGENT_READ_PERMISSION, {
         type: "agent",
         id: agentId,
-      }))
+      })) &&
+      (await this.canReadSettings(caller.userId, agentId))
     if (!agent || !canRead) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
 
     const connectScope = { organizationId: agent.organizationId, projectId: agent.projectId }
-    const seesDraft = await this.canSeeDraft(caller.userId, agentId)
     const revisions = await this.agentSettingsService.getAll({
       connectScope,
       agentId,
-      ...(seesDraft ? { includesDraft: true as const } : {}),
+      includesDraft: true,
     })
     const published = revisions.find((settings) => settings.isProduction)
     const draft = revisions.find((settings) => settings.isDraft)
@@ -490,16 +491,9 @@ export class McpAgentToolsService {
     return this.holdsDuplicatePermission(caller, target.agentId)
   }
 
-  /**
-   * Whether the person can see the agent's draft settings over HTTP: they read the settings
-   * history, or they edit the draft as owner or admin of the agent.
-   */
-  async canSeeDraft(userId: string, agentId: string): Promise<boolean> {
-    const agent = { type: "agent" as const, id: agentId }
-    return (
-      (await this.permissionService.has(userId, AGENT_SETTINGS_DRAFT_READ_PERMISSION, agent)) ||
-      this.permissionService.has(userId, AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION, agent)
-    )
+  /** Whether the person can read the agent's settings, as over HTTP. */
+  canReadSettings(userId: string, agentId: string): Promise<boolean> {
+    return canReadAgentSettings(this.permissionService, userId, agentId)
   }
 
   private holdsDuplicatePermission(caller: McpCaller, agentId: string): Promise<boolean> {

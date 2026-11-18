@@ -22,8 +22,8 @@ import {
   AGENT_ROLE_PERMISSIONS,
   AGENT_SETTINGS_ARCHIVE_PERMISSION,
   AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
-  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
   AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
+  AGENT_SETTINGS_READ_PERMISSION,
   AGENT_SETTINGS_RESTORE_PERMISSION,
   AGENT_SUB_AGENT_READ_PERMISSION,
   AGENT_SUB_AGENT_UPDATE_PERMISSION,
@@ -265,15 +265,13 @@ describe("agent settings permissions", () => {
     AGENT_SETTINGS_ARCHIVE_PERMISSION,
   ]
 
-  it("grants the settings history to project owners, admins and evaluators only", () => {
-    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION)).toEqual([
+  it("lets project owners, admins and evaluators read the settings, and nobody else", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_SETTINGS_READ_PERMISSION)).toEqual([
       "project_owner",
       "project_admin",
       PROJECT_EVALUATOR_ROLE,
     ])
-    expect(
-      rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION),
-    ).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_SETTINGS_READ_PERMISSION)).toEqual([])
   })
 
   it.each(
@@ -284,8 +282,8 @@ describe("agent settings permissions", () => {
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
   })
 
-  it("passes the settings history down from the project to its agents", () => {
-    expect(RESOURCE_TYPE_PERMISSIONS_MAP.agent).toContain(AGENT_SETTINGS_DRAFT_READ_PERMISSION)
+  it("passes the reading of the settings down from the project to its agents", () => {
+    expect(RESOURCE_TYPE_PERMISSIONS_MAP.agent).toContain(AGENT_SETTINGS_READ_PERMISSION)
   })
 
   it("never inherits the settings changes from a parent resource", () => {

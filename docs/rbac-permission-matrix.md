@@ -92,7 +92,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 | `agent.create` | ✅ | ✅ | — | — |
 | `agent.read` | ✅ | ✅ | — | ✅ |
 | `agent.draft.read` — list the project's agents with their draft settings | ✅ | ✅ | — | ✅ |
-| `agent.settings.draft.read` — see the revision history of an agent's settings, drafts included | ✅ | ✅ | — | ✅ |
+| `agent.settings.read` — read an agent's settings: every revision, the draft included | ✅ | ✅ | — | ✅ |
 | `document.read` | ✅ | ✅ | — | — |
 | `document.create` | ✅ | ✅ | — | — |
 | `document.update` | ✅ | ✅ | — | — |
@@ -185,7 +185,7 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 
 `agent.duplicate` is held on the agent only too, since the copy carries the agent's sub-agents. The copy is a new agent of the project, so duplicating also needs `agent.create` on the project.
 
-`agent.settings.draft.read` works the other way: it is checked on the agent but granted on project owners and admins, and passes down to every agent of the project.
+`agent.settings.read` works the other way: it is checked on the agent but granted on project owners and admins, and passes down to every agent of the project.
 
 The live `agent.conversation.session.*`, `agent.extraction.session.*` and `csv_extraction_run.*` permissions are held by every agent role, so accepting an invitation on one agent (which gives `project_member` and `agent_member`) opens sessions and CSV extraction runs with that agent only. Project owners and admins reach every agent through the project, playground keys included.
 

@@ -36,6 +36,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - Review campaigns: testers reach a test conversation only while they are testers of its campaign and that campaign is active.
 - Message feedback: users leave feedback only on the messages of their own conversations.
+- Access rights: a first sign-in needs a verified email, and members no longer reach colleagues' files or agent settings.
 - (beta) Interactive cards (MCP Apps): each card runs in its own isolated frame, limited to the domains it declares.
 - (beta) Public chat API 1.5: the HTML of an interactive card comes with the domains the card declares (`csp`).
 

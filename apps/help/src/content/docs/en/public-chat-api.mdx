@@ -4,7 +4,7 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-11-06
+updated: 2026-11-18
 apiVersion: "1.5"
 ---
 
@@ -135,6 +135,10 @@ curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
 |---|---|---|
 | `payload.externalVisitorId` | string, optional | Your own stable identifier for the visitor. Tools receive it. Do not put personal data in it |
 | `payload.variables` | object, optional | Values for the `{{variables}}` the agent's instructions declare, by variable name |
+
+`externalVisitorId` is not authenticated. The platform stores the value the caller sends and
+passes it to the tools as it is, and anyone who holds the embed token can send any value. A
+tool must never use it alone to decide what a visitor may read or do.
 
 ```json
 {

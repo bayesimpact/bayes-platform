@@ -36,6 +36,9 @@ export type ExtractionAgentSessionStatusChangedEventPayload = {
   organizationId: string
   projectId: string
   agentId: string
+  runType: BaseAgentSessionTypeDto
+  /** Creator of the run: the only person who follows it. */
+  userId: string
   status: ExtractionAgentSessionStatus
   updatedAt: TimeType
 }
