@@ -1,8 +1,6 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp"
 import { Injectable, Logger } from "@nestjs/common"
 import type { ToolSet } from "ai"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { GoogleIdTokenService } from "@/external/google-iam"
 import {
   buildMcpRequestHeaders,
   type McpConversationContext,
@@ -29,8 +27,6 @@ export type McpSession = {
 export class McpClientService {
   private readonly logger = new Logger(McpClientService.name)
 
-  constructor(private readonly googleIdTokenService: GoogleIdTokenService) {}
-
   async connect(config: {
     url: string
     apiKey?: string
@@ -38,11 +34,6 @@ export class McpClientService {
     headers?: Record<string, string>
     /** Conversation the tools will be called for (forwarded as headers). */
     context?: McpConversationContext
-    /**
-     * Root URL of an IAM-protected server (Cloud Run invoker): a freshly
-     * minted Google ID token is sent instead of a static API key.
-     */
-    googleIamAudience?: string
   }): Promise<McpSession> {
     let client: MCPClient | undefined
     try {
@@ -51,11 +42,6 @@ export class McpClientService {
         staticHeaders: config.headers,
         context: config.context,
       })
-      if (config.googleIamAudience) {
-        headers.Authorization = await this.googleIdTokenService.getAuthorizationHeader(
-          config.googleIamAudience,
-        )
-      }
       client = await createMCPClient({
         transport: {
           type: "http",

@@ -1,6 +1,4 @@
 import { Injectable } from "@nestjs/common"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { GoogleIdTokenService, isGoogleIamAuthEnabled } from "@/external/google-iam"
 import { PdfHasNoPagesError } from "./pdf-has-no-pages.error"
 import { PdfPageLimitExceededError } from "./pdf-page-limit-exceeded.error"
 
@@ -31,8 +29,6 @@ const timeoutError = (path: string): Error =>
 
 @Injectable()
 export class PdfConverterClient {
-  constructor(private readonly googleIdTokenService: GoogleIdTokenService) {}
-
   // Renders a PDF document into individual page images.
   // Returns the number of pages rendered. Throws PdfPageLimitExceededError
   // (user-facing message) when the document has more pages than image-only
@@ -71,10 +67,7 @@ export class PdfConverterClient {
     try {
       response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(await this.buildAuthHeaders(converterUrl)),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(RENDER_REQUEST_TIMEOUT_MS),
       })
@@ -111,22 +104,6 @@ export class PdfConverterClient {
       )
     }
     return url
-  }
-
-  // In production the pdf-converter is locked behind Cloud Run invoker IAM:
-  // requests must carry a Google ID token minted for the service URL. Terraform
-  // sets PDF_CONVERTER_AUTH=google-iam on the API and workers; locally the
-  // converter runs open and no header is sent.
-  private async buildAuthHeaders(converterUrl: string): Promise<Record<string, string>> {
-    if (!isGoogleIamAuthEnabled(process.env.PDF_CONVERTER_AUTH)) {
-      return {}
-    }
-    // The audience must be the Cloud Run service root URL, not the full path.
-    return {
-      Authorization: await this.googleIdTokenService.getAuthorizationHeader(
-        new URL(converterUrl).origin,
-      ),
-    }
   }
 
   private async buildErrorFromResponse(response: Response): Promise<Error> {
