@@ -5,19 +5,17 @@ import { useNavigate } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { BackLink } from "@/components/shared/BackLink"
-import { HeaderActions } from "@/components/shared/HeaderActions"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { SidePanelToggle } from "@/components/shared/SidePanelToggle"
-import { SplitPage } from "@/components/shared/SplitPage"
 import type { EvaluationAgent } from "@/features/agents"
-import { useSidePanel } from "@/hooks/use-side-panel"
 import { ApiError } from "@/lib/api-client"
 import { useCreateCampaign } from "../api/mutations"
 import { campaignConfigInputOf } from "../campaign-form"
 import { type CampaignFormValues, campaignFormSchema } from "../schemas"
-import { CampaignSetupForm } from "./CampaignSetupForm"
-import { FeedbackPreview } from "./FeedbackPreview"
+import { SETUP_STEP_FIELDS } from "../setup-steps"
+import { CampaignGeneralFields } from "./CampaignGeneralFields"
+import { SetupStepFooter } from "./SetupStepFooter"
+import { SetupStepper } from "./SetupStepper"
 
 export type NewCampaignPageProps = {
   agent: EvaluationAgent
@@ -26,31 +24,28 @@ export type NewCampaignPageProps = {
   defaultValues: CampaignFormValues
 }
 
-/** Tailwind's `xl`, from which the setup and the preview panel both have room. */
-const ROOMY_QUERY = "(min-width: 80rem)"
-
 /**
- * Creates a campaign for an agent, as a draft, then opens it. The preview of its forms shows in a
- * panel beside the setup.
+ * The first step of a new campaign: its name and what it is for. The next one creates it as a
+ * draft, with the default questions, and opens its second step.
  */
 export function NewCampaignPage({ agent, agentParams, defaultValues }: NewCampaignPageProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const previewPanel = useSidePanel(ROOMY_QUERY)
   const createCampaign = useCreateCampaign(agentParams)
   const form = useForm({ resolver: zodResolver(campaignFormSchema), defaultValues })
 
-  const handleSubmit = (values: CampaignFormValues) =>
+  const handleNext = async () => {
+    const isValid = await form.trigger([...SETUP_STEP_FIELDS.campaign])
+    if (!isValid) return
     createCampaign.mutate(
-      { agentId: agent.id, ...campaignConfigInputOf(values) },
+      { agentId: agent.id, ...campaignConfigInputOf(form.getValues()) },
       {
-        onSuccess: (campaign) => {
-          toast.success(t`The campaign was created. Activate it to invite its participants.`)
+        onSuccess: (campaign) =>
           void navigate({
             to: "/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId",
             params: { ...agentParams, reviewCampaignId: campaign.id },
-          })
-        },
+            search: { step: "session" },
+          }),
         onError: (error) =>
           // The API refuses an agent that was never published, and says so.
           toast.error(
@@ -60,52 +55,31 @@ export function NewCampaignPage({ agent, agentParams, defaultValues }: NewCampai
           ),
       },
     )
+  }
 
   return (
-    <SplitPage
-      panel={
-        previewPanel.isOpen ? (
-          <FeedbackPreview
-            control={form.control}
-            onClose={previewPanel.close}
-            takesFocus={previewPanel.takesFocus}
-          />
-        ) : null
-      }
-    >
-      <HeaderActions>
-        <SidePanelToggle isOpen={previewPanel.isOpen} onToggle={previewPanel.toggle}>
-          <Trans comment="The button that shows the forms testers and reviewers will fill">
-            Preview
+    <PageContainer>
+      <PageHeader
+        back={
+          <BackLink
+            to="/o/$organizationId/p/$projectId/a/$agentId/review-campaigns"
+            params={agentParams}
+          >
+            <Trans>Campaigns</Trans>
+          </BackLink>
+        }
+        title={<Trans>New review campaign</Trans>}
+        description={
+          <Trans>
+            Name the campaign, choose what testers and reviewers answer, then activate it and invite
+            them.
           </Trans>
-        </SidePanelToggle>
-      </HeaderActions>
-      <PageContainer>
-        <PageHeader
-          back={
-            <BackLink
-              to="/o/$organizationId/p/$projectId/a/$agentId/review-campaigns"
-              params={agentParams}
-            >
-              <Trans>Campaigns</Trans>
-            </BackLink>
-          }
-          title={<Trans>New review campaign</Trans>}
-          description={
-            <Trans>
-              Set the questions up, then activate the campaign to invite its participants.
-            </Trans>
-          }
-        />
-        <CampaignSetupForm
-          form={form}
-          agentName={agent.name}
-          isLocked={false}
-          submitLabel={<Trans>Create the campaign</Trans>}
-          isPending={createCampaign.isPending}
-          onSubmit={handleSubmit}
-        />
-      </PageContainer>
-    </SplitPage>
+        }
+      />
+      {/* The campaign does not exist yet: no other step opens before the first one is done. */}
+      <SetupStepper currentStep="campaign" canOpen={() => false} onOpen={() => {}} />
+      <CampaignGeneralFields form={form} agentName={agent.name} isLocked={false} />
+      <SetupStepFooter onNext={() => void handleNext()} isPending={createCampaign.isPending} />
+    </PageContainer>
   )
 }

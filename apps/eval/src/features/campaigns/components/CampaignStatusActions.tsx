@@ -27,6 +27,8 @@ export type CampaignStatusActionsProps = {
   campaignParams: ReviewCampaignParamsDto
   /** Whether the setup has changes that are not saved: activating would leave them out. */
   hasUnsavedChanges: boolean
+  /** Whether a draft's Activate shows here: the setup's last step holds it instead. */
+  showsActivate?: boolean
 }
 
 type Confirmation = "activate" | "close" | "delete"
@@ -40,6 +42,7 @@ export function CampaignStatusActions({
   campaign,
   campaignParams,
   hasUnsavedChanges,
+  showsActivate = true,
 }: CampaignStatusActionsProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -47,6 +50,7 @@ export function CampaignStatusActions({
   const updateCampaign = useUpdateCampaign(campaignParams)
   const deleteCampaign = useDeleteCampaign(campaignParams)
   const canUpdate = hasProjectPermission(agent.project, PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION)
+  const canActivate = canUpdate && showsActivate
   const canDelete = hasProjectPermission(agent.project, PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION)
   const name = campaign.name
   const close = () => setConfirming(null)
@@ -90,9 +94,9 @@ export function CampaignStatusActions({
 
   return (
     <>
-      {campaign.status === "draft" && (canUpdate || canDelete) ? (
+      {campaign.status === "draft" && (canActivate || canDelete) ? (
         <ButtonGroup>
-          {canUpdate ? (
+          {canActivate ? (
             <Button
               disabled={hasUnsavedChanges}
               title={hasUnsavedChanges ? t`Save your changes first.` : undefined}
@@ -102,13 +106,13 @@ export function CampaignStatusActions({
               <Trans comment="Opens a review campaign to its testers and reviewers">Activate</Trans>
             </Button>
           ) : null}
-          {canUpdate && canDelete ? <ButtonGroupSeparator /> : null}
+          {canActivate && canDelete ? <ButtonGroupSeparator /> : null}
           {canDelete ? (
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
                   <Button
-                    variant={canUpdate ? "default" : "outline"}
+                    variant={canActivate ? "default" : "outline"}
                     size="icon"
                     aria-label={t`More actions`}
                   />

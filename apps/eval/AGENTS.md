@@ -127,6 +127,18 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   conversation agent. Only a draft's setup changes; `CampaignStatusActions` activates, closes or
   deletes after a confirmation. A draft's Activate is the page's primary action, grouped with a
   « ⋯ » menu (More actions) that holds Delete.
+- A draft its manager can change is set up step by step (`CampaignPage` picks it, then
+  `CampaignSetupWizard`), its step in the `step` search param (`SETUP_STEPS`): Campaign, After
+  each session, Final survey, Session review, Activate, then Invite once active. `new` is the
+  first step, whose Next creates the draft with the default questions. Each Next checks its step's
+  fields (`SETUP_STEP_FIELDS` in `setup-steps.ts`) and saves what changed, and so do Back and the
+  stepper; Activate saves first too. What changed is the form against the campaign as saved, not
+  the form's dirty state, which a read of the campaign in the background resets. Leaving the page
+  with changes not saved asks first (`UnsavedChangesGuard`). `SetupStepper` reopens a
+  step done; below a wide window, only the current step keeps its name, and a tooltip names the
+  others. In the setup, the bar's Activate gives way to the Activate step, and the preview opens
+  only the step's form. The three forms have one name each, everywhere: After each session, Final
+  survey, Session review, the names their testers and reviewers see.
 - A campaign for its participants, under
   `src/routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/`:
   `route.tsx` is the frame and loads the campaign (`features/campaign-context`), `test/` is the

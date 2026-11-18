@@ -77,89 +77,189 @@ describe("the review campaigns of an agent", () => {
 })
 
 describe("a new campaign", () => {
-  it("starts from default questions, and opens as a draft once created", async () => {
+  it("starts on its name, then creates a draft with the default questions", async () => {
     const world = buildNoCampaignWorld()
     server.use(...worldHandlers(world))
     const { router } = renderApp(`${campaignsUrlOf(world)}/new`)
 
     const name = await screen.findByRole<HTMLInputElement>("textbox", { name: "Name" })
     expect(name.value).toContain("Campaign for Helpful Assistant")
-    expect(screen.getAllByRole("textbox", { name: /^Question \d$/ })).toHaveLength(4)
+    expect(screen.getByRole("button", { name: "Campaign" })).toHaveAttribute("aria-current", "step")
+    expect(screen.queryByRole("textbox", { name: /^Question \d$/ })).not.toBeInTheDocument()
     await userEvent.clear(name)
     await userEvent.type(name, "Autumn pilot")
-    await userEvent.click(screen.getByRole("button", { name: "Create the campaign" }))
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
 
+    // The draft exists: its second step asks what a tester answers after each session.
     expect(await screen.findByRole("heading", { name: "Autumn pilot" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "After each session" })).toBeInTheDocument()
+    expect(screen.getAllByRole("textbox", { name: /^Question \d$/ })).toHaveLength(2)
     expect(page().getByText("Draft")).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(
       routerPathOf(campaignEditorUrlOf(world, "Autumn pilot")),
     )
+    expect(router.state.location.search).toEqual({ step: "session" })
   })
 
-  it("asks for a name, a text for each question and two options for a single choice", async () => {
+  it("asks for a name before it creates the campaign", async () => {
     const world = buildNoCampaignWorld()
     server.use(...worldHandlers(world))
     renderApp(`${campaignsUrlOf(world)}/new`)
 
     await userEvent.clear(await screen.findByRole("textbox", { name: "Name" }))
-    await userEvent.clear(screen.getAllByRole("textbox", { name: "Question 1" })[0] as HTMLElement)
-    await userEvent.clear(screen.getByRole("textbox", { name: "Options, separated by commas" }))
-    await userEvent.click(screen.getByRole("button", { name: "Create the campaign" }))
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
 
     expect(await screen.findByText("Give the campaign a name.")).toBeInTheDocument()
-    expect(screen.getByText("Write the question.")).toBeInTheDocument()
-    expect(screen.getByText("Write two options at least.")).toBeInTheDocument()
+    expect(world.campaigns).toEqual([])
   })
 })
 
-describe("a campaign's editor", () => {
-  it("saves a draft's setup, then activates it after a confirmation", async () => {
+describe("a draft's setup, step by step", () => {
+  it("saves each step, then activates the campaign and opens its invitations", async () => {
     const world = buildEvalWorld()
     server.use(...worldHandlers(world))
-    renderApp(campaignEditorUrlOf(world, "Onboarding answers"))
+    const { router } = renderApp(campaignEditorUrlOf(world, "Onboarding answers"))
 
     const name = await screen.findByRole("textbox", { name: "Name" })
     await userEvent.type(name, " 2")
-    // The setup has changes: activating would leave them out.
-    expect(screen.getByRole("button", { name: "Activate" })).toBeDisabled()
-    await userEvent.click(screen.getByRole("button", { name: "Save" }))
-    expect(await screen.findByText("The campaign was saved.")).toBeInTheDocument()
-    expect(campaignOf(world, "Onboarding answers 2").status).toBe("draft")
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
 
-    await waitFor(() => expect(screen.getByRole("button", { name: "Activate" })).toBeEnabled())
-    await userEvent.click(screen.getByRole("button", { name: "Activate" }))
+    expect(await screen.findByRole("heading", { name: "After each session" })).toBeInTheDocument()
+    expect(campaignOf(world, "Onboarding answers 2").status).toBe("draft")
+    // A step done reopens from the stepper; the invitations wait for the activation.
+    expect(screen.getByRole("button", { name: "Invite" })).toHaveAttribute("aria-disabled", "true")
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+    expect(await screen.findByRole("heading", { name: "Final survey" })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+    expect(await screen.findByRole("heading", { name: "Session review" })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+    await userEvent.click(await screen.findByRole("button", { name: "Activate the campaign" }))
     const dialog = await screen.findByRole("alertdialog", {
       name: "Activate “Onboarding answers 2”?",
     })
     await userEvent.click(within(dialog).getByRole("button", { name: "Activate" }))
 
-    // Once active, the campaign opens on its participants, and its setup no longer changes.
     expect(await screen.findByRole("heading", { name: "Invite participants" })).toBeInTheDocument()
     expect(page().getByText("Active")).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Activate" })).not.toBeInTheDocument()
+    expect(router.state.location.search).toEqual({ step: "invite" })
+
+    await userEvent.click(screen.getByRole("button", { name: "Done" }))
+    expect(await screen.findByRole("tab", { name: "Participants" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    )
   })
 
-  it("shows the forms as the setup stands, in a panel beside it", async () => {
+  it("saves a step left by Back or by the stepper, not only by Next", async () => {
     const world = buildEvalWorld()
     server.use(...worldHandlers(world))
-    renderApp(campaignEditorUrlOf(world, "Onboarding answers"))
+    renderApp(`${campaignEditorUrlOf(world, "Onboarding answers")}?step=session`)
 
-    const firstQuestion = (await screen.findAllByRole("textbox", { name: "Question 1" }))[0]
+    const question = await screen.findByRole("textbox", { name: "Question 1" })
+    await userEvent.clear(question)
+    await userEvent.type(question, "Was the tone right?")
+    await userEvent.click(screen.getByRole("button", { name: "Back" }))
+    expect(await screen.findByRole("textbox", { name: "Name" })).toBeInTheDocument()
+    expect(campaignOf(world, "Onboarding answers").testerPerSessionQuestions[0]?.prompt).toBe(
+      "Was the tone right?",
+    )
+
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), " 2")
+    await userEvent.click(screen.getByRole("button", { name: "Activate" }))
+    expect(await screen.findByRole("button", { name: "Activate the campaign" })).toBeInTheDocument()
+    expect(campaignOf(world, "Onboarding answers 2").status).toBe("draft")
+  })
+
+  it("asks before leaving the page with changes not saved", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(`${campaignEditorUrlOf(world, "Onboarding answers")}?step=session`)
+
+    await userEvent.type(await screen.findByRole("textbox", { name: "Question 1" }), " Really?")
+    await userEvent.click(screen.getByRole("link", { name: "Spring review" }))
+    const dialog = await screen.findByRole("alertdialog", { name: "Leave without saving?" })
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }))
+    expect(router.state.location.pathname).toBe(
+      routerPathOf(campaignEditorUrlOf(world, "Onboarding answers")),
+    )
+
+    await userEvent.click(screen.getByRole("link", { name: "Spring review" }))
+    await userEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Leave" }),
+    )
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe(
+        routerPathOf(campaignEditorUrlOf(world, "Spring review")),
+      ),
+    )
+  })
+
+  it("checks a step's questions before the next one", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignEditorUrlOf(world, "Onboarding answers")}?step=session`)
+
+    await userEvent.clear(await screen.findByRole("textbox", { name: "Question 1" }))
+    await userEvent.clear(screen.getByRole("textbox", { name: "Options, separated by commas" }))
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+    expect(await screen.findByText("Write the question.")).toBeInTheDocument()
+    expect(screen.getByText("Write two options at least.")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "After each session" })).toBeInTheDocument()
+  })
+
+  it("asks before it removes a question with text, and removes a blank one at once", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignEditorUrlOf(world, "Onboarding answers")}?step=session`)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Remove question 1" }))
+    const dialog = await screen.findByRole("alertdialog", { name: "Remove question 1?" })
+    await userEvent.click(within(dialog).getByRole("button", { name: "Remove" }))
+    await waitFor(() =>
+      expect(screen.getAllByRole("textbox", { name: /^Question \d$/ })).toHaveLength(1),
+    )
+
+    await userEvent.click(screen.getByRole("button", { name: "Add a question" }))
+    await userEvent.click(screen.getByRole("button", { name: "Remove question 2" }))
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    expect(screen.getAllByRole("textbox", { name: /^Question \d$/ })).toHaveLength(1)
+  })
+
+  it("shows the step's form in the preview, the others folded, as the setup stands", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignEditorUrlOf(world, "Onboarding answers")}?step=session`)
+
+    const firstQuestion = await screen.findByRole("textbox", { name: "Question 1" })
     await userEvent.click(screen.getByRole("button", { name: "Preview" }))
     const panel = await screen.findByRole("complementary", { name: "Preview" })
-    expect(within(panel).getByRole("heading", { name: "After each session" })).toBeInTheDocument()
-    expect(within(panel).getByRole("heading", { name: "Final survey" })).toBeInTheDocument()
-    expect(within(panel).getByRole("heading", { name: "Review of a session" })).toBeInTheDocument()
+    expect(within(panel).getByRole("button", { name: /^After each session/ })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+    expect(within(panel).getByRole("button", { name: /^Final survey/ })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    )
+    expect(within(panel).getByRole("button", { name: /^Session review/ })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    )
 
     // The panel follows what the person writes, before any save.
-    await userEvent.clear(firstQuestion as HTMLElement)
-    await userEvent.type(firstQuestion as HTMLElement, "Was the tone right?")
+    await userEvent.clear(firstQuestion)
+    await userEvent.type(firstQuestion, "Was the tone right?")
     expect(within(panel).getByText("Was the tone right?")).toBeInTheDocument()
 
     await userEvent.click(within(panel).getByRole("button", { name: "Close the panel" }))
     expect(screen.queryByRole("complementary", { name: "Preview" })).not.toBeInTheDocument()
   })
+})
 
+describe("a campaign's editor", () => {
   it("deletes a draft after a confirmation, and goes back to the list", async () => {
     const world = buildEvalWorld()
     server.use(...worldHandlers(world))
@@ -265,15 +365,6 @@ describe("a campaign's participants", () => {
     await waitFor(() => expect(screen.queryByText("robin@example.org")).not.toBeInTheDocument())
     expect(screen.getByText("alix@example.org")).toBeInTheDocument()
   })
-
-  it("invites nobody to a draft", async () => {
-    const world = buildEvalWorld()
-    server.use(...worldHandlers(world))
-    renderApp(`${campaignEditorUrlOf(world, "Onboarding answers")}?tab=participants`)
-
-    expect(await screen.findByText(/Activate the campaign to invite/)).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Invite" })).not.toBeInTheDocument()
-  })
 })
 
 describe("a campaign's report", () => {
@@ -293,13 +384,15 @@ describe("a campaign's report", () => {
     expect(await screen.findByRole("heading", { name: "Invite participants" })).toBeInTheDocument()
   })
 
-  it("has no tab while the campaign is a draft", async () => {
+  it("has no tab while the campaign is a draft, which shows its setup's steps", async () => {
     const world = buildEvalWorld()
     server.use(...worldHandlers(world))
     renderApp(campaignEditorUrlOf(world, "Onboarding answers"))
 
-    expect(await screen.findByRole("tab", { name: "Setup" })).toBeInTheDocument()
-    expect(screen.queryByRole("tab", { name: "Report" })).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole("navigation", { name: "Steps of the setup" }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument()
   })
 
   it("shows the headline figures, the answers to each question and the sessions", async () => {

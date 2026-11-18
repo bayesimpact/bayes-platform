@@ -54,17 +54,17 @@ export function CampaignReportContent({ campaign }: CampaignReportContentProps) 
         />
       </div>
       <Distributions
-        title={<Trans>Testers, after each session</Trans>}
+        title={<Trans>After each session</Trans>}
         description={<Trans>One answer per session a tester gave feedback on.</Trans>}
         distributions={report.testerPerSessionDistributions}
       />
       <Distributions
-        title={<Trans>Testers, at the end</Trans>}
+        title={<Trans>Final survey</Trans>}
         description={<Trans>One answer per tester who filled the final survey.</Trans>}
         distributions={report.testerEndOfPhaseDistributions}
       />
       <Distributions
-        title={<Trans>Reviewers</Trans>}
+        title={<Trans>Session review</Trans>}
         description={<Trans>One answer per review, across all sessions.</Trans>}
         distributions={report.reviewerDistributions}
       />

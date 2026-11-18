@@ -1,7 +1,8 @@
 import { Trans } from "@lingui/react/macro"
 import { PlusIcon } from "lucide-react"
-import type { ReactNode } from "react"
-import { type Control, useFieldArray } from "react-hook-form"
+import { type ReactNode, useState } from "react"
+import { type Control, useFieldArray, useWatch } from "react-hook-form"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
 import { blankQuestion } from "../campaign-form"
@@ -17,7 +18,10 @@ export type QuestionListEditorProps = {
   disabled: boolean
 }
 
-/** One of a campaign's lists of questions: add, order, edit and remove them. */
+/**
+ * One of a campaign's lists of questions: add, order, edit and remove them. Removing a question
+ * with text asks for a confirmation first.
+ */
 export function QuestionListEditor({
   control,
   list,
@@ -27,6 +31,15 @@ export function QuestionListEditor({
   disabled,
 }: QuestionListEditorProps) {
   const { fields, append, move, remove } = useFieldArray({ control, name: list, keyName: "key" })
+  const questions = useWatch({ control, name: list })
+  const [removingIndex, setRemovingIndex] = useState<number | null>(null)
+  const removedPrompt = removingIndex === null ? "" : (questions[removingIndex]?.prompt ?? "")
+  const removedPosition = (removingIndex ?? 0) + 1
+  // A question with no text yet goes at once: there is nothing to lose.
+  const handleRemove = (index: number) => {
+    if (questions[index]?.prompt.trim()) setRemovingIndex(index)
+    else remove(index)
+  }
   return (
     <SectionCard title={title} description={description}>
       {fields.length === 0 ? (
@@ -45,7 +58,7 @@ export function QuestionListEditor({
               hasFactual={hasFactual}
               disabled={disabled}
               onMove={move}
-              onRemove={remove}
+              onRemove={handleRemove}
             />
           ))}
         </ol>
@@ -62,6 +75,21 @@ export function QuestionListEditor({
           <Trans>Add a question</Trans>
         </Button>
       )}
+      <ConfirmDialog
+        isOpen={removingIndex !== null}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setRemovingIndex(null)
+        }}
+        title={<Trans>Remove question {removedPosition}?</Trans>}
+        description={<Trans>“{removedPrompt}” leaves this list, with its settings.</Trans>}
+        confirmLabel={<Trans comment="Removes a question from a campaign's list">Remove</Trans>}
+        isDestructive
+        isPending={false}
+        onConfirm={() => {
+          if (removingIndex !== null) remove(removingIndex)
+          setRemovingIndex(null)
+        }}
+      />
     </SectionCard>
   )
 }

@@ -2,7 +2,7 @@ import { useLingui } from "@lingui/react"
 import { composeStories, composeStory, setProjectAnnotations } from "@storybook/react-vite"
 import { useQueryClient } from "@tanstack/react-query"
 import { act, render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { userEvent } from "storybook/test"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
 import * as campaignStories from "./Campaigns.stories"
@@ -21,7 +21,8 @@ function LocaleAndCache() {
 
 const { PageNotFound, ProjectsFailToLoad, Loading, SidebarPeek, ...generalPages } =
   composeStories(generalStories)
-const campaignPages = composeStories(campaignStories)
+const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
+  composeStories(campaignStories)
 // The reviewer and the tester both have a story named after their campaign.
 const { ClosedCampaign: ReviewerClosedCampaign, ...reviewerPages } = composeStories(reviewerStories)
 const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStories)
@@ -83,15 +84,35 @@ const PAGES = {
   },
   NewCampaign: {
     Story: pageStories.NewCampaign,
-    loaded: () => screen.findByRole("button", { name: "Create the campaign" }),
+    loaded: () => screen.findByRole("button", { name: "Next" }),
   },
   DraftCampaign: {
     Story: pageStories.DraftCampaign,
-    loaded: () => screen.findByRole("button", { name: "Activate" }),
+    loaded: () => screen.findByRole("textbox", { name: "Name" }),
+  },
+  SetupSessionQuestions: {
+    Story: pageStories.SetupSessionQuestions,
+    loaded: () => screen.findByRole("heading", { name: "After each session" }),
+  },
+  SetupFinalQuestions: {
+    Story: pageStories.SetupFinalQuestions,
+    loaded: () => screen.findByRole("heading", { name: "Final survey" }),
+  },
+  SetupReviewerQuestions: {
+    Story: pageStories.SetupReviewerQuestions,
+    loaded: () => screen.findByRole("heading", { name: "Session review" }),
+  },
+  SetupActivate: {
+    Story: pageStories.SetupActivate,
+    loaded: () => screen.findByRole("button", { name: "Activate the campaign" }),
+  },
+  SetupInvite: {
+    Story: pageStories.SetupInvite,
+    loaded: () => screen.findByRole("heading", { name: "Invite participants" }),
   },
   CampaignPreview: {
     Story: pageStories.CampaignPreview,
-    loaded: () => screen.findByRole("heading", { name: "Review of a session" }),
+    loaded: () => screen.findByRole("complementary", { name: "Preview" }),
   },
   ActiveCampaign: {
     Story: pageStories.ActiveCampaign,
@@ -199,9 +220,30 @@ describe("the stories of the app", () => {
     await waitFor(() => expect(sidebar()).toHaveAttribute("data-peek"))
     expect(sidebar()?.closest('[data-slot="sidebar"]')).toHaveAttribute("data-state", "collapsed")
 
-    // It hides a moment after the pointer leaves the button.
+    // It hides a moment after the pointer leaves the button. The stories' own pointer leaves it,
+    // so the next story does not start over that button.
     await userEvent.unhover(screen.getByRole("button", { name: "Show the sidebar" }))
     await waitFor(() => expect(sidebar()).not.toHaveAttribute("data-peek"))
+  })
+
+  it("RemoveQuestion asks before it removes a question with text", async () => {
+    await RemoveQuestion.load()
+    const { container } = render(<RemoveQuestion />)
+    await act(() => RemoveQuestion.play?.({ canvasElement: container }))
+
+    expect(
+      await screen.findByRole("alertdialog", { name: "Remove question 1?" }),
+    ).toBeInTheDocument()
+  })
+
+  it("LeaveWithUnsavedChanges asks before the changes are lost", async () => {
+    await LeaveWithUnsavedChanges.load()
+    const { container } = render(<LeaveWithUnsavedChanges />)
+    await act(() => LeaveWithUnsavedChanges.play?.({ canvasElement: container }))
+
+    expect(
+      await screen.findByRole("alertdialog", { name: "Leave without saving?" }),
+    ).toBeInTheDocument()
   })
 
   it("Loading shows the frame of the app, and no page yet", async () => {

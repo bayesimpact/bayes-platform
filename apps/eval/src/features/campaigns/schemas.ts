@@ -11,11 +11,28 @@ export const CAMPAIGN_TABS = ["setup", "participants", "summary"] as const
 export type CampaignTab = (typeof CAMPAIGN_TABS)[number]
 
 /**
- * The search params of a campaign's editor: the tab it shows, its first one by default, and
+ * The steps that set a campaign up, in order: its name, its three lists of questions, its
+ * activation, then its invitations, which open once it is active.
+ */
+export const SETUP_STEPS = [
+  "campaign",
+  "session",
+  "final",
+  "reviewers",
+  "activate",
+  "invite",
+] as const
+
+export type SetupStep = (typeof SETUP_STEPS)[number]
+
+/**
+ * The search params of a campaign's editor: the tab it shows, its first one by default, the step
+ * of a draft's setup, its first one by default, and
  * whether the preview panel is open beside the setup, which the window's width decides by default.
  */
 export const campaignEditorSearchSchema = z.object({
   tab: z.enum(CAMPAIGN_TABS).optional().catch(undefined),
+  step: z.enum(SETUP_STEPS).optional().catch(undefined),
   preview: z.boolean().optional().catch(undefined),
 })
 

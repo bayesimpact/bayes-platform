@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import {
-  CampaignEditor,
+  CampaignPage,
   CampaignsPageSkeleton,
   campaignEditorSearchSchema,
   loadCampaign,
@@ -25,15 +25,16 @@ export const Route = createFileRoute(
 function CampaignRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
-  const { tab, preview } = Route.useSearch()
+  const { tab, step, preview } = Route.useSearch()
   return (
-    <CampaignEditor
+    <CampaignPage
       // A campaign's form starts from that campaign: another one gets its own.
       key={params.reviewCampaignId}
       agent={agent}
       agentParams={params}
       campaignParams={params}
       tab={tab}
+      step={step}
       preview={preview}
     />
   )

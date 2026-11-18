@@ -20,7 +20,10 @@ export type CampaignPageFrameProps = {
   agent: EvaluationAgent
   agentParams: AgentParamsDto
   campaignParams: ReviewCampaignParamsDto
-  currentTab: CampaignPageTab
+  /** The open tab, for a campaign shown in tabs. */
+  currentTab?: CampaignPageTab
+  /** The steps of a draft's setup, shown in place of the tabs. */
+  steps?: ReactNode
   /** Whether the setup has changes that are not saved: activating would leave them out. */
   hasUnsavedChanges: boolean
   /** What acts on the open tab, on the right of the tabs: the setup's preview, the report's download. */
@@ -34,7 +37,7 @@ const isCampaignTab = (value: unknown): value is CampaignTab =>
 
 /**
  * The frame of a campaign's pages, for who manages it: its name and status, what moves it on, and
- * its tabs. The report is a tab too, though it has its own URL: it opens once the campaign is
+ * its tabs, or the steps of a draft's setup. The report is a tab too, though it has its own URL: it opens once the campaign is
  * active.
  */
 export function CampaignPageFrame({
@@ -42,6 +45,7 @@ export function CampaignPageFrame({
   agentParams,
   campaignParams,
   currentTab,
+  steps,
   hasUnsavedChanges,
   tabActions,
   children,
@@ -83,33 +87,47 @@ export function CampaignPageFrame({
             campaign={campaign}
             campaignParams={campaignParams}
             hasUnsavedChanges={hasUnsavedChanges}
+            // The setup's steps end on the activation: the bar keeps only the other actions.
+            showsActivate={steps === undefined}
           />
         }
       />
-      <Tabs value={currentTab} onValueChange={handleTabChange}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <TabsList>
-            <TabsTrigger value="setup">
-              <Trans comment="The tab with a campaign's name and questions">Setup</Trans>
-            </TabsTrigger>
-            <TabsTrigger value="participants">
-              <Trans>Participants</Trans>
-            </TabsTrigger>
-            {campaign.status === "closed" ? (
-              <TabsTrigger value="summary">
-                <Trans comment="The tab with the first figures of a closed campaign">Summary</Trans>
+      {steps ? (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {steps}
+            {tabActions ? <div className="flex items-center gap-2">{tabActions}</div> : null}
+          </div>
+          {children}
+        </>
+      ) : (
+        <Tabs value={currentTab} onValueChange={handleTabChange}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <TabsList>
+              <TabsTrigger value="setup">
+                <Trans comment="The tab with a campaign's name and questions">Setup</Trans>
               </TabsTrigger>
-            ) : null}
-            {campaign.status === "draft" ? null : (
-              <TabsTrigger value="report">
-                <Trans comment="The tab with the full report of a campaign">Report</Trans>
+              <TabsTrigger value="participants">
+                <Trans>Participants</Trans>
               </TabsTrigger>
-            )}
-          </TabsList>
-          {tabActions ? <div className="flex items-center gap-2">{tabActions}</div> : null}
-        </div>
-        {children}
-      </Tabs>
+              {campaign.status === "closed" ? (
+                <TabsTrigger value="summary">
+                  <Trans comment="The tab with the first figures of a closed campaign">
+                    Summary
+                  </Trans>
+                </TabsTrigger>
+              ) : null}
+              {campaign.status === "draft" ? null : (
+                <TabsTrigger value="report">
+                  <Trans comment="The tab with the full report of a campaign">Report</Trans>
+                </TabsTrigger>
+              )}
+            </TabsList>
+            {tabActions ? <div className="flex items-center gap-2">{tabActions}</div> : null}
+          </div>
+          {children}
+        </Tabs>
+      )}
     </PageContainer>
   )
 }

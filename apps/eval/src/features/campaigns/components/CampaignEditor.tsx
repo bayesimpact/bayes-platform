@@ -55,8 +55,10 @@ export function CampaignEditor({
   const updateCampaign = useUpdateCampaign(campaignParams)
   const form = useForm({
     resolver: zodResolver(campaignFormSchema),
-    // The form follows the campaign as the API returns it, after each save.
+    // The form follows the campaign as the API returns it, after each save; a read of the
+    // campaign in the background keeps what the person is writing.
     values: campaignFormValuesOf(campaign),
+    resetOptions: { keepDirtyValues: true },
   })
   const canUpdate = hasProjectPermission(agent.project, PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION)
   const isLocked = campaign.status !== "draft" || !canUpdate

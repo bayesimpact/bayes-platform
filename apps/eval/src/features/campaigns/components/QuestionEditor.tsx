@@ -159,7 +159,7 @@ export function QuestionEditor({
           )}
         />
       ) : null}
-      <div className="flex flex-wrap gap-x-6 gap-y-3">
+      <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
         <Controller
           control={control}
           name={`${list}.${index}.required`}
