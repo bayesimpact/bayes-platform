@@ -140,8 +140,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   only the step's form. The three forms have one name each, everywhere: After each session, Final
   survey, Session review, the names their testers and reviewers see.
 - Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms
-  (`CampaignSetupView`), each folded to its title and question count (`FeedbackFormPreview` on the
-  shared `FoldingCard`, which the setup's preview panel uses too).
+  (`CampaignSetupView`), its General card then one sub-tab per form, as the report does. A form's
+  fields are `FeedbackFormFields`, which the setup's preview panel folds in `FeedbackFormPreview`
+  (on the shared `FoldingCard`).
 - A campaign for its participants, under
   `src/routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/`:
   `route.tsx` is the frame and loads the campaign (`features/campaign-context`), `test/` is the

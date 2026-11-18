@@ -124,7 +124,7 @@ const PAGES = {
   },
   LockedSetup: {
     Story: pageStories.LockedSetup,
-    loaded: () => screen.findByRole("button", { name: /^Session review/ }),
+    loaded: () => screen.findByRole("tab", { name: "Session review" }),
   },
   ClosedCampaign: {
     Story: pageStories.ClosedCampaign,

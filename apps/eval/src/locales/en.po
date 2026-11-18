@@ -331,7 +331,7 @@ msgstr "Closing ends the campaign for good: testers can no longer start sessions
 
 #: src/components/shared/RatedFeedbackForm.tsx
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
-#: src/features/campaigns/components/FeedbackFormPreview.tsx
+#: src/features/campaigns/components/FeedbackFormFields.tsx
 msgid "Comment"
 msgstr "Comment"
 

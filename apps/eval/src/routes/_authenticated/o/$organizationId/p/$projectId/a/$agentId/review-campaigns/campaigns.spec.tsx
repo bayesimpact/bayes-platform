@@ -279,19 +279,16 @@ describe("a campaign's editor", () => {
     server.use(...worldHandlers(world))
     renderApp(`${campaignEditorUrlOf(world, "Support assistant pilot")}?tab=setup`)
 
-    // Each form folds to its title and question count, and opens on a click.
-    const afterEachSession = await screen.findByRole("button", { name: /^After each session/ })
-    expect(afterEachSession).toHaveAttribute("aria-expanded", "false")
-    expect(page().getByRole("button", { name: /^Final survey/ })).toHaveAttribute(
-      "aria-expanded",
-      "false",
+    // One sub-tab per form, the first one open.
+    expect(await screen.findByText("Was the agent's answer clear?")).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "After each session" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     )
-    expect(page().getByRole("button", { name: /^Session review/ })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    )
-    await userEvent.click(afterEachSession)
-    expect(await page().findByText("Was the agent's answer clear?")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("tab", { name: "Session review" }))
+    expect(
+      await screen.findByText("Were the agent's answers factually correct?"),
+    ).toBeInTheDocument()
     expect(screen.queryByRole("textbox", { name: "Name" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Add a question" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Preview" })).not.toBeInTheDocument()

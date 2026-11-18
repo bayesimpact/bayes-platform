@@ -1,7 +1,8 @@
 import type { ReviewCampaignDetailOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { FeedbackFormPreview } from "./FeedbackFormPreview"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FeedbackFormFields } from "./FeedbackFormFields"
 
 export type CampaignSetupViewProps = {
   campaign: ReviewCampaignDetailOutputDto
@@ -10,7 +11,7 @@ export type CampaignSetupViewProps = {
 
 /**
  * The setup of a campaign that no longer changes: what it is, then its three forms as its testers
- * and reviewers fill them, folded to their title and question count until opened.
+ * and reviewers fill them, one sub-tab per form.
  */
 export function CampaignSetupView({ campaign, agentName }: CampaignSetupViewProps) {
   return (
@@ -36,27 +37,46 @@ export function CampaignSetupView({ campaign, agentName }: CampaignSetupViewProp
           </dd>
         </dl>
       </SectionCard>
-      <FeedbackFormPreview
-        title={<Trans>After each session</Trans>}
-        description={<Trans>What a tester fills when they end a session.</Trans>}
-        ratingLabel={<Trans>Overall rating</Trans>}
-        questions={campaign.testerPerSessionQuestions}
-        isOpenAtFirst={false}
-      />
-      <FeedbackFormPreview
-        title={<Trans>Final survey</Trans>}
-        description={<Trans>What a tester fills when they finish taking part.</Trans>}
-        ratingLabel={<Trans>Overall rating</Trans>}
-        questions={campaign.testerEndOfPhaseQuestions}
-        isOpenAtFirst={false}
-      />
-      <FeedbackFormPreview
-        title={<Trans>Session review</Trans>}
-        description={<Trans>What a reviewer fills for each session.</Trans>}
-        ratingLabel={<Trans>Your rating</Trans>}
-        questions={campaign.reviewerQuestions}
-        isOpenAtFirst={false}
-      />
+      <Tabs defaultValue="session">
+        <TabsList variant="line" className="max-w-full overflow-x-auto">
+          <TabsTrigger value="session">
+            <Trans>After each session</Trans>
+          </TabsTrigger>
+          <TabsTrigger value="final">
+            <Trans>Final survey</Trans>
+          </TabsTrigger>
+          <TabsTrigger value="review">
+            <Trans>Session review</Trans>
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="session" className="flex flex-col gap-4 pt-4">
+          <p className="text-muted-foreground">
+            <Trans>What a tester fills when they end a session.</Trans>
+          </p>
+          <FeedbackFormFields
+            ratingLabel={<Trans>Overall rating</Trans>}
+            questions={campaign.testerPerSessionQuestions}
+          />
+        </TabsContent>
+        <TabsContent value="final" className="flex flex-col gap-4 pt-4">
+          <p className="text-muted-foreground">
+            <Trans>What a tester fills when they finish taking part.</Trans>
+          </p>
+          <FeedbackFormFields
+            ratingLabel={<Trans>Overall rating</Trans>}
+            questions={campaign.testerEndOfPhaseQuestions}
+          />
+        </TabsContent>
+        <TabsContent value="review" className="flex flex-col gap-4 pt-4">
+          <p className="text-muted-foreground">
+            <Trans>What a reviewer fills for each session.</Trans>
+          </p>
+          <FeedbackFormFields
+            ratingLabel={<Trans>Your rating</Trans>}
+            questions={campaign.reviewerQuestions}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

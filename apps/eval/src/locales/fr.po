@@ -331,7 +331,7 @@ msgstr "La clôture est définitive : les testeurs ne peuvent plus démarrer de 
 
 #: src/components/shared/RatedFeedbackForm.tsx
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
-#: src/features/campaigns/components/FeedbackFormPreview.tsx
+#: src/features/campaigns/components/FeedbackFormFields.tsx
 msgid "Comment"
 msgstr "Commentaire"
 
