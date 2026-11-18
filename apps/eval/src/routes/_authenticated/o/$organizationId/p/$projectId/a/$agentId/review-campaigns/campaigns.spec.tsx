@@ -277,12 +277,39 @@ describe("a campaign's participants", () => {
 })
 
 describe("a campaign's report", () => {
+  it("is a tab of the campaign, at its own URL, and leads back to the others", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(campaignEditorUrlOf(world, "Support assistant pilot"))
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Report" }))
+    expect(await screen.findByText("4.50")).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(
+      routerPathOf(`${campaignEditorUrlOf(world, "Support assistant pilot")}/report`),
+    )
+    expect(screen.getByRole("tab", { name: "Report" })).toHaveAttribute("aria-selected", "true")
+
+    await userEvent.click(screen.getByRole("tab", { name: "Participants" }))
+    expect(await screen.findByRole("heading", { name: "Invite participants" })).toBeInTheDocument()
+  })
+
+  it("has no tab while the campaign is a draft", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(campaignEditorUrlOf(world, "Onboarding answers"))
+
+    expect(await screen.findByRole("tab", { name: "Setup" })).toBeInTheDocument()
+    expect(screen.queryByRole("tab", { name: "Report" })).not.toBeInTheDocument()
+  })
+
   it("shows the headline figures, the answers to each question and the sessions", async () => {
     const world = buildEvalWorld()
     server.use(...worldHandlers(world))
     renderApp(`${campaignEditorUrlOf(world, "Support assistant pilot")}/report`)
 
-    expect(await screen.findByRole("heading", { name: "Campaign report" })).toBeInTheDocument()
+    expect(
+      await screen.findByRole("heading", { name: "Support assistant pilot" }),
+    ).toBeInTheDocument()
     expect(screen.getByText("4.50")).toBeInTheDocument()
     expect(screen.getByText("3 reviews")).toBeInTheDocument()
     expect(
@@ -312,8 +339,7 @@ describe("a campaign's actions at phone width", () => {
     renderApp(campaignEditorUrlOf(world, "Support assistant pilot"))
 
     await userEvent.click(await screen.findByRole("button", { name: "Actions of the page" }))
-    expect(await screen.findByRole("link", { name: "Report" })).toBeVisible()
-    await userEvent.click(screen.getByRole("button", { name: "Close the campaign" }))
+    await userEvent.click(await screen.findByRole("button", { name: "Close the campaign" }))
 
     expect(
       await screen.findByRole("alertdialog", { name: "Close “Support assistant pilot”?" }),

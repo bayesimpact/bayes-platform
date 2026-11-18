@@ -120,7 +120,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   the agent (`requireEvaluationAgent` in `features/agents`).
 - Review campaigns, for who manages them (`features/campaigns`), under an agent's
   `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search
-  param: setup, participants, summary) and its `report`. A campaign reviews one
+  param: setup, participants, summary) and its `report`. The report is a tab too, at its own URL:
+  both pages share the campaign's header and tabs (`CampaignPageFrame`), and the report's page
+  shows `CampaignReportContent` of `features/campaign-report`. A campaign reviews one
   conversation agent. Only a draft's setup changes; `CampaignStatusActions` activates, closes or
   deletes after a confirmation. A draft's Activate is the page's primary action, grouped with a
   « ⋯ » menu (More actions) that holds Delete.

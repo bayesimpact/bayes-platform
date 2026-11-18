@@ -1,5 +1,6 @@
 export { defaultCampaignValues } from "./campaign-defaults"
 export { CampaignEditor } from "./components/CampaignEditor"
+export { CampaignPageFrame } from "./components/CampaignPageFrame"
 export { CampaignsPage } from "./components/CampaignsPage"
 export { CampaignsPageSkeleton } from "./components/CampaignsPageSkeleton"
 export { CampaignsSidebarMenu } from "./components/CampaignsSidebarMenu"

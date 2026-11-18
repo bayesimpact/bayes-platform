@@ -111,7 +111,7 @@ const PAGES = {
   },
   CampaignReport: {
     Story: pageStories.CampaignReport,
-    loaded: () => screen.findByRole("heading", { name: "Campaign report" }),
+    loaded: () => screen.findByText("Mean reviewer rating"),
   },
   Sessions: {
     Story: pageStories.Sessions,

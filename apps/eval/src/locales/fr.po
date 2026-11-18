@@ -35,7 +35,7 @@ msgstr "{count} réponses, {percent}"
 msgid "{deletedEmail} will no longer be able to accept it."
 msgstr "{deletedEmail} ne pourra plus l'accepter."
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
 msgstr "{feedbackCount, plural, one {# retour de session} other {# retours de session}}"
 
@@ -56,7 +56,7 @@ msgstr "{pending, plural, one {# à relire} other {# à relire}}"
 msgid "{responseCount, plural, one {# answer} other {# answers}}"
 msgstr "{responseCount, plural, one {# réponse} other {# réponses}}"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "{reviewCount, plural, one {# review} other {# reviews}}"
 msgstr "{reviewCount, plural, one {# relecture} other {# relectures}}"
 
@@ -80,7 +80,7 @@ msgstr "{star, plural, one {# étoile} other {# étoiles}}"
 msgid "{taskCount, plural, one {# changed task} other {# changed tasks}}"
 msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées}}"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "{testerCount, plural, one {# tester} other {# testers}}"
 msgstr "{testerCount, plural, one {# testeur} other {# testeurs}}"
 
@@ -230,10 +230,6 @@ msgstr "Retour à l'accueil"
 msgid "Back to the app"
 msgstr "Retour à l'accueil"
 
-#: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report.tsx
-msgid "Back to the campaign"
-msgstr "Retour à la campagne"
-
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Campaign for {agentName}, {today}"
 msgstr "Campagne pour {agentName}, {today}"
@@ -243,7 +239,7 @@ msgid "Campaign report"
 msgstr "Rapport de la campagne"
 
 #. The sidebar's menu of the review campaigns an agent's managers run
-#: src/features/campaigns/components/CampaignEditor.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
 #: src/features/campaigns/components/CampaignsPage.tsx
 #: src/features/campaigns/components/CampaignsSidebarMenu.tsx
 #: src/features/campaigns/components/NewCampaignPage.tsx
@@ -438,7 +434,7 @@ msgstr "Chaque nouvelle connexion s'est arrêtée aussitôt : l'application a ce
 msgid "Each person gets an invitation to accept. They must sign in with the address you write here."
 msgstr "Chaque personne reçoit une invitation à accepter. Elle doit se connecter avec l'adresse que vous écrivez ici."
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "Each session's tester rating against its reviewers'. The spread is the highest reviewer rating minus the lowest: a high one means the reviewers disagree."
 msgstr "La note du testeur de chaque session, face à celles des relecteurs. L'écart est la plus haute note des relecteurs moins la plus basse : un écart élevé signale un désaccord entre relecteurs."
 
@@ -559,7 +555,7 @@ msgstr "Texte libre"
 msgid "Free-text answers are not summarized here: read them in each session."
 msgstr "Les réponses en texte libre ne sont pas résumées ici : lisez-les dans chaque session."
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "From the testers' final surveys."
 msgstr "Issue des questionnaires finaux des testeurs."
 
@@ -679,7 +675,7 @@ msgstr "Tout afficher"
 msgid "Loading the interactive card…"
 msgstr "Chargement de la carte interactive…"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "Mean final rating"
 msgstr "Note finale moyenne"
 
@@ -687,11 +683,11 @@ msgstr "Note finale moyenne"
 msgid "Mean reviewer"
 msgstr "Moyenne des relecteurs"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "Mean reviewer rating"
 msgstr "Note moyenne des relecteurs"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/CampaignSummary.tsx
 msgid "Mean tester rating"
 msgstr "Note moyenne des testeurs"
@@ -810,15 +806,15 @@ msgstr "Rien à ouvrir pour cet agent"
 msgid "Once active, the campaign's questions can no longer change, and its testers and reviewers can see it. You can still invite more people."
 msgstr "Une fois la campagne active, ses questions ne peuvent plus changer, et ses testeurs et relecteurs la voient. Vous pouvez encore inviter d'autres personnes."
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "One answer per review, across all sessions."
 msgstr "Une réponse par relecture, toutes sessions confondues."
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "One answer per session a tester gave feedback on."
 msgstr "Une réponse par session sur laquelle un testeur a donné son retour."
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "One answer per tester who filled the final survey."
 msgstr "Une réponse par testeur qui a rempli le questionnaire final."
 
@@ -887,7 +883,7 @@ msgstr "En partie"
 
 #. How many people take part in a campaign
 #: src/features/campaigns/components/campaign-columns.tsx
-#: src/features/campaigns/components/CampaignEditor.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
 #: src/features/campaigns/components/ParticipantsPanel.tsx
 msgid "Participants"
 msgstr "Participants"
@@ -965,9 +961,10 @@ msgstr "Retirer la question {position}"
 msgid "Remove this annotation"
 msgstr "Retirer cette annotation"
 
+#. The tab with the full report of a campaign
 #: src/features/campaign-review/components/ReviewerCampaignPage.tsx
 #: src/features/campaign-review/components/ReviewerSidebarSection.tsx
-#: src/features/campaigns/components/CampaignEditor.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
 msgid "Report"
 msgstr "Rapport"
 
@@ -1046,7 +1043,7 @@ msgid "Reviewer <0>{reviewerId}</0>"
 msgstr "Relecteur <0>{reviewerId}</0>"
 
 #. The ratings the reviewers gave a session
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaign-report/components/report-session-columns.tsx
 #: src/features/campaigns/components/CampaignSetupForm.tsx
 msgid "Reviewers"
@@ -1169,7 +1166,7 @@ msgstr "Relecture de la session"
 
 #. How many sessions testers started in a campaign
 #. How many sessions testers started in a campaign
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/CampaignSummary.tsx
 msgid "Sessions"
 msgstr "Sessions"
@@ -1183,7 +1180,7 @@ msgid "Set the questions up, then activate the campaign to invite its participan
 msgstr "Réglez les questions, puis activez la campagne pour inviter ses participants."
 
 #. The tab with a campaign's name and questions
-#: src/features/campaigns/components/CampaignEditor.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
 msgid "Setup"
 msgstr "Configuration"
 
@@ -1290,7 +1287,7 @@ msgid "Suggested questions"
 msgstr "Questions suggérées"
 
 #. The tab with the first figures of a closed campaign
-#: src/features/campaigns/components/CampaignEditor.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
 msgid "Summary"
 msgstr "Synthèse"
 
@@ -1332,12 +1329,12 @@ msgstr "Testeur {testerId}, démarrée le {started}"
 msgid "Tester feedback"
 msgstr "Retour du testeur"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/CampaignSetupForm.tsx
 msgid "Testers, after each session"
 msgstr "Testeurs, après chaque session"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/CampaignSetupForm.tsx
 msgid "Testers, at the end"
 msgstr "Testeurs, à la fin"
