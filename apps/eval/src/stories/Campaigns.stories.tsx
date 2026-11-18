@@ -99,7 +99,7 @@ export const ActiveCampaignOnPhone: Story = {
   globals: { viewport: { value: "iphone14", isRotated: false } },
 }
 
-/** An active campaign's setup, which no longer changes. */
+/** An active campaign's setup, which no longer changes: its forms as testers and reviewers read them. */
 export const LockedSetup: Story = {
   parameters: evaluation({
     url: (world) => `${campaignEditorUrlOf(world, "Support assistant pilot")}?tab=setup`,

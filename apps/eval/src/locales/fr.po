@@ -60,7 +60,7 @@ msgstr "{otherCount, plural, one {# autre relecteur a relu cette session.} other
 msgid "{pending, plural, one {# to review} other {# to review}}"
 msgstr "{pending, plural, one {# à relire} other {# à relire}}"
 
-#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/components/FeedbackFormPreview.tsx
 msgid "{questionCount, plural, one {# question} other {# questions}}"
 msgstr "{questionCount, plural, one {# question} other {# questions}}"
 
@@ -180,7 +180,7 @@ msgstr "administrateur"
 #. The setup step with the questions a tester answers after each session
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/ActivateStep.tsx
-#: src/features/campaigns/components/CampaignSetupForm.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 #: src/features/campaigns/setup-steps.ts
@@ -227,17 +227,14 @@ msgstr "Y a-t-il quelque chose à savoir sur cette session ?"
 msgid "As {role}"
 msgstr "En tant que {role}"
 
-#: src/features/campaigns/components/CampaignSetupForm.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 msgid "Asked each time a tester ends a session with the agent."
 msgstr "Posées chaque fois qu'un testeur termine une session avec l'agent."
 
-#: src/features/campaigns/components/CampaignSetupForm.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 msgid "Asked once, when a tester finishes taking part."
 msgstr "Posées une fois, quand un testeur termine sa participation."
 
-#: src/features/campaigns/components/CampaignSetupForm.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 msgid "Asked to a reviewer for each session they review."
 msgstr "Posées à un relecteur pour chaque session qu'il relit."
@@ -334,7 +331,7 @@ msgstr "La clôture est définitive : les testeurs ne peuvent plus démarrer de 
 
 #: src/components/shared/RatedFeedbackForm.tsx
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
-#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/components/FeedbackFormPreview.tsx
 msgid "Comment"
 msgstr "Commentaire"
 
@@ -442,6 +439,7 @@ msgid "Describe the problem in a few words, up to {maxLength} characters."
 msgstr "Décrivez le problème en quelques mots, {maxLength} caractères au plus."
 
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 msgid "Description"
 msgstr "Description"
 
@@ -580,7 +578,7 @@ msgstr "Remplissage du formulaire"
 #: src/features/campaign-test/components/TesterSidebarSection.tsx
 #: src/features/campaign-test/components/TesterSurveyPage.tsx
 #: src/features/campaigns/components/ActivateStep.tsx
-#: src/features/campaigns/components/CampaignSetupForm.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 #: src/features/campaigns/setup-steps.ts
@@ -615,7 +613,9 @@ msgid "From the testers' final surveys."
 msgstr "Issue des questionnaires finaux des testeurs."
 
 #. The general settings of a review campaign
+#. The general settings of a review campaign
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 msgid "General"
 msgstr "Général"
 
@@ -790,8 +790,10 @@ msgstr "Ma relecture"
 
 #. The name of a review campaign
 #. The name of a review campaign
+#. The name of a review campaign
 #: src/features/campaigns/components/campaign-columns.tsx
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 msgid "Name"
 msgstr "Nom"
 
@@ -836,6 +838,10 @@ msgstr "Aucun agent ne correspond à cette recherche."
 #: src/features/campaign-report/components/QuestionDistribution.tsx
 msgid "No answer yet."
 msgstr "Aucune réponse pour le moment."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "No description"
+msgstr "Pas de description"
 
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "No participant yet."
@@ -934,6 +940,7 @@ msgstr "Autres relecteurs"
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 #: src/features/campaign-test/components/SessionFeedbackForm.tsx
 #: src/features/campaign-test/components/TesterSurveyPage.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "Overall rating"
 msgstr "Note globale"
@@ -981,9 +988,7 @@ msgid "Picking useful resources"
 msgstr "Sélection de ressources utiles"
 
 #. The button that shows the forms testers and reviewers will fill
-#. The button that shows the forms testers and reviewers will fill
 #. The panel that shows the forms of a campaign
-#: src/features/campaigns/components/CampaignEditor.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "Preview"
@@ -1174,10 +1179,6 @@ msgstr "Lancez cet agent sur des jeux de données de conversations, puis lisez s
 msgid "Run this agent on datasets of documents, and read what it extracted."
 msgstr "Lancez cet agent sur des jeux de données de documents, puis lisez ce qu'il a extrait."
 
-#: src/features/campaigns/components/CampaignEditor.tsx
-msgid "Save"
-msgstr "Enregistrer"
-
 #: src/features/campaign-review/components/ReviewPanel.tsx
 #: src/features/campaign-test/components/TesterSurveyPage.tsx
 msgid "Save changes"
@@ -1251,7 +1252,7 @@ msgstr "Faits de la session"
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaign-review/components/ReviewerSessionPage.tsx
 #: src/features/campaigns/components/ActivateStep.tsx
-#: src/features/campaigns/components/CampaignSetupForm.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 #: src/features/campaigns/setup-steps.ts
@@ -1477,7 +1478,6 @@ msgstr "La campagne n'a pas pu être créée. Réessayez."
 msgid "The campaign could not be deleted. Try again."
 msgstr "La campagne n'a pas pu être supprimée. Réessayez."
 
-#: src/features/campaigns/components/CampaignEditor.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 msgid "The campaign could not be saved. Try again."
 msgstr "La campagne n'a pas pu être enregistrée. Réessayez."
@@ -1498,10 +1498,6 @@ msgstr "La campagne est clôturée."
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The campaign was deleted."
 msgstr "La campagne a été supprimée."
-
-#: src/features/campaigns/components/CampaignEditor.tsx
-msgid "The campaign was saved."
-msgstr "La campagne a été enregistrée."
 
 #: src/features/campaigns/components/UnsavedChangesGuard.tsx
 msgid "The changes to this step are not saved yet. They are lost if you leave."
@@ -1636,6 +1632,7 @@ msgid "This campaign asks its testers no factual question."
 msgstr "Cette campagne ne pose aucune question factuelle à ses testeurs."
 
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 msgid "This campaign reviews the agent {agentName}."
 msgstr "Cette campagne évalue l'agent {agentName}."
 
@@ -1761,14 +1758,17 @@ msgstr "La réponse de l'agent était-elle claire ?"
 msgid "Were the agent's answers factually correct?"
 msgstr "Les réponses de l'agent étaient-elles exactes ?"
 
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "What a reviewer fills for each session."
 msgstr "Ce qu'un relecteur remplit pour chaque session."
 
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "What a tester fills when they end a session."
 msgstr "Ce qu'un testeur remplit quand il termine une session."
 
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "What a tester fills when they finish taking part."
 msgstr "Ce qu'un testeur remplit quand il termine sa participation."
@@ -1894,6 +1894,7 @@ msgid "Your projects have no agent yet"
 msgstr "Vos projets n'ont pas encore d'agent"
 
 #: src/features/campaign-review/components/ReviewPanel.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "Your rating"
 msgstr "Votre note"

@@ -21,7 +21,7 @@ export type CampaignPageProps = {
 
 /**
  * A campaign, for who manages it: a draft they can change is set up step by step, up to its
- * invitations once activated; any other campaign shows in tabs.
+ * invitations once activated; any other campaign shows in tabs, its setup as its forms read.
  */
 export function CampaignPage({ agent, step, tab, ...props }: CampaignPageProps) {
   const { data: campaign } = useSuspenseQuery(campaignQueryOptions(props.campaignParams))
@@ -32,6 +32,11 @@ export function CampaignPage({ agent, step, tab, ...props }: CampaignPageProps) 
   return isSettingUp ? (
     <CampaignSetupWizard agent={agent} step={step ?? "campaign"} {...props} />
   ) : (
-    <CampaignEditor agent={agent} tab={tab} {...props} />
+    <CampaignEditor
+      agent={agent}
+      agentParams={props.agentParams}
+      campaignParams={props.campaignParams}
+      tab={tab}
+    />
   )
 }

@@ -139,6 +139,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   others. In the setup, the bar's Activate gives way to the Activate step, and the preview opens
   only the step's form. The three forms have one name each, everywhere: After each session, Final
   survey, Session review, the names their testers and reviewers see.
+- Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms
+  (`CampaignSetupView`), each folded to its title and question count (`FeedbackFormPreview`, which
+  the setup's preview panel uses too).
 - A campaign for its participants, under
   `src/routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/`:
   `route.tsx` is the frame and loads the campaign (`features/campaign-context`), `test/` is the
