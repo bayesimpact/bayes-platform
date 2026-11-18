@@ -22,14 +22,17 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { canReadAgentSettings } from "@/domains/rbac/agent-settings-access"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_READ_PERMISSION,
   AGENT_SETTINGS_ARCHIVE_PERMISSION,
   AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
-  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
   AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
+  AGENT_SETTINGS_READ_PERMISSION,
   AGENT_SETTINGS_RESTORE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -41,11 +44,14 @@ import { AgentSettingsService } from "./agent-settings.service"
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class AgentSettingsController {
-  constructor(private readonly agentSettingsService: AgentSettingsService) {}
+  constructor(
+    private readonly agentSettingsService: AgentSettingsService,
+    private readonly permissionService: PermissionService,
+  ) {}
 
   // History timeline of all revisions for the agent settings, including drafts and published revisions.
   @Get(AgentSettingsRoutes.getAllWithDraft.path)
-  @CheckPermission(AGENT_SETTINGS_DRAFT_READ_PERMISSION, "agent")
+  @CheckPermission(AGENT_SETTINGS_READ_PERMISSION, "agent")
   async getAllWithDraft(
     @Req() request: EndpointRequestWithAgent,
   ): Promise<typeof AgentSettingsRoutes.getAllWithDraft.response> {
@@ -77,7 +83,12 @@ export class AgentSettingsController {
     const agentId = request.agent.id
 
     const agentSettings = await this.agentSettingsService.get({ connectScope, agentId, revision })
-    if (!agentSettings) {
+    // A draft is settings still being written: its schema goes to the people who read the
+    // agent's settings only. Anyone else gets the answer of a missing revision.
+    const isHiddenDraft =
+      agentSettings?.isDraft === true &&
+      !(await canReadAgentSettings(this.permissionService, request.user.id, agentId))
+    if (!agentSettings || isHiddenDraft) {
       throw new NotFoundException(`Revision ${revision} not found for agent with id ${agentId}`)
     }
 

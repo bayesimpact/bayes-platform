@@ -22,7 +22,7 @@ type ProblemTexts = {
 const TEXTS = {
   emailNotVerified: {
     title: msg`Verify your email`,
-    message: msg`An account is waiting for your email address, but your identity provider has not verified it yet.`,
+    message: msg`Your identity provider has not verified your email address yet.`,
     hint: msg`Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again.`,
   },
   emailRequired: {

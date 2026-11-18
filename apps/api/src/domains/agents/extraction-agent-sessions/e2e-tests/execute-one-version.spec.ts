@@ -87,6 +87,7 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
 
     const document = documentFactory.transient({ organization, project }).build({
       sourceType: "extraction",
+      userId: context.user.id,
       mimeType: "application/pdf",
       storageRelativePath: "documents/sample.pdf",
     })

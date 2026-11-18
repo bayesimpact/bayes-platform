@@ -1278,7 +1278,7 @@ describe("PermissionService", () => {
         "agent.read",
         agent.id,
       )
-      expect(inherited).toContain("agent.settings.draft.read")
+      expect(inherited).toContain("agent.settings.read")
       expect(inherited).not.toContain("agent.update")
       expect(
         (await service.listResourcePermissionsFor(agentMember.id, "agent.read", agent.id)).sort(),

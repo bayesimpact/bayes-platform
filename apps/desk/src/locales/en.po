@@ -176,10 +176,6 @@ msgstr "AI systems usage policy"
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 msgstr "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 
-#: src/components/shared/SignInProblemPage.tsx
-msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
-msgstr "An account is waiting for your email address, but your identity provider has not verified it yet."
-
 #. Opens a note on the passage of a reply the person selected
 #: src/features/conversation/components/SelectionActions.tsx
 msgid "Annotate"
@@ -1454,6 +1450,10 @@ msgstr "Your feedback could not be sent. Try again."
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider did not share your email address with the Desk."
 msgstr "Your identity provider did not share your email address with the Desk."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider has not verified your email address yet."
+msgstr "Your identity provider has not verified your email address yet."
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider refused the sign-in."

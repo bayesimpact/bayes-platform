@@ -143,6 +143,51 @@ describe("Agent Settings - getFillFormOutputJsonSchema", () => {
     expect(response.body.data).toEqual(outputJsonSchema)
   })
 
+  describe("the schema of the draft", () => {
+    const createDraftContext = async (agentRole: "agent_member" | "agent_owner") => {
+      const { user, organization, project, agent } = await createOrganizationWithAgent(
+        repositories,
+        {
+          organizationMembership: { roleKeys: ["org_member"] },
+          projectMembership: { roleKeys: ["project_member"] },
+          agentMembership: { roleKeys: [agentRole] },
+        },
+      )
+      await repositories.agentSettingsRepository.save(
+        agentSettingsFactory
+          .transient({ organization, project, agent })
+          .build({ revision: 2, isDraft: true, fillFormEnabled: true, outputJsonSchema }),
+      )
+      organizationId = organization.id
+      projectId = project.id
+      agentId = agent.id
+      authSubject = user.authSubject!
+      revision = "2"
+    }
+
+    it("answers 404 to an agent member, who does not read the agent's settings", async () => {
+      await createDraftContext("agent_member")
+
+      expectResponse(await subject(), 404, `Revision 2 not found for agent with id ${agentId}`)
+    })
+
+    it("goes to the agent's owner, who edits the draft", async () => {
+      await createDraftContext("agent_owner")
+
+      const response = await subject()
+
+      expectResponse(response, 200)
+      expect(response.body.data).toEqual(outputJsonSchema)
+    })
+
+    it("still gives an agent member the schema of a saved revision", async () => {
+      await createDraftContext("agent_member")
+      revision = "1"
+
+      expectResponse(await subject(), 200)
+    })
+  })
+
   it("should reject an invalid revision", async () => {
     await createContext()
     revision = "not-a-number"

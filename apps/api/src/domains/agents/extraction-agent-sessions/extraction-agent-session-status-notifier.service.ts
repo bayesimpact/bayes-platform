@@ -1,4 +1,7 @@
-import type { ExtractionAgentSessionStatus } from "@caseai-connect/api-contracts"
+import type {
+  BaseAgentSessionTypeDto,
+  ExtractionAgentSessionStatus,
+} from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import type { DataSource } from "typeorm"
@@ -16,6 +19,8 @@ export class ExtractionAgentSessionStatusNotifierService extends PostgresStatusN
     organizationId: string
     projectId: string
     agentId: string
+    runType: BaseAgentSessionTypeDto
+    userId: string
     status: ExtractionAgentSessionStatus
     updatedAt: number
   }): Promise<void> {
@@ -25,6 +30,8 @@ export class ExtractionAgentSessionStatusNotifierService extends PostgresStatusN
       organizationId: params.organizationId,
       projectId: params.projectId,
       agentId: params.agentId,
+      runType: params.runType,
+      userId: params.userId,
       status: params.status,
       updatedAt: params.updatedAt,
     })

@@ -90,11 +90,11 @@ export class UsersService {
   /**
    * Resolves the account behind an OIDC sign-in.
    *
-   * A known `sub` is enough. On a first sign-in the userinfo claims decide:
-   * an existing account with the same email (someone invited by email, or an
-   * account moved from another provider) is linked when the provider reports
-   * the email as verified and linking is allowed; otherwise a new account
-   * without any access is created.
+   * A known `sub` is enough. On a first sign-in the userinfo claims decide,
+   * and the provider must report the email as verified: an existing account
+   * with the same email (someone invited by email, or an account moved from
+   * another provider) is linked when linking is allowed; an unknown email
+   * gets a new account without any access.
    */
   async findOrCreate({
     sub,
@@ -128,13 +128,17 @@ export class UsersService {
     const userWithSameEmail = await this.findByEmail(email)
     this.assertHumanLogin({ sub, email, user: userWithSameEmail })
 
+    if (userWithSameEmail && !emailLinkingPolicy.allowEmailLinking) {
+      throw new UnauthorizedException(AUTH_ERRORS.EMAIL_LINKING_DISABLED)
+    }
+    // Before any account holds this email, linked or new: access given to an
+    // email later goes to the account that has it, so an unverified email must
+    // never get one.
+    if (oidcUserInfo.email_verified !== true && !emailLinkingPolicy.trustUnverifiedEmail) {
+      throw new UnauthorizedException(AUTH_ERRORS.EMAIL_NOT_VERIFIED)
+    }
+
     if (userWithSameEmail) {
-      if (!emailLinkingPolicy.allowEmailLinking) {
-        throw new UnauthorizedException(AUTH_ERRORS.EMAIL_LINKING_DISABLED)
-      }
-      if (oidcUserInfo.email_verified !== true && !emailLinkingPolicy.trustUnverifiedEmail) {
-        throw new UnauthorizedException(AUTH_ERRORS.EMAIL_NOT_VERIFIED)
-      }
       return this.userRepository.linkIdentity({
         user: userWithSameEmail,
         authSubject: sub,

@@ -5,8 +5,7 @@
  */
 export const SIGN_IN_ERRORS = {
   EMAIL_REQUIRED: "The identity provider did not return an email for this user",
-  EMAIL_NOT_VERIFIED:
-    "An account already exists for this email, but the identity provider does not report the email as verified",
+  EMAIL_NOT_VERIFIED: "The identity provider does not report the email of this user as verified",
   EMAIL_LINKING_DISABLED:
     "An account already exists for this email, and linking by email is disabled (OIDC_ALLOW_EMAIL_LINKING)",
 } as const

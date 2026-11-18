@@ -175,7 +175,7 @@ describe("MCP endpoint - evaluation tools", () => {
       await client.close()
     })
 
-    it("hides the draft from an agent member", async () => {
+    it("refuses an agent member, who cannot read the agent's settings", async () => {
       const { user, agent } = await createOrganizationWithAgent(repositories, {
         organizationMembership: { roleKeys: ["org_member"] },
         projectMembership: { roleKeys: ["project_member"] },
@@ -184,12 +184,41 @@ describe("MCP endpoint - evaluation tools", () => {
       authSubject = user.authSubject!
       const client = await connect([agent.projectId])
 
-      const { output } = await call(client, "get_agent", { agentId: agent.id })
+      const { isError, text, output } = await call(client, "get_agent", { agentId: agent.id })
 
-      expect(output.agent).toMatchObject({ id: agent.id, draft: null, canUpdate: false })
-      expect(
-        output.agent.revisions.every((revision: { isDraft: boolean }) => !revision.isDraft),
-      ).toBe(true)
+      expect(isError).toBe(true)
+      expect(text).toBe(AGENT_NOT_READABLE_ERROR)
+      expect(output).toBeUndefined()
+      await client.close()
+    })
+
+    it.each([
+      {
+        case: "a project evaluator who only uses the agent",
+        project: ["project_member", "project_evaluator"],
+        agent: "agent_member",
+      },
+      {
+        case: "an agent owner who is only a member of the project",
+        project: ["project_member"],
+        agent: "agent_owner",
+      },
+    ] as const)("returns the instructions to $case", async (roles) => {
+      const { user, agent } = await createOrganizationWithAgent(repositories, {
+        organizationMembership: { roleKeys: ["org_member"] },
+        projectMembership: { roleKeys: [...roles.project] },
+        agentMembership: { roleKeys: [roles.agent] },
+      })
+      authSubject = user.authSubject!
+      const client = await connect([agent.projectId])
+
+      const { isError, output } = await call(client, "get_agent", { agentId: agent.id })
+
+      expect(isError).toBe(false)
+      expect(output.agent).toMatchObject({
+        id: agent.id,
+        publishedVersion: { instructions: expect.any(String) },
+      })
       await client.close()
     })
 

@@ -164,6 +164,46 @@ describe("UsersService", () => {
       expect((await service.findByAuthSubject("oidc|create-new"))?.id).toBe(user.id)
     })
 
+    it("refuses a first sign-in with an unknown email the provider does not report as verified", async () => {
+      await expect(
+        signIn({ sub: "oidc|claimed", email: "claimed@example.com", email_verified: false }),
+      ).rejects.toThrow(AUTH_ERRORS.EMAIL_NOT_VERIFIED)
+      await expect(signIn({ sub: "oidc|claimed", email: "claimed@example.com" })).rejects.toThrow(
+        AUTH_ERRORS.EMAIL_NOT_VERIFIED,
+      )
+
+      expect(await service.findByEmail("claimed@example.com")).toBeNull()
+      expect(await service.findByAuthSubject("oidc|claimed")).toBeNull()
+    })
+
+    it("keeps an email someone claimed without verifying it free for its owner", async () => {
+      await expect(
+        signIn({ sub: "oidc|claimed-first", email: "owner@example.com", email_verified: false }),
+      ).rejects.toThrow(AUTH_ERRORS.EMAIL_NOT_VERIFIED)
+
+      // What an invitation sent to that email later does.
+      const invitedUser = await service.findOrCreateByEmail({ email: "owner@example.com" })
+      expect(invitedUser.authSubject).toBeNull()
+
+      const owner = await signIn({
+        sub: "oidc|owner",
+        email: "owner@example.com",
+        email_verified: true,
+      })
+      expect(owner.id).toBe(invitedUser.id)
+      expect(owner.authSubject).toBe("oidc|owner")
+    })
+
+    it("creates a user from an unverified email when the instance trusts the provider", async () => {
+      const user = await signIn(
+        { sub: "oidc|trusted-new", email: "trusted-new@example.com" },
+        { allowEmailLinking: true, trustUnverifiedEmail: true },
+      )
+
+      expect(user.authSubject).toBe("oidc|trusted-new")
+      expect(user.email).toBe("trusted-new@example.com")
+    })
+
     it("returns the known user without calling userinfo", async () => {
       const existingUser = await repository.save(
         userFactory.build({ authSubject: "oidc|user-existing", email: "existing@example.com" }),
