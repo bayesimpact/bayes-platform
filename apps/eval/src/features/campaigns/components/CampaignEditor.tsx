@@ -9,7 +9,6 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { HeaderActions } from "@/components/shared/HeaderActions"
 import { SidePanelToggle } from "@/components/shared/SidePanelToggle"
 import { SplitPage } from "@/components/shared/SplitPage"
 import { TabsContent } from "@/components/ui/tabs"
@@ -85,24 +84,24 @@ export function CampaignEditor({
         ) : null
       }
     >
-      {currentTab === "setup" ? (
-        <HeaderActions>
-          <SidePanelToggle
-            isOpen={isPreviewOpen}
-            onToggle={() => void navigate({ to: ".", search: { tab, preview: !isPreviewOpen } })}
-          >
-            <Trans comment="The button that shows the forms testers and reviewers will fill">
-              Preview
-            </Trans>
-          </SidePanelToggle>
-        </HeaderActions>
-      ) : null}
       <CampaignPageFrame
         agent={agent}
         agentParams={agentParams}
         campaignParams={campaignParams}
         currentTab={currentTab}
         hasUnsavedChanges={form.formState.isDirty}
+        tabActions={
+          currentTab === "setup" ? (
+            <SidePanelToggle
+              isOpen={isPreviewOpen}
+              onToggle={() => void navigate({ to: ".", search: { tab, preview: !isPreviewOpen } })}
+            >
+              <Trans comment="The button that shows the forms testers and reviewers will fill">
+                Preview
+              </Trans>
+            </SidePanelToggle>
+          ) : null
+        }
       >
         <TabsContent value="setup" className="pt-4">
           <CampaignSetupForm

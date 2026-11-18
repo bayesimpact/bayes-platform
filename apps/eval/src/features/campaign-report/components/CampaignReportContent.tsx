@@ -5,12 +5,10 @@ import type {
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
-import { HeaderActions } from "@/components/shared/HeaderActions"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { StatCard } from "@/components/shared/StatCard"
 import { meanRatingOf } from "@/lib/format-rating"
 import { campaignReportQueryOptions } from "../api/queries"
-import { DownloadReportButton } from "./DownloadReportButton"
 import { QuestionDistribution } from "./QuestionDistribution"
 import { ReportSessionsTable } from "./ReportSessionsTable"
 
@@ -20,7 +18,7 @@ export type CampaignReportContentProps = {
 
 /**
  * The report of a campaign: its headline figures, how the answers to each question spread, and
- * each session's tester rating against its reviewers'. Its download goes in the bar above the page.
+ * each session's tester rating against its reviewers'. Its download is `DownloadReportButton`.
  */
 export function CampaignReportContent({ campaign }: CampaignReportContentProps) {
   const { i18n } = useLingui()
@@ -31,12 +29,6 @@ export function CampaignReportContent({ campaign }: CampaignReportContentProps) 
   const reviewCount = headline.reviewerReviewCount
   return (
     <div className="flex flex-col gap-6">
-      <HeaderActions>
-        <DownloadReportButton
-          sessions={report.sessionMatrix}
-          fileName={`campaign-report-${campaign.reviewCampaignId}`}
-        />
-      </HeaderActions>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label={<Trans comment="How many sessions testers started in a campaign">Sessions</Trans>}

@@ -23,6 +23,8 @@ export type CampaignPageFrameProps = {
   currentTab: CampaignPageTab
   /** Whether the setup has changes that are not saved: activating would leave them out. */
   hasUnsavedChanges: boolean
+  /** What acts on the open tab, on the right of the tabs: the setup's preview, the report's download. */
+  tabActions?: ReactNode
   /** The open tab's content, in `TabsContent`. */
   children: ReactNode
 }
@@ -41,6 +43,7 @@ export function CampaignPageFrame({
   campaignParams,
   currentTab,
   hasUnsavedChanges,
+  tabActions,
   children,
 }: CampaignPageFrameProps) {
   const navigate = useNavigate()
@@ -84,24 +87,27 @@ export function CampaignPageFrame({
         }
       />
       <Tabs value={currentTab} onValueChange={handleTabChange}>
-        <TabsList>
-          <TabsTrigger value="setup">
-            <Trans comment="The tab with a campaign's name and questions">Setup</Trans>
-          </TabsTrigger>
-          <TabsTrigger value="participants">
-            <Trans>Participants</Trans>
-          </TabsTrigger>
-          {campaign.status === "closed" ? (
-            <TabsTrigger value="summary">
-              <Trans comment="The tab with the first figures of a closed campaign">Summary</Trans>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <TabsList>
+            <TabsTrigger value="setup">
+              <Trans comment="The tab with a campaign's name and questions">Setup</Trans>
             </TabsTrigger>
-          ) : null}
-          {campaign.status === "draft" ? null : (
-            <TabsTrigger value="report">
-              <Trans comment="The tab with the full report of a campaign">Report</Trans>
+            <TabsTrigger value="participants">
+              <Trans>Participants</Trans>
             </TabsTrigger>
-          )}
-        </TabsList>
+            {campaign.status === "closed" ? (
+              <TabsTrigger value="summary">
+                <Trans comment="The tab with the first figures of a closed campaign">Summary</Trans>
+              </TabsTrigger>
+            ) : null}
+            {campaign.status === "draft" ? null : (
+              <TabsTrigger value="report">
+                <Trans comment="The tab with the full report of a campaign">Report</Trans>
+              </TabsTrigger>
+            )}
+          </TabsList>
+          {tabActions ? <div className="flex items-center gap-2">{tabActions}</div> : null}
+        </div>
         {children}
       </Tabs>
     </PageContainer>

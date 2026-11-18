@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { CampaignReportContent } from "./CampaignReportContent"
+import { DownloadReportButton } from "./DownloadReportButton"
 
 export type CampaignReportProps = {
   campaign: ReviewCampaignParamsDto
@@ -15,7 +16,11 @@ export type CampaignReportProps = {
 export function CampaignReport({ campaign, back }: CampaignReportProps) {
   return (
     <PageContainer>
-      <PageHeader back={back} title={<Trans>Campaign report</Trans>} />
+      <PageHeader
+        back={back}
+        title={<Trans>Campaign report</Trans>}
+        actions={<DownloadReportButton campaign={campaign} />}
+      />
       <CampaignReportContent campaign={campaign} />
     </PageContainer>
   )

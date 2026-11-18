@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { TabsContent } from "@/components/ui/tabs"
-import { CampaignReportContent, loadCampaignReport } from "@/features/campaign-report"
+import {
+  CampaignReportContent,
+  DownloadReportButton,
+  loadCampaignReport,
+} from "@/features/campaign-report"
 import {
   CampaignPageFrame,
   CampaignsPageSkeleton,
@@ -37,6 +41,7 @@ function CampaignReportRoute() {
       campaignParams={params}
       currentTab="report"
       hasUnsavedChanges={false}
+      tabActions={<DownloadReportButton campaign={params} />}
     >
       <TabsContent value="report" className="pt-4">
         <CampaignReportContent campaign={params} />
