@@ -1,8 +1,11 @@
 import type { ProjectAgentOutputDto } from "@caseai-connect/eval-contracts"
 import type { EvaluationProject } from "./evaluation-projects"
+import type { MyCampaign } from "./my-campaigns"
 
 /** An agent the person can evaluate, with its project and organization. */
 export type EvaluationAgent = Pick<ProjectAgentOutputDto, "id" | "name" | "type"> & {
+  /** Whether the agent was published once: a review campaign runs the published version. */
+  isPublished: boolean
   project: EvaluationProject
 }
 
@@ -13,12 +16,14 @@ export type EvaluationProjectAgents = {
 }
 
 /**
- * What the person can evaluate: the projects that grant evaluation, and their agents grouped by
- * project, without the projects that have none.
+ * What the app holds for the person: the projects they evaluate or whose campaigns they manage,
+ * their agents grouped by project, without the projects that have none, and the review campaigns
+ * they test or review.
  */
 export type EvaluationWorkspace = {
   projects: EvaluationProject[]
   groups: EvaluationProjectAgents[]
+  myCampaigns: MyCampaign[]
 }
 
 /**
@@ -34,6 +39,7 @@ export function groupEvaluationAgents(
       id: agent.id,
       name: agent.name,
       type: agent.type,
+      isPublished: agent.currentRevision !== undefined,
       project,
     }))
     return agents.length > 0 ? [{ project, agents }] : []

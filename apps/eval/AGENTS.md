@@ -1,7 +1,7 @@
 # AGENTS.md (apps/eval)
 
-Evaluation: where project members evaluate their agents (datasets, runs) and manage review
-campaigns. Testers and reviewers get frontends of their own. It follows the shared rules of
+Evaluation: where project members evaluate their agents (datasets, runs), manage review
+campaigns, and where the testers and reviewers of a campaign take part in it. It follows the shared rules of
 [docs/frontend/conventions.md](../../docs/frontend/conventions.md), and
 [ADR 0031](../../docs/adr/0031-frontend-stack-for-agent-built-apps.md) keeps the reasons. This
 file holds what is specific to Evaluation. It uses the same library versions as the Desk.
@@ -21,11 +21,16 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   sign-in it started stays its own, under `eval.oidc.`.
 - The layout of every signed-in page (`src/routes/_authenticated.tsx`) waits for `GET me`
   (`features/account`), so a sign-in the API refuses shows before any page.
-- Access: the app opens to a person who holds `evaluation.ui.read` on at least one project, which
-  the `project_evaluator` role grants (ADR 0019: the app checks the permission, never the role's
-  name). The same layout loads the projects, organizations and agents, and `EvaluationAccessGate`
-  (`features/agents`) shows `NoEvaluationAccessPage` to anyone else. A page of a project checks
-  the same permission on that project; the API refuses its routes without it.
+- Access: the app opens to a person it holds something for (`EvaluationAccessGate` in
+  `features/agents`, `NoEvaluationAccessPage` for anyone else). It checks permissions, never a
+  role's name (ADR 0019):
+  - `evaluation.ui.read` on a project, from the `project_evaluator` role: its agents show.
+  - `project.review_campaign.read` on a project, held by its owners and admins: its agents show,
+    with their review campaigns. Creating, updating, deleting, inviting and revoking each check
+    their own `project.review_campaign.*` permission, and the report `review_campaign.report.read`.
+  - a tester or reviewer role in a review campaign (`GET me/review-campaigns`, once per role):
+    that campaign shows, and nothing else. A campaign page checks the role it needs.
+  The API checks every route on its own.
 - Configuration: the API will inject `window.__CONFIG__` when it serves the app; in dev, the
   `VITE_*` values of `apps/eval/.env` stand in (see `.env-example`).
 
@@ -50,21 +55,92 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 ## Where things are
 
 - The frame: the Desk's, without the sessions and the invitations. `AppShell`
-  (`components/shared/`) holds the sidebar: the agent switcher at the top (`AgentSidebarHeader` in
+  (`components/shared/`) holds the sidebar: the current agent at the top, which opens the command center (`AgentSidebarHeader` in
   `features/agents`), the person's menu at the bottom (`CurrentUserMenu` in `features/account`, the
-  Desk's without the name edit).
-- The agents: `features/agents` reads `GET projects/mine` and `GET organizations/mine`, keeps the
-  projects that grant `evaluation.ui.read`, then reads each one's
-  `GET .../agents-with-drafts`, drafts included since evaluation runs them, under one query
+  Desk's without the name edit), with the envelope of their pending invitations beside it
+  (`InvitationsButton` in `features/invitations`, the Desk's, on `GET me/invitations` every
+  minute). An accepted invitation loads the workspace again, so a campaign joins the person's.
+- The workspace: `features/agents` reads `GET projects/mine`, `GET organizations/mine` and
+  `GET me/review-campaigns` for both roles, keeps the projects the app opens, then reads each
+  one's `GET .../agents-with-drafts`, drafts included since evaluation runs them, under one query
   (`evaluationWorkspaceQueryOptions`).
-- The home: `src/routes/_authenticated/index.tsx`, which opens the last agent the person used, or
-  the first one, and says so when their projects have none. A project's URL opens its agent.
+- The app is the door to several features, and a person may hold one of them or several: the
+  evaluations of a conversation agent or of an extraction agent (who evaluates the project), the
+  review campaigns of a conversation agent (who manages them), and a campaign to test or to
+  review (who was invited). An agent's features are its sections
+  (`src/routes/-components/agent-sections.ts`): `evaluations` and `campaigns`, each kept when the
+  person holds it. `AgentSectionsNav` lists them at the top of the sidebar. An agent with one
+  section opens on it; with several, its first page is the hub (`AgentHubPage`), one card per
+  section, and the sidebar links back to it. A new feature of an agent is a new section there.
+- Under the sections, the sidebar's body changes with the page, as the Desk's lists an agent's
+  sessions. Each feature owns its part, a `*SidebarSection` that reads its own query inside
+  `SidebarSection` (`components/shared/`), so it never holds the page back:
+  - on an agent's `review-campaigns/` pages, its campaigns for who manages them
+    (`CampaignsSidebarSection` in `features/campaigns`): a new one, then each one with its status;
+  - on a campaign's pages under `test/`, the tester's side (`TesterSidebarSection` in
+    `features/campaign-test`): a new conversation, the overview, the final survey, their sessions;
+  - under `review/`, the reviewer's side (`ReviewerSidebarSection` in `features/campaign-review`):
+    the overview, the report, the sessions to review, then the reviewed ones.
+  On a campaign's pages, the sidebar's top names the campaign (`CampaignSidebarHeader` in
+  `features/campaign-context`). `src/routes/-components/MyCampaignsNav.tsx` lists the campaigns
+  the person tests or reviews, on every page.
+- The top bar of the page holds its way back and its actions: `PageHeader`'s `back` and `actions`
+  go there (`HeaderBack`, `HeaderActions`), so they stay in view as the page scrolls, and the
+  title stays in the page. At phone width, the back link keeps its arrow only and the actions go
+  in a menu (`HeaderActionsMenu`). A link styled as a button takes `cn(buttonVariants(...))`:
+  without `cn`, the variant's border loses to the base's `border-transparent`.
+- A page in two parts is a `SplitPage` (`components/shared/`): the page on the left, a `SidePanel`
+  on the right, each scrolling alone, with a `SidePanelToggle` in the bar above the page.
+  `useSidePanel` shows the panel from the start where the window has room for it. Three pages use
+  it: a campaign's setup with the preview of its forms (the `preview` search param), a session
+  with the reviewer's review, and a tester's conversation with the feedback that ends it
+  (`ConversationView`'s `sidePanel`). The blocks of a panel are `PanelSection`s.
+- The command center that switches agent (`AgentCommandCenterProvider` in `features/agents`,
+  around every signed-in page): ⌘K, or Ctrl+K outside Apple systems, the button at the top of an
+  agent's sidebar and the app's home open it. It lists every agent by project,
+  with a search on the names of the agents, projects and organizations. A person with a single
+  agent gets none. It is shadcn's `Command` (`components/ui/command.tsx`) on `cmdk`, a library a
+  human chose for it: `cmdk` brings a few Radix primitives of its own, which the app's code does
+  not import.
+- The home: `src/routes/_authenticated/index.tsx`, with no page of its own while the person has
+  an agent. It opens the agent used last, else the first one, and with several adds
+  `switchAgent` to the URL (`agentSearchSchema` in `features/agents`), which opens the command
+  center over the agent. A project's URL, where the Studio's app menu leads, does the same with
+  the project's default agent. With no agent, it opens the person's first campaign, and says so when
+  there is nothing.
 - An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, whose
-  `route.tsx` is the frame and `index.tsx` a greeting for now.
+  `route.tsx` is the frame and `index.tsx` the hub, or the way to the agent's only section.
+  `evaluations/` holds the place of the datasets and the runs, empty for now, for who evaluates
+  the agent (`requireEvaluationAgent` in `features/agents`).
+- Review campaigns, for who manages them (`features/campaigns`), under an agent's
+  `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search
+  param: setup, participants, summary) and its `report`. A campaign reviews one
+  conversation agent. Only a draft's setup changes; `CampaignStatusActions` activates, closes or
+  deletes after a confirmation.
+- A campaign for its participants, under
+  `src/routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/`:
+  `route.tsx` is the frame and loads the campaign (`features/campaign-context`), `test/` is the
+  tester's side (`features/campaign-test`: sessions, feedback, final survey, and the conversation
+  in `test/sessions/$sessionId`), `review/` the reviewer's (`features/campaign-review`: sessions,
+  a session blind then whole, the review). `features/campaign-report` is the report both the
+  managers and the reviewers read; its CSV is built in the browser from the report.
+- The conversation of a tester's session: `features/conversation`, the Desk's chat on the
+  `review_campaign_tester` session routes, without the memory, the sources and the history. Its
+  owner gives it the session's forms and loads them again when the agent fills one in.
+- A rating, a comment and the answers to a campaign's questions go through one form,
+  `components/shared/RatedFeedbackForm.tsx` (`lib/rated-feedback.ts`), for the tester's feedback
+  and survey and the reviewer's review. The API checks the rating only: the form holds the
+  required answers.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
-- The mocked API: `src/test/msw/handlers.ts`, written with `mockRoute`
-  (`src/test/msw/mock-route.ts`) and fed by the factories of `src/test/factories/`.
-- The stories: `src/stories/Eval.stories.tsx`, under `Evaluation/General`, with the meta of
+- The mocked API: `src/test/msw/handlers.ts` and `campaign-handlers.ts`, written with `mockRoute`
+  and `mockStreamRoute` (`src/test/msw/mock-route.ts`) and fed by the factories of
+  `src/test/factories/`, whose `eval-world.factory.ts` builds the worlds: the owner of a project
+  with campaigns who evaluates it too (the main one), an owner who does not, a person who holds
+  everything at once, a participant who only tests and reviews, and the edge cases.
+  Its URLs come from `src/test/eval-urls.ts`.
+- The stories, in four folders of Storybook under `Evaluation`: `General`
+  (`src/stories/Eval.stories.tsx`), `Review campaigns` (`Campaigns.stories.tsx`), `Reviewer`
+  (`Reviewer.stories.tsx`) and `Tester` (`Tester.stories.tsx`), with the meta of
   `src/stories/eval-meta.tsx`. `src/stories/Eval.stories.spec.tsx` renders every story in the
   tests.

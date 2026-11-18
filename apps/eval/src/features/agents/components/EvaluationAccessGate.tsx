@@ -7,12 +7,13 @@ export type EvaluationAccessGateProps = {
 }
 
 /**
- * Opens the app to a person who can evaluate at least one project: who holds `evaluation.ui.read`
- * there, through the `project_evaluator` role. Anyone else gets a page that says why. The API
- * refuses the evaluation routes of a project to anyone without the permission there.
+ * Opens the app to a person it holds something for: a project they evaluate (`evaluation.ui.read`,
+ * from the `project_evaluator` role) or whose review campaigns they manage
+ * (`project.review_campaign.read`, held by its owners and admins), or a campaign they test or
+ * review. Anyone else gets a page that says why. The API checks each route on its own.
  */
 export function EvaluationAccessGate({ children }: EvaluationAccessGateProps) {
-  const { projects } = useEvaluationWorkspace()
-  if (projects.length === 0) return <NoEvaluationAccessPage />
+  const { projects, myCampaigns } = useEvaluationWorkspace()
+  if (projects.length === 0 && myCampaigns.length === 0) return <NoEvaluationAccessPage />
   return children
 }

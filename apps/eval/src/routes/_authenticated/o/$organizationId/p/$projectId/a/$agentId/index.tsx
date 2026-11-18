@@ -1,17 +1,26 @@
-import { Trans } from "@lingui/react/macro"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
+import { AgentHubPage } from "@/routes/-components/AgentHubPage"
+import { AGENT_SECTION_ROUTES, agentSectionsOf } from "@/routes/-components/agent-sections"
 
-/** The page of an agent: a greeting for now. */
+/**
+ * The first page of an agent. An agent that opens one section for the person opens on it; with
+ * several, this page is the hub that lists them.
+ */
 export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$projectId/a/$agentId/")({
+  beforeLoad: ({ context, params }) => {
+    const sections = agentSectionsOf(context.agent)
+    const [onlySection] = sections
+    if (onlySection && sections.length === 1) {
+      // The search goes along: the command center the home asked for opens on the section.
+      throw redirect({ to: AGENT_SECTION_ROUTES[onlySection], params, search: true, replace: true })
+    }
+  },
   component: AgentRoute,
 })
 
 function AgentRoute() {
+  const { agent } = Route.useRouteContext()
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold">
-        <Trans>Hello world!</Trans>
-      </h1>
-    </div>
+    <AgentHubPage agent={agent} agentParams={Route.useParams()} sections={agentSectionsOf(agent)} />
   )
 }

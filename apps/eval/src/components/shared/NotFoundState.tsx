@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
+import { cn } from "cn"
 import { SearchXIcon } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { StatusPage } from "./StatusPage"
@@ -11,7 +12,7 @@ export function NotFoundState() {
       title={<Trans>Page not found</Trans>}
       description={<Trans>This page does not exist, or you cannot open it.</Trans>}
       action={
-        <Link to="/" className={buttonVariants()}>
+        <Link to="/" className={cn(buttonVariants())}>
           <Trans>Back to the app</Trans>
         </Link>
       }

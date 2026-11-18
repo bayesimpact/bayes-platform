@@ -7,3 +7,8 @@ import type { EvaluationWorkspace } from "./evaluation-agents"
 export function loadEvaluationWorkspace(queryClient: QueryClient): Promise<EvaluationWorkspace> {
   return queryClient.query({ ...evaluationWorkspaceQueryOptions(), staleTime: loaderStaleTime })
 }
+
+/** Loads what the person holds again, after they joined a project, an agent or a campaign. */
+export function refreshEvaluationWorkspace(queryClient: QueryClient): Promise<void> {
+  return queryClient.invalidateQueries({ queryKey: evaluationWorkspaceQueryOptions().queryKey })
+}

@@ -14,6 +14,8 @@ export function buildProjectAgent(
     name: "Helpful Assistant",
     type: "conversation",
     projectId: project.id,
+    // Published once, as a review campaign needs.
+    currentRevision: {},
     ...overrides,
   })
 }

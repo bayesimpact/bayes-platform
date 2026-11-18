@@ -40,7 +40,11 @@ const preview: Preview = {
   parameters: {
     layout: "fullscreen",
     // The app around its pages first; each area of the app adds its folder after it.
-    options: { storySort: { order: ["Evaluation", ["General"]] } },
+    options: {
+      storySort: {
+        order: ["Evaluation", ["General", "Review campaigns", "Reviewer", "Tester"]],
+      },
+    },
     viewport: {
       options: {
         ...INITIAL_VIEWPORTS,

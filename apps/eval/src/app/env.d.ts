@@ -13,12 +13,47 @@ declare global {
     readonly VITE_HELP_CENTER_URL?: string
     readonly VITE_APP_VERSION?: string
     readonly VITE_GIT_SHA?: string
+    /** The id of a production build, which `version.json` publishes too (vite.config.ts). */
+    readonly VITE_BUILD_ID?: string
   }
 
   // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.
   interface Window {
     /** The configuration the API injects into index.html when it serves the app. */
     __CONFIG__?: Record<string, string | undefined>
+    /** The browser's speech recognition, which Chrome and Safari still name with a prefix. */
+    SpeechRecognition?: new () => SpeechRecognition
+    webkitSpeechRecognition?: new () => SpeechRecognition
+  }
+
+  /** The events of the browser's speech recognition, whose payloads lib.dom declares. */
+  type SpeechRecognitionEventMap = {
+    result: SpeechRecognitionEvent
+    error: SpeechRecognitionErrorEvent
+    start: Event
+    end: Event
+  }
+
+  /**
+   * The parts of the browser's speech recognition the app uses. lib.dom declares its events but
+   * not the recognition itself, which only some browsers have.
+   */
+  interface SpeechRecognition extends EventTarget {
+    continuous: boolean
+    interimResults: boolean
+    lang: string
+    start(): void
+    stop(): void
+    addEventListener<K extends keyof SpeechRecognitionEventMap>(
+      type: K,
+      listener: (this: SpeechRecognition, event: SpeechRecognitionEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void
+    removeEventListener<K extends keyof SpeechRecognitionEventMap>(
+      type: K,
+      listener: (this: SpeechRecognition, event: SpeechRecognitionEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void
   }
 }
 

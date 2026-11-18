@@ -1,0 +1,146 @@
+import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { useState } from "react"
+import { CopyButton } from "@/components/shared/CopyButton"
+import { Markdown } from "@/components/shared/Markdown"
+import { RelativeTime } from "@/components/shared/RelativeTime"
+import { Message, MessageContent } from "@/components/ui/message"
+import { QUOTABLE_ATTRIBUTE } from "../annotation"
+import { type ChatMessage, isBeingWritten, isLocalMessageId } from "../chat-messages"
+import type { TaskChecks } from "../hooks/use-task-checks"
+import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
+import type { OpenedResource } from "../resource-media"
+import { FeedbackDialog } from "./FeedbackDialog"
+import { FollowUpQuestions } from "./FollowUpQuestions"
+import { GoodReplyButton } from "./GoodReplyButton"
+import { McpAppsList } from "./McpAppsList"
+import { MessageActions } from "./MessageActions"
+import { ReplyError } from "./ReplyError"
+import { ResourceCards } from "./ResourceCards"
+import { ToolSteps } from "./ToolSteps"
+
+export type AssistantMessageViewProps = {
+  conversation: ConversationParamsDto
+  message: ChatMessage
+  now: number
+  appsHtml: AppsHtml
+  onAppMessage: (text: string) => void
+  /** Opens a resource a reply points to beside the conversation. */
+  onOpenResource: (resource: OpenedResource) => void
+  /** The tasks of the replies, as the person left them, and their ticks. */
+  taskChecks: TaskChecks
+  /** The questions to show as buttons under the reply: only the last reply has some. */
+  followUpQuestions: string[]
+  /** Sends a suggested question as the person's next message. */
+  onFollowUpQuestion: (question: string) => void
+}
+
+/**
+ * A reply of the agent: its steps, its text, and what came with it (MCP App cards, resources),
+ * then its actions. A reply whose app cannot render shows the tool's
+ * text instead, when its own says nothing.
+ */
+export function AssistantMessageView({
+  conversation,
+  message,
+  now,
+  appsHtml,
+  onAppMessage,
+  onOpenResource,
+  taskChecks,
+  followUpQuestions,
+  onFollowUpQuestion,
+}: AssistantMessageViewProps) {
+  const { t } = useLingui()
+  const [failedAppIds, setFailedAppIds] = useState<string[]>([])
+  const isWriting = isBeingWritten(message, now)
+  const isInterrupted =
+    message.status === "aborted" || (message.status === "streaming" && !isWriting)
+  const text =
+    message.mcpApps.length > 0 && !isWriting
+      ? replyTextWithApps(message, unavailableApps(message.mcpApps, appsHtml, failedAppIds))
+      : message.content
+
+  return (
+    <Message>
+      <MessageContent className="gap-3">
+        <ToolSteps toolNames={message.toolNames} isWriting={isWriting} hasText={text !== ""} />
+        {message.status === "error" ? <ReplyError message={message} /> : null}
+        {message.status !== "error" && text !== "" ? (
+          // A passage of a settled reply can be annotated, and the messages after find the
+          // passages they quote in it by its id.
+          <div {...(isWriting ? {} : { [QUOTABLE_ATTRIBUTE]: message.id })}>
+            <Markdown
+              isStreaming={isWriting}
+              taskStates={taskChecks.statesOf(message.id)}
+              // A settled reply's tasks can be ticked once it has the server's id, which the
+              // ticks name.
+              onTaskToggle={
+                isWriting || isLocalMessageId(message.id)
+                  ? undefined
+                  : (task) => taskChecks.toggle({ replyId: message.id, ...task })
+              }
+            >
+              {text}
+            </Markdown>
+          </div>
+        ) : null}
+        {message.mcpApps.length > 0 && !isWriting ? (
+          <McpAppsList
+            apps={message.mcpApps}
+            appsHtml={appsHtml}
+            failedAppIds={failedAppIds}
+            onAppMessage={onAppMessage}
+            onAppFailed={(toolCallId) =>
+              setFailedAppIds((current) =>
+                current.includes(toolCallId) ? current : [...current, toolCallId],
+              )
+            }
+          />
+        ) : null}
+        {message.resources.length > 0 ? (
+          <ResourceCards resources={message.resources} onOpenResource={onOpenResource} />
+        ) : null}
+        {followUpQuestions.length > 0 ? (
+          <FollowUpQuestions questions={followUpQuestions} onSelect={onFollowUpQuestion} />
+        ) : null}
+        {isInterrupted ? (
+          <p className="text-sm text-muted-foreground">
+            <Trans>This reply was interrupted before it finished.</Trans>
+          </p>
+        ) : null}
+        {message.status === "completed" && text !== "" ? (
+          <MessageActions>
+            <CopyButton text={text} label={t`Copy the reply`} />
+            {/* A local reply gets its id once the persisted messages replace it. */}
+            {isLocalMessageId(message.id) ? null : (
+              <>
+                <GoodReplyButton conversation={conversation} agentMessageId={message.id} />
+                <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+              </>
+            )}
+            {message.createdAt !== null ? (
+              <RelativeTime
+                moment={message.createdAt}
+                now={now}
+                className="px-1 text-xs font-normal"
+              />
+            ) : null}
+          </MessageActions>
+        ) : null}
+      </MessageContent>
+    </Message>
+  )
+}
+
+/**
+ * The text of a reply that shows apps: its own when it says something, else the text of the
+ * tools whose app cannot render, so the person still reads their answer.
+ */
+function replyTextWithApps(message: ChatMessage, unavailable: ChatMessage["mcpApps"]): string {
+  if (hasMeaningfulText(message.content)) return message.content
+  return unavailable
+    .map((app) => toolResultText(app.toolResult))
+    .filter((appText) => appText !== "")
+    .join("\n\n")
+}

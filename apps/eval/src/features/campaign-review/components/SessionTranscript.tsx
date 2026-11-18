@@ -1,0 +1,51 @@
+import type { ReviewerSessionOutputDto } from "@caseai-connect/eval-contracts"
+import { Trans } from "@lingui/react/macro"
+import { cn } from "cn"
+import { Markdown } from "@/components/shared/Markdown"
+
+export type SessionTranscriptProps = {
+  messages: ReviewerSessionOutputDto["transcript"]
+  agentName: string
+}
+
+/** What the tester and the agent said, oldest first: the agent's replies render their Markdown. */
+export function SessionTranscript({ messages, agentName }: SessionTranscriptProps) {
+  if (messages.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground italic">
+        <Trans>This session has no message.</Trans>
+      </p>
+    )
+  }
+  return (
+    <ol className="flex flex-col gap-3">
+      {messages.map((message) => {
+        const isTester = message.role === "user"
+        return (
+          <li
+            key={message.id}
+            className={cn(
+              "flex max-w-full flex-col gap-1 rounded-xl border p-3",
+              isTester ? "ml-8 bg-muted/60" : "mr-8",
+            )}
+          >
+            <span className="text-xs font-medium text-muted-foreground">
+              {isTester ? (
+                <Trans comment="Names who wrote a message of a transcript: the tester">
+                  Tester
+                </Trans>
+              ) : (
+                agentName
+              )}
+            </span>
+            {isTester ? (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            ) : (
+              <Markdown>{message.content}</Markdown>
+            )}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}

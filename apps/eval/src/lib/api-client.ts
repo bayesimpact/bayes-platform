@@ -1,5 +1,6 @@
 import {
   type AnySchemaRoute,
+  type AnyStreamRoute,
   type ErrorOutputDto,
   errorOutputSchema,
   signInRefusalOf,
@@ -51,7 +52,7 @@ type Part<TName extends string, TSchema extends z.ZodType> = Record<
   : { [Key in TName]: z.output<TSchema> }
 
 /** The body, which the caller passes only when the route reads one, as its schema takes it. */
-type BodyPart<TRoute extends AnySchemaRoute> =
+type BodyPart<TRoute extends AnySchemaRoute | AnyStreamRoute> =
   z.input<TRoute["schemas"]["body"]> extends { payload: infer TPayload }
     ? { body: TPayload }
     : { body?: never }
@@ -72,8 +73,8 @@ type ApiRequestArgs<TRoute extends AnySchemaRoute> =
     : [options: ApiRequestOptions<TRoute>]
 
 /**
- * Calls an endpoint on this origin's `/api`, with the bearer token, and returns its `data`, parsed
- * with the route's response schema. The only place the app calls `fetch` for the API.
+ * Calls an endpoint on this origin's `/api`, with the bearer token, and returns its `data`,
+ * parsed with the route's response schema. The only place the app calls `fetch` for the API.
  */
 export async function apiRequest<TRoute extends AnySchemaRoute>(
   route: TRoute,
@@ -97,11 +98,29 @@ export async function apiRequest<TRoute extends AnySchemaRoute>(
   return result.data.data
 }
 
+type ApiStreamOptions<TRoute extends AnyStreamRoute> = Part<"params", TRoute["schemas"]["params"]> &
+  Part<"query", TRoute["schemas"]["query"]> &
+  BodyPart<TRoute> & { signal?: AbortSignal }
+
+/**
+ * Opens a stream on this origin's `/api`, with the bearer token, and returns the response
+ * whose body `lib/stream.ts` reads. An error answer, sent before the stream starts, throws.
+ */
+export function apiStreamResponse<TRoute extends AnyStreamRoute>(
+  route: TRoute,
+  options: ApiStreamOptions<TRoute>,
+): Promise<Response> {
+  return apiFetch(route, { ...options, accept: "text/event-stream" })
+}
+
 /**
  * Sends a request built from the route's schemas, with the bearer token: a 401 refreshes the
  * token once, then starts a new sign-in, and an error answer throws an `ApiError`.
  */
-async function apiFetch(route: AnySchemaRoute, options: RequestOptions): Promise<Response> {
+async function apiFetch(
+  route: AnySchemaRoute | AnyStreamRoute,
+  options: RequestOptions,
+): Promise<Response> {
   const request = buildRequest(route, options)
   let response = await send(request, { forceRefresh: false })
   // The token may have been revoked before it expired: refresh it once.
@@ -122,16 +141,20 @@ type RequestOptions = {
   query?: Record<string, unknown>
   body?: unknown
   signal?: AbortSignal
+  accept?: string
 }
 
 type PreparedRequest = { url: URL; init: RequestInit }
 
 /**
  * The request the route's schemas describe. The params keep only the keys the route declares, so
- * a caller may pass a wider object, such as a page's params to a route of its project. A
+ * a caller may pass a wider object, such as a conversation's params to a route of its agent. A
  * value the schemas refuse is a bug of the app, never retried: `InvalidRequestError`.
  */
-function buildRequest(route: AnySchemaRoute, options: RequestOptions): PreparedRequest {
+function buildRequest(
+  route: AnySchemaRoute | AnyStreamRoute,
+  options: RequestOptions,
+): PreparedRequest {
   const declared = Object.keys(route.schemas.params.shape)
   const ownParams = Object.fromEntries(
     Object.entries(options.params ?? {}).filter(([name]) => declared.includes(name)),
@@ -151,7 +174,7 @@ function buildRequest(route: AnySchemaRoute, options: RequestOptions): PreparedR
     init: {
       method: route.method.toUpperCase(),
       headers: {
-        Accept: "application/json",
+        Accept: options.accept ?? "application/json",
         ...(hasBody ? { "Content-Type": "application/json" } : {}),
       },
       ...(hasBody ? { body: JSON.stringify(body) } : {}),
@@ -168,7 +191,10 @@ export class InvalidRequestError extends Error {
   }
 }
 
-function encodeOrThrow<TValue>(route: AnySchemaRoute, encode: () => TValue): TValue {
+function encodeOrThrow<TValue>(
+  route: AnySchemaRoute | AnyStreamRoute,
+  encode: () => TValue,
+): TValue {
   try {
     return encode()
   } catch (error) {

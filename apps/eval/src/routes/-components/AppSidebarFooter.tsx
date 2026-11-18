@@ -1,10 +1,14 @@
 import { CurrentUserMenu } from "@/features/account"
+import { InvitationsButton } from "@/features/invitations"
 
-/** The bottom of the sidebar on every signed-in page: the person's menu, at the start of the row. */
+/** The bottom of the sidebar on every signed-in page: the person's menu and their invitations. */
 export function AppSidebarFooter() {
   return (
-    <div className="min-w-0">
-      <CurrentUserMenu />
+    <div className="flex items-center gap-1">
+      <div className="min-w-0 flex-1">
+        <CurrentUserMenu />
+      </div>
+      <InvitationsButton />
     </div>
   )
 }

@@ -1,0 +1,76 @@
+import type { CampaignSessionParamsDto } from "@caseai-connect/eval-contracts"
+import { Trans } from "@lingui/react/macro"
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
+import { CheckIcon } from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { useCampaignContext } from "@/features/campaign-context"
+import { ConversationView } from "@/features/conversation"
+import { campaignTestKeys } from "../api/keys"
+import { testerSessionsQueryOptions } from "../api/queries"
+import { SessionFeedbackPanel } from "./SessionFeedbackPanel"
+
+export type TesterSessionPageProps = {
+  sessionParams: CampaignSessionParamsDto
+}
+
+/**
+ * A tester's session: the conversation with the campaign's agent, and the way to end it with their
+ * feedback, in a panel beside the conversation. A session whose feedback is given stays readable.
+ */
+export function TesterSessionPage({ sessionParams }: TesterSessionPageProps) {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const context = useCampaignContext(sessionParams)
+  const { data: sessions } = useSuspenseQuery(testerSessionsQueryOptions(sessionParams))
+  const [isGivingFeedback, setIsGivingFeedback] = useState(false)
+  const session = sessions.find((candidate) => candidate.id === sessionParams.sessionId)
+  const canGiveFeedback = session?.feedbackStatus === "pending"
+  const conversation = {
+    organizationId: sessionParams.organizationId,
+    projectId: sessionParams.projectId,
+    agentId: context.agent.id,
+    agentSessionId: sessionParams.sessionId,
+  }
+
+  return (
+    <ConversationView
+      conversation={conversation}
+      agentName={context.agent.name}
+      forms={session?.forms ?? []}
+      onFormsChange={() =>
+        void queryClient.invalidateQueries({ queryKey: campaignTestKeys.sessions(sessionParams) })
+      }
+      headerActions={
+        canGiveFeedback ? (
+          <Button
+            size="sm"
+            variant={isGivingFeedback ? "secondary" : "default"}
+            aria-pressed={isGivingFeedback}
+            onClick={() => setIsGivingFeedback((current) => !current)}
+          >
+            <CheckIcon data-icon="inline-start" aria-hidden />
+            <Trans>End the session and give feedback</Trans>
+          </Button>
+        ) : null
+      }
+      sidePanel={
+        canGiveFeedback && isGivingFeedback ? (
+          <SessionFeedbackPanel
+            sessionParams={sessionParams}
+            context={context}
+            onClose={() => setIsGivingFeedback(false)}
+            onSubmitted={() =>
+              void navigate({
+                to: "/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test",
+                params: sessionParams,
+              })
+            }
+          />
+        ) : null
+      }
+      onSidePanelDismiss={() => setIsGivingFeedback(false)}
+    />
+  )
+}

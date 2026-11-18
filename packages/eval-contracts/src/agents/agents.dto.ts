@@ -15,6 +15,8 @@ export const projectAgentOutputSchema = z.object({
   name: z.string(),
   type: agentTypeSchema,
   projectId: z.uuid(),
+  /** Present once the agent was published: the app reads only whether it is there. */
+  currentRevision: z.object({}).optional(),
 })
 
 export type ProjectAgentOutputDto = z.output<typeof projectAgentOutputSchema>

@@ -7,8 +7,18 @@ import {
 import type { EvaluationProject } from "./evaluation-projects"
 
 const organization = { id: crypto.randomUUID(), name: "Product" }
-const pricing: EvaluationProject = { id: crypto.randomUUID(), name: "Pricing", organization }
-const support: EvaluationProject = { id: crypto.randomUUID(), name: "Support", organization }
+const pricing: EvaluationProject = {
+  id: crypto.randomUUID(),
+  name: "Pricing",
+  permissions: [],
+  organization,
+}
+const support: EvaluationProject = {
+  id: crypto.randomUUID(),
+  name: "Support",
+  permissions: [],
+  organization,
+}
 
 const agent = (name: string, project: EvaluationProject) => ({
   id: crypto.randomUUID(),

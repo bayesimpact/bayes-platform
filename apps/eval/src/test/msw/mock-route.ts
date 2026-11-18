@@ -1,8 +1,12 @@
-import { type AnySchemaRoute, errorOutputSchema } from "@caseai-connect/eval-contracts"
-import { HttpResponse, http, type PathParams, type RequestHandlerOptions } from "msw"
+import {
+  type AnySchemaRoute,
+  type AnyStreamRoute,
+  errorOutputSchema,
+} from "@caseai-connect/eval-contracts"
+import { delay, HttpResponse, http, type PathParams, type RequestHandlerOptions } from "msw"
 import { z } from "zod"
 
-type MockedRoute = AnySchemaRoute
+type MockedRoute = AnySchemaRoute | AnyStreamRoute
 
 /** The params of the route, as its schema outputs them. */
 type MockParams<TRoute extends MockedRoute> = z.output<TRoute["schemas"]["params"]>
@@ -130,6 +134,79 @@ export function mockRoute<TRoute extends AnySchemaRoute>(
         )
       }
       return HttpResponse.json(response.data, { status: route.method === "post" ? 201 : 200 })
+    },
+    options,
+  )
+}
+
+/** A frame of a mocked stream: an event of the route, or what the handler throws. */
+export type MockStreamFrame<TRoute extends AnyStreamRoute> =
+  | { event: z.input<TRoute["schemas"]["event"]> }
+  /** Nest writes what a stream's handler throws as an `error` frame whose data is the bare message. */
+  | { thrownError: string }
+
+export type MockStreamResolver<TRoute extends AnyStreamRoute> = (request: {
+  params: MockParams<TRoute>
+  query: MockQuery<TRoute>
+  payload: MockPayload<TRoute>
+  request: Request
+}) => MaybePromise<MockStreamFrame<TRoute>[] | Response>
+
+/** One frame as Nest writes it, with an `id:` line. */
+function serializeFrame<TRoute extends AnyStreamRoute>(
+  route: TRoute,
+  frame: MockStreamFrame<TRoute>,
+): string {
+  if ("thrownError" in frame) return `event: error\ndata: ${frame.thrownError}\n\n`
+  return `id: 1\ndata: ${JSON.stringify(route.schemas.event.parse(frame.event))}\n\n`
+}
+
+/** The frames as a stream, with a pause before each one, as a real agent takes. */
+function streamOf(frames: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder()
+  return new ReadableStream({
+    async start(controller) {
+      for (const frame of frames) {
+        await delay()
+        controller.enqueue(encoder.encode(frame))
+      }
+      controller.close()
+    },
+  })
+}
+
+/**
+ * An MSW handler for a stream route of the contracts: its method comes from the route, its params,
+ * query and body are decoded by the route's schemas, and each event the resolver returns is parsed
+ * by the event schema, then sent as a server-sent event. It answers 200 whatever the method, as
+ * the API's streams do. A list that ends without an `end` event is a stream that closes early.
+ */
+export function mockStreamRoute<TRoute extends AnyStreamRoute>(
+  route: TRoute,
+  // The route alone decides the types: the resolver's frames are checked against them.
+  resolver: NoInfer<MockStreamResolver<TRoute>>,
+  options?: RequestHandlerOptions,
+) {
+  return http[route.method](
+    pathOf(route),
+    async ({ params, request }) => {
+      const parsedParams = parseParams<TRoute["schemas"]["params"]>(route.schemas.params, params)
+      if (!parsedParams.success) return invalidRequest(parsedParams.error)
+      const parsedQuery = parseQuery<TRoute["schemas"]["query"]>(route.schemas.query, request)
+      if (!parsedQuery.success) return invalidRequest(parsedQuery.error)
+      const body = await parseBody(route, request)
+      if (!body.success) return invalidRequest(body.error)
+      const answer = await resolver({
+        params: parsedParams.data,
+        query: parsedQuery.data,
+        payload: payloadOf<TRoute>(body.data),
+        request,
+      })
+      if (answer instanceof Response) return answer
+      const frames = answer.map((frame) => serializeFrame(route, frame))
+      return new HttpResponse(streamOf(frames), {
+        headers: { "Content-Type": "text/event-stream" },
+      })
     },
     options,
   )

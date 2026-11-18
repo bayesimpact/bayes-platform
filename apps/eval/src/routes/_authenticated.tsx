@@ -2,7 +2,11 @@ import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { loadMe } from "@/features/account"
-import { EvaluationAccessGate, loadEvaluationWorkspace } from "@/features/agents"
+import {
+  AgentCommandCenterProvider,
+  EvaluationAccessGate,
+  loadEvaluationWorkspace,
+} from "@/features/agents"
 import {
   claimAutomaticSignIn,
   hasSession,
@@ -14,7 +18,8 @@ import {
 /**
  * Every page of the app but the sign-in callback: a session, the signed-in person (`GET me`), at
  * least one project they can evaluate, then the page. A sign-in the API refuses shows here, and so
- * does a person without the evaluator role, before any page.
+ * does a person without the evaluator role, before any page. Every page gets the command center
+ * that switches agent, for a person with several.
  */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -37,7 +42,9 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   return (
     <EvaluationAccessGate>
-      <Outlet />
+      <AgentCommandCenterProvider>
+        <Outlet />
+      </AgentCommandCenterProvider>
     </EvaluationAccessGate>
   )
 }

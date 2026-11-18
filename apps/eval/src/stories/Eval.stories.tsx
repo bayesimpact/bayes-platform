@@ -1,9 +1,14 @@
 import { EvalProjectsRoutes } from "@caseai-connect/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
+import { agentUrlOf } from "@/test/eval-urls"
 import {
+  buildCampaignManagerWorld,
+  buildEveryAccessWorld,
+  buildManyAgentsWorld,
   buildNoAgentWorld,
   buildNoEvaluationAccessWorld,
+  buildPendingInvitationsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/eval-world.factory"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
@@ -19,12 +24,55 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** The evaluator of one project with one agent: the sidebar shows the agent alone. */
+/**
+ * A person who evaluates an agent and manages its review campaigns: the agent's first page is a
+ * hub of both sections, which the sidebar lists too.
+ */
 export const Home: Story = {}
 
-/** Agents of several projects and organizations, in the switcher at the top of the sidebar. */
+/** The same person, who also tests a campaign and reviews another: every part of the app at once. */
+export const EveryAccess: Story = {
+  parameters: evaluation({ world: buildEveryAccessWorld }),
+}
+
+/**
+ * The same person, with two invitations to answer: the envelope beside their menu opens them, to
+ * accept or decline each one, as in the Desk.
+ */
+export const PendingInvitations: Story = {
+  parameters: evaluation({ world: buildPendingInvitationsWorld }),
+}
+
+/** An owner who is not an evaluator: the agent opens on its review campaigns, its only section. */
+export const CampaignManagerOnly: Story = {
+  parameters: evaluation({ world: buildCampaignManagerWorld }),
+}
+
+/**
+ * An evaluator with agents of several projects and organizations: the home opens the first one,
+ * with the command center over it, so the person can go elsewhere at once.
+ */
 export const SeveralProjects: Story = {
   parameters: evaluation({ world: buildSeveralProjectsWorld }),
+}
+
+/**
+ * An evaluator of many projects with several agents each: the command center, which the home
+ * opens and ⌘K or Ctrl+K opens again, lists them by project and finds one by its names.
+ */
+export const ManyAgents: Story = {
+  parameters: evaluation({ world: buildManyAgentsWorld }),
+}
+
+/**
+ * One agent of the evaluator of several projects, who manages no campaign: it opens on its evaluations, its only
+ * section, and the button at the top of the sidebar opens the command center.
+ */
+export const AgentAmongSeveral: Story = {
+  parameters: evaluation({
+    world: buildSeveralProjectsWorld,
+    url: (world) => agentUrlOf(world, "Writing Helper"),
+  }),
 }
 
 /** The evaluator of a project that has no agent yet. */

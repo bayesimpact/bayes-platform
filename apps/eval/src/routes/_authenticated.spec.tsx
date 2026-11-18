@@ -86,15 +86,15 @@ describe("the access to the app", () => {
   it("opens to the evaluator of a project", async () => {
     renderApp("/eval/")
 
-    expect(await screen.findByRole("heading", { name: "Hello world!" })).toBeInTheDocument()
-    expect(screen.queryByText("You cannot evaluate agents yet")).not.toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Helpful Assistant" })).toBeInTheDocument()
+    expect(screen.queryByText("You have no access to Evaluation yet")).not.toBeInTheDocument()
   })
 
   it("stays closed to a person who evaluates no project, and says why", async () => {
     server.use(...worldHandlers(buildNoEvaluationAccessWorld()))
     renderApp("/eval/")
 
-    expect(await screen.findByText("You cannot evaluate agents yet")).toBeInTheDocument()
+    expect(await screen.findByText("You have no access to Evaluation yet")).toBeInTheDocument()
     expect(screen.queryByRole("main")).not.toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute(
       "href",

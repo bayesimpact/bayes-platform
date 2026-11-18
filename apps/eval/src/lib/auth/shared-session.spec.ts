@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 /**
  * Two apps of one origin, each with its own OIDC client, on the real oidc-client-ts: this app at
- * `/eval/` and the Desk at `/app/`, which signs in the same way. They share the browser's
+ * `/eval/` and the app at `/app/`, which signs in the same way. They share the browser's
  * storage and its Web Locks, and the provider rotates the refresh token on every refresh.
  */
 
