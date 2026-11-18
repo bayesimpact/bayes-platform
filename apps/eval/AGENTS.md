@@ -60,6 +60,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   Desk's without the name edit), with the envelope of their pending invitations beside it
   (`InvitationsButton` in `features/invitations`, the Desk's, on `GET me/invitations` every
   minute). An accepted invitation loads the workspace again, so a campaign joins the person's.
+  Once hidden, the sidebar peeks over the page, below the bar, while the pointer rests on its
+  button or on it (`useSidebarPeek` in `hooks/`), as in Claude Desktop; a click pins it.
 - The workspace: `features/agents` reads `GET projects/mine`, `GET organizations/mine` and
   `GET me/review-campaigns` for both roles, keeps the projects the app opens, then reads each
   one's `GET .../agents-with-drafts`, drafts included since evaluation runs them, under one query

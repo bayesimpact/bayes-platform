@@ -1,7 +1,8 @@
 import { useLingui } from "@lingui/react"
 import { composeStories, composeStory, setProjectAnnotations } from "@storybook/react-vite"
 import { useQueryClient } from "@tanstack/react-query"
-import { render, screen } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
 import * as campaignStories from "./Campaigns.stories"
@@ -18,7 +19,7 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const { PageNotFound, ProjectsFailToLoad, Loading, ...generalPages } =
+const { PageNotFound, ProjectsFailToLoad, Loading, SidebarPeek, ...generalPages } =
   composeStories(generalStories)
 const campaignPages = composeStories(campaignStories)
 // The reviewer and the tester both have a story named after their campaign.
@@ -187,6 +188,20 @@ describe("the stories of the app", () => {
 
     expect(await screen.findByText("This page could not load")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument()
+  })
+
+  it("SidebarPeek shows the hidden sidebar while the pointer rests on its button", async () => {
+    await SidebarPeek.load()
+    const { container } = render(<SidebarPeek />)
+    await act(() => SidebarPeek.play?.({ canvasElement: container }))
+
+    const sidebar = () => container.querySelector('[data-slot="sidebar-container"]')
+    await waitFor(() => expect(sidebar()).toHaveAttribute("data-peek"))
+    expect(sidebar()?.closest('[data-slot="sidebar"]')).toHaveAttribute("data-state", "collapsed")
+
+    // It hides a moment after the pointer leaves the button.
+    await userEvent.unhover(screen.getByRole("button", { name: "Show the sidebar" }))
+    await waitFor(() => expect(sidebar()).not.toHaveAttribute("data-peek"))
   })
 
   it("Loading shows the frame of the app, and no page yet", async () => {

@@ -1,5 +1,6 @@
 import { useLingui } from "@lingui/react/macro"
 import { useRouter } from "@tanstack/react-router"
+import { cn } from "cn"
 import { type ReactNode, useEffect, useState } from "react"
 import {
   Sidebar,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
+import { useSidebarPeek } from "@/hooks/use-sidebar-peek"
 import { HeaderActionsMenu } from "./HeaderActionsMenu"
 import { HeaderSlotsContext } from "./header-slots-context"
 import { ResizeHandle } from "./ResizeHandle"
@@ -30,8 +32,9 @@ export type AppShellProps = {
 }
 
 /**
- * The app's frame, as in the app: a sidebar on the left, the page in the center. At phone
- * width, the sidebar opens over the page from a button in the bar.
+ * The app's frame, as in the app: a sidebar on the left, the page in the center. Once hidden, the
+ * sidebar peeks over the page while the pointer rests on its button. At phone width, the sidebar
+ * opens over the page from a button in the bar.
  */
 export function AppShell({ header, sidebar, footer, title, children }: AppShellProps) {
   const { t } = useLingui()
@@ -40,6 +43,7 @@ export function AppShell({ header, sidebar, footer, title, children }: AppShellP
   const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null)
   // Tailwind's `sm`: below it, the bar has no room for the page's actions, which go in a menu.
   const isPhone = useMediaQuery("(max-width: 39.99rem)")
+  const sidebarPeek = useSidebarPeek()
   const sidebarWidth = useResizableWidth({
     storageKey: "eval.sidebarWidth",
     defaultWidth: 256,
@@ -54,7 +58,16 @@ export function AppShell({ header, sidebar, footer, title, children }: AppShellP
       className={sidebarWidth.isResizing ? "**:transition-none" : undefined}
     >
       <CloseSidebarOnNavigation />
-      <Sidebar>
+      <Sidebar
+        // A hidden sidebar peeks over the page, which keeps its width: only the sidebar moves.
+        data-peek={sidebarPeek.isPeeking || undefined}
+        className={cn(
+          "motion-reduce:transition-none",
+          // Below the bar, as in Claude Desktop: the button that pins the sidebar stays in reach.
+          "group-data-[collapsible=offcanvas]:data-peek:top-12 group-data-[collapsible=offcanvas]:data-peek:bottom-2 group-data-[collapsible=offcanvas]:data-peek:left-0! group-data-[collapsible=offcanvas]:data-peek:z-30 group-data-[collapsible=offcanvas]:data-peek:h-auto group-data-[collapsible=offcanvas]:data-peek:overflow-hidden group-data-[collapsible=offcanvas]:data-peek:rounded-r-lg group-data-[collapsible=offcanvas]:data-peek:border-y group-data-[collapsible=offcanvas]:data-peek:shadow-lg",
+        )}
+        {...sidebarPeek.peekHandlers}
+      >
         <SidebarHeader>{header}</SidebarHeader>
         <SidebarContent>{sidebar}</SidebarContent>
         <SidebarFooter>{footer}</SidebarFooter>
@@ -69,7 +82,10 @@ export function AppShell({ header, sidebar, footer, title, children }: AppShellP
         {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
         <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
           {/* Shows or hides the sidebar, as ⌘B or Ctrl+B does. */}
-          <SidebarToggle />
+          <SidebarToggle
+            peekHandlers={sidebarPeek.peekHandlers}
+            onToggle={sidebarPeek.stopPeeking}
+          />
           <div
             ref={setBackSlot}
             className="peer flex min-w-0 shrink items-center text-sm empty:hidden"

@@ -1,6 +1,7 @@
 import { EvalProjectsRoutes } from "@caseai-connect/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
+import { userEvent, within } from "storybook/test"
 import { agentUrlOf } from "@/test/eval-urls"
 import {
   buildCampaignManagerWorld,
@@ -29,6 +30,18 @@ type Story = StoryObj<typeof meta>
  * hub of both sections, which the sidebar lists too.
  */
 export const Home: Story = {}
+
+/**
+ * The sidebar hidden, then peeking over the page while the pointer rests on the button that shows
+ * it, as in Claude Desktop. It hides a moment after the pointer leaves the button and the sidebar.
+ */
+export const SidebarPeek: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: "Hide the sidebar" }))
+    await userEvent.hover(await canvas.findByRole("button", { name: "Show the sidebar" }))
+  },
+}
 
 /** The same person, who also tests a campaign and reviews another: every part of the app at once. */
 export const EveryAccess: Story = {
