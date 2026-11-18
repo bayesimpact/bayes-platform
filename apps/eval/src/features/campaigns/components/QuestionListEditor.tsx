@@ -3,7 +3,6 @@ import { PlusIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { type Control, useFieldArray, useWatch } from "react-hook-form"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
 import { blankQuestion } from "../campaign-form"
 import type { CampaignFormValues, QuestionListName } from "../schemas"
@@ -41,7 +40,12 @@ export function QuestionListEditor({
     else remove(index)
   }
   return (
-    <SectionCard title={title} description={description}>
+    // No frame of its own: the step holds this list alone, and each question has its card.
+    <section className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-1">
+        <h2 className="font-semibold">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
       {fields.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">
           <Trans>No question yet.</Trans>
@@ -90,6 +94,6 @@ export function QuestionListEditor({
           setRemovingIndex(null)
         }}
       />
-    </SectionCard>
+    </section>
   )
 }
