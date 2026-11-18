@@ -151,6 +151,7 @@ function participantHandlers(world: EvalWorld) {
           status: campaign.status,
           organizationId: campaign.organizationId,
           projectId: campaign.projectId,
+          agentId: campaign.agentId,
         })),
     })),
     mockRoute(EvalReviewCampaignsRoutes.getContext, ({ params }) => {

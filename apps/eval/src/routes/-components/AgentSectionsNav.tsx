@@ -1,31 +1,27 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
-import type { MessageDescriptor } from "@lingui/core"
-import { msg } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
-import { FlaskConicalIcon, LayoutGridIcon, type LucideIcon, MegaphoneIcon } from "lucide-react"
+import { FlaskConicalIcon, LayoutGridIcon } from "lucide-react"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
+import type { EvaluationAgent } from "@/features/agents"
+import { CampaignsSidebarMenu } from "@/features/campaigns"
 import { AGENT_SECTION_ROUTES, type AgentSection } from "./agent-sections"
+import { ParticipantSidebarMenus } from "./ParticipantSidebarMenus"
 
 export type AgentSectionsNavProps = {
-  agentName: string
+  agent: EvaluationAgent
   agentParams: AgentParamsDto
   sections: AgentSection[]
 }
 
-const SECTION_LINKS = {
-  evaluations: { label: msg`Evaluations`, Icon: FlaskConicalIcon },
-  campaigns: { label: msg`Review campaigns`, Icon: MegaphoneIcon },
-} satisfies Record<AgentSection, { label: MessageDescriptor; Icon: LucideIcon }>
-
 /**
- * The sections of an agent at the top of the sidebar: one link per feature the person holds on
- * it, and the way back to the agent's first page when there are several. The sidebar then shows
- * what the open section lists.
+ * What an agent opens for the person, at the top of the sidebar: the way back to the agent's first
+ * page when it holds several sections, its evaluations, the menu of its review campaigns for who
+ * manages them, and the menus of the campaigns the person tests or reviews.
  */
-export function AgentSectionsNav({ agentName, agentParams, sections }: AgentSectionsNavProps) {
-  const { t, i18n } = useLingui()
-  if (sections.length === 0) return null
+export function AgentSectionsNav({ agent, agentParams, sections }: AgentSectionsNavProps) {
+  const { t } = useLingui()
+  const agentName = agent.name
   return (
     <nav aria-label={t`Sections of ${agentName}`} className="p-2">
       <SidebarMenu>
@@ -50,25 +46,28 @@ export function AgentSectionsNav({ agentName, agentParams, sections }: AgentSect
             </SidebarMenuButton>
           </SidebarMenuItem>
         ) : null}
-        {sections.map((section) => {
-          const { label, Icon } = SECTION_LINKS[section]
-          return (
-            <SidebarMenuItem key={section}>
-              <SidebarMenuButton
-                render={
-                  <Link
-                    to={AGENT_SECTION_ROUTES[section]}
-                    params={agentParams}
-                    activeProps={{ "data-active": true }}
-                  />
-                }
-              >
-                <Icon aria-hidden />
-                <span>{i18n._(label)}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )
-        })}
+        {sections.includes("evaluations") ? (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={
+                <Link
+                  to={AGENT_SECTION_ROUTES.evaluations}
+                  params={agentParams}
+                  activeProps={{ "data-active": true }}
+                />
+              }
+            >
+              <FlaskConicalIcon aria-hidden />
+              <span>
+                <Trans>Evaluations</Trans>
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ) : null}
+        {sections.includes("campaigns") ? (
+          <CampaignsSidebarMenu agent={agent} agentParams={agentParams} />
+        ) : null}
+        <ParticipantSidebarMenus agentId={agent.id} />
       </SidebarMenu>
     </nav>
   )

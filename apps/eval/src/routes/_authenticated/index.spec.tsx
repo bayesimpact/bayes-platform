@@ -2,7 +2,13 @@ import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import { rememberLastAgent } from "@/features/agents"
-import { agentUrlOf, campaignsUrlOf, evaluationsUrlOf, routerPathOf } from "@/test/eval-urls"
+import {
+  agentUrlOf,
+  campaignsUrlOf,
+  campaignUrlOf,
+  evaluationsUrlOf,
+  routerPathOf,
+} from "@/test/eval-urls"
 import {
   buildCampaignManagerWorld,
   buildEvalWorld,
@@ -14,6 +20,7 @@ import {
 import { worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
+import { sidebarMenuEntries, sidebarMenuLink } from "@/test/sidebar-menus"
 
 /** ⌘K on an Apple system, Ctrl+K elsewhere: the keys of both, whichever system runs the tests. */
 const COMMAND_CENTER_SHORTCUT = "{Meta>}{Control>}k{/Control}{/Meta}"
@@ -159,11 +166,13 @@ describe("the app's home", () => {
 })
 
 describe("the sections of an agent", () => {
-  /** The links of the sidebar to the agent's sections. */
+  /** The entries of the sidebar's first level: the agent's sections and menus. */
   const sectionLinks = () =>
-    within(screen.getByRole("navigation", { name: "Sections of Helpful Assistant" }))
-      .getAllByRole("link")
-      .map((link) => link.textContent)
+    [
+      ...screen
+        .getByRole("navigation", { name: "Sections of Helpful Assistant" })
+        .querySelectorAll('[data-sidebar="menu-button"]'),
+    ].map((entry) => entry.textContent)
 
   it("makes the first page a hub for a person who holds several, and opens one from a card", async () => {
     const world = buildEvalWorld()
@@ -172,15 +181,11 @@ describe("the sections of an agent", () => {
 
     const main = within(await screen.findByRole("main"))
     expect(await main.findByRole("link", { name: /^Evaluations/ })).toBeInTheDocument()
-    expect(sectionLinks()).toEqual(["Overview", "Evaluations", "Review campaigns"])
-    // The sidebar lists the campaigns on their own pages only.
-    expect(screen.queryByRole("link", { name: /Support assistant pilot/ })).not.toBeInTheDocument()
+    expect(sectionLinks()).toEqual(["Overview", "Evaluations", "Campaigns"])
 
     await userEvent.click(main.getByRole("link", { name: /^Review campaigns/ }))
 
-    expect(
-      await screen.findByRole("link", { name: "Support assistant pilot Active" }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Review campaigns" })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(routerPathOf(campaignsUrlOf(world)))
   })
 
@@ -191,7 +196,7 @@ describe("the sections of an agent", () => {
 
     expect(await screen.findByRole("heading", { name: "Review campaigns" })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(routerPathOf(campaignsUrlOf(world)))
-    expect(sectionLinks()).toEqual(["Review campaigns"])
+    expect(sectionLinks()).toEqual(["Campaigns"])
   })
 
   it("opens on the evaluations of an agent that opens nothing else", async () => {
@@ -211,15 +216,53 @@ describe("the sections of an agent", () => {
     expect(await screen.findByText("Page not found")).toBeInTheDocument()
   })
 
-  it("keeps the campaigns a person tests or reviews beside the agent's sections", async () => {
+  it("lists the agent's campaigns in the Campaigns menu, grouped by where they stand", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(agentUrlOf(world))
+
+    expect(await screen.findByRole("link", { name: "Onboarding answers" })).toBeInTheDocument()
+    expect(sidebarMenuEntries("Campaigns")).toEqual([
+      "New campaign",
+      "Active",
+      "Support assistant pilot",
+      "Draft",
+      "Onboarding answers",
+      "Closed",
+      "Spring review",
+    ])
+
+    // A menu folds away, and opens again.
+    await userEvent.click(screen.getByRole("button", { name: "Campaigns" }))
+    expect(screen.queryByRole("link", { name: "Onboarding answers" })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Campaigns" }))
+    expect(screen.getByRole("link", { name: "Onboarding answers" })).toBeInTheDocument()
+  })
+
+  it("lists the campaigns a person tests or reviews on the agent in a menu per role", async () => {
     const world = buildEveryAccessWorld()
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world))
 
-    expect(await screen.findByText("My campaigns")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Support assistant pilot Test" })).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Spring review Review" })).toBeInTheDocument()
-    expect(sectionLinks()).toEqual(["Overview", "Evaluations", "Review campaigns"])
+    expect(await screen.findByRole("button", { name: "Tester" })).toBeInTheDocument()
+    expect(sectionLinks()).toEqual(["Overview", "Evaluations", "Campaigns", "Tester", "Reviewer"])
+    expect(sidebarMenuEntries("Tester")).toEqual(["Support assistant pilot"])
+    expect(sidebarMenuEntries("Reviewer")).toEqual(["Spring review"])
+    expect(sidebarMenuLink("Tester", "Support assistant pilot")).toHaveAttribute(
+      "href",
+      `${campaignUrlOf(world, "Support assistant pilot")}/test`,
+    )
+  })
+
+  it("leaves out the campaigns a person takes part in on another agent", async () => {
+    const world = buildEveryAccessWorld()
+    for (const campaign of world.campaigns) campaign.agentId = crypto.randomUUID()
+    server.use(...worldHandlers(world))
+    renderApp(agentUrlOf(world))
+
+    expect(await screen.findByRole("button", { name: "Campaigns" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Tester" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Reviewer" })).not.toBeInTheDocument()
   })
 })
 
@@ -278,7 +321,7 @@ describe("the invitations", () => {
     const dialog = await screen.findByRole("dialog")
     expect(within(dialog).getByText(/Review campaign · Pricing · Product/)).toBeInTheDocument()
     expect(within(dialog).getByText(/Project · Onboarding · Operations/)).toBeInTheDocument()
-    expect(screen.queryByText("My campaigns")).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Tester" })).not.toBeInTheDocument()
 
     await userEvent.click(
       within(dialog).getByRole("button", {
@@ -287,9 +330,8 @@ describe("the invitations", () => {
     )
 
     expect(await screen.findByText("You joined Support assistant pilot.")).toBeInTheDocument()
-    expect(
-      await screen.findByRole("link", { name: "Support assistant pilot Test" }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole("button", { name: "Tester" })).toBeInTheDocument()
+    expect(sidebarMenuEntries("Tester")).toEqual(["Support assistant pilot"])
     expect(await screen.findByRole("button", { name: "1 pending invitation" })).toBeInTheDocument()
   })
 

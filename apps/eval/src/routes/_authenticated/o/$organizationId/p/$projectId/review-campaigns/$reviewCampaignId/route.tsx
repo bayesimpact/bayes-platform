@@ -3,6 +3,7 @@ import { AppShell } from "@/components/shared/AppShell"
 import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { SidebarClosedOnly } from "@/components/shared/SidebarClosedOnly"
+import { SidebarMenu } from "@/components/ui/sidebar"
 import { loadEvaluationWorkspace } from "@/features/agents"
 import {
   CampaignSidebarHeader,
@@ -13,11 +14,12 @@ import { ReviewerSidebarSection } from "@/features/campaign-review"
 import { TesterSidebarSection } from "@/features/campaign-test"
 import { uuidParams } from "@/lib/not-found"
 import { AppSidebarFooter } from "@/routes/-components/AppSidebarFooter"
-import { MyCampaignsNav } from "@/routes/-components/MyCampaignsNav"
+import { ParticipantSidebarMenus } from "@/routes/-components/ParticipantSidebarMenus"
 
 /**
  * The frame of the pages of a campaign for its testers and reviewers: the sidebar with the
- * campaign, its sessions for the role the page is for, and the person's other campaigns; the page
+ * campaign, its sessions for the role the page is for, and the menus of the person's campaigns
+ * on the same agent; the page
  * in the center. A campaign they hold no role in is not
  * found; the pages below check the role they need.
  */
@@ -61,7 +63,9 @@ function CampaignLayout() {
           ) : (
             <TesterSidebarSection campaign={params} />
           )}
-          <MyCampaignsNav currentCampaignId={params.reviewCampaignId} />
+          <SidebarMenu className="p-2">
+            <ParticipantSidebarMenus agentId={campaign.agent.id} />
+          </SidebarMenu>
         </>
       }
       footer={<AppSidebarFooter />}

@@ -54,7 +54,7 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 
 ## Where things are
 
-- The frame: the Desk's, without the sessions and the invitations. `AppShell`
+- The frame: the Desk's, without the sessions. `AppShell`
   (`components/shared/`) holds the sidebar: the current agent at the top, which opens the command center (`AgentSidebarHeader` in
   `features/agents`), the person's menu at the bottom (`CurrentUserMenu` in `features/account`, the
   Desk's without the name edit), with the envelope of their pending invitations beside it
@@ -69,21 +69,24 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   review campaigns of a conversation agent (who manages them), and a campaign to test or to
   review (who was invited). An agent's features are its sections
   (`src/routes/-components/agent-sections.ts`): `evaluations` and `campaigns`, each kept when the
-  person holds it. `AgentSectionsNav` lists them at the top of the sidebar. An agent with one
-  section opens on it; with several, its first page is the hub (`AgentHubPage`), one card per
-  section, and the sidebar links back to it. A new feature of an agent is a new section there.
-- Under the sections, the sidebar's body changes with the page, as the Desk's lists an agent's
-  sessions. Each feature owns its part, a `*SidebarSection` that reads its own query inside
-  `SidebarSection` (`components/shared/`), so it never holds the page back:
-  - on an agent's `review-campaigns/` pages, its campaigns for who manages them
-    (`CampaignsSidebarSection` in `features/campaigns`): a new one, then each one with its status;
+  person holds it. An agent with one section opens on it; with several, its first page is the hub
+  (`AgentHubPage`), one card per section, and the sidebar links back to it (Overview). A new
+  feature of an agent is a new section there.
+- `AgentSectionsNav` is the sidebar of an agent's pages: Overview, Evaluations, then menus that
+  fold (`SidebarCollapsibleMenu` in `components/shared/`), open at first:
+  - Campaigns, for who manages them (`CampaignsSidebarMenu` in `features/campaigns`): a new
+    campaign, then the agent's campaigns under Active, Draft and Closed. It reads its query inside
+    `SidebarSection` (`components/shared/`), so it never holds the page back;
+  - Tester and Reviewer (`src/routes/-components/ParticipantSidebarMenus.tsx`): the campaigns on
+    this agent the person tests, or reviews, each a link to that side of the campaign. A menu with
+    no campaign does not show. Each campaign of `GET me/review-campaigns` names its agent.
+- A campaign's pages for its participants have a sidebar of their own, under the campaign's name
+  (`CampaignSidebarHeader` in `features/campaign-context`), with the Tester and Reviewer menus of
+  its agent below:
   - on a campaign's pages under `test/`, the tester's side (`TesterSidebarSection` in
     `features/campaign-test`): a new conversation, the overview, the final survey, their sessions;
   - under `review/`, the reviewer's side (`ReviewerSidebarSection` in `features/campaign-review`):
     the overview, the report, the sessions to review, then the reviewed ones.
-  On a campaign's pages, the sidebar's top names the campaign (`CampaignSidebarHeader` in
-  `features/campaign-context`). `src/routes/-components/MyCampaignsNav.tsx` lists the campaigns
-  the person tests or reviews, on every page.
 - The top bar of the page holds its way back and its actions: `PageHeader`'s `back` and `actions`
   go there (`HeaderBack`, `HeaderActions`), so they stay in view as the page scrolls, and the
   title stays in the page. At phone width, the back link keeps its arrow only and the actions go
@@ -116,7 +119,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search
   param: setup, participants, summary) and its `report`. A campaign reviews one
   conversation agent. Only a draft's setup changes; `CampaignStatusActions` activates, closes or
-  deletes after a confirmation.
+  deletes after a confirmation. A draft's Activate is the page's primary action, grouped with a
+  « ⋯ » menu (More actions) that holds Delete.
 - A campaign for its participants, under
   `src/routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/`:
   `route.tsx` is the frame and loads the campaign (`features/campaign-context`), `test/` is the

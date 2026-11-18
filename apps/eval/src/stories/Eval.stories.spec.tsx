@@ -42,7 +42,7 @@ const PAGES = {
   },
   EveryAccess: {
     Story: pageStories.EveryAccess,
-    loaded: () => screen.findByText("My campaigns"),
+    loaded: () => screen.findByRole("button", { name: "Reviewer" }),
   },
   PendingInvitations: {
     Story: pageStories.PendingInvitations,
@@ -74,7 +74,7 @@ const PAGES = {
   },
   CampaignList: {
     Story: pageStories.CampaignList,
-    loaded: () => screen.findByRole("link", { name: "Support assistant pilot" }),
+    loaded: () => screen.findByRole("heading", { name: "Review campaigns" }),
   },
   NoCampaign: {
     Story: pageStories.NoCampaign,

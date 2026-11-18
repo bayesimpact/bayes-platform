@@ -13,7 +13,6 @@ import {
   readLastAgentId,
 } from "@/features/agents"
 import { AppSidebarFooter } from "@/routes/-components/AppSidebarFooter"
-import { MyCampaignsNav } from "@/routes/-components/MyCampaignsNav"
 
 /**
  * The app's home has no page of its own while the person has an agent: it opens the one they
@@ -52,7 +51,7 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function NoAgentRoute() {
   return (
-    <AppShell header={<AppLogo />} sidebar={<MyCampaignsNav />} footer={<AppSidebarFooter />}>
+    <AppShell header={<AppLogo />} footer={<AppSidebarFooter />}>
       <NoAgentState />
     </AppShell>
   )

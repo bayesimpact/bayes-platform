@@ -6,11 +6,18 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
-import { RocketIcon, Trash2Icon } from "lucide-react"
+import { EllipsisIcon, RocketIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { Button } from "@/components/ui/button"
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { useDeleteCampaign, useUpdateCampaign } from "../api/mutations"
 
@@ -25,8 +32,8 @@ export type CampaignStatusActionsProps = {
 type Confirmation = "activate" | "close" | "delete"
 
 /**
- * What moves a campaign on: activate or delete a draft, close an active campaign. Each one asks
- * for a confirmation, since none can be taken back.
+ * What moves a campaign on: activate a draft, or delete it from the menu beside, and close an
+ * active campaign. Each one asks for a confirmation, since none can be taken back.
  */
 export function CampaignStatusActions({
   agent,
@@ -83,22 +90,41 @@ export function CampaignStatusActions({
 
   return (
     <>
-      {campaign.status === "draft" && canDelete ? (
-        <Button variant="ghost" onClick={() => setConfirming("delete")}>
-          <Trash2Icon data-icon="inline-start" aria-hidden />
-          <Trans>Delete</Trans>
-        </Button>
-      ) : null}
-      {campaign.status === "draft" && canUpdate ? (
-        <Button
-          variant="outline"
-          disabled={hasUnsavedChanges}
-          title={hasUnsavedChanges ? t`Save your changes first.` : undefined}
-          onClick={() => setConfirming("activate")}
-        >
-          <RocketIcon data-icon="inline-start" aria-hidden />
-          <Trans comment="Opens a review campaign to its testers and reviewers">Activate</Trans>
-        </Button>
+      {campaign.status === "draft" && (canUpdate || canDelete) ? (
+        <ButtonGroup>
+          {canUpdate ? (
+            <Button
+              disabled={hasUnsavedChanges}
+              title={hasUnsavedChanges ? t`Save your changes first.` : undefined}
+              onClick={() => setConfirming("activate")}
+            >
+              <RocketIcon data-icon="inline-start" aria-hidden />
+              <Trans comment="Opens a review campaign to its testers and reviewers">Activate</Trans>
+            </Button>
+          ) : null}
+          {canUpdate && canDelete ? <ButtonGroupSeparator /> : null}
+          {canDelete ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant={canUpdate ? "default" : "outline"}
+                    size="icon"
+                    aria-label={t`More actions`}
+                  />
+                }
+              >
+                <EllipsisIcon aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem variant="destructive" onClick={() => setConfirming("delete")}>
+                  <Trash2Icon aria-hidden />
+                  <Trans>Delete</Trans>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+        </ButtonGroup>
       ) : null}
       {campaign.status === "active" && canUpdate ? (
         <Button variant="outline" onClick={() => setConfirming("close")}>

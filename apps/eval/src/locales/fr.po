@@ -242,8 +242,8 @@ msgstr "Campagne pour {agentName}, {today}"
 msgid "Campaign report"
 msgstr "Rapport de la campagne"
 
-#. The sidebar's list of an agent's review campaigns, under the link Review campaigns
-#: src/features/campaigns/components/CampaignsSidebarSection.tsx
+#. The sidebar's menu of the review campaigns an agent's managers run
+#: src/features/campaigns/components/CampaignsSidebarMenu.tsx
 msgid "Campaigns"
 msgstr "Campagnes"
 
@@ -701,6 +701,10 @@ msgstr "Message à {agentName}"
 msgid "Messages"
 msgstr "Messages"
 
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "More actions"
+msgstr "Plus d’actions"
+
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Move question {position} down"
 msgstr "Descendre la question {position}"
@@ -708,11 +712,6 @@ msgstr "Descendre la question {position}"
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Move question {position} up"
 msgstr "Monter la question {position}"
-
-#. The sidebar's group of the campaigns a person tests or reviews
-#: src/routes/-components/MyCampaignsNav.tsx
-msgid "My campaigns"
-msgstr "Mes campagnes"
 
 #: src/features/campaign-review/components/reviewer-session-columns.tsx
 msgid "My review"
@@ -731,7 +730,7 @@ msgid "Never signed in"
 msgstr "Jamais connecté"
 
 #: src/features/campaigns/components/CampaignsPage.tsx
-#: src/features/campaigns/components/CampaignsSidebarSection.tsx
+#: src/features/campaigns/components/CampaignsSidebarMenu.tsx
 msgid "New campaign"
 msgstr "Nouvelle campagne"
 
@@ -993,12 +992,6 @@ msgstr "Réessayer"
 msgid "Review"
 msgstr "Relire"
 
-#. Marks a campaign the person reviews, in the sidebar
-#: src/routes/-components/MyCampaignsNav.tsx
-msgctxt "sidebar"
-msgid "Review"
-msgstr "Relecture"
-
 #. What an invitation gives access to
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Review campaign"
@@ -1008,7 +1001,6 @@ msgstr "Campagne de revue"
 #: src/features/campaigns/components/CampaignsPage.tsx
 #: src/features/campaigns/components/NewCampaignPage.tsx
 #: src/routes/-components/AgentHubPage.tsx
-#: src/routes/-components/AgentSectionsNav.tsx
 msgid "Review campaigns"
 msgstr "Campagnes d'évaluation"
 
@@ -1040,7 +1032,9 @@ msgid "reviewer"
 msgstr "relecteur"
 
 #. A person who reviews the testers' sessions
+#. The sidebar's menu of the campaigns where the person reviews an agent's sessions
 #: src/features/campaigns/components/CampaignRoleLabel.tsx
+#: src/routes/-components/ParticipantSidebarMenus.tsx
 msgid "Reviewer"
 msgstr "Relecteur"
 
@@ -1306,12 +1300,6 @@ msgstr "Changer d'agent"
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
 
-#. Marks a campaign the person tests, in the sidebar
-#: src/routes/-components/MyCampaignsNav.tsx
-msgctxt "sidebar"
-msgid "Test"
-msgstr "Test"
-
 #. Above a campaign's name in the sidebar: the person tests this agent
 #: src/features/campaign-context/components/CampaignSidebarHeader.tsx
 msgid "Test of {agentName}"
@@ -1325,9 +1313,11 @@ msgstr "testeur"
 #. A person who tests the agent in a review campaign
 #. Names who wrote a message of a transcript: the tester
 #. The rating the tester gave a session
+#. The sidebar's menu of the campaigns where the person tests an agent
 #: src/features/campaign-report/components/report-session-columns.tsx
 #: src/features/campaign-review/components/SessionTranscript.tsx
 #: src/features/campaigns/components/CampaignRoleLabel.tsx
+#: src/routes/-components/ParticipantSidebarMenus.tsx
 msgid "Tester"
 msgstr "Testeur"
 

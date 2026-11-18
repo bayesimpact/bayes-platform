@@ -13,6 +13,7 @@ import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
+import { sidebarMenuEntries } from "@/test/sidebar-menus"
 
 describe("a person who only takes part in campaigns", () => {
   it("opens on their first campaign, with their campaigns in the sidebar and no agent", async () => {
@@ -24,16 +25,9 @@ describe("a person who only takes part in campaigns", () => {
     expect(router.state.location.pathname).toBe(
       routerPathOf(`${campaignUrlOf(world, "Pricing questions")}/review`),
     )
-    const sidebarLinks = screen
-      .getAllByRole("link")
-      .map((link) => link.textContent)
-      // The sidebar's links end with the role; the table's own "Review" links are left out.
-      .filter((text) => /.(Test|Review)$/.test(text ?? ""))
-    expect(sidebarLinks).toEqual([
-      "Pricing questionsReview",
-      "Spring reviewReview",
-      "Support assistant pilotTest",
-    ])
+    // The three campaigns review the same agent: its menus list them by role.
+    expect(sidebarMenuEntries("Tester")).toEqual(["Support assistant pilot"])
+    expect(sidebarMenuEntries("Reviewer")).toEqual(["Pricing questions", "Spring review"])
     expect(screen.queryByRole("button", { name: /Switch agent/ })).not.toBeInTheDocument()
   })
 
@@ -144,7 +138,9 @@ describe("a reviewer's campaign", () => {
     renderApp(`${campaignUrlOf(world, "Pricing questions")}/review/report`)
 
     expect(await screen.findByRole("heading", { name: "Campaign report" })).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Pricing questions" })).toBeInTheDocument()
+    expect(
+      within(screen.getByRole("main")).getByRole("link", { name: "Pricing questions" }),
+    ).toBeInTheDocument()
   })
 })
 
