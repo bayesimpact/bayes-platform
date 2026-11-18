@@ -40,6 +40,18 @@ export const AgentTheyOnlyRead: Story = {
   },
 }
 
+/**
+ * The sidebar, hidden: the pointer on the button that shows it makes it peek over the page, as in
+ * the Claude app.
+ */
+export const SidebarClosed: Story = {
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      await within(canvasElement).findByRole("button", { name: "Hide the sidebar" }),
+    )
+  },
+}
+
 export const SeveralProjects: Story = {
   parameters: desk({ world: buildSeveralProjectsWorld }),
 }
