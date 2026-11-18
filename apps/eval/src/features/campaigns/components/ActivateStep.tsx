@@ -3,7 +3,6 @@ import { Plural, Trans } from "@lingui/react/macro"
 import { RocketIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
 
 export type ActivateStepProps = {
@@ -23,14 +22,19 @@ export function ActivateStep({ campaign, isPending, onActivate }: ActivateStepPr
   const finalCount = campaign.testerEndOfPhaseQuestions.length
   const reviewerCount = campaign.reviewerQuestions.length
   return (
-    <SectionCard
-      title={<Trans>Ready to open “{name}”?</Trans>}
-      description={
-        <Trans>
-          Once active, the questions can no longer change, and you can invite testers and reviewers.
-        </Trans>
-      }
-    >
+    // No frame of its own, as the other steps: the summary's entries keep theirs.
+    <section className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-1">
+        <h2 className="font-semibold">
+          <Trans>Ready to open “{name}”?</Trans>
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          <Trans>
+            Once active, the questions can no longer change, and you can invite testers and
+            reviewers.
+          </Trans>
+        </p>
+      </div>
       <dl className="grid gap-3 sm:grid-cols-3">
         <SummaryEntry
           label={<Trans>After each session</Trans>}
@@ -67,7 +71,7 @@ export function ActivateStep({ campaign, isPending, onActivate }: ActivateStepPr
         isPending={isPending}
         onConfirm={onActivate}
       />
-    </SectionCard>
+    </section>
   )
 }
 

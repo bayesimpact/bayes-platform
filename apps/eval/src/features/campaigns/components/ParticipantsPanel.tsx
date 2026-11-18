@@ -24,6 +24,9 @@ export type ParticipantsPanelProps = {
  * The people of a campaign: invite them while it is active, see who answered, and take a role
  * back. A draft invites nobody yet, since nobody could accept.
  */
+/** The cards of the participants: less round, with larger titles, which set the blocks apart. */
+const PARTICIPANTS_CARD = "rounded-lg [&_h2]:text-base"
+
 export function ParticipantsPanel({ agent, campaign, campaignParams }: ParticipantsPanelProps) {
   const isActive = campaign.status === "active"
   const canInvite =
@@ -52,6 +55,7 @@ export function ParticipantsPanel({ agent, campaign, campaignParams }: Participa
     <div className="flex flex-col gap-6">
       {canInvite ? (
         <SectionCard
+          className={PARTICIPANTS_CARD}
           title={<Trans>Invite participants</Trans>}
           description={
             <Trans>
@@ -65,13 +69,14 @@ export function ParticipantsPanel({ agent, campaign, campaignParams }: Participa
       ) : null}
       {invitations.length > 0 ? (
         <SectionCard
+          className={PARTICIPANTS_CARD}
           title={<Trans>Pending invitations</Trans>}
           description={<Trans>People invited to this campaign who have not answered yet.</Trans>}
         >
           <PendingInvitations campaign={campaignParams} invitations={invitations} />
         </SectionCard>
       ) : null}
-      <SectionCard title={<Trans>Participants</Trans>}>
+      <SectionCard className={PARTICIPANTS_CARD} title={<Trans>Participants</Trans>}>
         <ParticipantsTable
           campaign={campaignParams}
           participants={listParticipants(campaign.memberships)}
