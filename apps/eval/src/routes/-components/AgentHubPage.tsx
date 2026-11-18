@@ -52,7 +52,7 @@ export function AgentHubPage({ agent, agentParams, sections }: AgentHubPageProps
     },
     campaigns: {
       icon: <MegaphoneIcon aria-hidden />,
-      title: <Trans>Review campaigns</Trans>,
+      title: <Trans>Campaigns</Trans>,
       description: (
         <Trans>Invite people to try this agent, and others to review their conversations.</Trans>
       ),

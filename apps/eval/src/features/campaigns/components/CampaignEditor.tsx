@@ -114,7 +114,7 @@ export function CampaignEditor({
               to="/o/$organizationId/p/$projectId/a/$agentId/review-campaigns"
               params={agentParams}
             >
-              <Trans>Review campaigns</Trans>
+              <Trans>Campaigns</Trans>
             </BackLink>
           }
           title={campaign.name}

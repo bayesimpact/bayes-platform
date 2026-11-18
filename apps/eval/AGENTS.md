@@ -74,8 +74,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   feature of an agent is a new section there.
 - `AgentSectionsNav` is the sidebar of an agent's pages: Overview, Evaluations, then menus that
   fold (`SidebarCollapsibleMenu` in `components/shared/`), open at first:
-  - Campaigns, for who manages them (`CampaignsSidebarMenu` in `features/campaigns`): a new
-    campaign, then the agent's campaigns under Active, Draft and Closed. It reads its query inside
+  - Campaigns, for who manages them (`CampaignsSidebarMenu` in `features/campaigns`): List all,
+    the table of the agent's campaigns, a new campaign, then the campaigns under Active, Draft and
+    Closed. It reads its query inside
     `SidebarSection` (`components/shared/`), so it never holds the page back;
   - Tester and Reviewer (`src/routes/-components/ParticipantSidebarMenus.tsx`): the campaigns on
     this agent the person tests, or reviews, each a link to that side of the campaign. A menu with

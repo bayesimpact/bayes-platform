@@ -183,9 +183,9 @@ describe("the sections of an agent", () => {
     expect(await main.findByRole("link", { name: /^Evaluations/ })).toBeInTheDocument()
     expect(sectionLinks()).toEqual(["Overview", "Evaluations", "Campaigns"])
 
-    await userEvent.click(main.getByRole("link", { name: /^Review campaigns/ }))
+    await userEvent.click(main.getByRole("link", { name: /^Campaigns/ }))
 
-    expect(await screen.findByRole("heading", { name: "Review campaigns" })).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Campaigns" })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(routerPathOf(campaignsUrlOf(world)))
   })
 
@@ -194,7 +194,7 @@ describe("the sections of an agent", () => {
     server.use(...worldHandlers(world))
     const { router } = renderApp("/eval/")
 
-    expect(await screen.findByRole("heading", { name: "Review campaigns" })).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Campaigns" })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(routerPathOf(campaignsUrlOf(world)))
     expect(sectionLinks()).toEqual(["Campaigns"])
   })
@@ -223,6 +223,7 @@ describe("the sections of an agent", () => {
 
     expect(await screen.findByRole("link", { name: "Onboarding answers" })).toBeInTheDocument()
     expect(sidebarMenuEntries("Campaigns")).toEqual([
+      "List all",
       "New campaign",
       "Active",
       "Support assistant pilot",

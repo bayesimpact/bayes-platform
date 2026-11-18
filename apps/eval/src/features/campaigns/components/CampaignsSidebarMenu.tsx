@@ -6,7 +6,7 @@ import {
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { MegaphoneIcon, PlusIcon } from "lucide-react"
+import { ListIcon, MegaphoneIcon, PlusIcon } from "lucide-react"
 import { SidebarCollapsibleMenu } from "@/components/shared/SidebarCollapsibleMenu"
 import { SidebarSection } from "@/components/shared/SidebarSection"
 import { SidebarSubGroupLabel } from "@/components/shared/SidebarSubGroupLabel"
@@ -25,8 +25,8 @@ export type CampaignsSidebarMenuProps = {
 const STATUS_ORDER = ["active", "draft", "closed"] as const satisfies ReviewCampaignStatusDto[]
 
 /**
- * The menu of an agent's review campaigns in the sidebar, for who manages them: the way to a new
- * campaign, then the campaigns, grouped by where they stand.
+ * The menu of an agent's review campaigns in the sidebar, for who manages them: the table of them
+ * all, the way to a new campaign, then the campaigns, grouped by where they stand.
  */
 export function CampaignsSidebarMenu({ agent, agentParams }: CampaignsSidebarMenuProps) {
   const canCreate = hasProjectPermission(agent.project, PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION)
@@ -39,6 +39,25 @@ export function CampaignsSidebarMenu({ agent, agentParams }: CampaignsSidebarMen
         </Trans>
       }
     >
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton
+          render={
+            <Link
+              to="/o/$organizationId/p/$projectId/a/$agentId/review-campaigns"
+              params={agentParams}
+              activeOptions={{ exact: true }}
+              activeProps={{ "data-active": true }}
+            />
+          }
+        >
+          <ListIcon aria-hidden />
+          <span>
+            <Trans comment="The sidebar's link to the table of all an agent's review campaigns">
+              List all
+            </Trans>
+          </span>
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
       {canCreate ? (
         <SidebarMenuSubItem>
           <SidebarMenuSubButton

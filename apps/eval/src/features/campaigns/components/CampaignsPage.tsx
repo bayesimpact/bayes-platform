@@ -38,7 +38,7 @@ export function CampaignsPage({ agent, agentParams }: CampaignsPageProps) {
   return (
     <PageContainer>
       <PageHeader
-        title={<Trans>Review campaigns</Trans>}
+        title={<Trans>Campaigns</Trans>}
         description={<Trans>Have testers try this agent, and reviewers read their sessions.</Trans>}
         actions={campaigns.length > 0 ? newCampaignLink : null}
       />

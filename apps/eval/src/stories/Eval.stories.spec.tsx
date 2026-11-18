@@ -50,7 +50,7 @@ const PAGES = {
   },
   CampaignManagerOnly: {
     Story: pageStories.CampaignManagerOnly,
-    loaded: () => screen.findByRole("heading", { name: "Review campaigns" }),
+    loaded: () => screen.findByRole("heading", { name: "Campaigns" }),
   },
   SeveralProjects: {
     Story: pageStories.SeveralProjects,
@@ -74,7 +74,7 @@ const PAGES = {
   },
   CampaignList: {
     Story: pageStories.CampaignList,
-    loaded: () => screen.findByRole("heading", { name: "Review campaigns" }),
+    loaded: () => screen.findByRole("heading", { name: "Campaigns" }),
   },
   NoCampaign: {
     Story: pageStories.NoCampaign,

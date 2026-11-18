@@ -22,10 +22,13 @@ import { sidebarMenuLink } from "@/test/sidebar-menus"
 const page = () => within(screen.getByRole("main"))
 
 describe("the review campaigns of an agent", () => {
-  it("lists the agent's campaigns, newest first", async () => {
+  it("lists the agent's campaigns, newest first, from the sidebar's List all", async () => {
     const world = buildEvalWorld()
     server.use(...worldHandlers(world))
-    renderApp(campaignsUrlOf(world))
+    const { router } = renderApp(agentUrlOf(world))
+
+    await userEvent.click(await screen.findByRole("link", { name: "List all" }))
+    expect(router.state.location.pathname).toBe(routerPathOf(campaignsUrlOf(world)))
 
     const rows = await screen.findAllByRole("row")
     expect(rows.slice(1).map((row) => within(row).getAllByRole("cell")[0]?.textContent)).toEqual([
@@ -42,7 +45,7 @@ describe("the review campaigns of an agent", () => {
     server.use(...worldHandlers(world))
     const { router } = renderApp(campaignsUrlOf(world))
 
-    expect(await screen.findByRole("heading", { name: "Review campaigns" })).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Campaigns" })).toBeInTheDocument()
     // The way to a new campaign shows in the sidebar and in the page.
     expect(screen.getAllByRole("link", { name: "New campaign" })).toHaveLength(2)
 
@@ -69,7 +72,7 @@ describe("the review campaigns of an agent", () => {
     renderApp(`${agentUrlOf(world, "Helpful Assistant")}/review-campaigns`)
 
     expect(await screen.findByText("Page not found")).toBeInTheDocument()
-    expect(screen.queryByRole("link", { name: "Review campaigns" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Campaigns" })).not.toBeInTheDocument()
   })
 })
 
@@ -167,7 +170,7 @@ describe("a campaign's editor", () => {
     const dialog = await screen.findByRole("alertdialog")
     await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }))
 
-    expect(await screen.findByRole("heading", { name: "Review campaigns" })).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Campaigns" })).toBeInTheDocument()
     expect(screen.queryByText("Onboarding answers")).not.toBeInTheDocument()
   })
 

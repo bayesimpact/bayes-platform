@@ -243,7 +243,11 @@ msgid "Campaign report"
 msgstr "Rapport de la campagne"
 
 #. The sidebar's menu of the review campaigns an agent's managers run
+#: src/features/campaigns/components/CampaignEditor.tsx
+#: src/features/campaigns/components/CampaignsPage.tsx
 #: src/features/campaigns/components/CampaignsSidebarMenu.tsx
+#: src/features/campaigns/components/NewCampaignPage.tsx
+#: src/routes/-components/AgentHubPage.tsx
 msgid "Campaigns"
 msgstr "Campagnes"
 
@@ -666,6 +670,11 @@ msgstr "à l'instant"
 msgid "Language"
 msgstr "Langue"
 
+#. The sidebar's link to the table of all an agent's review campaigns
+#: src/features/campaigns/components/CampaignsSidebarMenu.tsx
+msgid "List all"
+msgstr "Tout afficher"
+
 #: src/features/conversation/components/McpAppPlaceholder.tsx
 msgid "Loading the interactive card…"
 msgstr "Chargement de la carte interactive…"
@@ -996,13 +1005,6 @@ msgstr "Relire"
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Review campaign"
 msgstr "Campagne de revue"
-
-#: src/features/campaigns/components/CampaignEditor.tsx
-#: src/features/campaigns/components/CampaignsPage.tsx
-#: src/features/campaigns/components/NewCampaignPage.tsx
-#: src/routes/-components/AgentHubPage.tsx
-msgid "Review campaigns"
-msgstr "Campagnes d'évaluation"
 
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Review campaigns run on conversation agents. To evaluate this agent, ask an owner of its project for the evaluator role."
