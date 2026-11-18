@@ -5,8 +5,8 @@ import type {
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
-import { SectionCard } from "@/components/shared/SectionCard"
 import { StatCard } from "@/components/shared/StatCard"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { meanRatingOf } from "@/lib/format-rating"
 import { campaignReportQueryOptions } from "../api/queries"
 import { QuestionDistribution } from "./QuestionDistribution"
@@ -17,8 +17,9 @@ export type CampaignReportContentProps = {
 }
 
 /**
- * The report of a campaign: its headline figures, how the answers to each question spread, and
- * each session's tester rating against its reviewers'. Its download is `DownloadReportButton`.
+ * The report of a campaign: its headline figures, then one tab per form with how the answers to
+ * each of its questions spread, and one with each session's tester rating against its reviewers'.
+ * Its download is `DownloadReportButton`.
  */
 export function CampaignReportContent({ campaign }: CampaignReportContentProps) {
   const { i18n } = useLingui()
@@ -53,52 +54,74 @@ export function CampaignReportContent({ campaign }: CampaignReportContentProps) 
           hint={<Trans>From the testers' final surveys.</Trans>}
         />
       </div>
-      <Distributions
-        title={<Trans>After each session</Trans>}
-        description={<Trans>One answer per session a tester gave feedback on.</Trans>}
-        distributions={report.testerPerSessionDistributions}
-      />
-      <Distributions
-        title={<Trans>Final survey</Trans>}
-        description={<Trans>One answer per tester who filled the final survey.</Trans>}
-        distributions={report.testerEndOfPhaseDistributions}
-      />
-      <Distributions
-        title={<Trans>Session review</Trans>}
-        description={<Trans>One answer per review, across all sessions.</Trans>}
-        distributions={report.reviewerDistributions}
-      />
-      <SectionCard
-        title={<Trans>Sessions</Trans>}
-        description={
-          <Trans>
-            Each session's tester rating against its reviewers'. The spread is the highest reviewer
-            rating minus the lowest: a high one means the reviewers disagree.
-          </Trans>
-        }
-      >
-        <ReportSessionsTable sessions={report.sessionMatrix} />
-      </SectionCard>
+      <Tabs defaultValue="session">
+        <TabsList variant="line" className="max-w-full overflow-x-auto">
+          <TabsTrigger value="session">
+            <Trans>After each session</Trans>
+          </TabsTrigger>
+          <TabsTrigger value="final">
+            <Trans>Final survey</Trans>
+          </TabsTrigger>
+          <TabsTrigger value="review">
+            <Trans>Session review</Trans>
+          </TabsTrigger>
+          <TabsTrigger value="sessions">
+            <Trans comment="The report's tab with each session's ratings">Sessions</Trans>
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="session" className="pt-4">
+          <Distributions
+            description={<Trans>One answer per session a tester gave feedback on.</Trans>}
+            distributions={report.testerPerSessionDistributions}
+          />
+        </TabsContent>
+        <TabsContent value="final" className="pt-4">
+          <Distributions
+            description={<Trans>One answer per tester who filled the final survey.</Trans>}
+            distributions={report.testerEndOfPhaseDistributions}
+          />
+        </TabsContent>
+        <TabsContent value="review" className="pt-4">
+          <Distributions
+            description={<Trans>One answer per review, across all sessions.</Trans>}
+            distributions={report.reviewerDistributions}
+          />
+        </TabsContent>
+        <TabsContent value="sessions" className="flex flex-col gap-3 pt-4">
+          <p className="text-muted-foreground">
+            <Trans>
+              Each session's tester rating against its reviewers'. The spread is the highest
+              reviewer rating minus the lowest: a high one means the reviewers disagree.
+            </Trans>
+          </p>
+          <ReportSessionsTable sessions={report.sessionMatrix} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
 
 type DistributionsProps = {
-  title: ReactNode
   description: ReactNode
   distributions: CampaignReportDistributionOutputDto[]
 }
 
-/** The questions of one list with how their answers spread; nothing when the list is empty. */
-function Distributions({ title, description, distributions }: DistributionsProps) {
-  if (distributions.length === 0) return null
+/** The questions of one form with how their answers spread, or a word when it has none. */
+function Distributions({ description, distributions }: DistributionsProps) {
   return (
-    <SectionCard title={title} description={description}>
-      <div className="grid gap-3 lg:grid-cols-2">
-        {distributions.map((distribution) => (
-          <QuestionDistribution key={distribution.questionId} distribution={distribution} />
-        ))}
-      </div>
-    </SectionCard>
+    <div className="flex flex-col gap-3">
+      <p className="text-muted-foreground">{description}</p>
+      {distributions.length === 0 ? (
+        <p className="text-muted-foreground italic">
+          <Trans>This form asks no question.</Trans>
+        </p>
+      ) : (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {distributions.map((distribution) => (
+            <QuestionDistribution key={distribution.questionId} distribution={distribution} />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

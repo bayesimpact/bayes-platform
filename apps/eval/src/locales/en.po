@@ -1261,6 +1261,7 @@ msgstr "Session review"
 
 #. How many sessions testers started in a campaign
 #. How many sessions testers started in a campaign
+#. The report's tab with each session's ratings
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/CampaignSummary.tsx
 msgid "Sessions"
@@ -1639,6 +1640,10 @@ msgstr "This campaign reviews the agent {agentName}."
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."
 msgstr "This file is empty."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "This form asks no question."
+msgstr "This form asks no question."
 
 #: src/components/shared/SidebarSection.tsx
 msgid "This list could not load."

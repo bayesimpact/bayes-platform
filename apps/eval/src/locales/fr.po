@@ -1261,6 +1261,7 @@ msgstr "Relecture de la session"
 
 #. How many sessions testers started in a campaign
 #. How many sessions testers started in a campaign
+#. The report's tab with each session's ratings
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/CampaignSummary.tsx
 msgid "Sessions"
@@ -1639,6 +1640,10 @@ msgstr "Cette campagne évalue l'agent {agentName}."
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."
 msgstr "Ce fichier est vide."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "This form asks no question."
+msgstr "Ce formulaire ne pose aucune question."
 
 #: src/components/shared/SidebarSection.tsx
 msgid "This list could not load."

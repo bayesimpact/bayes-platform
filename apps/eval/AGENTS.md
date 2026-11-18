@@ -140,15 +140,16 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   only the step's form. The three forms have one name each, everywhere: After each session, Final
   survey, Session review, the names their testers and reviewers see.
 - Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms
-  (`CampaignSetupView`), each folded to its title and question count (`FeedbackFormPreview`, which
-  the setup's preview panel uses too).
+  (`CampaignSetupView`), each folded to its title and question count (`FeedbackFormPreview` on the
+  shared `FoldingCard`, which the setup's preview panel uses too).
 - A campaign for its participants, under
   `src/routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/`:
   `route.tsx` is the frame and loads the campaign (`features/campaign-context`), `test/` is the
   tester's side (`features/campaign-test`: sessions, feedback, final survey, and the conversation
   in `test/sessions/$sessionId`), `review/` the reviewer's (`features/campaign-review`: sessions,
   a session blind then whole, the review). `features/campaign-report` is the report both the
-  managers and the reviewers read; its CSV is built in the browser from the report.
+  managers and the reviewers read; its CSV is built in the browser from the report. Below its headline figures, one sub-tab per form
+  shows how the answers spread, and a last one the sessions.
 - The conversation of a tester's session: `features/conversation`, the Desk's chat on the
   `review_campaign_tester` session routes, without the memory, the sources and the history. Its
   owner gives it the session's forms and loads them again when the agent fills one in.

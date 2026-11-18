@@ -418,10 +418,13 @@ describe("a campaign's report", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("4.50")).toBeInTheDocument()
     expect(screen.getByText("3 reviews")).toBeInTheDocument()
+    // One tab per form, the first one open, then one with the sessions.
     expect(
       screen.getByRole("heading", { name: "Did the agent address your question?" }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/Free-text answers are not summarized/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("tab", { name: "Final survey" }))
+    expect(await screen.findByText(/Free-text answers are not summarized/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("tab", { name: "Sessions" }))
     expect(screen.getByRole("cell", { name: "3, 5" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Download CSV" })).toBeInTheDocument()
   })
