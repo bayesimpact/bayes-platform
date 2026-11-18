@@ -594,7 +594,7 @@ describe("conversation agent session permissions", () => {
 
   it.each(
     liveSessionPermissions,
-  )("grants %s to project owners and admins, every agent role, and read and create to testers", (permission) => {
+  )("grants %s to project owners and admins and every agent role, and to no campaign role", (permission) => {
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
       "project_owner",
       "project_admin",
@@ -605,11 +605,7 @@ describe("conversation agent session permissions", () => {
       "agent_admin",
       "agent_member",
     ])
-    expect(rolesHolding(REVIEW_CAMPAIGN_ROLE_PERMISSIONS, permission)).toEqual(
-      permission === AGENT_CONVERSATION_SESSION_DELETE_PERMISSION
-        ? []
-        : [REVIEW_CAMPAIGN_ROLES.tester],
-    )
+    expect(rolesHolding(REVIEW_CAMPAIGN_ROLE_PERMISSIONS, permission)).toEqual([])
   })
 
   const playgroundSessionPermissions = [

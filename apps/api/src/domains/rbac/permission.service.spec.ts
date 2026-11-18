@@ -368,12 +368,16 @@ describe("PermissionService", () => {
       const project = { type: "project" as const, id: context.project.id }
 
       await expect(
-        service.has(tester.id, AGENT_CONVERSATION_SESSION_READ_PERMISSION, project),
-      ).resolves.toBe(true)
-      await expect(
-        service.has(tester.id, AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, project),
+        service.has(tester.id, "project.agent_message_feedback.create", project),
       ).resolves.toBe(true)
       await expect(service.has(tester.id, PROJECT_READ_PERMISSION, project)).resolves.toBe(true)
+      // the tester routes check the tester's keys on the campaign: no live session key is given
+      await expect(
+        service.has(tester.id, AGENT_CONVERSATION_SESSION_READ_PERMISSION, project),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(tester.id, AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, project),
+      ).resolves.toBe(false)
       await expect(
         service.has(tester.id, CSV_EXTRACTION_RUN_READ_PERMISSION, project),
       ).resolves.toBe(false)
@@ -386,7 +390,7 @@ describe("PermissionService", () => {
       ).resolves.toBe(false)
       await expect(service.has(reviewer.id, PROJECT_READ_PERMISSION, project)).resolves.toBe(true)
       await expect(
-        service.has(reviewer.id, AGENT_CONVERSATION_SESSION_READ_PERMISSION, project),
+        service.has(reviewer.id, "project.agent_message_feedback.create", project),
       ).resolves.toBe(false)
     })
 
@@ -403,13 +407,7 @@ describe("PermissionService", () => {
       )
       expect([...permissionsByProjectId.keys()]).toEqual([context.project.id])
       expect(permissionsByProjectId.get(context.project.id)?.sort()).toEqual(
-        [
-          PROJECT_READ_PERMISSION,
-          AGENT_CONVERSATION_SESSION_READ_PERMISSION,
-          AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
-          "project.agent_message_feedback.create",
-          "tester.ui.read",
-        ].sort(),
+        [PROJECT_READ_PERMISSION, "project.agent_message_feedback.create", "tester.ui.read"].sort(),
       )
     })
 
@@ -428,12 +426,7 @@ describe("PermissionService", () => {
       await setCampaignStatus(context, "closed")
       const project = { type: "project" as const, id: context.project.id }
 
-      for (const permission of [
-        PROJECT_READ_PERMISSION,
-        AGENT_CONVERSATION_SESSION_READ_PERMISSION,
-        AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
-        "project.agent_message_feedback.create",
-      ]) {
+      for (const permission of [PROJECT_READ_PERMISSION, "project.agent_message_feedback.create"]) {
         await expect(service.has(tester.id, permission, project)).resolves.toBe(false)
       }
       await expect(service.listResourceIds(tester.id, PROJECT_READ_PERMISSION)).resolves.toEqual([])
@@ -502,12 +495,86 @@ describe("PermissionService", () => {
       await repositories.reviewCampaignRepository.softDelete({ id: context.campaign.id })
 
       await expect(
-        service.has(tester.id, AGENT_CONVERSATION_SESSION_READ_PERMISSION, {
+        service.has(tester.id, PROJECT_READ_PERMISSION, {
           type: "project",
           id: context.project.id,
         }),
       ).resolves.toBe(false)
       await expect(service.listResourceIds(tester.id, PROJECT_READ_PERMISSION)).resolves.toEqual([])
+    })
+
+    describe("hasProjectPermissionFromReviewCampaign", () => {
+      const feedbackPermission = "project.agent_message_feedback.create"
+
+      it("holds for a tester of the campaign while it is active", async () => {
+        const context = await createCampaign()
+        const tester = await joinCampaign(context, "review_campaign_tester")
+
+        await expect(
+          service.hasProjectPermissionFromReviewCampaign(
+            tester.id,
+            feedbackPermission,
+            context.campaign.id,
+          ),
+        ).resolves.toBe(true)
+      })
+
+      it("does not count another active campaign of the same project", async () => {
+        const repositories = setup.getAllRepositories()
+        const context = await createCampaign()
+        const tester = await joinCampaign(context, "review_campaign_tester")
+        const otherCampaign = await repositories.reviewCampaignRepository.save(
+          reviewCampaignFactory
+            .active()
+            .transient({
+              organization: context.organization,
+              project: context.project,
+              agent: context.agent,
+              agentSettings: context.agentSettings,
+            })
+            .build(),
+        )
+
+        // the tester holds the key on the project through the first campaign, not through this one
+        await expect(
+          service.hasProjectPermissionFromReviewCampaign(
+            tester.id,
+            feedbackPermission,
+            otherCampaign.id,
+          ),
+        ).resolves.toBe(false)
+
+        await setCampaignStatus(context, "closed")
+        await joinCampaign({ ...context, campaign: otherCampaign }, "review_campaign_tester")
+        await expect(
+          service.hasProjectPermissionFromReviewCampaign(
+            tester.id,
+            feedbackPermission,
+            context.campaign.id,
+          ),
+        ).resolves.toBe(false)
+      })
+
+      it("does not hold for a reviewer, nor for a key no campaign role gives", async () => {
+        const context = await createCampaign()
+        const tester = await joinCampaign(context, "review_campaign_tester")
+        const reviewer = await joinCampaign(context, "review_campaign_reviewer")
+
+        await expect(
+          service.hasProjectPermissionFromReviewCampaign(
+            reviewer.id,
+            feedbackPermission,
+            context.campaign.id,
+          ),
+        ).resolves.toBe(false)
+        await expect(
+          service.hasProjectPermissionFromReviewCampaign(
+            tester.id,
+            AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+            context.campaign.id,
+          ),
+        ).resolves.toBe(false)
+      })
     })
   })
 

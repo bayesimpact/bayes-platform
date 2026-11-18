@@ -17,8 +17,14 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithAgentMessage,
 } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
-import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
+import {
+  addUserToReviewCampaign,
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import {
@@ -89,7 +95,7 @@ describe("Agent Message Feedback - Auth", () => {
     agentId = agent.id
     agentMessageId = agentMessage.id
     accessToken = "token"
-    return { organization }
+    return { organization, project }
   }
 
   /** Switches the caller to an organization admin who holds no role on the project. */
@@ -154,6 +160,41 @@ describe("Agent Message Feedback - Auth", () => {
     ] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 201)
+    })
+
+    it("answers 404 for a message that does not exist", async () => {
+      await createContextForRole("project_member")
+      agentMessageId = randomUUID()
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a message of someone else's conversation, even to a project owner", async () => {
+      // The message belongs to a conversation of the project member created here.
+      const { organization, project } = await createContextForRole("project_member")
+      const projectOwnerAuthSubject = `oidc|${randomUUID()}`
+      const { user: projectOwner } = await addUserToOrganization({
+        repositories,
+        organization,
+        user: {
+          authSubject: projectOwnerAuthSubject,
+          email: mockOidcEmailForSub(projectOwnerAuthSubject),
+        },
+        membership: { roleKeys: ["org_member"] },
+      })
+      await addUserToProject({
+        repositories,
+        project,
+        user: projectOwner,
+        membership: { roleKeys: ["project_owner"] },
+      })
+      authSubject = projectOwnerAuthSubject
+
+      expectResponse(await subject(), 404)
+      expect(
+        await repositories.agentMessageFeedbackRepository.count({
+          where: { agentMessageId: agentMessageId ?? "" },
+        }),
+      ).toBe(0)
     })
   })
 
@@ -255,8 +296,39 @@ describe("Agent Message Feedback - Auth", () => {
       agentId = agent.id
       agentMessageId = agentMessage.id
       accessToken = "token"
-      return { campaign, agentMessage }
+      return { organization, project, agent, agentSettings, campaign, agentMessage, user }
     }
+
+    type TesterContext = Awaited<ReturnType<typeof createCampaignParticipantContext>>
+
+    /** Makes the caller a tester of a second, active campaign of the same project. */
+    const joinAnotherActiveCampaign = async ({
+      organization,
+      project,
+      agent,
+      agentSettings,
+      user,
+    }: TesterContext) => {
+      const otherCampaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .transient({ organization, project, campaign: otherCampaign, user })
+          .build({ roleKeys: ["review_campaign_tester"] }),
+      })
+    }
+
+    const expectNoFeedback = async ({ agentMessage }: TesterContext) =>
+      expect(
+        await repositories.agentMessageFeedbackRepository.count({
+          where: { agentMessageId: agentMessage.id },
+        }),
+      ).toBe(0)
 
     const createFeedback = () =>
       request({
@@ -284,6 +356,31 @@ describe("Agent Message Feedback - Auth", () => {
       )
 
       expectResponse(await createFeedback(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("forbids feedback in a session of a closed campaign to a tester of another active campaign of the project", async () => {
+      const context = await createCampaignParticipantContext()
+      await joinAnotherActiveCampaign(context)
+      await repositories.reviewCampaignRepository.update(
+        { id: context.campaign.id },
+        { status: "closed", closedAt: new Date() },
+      )
+
+      expectResponse(await createFeedback(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      await expectNoFeedback(context)
+    })
+
+    it("forbids feedback to someone removed from the session's campaign, even as a tester of another active campaign of the project", async () => {
+      const context = await createCampaignParticipantContext()
+      await joinAnotherActiveCampaign(context)
+      await setup.dataSource.getRepository(RoleGrant).softDelete({
+        userId: context.user.id,
+        resourceType: "review_campaign",
+        resourceId: context.campaign.id,
+      })
+
+      expectResponse(await createFeedback(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      await expectNoFeedback(context)
     })
 
     it("forbids a reviewer-only participant", async () => {
