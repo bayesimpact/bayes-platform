@@ -385,6 +385,22 @@ describe("the stories of the app", () => {
     expect(rows()).toBe(12)
   })
 
+  it("CompletedRun opens a result whole in a sheet, from its row", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Open the result of: Do you offer a discount for a yearly payment?",
+      }),
+    )
+    const sheet = await screen.findByRole("dialog", { name: "Result" })
+    expect(within(sheet).getByText("Do you offer a discount for a yearly payment?")).toBeVisible()
+    expect(within(sheet).getByText("3 / 5")).toBeInTheDocument()
+    expect(within(sheet).getByRole("heading", { name: "Agent's answer" })).toBeInTheDocument()
+  })
+
   it("AddRecord asks a record's input and expected output", async () => {
     await AddRecord.load()
     const { container } = render(<AddRecord />)

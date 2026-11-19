@@ -71,7 +71,7 @@ msgid "{feedbackCount, plural, one {# session feedback} other {# session feedbac
 msgstr "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
 
 #. A filter of a run's results and how many it keeps, such as: Errors (1)
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunResultsSection.tsx
 msgid "{filterName} ({count})"
 msgstr "{filterName} ({count})"
 
@@ -188,12 +188,6 @@ msgstr "<0><1/><2/></0> for a new line"
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 msgid "<0>Comment:</0> {comment}"
 msgstr "<0>Comment:</0> {comment}"
-
-#. Before the error that stopped a record of a run
-#. placeholder {0}: errorDetails ?? "–"
-#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
-msgid "<0>Error:</0> {0}"
-msgstr "<0>Error:</0> {0}"
 
 #: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
 msgid "A dataset holds the questions an evaluation asks the agent."
@@ -316,7 +310,9 @@ msgid "Agent version"
 msgstr "Agent version"
 
 #. What the agent answered in a run
+#. What the agent answered in a run
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Agent's answer"
 msgstr "Agent's answer"
 
@@ -827,6 +823,13 @@ msgstr "End the session and give feedback"
 msgid "Enter"
 msgstr "Enter"
 
+#. A record of a run an error stopped
+#. The title of the error that stopped a record of a run
+#: src/features/conversation-runs/components/RunRecordScore.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "Error"
+msgstr "Error"
+
 #. How many records of a run an error stopped
 #. The filter of the results an error stopped
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
@@ -874,9 +877,11 @@ msgstr "Evaluations are not here yet"
 #. The answer an evaluation expects from the agent
 #. The answer an evaluation expects from the agent
 #. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Expected output"
 msgstr "Expected output"
 
@@ -922,7 +927,7 @@ msgid "Filling in the form"
 msgstr "Filling in the form"
 
 #. The label of the filters of the table of a run's results
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunResultsSection.tsx
 msgid "Filter the results"
 msgstr "Filter the results"
 
@@ -1103,9 +1108,11 @@ msgstr "In production"
 #. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
+#. What an evaluation sends to the agent
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Input"
 msgstr "Input"
 
@@ -1341,6 +1348,11 @@ msgstr "No agent matches this search."
 msgid "No answer yet."
 msgstr "No answer yet."
 
+#. A record of a run with no answer from the agent
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "No answer."
+msgstr "No answer."
+
 #: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
 msgid "No dataset yet"
 msgstr "No dataset yet"
@@ -1503,6 +1515,10 @@ msgstr "Open in a new tab"
 msgid "Open on YouTube"
 msgstr "Open on YouTube"
 
+#: src/features/conversation-runs/components/RunResultsSection.tsx
+msgid "Open the result of: {input}"
+msgstr "Open the result of: {input}"
+
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 msgid "Open the run of {started}"
 msgstr "Open the run of {started}"
@@ -1512,7 +1528,7 @@ msgid "Open the session of {started}"
 msgstr "Open the session of {started}"
 
 #. A link to the trace of the agent's answer
-#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Open the trace"
 msgstr "Open the trace"
 
@@ -1721,8 +1737,13 @@ msgstr "Resize the panel"
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
+#. The title of the sheet that shows one result of a run
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "Result"
+msgstr "Result"
+
 #. The title of the records of a run
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunResultsSection.tsx
 msgid "Results"
 msgstr "Results"
 
@@ -1874,8 +1895,10 @@ msgstr "Saved <0/>"
 
 #. The average score of a run
 #. The score the judge gave an answer
+#. The score the judge gave an answer
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Score"
 msgstr "Score"
 
@@ -2537,11 +2560,11 @@ msgstr "This question has no option yet."
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunResultsSection.tsx
 msgid "This run failed before it asked a record."
 msgstr "This run failed before it asked a record."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunResultsSection.tsx
 msgid "This run has no record yet."
 msgstr "This run has no record yet."
 
@@ -2701,6 +2724,10 @@ msgstr "What a tester fills when they finish taking part."
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
 msgid "What should testers and reviewers evaluate?"
 msgstr "What should testers and reviewers evaluate?"
+
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "What the agent got, what it should answer, and what it answered."
+msgstr "What the agent got, what it should answer, and what it answered."
 
 #: src/features/conversation/components/FormsPanel.tsx
 msgid "What the agent noted"

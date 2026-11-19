@@ -4,9 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { Trans } from "@lingui/react/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { LoaderCircleIcon } from "lucide-react"
-import { ExternalLink } from "@/components/shared/ExternalLink"
-import { Badge } from "@/components/ui/badge"
-import { scoreOf } from "../run-status"
+import { RunRecordScore } from "./RunRecordScore"
 
 const columnHelper = createColumnHelper<ConversationRunRecordOutputDto>()
 
@@ -21,81 +19,83 @@ const recordColumnLabels = {
   score: msg({ message: "Score", comment: "The score the judge gave an answer" }),
 } satisfies Record<string, MessageDescriptor>
 
-/** A record's text in a cell: whole, on as many lines as it takes. */
-function RecordText({ children }: { children: string }) {
-  return <p className="min-w-40 whitespace-pre-wrap wrap-anywhere">{children}</p>
-}
+/** A record's text in a cell: three lines at most, which the record's sheet shows whole. */
+const TEXT_CLASSES = "line-clamp-3 min-w-40 whitespace-pre-wrap wrap-anywhere"
 
-/** The columns of a run's records: what the agent got, what it should answer, what it answered. */
+/**
+ * The columns of a run's records: what the agent got, what it should answer, what it answered,
+ * each cut after three lines. The input opens the record's sheet, for the keyboard: a click
+ * anywhere on the row does too.
+ */
 export function conversationRunRecordColumnsOf({
-  locale,
   translate,
+  openLabel,
+  onOpen,
 }: {
-  locale: string
   translate: (descriptor: MessageDescriptor) => string
+  /** The name of the button that opens a record, for a screen reader. */
+  openLabel: (record: ConversationRunRecordOutputDto) => string
+  onOpen: (record: ConversationRunRecordOutputDto) => void
 }): ColumnDef<ConversationRunRecordOutputDto, unknown>[] {
   // Safe: each helper call types its own value, and the list holds them as columns of any value.
   return [
     columnHelper.accessor("input", {
       header: translate(recordColumnLabels.input),
       enableSorting: false,
-      cell: (context) => <RecordText>{context.getValue()}</RecordText>,
+      cell: (context) => (
+        <button
+          type="button"
+          aria-label={openLabel(context.row.original)}
+          // The row opens the record on a click: the button's own click would open it twice.
+          onClick={(event) => {
+            event.stopPropagation()
+            onOpen(context.row.original)
+          }}
+          className={`${TEXT_CLASSES} cursor-pointer rounded-sm text-left font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50`}
+        >
+          {context.getValue()}
+        </button>
+      ),
     }),
     columnHelper.accessor("expectedOutput", {
       header: translate(recordColumnLabels.expectedOutput),
       enableSorting: false,
-      cell: (context) => <RecordText>{context.getValue()}</RecordText>,
+      cell: (context) => <p className={TEXT_CLASSES}>{context.getValue()}</p>,
     }),
     columnHelper.accessor("output", {
       header: translate(recordColumnLabels.output),
       enableSorting: false,
       cell: (context) => {
-        const { status, errorDetails, traceUrl } = context.row.original
+        const { status, errorDetails } = context.row.original
         const output = context.getValue()
-        return (
-          <div className="flex flex-col items-start gap-1">
-            {output ? <RecordText>{output}</RecordText> : null}
-            {status === "running" ? (
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <LoaderCircleIcon aria-hidden className="size-3.5 animate-spin" />
-                <Trans comment="A record of a run the agent has not answered yet">Waiting</Trans>
-              </span>
-            ) : null}
-            {status === "cancelled" ? (
-              <span className="text-muted-foreground">
-                <Trans comment="A record of a run stopped before the agent answered it">
-                  Not asked
-                </Trans>
-              </span>
-            ) : null}
-            {status === "error" ? (
-              <p className="rounded-md border border-destructive/30 px-2 py-1.5 text-xs whitespace-pre-wrap wrap-anywhere text-destructive">
-                <Trans comment="Before the error that stopped a record of a run">
-                  <span className="font-medium">Error:</span> {errorDetails ?? "–"}
-                </Trans>
-              </p>
-            ) : null}
-            {traceUrl ? (
-              <ExternalLink href={traceUrl} className="text-xs">
-                <Trans comment="A link to the trace of the agent's answer">Open the trace</Trans>
-              </ExternalLink>
-            ) : null}
-          </div>
-        )
+        if (output) return <p className={TEXT_CLASSES}>{output}</p>
+        if (status === "running") {
+          return (
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <LoaderCircleIcon aria-hidden className="size-3.5 animate-spin" />
+              <Trans comment="A record of a run the agent has not answered yet">Waiting</Trans>
+            </span>
+          )
+        }
+        if (status === "cancelled") {
+          return (
+            <span className="text-muted-foreground">
+              <Trans comment="A record of a run stopped before the agent answered it">
+                Not asked
+              </Trans>
+            </span>
+          )
+        }
+        if (status === "error") {
+          return <p className={`${TEXT_CLASSES} text-destructive`}>{errorDetails ?? "–"}</p>
+        }
+        return <span className="text-muted-foreground">–</span>
       },
     }),
-    columnHelper.accessor("score", {
+    columnHelper.display({
+      id: "score",
       header: translate(recordColumnLabels.score),
-      enableSorting: false,
-      cell: (context) => {
-        const score = context.getValue()
-        if (score === null) return "–"
-        return (
-          <Badge variant={score >= 4 ? "secondary" : score >= 3 ? "outline" : "destructive"}>
-            {scoreOf(score, locale)}
-          </Badge>
-        )
-      },
+      cell: (context) => <RunRecordScore record={context.row.original} />,
       meta: { headerClassName: "text-right", cellClassName: "text-right tabular-nums" },
     }),
   ] as ColumnDef<ConversationRunRecordOutputDto, unknown>[]

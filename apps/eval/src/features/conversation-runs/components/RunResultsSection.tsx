@@ -1,0 +1,111 @@
+import type {
+  ConversationRunRecordOutputDto,
+  ConversationRunStatusDto,
+} from "@caseai-connect/eval-contracts"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { useMemo, useState } from "react"
+import { DataTable } from "@/components/shared/DataTable"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import {
+  filterResults,
+  isResultFilter,
+  RESULT_FILTER_LABELS,
+  RESULT_FILTERS,
+  type ResultFilter,
+} from "../result-filters"
+import { conversationRunRecordColumnsOf } from "./conversation-run-record-columns"
+import { RunRecordSheet } from "./RunRecordSheet"
+
+export type RunResultsSectionProps = {
+  /** Where the run stands, which words an empty table. */
+  status: ConversationRunStatusDto
+  results: ConversationRunRecordOutputDto[]
+}
+
+/**
+ * The results of a run: its records, each cut to a few lines, with filters that narrow them to
+ * the errors, the low scores or what waits. A row opens its record whole, in a sheet.
+ */
+export function RunResultsSection({ status, results }: RunResultsSectionProps) {
+  // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
+  "use no memo"
+  const { t, i18n } = useLingui()
+  const [filter, setFilter] = useState<ResultFilter>("all")
+  const [openRecordId, setOpenRecordId] = useState<string | null>(null)
+  // The filters that keep something: a run with no error offers no Errors filter.
+  const filters = RESULT_FILTERS.filter(
+    (candidate) => candidate === "all" || filterResults(results, candidate).length > 0,
+  )
+  // A filter that keeps nothing any more, as a run under way moves on, gives way to All.
+  const activeFilter = filters.includes(filter) ? filter : "all"
+  // The same list from one render to the next: the table reads a new list as new data, and one
+  // made at each render sends it into a loop of renders.
+  const shown = useMemo(() => filterResults(results, activeFilter), [results, activeFilter])
+  // From the results, so the open record follows a run under way as it gets its answer.
+  const openRecord = results.find((record) => record.id === openRecordId) ?? null
+  const table = useReactTable({
+    data: shown,
+    columns: conversationRunRecordColumnsOf({
+      translate: (descriptor) => i18n._(descriptor),
+      openLabel: (record) => {
+        const input = record.input
+        return t`Open the result of: ${input}`
+      },
+      onOpen: (record) => setOpenRecordId(record.id),
+    }),
+    getRowId: (record) => record.id,
+    getCoreRowModel: getCoreRowModel(),
+  })
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">
+          <Trans comment="The title of the records of a run">Results</Trans>
+        </h2>
+        {filters.length > 1 ? (
+          <ToggleGroup
+            aria-label={t({
+              message: "Filter the results",
+              comment: "The label of the filters of the table of a run's results",
+            })}
+            variant="outline"
+            size="sm"
+            spacing={0}
+            value={[activeFilter]}
+            // A toggle group lets every item go: the filter stays when the person clicks it again.
+            onValueChange={(values) => {
+              const [next] = values
+              if (isResultFilter(next)) setFilter(next)
+            }}
+          >
+            {filters.map((candidate) => {
+              const filterName = i18n._(RESULT_FILTER_LABELS[candidate])
+              const count = i18n.number(filterResults(results, candidate).length)
+              return (
+                <ToggleGroupItem key={candidate} value={candidate}>
+                  <Trans comment="A filter of a run's results and how many it keeps, such as: Errors (1)">
+                    {filterName} ({count})
+                  </Trans>
+                </ToggleGroupItem>
+              )
+            })}
+          </ToggleGroup>
+        ) : null}
+      </div>
+      <DataTable
+        table={table}
+        onRowOpen={(row) => setOpenRecordId(row.original.id)}
+        openRowId={openRecordId}
+        empty={
+          status === "failed" ? (
+            <Trans>This run failed before it asked a record.</Trans>
+          ) : (
+            <Trans>This run has no record yet.</Trans>
+          )
+        }
+      />
+      <RunRecordSheet record={openRecord} onClose={() => setOpenRecordId(null)} />
+    </section>
+  )
+}
