@@ -38,6 +38,7 @@
     "@tiptap/pm": "^3.32.0",
     "@tiptap/react": "^3.32.0",
     "class-variance-authority": "^0.7.1",
+    "cmdk": "^1.1.1",
     "cn": "^0.5.0",
     "lucide-react": "^0.576.0",
     "oidc-client-ts": "^3.5.0",

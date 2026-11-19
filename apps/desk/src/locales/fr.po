@@ -255,6 +255,10 @@ msgstr "Finalisation du formulaire"
 msgid "Contact your administrator."
 msgstr "Contactez votre administrateur."
 
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Conversation agents"
+msgstr "Agents de conversation"
+
 #. The copy button, once it copied its text
 #. The copy button, once it copied its text
 #: src/components/shared/CopyButton.tsx
@@ -303,9 +307,14 @@ msgid "CSV file"
 msgstr "Fichier CSV"
 
 #. The Control key of a keyboard
-#: src/components/shared/SidebarToggle.tsx
+#: src/components/shared/ShortcutHint.tsx
 msgid "Ctrl"
 msgstr "Ctrl"
+
+#. Marks the agent whose pages show, in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Current"
+msgstr "Actuel"
 
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Decline"
@@ -432,6 +441,10 @@ msgstr "Extraire à nouveau"
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Extract every row"
 msgstr "Extraire toutes les lignes"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Extraction agents"
+msgstr "Agents d'extraction"
 
 #. A run that ended with an error
 #: src/lib/run-state.ts
@@ -635,7 +648,7 @@ msgstr "Page suivante"
 msgid "No"
 msgstr "Non"
 
-#: src/features/agents/components/AgentSwitcher.tsx
+#: src/features/agents/components/AgentCommandCenter.tsx
 msgid "No agent matches this search."
 msgstr "Aucun agent ne correspond à cette recherche."
 
@@ -877,13 +890,13 @@ msgstr "Enregistrer"
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
-#: src/features/agents/components/AgentSwitcher.tsx
-msgid "Search an agent"
-msgstr "Rechercher un agent"
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent by its name, its project or its organization."
+msgstr "Rechercher un agent par son nom, son projet ou son organisation."
 
-#: src/features/agents/components/AgentSwitcher.tsx
-msgid "Search an agent or a project"
-msgstr "Rechercher un agent ou un projet"
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent or a project…"
+msgstr "Rechercher un agent ou un projet…"
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Searching the knowledge base"
@@ -1025,6 +1038,10 @@ msgstr "Arrêtée"
 #: src/features/conversation/components/FollowUpQuestions.tsx
 msgid "Suggested questions"
 msgstr "Questions suggérées"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Switch agent"
+msgstr "Changer d'agent"
 
 #: src/features/agents/components/AgentSwitcher.tsx
 msgid "Switch agent, current agent: {agentName}"
@@ -1303,6 +1320,16 @@ msgstr "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en
 #: src/features/conversation/components/TaskChecksList.tsx
 msgid "Ticked: {text}"
 msgstr "Cochée : {text}"
+
+#. What the arrow keys do in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to move"
+msgstr "pour se déplacer"
+
+#. What the Enter key does in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to open"
+msgstr "pour ouvrir"
 
 #: src/features/history/components/HistoryList.tsx
 msgid "Today"

@@ -4,6 +4,7 @@ import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { SidebarClosedOnly } from "@/components/shared/SidebarClosedOnly"
 import {
+  AgentCommandCenterProvider,
   AgentSidebarHeader,
   agentPathParams,
   findAgent,
@@ -17,7 +18,7 @@ import { DeskSidebarFooter } from "@/routes/-components/DeskSidebarFooter"
 
 /**
  * The frame of every page of an agent: the sidebar with the agent switcher and the agent's
- * history, the page in the center. An agent the person cannot use is not found.
+ * history, the page in the center, and the command center that switches agent. An agent the person cannot use is not found.
  */
 export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$projectId/a/$agentId")({
   params: { parse: uuidParams("organizationId", "projectId", "agentId") },
@@ -47,26 +48,28 @@ function AgentLayout() {
     shouldThrow: false,
   })
   return (
-    <DeskShell
-      header={<AgentSidebarHeader currentAgent={agent} />}
-      sidebar={
-        <>
-          <div className="p-2">
-            <NewSessionLink agent={historyAgent} />
-          </div>
-          <AgentHistorySection agent={historyAgent} />
-        </>
-      }
-      footer={<DeskSidebarFooter />}
-      title={
-        conversation ? (
-          <ConversationTitle conversation={conversation.params} />
-        ) : (
-          <SidebarClosedOnly>{agent.name}</SidebarClosedOnly>
-        )
-      }
-    >
-      <Outlet />
-    </DeskShell>
+    <AgentCommandCenterProvider currentAgent={agent}>
+      <DeskShell
+        header={<AgentSidebarHeader currentAgent={agent} />}
+        sidebar={
+          <>
+            <div className="p-2">
+              <NewSessionLink agent={historyAgent} />
+            </div>
+            <AgentHistorySection agent={historyAgent} />
+          </>
+        }
+        footer={<DeskSidebarFooter />}
+        title={
+          conversation ? (
+            <ConversationTitle conversation={conversation.params} />
+          ) : (
+            <SidebarClosedOnly>{agent.name}</SidebarClosedOnly>
+          )
+        }
+      >
+        <Outlet />
+      </DeskShell>
+    </AgentCommandCenterProvider>
   )
 }

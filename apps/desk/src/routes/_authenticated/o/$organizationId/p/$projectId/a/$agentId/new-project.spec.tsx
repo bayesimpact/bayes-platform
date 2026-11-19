@@ -54,7 +54,7 @@ describe("an invitation to a project the person was not in", () => {
     await userEvent.click(within(dialog).getByRole("button", { name: /^Accept the invitation/ }))
 
     expect(
-      await screen.findByRole("combobox", {
+      await screen.findByRole("button", {
         name: "Switch agent, current agent: Helpful Assistant",
       }),
     ).toBeInTheDocument()
