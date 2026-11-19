@@ -139,6 +139,12 @@ export const PROVIDER_CASES: ProviderCase[] = [
     unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
   },
   {
+    label: "Claude Opus 5.5 (Vertex, eu)",
+    model: AgentModel.ClaudeOpus55,
+    buildProvider: () => new AISDKAnthropicProvider(),
+    unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
+  },
+  {
     label: "GPT-5.4 (OpenAI)",
     model: AgentModel.Gpt54,
     buildProvider: () => new AISDKOpenAIProvider(),

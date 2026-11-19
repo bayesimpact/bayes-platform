@@ -158,6 +158,9 @@ describe("formatAgentModelLabel", () => {
       "gemini-3.6-flash",
       "gemini-3.7-flash",
       "gemini-3.8-flash",
+      "gemini-4-argon",
+      "gemini-4-carbon (non-EU)",
+      "gemini-4-hydrogen",
       "google/gemma-4-26b-A4B-it",
       "google/gemma-4-31B-it",
       "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
@@ -198,7 +201,7 @@ describe("formatAgentModelLabel", () => {
 })
 
 describe("buildAgentModelOptions", () => {
-  it("offers the vertex 3 models when the project has no flag", () => {
+  it("offers the vertex 3 and 4 models when the project has no flag", () => {
     expect(buildAgentModelOptions(catalog)).toEqual([
       AgentModel.Gemini31FlashLite,
       AgentModel.Gemini35FlashLite,
@@ -206,6 +209,9 @@ describe("buildAgentModelOptions", () => {
       AgentModel.Gemini36Flash,
       AgentModel.Gemini37Flash,
       AgentModel.Gemini38Flash,
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
     ])
   })
 
@@ -233,14 +239,9 @@ describe("buildAgentModelOptions", () => {
       AgentModel.ClaudeSonnet55,
       AgentModel.ClaudeHaiku55,
       AgentModel.ClaudeOpus5,
+      AgentModel.ClaudeOpus55,
     ],
     [AgentProvider.OpenAI, AgentModel.Gpt54, AgentModel.Gpt54Mini],
-    [
-      AgentProvider.Vertex4,
-      AgentModel.Gemini4Argon,
-      AgentModel.Gemini4Carbon,
-      AgentModel.Gemini4Hydrogen,
-    ],
   ])("adds only the %s models once the API says they are available", (provider, ...models) => {
     const options = buildAgentModelOptions(
       agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
@@ -316,6 +317,7 @@ describe("describeModelOptionFields", () => {
     AgentModel.ClaudeSonnet55,
     AgentModel.ClaudeHaiku55,
     AgentModel.ClaudeOpus5,
+    AgentModel.ClaudeOpus55,
   ])("offers the effort of %s as its thinking level", (model) => {
     expect(fieldsOf(model)).toEqual({
       thinkingLevel: {

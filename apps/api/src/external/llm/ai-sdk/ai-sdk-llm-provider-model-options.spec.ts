@@ -197,6 +197,12 @@ const CATALOG: {
     defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
   },
   {
+    model: AgentModel.ClaudeOpus55,
+    provider: AgentProvider.Anthropic,
+    isDefault: false,
+    defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
+  },
+  {
     model: AgentModel.Gpt54,
     provider: AgentProvider.OpenAI,
     isDefault: false,

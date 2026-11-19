@@ -92,7 +92,11 @@ export const defaultAgentModels: AgentModelsCatalog["defaults"] = {
   judge: AgentModel.Gemini35FlashLite,
 }
 
-const ALWAYS_AVAILABLE_PROVIDERS = [AgentProvider.Vertex, AgentProvider.Vertex3]
+const ALWAYS_AVAILABLE_PROVIDERS = [
+  AgentProvider.Vertex,
+  AgentProvider.Vertex3,
+  AgentProvider.Vertex4,
+]
 
 const JSON_SCHEMA_DRAFT = "https://json-schema.org/draft/2020-12/schema"
 const TEMPERATURE_SCHEMA = { type: "number", minimum: 0, maximum: 2 }
@@ -342,7 +346,12 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
     servedOutsideEu: false,
     ...temperatureOnlyOptionsDefaultingTo(0.7),
   },
-  ...[AgentModel.ClaudeSonnet55, AgentModel.ClaudeHaiku55, AgentModel.ClaudeOpus5].map((model) => ({
+  ...[
+    AgentModel.ClaudeSonnet55,
+    AgentModel.ClaudeHaiku55,
+    AgentModel.ClaudeOpus5,
+    AgentModel.ClaudeOpus55,
+  ].map((model) => ({
     model,
     provider: AgentProvider.Anthropic,
     deprecation: null,

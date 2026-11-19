@@ -194,22 +194,11 @@ describe("Agent Settings - updateOne", () => {
   })
 
   it.each([
-    AgentModel.Gemini4Argon,
-    AgentModel.Gemini4Carbon,
-    AgentModel.Gemini4Hydrogen,
-  ])("rejects switching to %s without the gemini-4 flag", async (model) => {
-    await createContext()
-
-    expectResponse(await subject({ payload: { model } }), 400)
-  })
-
-  it.each([
     [AgentModel.Gemini4Argon, "medium"],
     [AgentModel.Gemini4Carbon, "low"],
     [AgentModel.Gemini4Hydrogen, "medium"],
-  ])("switches to %s with the gemini-4 flag, on its default %s level", async (model, level) => {
+  ])("switches to %s, on its default %s level", async (model, level) => {
     await createContext()
-    await enableFeatureFlag("gemini-4")
 
     expectResponse(await subject({ payload: { model } }), 200)
 
@@ -222,7 +211,6 @@ describe("Agent Settings - updateOne", () => {
 
   it("rejects the high thinking level on gemini-4-carbon", async () => {
     await createContext()
-    await enableFeatureFlag("gemini-4")
 
     expectResponse(
       await subject({
