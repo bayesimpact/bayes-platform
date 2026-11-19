@@ -40,7 +40,12 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
   const hasGivenFeedback = sessions.some((session) => session.feedbackStatus === "submitted")
 
   return (
-    <ParticipantCampaignFrame campaign={campaign} campaignRole="tester" currentTab="overview">
+    <ParticipantCampaignFrame
+      campaign={campaign}
+      campaignRole="tester"
+      currentTab="overview"
+      canOpenSurvey={hasGivenFeedback}
+    >
       {/* The table has its own frame: the block of the sessions needs none around it. */}
       <SectionCard
         className="rounded-none border-0 bg-transparent p-0 md:p-0 dark:bg-transparent"

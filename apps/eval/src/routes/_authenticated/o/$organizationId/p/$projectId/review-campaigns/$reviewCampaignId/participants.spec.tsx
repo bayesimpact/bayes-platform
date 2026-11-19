@@ -254,7 +254,7 @@ describe("a tester's campaign", () => {
     )
   })
 
-  it("offers the final survey only once a session has the tester's feedback", async () => {
+  it("opens the final survey only once a session has the tester's feedback", async () => {
     const world = buildParticipantWorld()
     const campaign = campaignOf(world, "Support assistant pilot")
     for (const session of world.testerSessions[campaign.id] ?? []) {
@@ -265,6 +265,10 @@ describe("a tester's campaign", () => {
 
     expect(await screen.findByRole("button", { name: "Start a session" })).toBeInTheDocument()
     expect(screen.queryByRole("link", { name: "Fill the final survey" })).not.toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "Final survey" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    )
   })
 
   it("fills the final survey once, then offers to edit it", async () => {

@@ -19,6 +19,8 @@ export type ParticipantCampaignFrameProps = {
   /** What the person does in the campaign on this page, which sets its tabs. */
   campaignRole: "tester" | "reviewer"
   currentTab: ParticipantCampaignTab
+  /** Whether a tester can open the final survey: once a session has their feedback. */
+  canOpenSurvey?: boolean
   /** What acts on the open tab, on the right of the tabs, such as the report's download. */
   tabActions?: ReactNode
   /** The open tab's content. */
@@ -34,6 +36,7 @@ export function ParticipantCampaignFrame({
   campaign,
   campaignRole,
   currentTab,
+  canOpenSurvey = true,
   tabActions,
   children,
 }: ParticipantCampaignFrameProps) {
@@ -91,7 +94,7 @@ export function ParticipantCampaignFrame({
                 <Trans comment="The tab with the full report of a campaign">Report</Trans>
               </TabsTrigger>
             ) : (
-              <TabsTrigger value="survey">
+              <TabsTrigger value="survey" disabled={!canOpenSurvey}>
                 <Trans>Final survey</Trans>
               </TabsTrigger>
             )}
