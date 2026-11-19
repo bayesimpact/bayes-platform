@@ -1060,6 +1060,11 @@ msgstr "How satisfied are you with this agent overall?"
 msgid "How was this session?"
 msgstr "How was this session?"
 
+#. The header of the column of the short ids of the runs
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+msgid "ID"
+msgstr "ID"
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "If it keeps happening, contact your administrator with the message below."

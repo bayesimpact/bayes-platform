@@ -4,13 +4,15 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
-import { fullDateTimeOf } from "@/lib/format-time"
+import { RelativeTime } from "@/components/shared/RelativeTime"
+import { shortIdOf } from "@/lib/short-id"
 import { scoreOf } from "../run-status"
 
 const columnHelper = createColumnHelper<ConversationRunOutputDto>()
 
 /** The texts of the headers, which the table translates. */
 const runColumnLabels = {
+  id: msg({ message: "ID", comment: "The header of the column of the short ids of the runs" }),
   started: msg({ message: "Started", comment: "The header of the column of when a run started" }),
   version: msg({ message: "Version", comment: "The version of the agent a run evaluated" }),
   judge: msg({ message: "Judge model", comment: "The model that graded a run" }),
@@ -22,16 +24,19 @@ const runColumnLabels = {
   graded: msg({ message: "Graded", comment: "How many records of a run are graded" }),
 } satisfies Record<string, MessageDescriptor>
 
-/** The columns of the runs of a dataset that stand at one status: a date opens its run. */
+/** The columns of the runs of a dataset that stand at one status: an id opens its run. */
 export function conversationRunColumnsOf({
   agent,
   locale,
+  now,
   translate,
   renderVersion,
   renderActions,
 }: {
   agent: AgentParamsDto
   locale: string
+  /** The current time, which "5 days ago" counts from. */
+  now: number
   translate: (descriptor: MessageDescriptor) => string
   /** The version a run asked, which opens the history of the agent's versions on it. */
   renderVersion: (run: ConversationRunOutputDto) => ReactNode
@@ -40,8 +45,10 @@ export function conversationRunColumnsOf({
 }): ColumnDef<ConversationRunOutputDto, unknown>[] {
   // Safe: each helper call types its own value, and the list holds them as columns of any value.
   return [
-    columnHelper.accessor("createdAt", {
-      header: translate(runColumnLabels.started),
+    columnHelper.accessor((run) => shortIdOf(run.id), {
+      id: "id",
+      header: translate(runColumnLabels.id),
+      enableSorting: false,
       cell: (context) => (
         <Link
           to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId"
@@ -50,11 +57,17 @@ export function conversationRunColumnsOf({
             datasetId: context.row.original.evaluationConversationDatasetId,
             runId: context.row.original.id,
           }}
-          className="font-medium underline-offset-4 hover:underline"
+          title={context.row.original.id}
+          className="font-mono text-xs font-medium underline-offset-4 hover:underline"
         >
-          {fullDateTimeOf(context.getValue(), locale)}
+          {context.getValue()}
         </Link>
       ),
+    }),
+    columnHelper.accessor("createdAt", {
+      header: translate(runColumnLabels.started),
+      // How long ago, with the full date and time on hover.
+      cell: (context) => <RelativeTime moment={context.getValue()} now={now} />,
     }),
     columnHelper.accessor((run) => run.agentSettings.revision, {
       id: "version",

@@ -163,7 +163,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
   then opens its page. The Runs tab (`ConversationRunsSection`) lists the agent's runs of the dataset (a run
-  of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). A run's version opens the
+  of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). Each run shows by its short id, which opens it, and how long ago it started, the
+  shared `RelativeTime`. A run's version opens the
   history of the agent's versions on it, the campaigns' `AgentVersionsSheet` without its choice, to
   compare it with the others. A run's page, `evaluations/$datasetId/runs/$runId`
   (`ConversationRunPage`), shows its figures and all its records, with what it used in a side panel of two tabs (`RunSettingsPanel`): Agent, with its

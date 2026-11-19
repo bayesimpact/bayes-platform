@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { fullDateTimeOf } from "@/lib/format-time"
 import { useDeleteConversationRun } from "../api/mutations"
 import { projectConversationRunsQueryOptions } from "../api/queries"
@@ -174,11 +175,13 @@ function RunsTable({
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { t, i18n } = useLingui()
+  const now = useNow(RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, true)
   const table = useReactTable({
     data: runs,
     columns: conversationRunColumnsOf({
       agent: agentParams,
       locale: i18n.locale,
+      now,
       translate: (descriptor) => i18n._(descriptor),
       renderVersion: (run) => {
         const revision = run.agentSettings.revision

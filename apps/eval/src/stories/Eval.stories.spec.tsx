@@ -63,7 +63,12 @@ const PAGES = {
   },
   DatasetRuns: {
     Story: pageStories.DatasetRuns,
-    loaded: () => screen.findByText("3 runs"),
+    // Its runs, each by its short id and how long ago it started.
+    loaded: async () => {
+      await screen.findByText("3 runs")
+      await screen.findByRole("columnheader", { name: "ID" })
+      return screen.findByText("1 minute ago")
+    },
   },
   CompletedRun: {
     Story: pageStories.CompletedRun,
