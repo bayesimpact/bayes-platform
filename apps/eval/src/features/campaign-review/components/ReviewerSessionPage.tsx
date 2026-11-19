@@ -66,7 +66,8 @@ export function ReviewerSessionPage({ sessionParams }: ReviewerSessionPageProps)
       }
     >
       <HeaderActions>
-        <SidePanelToggle isOpen={panel.isOpen} onToggle={panel.toggle}>
+        {/* The review is the page's task: its panel's button takes the primary color. */}
+        <SidePanelToggle isOpen={panel.isOpen} onToggle={panel.toggle} isPrimary>
           <Trans>Session review</Trans>
         </SidePanelToggle>
       </HeaderActions>
