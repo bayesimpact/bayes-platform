@@ -300,6 +300,21 @@ describe("the stories of the app", () => {
     )
   })
 
+  it("RunUnderWay asks before it cancels the run", async () => {
+    const { RunUnderWay } = pageStories
+    await RunUnderWay.load()
+    render(<RunUnderWay />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Cancel the run" }))
+    const dialog = await screen.findByRole("alertdialog", { name: "Cancel this run?" })
+    expect(screen.getByText("Running", { selector: "[data-slot=badge]" })).toBeInTheDocument()
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel the run" }))
+    expect(
+      await screen.findByText("Cancelled", { selector: "[data-slot=badge]" }),
+    ).toBeInTheDocument()
+  })
+
   it("AddRecord asks a record's input and expected output", async () => {
     await AddRecord.load()
     const { container } = render(<AddRecord />)

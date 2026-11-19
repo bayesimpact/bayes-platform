@@ -455,9 +455,14 @@ msgid "Cancel"
 msgstr "Annuler"
 
 #. Stops a run under way
+#. Stops a run under way
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "Cancel the run"
 msgstr "Annuler l'exécution"
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Cancel this run?"
+msgstr "Annuler cette exécution ?"
 
 #. A run that a person stopped
 #: src/features/conversation-runs/run-status.ts
@@ -1133,6 +1138,11 @@ msgstr "Modèle juge"
 #: src/components/shared/RelativeTime.tsx
 msgid "just now"
 msgstr "à l'instant"
+
+#. Gives up cancelling a run under way
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Keep it running"
+msgstr "Laisser tourner"
 
 #: src/features/account/components/UserMenu.tsx
 msgid "Language"
@@ -2302,6 +2312,10 @@ msgstr "L'enregistrement a été modifié."
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The records could not be added. Try again."
 msgstr "Les enregistrements n'ont pas pu être ajoutés. Réessayez."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The records not asked yet stay without an answer. The answers already graded are kept."
+msgstr "Les enregistrements pas encore posés restent sans réponse. Les réponses déjà notées sont conservées."
 
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The records were added."

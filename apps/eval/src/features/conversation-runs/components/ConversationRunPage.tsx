@@ -8,7 +8,7 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { EllipsisIcon, RotateCwIcon, SquareIcon, Trash2Icon } from "lucide-react"
+import { EllipsisIcon, RotateCwIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { BackLink } from "@/components/shared/BackLink"
@@ -70,7 +70,7 @@ export function ConversationRunPage({
     conversationRunRecordsQueryOptions(runParams, { isActive }),
   )
   const { groups } = useEvaluationWorkspace()
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+  const [confirming, setConfirming] = useState<"cancel" | "delete" | null>(null)
   const cancelRun = useCancelConversationRun(runParams)
   const retryRun = useRetryConversationRun(runParams)
   const deleteRun = useDeleteConversationRun(runParams)
@@ -118,17 +118,7 @@ export function ConversationRunPage({
         actions={
           <>
             {canUpdate && isActive ? (
-              <Button
-                variant="outline"
-                disabled={cancelRun.isPending}
-                onClick={() =>
-                  cancelRun.mutate(run.id, {
-                    onSuccess: () => toast.success(t`The run was cancelled.`),
-                    onError: () => toast.error(t`The run could not be cancelled. Try again.`),
-                  })
-                }
-              >
-                <SquareIcon data-icon="inline-start" aria-hidden />
+              <Button variant="outline" onClick={() => setConfirming("cancel")}>
                 <Trans comment="Stops a run under way">Cancel the run</Trans>
               </Button>
             ) : null}
@@ -155,10 +145,7 @@ export function ConversationRunPage({
                   <EllipsisIcon aria-hidden />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => setIsConfirmingDelete(true)}
-                  >
+                  <DropdownMenuItem variant="destructive" onClick={() => setConfirming("delete")}>
                     <Trash2Icon aria-hidden />
                     <Trans comment="Deletes a run">Delete</Trans>
                   </DropdownMenuItem>
@@ -234,8 +221,31 @@ export function ConversationRunPage({
         />
       </section>
       <ConfirmDialog
-        isOpen={isConfirmingDelete}
-        onOpenChange={setIsConfirmingDelete}
+        isOpen={confirming === "cancel"}
+        onOpenChange={(isOpen) => setConfirming(isOpen ? "cancel" : null)}
+        title={<Trans>Cancel this run?</Trans>}
+        description={
+          <Trans>
+            The records not asked yet stay without an answer. The answers already graded are kept.
+          </Trans>
+        }
+        confirmLabel={<Trans comment="Stops a run under way">Cancel the run</Trans>}
+        dismissLabel={<Trans comment="Gives up cancelling a run under way">Keep it running</Trans>}
+        isDestructive
+        isPending={cancelRun.isPending}
+        onConfirm={() =>
+          cancelRun.mutate(run.id, {
+            onSuccess: () => {
+              toast.success(t`The run was cancelled.`)
+              setConfirming(null)
+            },
+            onError: () => toast.error(t`The run could not be cancelled. Try again.`),
+          })
+        }
+      />
+      <ConfirmDialog
+        isOpen={confirming === "delete"}
+        onOpenChange={(isOpen) => setConfirming(isOpen ? "delete" : null)}
         title={<Trans>Delete this run?</Trans>}
         description={<Trans>The run and its results are deleted for good.</Trans>}
         confirmLabel={<Trans>Delete</Trans>}

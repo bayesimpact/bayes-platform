@@ -455,9 +455,14 @@ msgid "Cancel"
 msgstr "Cancel"
 
 #. Stops a run under way
+#. Stops a run under way
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "Cancel the run"
 msgstr "Cancel the run"
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Cancel this run?"
+msgstr "Cancel this run?"
 
 #. A run that a person stopped
 #: src/features/conversation-runs/run-status.ts
@@ -1133,6 +1138,11 @@ msgstr "Judge model"
 #: src/components/shared/RelativeTime.tsx
 msgid "just now"
 msgstr "just now"
+
+#. Gives up cancelling a run under way
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Keep it running"
+msgstr "Keep it running"
 
 #: src/features/account/components/UserMenu.tsx
 msgid "Language"
@@ -2302,6 +2312,10 @@ msgstr "The record was saved."
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The records could not be added. Try again."
 msgstr "The records could not be added. Try again."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The records not asked yet stay without an answer. The answers already graded are kept."
+msgstr "The records not asked yet stay without an answer. The answers already graded are kept."
 
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The records were added."
