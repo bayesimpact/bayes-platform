@@ -11,6 +11,7 @@ const campaign = (name: string): MyReviewCampaignOutputDto => ({
   projectId: crypto.randomUUID(),
   agentId: crypto.randomUUID(),
   createdAt: Date.now(),
+  agent: { name: "Helpful Assistant", type: "conversation" },
 })
 
 describe("mergeMyCampaigns", () => {

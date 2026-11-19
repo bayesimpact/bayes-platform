@@ -136,7 +136,7 @@ function managementHandlers(world: EvalWorld) {
 /** The name and type of a campaign's agent, as the person's campaigns carry them. */
 function agentSnapshotOf(world: EvalWorld, agentId: string) {
   const agent = world.agents.find((candidate) => candidate.id === agentId)
-  return agent ? { name: agent.name, type: agent.type } : undefined
+  return agent ? { name: agent.name, type: agent.type } : null
 }
 
 /** What the signed-in person reads as a participant: their campaigns, and each one's context. */

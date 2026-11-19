@@ -112,6 +112,11 @@ export type ListMyReviewCampaignsResponseDto = {
     Pick<ReviewCampaignDto, "id" | "name" | "description" | "status" | "agentId" | "createdAt"> & {
       organizationId: string
       projectId: string
+      /**
+       * The agent the campaign reviews, which the person may hold through no project: their
+       * agent switcher lists it. `null` when the agent was deleted.
+       */
+      agent: Pick<AgentDto, "name" | "type"> | null
     }
   >
 }

@@ -129,6 +129,14 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expectResponse(response, 200)
     expect(response.body.data.reviewCampaigns).toHaveLength(1)
     expect(response.body.data.reviewCampaigns[0]?.id).toBe(reviewCampaignId)
+    // The campaign names its agent, which the person may hold through no project.
+    const agent = await repositories.agentRepository.findOneByOrFail({
+      id: response.body.data.reviewCampaigns[0]?.agentId,
+    })
+    expect(response.body.data.reviewCampaigns[0]?.agent).toEqual({
+      name: agent.name,
+      type: agent.type,
+    })
   })
 
   it("getMyReviewCampaigns filters by role=reviewer when the caller is only a reviewer", async () => {

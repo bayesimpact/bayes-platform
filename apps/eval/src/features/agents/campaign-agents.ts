@@ -22,7 +22,7 @@ export function campaignAgentsOf(workspace: EvaluationWorkspace): CampaignAgent[
   )
   const agentsById = new Map<string, CampaignAgent>()
   for (const campaign of workspace.myCampaigns) {
-    // A campaign the API sends without its agent cannot name it: the switcher leaves it out.
+    // A campaign whose agent was deleted cannot name it: the switcher leaves it out.
     if (!campaign.agent || projectAgentIds.has(campaign.agentId)) continue
     if (agentsById.has(campaign.agentId)) continue
     agentsById.set(campaign.agentId, {

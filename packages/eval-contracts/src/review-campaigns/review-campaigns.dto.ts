@@ -193,9 +193,9 @@ export const myReviewCampaignOutputSchema = z.object({
   createdAt: z.number(),
   /**
    * The agent the campaign reviews, which the person may hold through no project: the agent
-   * switcher lists it. Optional until the API sends it.
+   * switcher lists it. `null` when the agent was deleted.
    */
-  agent: z.object({ name: z.string(), type: agentTypeSchema }).optional(),
+  agent: z.object({ name: z.string(), type: agentTypeSchema }).nullable(),
 })
 
 export type MyReviewCampaignOutputDto = z.output<typeof myReviewCampaignOutputSchema>
