@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { SidePanelToggle } from "@/components/shared/SidePanelToggle"
 import { SplitPage } from "@/components/shared/SplitPage"
 import { StatCard } from "@/components/shared/StatCard"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -33,7 +34,8 @@ import {
   useEvaluationWorkspace,
 } from "@/features/agents"
 import { useSidePanel } from "@/hooks/use-side-panel"
-import { fullDateTimeOf } from "@/lib/format-time"
+import { durationOf, fullDateTimeOf } from "@/lib/format-time"
+import { shortIdOf } from "@/lib/short-id"
 import {
   useCancelConversationRun,
   useDeleteConversationRun,
@@ -99,6 +101,9 @@ export function ConversationRunPage({
   const runAgent = flattenEvaluationAgents(groups).find((candidate) => candidate.id === run.agentId)
   const agentName = runAgent?.name ?? "–"
   const revision = run.agentSettings.revision
+  const runId = shortIdOf(run.id)
+  // From its creation to its last change: a run that is over changes no more.
+  const took = durationOf(run.updatedAt - run.createdAt, i18n.locale)
   const summary = run.summary
   const hasErrors = (summary?.errors ?? 0) > 0
   const canRetry = canUpdate && (run.status === "failed" || (summary?.errors ?? 0) > 0) && !isActive
@@ -126,7 +131,26 @@ export function ConversationRunPage({
           title={
             <Trans comment="The title of a run's page, by when it started">Run of {started}</Trans>
           }
-          badge={<RunStatusBadge status={run.status} />}
+          badge={
+            <>
+              <Badge
+                variant="outline"
+                className="font-mono"
+                title={run.id}
+                aria-label={t`Run ${runId}`}
+              >
+                {runId}
+              </Badge>
+              <RunStatusBadge status={run.status} />
+              {isActive ? null : (
+                <Badge variant="outline">
+                  <Trans comment="How long a run took, such as: Took 2 min 5 sec">
+                    Took {took}
+                  </Trans>
+                </Badge>
+              )}
+            </>
+          }
           description={
             <Trans comment="Under the title of a run: the dataset it asked and the agent's version">
               {datasetName} · {agentName}, version {revision}

@@ -79,7 +79,8 @@ export function buildConversationRun(
     judgeInstructions: null,
     summary: summaryOf(records),
     createdAt: daysAgo(1),
-    updatedAt: daysAgo(1),
+    // A run takes a little time: two minutes and five seconds here.
+    updatedAt: daysAgo(1) + 125_000,
     ...overrides,
   })
   return { projectId, run, records }

@@ -67,7 +67,11 @@ const PAGES = {
   },
   CompletedRun: {
     Story: pageStories.CompletedRun,
-    loaded: () => screen.findByText("11 / 12"),
+    // Its figures, and how long it took.
+    loaded: async () => {
+      await screen.findByText("Took 2 min 5 sec")
+      return screen.findByText("11 / 12")
+    },
   },
   RunUnderWay: {
     Story: pageStories.RunUnderWay,

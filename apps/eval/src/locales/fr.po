@@ -1782,6 +1782,10 @@ msgstr "Rôle"
 msgid "Run"
 msgstr "Lancer"
 
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Run {runId}"
+msgstr "Exécution {runId}"
+
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Run an evaluation"
 msgstr "Lancer une évaluation"
@@ -2540,6 +2544,11 @@ msgstr "pour ouvrir"
 #: src/features/campaign-review/components/ReviewerSessionLinks.tsx
 msgid "To review"
 msgstr "À relire"
+
+#. How long a run took, such as: Took 2 min 5 sec
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Took {took}"
+msgstr "Durée : {took}"
 
 #: src/components/shared/RouteErrorState.tsx
 #: src/components/shared/SidebarSection.tsx
