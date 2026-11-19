@@ -47,6 +47,11 @@ const sharedConfigSchema = z.object({
    * server. Unset, an app runs in a frame with an opaque origin that the app writes itself.
    */
   mcpAppSandboxOrigin: optionalSandboxOrigin,
+  /**
+   * The id of this production build, which its `version.json` publishes too: an open tab learns
+   * from that file that another build replaced its own. Undefined in dev, the tests and Storybook.
+   */
+  buildId: optionalText,
 })
 
 const apiModeConfigSchema = sharedConfigSchema.extend({
@@ -87,6 +92,7 @@ function readConfig(): AppConfig {
       appVersion: "26.10.7",
       gitSha: undefined,
       mcpAppSandboxOrigin: undefined,
+      buildId: undefined,
     }
   }
 
@@ -95,6 +101,7 @@ function readConfig(): AppConfig {
     appVersion: env.VITE_APP_VERSION,
     gitSha: env.VITE_GIT_SHA,
     mcpAppSandboxOrigin: env.VITE_MCP_APP_SANDBOX_ORIGIN,
+    buildId: env.VITE_BUILD_ID,
     oidcAuthority: env.VITE_OIDC_AUTHORITY,
     oidcClientId: env.VITE_OIDC_CLIENT_ID,
     oidcAudience: env.VITE_OIDC_AUDIENCE,

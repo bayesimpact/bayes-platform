@@ -16,6 +16,7 @@ import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { useSidebarPeek } from "@/hooks/use-sidebar-peek"
 import { HeaderActionsMenu } from "./HeaderActionsMenu"
 import { HeaderSlotsContext } from "./header-slots-context"
+import { NewReleaseBanner } from "./NewReleaseBanner"
 import { ResizeHandle } from "./ResizeHandle"
 import { SidebarToggle } from "./SidebarToggle"
 
@@ -102,6 +103,7 @@ export function AppShell({ header, sidebar, footer, title, children }: AppShellP
             <div ref={setActionsSlot} className="flex shrink-0 items-center gap-2" />
           )}
         </header>
+        <NewReleaseBanner />
         {/* The page scrolls inside this frame, so a conversation can keep its message box in view. */}
         <HeaderSlotsContext value={{ back: backSlot, actions: actionsSlot }}>
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>

@@ -34,6 +34,18 @@ file holds what is specific to Evaluation. It uses the same library versions as 
 - Configuration: the API will inject `window.__CONFIG__` when it serves the app; in dev, the
   `VITE_*` values of `apps/eval/.env` stand in (see `.env-example`).
 
+- New releases: each production build gets an id, which it knows (`buildId` in
+  `src/app/config.ts`) and publishes in `version.json` beside its files (`publishBuildId` in
+  `vite.config.ts`). The API only serves that file with `Cache-Control: no-cache`, so no cache on
+  the way keeps it. The root route polls that file every minute while the
+  tab is visible (`features/releases`) and hands its id to `appUpdate` (`src/lib/app-update.ts`).
+  Another build counts as new once it alone was published for a minute, so a rolling deployment
+  does not announce the old build, and at once when Vite cannot load a chunk of this tab's build
+  (`vite:preloadError`). Then `NewReleaseBanner`, below the bar of every signed-in page (`AppShell`), offers the
+  reload, which the person chooses; `useReloadWhenSafe`, in the root route, turns the next move to
+  another page into a full load of that page, unless a mutation is on its way; and
+  `RouteErrorState` offers a reload, not a retry. The app never reloads the page the person is on
+  by itself. Dev, the tests and Storybook have no build id, and poll nothing.
 ## Commands
 
 Run them from the repository root.

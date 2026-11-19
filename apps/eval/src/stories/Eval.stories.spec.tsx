@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react"
 import { composeStories, composeStory, setProjectAnnotations } from "@storybook/react-vite"
 import { useQueryClient } from "@tanstack/react-query"
-import { act, render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import { userEvent } from "storybook/test"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
@@ -19,8 +19,15 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const { PageNotFound, ProjectsFailToLoad, Loading, SidebarPeek, ...generalPages } =
-  composeStories(generalStories)
+const {
+  PageNotFound,
+  ProjectsFailToLoad,
+  Loading,
+  SidebarPeek,
+  NewReleaseOut,
+  PageFailsAfterNewRelease,
+  ...generalPages
+} = composeStories(generalStories)
 const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
   composeStories(campaignStories)
 // The reviewer and the tester both have a story named after their campaign.
@@ -213,6 +220,30 @@ describe("the stories of the app", () => {
 
     expect(await screen.findByText("This page could not load")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument()
+  })
+
+  it("NewReleaseOut shows a banner whose button reloads the page", async () => {
+    await NewReleaseOut.load()
+    const { container } = render(<NewReleaseOut />)
+    expect(await screen.findByRole("navigation", { name: /^Sections of/ })).toBeInTheDocument()
+    await act(() => NewReleaseOut.play?.({ canvasElement: container }))
+
+    const banner = screen.getByRole("status")
+    expect(within(banner).getByText("A new version of Evaluation is available")).toBeInTheDocument()
+    expect(
+      within(banner).getByText("Reloading the page clears what you have not sent or saved."),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument()
+  })
+
+  it("PageFailsAfterNewRelease offers a reload, not a retry", async () => {
+    await PageFailsAfterNewRelease.load()
+    const { container } = render(<PageFailsAfterNewRelease />)
+    expect(await screen.findByText("This page could not load")).toBeInTheDocument()
+    await act(() => PageFailsAfterNewRelease.play?.({ canvasElement: container }))
+
+    expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument()
   })
 
   it("SidebarPeek shows the hidden sidebar while the pointer rests on its button", async () => {

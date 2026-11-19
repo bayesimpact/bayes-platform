@@ -135,6 +135,10 @@ msgstr "<0>{place}</0> · {typeName}"
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> pour aller à la ligne"
 
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "A new version of Evaluation is available"
+msgstr "Une nouvelle version d'Evaluation est disponible"
+
 #: src/features/conversation/components/ReplyError.tsx
 msgid "A new version of Evaluation is available. Reload the page."
 msgstr "Une nouvelle version de l'Évaluation est disponible. Rechargez la page."
@@ -1086,6 +1090,7 @@ msgstr "Lisez une session, puis donnez votre propre note. L'avis du testeur rest
 msgid "Ready to open “{name}”?"
 msgstr "Ouvrir « {name} » ?"
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload"
 msgstr "Recharger"
@@ -1093,6 +1098,10 @@ msgstr "Recharger"
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload the page to keep going."
 msgstr "Rechargez la page pour continuer."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "Reloading the page clears what you have not sent or saved."
+msgstr "Recharger la page efface ce que vous n'avez pas envoyé ou enregistré."
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Remembering what matters"

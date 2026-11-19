@@ -135,6 +135,10 @@ msgstr "<0>{place}</0> · {typeName}"
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> for a new line"
 
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "A new version of Evaluation is available"
+msgstr "A new version of Evaluation is available"
+
 #: src/features/conversation/components/ReplyError.tsx
 msgid "A new version of Evaluation is available. Reload the page."
 msgstr "A new version of Evaluation is available. Reload the page."
@@ -1086,6 +1090,7 @@ msgstr "Read a session, then give your own rating. The tester's opinion stays hi
 msgid "Ready to open “{name}”?"
 msgstr "Ready to open “{name}”?"
 
+#: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload"
 msgstr "Reload"
@@ -1093,6 +1098,10 @@ msgstr "Reload"
 #: src/components/shared/RouteErrorState.tsx
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "Reloading the page clears what you have not sent or saved."
+msgstr "Reloading the page clears what you have not sent or saved."
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Remembering what matters"

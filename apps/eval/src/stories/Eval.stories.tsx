@@ -2,6 +2,7 @@ import { EvalProjectsRoutes } from "@caseai-connect/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
 import { userEvent, within } from "storybook/test"
+import { appUpdate } from "@/lib/app-update"
 import { agentUrlOf } from "@/test/eval-urls"
 import {
   buildCampaignManagerWorld,
@@ -110,6 +111,26 @@ export const ProjectsFailToLoad: Story = {
   parameters: evaluation({
     handlers: () => [mockRoute(EvalProjectsRoutes.getAllMine, () => apiError(503))],
   }),
+}
+
+/**
+ * A new release of the app is out: a banner above the page offers to reload. The story reports it
+ * as a file of this release gone from the server would, which counts at once.
+ */
+export const NewReleaseOut: Story = {
+  play: () => {
+    appUpdate.reportStaleBuild()
+  },
+}
+
+/** A page fails once a new release is out: only a reload brings it back, so no retry is offered. */
+export const PageFailsAfterNewRelease: Story = {
+  parameters: evaluation({
+    handlers: () => [mockRoute(EvalProjectsRoutes.getAllMine, () => apiError(503))],
+  }),
+  play: () => {
+    appUpdate.reportStaleBuild()
+  },
 }
 
 export const Loading: Story = {

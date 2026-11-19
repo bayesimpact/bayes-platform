@@ -1,6 +1,7 @@
 import { getResponse, type RequestHandler } from "msw"
 import { appBasePath } from "@/app/config"
 import { forgetLastAgent } from "@/features/agents"
+import { appUpdate } from "@/lib/app-update"
 import { buildEvalWorld, type EvalWorld } from "../factories/eval-world.factory"
 import { installStableIds } from "../stable-ids"
 import { evalHandlers } from "./handlers"
@@ -49,6 +50,8 @@ export function serveStoryWorld(parameters: EvalStoryParameters = {}): string {
   mockFetch()
   // The agent a previous story left open would decide which one this story opens.
   forgetLastAgent()
+  // A new release a previous story announced would show its banner here too.
+  appUpdate.reset()
   installStableIds()
   const world = (parameters.world ?? buildEvalWorld)()
   storyHandlers = [...(parameters.handlers?.() ?? []), ...evalHandlers(world)]
