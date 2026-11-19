@@ -2,6 +2,7 @@ import { ChevronDownIcon, SquarePenIcon, XIcon } from "lucide-react"
 import type * as React from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "../lib/cn"
+import { DotGridMark } from "./DotGrid"
 
 export function ChatHeader({
   agentName,
@@ -74,18 +75,5 @@ export function ChatHeader({
           </button>
         ))}
     </div>
-  )
-}
-
-/** The agent's mark when it has no logo: the 3×3 dot grid the launcher button shows too, so the
- *  window and the button read as one thing. */
-function DotGridMark() {
-  const dots = [6, 12, 18].flatMap((cy) => [6, 12, 18].map((cx) => ({ cx, cy })))
-  return (
-    <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
-      {dots.map(({ cx, cy }) => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.9} fill="currentColor" />
-      ))}
-    </svg>
   )
 }

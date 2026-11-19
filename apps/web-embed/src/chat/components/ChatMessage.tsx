@@ -6,13 +6,13 @@ import { AlertCircleIcon, CopyIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "../lib/cn"
+import { DotGridLoader } from "./DotGrid"
 import { FollowUpQuestions, findFollowUpQuestions } from "./FollowUpQuestions"
 import { ChatBotMessage, ChatUserMessage } from "./index"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
 import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
 import { findSourcesTool, SourcesTool } from "./SourcesTool"
-import { Spinner } from "./Spinner"
 import {
   findSurfaceResourcesTool,
   hasSurfacedResources,
@@ -146,8 +146,8 @@ export function ChatMessage({
 function ThinkingIndicator() {
   const { t } = useTranslation("chat")
   return (
-    <div className="flex animate-pulse items-center gap-2 text-gray-500 text-sm">
-      <Spinner />
+    <div className="flex items-center gap-2.5 text-gray-500 text-sm">
+      <DotGridLoader />
       <span>{t("message.thinking")}</span>
     </div>
   )
