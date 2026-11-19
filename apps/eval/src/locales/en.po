@@ -973,8 +973,6 @@ msgid "Overall rating"
 msgstr "Overall rating"
 
 #. The sidebar's link to the first page of an agent, which lists its sections
-#. The tab with the first page of a campaign, for its participants
-#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
 #: src/routes/-components/AgentSectionsNav.tsx
 msgid "Overview"
 msgstr "Overview"
@@ -1277,6 +1275,8 @@ msgstr "Session review"
 #. How many sessions testers started in a campaign
 #. How many sessions testers started in a campaign
 #. The report's tab with each session's ratings
+#. The tab with a campaign's sessions, its first page for its participants
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaigns/components/CampaignSummary.tsx
 msgid "Sessions"

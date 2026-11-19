@@ -82,8 +82,8 @@ export function ParticipantCampaignFrame({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <TabsList>
             <TabsTrigger value="overview">
-              <Trans comment="The tab with the first page of a campaign, for its participants">
-                Overview
+              <Trans comment="The tab with a campaign's sessions, its first page for its participants">
+                Sessions
               </Trans>
             </TabsTrigger>
             {campaignRole === "reviewer" ? (

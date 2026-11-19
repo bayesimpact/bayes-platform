@@ -91,10 +91,10 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   pages, where the campaign shows in the Reviewer or Tester sub-menu of Campaigns. A person who
   only takes part holds no agent: their sidebar names the agent (`CampaignSidebarHeader` in
   `features/campaign-context`) above a Campaigns menu with those sub-menus alone. The campaign's own pages are tabs, each at
-  its own URL (`ParticipantCampaignFrame` in `features/campaign-context`): Overview and Report for
-  a reviewer, under `review/`; Overview and Final survey for a tester, under `test/`. A tester's
-  overview starts a conversation and lists their sessions; a reviewer's lists the sessions to
-  review.
+  its own URL (`ParticipantCampaignFrame` in `features/campaign-context`): below the agent's card:
+  Sessions and Report for a reviewer, under `review/`; Sessions and Final survey for a tester,
+  under `test/`. A tester's Sessions starts a session and lists theirs; a reviewer's lists the
+  sessions to review.
 - The top bar of the page holds its way back and its actions: `PageHeader`'s `back` and `actions`
   go there (`HeaderBack`, `HeaderActions`), so they stay in view as the page scrolls, and the
   title stays in the page. At phone width, the back link keeps its arrow only and the actions go
