@@ -95,6 +95,8 @@ export const reviewCampaignOutputSchema = z.object({
   organizationId: z.uuid(),
   projectId: z.uuid(),
   agentId: z.uuid(),
+  /** The saved version of the agent's settings the whole campaign runs on. */
+  agentSettingsId: z.uuid(),
   name: z.string(),
   description: z.string().nullable(),
   status: reviewCampaignStatusSchema,
@@ -147,6 +149,8 @@ export type ReviewCampaignDetailOutputDto = z.output<typeof reviewCampaignDetail
 
 /** What a campaign is made of, as its editor sends it. */
 const reviewCampaignConfigShape = {
+  /** A saved version of the agent, never its draft. The API takes the one in production without it. */
+  agentSettingsId: z.uuid(),
   name: z.string().trim().min(1),
   description: z.string().trim().nullable(),
   testerPerSessionQuestions: z.array(reviewCampaignQuestionInputSchema),
@@ -157,6 +161,7 @@ const reviewCampaignConfigShape = {
 export const createReviewCampaignInputSchema = z.strictObject({
   agentId: z.uuid(),
   ...reviewCampaignConfigShape,
+  agentSettingsId: reviewCampaignConfigShape.agentSettingsId.optional(),
 })
 
 export type CreateReviewCampaignInputDto = z.input<typeof createReviewCampaignInputSchema>

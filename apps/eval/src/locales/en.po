@@ -221,6 +221,13 @@ msgctxt "form"
 msgid "Agent"
 msgstr "Agent"
 
+#. The saved version of the agent's settings a review campaign runs on
+#. The saved version of the agent's settings a review campaign runs on
+#: src/features/campaigns/components/AgentVersionField.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Agent version"
+msgstr "Agent version"
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 msgstr "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
@@ -228,6 +235,10 @@ msgstr "An account already exists for your email address, and this platform does
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
 msgstr "An account is waiting for your email address, but your identity provider has not verified it yet."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "An archived version"
+msgstr "An archived version"
 
 #. Opens a note on the passage of a reply the person selected
 #: src/features/conversation/components/SelectionActions.tsx
@@ -326,6 +337,10 @@ msgstr "Captured form"
 #: src/components/shared/RouteErrorState.tsx
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
+
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Choose the version the campaign runs on."
+msgstr "Choose the version the campaign runs on."
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "Close “{name}”?"
@@ -742,6 +757,11 @@ msgstr "If the page stays blank, its site does not allow being shown here: open 
 #: src/components/shared/Markdown.tsx
 msgid "Image"
 msgstr "Image"
+
+#. The version of an agent its live channels run with
+#: src/features/campaigns/components/AgentVersionTitle.tsx
+msgid "In production"
+msgstr "In production"
 
 #: src/features/conversation/components/McpAppCard.tsx
 msgid "Interactive card"
@@ -1251,6 +1271,10 @@ msgstr "Save changes"
 msgid "Save your changes first."
 msgstr "Save your changes first."
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Saved on {savedOn}"
+msgstr "Saved on {savedOn}"
+
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
@@ -1489,6 +1513,10 @@ msgstr "Tester {testerId}, started {started}"
 msgid "Tester feedback"
 msgstr "Tester feedback"
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Testers chat with this version and reviewers read it, for the whole campaign."
+msgstr "Testers chat with this version and reviewers read it, for the whole campaign."
+
 #. The language of a code block that names none
 #: src/components/shared/HighlightedCodeBlock.tsx
 msgid "text"
@@ -1696,6 +1724,10 @@ msgstr "Thinking…"
 msgid "This agent has no published version yet. Publish it, then create the campaign."
 msgstr "This agent has no published version yet. Publish it, then create the campaign."
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "This agent has no saved version yet. Save its settings in the Studio, then come back."
+msgstr "This agent has no saved version yet. Save its settings in the Studio, then come back."
+
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "This campaign asks its testers no factual question."
 msgstr "This campaign asks its testers no factual question."
@@ -1816,6 +1848,11 @@ msgstr "Using a tool"
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Verify your email"
 msgstr "Verify your email"
+
+#. A saved version of an agent's settings, by its number
+#: src/features/campaigns/components/AgentVersionTitle.tsx
+msgid "Version {revision}"
+msgstr "Version {revision}"
 
 #. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
 #: src/features/account/components/UserMenu.tsx

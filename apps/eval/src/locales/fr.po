@@ -221,6 +221,13 @@ msgctxt "form"
 msgid "Agent"
 msgstr "Agent"
 
+#. The saved version of the agent's settings a review campaign runs on
+#. The saved version of the agent's settings a review campaign runs on
+#: src/features/campaigns/components/AgentVersionField.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Agent version"
+msgstr "Version de l'agent"
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne relie pas une nouvelle connexion à un compte existant."
@@ -228,6 +235,10 @@ msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
 msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "An archived version"
+msgstr "Une version archivée"
 
 #. Opens a note on the passage of a reply the person selected
 #: src/features/conversation/components/SelectionActions.tsx
@@ -326,6 +337,10 @@ msgstr "Formulaire collecté"
 #: src/components/shared/RouteErrorState.tsx
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
+
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Choose the version the campaign runs on."
+msgstr "Choisissez la version sur laquelle tourne la campagne."
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "Close “{name}”?"
@@ -742,6 +757,11 @@ msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-l
 #: src/components/shared/Markdown.tsx
 msgid "Image"
 msgstr "Image"
+
+#. The version of an agent its live channels run with
+#: src/features/campaigns/components/AgentVersionTitle.tsx
+msgid "In production"
+msgstr "En production"
 
 #: src/features/conversation/components/McpAppCard.tsx
 msgid "Interactive card"
@@ -1251,6 +1271,10 @@ msgstr "Enregistrer les modifications"
 msgid "Save your changes first."
 msgstr "Enregistrez d'abord vos modifications."
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Saved on {savedOn}"
+msgstr "Enregistrée le {savedOn}"
+
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
@@ -1489,6 +1513,10 @@ msgstr "Testeur {testerId}, démarrée le {started}"
 msgid "Tester feedback"
 msgstr "Retour du testeur"
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Testers chat with this version and reviewers read it, for the whole campaign."
+msgstr "Les testeurs discutent avec cette version et les relecteurs la lisent, pendant toute la campagne."
+
 #. The language of a code block that names none
 #: src/components/shared/HighlightedCodeBlock.tsx
 msgid "text"
@@ -1696,6 +1724,10 @@ msgstr "Réflexion…"
 msgid "This agent has no published version yet. Publish it, then create the campaign."
 msgstr "Cet agent n'a pas encore de version publiée. Publiez-le, puis créez la campagne."
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "This agent has no saved version yet. Save its settings in the Studio, then come back."
+msgstr "Cet agent n'a pas encore de version enregistrée. Enregistrez ses paramètres dans le Studio, puis revenez."
+
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "This campaign asks its testers no factual question."
 msgstr "Cette campagne ne pose aucune question factuelle à ses testeurs."
@@ -1816,6 +1848,11 @@ msgstr "Utilisation d'un outil"
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Verify your email"
 msgstr "Vérifiez votre email"
+
+#. A saved version of an agent's settings, by its number
+#: src/features/campaigns/components/AgentVersionTitle.tsx
+msgid "Version {revision}"
+msgstr "Version {revision}"
 
 #. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
 #: src/features/account/components/UserMenu.tsx

@@ -91,7 +91,11 @@ const PAGES = {
   },
   NewCampaign: {
     Story: pageStories.NewCampaign,
-    loaded: () => screen.findByRole("button", { name: "Next" }),
+    loaded: () => screen.findByRole("radio", { name: /Version 3/ }),
+  },
+  NewCampaignWithNoSavedVersion: {
+    Story: pageStories.NewCampaignWithNoSavedVersion,
+    loaded: () => screen.findByText(/This agent has no saved version yet/),
   },
   DraftCampaign: {
     Story: pageStories.DraftCampaign,
@@ -132,6 +136,10 @@ const PAGES = {
   LockedSetup: {
     Story: pageStories.LockedSetup,
     loaded: () => screen.findByRole("tab", { name: "Session review" }),
+  },
+  ClosedCampaignSetup: {
+    Story: pageStories.ClosedCampaignSetup,
+    loaded: () => screen.findByText("Version 2"),
   },
   ClosedCampaign: {
     Story: pageStories.ClosedCampaign,

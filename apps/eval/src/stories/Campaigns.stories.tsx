@@ -1,7 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { campaignEditorUrlOf, campaignsUrlOf } from "@/test/eval-urls"
-import { buildNoCampaignWorld, type EvalWorld } from "@/test/factories/eval-world.factory"
+import {
+  buildNoCampaignWorld,
+  buildNoSavedVersionWorld,
+  type EvalWorld,
+} from "@/test/factories/eval-world.factory"
 import { evaluation } from "@/test/msw/story-api"
 import { evalMeta } from "./eval-meta"
 
@@ -27,9 +31,20 @@ export const NoCampaign: Story = {
   parameters: evaluation({ world: buildNoCampaignWorld, url: campaignsUrlOf }),
 }
 
-/** The first step of a new campaign: its name. The next step creates it as a draft. */
+/**
+ * The first step of a new campaign: its name, and the saved version of the agent it runs on, the
+ * one in production at first. The next step creates it as a draft.
+ */
 export const NewCampaign: Story = {
   parameters: evaluation({ url: (world) => `${campaignsUrlOf(world)}/new` }),
+}
+
+/** A new campaign for an agent never saved: it has no version to run on yet. */
+export const NewCampaignWithNoSavedVersion: Story = {
+  parameters: evaluation({
+    world: buildNoSavedVersionWorld,
+    url: (world) => `${campaignsUrlOf(world)}/new`,
+  }),
 }
 
 /** A draft opens on the first step of its setup, which it can leave and come back to. */
@@ -103,6 +118,13 @@ export const ActiveCampaignOnPhone: Story = {
 export const LockedSetup: Story = {
   parameters: evaluation({
     url: (world) => `${campaignEditorUrlOf(world, "Support assistant pilot")}?tab=setup`,
+  }),
+}
+
+/** A closed campaign's setup, which ran on an older version of the agent than the one in production. */
+export const ClosedCampaignSetup: Story = {
+  parameters: evaluation({
+    url: (world) => `${campaignEditorUrlOf(world, "Spring review")}?tab=setup`,
   }),
 }
 

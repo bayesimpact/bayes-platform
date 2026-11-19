@@ -7,7 +7,7 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { buildMe } from "../factories/account.factory"
 import { buildEvalWorld, type EvalWorld } from "../factories/eval-world.factory"
-import { campaignHandlers } from "./campaign-handlers"
+import { agentVersionsOf, campaignHandlers } from "./campaign-handlers"
 import { apiError, mockRoute } from "./mock-route"
 
 /** The routes that read a world, for the signed-in person: projects, agents and review campaigns. */
@@ -19,6 +19,7 @@ export function worldHandlers(world: EvalWorld, me = buildMe()) {
     mockRoute(EvalAgentsRoutes.getAllOfProject, ({ params }) =>
       world.agents.filter((agent) => agent.projectId === params.projectId),
     ),
+    mockRoute(EvalAgentsRoutes.getVersions, ({ params }) => agentVersionsOf(world, params.agentId)),
     ...campaignHandlers(world, me),
     ...invitationHandlers(world),
   ]

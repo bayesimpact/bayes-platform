@@ -36,6 +36,7 @@ describe("the campaign form", () => {
 
   it("refuses a question with no prompt, and a single choice with one option", () => {
     const values = {
+      agentSettingsId: crypto.randomUUID(),
       name: "Spring pilot",
       description: "",
       testerPerSessionQuestions: [{ ...question, prompt: " " }],
@@ -53,6 +54,7 @@ describe("the campaign form", () => {
 
   it("sends no description when it is blank, and reads a campaign back into the form", () => {
     const values = {
+      agentSettingsId: crypto.randomUUID(),
       name: "Spring pilot",
       description: "  ",
       testerPerSessionQuestions: [question],
@@ -62,6 +64,7 @@ describe("the campaign form", () => {
     const input = campaignConfigInputOf(values)
 
     expect(input.description).toBeNull()
+    expect(input.agentSettingsId).toBe(values.agentSettingsId)
     expect(
       campaignFormValuesOf({
         id: crypto.randomUUID(),
@@ -72,6 +75,7 @@ describe("the campaign form", () => {
         createdAt: 0,
         updatedAt: 0,
         ...input,
+        agentSettingsId: values.agentSettingsId,
       }).testerPerSessionQuestions,
     ).toEqual([{ ...question, optionsText: "Yes, Partially, No" }])
   })

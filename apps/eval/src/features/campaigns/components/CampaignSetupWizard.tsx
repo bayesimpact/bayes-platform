@@ -152,7 +152,12 @@ export function CampaignSetupWizard({
         }
       >
         {step === "campaign" ? (
-          <CampaignGeneralFields form={form} agentName={agent.name} isLocked={false} />
+          <CampaignGeneralFields
+            form={form}
+            agentName={agent.name}
+            agentParams={agentParams}
+            isLocked={false}
+          />
         ) : null}
         {step === "session" ? (
           <QuestionListEditor

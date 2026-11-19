@@ -25,8 +25,8 @@ export type NewCampaignPageProps = {
 }
 
 /**
- * The first step of a new campaign: its name and what it is for. The next one creates it as a
- * draft, with the default questions, and opens its second step.
+ * The first step of a new campaign: its name, what it is for and the version of the agent it runs
+ * on. The next one creates it as a draft, with the default questions, and opens its second step.
  */
 export function NewCampaignPage({ agent, agentParams, defaultValues }: NewCampaignPageProps) {
   const { t } = useLingui()
@@ -78,7 +78,12 @@ export function NewCampaignPage({ agent, agentParams, defaultValues }: NewCampai
       />
       {/* The campaign does not exist yet: no other step opens before the first one is done. */}
       <SetupStepper currentStep="campaign" canOpen={() => false} onOpen={() => {}} />
-      <CampaignGeneralFields form={form} agentName={agent.name} isLocked={false} />
+      <CampaignGeneralFields
+        form={form}
+        agentName={agent.name}
+        agentParams={agentParams}
+        isLocked={false}
+      />
       <SetupStepFooter onNext={() => void handleNext()} isPending={createCampaign.isPending} />
     </PageContainer>
   )

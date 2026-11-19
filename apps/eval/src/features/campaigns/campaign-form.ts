@@ -33,6 +33,7 @@ export function blankQuestion(): QuestionFormValues {
 /** The form's values of an existing campaign. */
 export function campaignFormValuesOf(campaign: ReviewCampaignOutputDto): CampaignFormValues {
   return {
+    agentSettingsId: campaign.agentSettingsId,
     name: campaign.name,
     description: campaign.description ?? "",
     testerPerSessionQuestions: campaign.testerPerSessionQuestions.map(questionFormValuesOf),
@@ -65,6 +66,7 @@ export function campaignConfigInputOf(
   values: CampaignFormValues,
 ): Omit<CreateReviewCampaignInputDto, "agentId"> {
   return {
+    agentSettingsId: values.agentSettingsId,
     name: values.name,
     description: values.description.trim() === "" ? null : values.description,
     testerPerSessionQuestions: values.testerPerSessionQuestions.map((question) =>

@@ -8,9 +8,11 @@ import {
   campaignsUrlOf,
   routerPathOf,
 } from "@/test/eval-urls"
+import { agentVersionIdOf } from "@/test/factories/agents.factory"
 import {
   buildEvalWorld,
   buildNoCampaignWorld,
+  buildNoSavedVersionWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/eval-world.factory"
 import { worldHandlers } from "@/test/msw/handlers"
@@ -99,6 +101,46 @@ describe("a new campaign", () => {
       routerPathOf(campaignEditorUrlOf(world, "Autumn pilot")),
     )
     expect(router.state.location.search).toEqual({ step: "session" })
+  })
+
+  it("runs on the version in production unless the manager picks another saved one", async () => {
+    const world = buildNoCampaignWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignsUrlOf(world)}/new`)
+
+    // The saved versions, newest first: the draft is not one of them.
+    const versions = await screen.findAllByRole("radio")
+    expect(versions).toHaveLength(4)
+    expect(screen.getByRole("radio", { name: /Version 3.*In production/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    )
+    expect(screen.queryByRole("radio", { name: /Version 5/ })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("radio", { name: /Version 2/ }))
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+    expect(await screen.findByRole("heading", { name: "After each session" })).toBeInTheDocument()
+    const [agent] = world.agents
+    if (!agent) throw new Error("The world has an agent")
+    expect(world.campaigns[0]?.agentSettingsId).toBe(agentVersionIdOf(agent, 2))
+  })
+
+  it("says when the agent has no saved version, and creates nothing", async () => {
+    const world = buildNoSavedVersionWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignsUrlOf(world)}/new`)
+
+    expect(await screen.findByText(/This agent has no saved version yet/)).toBeInTheDocument()
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Campaign" })).toHaveAttribute(
+        "aria-current",
+        "step",
+      ),
+    )
+    expect(world.campaigns).toEqual([])
   })
 
   it("asks for a name before it creates the campaign", async () => {
@@ -305,6 +347,16 @@ describe("a campaign's editor", () => {
 
     expect(await screen.findByText("Mean tester rating")).toBeInTheDocument()
     expect(page().getByText("Closed")).toBeInTheDocument()
+  })
+
+  it("names the version of the agent a campaign ran on, read-only", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignEditorUrlOf(world, "Spring review")}?tab=setup`)
+
+    expect(await screen.findByText("Version 2")).toBeInTheDocument()
+    expect(screen.getByText("Product catalog")).toBeInTheDocument()
+    expect(screen.queryByRole("radio", { name: /Version/ })).not.toBeInTheDocument()
   })
 
   it("opens a closed campaign on its summary", async () => {

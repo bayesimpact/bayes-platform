@@ -1,3 +1,4 @@
+export { agentVersionsQueryOptions } from "./api/queries"
 export { defaultCampaignValues } from "./campaign-defaults"
 export { CampaignPage } from "./components/CampaignPage"
 export { CampaignPageFrame } from "./components/CampaignPageFrame"
@@ -9,6 +10,7 @@ export {
   hasCampaignPages,
   loadCampaign,
   loadCampaigns,
+  loadNewCampaign,
   prefetchCampaigns,
   requireCampaignAgent,
 } from "./load-campaigns"
