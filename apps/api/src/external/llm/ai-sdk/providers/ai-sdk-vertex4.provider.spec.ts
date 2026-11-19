@@ -48,12 +48,9 @@ describe("AISDKVertex4Provider options", () => {
   }
   const provider = new TestableProvider()
 
+  // Google refuses flex for the Gemini 4 models: the LLM service never asks for it.
   it.each(
-    // Google refuses flex for gemini-4-carbon: the LLM service never asks for it.
-    vertex4Models.flatMap((model) => [
-      [model, "priority"],
-      ...(model === AgentModel.Gemini4Carbon ? [] : [[model, "flex"]]),
-    ]) as [AgentModel, "priority" | "flex"][],
+    vertex4Models.map((model) => [model, "priority"]) as [AgentModel, "priority"][],
   )("sends %s with the %s shared request type of the call", (model, serviceTier) => {
     expect(provider.specificProviderOptionsFor({ ...configFor(model), serviceTier })).toMatchObject(
       { providerOptions: { vertex: { sharedRequestType: serviceTier } } },

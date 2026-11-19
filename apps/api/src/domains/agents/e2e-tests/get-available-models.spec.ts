@@ -132,7 +132,7 @@ describe("Agents - getAvailableModels", () => {
       provider: AgentProvider.Vertex3,
       deprecation: {
         deprecatedOn: "2026-11-19",
-        recommendedReplacement: AgentModel.Gemini4Hydrogen,
+        recommendedReplacement: AgentModel.Gemini38Flash,
       },
       servedOutsideEu: false,
     })

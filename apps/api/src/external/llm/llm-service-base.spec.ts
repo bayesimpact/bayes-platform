@@ -147,8 +147,6 @@ describe("LlmServiceBase.buildLLMConfig", () => {
     it.each([
       AgentModel.Gemini35FlashLite,
       AgentModel.Gemini38Flash,
-      AgentModel.Gemini4Argon,
-      AgentModel.Gemini4Hydrogen,
       AgentModel.Gpt54,
       AgentModel.Gpt54Mini,
     ])("asks for flex with the extended timeouts on %s", (model) => {
@@ -194,7 +192,12 @@ describe("LlmServiceBase.buildLLMConfig", () => {
       ["the model is a Claude one", { model: AgentModel.ClaudeSonnet55 }],
       ["the model is a Gemini 2.5 one", { model: AgentModel.Gemini25Flash }],
       ["the model is a vLLM one", { model: AgentModel.Gemma4_26B }],
+      ["Google refuses flex for the model (gemini-4-argon)", { model: AgentModel.Gemini4Argon }],
       ["Google refuses flex for the model (gemini-4-carbon)", { model: AgentModel.Gemini4Carbon }],
+      [
+        "Google refuses flex for the model (gemini-4-hydrogen)",
+        { model: AgentModel.Gemini4Hydrogen },
+      ],
     ])("asks for no flex when %s", (_case, overrides) => {
       const config = new TestLlmService().build({ ...flexParams, ...overrides })
       expect(config.serviceTier).toBeUndefined()

@@ -92,7 +92,7 @@ const CATALOG: {
   {
     model: AgentModel.Gemini36Flash,
     provider: AgentProvider.Vertex3,
-    deprecation: { deprecatedOn: "2026-11-19", recommendedReplacement: AgentModel.Gemini4Hydrogen },
+    deprecation: { deprecatedOn: "2026-11-19", recommendedReplacement: AgentModel.Gemini38Flash },
     isDefault: false,
     defaultOptions: vertexOptions({ thinkingLevel: "medium" }),
     thinkingLevels: ALL_THINKING_LEVELS,

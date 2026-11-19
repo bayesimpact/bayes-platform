@@ -65,7 +65,7 @@ export class AISDKVertex3Provider extends AISDKGeminiProviderBase<AgentProvider.
     [AgentModel.Gemini36Flash]: {
       deprecation: {
         deprecatedOn: "2026-11-19",
-        recommendedReplacement: AgentModel.Gemini4Hydrogen,
+        recommendedReplacement: AgentModel.Gemini38Flash,
       },
     },
     [AgentModel.Gemini37Flash]: {

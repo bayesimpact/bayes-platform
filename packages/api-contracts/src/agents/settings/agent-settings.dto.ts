@@ -88,9 +88,14 @@ const SERVICE_TIER_PROVIDERS: readonly AgentProvider[] = [
 
 /**
  * Models of a service tier provider that Google refuses on flex: Vertex AI answers a 400 "Flex
- * API is not supported for model" (probe of 2026-11-19). They still take priority.
+ * API is not supported for model" for every Gemini 4 model (probe of 2026-11-19). They still
+ * take priority.
  */
-const MODELS_WITHOUT_FLEX: readonly AgentModel[] = [AgentModel.Gemini4Carbon]
+const MODELS_WITHOUT_FLEX: readonly AgentModel[] = [
+  AgentModel.Gemini4Argon,
+  AgentModel.Gemini4Carbon,
+  AgentModel.Gemini4Hydrogen,
+]
 
 /** Whether `model` can be called with a service tier (priority, and flex unless excluded). */
 export function supportsServiceTiers(model: string | undefined): boolean {
