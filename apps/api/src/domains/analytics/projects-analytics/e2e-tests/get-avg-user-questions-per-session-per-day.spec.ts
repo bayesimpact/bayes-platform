@@ -99,15 +99,19 @@ describe("Projects Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
     await repositories.agentSettingsRepository.save([primaryAgentSettings, secondaryAgentSettings])
 
     const session1Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
     const session2Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 2 * 3600 * 1000), updatedAt: new Date() })
     const session3Day2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: new Date(day2Start.getTime() + 3600 * 1000), updatedAt: new Date() })
     const session4Day2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: secondaryAgent, user })
       .build({ createdAt: new Date(day2Start.getTime() + 2 * 3600 * 1000), updatedAt: new Date() })
 

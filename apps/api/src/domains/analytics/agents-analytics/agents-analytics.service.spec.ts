@@ -58,12 +58,15 @@ describe("AgentsAnalyticsService", () => {
     await repositories.agentSettingsRepository.save([agentSettingsAlpha, agentSettingsBeta])
 
     const sessionAlpha1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: agentAlpha, user })
       .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
     const sessionAlpha2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: agentAlpha, user })
       .build({ createdAt: hours(2).after(day1Start), updatedAt: new Date() })
     const sessionBeta1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: agentBeta, user })
       .build({ createdAt: hours(3).after(day1Start), updatedAt: new Date() })
 
@@ -173,6 +176,7 @@ describe("AgentsAnalyticsService", () => {
     await repositories.agentRepository.save(otherAgent)
 
     const leakedSession = conversationAgentSessionFactory
+      .live()
       .transient({
         organization: otherOrganization,
         project: otherProject,
@@ -228,13 +232,16 @@ describe("AgentsAnalyticsService", () => {
       .save({ agentId: agent.id, name: "billing" })
 
     const categorizedSession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
     const uncategorizedSession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: hours(2).after(day2Start), updatedAt: new Date() })
     // No user message: an empty session is not a conversation, so it is not uncategorized either.
     const emptySession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: hours(3).after(day2Start), updatedAt: new Date() })
     await repositories.conversationAgentSessionRepository.save([
@@ -299,6 +306,7 @@ describe("AgentsAnalyticsService", () => {
     await repositories.agentSettingsRepository.save(agentSettings)
 
     const conversationSession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
     await repositories.conversationAgentSessionRepository.save(conversationSession)

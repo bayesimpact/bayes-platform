@@ -67,12 +67,15 @@ describe("Agents Analytics - getEmptySessionsPerDay", () => {
     agentId = agent.id
 
     const conversationDay1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
     const greetingOnlyDay1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 2 * 3600 * 1000), updatedAt: new Date() })
     const noMessageDay2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day2Start.getTime() + 3600 * 1000), updatedAt: new Date() })
     await repositories.conversationAgentSessionRepository.save([
