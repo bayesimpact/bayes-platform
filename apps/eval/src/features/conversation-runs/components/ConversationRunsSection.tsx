@@ -22,7 +22,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { flattenEvaluationAgents, useEvaluationWorkspace } from "@/features/agents"
 import { fullDateTimeOf } from "@/lib/format-time"
 import { useDeleteConversationRun } from "../api/mutations"
 import { projectConversationRunsQueryOptions } from "../api/queries"
@@ -37,7 +36,7 @@ export type ConversationRunsSectionProps = {
 }
 
 /**
- * The runs of a dataset by any conversation agent of its project, in one sub-tab per status, the
+ * The runs of the agent on a dataset, in one sub-tab per status, the
  * newest first in each.
  */
 export function ConversationRunsSection({
@@ -47,14 +46,13 @@ export function ConversationRunsSection({
 }: ConversationRunsSectionProps) {
   const { t, i18n } = useLingui()
   const { data: projectRuns } = useSuspenseQuery(projectConversationRunsQueryOptions(dataset))
-  const { groups } = useEvaluationWorkspace()
   const [deleted, setDeleted] = useState<ConversationRunOutputDto | null>(null)
   const deleteRun = useDeleteConversationRun(dataset)
+  // The agent's own runs: the sidebar names the agent, so the page is about it alone.
   const runs = projectRuns.filter(
-    (run) => run.evaluationConversationDatasetId === dataset.datasetId,
-  )
-  const agentNames = new Map(
-    flattenEvaluationAgents(groups).map((agent) => [agent.id, agent.name] as const),
+    (run) =>
+      run.evaluationConversationDatasetId === dataset.datasetId &&
+      run.agentId === agentParams.agentId,
   )
   const runCount = runs.length
   // The statuses that hold runs, in the order of the sub-tabs.
@@ -98,7 +96,6 @@ export function ConversationRunsSection({
                 runs={runs.filter((run) => run.status === status)}
                 agentParams={agentParams}
                 datasetId={dataset.datasetId}
-                agentNames={agentNames}
                 onDelete={canDelete ? setDeleted : null}
               />
             </TabsContent>
@@ -134,14 +131,12 @@ type RunsTableProps = {
   runs: ConversationRunOutputDto[]
   agentParams: AgentParamsDto
   datasetId: string
-  /** The names of the project's agents, by id. */
-  agentNames: Map<string, string>
   /** Asks to delete a run, for who may; none hides the action. */
   onDelete: ((run: ConversationRunOutputDto) => void) | null
 }
 
 /** The runs that stand at one status. */
-function RunsTable({ runs, agentParams, datasetId, agentNames, onDelete }: RunsTableProps) {
+function RunsTable({ runs, agentParams, datasetId, onDelete }: RunsTableProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { t, i18n } = useLingui()
@@ -149,7 +144,6 @@ function RunsTable({ runs, agentParams, datasetId, agentNames, onDelete }: RunsT
     data: runs,
     columns: conversationRunColumnsOf({
       agent: agentParams,
-      agentNames,
       locale: i18n.locale,
       translate: (descriptor) => i18n._(descriptor),
       renderActions: (run) => {

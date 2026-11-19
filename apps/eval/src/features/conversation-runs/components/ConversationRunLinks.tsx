@@ -14,13 +14,16 @@ export type ConversationRunLinksProps = {
 }
 
 /**
- * The runs of the open dataset, under it in the sidebar, grouped by where they stand: each by
+ * The agent's runs of the open dataset, under it in the sidebar, grouped by where they stand: each by
  * when it started, the newest first.
  */
 export function ConversationRunLinks({ agentParams, datasetId }: ConversationRunLinksProps) {
   const { i18n } = useLingui()
   const { data: projectRuns } = useSuspenseQuery(projectConversationRunsQueryOptions(agentParams))
-  const runs = projectRuns.filter((run) => run.evaluationConversationDatasetId === datasetId)
+  const runs = projectRuns.filter(
+    (run) =>
+      run.evaluationConversationDatasetId === datasetId && run.agentId === agentParams.agentId,
+  )
   if (runs.length === 0) {
     return (
       <p className="px-4 py-1 text-xs text-muted-foreground">

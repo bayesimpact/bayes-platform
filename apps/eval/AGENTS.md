@@ -162,8 +162,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
   project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
-  then opens its page. The Runs tab (`ConversationRunsSection`) lists the dataset's runs by any
-  agent of the project, in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). A run's page, `evaluations/$datasetId/runs/$runId`
+  then opens its page. The Runs tab (`ConversationRunsSection`) lists the agent's runs of the dataset (a run
+  of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). A run's page, `evaluations/$datasetId/runs/$runId`
   (`ConversationRunPage`), shows its figures, what it used, and all its records, read as a dataset's, with
   Cancel while it is under way, Retry after a failure, and Delete. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.

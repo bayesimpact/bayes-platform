@@ -12,7 +12,6 @@ const columnHelper = createColumnHelper<ConversationRunOutputDto>()
 /** The texts of the headers, which the table translates. */
 const runColumnLabels = {
   started: msg({ message: "Started", comment: "The header of the column of when a run started" }),
-  agent: msg({ message: "Agent", comment: "The agent a run evaluated" }),
   version: msg({ message: "Version", comment: "The version of the agent a run evaluated" }),
   judge: msg({ message: "Judge model", comment: "The model that graded a run" }),
   score: msg({ message: "Score", comment: "The average score of a run" }),
@@ -22,14 +21,11 @@ const runColumnLabels = {
 /** The columns of the runs of a dataset that stand at one status: a date opens its run. */
 export function conversationRunColumnsOf({
   agent,
-  agentNames,
   locale,
   translate,
   renderActions,
 }: {
   agent: AgentParamsDto
-  /** The names of the project's agents, by id: a run may be another agent's. */
-  agentNames: Map<string, string>
   locale: string
   translate: (descriptor: MessageDescriptor) => string
   /** What a row offers: the way to its run, and what the person can do with it. */
@@ -52,10 +48,6 @@ export function conversationRunColumnsOf({
           {fullDateTimeOf(context.getValue(), locale)}
         </Link>
       ),
-    }),
-    columnHelper.accessor((run) => agentNames.get(run.agentId) ?? "", {
-      id: "agent",
-      header: translate(runColumnLabels.agent),
     }),
     columnHelper.accessor((run) => run.agentSettings.revision, {
       id: "version",

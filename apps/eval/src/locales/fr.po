@@ -289,9 +289,7 @@ msgstr "administrateur"
 msgid "After each session"
 msgstr "Après chaque session"
 
-#. The agent a run evaluated
 #. What an invitation gives access to
-#: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Agent"
 msgstr "Agent"
