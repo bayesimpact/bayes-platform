@@ -47,11 +47,16 @@ export function TesterSessionPage({ sessionParams }: TesterSessionPageProps) {
           <Trans comment="The link back to the campaign from one of its sessions">Back</Trans>
         </BackLink>
       </HeaderBack>
-      {/* The tester knows who reads what they write here before they write it. */}
-      <p className="flex shrink-0 items-center justify-center gap-2 border-b bg-muted/50 px-4 py-2 text-center text-sm text-muted-foreground">
-        <EyeIcon aria-hidden className="size-4 shrink-0" />
-        <Trans>The reviewers of this campaign can read everything exchanged in this session.</Trans>
-      </p>
+      {/* The tester knows who reads what they write here before they write it. Above the fade of
+          the bar, which would otherwise wash it out. */}
+      <div className="relative z-20 shrink-0 px-4 pt-2">
+        <p className="mx-auto flex max-w-3xl items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-center text-sm text-foreground">
+          <EyeIcon aria-hidden className="size-4 shrink-0 text-primary" />
+          <Trans>
+            The reviewers of this campaign can read everything exchanged in this session.
+          </Trans>
+        </p>
+      </div>
       <ConversationView
         conversation={conversation}
         agentName={context.agent.name}
