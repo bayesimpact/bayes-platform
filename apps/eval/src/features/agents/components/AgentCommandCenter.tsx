@@ -1,4 +1,4 @@
-import type { AgentTypeDto } from "@caseai-connect/eval-contracts"
+import { type AgentTypeDto, agentTypeSchema } from "@caseai-connect/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
@@ -48,13 +48,14 @@ function matchesEveryWord(names: string[], search: string): number {
   return words.every((word) => text.includes(word)) ? 1 : 0
 }
 
-/** One section per type of agent, in this order, each named once rather than on every line. */
+/**
+ * One section per type of agent, in the order of the contracts, each named once rather than on
+ * every line.
+ */
 const AGENT_TYPE_SECTIONS = {
   conversation: msg`Conversation agents`,
   extraction: msg`Extraction agents`,
 } satisfies Record<AgentTypeDto, MessageDescriptor>
-
-const AGENT_TYPES = ["conversation", "extraction"] as const satisfies readonly AgentTypeDto[]
 
 /**
  * The command center that switches agent: every agent of the person, by project, then within
@@ -78,12 +79,18 @@ export function AgentCommandCenter({
   // One section per project and type: a search that leaves no agent of a type in a project hides
   // that section alone, and the project's name stays on the other one.
   const sections = groups.flatMap(({ project, agents }) =>
-    AGENT_TYPES.flatMap((type) => {
+    agentTypeSchema.options.flatMap((type) => {
       const agentsOfType = agents.filter((agent) => agent.type === type)
       if (agentsOfType.length === 0) return []
+      const projectName = project.name
+      const organizationName = project.organization.name
       const place = hasSeveralOrganizations
-        ? `${project.name} · ${project.organization.name}`
-        : project.name
+        ? t({
+            message: `${projectName} · ${organizationName}`,
+            comment:
+              "A project and its organization, above its agents in the list that switches agent",
+          })
+        : projectName
       return [{ key: `${project.id}-${type}`, place, type, agents: agentsOfType }]
     }),
   )
@@ -105,45 +112,52 @@ export function AgentCommandCenter({
           </DialogDescription>
         </DialogHeader>
         <Command
+          label={t`Search an agent`}
           className="rounded-none! p-0"
           // An item's value is the agent's id, which a search must not match: only its names do.
           filter={(_agentId, search, names = []) => matchesEveryWord(names, search)}
         >
           <CommandSearchInput
             placeholder={t`Search an agent or a project…`}
-            end={<Kbd className="hidden sm:inline-flex">Esc</Kbd>}
+            end={
+              <Kbd className="hidden sm:inline-flex">
+                {t({ message: "Esc", comment: "The Escape key of a keyboard" })}
+              </Kbd>
+            }
           />
           <CommandList className="max-h-96 p-2">
             <CommandEmpty>
               <Trans>No agent matches this search.</Trans>
             </CommandEmpty>
-            {sections.map((section) => (
-              <CommandGroup
-                key={section.key}
-                heading={
-                  hasSeveralProjects ? (
-                    <>
-                      <span className="text-foreground">{section.place}</span>
-                      {" · "}
-                      {i18n._(AGENT_TYPE_SECTIONS[section.type])}
-                    </>
-                  ) : (
-                    i18n._(AGENT_TYPE_SECTIONS[section.type])
-                  )
-                }
-                className="**:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:pt-3"
-              >
-                {section.agents.map((agent) => (
-                  <AgentCommandItem
-                    key={agent.id}
-                    agent={agent}
-                    keywords={[agent.name, agent.project.name, agent.project.organization.name]}
-                    isCurrent={agent.id === currentAgentId}
-                    onSelect={() => onSelect(agent)}
-                  />
-                ))}
-              </CommandGroup>
-            ))}
+            {sections.map((section) => {
+              const place = section.place
+              const typeName = i18n._(AGENT_TYPE_SECTIONS[section.type])
+              return (
+                <CommandGroup
+                  key={section.key}
+                  heading={
+                    hasSeveralProjects ? (
+                      <Trans comment="A section of the list that switches agent: where its agents are, then their type">
+                        <span className="text-foreground">{place}</span> · {typeName}
+                      </Trans>
+                    ) : (
+                      typeName
+                    )
+                  }
+                  className="**:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:pt-3"
+                >
+                  {section.agents.map((agent) => (
+                    <AgentCommandItem
+                      key={agent.id}
+                      agent={agent}
+                      keywords={[agent.name, agent.project.name, agent.project.organization.name]}
+                      isCurrent={agent.id === currentAgentId}
+                      onSelect={() => onSelect(agent)}
+                    />
+                  ))}
+                </CommandGroup>
+              )
+            })}
             {campaignAgents.length > 0 ? (
               <CommandGroup
                 heading={

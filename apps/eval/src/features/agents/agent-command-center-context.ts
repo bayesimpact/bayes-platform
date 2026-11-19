@@ -5,7 +5,7 @@ export const AgentCommandCenterContext = createContext<(() => void) | null>(null
 
 /**
  * The way to open the command center that switches agent, for the buttons that show it. `null`
- * when the person has one agent: there is nothing to switch to.
+ * when the person has one agent: there is nothing to switch to, and no button shows.
  */
 export function useOpenAgentCommandCenter(): (() => void) | null {
   return use(AgentCommandCenterContext)

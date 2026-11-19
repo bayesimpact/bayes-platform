@@ -1,4 +1,4 @@
-export { switchableAgentCountOf } from "./campaign-agents"
+export { useOpenAgentCommandCenter } from "./agent-command-center-context"
 export { AgentCommandCenterProvider } from "./components/AgentCommandCenterProvider"
 export { AgentSidebarHeader } from "./components/AgentSidebarHeader"
 export { AgentSwitcher } from "./components/AgentSwitcher"

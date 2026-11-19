@@ -91,7 +91,10 @@ describe("the app's home", () => {
     const { router } = renderApp("/eval/")
 
     const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
-    await userEvent.type(within(dialog).getByRole("combobox"), "pricing")
+    await userEvent.type(
+      within(dialog).getByRole("combobox", { name: "Search an agent" }),
+      "pricing",
+    )
     expect(
       within(dialog)
         .getAllByRole("option")
@@ -135,7 +138,7 @@ describe("the app's home", () => {
 
     await userEvent.keyboard(COMMAND_CENTER_SHORTCUT)
     const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
-    await userEvent.type(within(dialog).getByRole("combobox"), "zzz")
+    await userEvent.type(within(dialog).getByRole("combobox", { name: "Search an agent" }), "zzz")
 
     expect(await within(dialog).findByText("No agent matches this search.")).toBeInTheDocument()
     expect(within(dialog).queryByRole("option")).not.toBeInTheDocument()

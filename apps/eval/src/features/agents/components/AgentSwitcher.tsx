@@ -2,22 +2,22 @@ import { useLingui } from "@lingui/react/macro"
 import { ChevronsUpDownIcon } from "lucide-react"
 import { ShortcutHint } from "@/components/shared/ShortcutHint"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
-import { useOpenAgentCommandCenter } from "../agent-command-center-context"
 import { AgentIdentity, type AgentIdentityProps } from "./AgentIdentity"
 
 export type AgentSwitcherProps = {
   currentAgent: AgentIdentityProps["agent"]
   /** Whether to name the agent's project, which matters only when there are several. */
   showProject: boolean
+  /** Opens the command center. */
+  onOpen: () => void
 }
 
 /**
  * The button at the top of the sidebar that names the current agent and opens the command
  * center to switch to another one, with the shortcut that does the same.
  */
-export function AgentSwitcher({ currentAgent, showProject }: AgentSwitcherProps) {
+export function AgentSwitcher({ currentAgent, showProject, onOpen }: AgentSwitcherProps) {
   const { t } = useLingui()
-  const openCommandCenter = useOpenAgentCommandCenter()
   const agentName = currentAgent.name
   return (
     <SidebarMenu>
@@ -27,7 +27,7 @@ export function AgentSwitcher({ currentAgent, showProject }: AgentSwitcherProps)
           size={showProject ? "lg" : "default"}
           aria-label={t`Switch agent, current agent: ${agentName}`}
           aria-haspopup="dialog"
-          onClick={() => openCommandCenter?.()}
+          onClick={onOpen}
         >
           <AgentIdentity agent={currentAgent} showProject={showProject} />
           <ShortcutHint letter="K" />

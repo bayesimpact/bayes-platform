@@ -64,6 +64,11 @@ msgstr "{otherCount, plural, one {# other reviewer reviewed this session.} other
 msgid "{pending, plural, one {# to review} other {# to review}}"
 msgstr "{pending, plural, one {# to review} other {# to review}}"
 
+#. A project and its organization, above its agents in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "{projectName} · {organizationName}"
+msgstr "{projectName} · {organizationName}"
+
 #: src/features/campaigns/components/FeedbackFormPreview.tsx
 msgid "{questionCount, plural, one {# question} other {# questions}}"
 msgstr "{questionCount, plural, one {# question} other {# questions}}"
@@ -120,6 +125,11 @@ msgstr "{total, plural, one {# session} other {# sessions}}"
 #: src/features/conversation/components/Composer.tsx
 msgid "<0/> to send"
 msgstr "<0/> to send"
+
+#. A section of the list that switches agent: where its agents are, then their type
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "<0>{place}</0> · {typeName}"
+msgstr "<0>{place}</0> · {typeName}"
 
 #: src/features/conversation/components/Composer.tsx
 msgid "<0><1/><2/></0> for a new line"
@@ -538,6 +548,11 @@ msgstr "End the session and give feedback"
 #: src/features/conversation/components/EnterKey.tsx
 msgid "Enter"
 msgstr "Enter"
+
+#. The Escape key of a keyboard
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Esc"
+msgstr "Esc"
 
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Evaluate the agent's answers and share your feedback."
@@ -1230,6 +1245,10 @@ msgstr "Save your changes first."
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent"
+msgstr "Search an agent"
 
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Search an agent by its name, its project or its organization."

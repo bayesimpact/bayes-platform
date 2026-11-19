@@ -1,4 +1,4 @@
-import { switchableAgentCountOf } from "../campaign-agents"
+import { useOpenAgentCommandCenter } from "../agent-command-center-context"
 import type { EvaluationAgent } from "../evaluation-agents"
 import { useEvaluationWorkspace } from "../hooks/use-evaluation-workspace"
 import { AgentIdentity } from "./AgentIdentity"
@@ -13,10 +13,16 @@ export type AgentSidebarHeaderProps = {
  * that switches agent; with one, it simply shows.
  */
 export function AgentSidebarHeader({ currentAgent }: AgentSidebarHeaderProps) {
-  const workspace = useEvaluationWorkspace()
-  const { groups } = workspace
-  if (switchableAgentCountOf(workspace) > 1) {
-    return <AgentSwitcher currentAgent={currentAgent} showProject={groups.length > 1} />
+  const { groups } = useEvaluationWorkspace()
+  const openCommandCenter = useOpenAgentCommandCenter()
+  if (openCommandCenter) {
+    return (
+      <AgentSwitcher
+        currentAgent={currentAgent}
+        showProject={groups.length > 1}
+        onOpen={openCommandCenter}
+      />
+    )
   }
   return (
     <div className="flex h-8 items-center gap-2 p-2 text-sm">
