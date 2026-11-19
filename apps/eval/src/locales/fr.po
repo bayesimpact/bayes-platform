@@ -25,6 +25,10 @@ msgstr "{0, plural, one {La ligne {invalidList} n'a pas d'entrée ou pas de rép
 msgid "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongList} are too long.}}"
 msgstr "{0, plural, one {La ligne {tooLongList} est trop longue.} other {Les lignes {tooLongList} sont trop longues.}}"
 
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
+msgstr "{agentName} répond aux enregistrements de {datasetName}, et un modèle juge note chaque réponse par rapport à la réponse attendue."
+
 #: src/features/conversation/components/Composer.tsx
 msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
 msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
@@ -52,6 +56,11 @@ msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}
 #: src/features/campaign-report/components/QuestionDistribution.tsx
 msgid "{count} answers, {percent}"
 msgstr "{count} réponses, {percent}"
+
+#. Under the title of a run: the dataset it asked and the agent's version
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "{datasetName} · {agentName}, version {revision}"
+msgstr "{datasetName} · {agentName}, version {revision}"
 
 #: src/features/campaigns/components/PendingInvitations.tsx
 msgid "{deletedEmail} will no longer be able to accept it."
@@ -91,6 +100,10 @@ msgstr "{questionCount, plural, one {# question} other {# questions}}"
 msgid "{recordCount, plural, one {Add # record} other {Add # records}}"
 msgstr "{recordCount, plural, one {Ajouter # enregistrement} other {Ajouter # enregistrements}}"
 
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "{recordCount, plural, one {The # record of the dataset} other {All # records of the dataset}}"
+msgstr "{recordCount, plural, one {L'unique enregistrement du jeu de données} other {Les # enregistrements du jeu de données}}"
+
 #: src/features/campaign-report/components/QuestionDistribution.tsx
 msgid "{responseCount, plural, one {# answer} other {# answers}}"
 msgstr "{responseCount, plural, one {# réponse} other {# réponses}}"
@@ -114,6 +127,10 @@ msgstr "L'accès de {revokedEmail} n'a pas pu être retiré. Réessayez."
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "{revokedEmail} was revoked."
 msgstr "L'accès de {revokedEmail} a été retiré."
+
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "{runCount, plural, =0 {No run yet} one {# run} other {# runs}}"
+msgstr "{runCount, plural, =0 {Aucune exécution pour l'instant} one {# exécution} other {# exécutions}}"
 
 #: src/features/campaigns/components/ActivateStep.tsx
 msgid "{sessionCount, plural, one {# question} other {# questions}}"
@@ -162,6 +179,12 @@ msgstr "<0><1/><2/></0> pour aller à la ligne"
 msgid "<0>Comment:</0> {comment}"
 msgstr "<0>Commentaire :</0> {comment}"
 
+#. Before the error that stopped a record of a run
+#. placeholder {0}: errorDetails ?? "–"
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+msgid "<0>Error:</0> {0}"
+msgstr "<0>Erreur :</0> {0}"
+
 #: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
 msgid "A dataset holds the questions an evaluation asks the agent."
 msgstr "Un jeu de données contient les questions qu'une évaluation pose à l'agent."
@@ -177,6 +200,10 @@ msgstr "Une nouvelle version de l'Évaluation est disponible. Rechargez la page.
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the app is available"
 msgstr "Une nouvelle version de l'application est disponible"
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "A run evaluates a saved version, never the draft."
+msgstr "Une exécution évalue une version enregistrée, jamais le brouillon."
 
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Accept"
@@ -230,6 +257,10 @@ msgstr "Ajouter une question"
 msgid "Add a record"
 msgstr "Ajouter un enregistrement"
 
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+msgid "Add a record first."
+msgstr "Ajoutez d'abord un enregistrement."
+
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 msgid "Add records"
 msgstr "Ajouter des enregistrements"
@@ -253,7 +284,9 @@ msgstr "administrateur"
 msgid "After each session"
 msgstr "Après chaque session"
 
+#. The agent a run evaluated
 #. What an invitation gives access to
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Agent"
 msgstr "Agent"
@@ -263,6 +296,25 @@ msgstr "Agent"
 msgctxt "form"
 msgid "Agent"
 msgstr "Agent"
+
+#. The saved version of an agent that an evaluation asks
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Agent version"
+msgstr "Version de l'agent"
+
+#. What the agent answered in a run
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+msgid "Agent's answer"
+msgstr "Réponse de l'agent"
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Agent's instructions"
+msgstr "Instructions de l'agent"
+
+#. The model of the agent in a run
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Agent's model"
+msgstr "Modèle de l'agent"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
@@ -329,6 +381,11 @@ msgstr "Joignez un fichier PDF, PNG ou JPEG."
 msgid "Attachment"
 msgstr "Pièce jointe"
 
+#. The average score of a run
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Average score"
+msgstr "Score moyen"
+
 #. Goes to the step before, in a campaign's setup
 #. The link back to the campaign from one of its sessions
 #: src/features/campaign-test/components/TesterSessionPage.tsx
@@ -382,9 +439,20 @@ msgstr "Peut-on changer d'offre plus tard ?, Oui, à tout moment, depuis la page
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 #: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Cancel"
 msgstr "Annuler"
+
+#. Stops a run under way
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Cancel the run"
+msgstr "Annuler l'exécution"
+
+#. A run that a person stopped
+#: src/features/conversation-runs/run-status.ts
+msgid "Cancelled"
+msgstr "Annulée"
 
 #: src/features/campaign-review/components/FormResultPanel.tsx
 msgid "Captured form"
@@ -422,6 +490,11 @@ msgstr "La clôture est définitive : les testeurs ne peuvent plus démarrer de 
 #: src/features/campaigns/components/FeedbackFormFields.tsx
 msgid "Comment"
 msgstr "Commentaire"
+
+#. A run that is over
+#: src/features/conversation-runs/run-status.ts
+msgid "Completed"
+msgstr "Terminée"
 
 #: src/features/conversation/components/FormsButton.tsx
 msgid "Completed form"
@@ -535,6 +608,8 @@ msgstr "Refuser l’invitation à {name}"
 #. Deletes a dataset
 #. Deletes a dataset
 #. Deletes a record of a dataset
+#. Deletes a run
+#. Deletes a run
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 #: src/features/campaigns/components/PendingInvitations.tsx
@@ -542,6 +617,8 @@ msgstr "Refuser l’invitation à {name}"
 #: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 #: src/features/conversation-datasets/components/DatasetRowActions.tsx
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
 msgid "Delete"
 msgstr "Supprimer"
 
@@ -572,6 +649,11 @@ msgstr "Supprimer cette invitation ?"
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "Delete this record?"
 msgstr "Supprimer cet enregistrement ?"
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "Delete this run?"
+msgstr "Supprimer cette exécution ?"
 
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 msgid "Delete this session?"
@@ -607,6 +689,10 @@ msgstr "Télécharger le CSV"
 #: src/lib/campaign-status.ts
 msgid "Draft"
 msgstr "Brouillon"
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "e.g. Accept an answer that gives the right fact, whatever its wording."
+msgstr "ex. Accepter une réponse qui donne le bon fait, quelle que soit sa formulation."
 
 #: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 msgid "e.g. Pricing questions"
@@ -671,6 +757,11 @@ msgstr "Terminer la session et donner mon retour"
 msgid "Enter"
 msgstr "Entrée"
 
+#. How many records of a run an error stopped
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Errors"
+msgstr "Erreurs"
+
 #. The Escape key of a keyboard
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Esc"
@@ -710,8 +801,10 @@ msgstr "Les évaluations ne sont pas encore ici"
 
 #. The answer an evaluation expects from the agent
 #. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
 msgid "Expected output"
 msgstr "Réponse attendue"
 
@@ -727,6 +820,11 @@ msgstr "Agents d'extraction"
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Factual"
 msgstr "Factuelle"
+
+#. A run that an error stopped
+#: src/features/conversation-runs/run-status.ts
+msgid "Failed"
+msgstr "En échec"
 
 #. Whether the tester gave feedback on a session
 #: src/features/campaign-test/components/tester-session-columns.tsx
@@ -797,6 +895,10 @@ msgstr "Issue des questionnaires finaux des testeurs."
 msgid "General"
 msgstr "Général"
 
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Give a number of records, 1 or more."
+msgstr "Donnez un nombre d'enregistrements, 1 ou plus."
+
 #: src/components/shared/RatedFeedbackForm.tsx
 msgid "Give a rating from 1 to 5 stars."
 msgstr "Donnez une note de 1 à 5 étoiles."
@@ -817,6 +919,13 @@ msgstr "Donnez un nom à la campagne."
 #: src/features/conversation/components/GoodReplyButton.tsx
 msgid "Good reply"
 msgstr "Bonne réponse"
+
+#. How many records of a run are graded
+#. How many records of a run the judge graded
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Graded"
+msgstr "Notés"
 
 #. Before the first message an agent says in a new session
 #: src/features/campaign-context/components/CampaignAgentCard.tsx
@@ -848,6 +957,10 @@ msgstr "Accueil"
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
 
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "How many records"
+msgstr "Nombre d'enregistrements"
+
 #: src/features/campaigns/campaign-defaults.ts
 msgid "How satisfied are you with this agent overall?"
 msgstr "Dans l'ensemble, êtes-vous satisfait de cet agent ?"
@@ -872,10 +985,20 @@ msgstr "Image"
 
 #. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
+#. What an evaluation sends to the agent
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
 msgid "Input"
 msgstr "Entrée"
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Instructions for the judge"
+msgstr "Instructions pour le juge"
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Instructions for the judge (optional)"
+msgstr "Instructions pour le juge (facultatif)"
 
 #: src/features/conversation/components/McpAppCard.tsx
 msgid "Interactive card"
@@ -907,6 +1030,15 @@ msgstr "Invitation envoyée <0/>"
 #: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
 msgid "Its records and its runs keep their place."
 msgstr "Ses enregistrements et ses exécutions restent en place."
+
+#. The model that graded a run
+#. The model that graded a run
+#. The model that grades the answers of an evaluation
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Judge model"
+msgstr "Modèle juge"
 
 #. Something that happened less than a minute ago
 #: src/components/shared/RelativeTime.tsx
@@ -974,6 +1106,7 @@ msgstr "Messages"
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 #: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "More actions"
 msgstr "Plus d’actions"
 
@@ -984,6 +1117,10 @@ msgstr "Plus d'actions sur {name}"
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "More actions on the record"
 msgstr "Plus d'actions sur l'enregistrement"
+
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "More actions on the run of {started}"
+msgstr "Plus d'actions sur l'exécution du {started}"
 
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Move question {position} down"
@@ -1068,6 +1205,10 @@ msgstr "Aucun jeu de données pour l'instant."
 msgid "No description"
 msgstr "Pas de description"
 
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "No evaluation ran on this dataset yet."
+msgstr "Aucune évaluation n'a encore été lancée sur ce jeu de données."
+
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "No participant yet."
 msgstr "Aucun participant pour le moment."
@@ -1104,9 +1245,18 @@ msgstr "Aucune session pour le moment : le tableau se remplit quand les testeurs
 msgid "No session yet."
 msgstr "Aucune session pour l'instant."
 
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "None"
+msgstr "Aucune"
+
 #: src/components/shared/AnswerList.tsx
 msgid "Not answered"
 msgstr "Sans réponse"
+
+#. A record of a run stopped before the agent answered it
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+msgid "Not asked"
+msgstr "Non posée"
 
 #: src/features/campaign-review/components/FormResultPanel.tsx
 msgid "Not collected"
@@ -1141,10 +1291,16 @@ msgstr "Une réponse par session sur laquelle un testeur a donné son retour."
 msgid "One answer per tester who filled the final survey."
 msgstr "Une réponse par testeur qui a rempli le questionnaire final."
 
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Only the first ones, to try"
+msgstr "Seulement les premiers, pour essayer"
+
 #. Opens a dataset from the list of datasets
+#. Opens a run from the list of runs
 #. Opens a session with the agent
 #: src/features/campaign-test/components/tester-session-columns.tsx
 #: src/features/conversation-datasets/components/DatasetRowActions.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
 msgid "Open"
 msgstr "Ouvrir"
 
@@ -1165,9 +1321,18 @@ msgstr "Ouvrir dans un nouvel onglet"
 msgid "Open on YouTube"
 msgstr "Ouvrir sur YouTube"
 
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "Open the run of {started}"
+msgstr "Ouvrir l'exécution du {started}"
+
 #: src/features/campaign-test/components/TesterSessionsTable.tsx
 msgid "Open the session of {started}"
 msgstr "Ouvrir la session du {started}"
+
+#. A link to the trace of the agent's answer
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+msgid "Open the trace"
+msgstr "Ouvrir la trace"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
@@ -1280,12 +1445,19 @@ msgstr "Ouvrir « {name} » ?"
 
 #. How many records a dataset holds
 #. The pasted lines that become the records of a dataset
+#. The tab with the records of a dataset
 #. The title of the records of a dataset
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 #: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "Records"
 msgstr "Enregistrements"
+
+#. How much of a dataset an evaluation asks
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Records to ask"
+msgstr "Enregistrements à poser"
 
 #: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
@@ -1365,6 +1537,13 @@ msgstr "Redimensionner le panneau"
 msgid "Resize the sidebar"
 msgstr "Redimensionner le panneau latéral"
 
+#. The title of the records of a run
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Results"
+msgstr "Résultats"
+
+#. Asks again the records of a run that failed
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Retry"
 msgstr "Réessayer"
@@ -1448,6 +1627,25 @@ msgstr "Rôle"
 msgid "Rows {first}–{last} of {count}"
 msgstr "Lignes {first} à {last} sur {count}"
 
+#. Starts an evaluation
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Run"
+msgstr "Lancer"
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Run an evaluation"
+msgstr "Lancer une évaluation"
+
+#. Opens the dialog that starts an evaluation of the agent on a dataset
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+msgid "Run evaluation"
+msgstr "Lancer une évaluation"
+
+#. The title of a run's page, by when it started
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Run of {started}"
+msgstr "Exécution du {started}"
+
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Run this agent on datasets of conversations, and read how it answered."
 msgstr "Lancez cet agent sur des jeux de données de conversations, puis lisez ses réponses."
@@ -1455,6 +1653,20 @@ msgstr "Lancez cet agent sur des jeux de données de conversations, puis lisez s
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Run this agent on datasets of documents, and read what it extracted."
 msgstr "Lancez cet agent sur des jeux de données de documents, puis lisez ce qu'il a extrait."
+
+#. A run that asks the agent its records
+#: src/features/conversation-runs/run-status.ts
+msgid "Running"
+msgstr "En cours"
+
+#. The link back from a run to the runs of its dataset
+#. The tab with the runs of a dataset
+#. The title of the runs of a dataset
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "Runs"
+msgstr "Exécutions"
 
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "Save"
@@ -1468,6 +1680,13 @@ msgstr "Enregistrer les modifications"
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "Save your changes first."
 msgstr "Enregistrez d'abord vos modifications."
+
+#. The average score of a run
+#. The score the judge gave an answer
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+msgid "Score"
+msgstr "Score"
 
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
@@ -1628,17 +1847,21 @@ msgstr "Écart"
 msgid "Start a session"
 msgstr "Démarrer une session"
 
+#. The header of the column of when a run started
 #. When a session started
 #. When a session started
 #. When a session started
 #: src/features/campaign-report/components/report-session-columns.tsx
 #: src/features/campaign-review/components/reviewer-session-columns.tsx
 #: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
 msgid "Started"
 msgstr "Démarrée le"
 
 #. Where a review campaign stands
+#. Where a run stands
 #: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
 msgid "Status"
 msgstr "Statut"
 
@@ -1731,6 +1954,10 @@ msgstr "L'agent répond…"
 #: src/features/campaign-review/components/FormResultPanel.tsx
 msgid "The agent's form has no field."
 msgstr "Le formulaire de l'agent n'a aucun champ."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The agent's instructions and model at this version, and the judge's."
+msgstr "Les instructions et le modèle de l'agent à cette version, et ceux du juge."
 
 #: src/features/conversation/components/FormsPanel.tsx
 msgid "The answers the agent collected from the conversation, as it fills them in."
@@ -1830,6 +2057,14 @@ msgstr "Le document n'a pas pu être ouvert. Réessayez."
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "Le brouillon et ses questions sont supprimés définitivement. Une campagne active ou clôturée ne peut pas être supprimée."
 
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "The evaluation could not start. Try again."
+msgstr "L'évaluation n'a pas pu démarrer. Réessayez."
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "The evaluation started."
+msgstr "L'évaluation a démarré."
+
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "The file could not be opened. Try again."
 msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
@@ -1873,6 +2108,10 @@ msgstr "La moyenne des notes que les testeurs ont données à leurs sessions."
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 msgid "The message a person would send to the agent."
 msgstr "Le message qu'une personne enverrait à l'agent."
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "The model that compares each answer with the expected output."
+msgstr "Le modèle qui compare chaque réponse à la réponse attendue."
 
 #: src/features/campaigns/components/InviteParticipantsForm.tsx
 msgid "The people could not be invited. Try again."
@@ -1934,6 +2173,37 @@ msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 msgid "The reviewers of this campaign can read everything exchanged in this session."
 msgstr "Les relecteurs de cette campagne peuvent lire tout ce qui est échangé dans cette session."
 
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "The run and its results are deleted for good."
+msgstr "L'exécution et ses résultats sont supprimés définitivement."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The run could not be cancelled. Try again."
+msgstr "L'exécution n'a pas pu être annulée. Réessayez."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "The run could not be deleted. Try again."
+msgstr "L'exécution n'a pas pu être supprimée. Réessayez."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The run could not start again. Try again."
+msgstr "L'exécution n'a pas pu être relancée. Réessayez."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The run started again."
+msgstr "L'exécution a été relancée."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The run was cancelled."
+msgstr "L'exécution a été annulée."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "The run was deleted."
+msgstr "L'exécution a été supprimée."
+
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 msgid "The session and its messages are deleted for good."
 msgstr "La session et ses messages sont supprimés définitivement."
@@ -1986,6 +2256,10 @@ msgstr "Réflexion…"
 msgid "This agent has no published version yet. Publish it, then create the campaign."
 msgstr "Cet agent n'a pas encore de version publiée. Publiez-le, puis créez la campagne."
 
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "This agent has no saved version yet. Save one in the Studio, then run the evaluation."
+msgstr "Cet agent n'a pas encore de version enregistrée. Enregistrez-en une dans le Studio, puis lancez l'évaluation."
+
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "This campaign asks its testers no factual question."
 msgstr "Cette campagne ne pose aucune question factuelle à ses testeurs."
@@ -2030,6 +2304,14 @@ msgstr "Cette question n'a pas encore d'option."
 #: src/features/conversation/components/AssistantMessageView.tsx
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "This run failed before it asked a record."
+msgstr "Cette exécution a échoué avant de poser un enregistrement."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "This run has no record yet."
+msgstr "Cette exécution n'a pas encore d'enregistrement."
 
 #: src/features/campaign-review/components/SessionTranscript.tsx
 msgid "This session has no message."
@@ -2113,6 +2395,19 @@ msgstr "Utilisation d'un outil"
 msgid "Verify your email"
 msgstr "Vérifiez votre email"
 
+#. The version of the agent a run evaluated
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+msgid "Version"
+msgstr "Version"
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Version {revision}"
+msgstr "Version {revision}"
+
+#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+msgid "Version {revision} · In production"
+msgstr "Version {revision} · En production"
+
 #. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
 #: src/features/account/components/UserMenu.tsx
 msgid "Version {version}"
@@ -2126,6 +2421,13 @@ msgstr "Voir"
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "View session {id}"
 msgstr "Voir la session {id}"
+
+#. A record of a run the agent has not answered yet
+#. A run that has not started yet
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/run-status.ts
+msgid "Waiting"
+msgstr "En attente"
 
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Was the agent's answer clear?"
@@ -2165,6 +2467,10 @@ msgstr "Ce que l'agent a noté"
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "What the tester reported about what happened in this session."
 msgstr "Ce que le testeur a rapporté sur le déroulement de cette session."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "What this run used"
+msgstr "Ce que cette exécution a utilisé"
 
 #: src/features/campaign-test/components/TesterSurveyPage.tsx
 msgid "What went well? What could be better?"

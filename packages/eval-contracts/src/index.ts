@@ -2,6 +2,7 @@
 export * from "./account/account.dto"
 export { EvalAccountRoutes } from "./account/account.routes"
 // Agents
+export * from "./agents/agent-versions.dto"
 export * from "./agents/agents.dto"
 export { EvalAgentsRoutes } from "./agents/agents.routes"
 // Common
@@ -17,6 +18,8 @@ export { EvalDocumentsRoutes } from "./documents/documents.routes"
 // Evaluations
 export * from "./evaluations/conversation-datasets.dto"
 export { EvalConversationDatasetsRoutes } from "./evaluations/conversation-datasets.routes"
+export * from "./evaluations/conversation-runs.dto"
+export { EvalConversationRunsRoutes } from "./evaluations/conversation-runs.routes"
 // Invitations
 export * from "./invitations/invitations.dto"
 export { EvalMyInvitationsRoutes } from "./invitations/invitations.routes"

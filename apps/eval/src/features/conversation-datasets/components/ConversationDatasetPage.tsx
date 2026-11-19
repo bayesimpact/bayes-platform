@@ -3,11 +3,13 @@ import {
   type ConversationDatasetParamsDto,
   EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { EllipsisIcon, PencilIcon, PlayIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
@@ -19,9 +21,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
+import { ConversationRunsSection, RunEvaluationDialog } from "@/features/conversation-runs"
 import { fullDateTimeOf } from "@/lib/format-time"
 import { projectConversationDatasetsQueryOptions } from "../api/queries"
+import type { ConversationDatasetTab } from "../schemas"
 import {
   type ConversationDatasetAction,
   ConversationDatasetDialogs,
@@ -32,15 +37,21 @@ export type ConversationDatasetPageProps = {
   agent: EvaluationAgent
   agentParams: AgentParamsDto
   datasetParams: ConversationDatasetParamsDto
+  /** The tab shown: the dataset's records, or its runs. */
+  tab: ConversationDatasetTab
   /** The page of records shown, counted from 0. */
   page: number
 }
 
-/** A conversation dataset: its name, which its owner changes, and its records. */
+/**
+ * A conversation dataset: its name, which its owner changes, its records and its runs, in two
+ * tabs, with the way to a new evaluation of the agent on it.
+ */
 export function ConversationDatasetPage({
   agent,
   agentParams,
   datasetParams,
+  tab,
   page,
 }: ConversationDatasetPageProps) {
   const { t, i18n } = useLingui()
@@ -48,7 +59,7 @@ export function ConversationDatasetPage({
   const { data: datasets } = useSuspenseQuery(
     projectConversationDatasetsQueryOptions(datasetParams),
   )
-  const [action, setAction] = useState<ConversationDatasetAction | null>(null)
+  const [action, setAction] = useState<ConversationDatasetAction | "run" | null>(null)
   const dataset = datasets.find((candidate) => candidate.id === datasetParams.datasetId)
   // The loader found the dataset: it is missing only while its deletion leaves the page.
   if (!dataset) return null
@@ -56,6 +67,11 @@ export function ConversationDatasetPage({
   const canUpdate = can(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION)
   const canDelete = can(EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION)
   const updated = fullDateTimeOf(dataset.updatedAt, i18n.locale)
+  const canRun = can(EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION)
+  const datasetPage = {
+    to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
+    params: { ...agentParams, datasetId: datasetParams.datasetId },
+  } as const
   return (
     <PageContainer>
       <PageHeader
@@ -74,49 +90,99 @@ export function ConversationDatasetPage({
           </Trans>
         }
         actions={
-          canUpdate || canDelete ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
+          <>
+            {canRun ? (
+              <Button
+                disabled={dataset.recordCount === 0}
+                title={dataset.recordCount === 0 ? t`Add a record first.` : undefined}
+                onClick={() => setAction("run")}
               >
-                <EllipsisIcon aria-hidden />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {canUpdate ? (
-                  <DropdownMenuItem onClick={() => setAction({ kind: "rename", dataset })}>
-                    <PencilIcon aria-hidden />
-                    <Trans comment="Renames a dataset">Rename</Trans>
-                  </DropdownMenuItem>
-                ) : null}
-                {canDelete ? (
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => setAction({ kind: "delete", dataset })}
-                  >
-                    <Trash2Icon aria-hidden />
-                    <Trans comment="Deletes a dataset">Delete</Trans>
-                  </DropdownMenuItem>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null
+                <PlayIcon data-icon="inline-start" aria-hidden />
+                <Trans comment="Opens the dialog that starts an evaluation of the agent on a dataset">
+                  Run evaluation
+                </Trans>
+              </Button>
+            ) : null}
+            {canUpdate || canDelete ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
+                >
+                  <EllipsisIcon aria-hidden />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canUpdate ? (
+                    <DropdownMenuItem onClick={() => setAction({ kind: "rename", dataset })}>
+                      <PencilIcon aria-hidden />
+                      <Trans comment="Renames a dataset">Rename</Trans>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {canDelete ? (
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => setAction({ kind: "delete", dataset })}
+                    >
+                      <Trash2Icon aria-hidden />
+                      <Trans comment="Deletes a dataset">Delete</Trans>
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+          </>
         }
       />
-      <ConversationRecordsSection
-        dataset={datasetParams}
-        page={page}
-        canEdit={canUpdate}
-        onPageChange={(nextPage) =>
-          void navigate({
-            to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
-            params: { ...agentParams, datasetId: datasetParams.datasetId },
-            search: { page: nextPage === 0 ? undefined : nextPage },
-          })
+      <Tabs
+        value={tab}
+        onValueChange={(value) =>
+          void navigate({ ...datasetPage, search: { tab: value === "runs" ? "runs" : undefined } })
         }
-      />
+      >
+        <TabsList>
+          <TabsTrigger value="records">
+            <Trans comment="The tab with the records of a dataset">Records</Trans>
+          </TabsTrigger>
+          <TabsTrigger value="runs">
+            <Trans comment="The tab with the runs of a dataset">Runs</Trans>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+      {tab === "runs" ? (
+        <ConversationRunsSection
+          agentParams={agentParams}
+          dataset={datasetParams}
+          canDelete={can(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION)}
+        />
+      ) : (
+        <ConversationRecordsSection
+          dataset={datasetParams}
+          page={page}
+          canEdit={canUpdate}
+          onPageChange={(nextPage) =>
+            void navigate({
+              ...datasetPage,
+              search: { page: nextPage === 0 ? undefined : nextPage },
+            })
+          }
+        />
+      )}
+      {action === "run" ? (
+        <RunEvaluationDialog
+          agent={agent}
+          agentParams={agentParams}
+          dataset={dataset}
+          onClose={() => setAction(null)}
+          onStarted={(run) =>
+            void navigate({
+              to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId",
+              params: { ...agentParams, datasetId: dataset.id, runId: run.id },
+            })
+          }
+        />
+      ) : null}
       <ConversationDatasetDialogs
         project={datasetParams}
-        action={action}
+        action={action === "run" ? null : action}
         onClose={() => setAction(null)}
         onDeleted={() =>
           void navigate({

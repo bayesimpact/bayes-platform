@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fireEvent, userEvent, within } from "storybook/test"
-import { conversationDatasetUrlOf, evaluationsUrlOf } from "@/test/eval-urls"
+import { conversationDatasetUrlOf, conversationRunUrlOf, evaluationsUrlOf } from "@/test/eval-urls"
 import { buildSeveralProjectsWorld } from "@/test/factories/eval-world.factory"
 import { evaluation } from "@/test/msw/story-api"
 import { evalMeta } from "./eval-meta"
@@ -78,4 +78,35 @@ export const AddSeveralRecords: Story = {
       },
     })
   },
+}
+
+/** The runs of a dataset: one under way, one over and one that failed. */
+export const DatasetRuns: Story = {
+  parameters: evaluation({
+    url: (world) => `${conversationDatasetUrlOf(world, "Pricing questions")}?tab=runs`,
+  }),
+}
+
+/** The dialog that starts an evaluation: the agent's version, the judge and how many records. */
+export const RunEvaluation: Story = {
+  parameters: evaluation({ url: (world) => conversationDatasetUrlOf(world, "Pricing questions") }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: "Run evaluation" }))
+  },
+}
+
+/** A run that is over: its figures, then each record with the agent's answer and its score. */
+export const CompletedRun: Story = {
+  parameters: evaluation({ url: (world) => conversationRunUrlOf(world, "completed") }),
+}
+
+/** A run under way, which a person can cancel: some records wait for their answer. */
+export const RunUnderWay: Story = {
+  parameters: evaluation({ url: (world) => conversationRunUrlOf(world, "running") }),
+}
+
+/** A run that failed before it asked a record, which a person can retry. */
+export const FailedRun: Story = {
+  parameters: evaluation({ url: (world) => conversationRunUrlOf(world, "failed") }),
 }

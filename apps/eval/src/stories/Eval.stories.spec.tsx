@@ -31,9 +31,8 @@ const {
 } = composeStories(generalStories)
 const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
   composeStories(campaignStories)
-const { NewDataset, AddRecord, AddSeveralRecords, ...conversationEvaluationPages } = composeStories(
-  conversationEvaluationStories,
-)
+const { NewDataset, AddRecord, AddSeveralRecords, RunEvaluation, ...conversationEvaluationPages } =
+  composeStories(conversationEvaluationStories)
 // The reviewer and the tester both have a story named after their campaign.
 const { ClosedCampaign: ReviewerClosedCampaign, ...reviewerPages } = composeStories(reviewerStories)
 const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStories)
@@ -65,6 +64,22 @@ const PAGES = {
   DatasetSecondPage: {
     Story: pageStories.DatasetSecondPage,
     loaded: () => screen.findByText("Rows 11–12 of 12"),
+  },
+  DatasetRuns: {
+    Story: pageStories.DatasetRuns,
+    loaded: () => screen.findByText("3 runs"),
+  },
+  CompletedRun: {
+    Story: pageStories.CompletedRun,
+    loaded: () => screen.findByText("11 / 12"),
+  },
+  RunUnderWay: {
+    Story: pageStories.RunUnderWay,
+    loaded: () => screen.findByRole("button", { name: "Cancel the run" }),
+  },
+  FailedRun: {
+    Story: pageStories.FailedRun,
+    loaded: () => screen.findByText("This run failed before it asked a record."),
   },
   EmptyDataset: {
     Story: pageStories.EmptyDataset,
@@ -238,6 +253,21 @@ describe("the stories of the app", () => {
 
     const dialog = await screen.findByRole("dialog", { name: "New dataset" })
     expect(within(dialog).getByRole("textbox", { name: "Name" })).toBeInTheDocument()
+  })
+
+  it("RunEvaluation picks the version in production and the default judge", async () => {
+    await RunEvaluation.load()
+    const { container } = render(<RunEvaluation />)
+    await act(() => RunEvaluation.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Run an evaluation" })
+    expect(within(dialog).getByRole("combobox", { name: "Agent version" })).toHaveDisplayValue(
+      "Version 2 · In production",
+    )
+    expect(within(dialog).getByRole("combobox", { name: "Judge model" })).toHaveValue("model-large")
+    expect(
+      within(dialog).getByRole("radio", { name: "All 12 records of the dataset" }),
+    ).toBeChecked()
   })
 
   it("AddRecord asks a record's input and expected output", async () => {

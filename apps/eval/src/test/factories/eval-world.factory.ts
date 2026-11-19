@@ -15,6 +15,9 @@ import {
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
@@ -30,6 +33,7 @@ import {
   buildPricingDatasets,
   type ConversationDatasetRecord,
 } from "./conversation-datasets.factory"
+import { buildPricingRuns, type ConversationRunRecord } from "./conversation-runs.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
 import { buildInvitation } from "./invitations.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
@@ -59,6 +63,9 @@ const MANAGER_PERMISSIONS = [
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
 ]
 
 /**
@@ -72,6 +79,8 @@ export type EvalWorld = {
   campaigns: ReviewCampaignDetailOutputDto[]
   /** The conversation datasets of the projects, each with its records. */
   conversationDatasets: ConversationDatasetRecord[]
+  /** The conversation runs of the projects, each with its records, newest first. */
+  conversationRuns: ConversationRunRecord[]
   /** The pending invitations of each campaign, by campaign id. */
   invitations: Record<string, CampaignInvitationOutputDto[]>
   /** The report of each campaign, by campaign id: an empty one when none is set. */
@@ -99,6 +108,7 @@ export type EvalWorld = {
 const emptyCampaignData = {
   campaigns: [],
   conversationDatasets: [],
+  conversationRuns: [],
   invitations: {},
   reports: {},
   myCampaignRoles: {},
@@ -141,6 +151,8 @@ export function buildEvalWorld(): EvalWorld {
     memberships: [buildCampaignMembership("sam@example.org", ["tester"])],
     aggregates: { meanTesterRating: 4.25, surveyCount: 3, sessionCount: 12 },
   })
+  const conversationDatasets = buildPricingDatasets(project.id)
+  const [pricingDataset] = conversationDatasets
   return {
     ...emptyCampaignData,
     organizations: [organization],
@@ -159,7 +171,8 @@ export function buildEvalWorld(): EvalWorld {
     },
     reports: { [active.id]: buildCampaignReport(), [closed.id]: buildCampaignReport() },
     // Last, so the ids of what comes before stay the ones the stories and the tests know.
-    conversationDatasets: buildPricingDatasets(project.id),
+    conversationDatasets,
+    conversationRuns: pricingDataset ? buildPricingRuns(project.id, agent.id, pricingDataset) : [],
   }
 }
 

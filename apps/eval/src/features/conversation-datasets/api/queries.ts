@@ -38,3 +38,10 @@ export const conversationDatasetRecordsQueryOptions = (
         signal,
       }),
   })
+
+/** The name of a dataset of a project, from the project's list: empty when the list lacks it. */
+export const conversationDatasetNameQueryOptions = (project: ProjectParamsDto, datasetId: string) =>
+  queryOptions({
+    ...projectConversationDatasetsQueryOptions(project),
+    select: (datasets) => datasets.find((dataset) => dataset.id === datasetId)?.name ?? "",
+  })

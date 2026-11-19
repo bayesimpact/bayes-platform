@@ -28,6 +28,18 @@ export function conversationDatasetUrlOf(world: EvalWorld, datasetName: string):
   return `${evaluationsUrlOf(world)}/${dataset.id}`
 }
 
+/** The URL of the first run of the world that stands at that status, on its dataset's page. */
+export function conversationRunUrlOf(
+  world: EvalWorld,
+  status: "running" | "completed" | "failed",
+): string {
+  const { run } = required(
+    world.conversationRuns.find((candidate) => candidate.run.status === status),
+    `a ${status} run`,
+  )
+  return `${evaluationsUrlOf(world)}/${run.evaluationConversationDatasetId}/runs/${run.id}`
+}
+
 /** A campaign of the world, by its name. */
 export function campaignOf(world: EvalWorld, campaignName: string) {
   return required(

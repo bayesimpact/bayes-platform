@@ -1,0 +1,119 @@
+import { z } from "zod"
+import { projectParamsSchema } from "../common/params.dto"
+
+/** The permissions of a project's conversation runs, which only its evaluators hold. */
+export const EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION =
+  "evaluation.conversation.run.create" as const
+export const EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION =
+  "evaluation.conversation.run.update" as const
+export const EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION =
+  "evaluation.conversation.run.delete" as const
+
+/** The longest instructions a run gives its judge, in characters. */
+export const CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH = 4000
+
+/** How many records a page of a run's results holds at most. */
+export const CONVERSATION_RUN_RECORDS_PAGE_SIZE = 10
+
+/** The params of the routes under one conversation run. */
+export const conversationRunParamsSchema = projectParamsSchema.extend({
+  evaluationConversationRunId: z.uuid(),
+})
+
+export type ConversationRunParamsDto = z.output<typeof conversationRunParamsSchema>
+
+/** Where a run stands: waiting, asking the agent, over, failed, or stopped by a person. */
+export const conversationRunStatusSchema = z.enum([
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+])
+
+export type ConversationRunStatusDto = z.output<typeof conversationRunStatusSchema>
+
+/** The figures of a run: how many records it holds, how many are graded, and their average score. */
+export const conversationRunSummarySchema = z.object({
+  averageScore: z.number().nullable(),
+  errors: z.number(),
+  graded: z.number(),
+  running: z.number(),
+  total: z.number(),
+})
+
+/** A run of an agent's saved version over a dataset, graded by a judge model. */
+export const conversationRunOutputSchema = z.object({
+  id: z.uuid(),
+  evaluationConversationDatasetId: z.uuid(),
+  agentId: z.uuid(),
+  /** The version of the agent the run asks, as it was when the run was created. */
+  agentSettings: z.object({
+    instructions: z.string(),
+    model: z.string(),
+    revision: z.number(),
+  }),
+  status: conversationRunStatusSchema,
+  judgeModel: z.string(),
+  judgeInstructions: z.string().nullable(),
+  /** None until the run started. */
+  summary: conversationRunSummarySchema.nullable(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+})
+
+export type ConversationRunOutputDto = z.output<typeof conversationRunOutputSchema>
+
+/** Where a record of a run stands. */
+export const conversationRunRecordStatusSchema = z.enum(["graded", "error", "running", "cancelled"])
+
+export type ConversationRunRecordStatusDto = z.output<typeof conversationRunRecordStatusSchema>
+
+/** A record of a run: what the agent got, what it should answer, what it answered, and its score. */
+export const conversationRunRecordOutputSchema = z.object({
+  id: z.uuid(),
+  status: conversationRunRecordStatusSchema,
+  input: z.string(),
+  expectedOutput: z.string(),
+  output: z.string().nullable(),
+  /** From 0 to 1, once graded. */
+  score: z.number().nullable(),
+  errorDetails: z.string().nullable(),
+  traceUrl: z.string().nullable(),
+})
+
+export type ConversationRunRecordOutputDto = z.output<typeof conversationRunRecordOutputSchema>
+
+/** A page of a run's records: `page` counts from 0. */
+export const conversationRunRecordsQuerySchema = z.strictObject({
+  page: z.coerce.number<string>().int().min(0),
+  limit: z.coerce.number<string>().int().min(1).max(100),
+})
+
+export const conversationRunRecordsOutputSchema = z.object({
+  records: z.array(conversationRunRecordOutputSchema),
+  total: z.number(),
+  page: z.number(),
+  limit: z.number(),
+})
+
+/** What creates a run: the agent and its saved version, the dataset, and the judge. */
+export const conversationRunInputSchema = z.strictObject({
+  agentId: z.uuid(),
+  /** A saved version of the agent; `null` takes the one in production. */
+  agentSettingsRevision: z.number().int().nullable(),
+  datasetId: z.uuid(),
+  judgeModel: z.string().min(1),
+  judgeInstructions: z
+    .string()
+    .trim()
+    .max(CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH)
+    .nullable(),
+})
+
+export type ConversationRunInputDto = z.input<typeof conversationRunInputSchema>
+
+/** What starts a run: how many records of the dataset it asks, `null` for all of them. */
+export const conversationRunExecuteInputSchema = z.strictObject({
+  recordLimit: z.number().int().min(1).nullable(),
+})
