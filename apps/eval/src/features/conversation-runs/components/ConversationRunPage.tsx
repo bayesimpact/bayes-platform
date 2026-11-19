@@ -147,16 +147,18 @@ export function ConversationRunPage({
           title={
             <Trans comment="The title of a run's page, by when it started">Run of {started}</Trans>
           }
+          eyebrow={
+            <Badge
+              variant="outline"
+              className="font-mono"
+              title={run.id}
+              aria-label={t`Run ${runId}`}
+            >
+              {runId}
+            </Badge>
+          }
           badge={
             <>
-              <Badge
-                variant="outline"
-                className="font-mono"
-                title={run.id}
-                aria-label={t`Run ${runId}`}
-              >
-                {runId}
-              </Badge>
               <RunStatusBadge status={run.status} />
               {isActive ? null : (
                 <Badge variant="outline">
