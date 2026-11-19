@@ -6,7 +6,6 @@ import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
 import { fullDateTimeOf } from "@/lib/format-time"
 import { scoreOf } from "../run-status"
-import { RunStatusBadge } from "./RunStatusBadge"
 
 const columnHelper = createColumnHelper<ConversationRunOutputDto>()
 
@@ -16,12 +15,11 @@ const runColumnLabels = {
   agent: msg({ message: "Agent", comment: "The agent a run evaluated" }),
   version: msg({ message: "Version", comment: "The version of the agent a run evaluated" }),
   judge: msg({ message: "Judge model", comment: "The model that graded a run" }),
-  status: msg({ message: "Status", comment: "Where a run stands" }),
   score: msg({ message: "Score", comment: "The average score of a run" }),
   graded: msg({ message: "Graded", comment: "How many records of a run are graded" }),
 } satisfies Record<string, MessageDescriptor>
 
-/** The columns of a dataset's runs: a date opens its run. */
+/** The columns of the runs of a dataset that stand at one status: a date opens its run. */
 export function conversationRunColumnsOf({
   agent,
   agentNames,
@@ -67,10 +65,6 @@ export function conversationRunColumnsOf({
     columnHelper.accessor("judgeModel", {
       header: translate(runColumnLabels.judge),
       cell: (context) => <span className="font-mono text-xs">{context.getValue()}</span>,
-    }),
-    columnHelper.accessor("status", {
-      header: translate(runColumnLabels.status),
-      cell: (context) => <RunStatusBadge status={context.getValue()} />,
     }),
     columnHelper.accessor((run) => run.summary?.averageScore ?? null, {
       id: "score",

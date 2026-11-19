@@ -21,3 +21,12 @@ export const ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS = 3000
 /** A score from 0 to 1 as a percentage of the locale, such as 92%. */
 export const scoreOf = (score: number, locale: string) =>
   new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(score)
+
+/** The order of the groups of runs: what is under way, then what is over, then what did not end well. */
+export const RUN_STATUS_ORDER = [
+  "running",
+  "pending",
+  "completed",
+  "failed",
+  "cancelled",
+] as const satisfies ConversationRunStatusDto[]

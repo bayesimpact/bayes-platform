@@ -2007,9 +2007,7 @@ msgid "Started"
 msgstr "Started"
 
 #. Where a review campaign stands
-#. Where a run stands
 #: src/features/campaigns/components/campaign-columns.tsx
-#: src/features/conversation-runs/components/conversation-run-columns.tsx
 msgid "Status"
 msgstr "Status"
 

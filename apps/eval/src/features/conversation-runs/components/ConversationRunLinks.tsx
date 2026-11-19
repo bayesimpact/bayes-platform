@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ConversationRunStatusDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
@@ -6,21 +6,12 @@ import { SidebarSubGroupLabel } from "@/components/shared/SidebarSubGroupLabel"
 import { SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { shortDateTimeOf } from "@/lib/format-time"
 import { projectConversationRunsQueryOptions } from "../api/queries"
-import { RUN_STATUS_LABELS } from "../run-status"
+import { RUN_STATUS_LABELS, RUN_STATUS_ORDER } from "../run-status"
 
 export type ConversationRunLinksProps = {
   agentParams: AgentParamsDto
   datasetId: string
 }
-
-/** The order of the groups: what is under way, then what is over, then what did not end well. */
-const STATUS_ORDER = [
-  "running",
-  "pending",
-  "completed",
-  "failed",
-  "cancelled",
-] as const satisfies ConversationRunStatusDto[]
 
 /**
  * The runs of the open dataset, under it in the sidebar, grouped by where they stand: each by
@@ -41,7 +32,7 @@ export function ConversationRunLinks({ agentParams, datasetId }: ConversationRun
   }
   return (
     <SidebarMenuSub className="mr-0 pr-0">
-      {STATUS_ORDER.map((status) => {
+      {RUN_STATUS_ORDER.map((status) => {
         const group = runs.filter((run) => run.status === status)
         if (group.length === 0) return null
         return [
