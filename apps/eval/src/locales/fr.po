@@ -615,10 +615,10 @@ msgstr "Créer le jeu de données"
 msgid "Created"
 msgstr "Créée le"
 
-#. When a review campaign was created, such as: Created Nov 19, 2026
+#. When a review campaign was created, such as: Created 5 days ago
 #: src/components/shared/CampaignDescription.tsx
-msgid "Created {createdOn}"
-msgstr "Créée le {createdOn}"
+msgid "Created <0/>"
+msgstr "Créée <0/>"
 
 #. The Control key of a keyboard
 #. The Control key of a keyboard
@@ -1841,10 +1841,12 @@ msgstr "Enregistrer les modifications"
 msgid "Save your changes first."
 msgstr "Enregistrez d'abord vos modifications."
 
+#. When a version of an agent was saved, such as: Saved 5 days ago
+#. When a version of an agent was saved, such as: Saved 5 days ago
 #: src/features/campaigns/components/AgentVersionList.tsx
 #: src/features/campaigns/components/AgentVersionPicker.tsx
-msgid "Saved on {savedOn}"
-msgstr "Enregistrée le {savedOn}"
+msgid "Saved <0/>"
+msgstr "Enregistrée <0/>"
 
 #. The average score of a run
 #. The score the judge gave an answer

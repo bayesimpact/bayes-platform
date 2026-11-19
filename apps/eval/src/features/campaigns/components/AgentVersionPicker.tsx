@@ -1,11 +1,11 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
+import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { HistoryIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Button } from "@/components/ui/button"
 import { FieldDescription, FieldError, FieldLegend, FieldSet } from "@/components/ui/field"
-import { fullDateOf } from "@/lib/format-time"
 import { agentVersionsQueryOptions } from "../api/queries"
 import { AgentVersionsSheet } from "./AgentVersionsSheet"
 import { AgentVersionTitle } from "./AgentVersionTitle"
@@ -37,11 +37,9 @@ export function AgentVersionPicker({
   selectedNote,
   error,
 }: AgentVersionPickerProps) {
-  const { i18n } = useLingui()
   const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   const [isOpen, setIsOpen] = useState(false)
   const selected = versions.find((version) => version.id === selectedId)
-  const savedOn = selected ? fullDateOf(selected.updatedAt, i18n.locale) : ""
   const isInvalid = Boolean(error)
   return (
     <FieldSet data-invalid={isInvalid}>
@@ -63,7 +61,9 @@ export function AgentVersionPicker({
             <div className="flex min-w-0 flex-col gap-0.5">
               <AgentVersionTitle version={selected} />
               <span className="text-sm text-muted-foreground">
-                <Trans>Saved on {savedOn}</Trans>
+                <Trans comment="When a version of an agent was saved, such as: Saved 5 days ago">
+                  Saved <TimeAgo moment={selected.updatedAt} />
+                </Trans>
               </span>
             </div>
           ) : (

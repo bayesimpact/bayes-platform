@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { cn } from "cn"
 import { CheckCircle2Icon, CircleDashedIcon, Trash2Icon } from "lucide-react"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { fullDateTimeOf } from "@/lib/format-time"
@@ -51,7 +52,7 @@ export function testerSessionColumnsOf({
   return [
     columnHelper.accessor("createdAt", {
       header: translate(testerSessionColumnLabels.started),
-      cell: (context) => fullDateTimeOf(context.getValue(), locale),
+      cell: (context) => <TimeAgo moment={context.getValue()} className="text-foreground" />,
     }) as ColumnDef<TesterSessionOutputDto, unknown>,
     columnHelper.accessor("feedbackStatus", {
       header: translate(testerSessionColumnLabels.feedback),

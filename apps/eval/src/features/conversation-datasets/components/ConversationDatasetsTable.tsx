@@ -28,7 +28,6 @@ export function ConversationDatasetsTable({
     data: datasets,
     columns: conversationDatasetColumnsOf({
       agent,
-      locale: i18n.locale,
       translate: (descriptor) => i18n._(descriptor),
       renderActions: (dataset) => (
         <DatasetRowActions

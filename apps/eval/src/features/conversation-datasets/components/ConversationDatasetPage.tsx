@@ -15,7 +15,7 @@ import { useState } from "react"
 import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { RelativeTime } from "@/components/shared/RelativeTime"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -26,7 +26,6 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { ConversationRunsSection } from "@/features/conversation-runs"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { projectConversationDatasetsQueryOptions } from "../api/queries"
 import type { ConversationDatasetTab } from "../schemas"
 import {
@@ -54,7 +53,6 @@ export function ConversationDatasetPage({
   tab,
 }: ConversationDatasetPageProps) {
   const { t } = useLingui()
-  const now = useNow(RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, true)
   const navigate = useNavigate()
   const { data: datasets } = useSuspenseQuery(
     projectConversationDatasetsQueryOptions(datasetParams),
@@ -85,7 +83,7 @@ export function ConversationDatasetPage({
         title={dataset.name}
         description={
           <Trans comment="Under the name of a dataset: what the page shows, and when it last changed">
-            Dataset · Updated <RelativeTime moment={dataset.updatedAt} now={now} />
+            Dataset · Updated <TimeAgo moment={dataset.updatedAt} />
           </Trans>
         }
         actions={

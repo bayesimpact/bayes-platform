@@ -1,8 +1,8 @@
 import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
+import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import type { ReactNode } from "react"
-import { fullDateOf } from "@/lib/format-time"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 import { AgentVersionTitle } from "./AgentVersionTitle"
 
 export type AgentVersionListProps = {
@@ -24,11 +24,9 @@ export function AgentVersionList({
   selectedNote,
   onShow,
 }: AgentVersionListProps) {
-  const { i18n } = useLingui()
   return (
     <ul className="flex max-h-56 shrink-0 flex-col overflow-y-auto border-b md:max-h-none md:w-72 md:border-r md:border-b-0">
       {versions.map((version) => {
-        const savedOn = fullDateOf(version.updatedAt, i18n.locale)
         const isShown = version.id === shownId
         return (
           <li key={version.id} className="border-b">
@@ -43,7 +41,9 @@ export function AgentVersionList({
             >
               <AgentVersionTitle version={version} />
               <span className="text-xs text-muted-foreground">
-                <Trans>Saved on {savedOn}</Trans>
+                <Trans comment="When a version of an agent was saved, such as: Saved 5 days ago">
+                  Saved <TimeAgo moment={version.updatedAt} />
+                </Trans>
               </span>
               {version.id === selectedId ? (
                 <span className="text-xs font-medium text-primary">{selectedNote}</span>

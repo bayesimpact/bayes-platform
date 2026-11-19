@@ -7,7 +7,7 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { CampaignStatusBadge } from "@/components/shared/CampaignStatusBadge"
-import { fullDateTimeOf } from "@/lib/format-time"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 
 const columnHelper = createColumnHelper<ReviewCampaignListItemOutputDto>()
 
@@ -22,11 +22,9 @@ const campaignColumnLabels = {
 /** The columns of the campaigns of an agent: its name opens it. */
 export function campaignColumnsOf({
   agent,
-  locale,
   translate,
 }: {
   agent: AgentParamsDto
-  locale: string
   translate: (descriptor: MessageDescriptor) => string
 }): ColumnDef<ReviewCampaignListItemOutputDto, unknown>[] {
   // Each helper call types its own value: the list holds them as columns of any value.
@@ -53,9 +51,8 @@ export function campaignColumnsOf({
     }),
     columnHelper.accessor("createdAt", {
       header: translate(campaignColumnLabels.created),
-      cell: (context) => (
-        <span className="text-muted-foreground">{fullDateTimeOf(context.getValue(), locale)}</span>
-      ),
+      // How long ago, with the full date and time on hover.
+      cell: (context) => <TimeAgo moment={context.getValue()} />,
     }),
   ] as ColumnDef<ReviewCampaignListItemOutputDto, unknown>[]
 }

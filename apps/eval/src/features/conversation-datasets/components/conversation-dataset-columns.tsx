@@ -4,7 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
-import { fullDateTimeOf } from "@/lib/format-time"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 
 const columnHelper = createColumnHelper<ConversationDatasetOutputDto>()
 
@@ -21,12 +21,10 @@ const datasetColumnLabels = {
 /** The columns of a project's conversation datasets: a name opens its dataset. */
 export function conversationDatasetColumnsOf({
   agent,
-  locale,
   translate,
   renderActions,
 }: {
   agent: AgentParamsDto
-  locale: string
   translate: (descriptor: MessageDescriptor) => string
   /** What a row offers: the way to its dataset, and what the person can do with it. */
   renderActions: (dataset: ConversationDatasetOutputDto) => ReactNode
@@ -51,9 +49,8 @@ export function conversationDatasetColumnsOf({
     }),
     columnHelper.accessor("updatedAt", {
       header: translate(datasetColumnLabels.updated),
-      cell: (context) => (
-        <span className="text-muted-foreground">{fullDateTimeOf(context.getValue(), locale)}</span>
-      ),
+      // How long ago, with the full date and time on hover.
+      cell: (context) => <TimeAgo moment={context.getValue()} />,
     }),
   ] as ColumnDef<ConversationDatasetOutputDto, unknown>[]
   columns.push(

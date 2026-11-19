@@ -236,6 +236,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `components/shared/RatedFeedbackForm.tsx` (`lib/rated-feedback.ts`), for the tester's feedback
   and survey and the reviewer's review. The API checks the rating only: the form holds the
   required answers.
+- A date in a table or under a title reads as how long ago it was, with the full date and time
+  on hover: `TimeAgo` (`components/shared/`), which follows the clock by itself, on `RelativeTime`.
+  It uses `Intl`, not a date library.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts`, `campaign-handlers.ts` and

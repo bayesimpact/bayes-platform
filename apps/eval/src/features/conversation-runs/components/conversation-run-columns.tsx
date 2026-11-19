@@ -4,7 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
-import { RelativeTime } from "@/components/shared/RelativeTime"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 import { shortIdOf } from "@/lib/short-id"
 import { scoreOf } from "../run-status"
 
@@ -28,15 +28,12 @@ const runColumnLabels = {
 export function conversationRunColumnsOf({
   agent,
   locale,
-  now,
   translate,
   renderVersion,
   renderActions,
 }: {
   agent: AgentParamsDto
   locale: string
-  /** The current time, which "5 days ago" counts from. */
-  now: number
   translate: (descriptor: MessageDescriptor) => string
   /** The version a run asked, which opens the history of the agent's versions on it. */
   renderVersion: (run: ConversationRunOutputDto) => ReactNode
@@ -67,7 +64,7 @@ export function conversationRunColumnsOf({
     columnHelper.accessor("createdAt", {
       header: translate(runColumnLabels.started),
       // How long ago, with the full date and time on hover.
-      cell: (context) => <RelativeTime moment={context.getValue()} now={now} />,
+      cell: (context) => <TimeAgo moment={context.getValue()} />,
     }),
     columnHelper.accessor((run) => run.agentSettings.revision, {
       id: "version",
