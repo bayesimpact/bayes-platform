@@ -2,11 +2,7 @@ import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { SectionCard } from "@/components/shared/SectionCard"
-import {
-  CampaignAgentCard,
-  ParticipantCampaignFrame,
-  useCampaignContext,
-} from "@/features/campaign-context"
+import { ParticipantCampaignFrame, useCampaignContext } from "@/features/campaign-context"
 import { reviewerSessionsQueryOptions } from "../api/queries"
 import { ReviewerSessionsTable } from "./ReviewerSessionsTable"
 
@@ -24,7 +20,6 @@ export function ReviewerCampaignPage({ campaign }: ReviewerCampaignPageProps) {
   ).length
   return (
     <ParticipantCampaignFrame campaign={campaign} campaignRole="reviewer" currentTab="overview">
-      <CampaignAgentCard agent={context.agent} />
       {/* The table has its own frame: the block of the sessions needs none around it. */}
       <SectionCard
         className="rounded-none border-0 bg-transparent p-0 md:p-0 dark:bg-transparent"

@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useEvaluationWorkspace } from "@/features/agents"
 import { useCampaignContext } from "../hooks/use-campaign-context"
+import { CampaignAgentCard } from "./CampaignAgentCard"
 
 /** A tab of a campaign's pages for its participants: each has its own URL. */
 type ParticipantCampaignTab = "overview" | "report" | "survey"
@@ -26,7 +27,7 @@ export type ParticipantCampaignFrameProps = {
 
 /**
  * The frame of a campaign's pages, for its testers and reviewers: its name, status and creation
- * date, then its
+ * date, the agent it reviews, then its
  * tabs. A reviewer reads the overview and the report, a tester the overview and the final survey.
  */
 export function ParticipantCampaignFrame({
@@ -76,6 +77,7 @@ export function ParticipantCampaignFrame({
           <CampaignDescription description={context.description} createdAt={createdAt} />
         }
       />
+      <CampaignAgentCard agent={context.agent} />
       <Tabs value={currentTab} onValueChange={handleTabChange}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <TabsList>

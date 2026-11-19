@@ -1,4 +1,3 @@
-export { CampaignAgentCard } from "./components/CampaignAgentCard"
 export { CampaignSidebarHeader } from "./components/CampaignSidebarHeader"
 export { ParticipantCampaignFrame } from "./components/ParticipantCampaignFrame"
 export { useCampaignContext } from "./hooks/use-campaign-context"

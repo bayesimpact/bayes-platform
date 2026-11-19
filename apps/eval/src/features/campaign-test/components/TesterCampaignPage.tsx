@@ -10,11 +10,7 @@ import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
-import {
-  CampaignAgentCard,
-  ParticipantCampaignFrame,
-  useCampaignContext,
-} from "@/features/campaign-context"
+import { ParticipantCampaignFrame, useCampaignContext } from "@/features/campaign-context"
 import { useDeleteSession } from "../api/mutations"
 import { testerSessionsQueryOptions, testerSurveyQueryOptions } from "../api/queries"
 import { useOpenNewSession } from "../hooks/use-open-new-session"
@@ -44,7 +40,6 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
 
   return (
     <ParticipantCampaignFrame campaign={campaign} campaignRole="tester" currentTab="overview">
-      <CampaignAgentCard agent={context.agent} />
       {/* The table has its own frame: the block of the sessions needs none around it. */}
       <SectionCard
         className="rounded-none border-0 bg-transparent p-0 md:p-0 dark:bg-transparent"
