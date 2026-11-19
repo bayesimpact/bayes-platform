@@ -1,4 +1,5 @@
 export { refreshDeskAgents } from "./api/queries"
+export { AgentCommandCenterProvider } from "./components/AgentCommandCenterProvider"
 export { AgentSidebarHeader } from "./components/AgentSidebarHeader"
 export { NoAgentState } from "./components/NoAgentState"
 export {

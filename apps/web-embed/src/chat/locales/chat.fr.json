@@ -3,6 +3,7 @@
     "header": {
       "defaultAgentName": "Assistant",
       "closeAriaLabel": "Fermer le chat",
+      "collapseAriaLabel": "Réduire le chat",
       "newConversationAriaLabel": "Nouvelle conversation"
     },
     "input": {

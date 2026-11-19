@@ -230,10 +230,13 @@ docker-smoke-down:
 # ==============================================================================
 
 WEB_EMBED_BUCKET ?= eu-connect-agent-embed
+# The API the hosted widget calls, baked into the build. Unset, the SPA falls back to localhost.
+VITE_API_URL ?= https://api.platform.bayes.org
 
 deploy-web-embed:
-	@echo "→ Building web-embed SPA..."
-	cd apps/web-embed && npm run build
+	@case "$(VITE_API_URL)" in https://*) ;; *) echo "✗ VITE_API_URL must be the production API (https://api.platform.bayes.org): the build bakes it in, and without it the widget calls localhost" >&2; exit 1 ;; esac
+	@echo "→ Building web-embed SPA against $(VITE_API_URL)..."
+	cd apps/web-embed && VITE_API_URL=$(VITE_API_URL) npm run build
 	@echo "→ Building launcher..."
 	cd apps/web-embed && npm run build:launcher
 	@echo "→ Uploading hashed assets (1 year cache)..."

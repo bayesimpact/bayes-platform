@@ -9,7 +9,7 @@ export function ChatUserMessage({ className, children, ...props }: React.Compone
       {...props}
     >
       <div
-        className="max-w-[80%] rounded-2xl px-4 py-3 text-sm text-white whitespace-pre-wrap"
+        className="max-w-[80%] rounded-2xl px-4 py-3 text-sm text-[var(--embed-on-primary)] whitespace-pre-wrap"
         style={{ backgroundColor: "var(--embed-primary)" }}
       >
         {children}

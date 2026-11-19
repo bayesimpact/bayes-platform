@@ -19,6 +19,7 @@ function LocaleAndCache() {
 }
 
 const {
+  AgentCommandCenterOpen,
   AgentTheyOnlyRead,
   HistoryFailsToLoad,
   PageNotFound,
@@ -82,7 +83,7 @@ const PAGES = {
   },
   SeveralProjects: {
     Story: pageStories.SeveralProjects,
-    loaded: () => screen.findByRole("combobox", { name: /Switch agent/ }),
+    loaded: () => screen.findByRole("button", { name: /Switch agent/ }),
   },
   NoAgent: {
     Story: pageStories.NoAgent,
@@ -174,11 +175,21 @@ describe("the stories of the Desk", () => {
     await AgentTheyOnlyRead.play?.({ canvasElement: container })
 
     const list = await screen.findByRole("listbox")
-    expect(
-      within(list)
-        .getAllByRole("option")
-        .map((item) => item.textContent),
-    ).toEqual(["Document Reader", "Helpful Assistant"])
+    expect(within(list).getAllByRole("option")).toEqual([
+      within(list).getByRole("option", { name: "Helpful Assistant" }),
+      within(list).getByRole("option", { name: "Document Reader Current" }),
+    ])
+  })
+
+  it("AgentCommandCenterOpen opens the command center on the agents of every project", async () => {
+    await AgentCommandCenterOpen.load()
+    const { container } = render(<AgentCommandCenterOpen />)
+    await AgentCommandCenterOpen.play?.({ canvasElement: container })
+
+    const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
+    expect(within(dialog).getByRole("combobox", { name: "Search an agent" })).toHaveFocus()
+    expect(within(dialog).getAllByRole("group").length).toBeGreaterThan(1)
+    expect(within(dialog).getByText("Current")).toBeInTheDocument()
   })
 
   it("SidebarClosed peeks at the sidebar while the pointer is on its button, and hides it after", async () => {

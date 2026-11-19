@@ -23,10 +23,15 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent drafts: a draft with the same settings as the last saved version is deleted.
 - Agent instructions and greeting: both fields show a character count, and the greeting shows its limit of 2,000 characters.
 - Agent page: the page shows the version in edit, the members, the evaluation app and the production app.
+- Desk agent switcher: a search window lists the agents by project and type, and opens with Ctrl+K or ⌘K.
 - (beta) Agent orchestration and embed: both sections of the editor apply in production and keep an explicit save with a confirmation.
 - (beta) Agent orchestration: managers read the instructions of an agent before they add it, and confirm before they remove a sub-agent.
 - Agent models: gemini-3.6-flash retires on 19 November 2026 and gemini-3.7-flash on 28 January 2027.
 - (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
+- (beta) Embed launcher: a larger button with a dot-grid icon that turns into a close cross, a window that grows out of the button, and a card above the closed button that shows the agent's greeting until the visitor opens the chat, writes or dismisses it.
+- (beta) Embedded chat: the floating window is larger (400 × 704 px at most), its header shows the dot-grid mark instead of a sparkle and a chevron to minimize it, and the launcher shows a chevron while the chat is open.
+- (beta) Embedded chat: while the agent thinks or calls a tool, and while a card loads, the chat shows the dot grid of the launcher with a wave running across it, in the agent's colour, instead of a grey spinner.
+- (beta) Embedded chat: the copy button sits inside the answer bubble, in its bottom-right corner, shows on hover (always on touch screens) and turns into a check once copied.
 
 ### Removed
 

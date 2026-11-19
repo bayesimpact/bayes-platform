@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { MCP_APP_SANDBOX_ORIGIN } from "../../api/api-base"
 import { cn } from "../lib/cn"
-import { Spinner } from "./Spinner"
+import { DotGridLoader } from "./DotGrid"
 
 const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
 const INITIAL_IFRAME_HEIGHT_PX = 72
@@ -30,7 +30,7 @@ export function McpAppPlaceholder({ className }: { className?: string }) {
       )}
       style={{ minHeight: INITIAL_IFRAME_HEIGHT_PX }}
     >
-      <Spinner />
+      <DotGridLoader />
       <span className="animate-pulse">{t("message.loadingCard")}</span>
     </div>
   )
