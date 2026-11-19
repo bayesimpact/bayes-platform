@@ -22,6 +22,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent instructions and greeting: both fields show a character count, and the greeting shows its limit of 2,000 characters.
 - Agent page: the page shows the version in edit, the members, the evaluation app and the production app.
 - Desk agent switcher: a search window lists the agents by project and type, and opens with Ctrl+K or ⌘K.
+- Review campaigns: a campaign runs on the saved agent version its managers choose, not on the version in production.
 - (beta) Agent orchestration and embed: both sections of the editor apply in production and keep an explicit save with a confirmation.
 - (beta) Agent orchestration: managers read the instructions of an agent before they add it, and confirm before they remove a sub-agent.
 - (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
