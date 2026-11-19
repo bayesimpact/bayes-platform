@@ -227,6 +227,20 @@ describe("the sections of an agent", () => {
     )
   })
 
+  it("opens the dialog of a new dataset from the sidebar, and closes it with its URL", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(evaluationsUrlOf(world))
+
+    await userEvent.click(await screen.findByRole("link", { name: "New dataset" }))
+    const dialog = await screen.findByRole("dialog", { name: "New dataset" })
+    expect(router.state.location.search).toEqual({ create: true })
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }))
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
+    expect(router.state.location.search).toEqual({})
+  })
+
   it("opens on the evaluations of an agent that opens nothing else", async () => {
     const world = buildSeveralProjectsWorld()
     server.use(...worldHandlers(world))

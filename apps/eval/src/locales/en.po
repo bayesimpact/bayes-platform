@@ -1024,6 +1024,7 @@ msgstr "New campaign"
 
 #: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
 #: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
 msgid "New dataset"
 msgstr "New dataset"
 

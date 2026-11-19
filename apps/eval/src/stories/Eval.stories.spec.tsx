@@ -234,8 +234,7 @@ describe("the stories of the app", () => {
 
   it("NewDataset asks the name of the dataset", async () => {
     await NewDataset.load()
-    const { container } = render(<NewDataset />)
-    await act(() => NewDataset.play?.({ canvasElement: container }))
+    render(<NewDataset />)
 
     const dialog = await screen.findByRole("dialog", { name: "New dataset" })
     expect(within(dialog).getByRole("textbox", { name: "Name" })).toBeInTheDocument()

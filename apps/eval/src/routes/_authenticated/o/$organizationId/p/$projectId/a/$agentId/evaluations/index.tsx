@@ -7,6 +7,7 @@ import { requireEvaluationAgent } from "@/features/agents"
 import { CampaignsPageSkeleton } from "@/features/campaigns"
 import {
   ConversationDatasetsPage,
+  conversationDatasetsSearchSchema,
   loadConversationDatasets,
 } from "@/features/conversation-datasets"
 
@@ -17,6 +18,7 @@ import {
 export const Route = createFileRoute(
   "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/",
 )({
+  validateSearch: conversationDatasetsSearchSchema,
   beforeLoad: ({ context }) => requireEvaluationAgent(context.agent),
   loader: async ({ context, params }) => {
     if (context.agent.type === "conversation") {
@@ -31,8 +33,11 @@ export const Route = createFileRoute(
 function EvaluationsRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
+  const { create } = Route.useSearch()
   if (agent.type === "conversation") {
-    return <ConversationDatasetsPage agent={agent} agentParams={params} />
+    return (
+      <ConversationDatasetsPage agent={agent} agentParams={params} isCreating={create === true} />
+    )
   }
   return (
     <StatusPage

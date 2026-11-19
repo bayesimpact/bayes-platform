@@ -6,6 +6,7 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import { FlaskConicalIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { PageContainer } from "@/components/shared/PageContainer"
@@ -23,18 +24,33 @@ import { ConversationDatasetsTable } from "./ConversationDatasetsTable"
 export type ConversationDatasetsPageProps = {
   agent: EvaluationAgent
   agentParams: AgentParamsDto
+  /** Whether the dialog that names a new dataset shows: the `create` search param. */
+  isCreating: boolean
 }
 
 /**
  * The evaluations of a conversation agent: the datasets of its project, which every conversation
  * agent of the project shares, with the way to a new one.
  */
-export function ConversationDatasetsPage({ agent, agentParams }: ConversationDatasetsPageProps) {
+export function ConversationDatasetsPage({
+  agent,
+  agentParams,
+  isCreating,
+}: ConversationDatasetsPageProps) {
   const { data: datasets } = useSuspenseQuery(projectConversationDatasetsQueryOptions(agentParams))
-  const [action, setAction] = useState<ConversationDatasetAction | null>(null)
+  const navigate = useNavigate()
+  const [rowAction, setRowAction] = useState<ConversationDatasetAction | null>(null)
+  // The new dataset's dialog is in the URL, so the sidebar's New dataset opens it from any page.
+  const setCreating = (isOpen: boolean) =>
+    void navigate({
+      to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations",
+      params: agentParams,
+      search: { create: isOpen ? true : undefined },
+    })
   const can = (permission: string) => hasProjectPermission(agent.project, permission)
-  const newDatasetButton = can(EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION) ? (
-    <Button onClick={() => setAction({ kind: "create" })}>
+  const canCreate = can(EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION)
+  const newDatasetButton = canCreate ? (
+    <Button onClick={() => setCreating(true)}>
       <PlusIcon data-icon="inline-start" aria-hidden />
       <Trans>New dataset</Trans>
     </Button>
@@ -63,20 +79,23 @@ export function ConversationDatasetsPage({ agent, agentParams }: ConversationDat
           datasets={datasets}
           onRename={
             can(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION)
-              ? (dataset) => setAction({ kind: "rename", dataset })
+              ? (dataset) => setRowAction({ kind: "rename", dataset })
               : null
           }
           onDelete={
             can(EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION)
-              ? (dataset) => setAction({ kind: "delete", dataset })
+              ? (dataset) => setRowAction({ kind: "delete", dataset })
               : null
           }
         />
       )}
       <ConversationDatasetDialogs
         project={agentParams}
-        action={action}
-        onClose={() => setAction(null)}
+        action={canCreate && isCreating ? { kind: "create" } : rowAction}
+        onClose={() => {
+          setRowAction(null)
+          if (isCreating) setCreating(false)
+        }}
       />
     </PageContainer>
   )

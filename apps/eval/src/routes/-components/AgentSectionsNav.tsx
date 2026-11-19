@@ -1,10 +1,13 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import {
+  type AgentParamsDto,
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+} from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { FlaskConicalIcon, LayoutGridIcon } from "lucide-react"
 import { SidebarCollapsibleMenu } from "@/components/shared/SidebarCollapsibleMenu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
-import type { EvaluationAgent } from "@/features/agents"
+import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { ConversationDatasetsSidebarEntries } from "@/features/conversation-datasets"
 import { AGENT_SECTION_ROUTES, type AgentSection } from "./agent-sections"
 import { CampaignsMenu } from "./CampaignsMenu"
@@ -58,7 +61,13 @@ export function AgentSectionsNav({ agent, agentParams, sections }: AgentSections
             Icon={FlaskConicalIcon}
             label={<Trans>Evaluations</Trans>}
           >
-            <ConversationDatasetsSidebarEntries agentParams={agentParams} />
+            <ConversationDatasetsSidebarEntries
+              agentParams={agentParams}
+              canCreate={hasProjectPermission(
+                agent.project,
+                EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+              )}
+            />
           </SidebarCollapsibleMenu>
         ) : (
           <SidebarMenuItem>

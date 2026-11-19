@@ -27,13 +27,9 @@ export const NoDataset: Story = {
   }),
 }
 
-/** The dialog that names a new dataset. */
+/** The dialog that names a new dataset, which the sidebar's New dataset opens from any page. */
 export const NewDataset: Story = {
-  parameters: evaluation({ url: evaluationsUrlOf }),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.click(await canvas.findByRole("button", { name: "New dataset" }))
-  },
+  parameters: evaluation({ url: (world) => `${evaluationsUrlOf(world)}?create=true` }),
 }
 
 /** A dataset: the first page of its records, each with what to change it. */

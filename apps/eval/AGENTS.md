@@ -149,7 +149,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   Records are added one at a time (`RecordDialog`) or pasted, one per line, the input then the
   expected output after the first comma (`BulkRecordsDialog`, `parseBulkRecords`). A record's
   comment comes from the Studio's "Save as test case" and is only read here. In the sidebar,
-  Evaluations is then a menu that folds, as Campaigns: List all, then the datasets
+  Evaluations is then a menu that folds, as Campaigns: List all, New dataset, which opens the
+  list with its dialog (the `create` search param), then the datasets
   (`ConversationDatasetsSidebarEntries`). Of Evaluations and Campaigns, only the menu that holds
   the current page opens at first, and both on a page neither holds (`useOpenSidebarTopMenu` in
   `src/routes/-components/`). An extraction agent's evaluations are not here yet: its

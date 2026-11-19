@@ -4,3 +4,8 @@ import { z } from "zod"
 export const conversationDatasetSearchSchema = z.object({
   page: z.number().int().min(0).optional().catch(undefined),
 })
+
+/** The search params of the datasets' list: `create` opens the dialog that names a new dataset. */
+export const conversationDatasetsSearchSchema = z.object({
+  create: z.literal(true).optional().catch(undefined),
+})
