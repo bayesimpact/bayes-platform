@@ -362,6 +362,29 @@ describe("the stories of the app", () => {
     ).toBeInTheDocument()
   })
 
+  it("CompletedRun narrows its results to the errors, then to the low scores", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    const filters = await screen.findByRole("group", { name: "Filter the results" })
+    // A run that is over has no record waiting: it offers no filter for them.
+    expect(within(filters).queryByRole("button", { name: /^Waiting/ })).not.toBeInTheDocument()
+    const rows = () => screen.getAllByRole("row").length - 1
+
+    expect(rows()).toBe(12)
+    await userEvent.click(within(filters).getByRole("button", { name: "Errors (1)" }))
+    expect(rows()).toBe(1)
+    expect(screen.getByText("The model did not answer in time.")).toBeInTheDocument()
+
+    await userEvent.click(within(filters).getByRole("button", { name: "Low scores (1)" }))
+    expect(rows()).toBe(1)
+    expect(screen.getByText("0 / 5")).toBeInTheDocument()
+
+    await userEvent.click(within(filters).getByRole("button", { name: "All (12)" }))
+    expect(rows()).toBe(12)
+  })
+
   it("AddRecord asks a record's input and expected output", async () => {
     await AddRecord.load()
     const { container } = render(<AddRecord />)

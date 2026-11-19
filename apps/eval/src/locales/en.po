@@ -70,6 +70,11 @@ msgstr "{deletedEmail} will no longer be able to accept it."
 msgid "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
 msgstr "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
 
+#. A filter of a run's results and how many it keeps, such as: Errors (1)
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "{filterName} ({count})"
+msgstr "{filterName} ({count})"
+
 #: src/features/campaigns/components/ActivateStep.tsx
 msgid "{finalCount, plural, one {# question} other {# questions}}"
 msgstr "{finalCount, plural, one {# question} other {# questions}}"
@@ -314,6 +319,11 @@ msgstr "Agent version"
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
 msgid "Agent's answer"
 msgstr "Agent's answer"
+
+#. The filter that shows every result of a run
+#: src/features/conversation-runs/result-filters.ts
+msgid "All"
+msgstr "All"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
@@ -818,7 +828,9 @@ msgid "Enter"
 msgstr "Enter"
 
 #. How many records of a run an error stopped
+#. The filter of the results an error stopped
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/result-filters.ts
 msgid "Errors"
 msgstr "Errors"
 
@@ -908,6 +920,11 @@ msgstr "Fill the final survey"
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Filling in the form"
 msgstr "Filling in the form"
+
+#. The label of the filters of the table of a run's results
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Filter the results"
+msgstr "Filter the results"
 
 #. The setup step with the questions a tester answers once, at the end
 #: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
@@ -1190,6 +1207,11 @@ msgstr "List all datasets"
 msgid "Loading the interactive card…"
 msgstr "Loading the interactive card…"
 
+#. The filter of the results the judge graded 2 out of 5 or less
+#: src/features/conversation-runs/result-filters.ts
+msgid "Low scores"
+msgstr "Low scores"
+
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "Mean final rating"
 msgstr "Mean final rating"
@@ -1393,7 +1415,9 @@ msgid "Not answered"
 msgstr "Not answered"
 
 #. A record of a run stopped before the agent answered it
+#. The filter of the results a cancelled run never asked
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/result-filters.ts
 msgid "Not asked"
 msgstr "Not asked"
 
@@ -2640,7 +2664,9 @@ msgstr "View session {id}"
 
 #. A record of a run the agent has not answered yet
 #. A run that has not started yet
+#. The filter of the results the agent has not answered yet
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/result-filters.ts
 #: src/features/conversation-runs/run-status.ts
 msgid "Waiting"
 msgstr "Waiting"

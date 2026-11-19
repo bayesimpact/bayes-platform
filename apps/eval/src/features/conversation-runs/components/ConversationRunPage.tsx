@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   type EvaluationAgent,
   flattenEvaluationAgents,
@@ -42,6 +43,13 @@ import {
   useRetryConversationRun,
 } from "../api/mutations"
 import { conversationRunQueryOptions, conversationRunRecordsQueryOptions } from "../api/queries"
+import {
+  filterResults,
+  isResultFilter,
+  RESULT_FILTER_LABELS,
+  RESULT_FILTERS,
+  type ResultFilter,
+} from "../result-filters"
 import { isRunActive, scoreOf } from "../run-status"
 import { conversationRunRecordColumnsOf } from "./conversation-run-record-columns"
 import { RunSettingsPanel } from "./RunSettingsPanel"
@@ -76,6 +84,14 @@ export function ConversationRunPage({
   const { groups } = useEvaluationWorkspace()
   const panel = useSidePanel()
   const [confirming, setConfirming] = useState<"cancel" | "delete" | null>(null)
+  const [filter, setFilter] = useState<ResultFilter>("all")
+  // The filters that keep something: a run with no error offers no Errors filter.
+  const filters = RESULT_FILTERS.filter(
+    (candidate) => candidate === "all" || filterResults(results, candidate).length > 0,
+  )
+  // A filter that keeps nothing any more, as a run under way moves on, gives way to All.
+  const activeFilter = filters.includes(filter) ? filter : "all"
+  const shown = filterResults(results, activeFilter)
   const cancelRun = useCancelConversationRun(runParams)
   const retryRun = useRetryConversationRun(runParams)
   const deleteRun = useDeleteConversationRun(runParams)
@@ -83,7 +99,7 @@ export function ConversationRunPage({
   const canUpdate = can(EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION)
   const canDelete = can(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION)
   const table = useReactTable({
-    data: results,
+    data: shown,
     columns: conversationRunRecordColumnsOf({
       locale: i18n.locale,
       translate: (descriptor) => i18n._(descriptor),
@@ -228,9 +244,40 @@ export function ConversationRunPage({
           />
         </div>
         <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">
-            <Trans comment="The title of the records of a run">Results</Trans>
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">
+              <Trans comment="The title of the records of a run">Results</Trans>
+            </h2>
+            {filters.length > 1 ? (
+              <ToggleGroup
+                aria-label={t({
+                  message: "Filter the results",
+                  comment: "The label of the filters of the table of a run's results",
+                })}
+                variant="outline"
+                size="sm"
+                spacing={0}
+                value={[activeFilter]}
+                // A toggle group lets every item go: the filter stays when the person clicks it again.
+                onValueChange={(values) => {
+                  const [next] = values
+                  if (isResultFilter(next)) setFilter(next)
+                }}
+              >
+                {filters.map((candidate) => {
+                  const filterName = i18n._(RESULT_FILTER_LABELS[candidate])
+                  const count = i18n.number(filterResults(results, candidate).length)
+                  return (
+                    <ToggleGroupItem key={candidate} value={candidate}>
+                      <Trans comment="A filter of a run's results and how many it keeps, such as: Errors (1)">
+                        {filterName} ({count})
+                      </Trans>
+                    </ToggleGroupItem>
+                  )
+                })}
+              </ToggleGroup>
+            ) : null}
+          </div>
           <DataTable
             table={table}
             empty={

@@ -171,7 +171,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   type, the version asked, which opens the history of its versions, its model, its thinking level
   (`thinkingLevelOf`) and its instructions, and Judge, with its model and its instructions; its records are read as a dataset's, with
   Cancel while it is under way, after a confirmation, and a « ⋯ » menu that holds Retry, after a
-  failure, and Delete. Its scores read out of 5, as the judge gives them (`scoreOf`). A run under way is read again
+  failure, and Delete. Its scores read out of 5, as the judge gives them (`scoreOf`). Filters above its results narrow them to
+  the errors, the low scores, the records that wait or were not asked (`result-filters.ts`): only
+  those that keep something show. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
   The form state an agent filled during a run and the comparison of runs are not here yet.
 - In the sidebar, of Evaluations and Campaigns, only the menu that holds
