@@ -40,8 +40,6 @@ export type ConversationDatasetPageProps = {
   datasetParams: ConversationDatasetParamsDto
   /** The tab shown: the dataset's records, or its runs. */
   tab: ConversationDatasetTab
-  /** The page of records shown, counted from 0. */
-  page: number
 }
 
 /**
@@ -53,7 +51,6 @@ export function ConversationDatasetPage({
   agentParams,
   datasetParams,
   tab,
-  page,
 }: ConversationDatasetPageProps) {
   const { t, i18n } = useLingui()
   const navigate = useNavigate()
@@ -163,17 +160,7 @@ export function ConversationDatasetPage({
           canDelete={can(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION)}
         />
       ) : (
-        <ConversationRecordsSection
-          dataset={datasetParams}
-          page={page}
-          canEdit={canUpdate}
-          onPageChange={(nextPage) =>
-            void navigate({
-              ...datasetPage,
-              search: { page: nextPage === 0 ? undefined : nextPage },
-            })
-          }
-        />
+        <ConversationRecordsSection dataset={datasetParams} canEdit={canUpdate} />
       )}
       <ConversationDatasetDialogs
         project={datasetParams}

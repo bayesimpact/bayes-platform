@@ -10,7 +10,7 @@ import {
 import { loadConversationRuns } from "@/features/conversation-runs"
 import { uuidParams } from "@/lib/not-found"
 
-/** A conversation dataset of the agent's project: its records, a page at a time, and its runs. */
+/** A conversation dataset of the agent's project: all its records, and its runs. */
 export const Route = createFileRoute(
   "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/",
 )({
@@ -21,10 +21,9 @@ export const Route = createFileRoute(
     // Only a conversation agent has conversation datasets.
     if (context.agent.type !== "conversation") throw notFound()
   },
-  loaderDeps: ({ search }) => ({ page: search.page ?? 0 }),
-  loader: ({ context, params, deps }) =>
+  loader: ({ context, params }) =>
     Promise.all([
-      loadConversationDataset(context.queryClient, params, deps),
+      loadConversationDataset(context.queryClient, params),
       loadConversationRuns(context.queryClient, params),
     ]),
   pendingComponent: CampaignsPageSkeleton,
@@ -35,14 +34,13 @@ export const Route = createFileRoute(
 function ConversationDatasetRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
-  const { page, tab } = Route.useSearch()
+  const { tab } = Route.useSearch()
   return (
     <ConversationDatasetPage
       agent={agent}
       agentParams={params}
       datasetParams={params}
       tab={tab ?? "records"}
-      page={page ?? 0}
     />
   )
 }

@@ -1,6 +1,7 @@
 import {
   CONVERSATION_DATASET_RECORDS_PAGE_SIZE,
   type ConversationDatasetParamsDto,
+  type ConversationDatasetRecordOutputDto,
   EvalConversationDatasetsRoutes,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
@@ -22,21 +23,25 @@ export const projectConversationDatasetsQueryOptions = (project: ProjectParamsDt
   })
 
 /**
- * A page of a dataset's records, in the order they were added: pages count from 0. The route's
- * loader reads the next page before it shows, so the page shown stays meanwhile.
+ * All the records of a dataset, in the order they were added. The API pages them: the app reads
+ * every page, one after the other, so the page shows the whole dataset.
  */
-export const conversationDatasetRecordsQueryOptions = (
-  dataset: ConversationDatasetParamsDto,
-  page: number,
-) =>
+export const conversationDatasetRecordsQueryOptions = (dataset: ConversationDatasetParamsDto) =>
   queryOptions({
-    queryKey: conversationDatasetKeys.recordsPage(dataset, page),
-    queryFn: ({ signal }) =>
-      apiRequest(EvalConversationDatasetsRoutes.getRecords, {
-        params: dataset,
-        query: { page, limit: CONVERSATION_DATASET_RECORDS_PAGE_SIZE },
-        signal,
-      }),
+    queryKey: conversationDatasetKeys.records(dataset),
+    queryFn: async ({ signal }) => {
+      const records: ConversationDatasetRecordOutputDto[] = []
+      for (let page = 0; ; page += 1) {
+        const answer = await apiRequest(EvalConversationDatasetsRoutes.getRecords, {
+          params: dataset,
+          query: { page, limit: CONVERSATION_DATASET_RECORDS_PAGE_SIZE },
+          signal,
+        })
+        records.push(...answer.records)
+        // An empty page ends the reading too, should the total change meanwhile.
+        if (records.length >= answer.total || answer.records.length === 0) return records
+      }
+    },
   })
 
 /** The name of a dataset of a project, from the project's list: empty when the list lacks it. */

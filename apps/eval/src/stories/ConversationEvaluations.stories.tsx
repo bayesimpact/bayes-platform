@@ -32,16 +32,9 @@ export const NewDataset: Story = {
   parameters: evaluation({ url: (world) => `${evaluationsUrlOf(world)}?create=true` }),
 }
 
-/** A dataset: the first page of its records, each with what to change it. */
+/** A dataset: all its records, each with what to change it. */
 export const Dataset: Story = {
   parameters: evaluation({ url: (world) => conversationDatasetUrlOf(world, "Pricing questions") }),
-}
-
-/** The second page of a dataset's records. */
-export const DatasetSecondPage: Story = {
-  parameters: evaluation({
-    url: (world) => `${conversationDatasetUrlOf(world, "Pricing questions")}?page=1`,
-  }),
 }
 
 /** A dataset with no record yet. */

@@ -59,11 +59,7 @@ const PAGES = {
   },
   Dataset: {
     Story: pageStories.Dataset,
-    loaded: () => screen.findByText("Rows 1–10 of 12"),
-  },
-  DatasetSecondPage: {
-    Story: pageStories.DatasetSecondPage,
-    loaded: () => screen.findByText("Rows 11–12 of 12"),
+    loaded: () => screen.findByText("Do unused seats get refunded?"),
   },
   DatasetRuns: {
     Story: pageStories.DatasetRuns,

@@ -9,7 +9,7 @@ import { type QueryClient, useMutation, useQueryClient } from "@tanstack/react-q
 import { apiRequest } from "@/lib/api-client"
 import { conversationDatasetKeys } from "./keys"
 
-/** A dataset's records changed: its pages load again, and the list, which counts them. */
+/** A dataset's records changed: they load again, and the list, which counts them. */
 const invalidateRecords = (queryClient: QueryClient, dataset: ConversationDatasetParamsDto) =>
   Promise.all([
     queryClient.invalidateQueries({ queryKey: conversationDatasetKeys.records(dataset) }),

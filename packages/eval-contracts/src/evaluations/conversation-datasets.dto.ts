@@ -15,8 +15,8 @@ export const CONVERSATION_DATASET_NAME_MIN_LENGTH = 3
 /** The longest input, and the longest expected output, of a record, in characters. */
 export const CONVERSATION_DATASET_RECORD_MAX_LENGTH = 10_000
 
-/** How many records a page of a dataset holds at most. */
-export const CONVERSATION_DATASET_RECORDS_PAGE_SIZE = 10
+/** How many records the API returns at most in one page of a dataset: the app reads them all. */
+export const CONVERSATION_DATASET_RECORDS_PAGE_SIZE = 100
 
 /** The params of the routes under one conversation dataset. */
 export const conversationDatasetParamsSchema = projectParamsSchema.extend({

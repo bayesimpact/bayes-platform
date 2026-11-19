@@ -141,8 +141,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 - The evaluations of a conversation agent (`features/conversation-datasets`), on the API's
   `evaluation-conversation-datasets` routes (`EvalConversationDatasetsRoutes`): `evaluations/`
   lists the datasets of the agent's project, which every conversation agent of the project shares,
-  and `evaluations/$datasetId` shows one with its records, a page at a time (the `page` search
-  param, counted from 0, on the shared `TablePagination`). Creating, renaming and deleting a
+  and `evaluations/$datasetId` shows one with all its records: the API pages them, 100 at most,
+  and the app reads every page (`conversationDatasetRecordsQueryOptions`). Creating, renaming and deleting a
   dataset each check their own `evaluation.conversation.dataset.*` permission; a record is added,
   changed and deleted with the update one, as the API does. A row's actions are Open grouped with
   a « ⋯ » menu (`DatasetRowActions`); a record's and the dataset page's are a « ⋯ » menu alone.
@@ -164,7 +164,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
   then opens its page. The Runs tab (`ConversationRunsSection`) lists the dataset's runs by any
   agent of the project. A run's page, `evaluations/$datasetId/runs/$runId`
-  (`ConversationRunPage`), shows its figures, what it used, and its records a page at a time, with
+  (`ConversationRunPage`), shows its figures, what it used, and its records a page at a time (the `page` search param, counted
+  from 0, on the shared `TablePagination`), with
   Cancel while it is under way, Retry after a failure, and Delete. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
   The form state an agent filled during a run and the comparison of runs are not here yet.

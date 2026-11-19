@@ -22,13 +22,12 @@ export async function loadConversationDatasets(
 }
 
 /**
- * Loads a dataset's page: the project's datasets, which hold its name, and a page of its records.
+ * Loads a dataset's page: the project's datasets, which hold its name, and all its records.
  * A dataset the project does not hold is not found.
  */
 export async function loadConversationDataset(
   queryClient: QueryClient,
   dataset: ConversationDatasetParamsDto,
-  { page }: { page: number },
 ) {
   const [datasets] = await orNotFound(() =>
     Promise.all([
@@ -37,7 +36,7 @@ export async function loadConversationDataset(
         staleTime: loaderStaleTime,
       }),
       queryClient.query({
-        ...conversationDatasetRecordsQueryOptions(dataset, page),
+        ...conversationDatasetRecordsQueryOptions(dataset),
         staleTime: loaderStaleTime,
       }),
     ]),

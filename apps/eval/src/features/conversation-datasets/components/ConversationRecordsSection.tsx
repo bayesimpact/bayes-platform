@@ -1,7 +1,6 @@
-import {
-  CONVERSATION_DATASET_RECORDS_PAGE_SIZE,
-  type ConversationDatasetParamsDto,
-  type ConversationDatasetRecordOutputDto,
+import type {
+  ConversationDatasetParamsDto,
+  ConversationDatasetRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -11,7 +10,6 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
-import { TablePagination } from "@/components/shared/TablePagination"
 import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 import {
@@ -40,24 +38,16 @@ type RecordAction =
 
 export type ConversationRecordsSectionProps = {
   dataset: ConversationDatasetParamsDto
-  /** The page of records shown, counted from 0. */
-  page: number
-  onPageChange: (page: number) => void
   /** Whether the person adds, changes and deletes records. */
   canEdit: boolean
 }
 
-/** The records of a dataset, a page at a time, with the ways to add, change and delete them. */
-export function ConversationRecordsSection({
-  dataset,
-  page,
-  onPageChange,
-  canEdit,
-}: ConversationRecordsSectionProps) {
+/** All the records of a dataset, however many, with the ways to add, change and delete them. */
+export function ConversationRecordsSection({ dataset, canEdit }: ConversationRecordsSectionProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { t, i18n } = useLingui()
-  const { data } = useSuspenseQuery(conversationDatasetRecordsQueryOptions(dataset, page))
+  const { data: records } = useSuspenseQuery(conversationDatasetRecordsQueryOptions(dataset))
   const [action, setAction] = useState<RecordAction | null>(null)
   const close = () => setAction(null)
   const createRecord = useCreateConversationDatasetRecord(dataset)
@@ -65,7 +55,7 @@ export function ConversationRecordsSection({
   const updateRecord = useUpdateConversationDatasetRecord(dataset)
   const deleteRecord = useDeleteConversationDatasetRecord(dataset)
   const table = useReactTable({
-    data: data.records,
+    data: records,
     columns: conversationRecordColumnsOf({
       translate: (descriptor) => i18n._(descriptor),
       renderActions: canEdit
@@ -102,7 +92,7 @@ export function ConversationRecordsSection({
     getRowId: (record) => record.id,
     getCoreRowModel: getCoreRowModel(),
   })
-  const total = data.total
+  const total = records.length
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-2">
@@ -129,12 +119,6 @@ export function ConversationRecordsSection({
         ) : null}
       </div>
       <DataTable table={table} empty={<Trans>This dataset has no record yet.</Trans>} />
-      <TablePagination
-        page={page}
-        pageSize={CONVERSATION_DATASET_RECORDS_PAGE_SIZE}
-        total={total}
-        onPageChange={onPageChange}
-      />
       {action?.kind === "add" ? (
         <RecordDialog
           title={<Trans>Add a record</Trans>}
@@ -208,8 +192,6 @@ export function ConversationRecordsSection({
             onSuccess: () => {
               toast.success(t`The record was deleted.`)
               close()
-              // The last record of a page leaves it empty: the page before shows.
-              if (data.records.length === 1 && page > 0) onPageChange(page - 1)
             },
             onError: () => toast.error(t`The record could not be deleted. Try again.`),
           })

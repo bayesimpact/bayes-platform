@@ -15,7 +15,7 @@ export type ConversationRunLinksProps = {
 
 /**
  * The runs of the open dataset, under it in the sidebar, the newest first: each by when it
- * started, with a mark once it is over.
+ * started, with a mark once it is over, and a struck circle when it failed.
  */
 export function ConversationRunLinks({ agentParams, datasetId }: ConversationRunLinksProps) {
   const { i18n } = useLingui()
@@ -44,6 +44,7 @@ export function ConversationRunLinks({ agentParams, datasetId }: ConversationRun
           }
           label={shortDateTimeOf(run.createdAt, i18n.locale)}
           isDone={run.status === "completed"}
+          hasFailed={run.status === "failed"}
           stateLabel={i18n._(RUN_STATUS_LABELS[run.status])}
         />
       ))}
