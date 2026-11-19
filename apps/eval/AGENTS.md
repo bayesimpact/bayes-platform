@@ -150,7 +150,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   expected output after the first comma (`BulkRecordsDialog`, `parseBulkRecords`). A record's
   comment comes from the Studio's "Save as test case" and is only read here. In the sidebar,
   Evaluations is then a menu that folds, as Campaigns: List all, then the datasets
-  (`ConversationDatasetsSidebarEntries`). An extraction agent's evaluations are not here yet: its
+  (`ConversationDatasetsSidebarEntries`). Of Evaluations and Campaigns, only the menu that holds
+  the current page opens at first, and both on a page neither holds (`useOpenSidebarTopMenu` in
+  `src/routes/-components/`). An extraction agent's evaluations are not here yet: its
   page says so, and its sidebar keeps a plain link.
 - Review campaigns, for who manages them (`features/campaigns`), under an agent's
   `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search

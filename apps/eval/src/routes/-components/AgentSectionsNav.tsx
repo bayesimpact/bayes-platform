@@ -8,6 +8,7 @@ import type { EvaluationAgent } from "@/features/agents"
 import { ConversationDatasetsSidebarEntries } from "@/features/conversation-datasets"
 import { AGENT_SECTION_ROUTES, type AgentSection } from "./agent-sections"
 import { CampaignsMenu } from "./CampaignsMenu"
+import { isTopMenuOpenAtFirst, useOpenSidebarTopMenu } from "./use-open-sidebar-menu"
 
 export type AgentSectionsNavProps = {
   agent: EvaluationAgent
@@ -24,6 +25,7 @@ export type AgentSectionsNavProps = {
 export function AgentSectionsNav({ agent, agentParams, sections }: AgentSectionsNavProps) {
   const { t } = useLingui()
   const agentName = agent.name
+  const openTopMenu = useOpenSidebarTopMenu()
   return (
     <nav aria-label={t`Sections of ${agentName}`} className="p-2">
       <SidebarMenu>
@@ -49,7 +51,13 @@ export function AgentSectionsNav({ agent, agentParams, sections }: AgentSections
           </SidebarMenuItem>
         ) : null}
         {!sections.includes("evaluations") ? null : agent.type === "conversation" ? (
-          <SidebarCollapsibleMenu Icon={FlaskConicalIcon} label={<Trans>Evaluations</Trans>}>
+          <SidebarCollapsibleMenu
+            // Another section's page starts the menu afresh: it opens or folds as that page asks.
+            key={`evaluations-${openTopMenu}`}
+            isOpenAtFirst={isTopMenuOpenAtFirst("evaluations", openTopMenu)}
+            Icon={FlaskConicalIcon}
+            label={<Trans>Evaluations</Trans>}
+          >
             <ConversationDatasetsSidebarEntries agentParams={agentParams} />
           </SidebarCollapsibleMenu>
         ) : (

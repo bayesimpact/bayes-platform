@@ -202,6 +202,31 @@ describe("the sections of an agent", () => {
     expect(sectionLinks()).toEqual(["Campaigns"])
   })
 
+  it("folds Campaigns on a page of Evaluations, and Evaluations on a page of Campaigns", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(evaluationsUrlOf(world))
+
+    const evaluations = await screen.findByRole("button", { name: "Evaluations" })
+    expect(evaluations).toHaveAttribute("aria-expanded", "true")
+    expect(screen.getByRole("button", { name: "Campaigns" })).not.toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+
+    await userEvent.click(screen.getByRole("button", { name: "Campaigns" }))
+    await userEvent.click(await screen.findByRole("link", { name: "List all" }))
+    expect(await screen.findByRole("heading", { name: "Campaigns" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Campaigns" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+    expect(screen.getByRole("button", { name: "Evaluations" })).not.toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+  })
+
   it("opens on the evaluations of an agent that opens nothing else", async () => {
     const world = buildSeveralProjectsWorld()
     server.use(...worldHandlers(world))
