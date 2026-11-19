@@ -10,6 +10,8 @@ export type McpAppCardProps = {
   html: string
   /** The domains the app declares. Without any, it runs with no network and no frame. */
   csp?: McpAppCsp
+  /** The MCP server the app comes from, which names the origin of its sandbox. */
+  mcpServerId?: string
   onMessage: (text: string) => void
   /** Called once when the app cannot render, so the reply shows the tool's text instead. */
   onFailed: (toolCallId: string) => void
@@ -19,13 +21,14 @@ export type McpAppCardProps = {
  * The interactive card of an MCP App, sandboxed away from the Desk. A placeholder covers it until
  * the app is ready; the frame keeps its width meanwhile, so the app measures a real one.
  */
-export function McpAppCard({ app, html, csp, onMessage, onFailed }: McpAppCardProps) {
+export function McpAppCard({ app, html, csp, mcpServerId, onMessage, onFailed }: McpAppCardProps) {
   const { t } = useLingui()
   const frameRef = useRef<HTMLIFrameElement>(null)
   const status = useMcpApp(frameRef, {
     app,
     html,
     csp,
+    mcpServerId,
     onMessage,
     onFailed: () => onFailed(app.toolCallId),
   })

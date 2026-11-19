@@ -5,8 +5,8 @@
 # Build from the repository root:
 #   docker build -f apps/web-embed/Dockerfile -t bayes-platform/web-embed .
 #
-# VITE_API_URL is built with a placeholder and replaced at container start
-# (see docker/40-runtime-config.sh), so one image serves every install.
+# VITE_API_URL and VITE_MCP_APP_SANDBOX_ORIGIN are built with a placeholder and replaced at
+# container start (see docker/40-runtime-config.sh), so one image serves every install.
 #
 FROM node:24.21.0-bookworm-slim AS build
 
@@ -23,6 +23,7 @@ RUN npm ci \
     --include-workspace-root
 
 ENV VITE_API_URL=__VITE_API_URL__
+ENV VITE_MCP_APP_SANDBOX_ORIGIN=__VITE_MCP_APP_SANDBOX_ORIGIN__
 
 # Builds the SPA (dist/) and the launcher IIFE (dist-launcher/).
 RUN npx turbo run build --filter=@caseai-connect/web-embed

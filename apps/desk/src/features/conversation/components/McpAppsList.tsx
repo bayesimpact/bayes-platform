@@ -34,6 +34,7 @@ export function McpAppsList({
               app={app}
               html={source.html}
               csp={source.csp}
+              mcpServerId={source.mcpServerId}
               onMessage={onAppMessage}
               onFailed={onAppFailed}
             />

@@ -57,6 +57,9 @@ const ENV_TO_CONFIG_KEY: Record<string, string> = {
   WEB_HELP_AGENT_EMBED_TOKEN: "helpAgentEmbedToken",
   WEB_HELP_AGENT_EMBED_COLOR: "helpAgentEmbedColor",
   WEB_HELP_AGENT_EMBED_HINT: "helpAgentEmbedHint",
+  // The origin that serves the sandbox of MCP App cards, with `{label}` for the card's MCP
+  // server: the web front and the Desk both read it.
+  WEB_MCP_APP_SANDBOX_ORIGIN: "mcpAppSandboxOrigin",
   WEB_OIDC_AUTHORITY: "oidcAuthority",
   WEB_OIDC_CLIENT_ID: "oidcClientId",
   WEB_OIDC_AUDIENCE: "oidcAudience",

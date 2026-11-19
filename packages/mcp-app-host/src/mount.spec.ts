@@ -16,6 +16,8 @@ type FakeBridge = {
 const bridges = vi.hoisted((): FakeBridge[] => [])
 /** Whether the fake app answers the handshake. */
 const appAnswers = vi.hoisted(() => ({ value: true }))
+/** Whether the sandbox page loads. */
+const sandboxLoads = vi.hoisted(() => ({ value: true }))
 
 // The bridge and the sandbox talk to a frame the tests' DOM does not run: the bridge records
 // what the host sends, and the sandbox is ready at once.
@@ -60,7 +62,7 @@ vi.mock("@modelcontextprotocol/ext-apps/app-bridge", () => ({
   },
 }))
 vi.mock("./sandbox", () => ({
-  startSandbox: async () => {},
+  startSandbox: () => (sandboxLoads.value ? Promise.resolve() : new Promise(() => {})),
   SandboxTransport: class {},
 }))
 
@@ -94,6 +96,7 @@ describe("mountMcpApp", () => {
   beforeEach(() => {
     vi.useFakeTimers()
     appAnswers.value = true
+    sandboxLoads.value = true
     setUserActivation(true)
   })
 
@@ -190,6 +193,22 @@ describe("mountMcpApp", () => {
 
     expect(onReady).not.toHaveBeenCalled()
     expect(onFailed).toHaveBeenCalledTimes(1)
+  })
+
+  it("fails once when the sandbox page never loads, and names the origin that serves it", async () => {
+    sandboxLoads.value = false
+    const { bridge, onReady, onFailed } = mount({
+      sandbox: { template: "https://usercontent.example" },
+    })
+
+    await vi.advanceTimersByTimeAsync(9_900)
+    expect(onFailed).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(200)
+    expect(onReady).not.toHaveBeenCalled()
+    expect(onFailed).toHaveBeenCalledTimes(1)
+    expect(String(onFailed.mock.calls[0]?.[0])).toContain("https://usercontent.example")
+    expect(bridge.isClosed).toBe(true)
   })
 
   it("ends itself when it fails, so its host has nothing left to free", async () => {

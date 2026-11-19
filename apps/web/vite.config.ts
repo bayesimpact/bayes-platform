@@ -2,14 +2,59 @@ import fs from "node:fs"
 import path from "node:path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig, loadEnv } from "vite"
+import { defineConfig, loadEnv, type Plugin } from "vite"
+// By path, not by package name: Vite leaves a package out of the bundle of this file, and Node
+// would then load its TypeScript source as it is.
+import {
+  MCP_APP_SANDBOX_PATH,
+  servedSandboxPage,
+} from "../../packages/mcp-app-host/src/sandbox-page"
 
 const certsDir = path.resolve(__dirname, "../api/.certs")
+
+/**
+ * Publishes the page of the sandbox of MCP App cards beside the app, at `MCP_APP_SANDBOX_PATH`:
+ * a file of the build, and a route of `vite dev`. The install points its sandbox origin
+ * (`mcpAppSandboxOrigin` of the runtime configuration) at this build, and lets that origin serve
+ * this one path. The page comes from the package every host shares, so the frame a host talks to
+ * and the page it loads cannot drift apart. It is served with no Content Security Policy: every
+ * card would inherit it.
+ */
+function mcpAppSandboxPage(): Plugin {
+  return {
+    name: "mcp-app-sandbox-page",
+    configureServer(server) {
+      server.middlewares.use(MCP_APP_SANDBOX_PATH, (_request, response) => {
+        response.setHeader("Content-Type", "text/html; charset=utf-8")
+        response.setHeader("Cache-Control", "no-cache")
+        response.setHeader("X-Content-Type-Options", "nosniff")
+        response.end(servedSandboxPage())
+      })
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: MCP_APP_SANDBOX_PATH.slice(1),
+        source: servedSandboxPage(),
+      })
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "")
   const appTitle = env.VITE_APP_TITLE?.trim() || "AgentStudio"
+
+  // The dev server answers the sandbox origin of MCP App cards too, for the sandbox page: every
+  // label of that origin's domain is a host it must accept.
+  const sandboxOrigin = env.VITE_MCP_APP_SANDBOX_ORIGIN?.trim()
+  const allowedHosts = [
+    "connect.localhost",
+    ...(sandboxOrigin ? [new URL(sandboxOrigin.replace("{label}.", "")).hostname] : []).map(
+      (domain) => `.${domain}`,
+    ),
+  ]
 
   const httpsConfig = fs.existsSync(path.join(certsDir, "key.pem"))
     ? {
@@ -30,6 +75,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
       tailwindcss(),
+      mcpAppSandboxPage(),
       {
         name: "inject-app-title",
         transformIndexHtml(html) {
@@ -49,7 +95,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: Number(env.FRONT_PORT) || 5173,
       https: httpsConfig,
-      allowedHosts: ["connect.localhost"],
+      allowedHosts,
     },
     // `vite preview` serves the production build locally. Same HTTPS certs
     // and host as `server` so OIDC callbacks (configured against
@@ -58,7 +104,7 @@ export default defineConfig(({ mode }) => {
     preview: {
       port: Number(env.FRONT_PREVIEW_PORT) || 5174,
       https: httpsConfig,
-      allowedHosts: ["connect.localhost"],
+      allowedHosts,
     },
   }
 })

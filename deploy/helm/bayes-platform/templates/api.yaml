@@ -60,6 +60,10 @@ spec:
               value: {{ .Values.urls.webEmbed | quote }}
             - name: WEB_HELP_CENTER_URL
               value: {{ .Values.urls.help | quote }}
+            {{- with .Values.urls.mcpAppSandbox }}
+            - name: WEB_MCP_APP_SANDBOX_ORIGIN
+              value: {{ . | quote }}
+            {{- end }}
             {{- range $key, $value := .Values.web.env }}
             - name: {{ $key }}
               value: {{ $value | toString | quote }}

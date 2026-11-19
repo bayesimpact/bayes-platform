@@ -24,6 +24,12 @@ const optionalUrl = optionalText.pipe(z.url({ protocol: /^https?$/ }).optional()
 const sharedConfigSchema = z.object({
   /** The install's help center, which the user menu links to when it is set. */
   helpCenterUrl: optionalUrl,
+  /**
+   * The origin that serves the sandbox of MCP Apps, apart from the Desk's own, such as
+   * `https://{label}.staging.bayes-usercontent.org`: `{label}` stands for a label of the app's MCP
+   * server. Unset, an app runs in a frame with an opaque origin that the Desk writes itself.
+   */
+  mcpAppSandboxOrigin: optionalText,
   /** The deployed image tag (`26.10.7`, `main-1234-abc1234`), which the deployment sets. */
   appVersion: optionalText,
   /** The commit the image was built from. */
@@ -70,6 +76,7 @@ function readConfig(): AppConfig {
     return {
       mode: "mock",
       helpCenterUrl: "https://help.example.org",
+      mcpAppSandboxOrigin: undefined,
       appVersion: "26.10.7",
       gitSha: undefined,
       buildId: undefined,
@@ -78,6 +85,7 @@ function readConfig(): AppConfig {
 
   const buildTime = {
     helpCenterUrl: env.VITE_HELP_CENTER_URL,
+    mcpAppSandboxOrigin: env.VITE_MCP_APP_SANDBOX_ORIGIN,
     appVersion: env.VITE_APP_VERSION,
     gitSha: env.VITE_GIT_SHA,
     buildId: env.VITE_BUILD_ID,
