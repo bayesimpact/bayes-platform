@@ -71,10 +71,10 @@ describe("agent model catalog (as the API sends it)", () => {
     expect(findAgentModelEntry(catalog, catalog.defaults.judge)?.deprecation).toBeNull()
   })
 
-  it("reports only the OpenAI models as served outside the EU", () => {
+  it("reports only gemini-4-carbon and the OpenAI models as served outside the EU", () => {
     expect(
       catalog.models.filter((entry) => entry.servedOutsideEu).map((entry) => entry.model),
-    ).toEqual([AgentModel.Gpt54, AgentModel.Gpt54Mini])
+    ).toEqual([AgentModel.Gemini4Carbon, AgentModel.Gpt54, AgentModel.Gpt54Mini])
   })
 })
 
@@ -235,6 +235,12 @@ describe("buildAgentModelOptions", () => {
       AgentModel.ClaudeOpus5,
     ],
     [AgentProvider.OpenAI, AgentModel.Gpt54, AgentModel.Gpt54Mini],
+    [
+      AgentProvider.Vertex4,
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
+    ],
   ])("adds only the %s models once the API says they are available", (provider, ...models) => {
     const options = buildAgentModelOptions(
       agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
@@ -292,9 +298,17 @@ describe("describeModelOptionFields", () => {
   it.each([
     AgentModel.Gemini37Flash,
     AgentModel.Gemini38Flash,
+    AgentModel.Gemini4Argon,
+    AgentModel.Gemini4Hydrogen,
   ])("offers the thinking levels %s accepts, without minimal", (model) => {
     expect(fieldsOf(model)).toEqual({
       thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium", "high"] },
+    })
+  })
+
+  it("offers only low and medium for gemini-4-carbon, too slow on high", () => {
+    expect(fieldsOf(AgentModel.Gemini4Carbon)).toEqual({
+      thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium"] },
     })
   })
 
@@ -418,6 +432,14 @@ describe("isPriorityCallsAvailable", () => {
     expect(
       isPriorityCallsAvailable({ hasFeature: () => false, model: AgentModel.Gemini35Flash }),
     ).toBe(false)
+  })
+
+  it.each([
+    AgentModel.Gemini4Argon,
+    AgentModel.Gemini4Carbon,
+    AgentModel.Gemini4Hydrogen,
+  ])("is available for the Gemini 4 model %s when the project has the flag", (model) => {
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model })).toBe(true)
   })
 
   it.each([

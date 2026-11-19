@@ -15,6 +15,7 @@ export const AGENT_DEFAULT_MODELS = {
 } as const satisfies AvailableModels["defaults"]
 
 const PROVIDERS_WITH_FEATURE_FLAGS: Partial<Record<AgentProvider, FeatureFlagKey>> = {
+  [AgentProvider.Vertex4]: "gemini-4",
   [AgentProvider.MedGemma]: "medgemma",
   [AgentProvider.Gemma]: "gemma",
   [AgentProvider.Mistral]: "mistral",

@@ -91,6 +91,9 @@ describe("Agents - getAvailableModels", () => {
       AgentModel.Gemini36Flash,
       AgentModel.Gemini37Flash,
       AgentModel.Gemini38Flash,
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
       AgentModel.MedGemma10_27B,
       AgentModel.Gemma4_26B,
       AgentModel.Gemma4_31B,
@@ -125,6 +128,14 @@ describe("Agents - getAvailableModels", () => {
       servedOutsideEu: false,
     })
     expect(entryOf(models, AgentModel.Gemini36Flash)).toMatchObject({
+      provider: AgentProvider.Vertex3,
+      deprecation: {
+        deprecatedOn: "2026-11-19",
+        recommendedReplacement: AgentModel.Gemini4Hydrogen,
+      },
+      servedOutsideEu: false,
+    })
+    expect(entryOf(models, AgentModel.Gemini38Flash)).toMatchObject({
       provider: AgentProvider.Vertex3,
       deprecation: null,
       servedOutsideEu: false,
@@ -164,6 +175,9 @@ describe("Agents - getAvailableModels", () => {
       new Set(models.filter((entry) => entry.isAvailable).map((entry) => entry.provider)),
     ).toEqual(new Set([AgentProvider.Vertex3]))
     for (const model of [
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
       AgentModel.MedGemma10_27B,
       AgentModel.Gemma4_26B,
       AgentModel.Gemma4_31B,
@@ -186,6 +200,25 @@ describe("Agents - getAvailableModels", () => {
 
     expect(entryOf(models, AgentModel.Gemma4_26B)?.isAvailable).toBe(true)
     expect(entryOf(models, AgentModel.MistralSmall32_24B)?.isAvailable).toBe(false)
+  })
+
+  it("offers the Gemini 4 models with the gemini-4 flag, carbon outside the EU", async () => {
+    await createContext({ featureFlags: ["gemini-4"] })
+
+    const { models } = await subject()
+
+    for (const model of [AgentModel.Gemini4Argon, AgentModel.Gemini4Hydrogen]) {
+      expect(entryOf(models, model)).toMatchObject({
+        provider: AgentProvider.Vertex4,
+        isAvailable: true,
+        servedOutsideEu: false,
+      })
+    }
+    expect(entryOf(models, AgentModel.Gemini4Carbon)).toMatchObject({
+      provider: AgentProvider.Vertex4,
+      isAvailable: true,
+      servedOutsideEu: true,
+    })
   })
 
   it("no longer offers a model past its deprecation date, but still describes it", async () => {

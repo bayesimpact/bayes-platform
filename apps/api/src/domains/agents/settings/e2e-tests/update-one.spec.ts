@@ -147,7 +147,7 @@ describe("Agent Settings - updateOne", () => {
   it("starts a new model on its default options when none are sent", async () => {
     await createContext()
 
-    expectResponse(await subject({ payload: { model: AgentModel.Gemini36Flash } }), 200)
+    expectResponse(await subject({ payload: { model: AgentModel.Gemini38Flash } }), 200)
 
     expect(await latestOptions()).toEqual({
       providerOptions: {
@@ -191,6 +191,52 @@ describe("Agent Settings - updateOne", () => {
     await enableFeatureFlag("gemma")
 
     expectResponse(await subject({ payload: { model: AgentModel.Gemma4_26B } }), 200)
+  })
+
+  it.each([
+    AgentModel.Gemini4Argon,
+    AgentModel.Gemini4Carbon,
+    AgentModel.Gemini4Hydrogen,
+  ])("rejects switching to %s without the gemini-4 flag", async (model) => {
+    await createContext()
+
+    expectResponse(await subject({ payload: { model } }), 400)
+  })
+
+  it.each([
+    [AgentModel.Gemini4Argon, "medium"],
+    [AgentModel.Gemini4Carbon, "low"],
+    [AgentModel.Gemini4Hydrogen, "medium"],
+  ])("switches to %s with the gemini-4 flag, on its default %s level", async (model, level) => {
+    await createContext()
+    await enableFeatureFlag("gemini-4")
+
+    expectResponse(await subject({ payload: { model } }), 200)
+
+    expect(await latestOptions()).toEqual({
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: level, includeThoughts: true } },
+      },
+    })
+  })
+
+  it("rejects the high thinking level on gemini-4-carbon", async () => {
+    await createContext()
+    await enableFeatureFlag("gemini-4")
+
+    expectResponse(
+      await subject({
+        payload: {
+          model: AgentModel.Gemini4Carbon,
+          providerOptions: {
+            providerOptions: {
+              vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+            },
+          },
+        },
+      }),
+      400,
+    )
   })
 
   it("keeps a model the project lost access to when another field changes", async () => {

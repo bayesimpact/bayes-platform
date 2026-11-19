@@ -10,11 +10,13 @@ import { AISDKOpenAIProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-open
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
+import { AISDKVertex4Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex4.provider"
 
 const LLM_AVAILABLE_PROVIDERS = {
   [AgentProvider._Mock]: AISDKMockProvider,
   [AgentProvider.Vertex]: AISDKVertexProvider,
   [AgentProvider.Vertex3]: AISDKVertex3Provider,
+  [AgentProvider.Vertex4]: AISDKVertex4Provider,
   [AgentProvider.Mistral]: AISDKMistralProvider,
   [AgentProvider.MedGemma]: AISDKMedGemmaProvider,
   [AgentProvider.Gemma]: AISDKGemmaProvider,
