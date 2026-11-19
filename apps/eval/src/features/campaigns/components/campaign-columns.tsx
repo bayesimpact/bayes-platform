@@ -17,7 +17,6 @@ const campaignColumnLabels = {
   status: msg({ message: "Status", comment: "Where a review campaign stands" }),
   members: msg({ message: "Participants", comment: "How many people take part in a campaign" }),
   created: msg({ message: "Created", comment: "When a review campaign was created" }),
-  updated: msg({ message: "Updated", comment: "When a review campaign last changed" }),
 } satisfies Record<string, MessageDescriptor>
 
 /** The columns of the campaigns of an agent: its name opens it. */
@@ -54,12 +53,6 @@ export function campaignColumnsOf({
     }),
     columnHelper.accessor("createdAt", {
       header: translate(campaignColumnLabels.created),
-      cell: (context) => (
-        <span className="text-muted-foreground">{fullDateTimeOf(context.getValue(), locale)}</span>
-      ),
-    }),
-    columnHelper.accessor("updatedAt", {
-      header: translate(campaignColumnLabels.updated),
       cell: (context) => (
         <span className="text-muted-foreground">{fullDateTimeOf(context.getValue(), locale)}</span>
       ),

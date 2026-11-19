@@ -2592,8 +2592,6 @@ msgid "Untitled document"
 msgstr "Document sans titre"
 
 #. When a dataset last changed
-#. When a review campaign last changed
-#: src/features/campaigns/components/campaign-columns.tsx
 #: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
 msgid "Updated"
 msgstr "Modifiée le"
