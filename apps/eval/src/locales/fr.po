@@ -634,8 +634,8 @@ msgstr "Actuel"
 
 #. Under the name of a dataset: what the page shows, and when it last changed
 #: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
-msgid "Dataset · Updated {updated}"
-msgstr "Jeu de données · Mis à jour le {updated}"
+msgid "Dataset · Updated <0/>"
+msgstr "Jeu de données · Mis à jour <0/>"
 
 #. The header of the column of the names, in the list of datasets
 #: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
