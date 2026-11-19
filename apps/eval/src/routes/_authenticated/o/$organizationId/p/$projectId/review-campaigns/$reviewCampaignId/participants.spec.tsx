@@ -148,12 +148,14 @@ describe("a reviewer's campaign", () => {
     expect(session?.myReview).toMatchObject({ overallRating: 4, comment: "Right on both." })
   })
 
-  it("shows the sources a reply relied on, as the tester saw them", async () => {
+  it("shows the assistant's replies with the sources they relied on, as the tester saw them", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))
     renderApp(reviewSessionUrlOf(world, "Pricing questions", 0))
 
     expect(await screen.findByText("Used 1 source")).toBeInTheDocument()
+    // The agent's replies are the assistant's, whatever the agent's name.
+    expect(screen.getAllByText("Assistant")).toHaveLength(2)
   })
 
   it("shows the form the agent filled, and what it did not collect", async () => {

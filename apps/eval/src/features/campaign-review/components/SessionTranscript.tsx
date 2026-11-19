@@ -9,7 +9,6 @@ import { SourcesList } from "@/features/conversation"
 
 export type SessionTranscriptProps = {
   messages: ReviewerSessionOutputDto["transcript"]
-  agentName: string
   /** The session as a conversation, which the documents of its sources belong to. */
   conversation: ConversationParamsDto
 }
@@ -18,7 +17,7 @@ export type SessionTranscriptProps = {
  * What the tester and the agent said, oldest first: the agent's replies render their Markdown and
  * the sources they relied on, as the Desk shows them.
  */
-export function SessionTranscript({ messages, agentName, conversation }: SessionTranscriptProps) {
+export function SessionTranscript({ messages, conversation }: SessionTranscriptProps) {
   if (messages.length === 0) {
     return (
       <p className="text-sm text-muted-foreground italic">
@@ -44,7 +43,9 @@ export function SessionTranscript({ messages, agentName, conversation }: Session
                   Tester
                 </Trans>
               ) : (
-                agentName
+                <Trans comment="Names who wrote a message of a transcript: the agent">
+                  Assistant
+                </Trans>
               )}
             </span>
             {isTester ? (

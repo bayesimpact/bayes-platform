@@ -248,6 +248,11 @@ msgstr "Posées une fois, quand un testeur termine sa participation."
 msgid "Asked to a reviewer for each session they review."
 msgstr "Posées à un relecteur pour chaque session qu'il relit."
 
+#. Names who wrote a message of a transcript: the agent
+#: src/features/campaign-review/components/SessionTranscript.tsx
+msgid "Assistant"
+msgstr "Assistant"
+
 #: src/features/conversation/components/Composer.tsx
 msgid "Attach a file"
 msgstr "Joindre un fichier"
