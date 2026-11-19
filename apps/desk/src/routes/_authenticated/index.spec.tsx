@@ -84,7 +84,7 @@ describe("the Desk's home", () => {
     // Conversation agents come first, the current agent is marked.
     await expectSwitcherOptions(["Helpful Assistant", "Writing Helper", "Document Reader Current"])
     await expectSwitcherGroups(["Conversation agents", "Extraction agents"])
-    expect(within(dialog).getByRole("combobox")).toHaveFocus()
+    expect(within(dialog).getByRole("combobox", { name: "Search an agent" })).toHaveFocus()
 
     await userEvent.click(within(dialog).getByRole("option", { name: "Helpful Assistant" }))
 
@@ -148,7 +148,7 @@ describe("the Desk's home", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: /Switch agent/ }))
     const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
-    const search = within(dialog).getByRole("combobox")
+    const search = within(dialog).getByRole("combobox", { name: "Search an agent" })
 
     // "reader" is in the agent's name, "support" in its project's.
     await userEvent.type(search, "support reader")

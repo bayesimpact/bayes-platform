@@ -187,7 +187,7 @@ describe("the stories of the Desk", () => {
     await AgentCommandCenterOpen.play?.({ canvasElement: container })
 
     const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
-    expect(within(dialog).getByRole("combobox")).toHaveFocus()
+    expect(within(dialog).getByRole("combobox", { name: "Search an agent" })).toHaveFocus()
     expect(within(dialog).getAllByRole("group").length).toBeGreaterThan(1)
     expect(within(dialog).getByText("Current")).toBeInTheDocument()
   })

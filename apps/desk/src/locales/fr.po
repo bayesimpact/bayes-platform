@@ -86,6 +86,11 @@ msgstr "{name}, menu de {email}"
 msgid "{processed} of {total, plural, one {# row} other {# rows}}"
 msgstr "{processed} sur {total, plural, one {# ligne} other {# lignes}}"
 
+#. A project and its organization, above its agents in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "{projectName} · {organizationName}"
+msgstr "{projectName} · {organizationName}"
+
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
 msgstr "{rowCount, plural, one {Extraire la première ligne} other {Extraire les # premières lignes}}"
@@ -101,6 +106,11 @@ msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées
 #: src/features/conversation/components/Composer.tsx
 msgid "<0/> to send"
 msgstr "<0/> pour envoyer"
+
+#. A section of the list that switches agent: where its agents are, then their type
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "<0>{place}</0> · {typeName}"
+msgstr "<0>{place}</0> · {typeName}"
 
 #: src/features/conversation/components/Composer.tsx
 msgid "<0><1/><2/></0> for a new line"
@@ -418,6 +428,11 @@ msgstr "Adresse email manquante"
 #: src/features/conversation/components/EnterKey.tsx
 msgid "Enter"
 msgstr "Entrée"
+
+#. The Escape key of a keyboard
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Esc"
+msgstr "Échap"
 
 #: src/features/extraction/components/CsvRowScope.tsx
 msgid "Every row of the file"
@@ -889,6 +904,10 @@ msgstr "Enregistrer"
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent"
+msgstr "Rechercher un agent"
 
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Search an agent by its name, its project or its organization."
