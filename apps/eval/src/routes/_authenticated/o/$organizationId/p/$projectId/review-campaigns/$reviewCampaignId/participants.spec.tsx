@@ -254,6 +254,19 @@ describe("a tester's campaign", () => {
     )
   })
 
+  it("offers the final survey only once a session has the tester's feedback", async () => {
+    const world = buildParticipantWorld()
+    const campaign = campaignOf(world, "Support assistant pilot")
+    for (const session of world.testerSessions[campaign.id] ?? []) {
+      session.feedbackStatus = "pending"
+    }
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignUrlOf(world, "Support assistant pilot")}/test`)
+
+    expect(await screen.findByRole("button", { name: "Start a session" })).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "Fill the final survey" })).not.toBeInTheDocument()
+  })
+
   it("fills the final survey once, then offers to edit it", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))

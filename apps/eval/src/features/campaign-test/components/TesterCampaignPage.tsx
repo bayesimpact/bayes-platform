@@ -37,6 +37,7 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
   const newSession = useOpenNewSession(campaign)
   const deleteSession = useDeleteSession(campaign)
   const sessionCount = sessions.length
+  const hasGivenFeedback = sessions.some((session) => session.feedbackStatus === "submitted")
 
   return (
     <ParticipantCampaignFrame campaign={campaign} campaignRole="tester" currentTab="overview">
@@ -59,7 +60,8 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
           onDelete={setDeleting}
         />
       </SectionCard>
-      <SurveyCard campaign={campaign} hasSurvey={survey !== null} />
+      {/* The final survey comes once the tester gave feedback on at least one session. */}
+      {hasGivenFeedback ? <SurveyCard campaign={campaign} hasSurvey={survey !== null} /> : null}
       <SessionFeedbackDialog
         campaign={campaign}
         context={context}
