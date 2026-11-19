@@ -9,8 +9,9 @@ type DataType = Record<Agent["id"], AsyncData<AgentSettings[]>> // keyed by agen
 interface State {
   history: DataType
   /**
-   * Version the playground runs, per session. Deliberately not persisted: a reload starts over
-   * from the draft-first default, which is the version a tester wants nine times out of ten.
+   * Version the user picked for the playground, per agent. It holds for the session open: a new
+   * chat or another session starts over from the newest version, the draft or else the newest
+   * saved one. Deliberately not persisted: a reload starts over from that default too.
    */
   playgroundRevisionByAgentId: Record<string, number>
   /**
@@ -45,6 +46,9 @@ const slice = createSlice({
       action: PayloadAction<{ agentId: string; revision: number }>,
     ) => {
       state.playgroundRevisionByAgentId[action.payload.agentId] = action.payload.revision
+    },
+    resetPlaygroundRevisions: (state) => {
+      state.playgroundRevisionByAgentId = {}
     },
   },
   extraReducers: (builder) => {

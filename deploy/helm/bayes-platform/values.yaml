@@ -28,6 +28,13 @@ urls:
   web: https://platform.example.org
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
+  # The origin of the sandbox that runs MCP App cards, on a domain apart from the platform's,
+  # with {label} where each MCP server gets a label of its own:
+  # https://{label}.usercontent.example.org. The chart then gives the API a wildcard Ingress for
+  # that origin, for the sandbox page alone, so it needs a wildcard DNS record and a wildcard
+  # certificate (ingress.mcpAppSandboxAnnotations, ingress.mcpAppSandboxTlsSecret). Empty: a
+  # card runs in a frame with an opaque origin that the app writes itself, with no extra host.
+  mcpAppSandbox: ""
   # Bundled Phoenix (phoenix.enabled): its host, and the trace links of the UI.
   phoenix: ""
 
@@ -507,6 +514,11 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: 100m
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+  # The wildcard Ingress of urls.mcpAppSandbox. Its certificate is a wildcard, which an ACME
+  # issuer signs by DNS-01 only: name here a secret that already holds one, or leave it empty
+  # for cert-manager to order it with ingress.clusterIssuer.
+  mcpAppSandboxAnnotations: {}
+  mcpAppSandboxTlsSecret: ""
   # The bundled Phoenix has no sign-in: restrict it here (e.g.
   # nginx.ingress.kubernetes.io/whitelist-source-range, or an auth proxy).
   phoenixAnnotations: {}

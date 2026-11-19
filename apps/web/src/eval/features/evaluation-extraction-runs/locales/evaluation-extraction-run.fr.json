@@ -7,13 +7,15 @@
     "selectAgentDescription": "Choisissez l'agent d'extraction à évaluer sur ce dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Sélectionner un agent",
+    "noAgents": "Aucun agent d'extraction avec une version enregistrée dans ce projet.",
     "agentSettingsUnavailable": "La configuration de cet agent n'a pas pu être chargée.",
     "version": {
       "label": "Version",
       "placeholder": "Sélectionner une version",
       "loading": "Chargement des versions...",
+      "noSaved": "Cet agent n'a pas de version enregistrée.",
       "item": "v{{revision}} — {{detail}}",
-      "current": "Actuelle ({{date}})",
+      "production": "En production ({{date}})",
       "revision": "v{{revision}}"
     },
     "scope": {
@@ -119,6 +121,7 @@
     "agentMetadata": {
       "title": "Configuration de l'agent",
       "viewAgent": "Voir l'agent",
+      "openInStudio": "Ouvrir dans le Studio",
       "notFound": "Agent introuvable",
       "model": "Modèle",
       "documentsRagMode": "Mode de recherche documentaire",

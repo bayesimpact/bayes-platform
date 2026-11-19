@@ -151,7 +151,7 @@ export class AgentsController {
     })
     const results = await Promise.all(
       agents.map(async (agent) => {
-        const agentSettings = await this.agentSettingsService.findLastPublished({
+        const agentSettings = await this.agentSettingsService.findProduction({
           connectScope,
           agentId: agent.id,
         })
@@ -191,23 +191,27 @@ export class AgentsController {
     })
     const results = await Promise.all(
       agents.map(async (agent) => {
-        const currentAgentSettings = await this.agentSettingsService.findLastPublished({
+        const currentAgentSettings = await this.agentSettingsService.findProduction({
           connectScope,
           agentId: agent.id,
         })
 
-        const draftAgentSettings = await this.agentSettingsService.getLast({
+        const draftAgentSettings = await this.agentSettingsService.getLatest({
           connectScope,
           agentId: agent.id,
-          includesDraft: true,
         })
 
         const hasDraft =
           draftAgentSettings.isDraft && currentAgentSettings?.id !== draftAgentSettings.id
+        // What the playground runs without a draft: the newest revision when it is saved.
+        const latestSavedAgentSettings = draftAgentSettings.isDraft
+          ? await this.agentSettingsService.findLatestSaved({ connectScope, agentId: agent.id })
+          : draftAgentSettings
         return toAgentWithDraftDto({
           agent,
           currentAgentSettings,
           draftAgentSettings: hasDraft ? draftAgentSettings : undefined,
+          latestSavedAgentSettings,
           permissions: permissionsByAgentId.get(agent.id) ?? [],
         })
       }),

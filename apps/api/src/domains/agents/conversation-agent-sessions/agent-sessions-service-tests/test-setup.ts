@@ -119,6 +119,7 @@ export function agentSessionControllerTestSetup() {
 
     const agentSettings = agentSettingsFactory
       .transient({ organization: testOrganization, project: testProject, agent: testAgent })
+      .production()
       .build({
         instructions: "You are a helpful assistant",
         deletedTemperature: 0,

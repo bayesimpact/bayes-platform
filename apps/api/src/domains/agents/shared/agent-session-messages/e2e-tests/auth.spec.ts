@@ -106,6 +106,11 @@ describe("Agent Session Messages - Auth", () => {
       .transient({ organization, project })
       .build()
     await repositories.agentMessageAttachmentDocumentRepository.save(attachmentDocument)
+    // The session's message carries the attachment: a file is read through its conversation.
+    await repositories.agentMessageRepository.update(
+      { id: agentMessage.id },
+      { attachmentDocumentId: attachmentDocument.id },
+    )
 
     authSubject = user.authSubject!
     organizationId = organization.id

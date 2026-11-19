@@ -57,25 +57,28 @@ describe("AgentDuplicationService", () => {
   /** An agent with something in every table a copy reads, and some that it must leave alone. */
   const createSourceAgent = async () => {
     const context = await createOrganizationWithAgent(repositories, {
-      agentSettings: { revision: 1, instructions: "First version." },
+      agentSettings: { revision: 1, instructions: "First version.", isProduction: false },
     })
     const { organization, project, user, agent } = context
     const scope = { organization, project }
 
     const publishedSettings = await repositories.agentSettingsRepository.save(
-      agentSettingsFactory.transient({ ...scope, agent }).build({
-        revision: 2,
-        revisionName: "Second",
-        instructions: "Answer questions about the product.",
-        model: AgentModel.Gemini35Flash,
-        providerOptions: sourceModelOptions,
-        documentsRagMode: DocumentsRagMode.Tags,
-        greetingMessage: "Hello!",
-        outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
-        fillFormEnabled: true,
-        priorityCallsEnabled: true,
-        memoryMode: AgentMemoryMode.Ask,
-      }),
+      agentSettingsFactory
+        .production()
+        .transient({ ...scope, agent })
+        .build({
+          revision: 2,
+          revisionName: "Second",
+          instructions: "Answer questions about the product.",
+          model: AgentModel.Gemini35Flash,
+          providerOptions: sourceModelOptions,
+          documentsRagMode: DocumentsRagMode.Tags,
+          greetingMessage: "Hello!",
+          outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
+          fillFormEnabled: true,
+          priorityCallsEnabled: true,
+          memoryMode: AgentMemoryMode.Ask,
+        }),
     )
     await repositories.agentSettingsRepository.save(
       agentSettingsFactory
@@ -200,7 +203,7 @@ describe("AgentDuplicationService", () => {
       userId: source.user.id,
     })
 
-  it("copies the published settings into a draft revision 1 of a new agent", async () => {
+  it("copies the settings in production into a draft revision 1 of a new agent", async () => {
     const source = await createSourceAgent()
 
     const { agent, agentSettings } = await duplicate(source)
@@ -217,13 +220,19 @@ describe("AgentDuplicationService", () => {
     })
     expect(revisions).toHaveLength(1)
     expect(revisions[0]?.id).toBe(agentSettings.id)
-    expect(agentSettings).toMatchObject({ revision: 1, isDraft: true, isArchived: false })
+    expect(agentSettings).toMatchObject({
+      revision: 1,
+      isDraft: true,
+      isArchived: false,
+      isProduction: false,
+    })
     expect(agentSettings.revisionName ?? null).toBeNull()
     // The whole row but what identifies it and its revision, so a settings column added later
     // is compared too.
     const rowColumns = new Set([
       ...["id", "createdAt", "updatedAt", "deletedAt", "organizationId", "projectId"],
       ...["agentId", "agent", "revision", "revisionName", "revisionDesc", "isDraft", "isArchived"],
+      "isProduction",
     ])
     const settingsOf = (row: object) =>
       Object.fromEntries(Object.entries(row).filter(([column]) => !rowColumns.has(column)))

@@ -216,7 +216,7 @@ export class ReviewCampaignsService {
     if (!agent) {
       throw new UnprocessableEntityException(`Agent ${agentId} not found in this project`)
     }
-    const agentSettings = await this.agentSettingsService.findLastPublished({
+    const agentSettings = await this.agentSettingsService.findProduction({
       connectScope,
       agentId: agent.id,
     })

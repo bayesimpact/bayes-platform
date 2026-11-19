@@ -112,7 +112,7 @@ export class EvaluationConversationRunsController {
     agentSettingsRevision: number | null | undefined
   }): Promise<AgentSettings> {
     if (typeof agentSettingsRevision !== "number") {
-      return this.agentSettingsService.getLast({ connectScope, agentId })
+      return this.agentSettingsService.getProduction({ connectScope, agentId })
     }
     const agentSettings = await this.agentSettingsService.get({
       connectScope,
@@ -122,6 +122,12 @@ export class EvaluationConversationRunsController {
     if (!agentSettings) {
       throw new NotFoundException(
         `Revision ${agentSettingsRevision} not found for agent with id ${agentId}`,
+      )
+    }
+    // A run evaluates a saved version: a draft still changes under the run.
+    if (agentSettings.isDraft) {
+      throw new UnprocessableEntityException(
+        `Revision ${agentSettingsRevision} is a draft and cannot be evaluated`,
       )
     }
     return agentSettings

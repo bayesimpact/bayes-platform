@@ -1,4 +1,3 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -87,15 +86,6 @@ function WithData({
                 isActive: urlagentId === agent.id,
                 icon: getAgentIcon(agent.type),
               }}
-              itemOptions={
-                // An agent with changes waiting to be published, or one that was never published,
-                // such as a fresh copy. Only the Studio lists drafts: the other apps never show it.
-                (agent.draftRevision || !agent.currentRevision) && (
-                  <Badge variant="warning" className="ml-auto">
-                    {t("status:draft")}
-                  </Badge>
-                )
-              }
             >
               {agent.type !== "extraction" && (
                 <SidebarAgentSessionList

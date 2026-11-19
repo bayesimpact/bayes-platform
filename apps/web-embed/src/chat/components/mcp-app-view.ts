@@ -9,6 +9,8 @@ export type McpAppViewModel = {
   html: string
   /** The domains the card declares, for its Content Security Policy. */
   csp?: McpAppCsp
+  /** The MCP server the card comes from, when it is known: its sandbox is named after it. */
+  mcpServerId?: string
   toolInput: Record<string, unknown>
   toolResult: unknown
 }
@@ -44,15 +46,20 @@ export function hasMcpAppCard(toolCall: AgentSessionToolCallDto): boolean {
 export function findMcpAppHtml(
   mcpApp: AgentSessionMcpAppDto,
   htmlEntries: AgentSessionMcpAppHtmlDto[],
-): Pick<McpAppViewModel, "html" | "csp"> | undefined {
-  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return { html: mcpApp.html }
+): Pick<McpAppViewModel, "html" | "csp" | "mcpServerId"> | undefined {
+  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) {
+    return mcpApp.mcpServerId
+      ? { html: mcpApp.html, mcpServerId: mcpApp.mcpServerId }
+      : { html: mcpApp.html }
+  }
   const entry = htmlEntries.find(
     (candidate) =>
       candidate.resourceUri === mcpApp.resourceUri &&
       (!mcpApp.mcpServerId || candidate.mcpServerId === mcpApp.mcpServerId),
   )
   if (!entry || entry.html.trim().length === 0) return undefined
-  return entry.csp ? { html: entry.html, csp: entry.csp } : { html: entry.html }
+  const source = { html: entry.html, mcpServerId: entry.mcpServerId }
+  return entry.csp ? { ...source, csp: entry.csp } : source
 }
 
 export function getRenderableMcpApp(

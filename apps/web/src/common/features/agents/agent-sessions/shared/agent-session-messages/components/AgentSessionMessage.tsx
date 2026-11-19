@@ -137,6 +137,7 @@ export function AgentSessionMessage({
                     key={toolCall.id}
                     html={view.html}
                     csp={view.csp}
+                    mcpServerId={view.mcpServerId}
                     toolInput={view.toolInput}
                     toolResult={view.toolResult}
                     onMessage={insertDraft ?? undefined}

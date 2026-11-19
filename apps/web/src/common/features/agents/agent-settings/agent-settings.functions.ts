@@ -74,10 +74,18 @@ export function listChangedAgentSettingsFields(
 }
 
 /**
- * The published revision the agent actually runs with: the newest one that is not a draft.
- * `versions` is ordered by revision descending, as the history endpoint returns it.
+ * The production revision: the saved revision every live channel runs with. The agent's managers
+ * choose it, so it is not always the newest saved one. `undefined` while nothing was ever saved.
  */
-export function findPublishedVersion(versions: AgentSettings[]): AgentSettings | undefined {
+export function findProductionVersion(versions: AgentSettings[]): AgentSettings | undefined {
+  return versions.find((version) => version.isProduction)
+}
+
+/**
+ * The newest saved revision. It is newer than the production revision when the managers keep an
+ * older one live. `versions` is ordered by revision descending, as the history endpoint returns it.
+ */
+export function findLatestSavedVersion(versions: AgentSettings[]): AgentSettings | undefined {
   return versions.find((version) => !version.isDraft)
 }
 
@@ -96,8 +104,9 @@ export function findDraftVersion(versions: AgentSettings[]): AgentSettings | und
 
 /**
  * Revision the playground runs new messages with: the user's explicit pick, else the draft, else
- * the published version. Defaulting to the draft is the point of the feature — a draft exists to
- * be tested, and requiring a publish to try it defeats it.
+ * the newest saved version, which the production version may be older than. Defaulting to the
+ * draft is the point of the feature — a draft exists to be tested, and requiring a publish to try
+ * it defeats it.
  *
  * A pick that is no longer in the list (archived or published elsewhere since it was made) is
  * treated as no pick at all, so the UI never offers a revision the API would reject.
@@ -113,7 +122,7 @@ export function resolveEffectiveRevision({
   chosenRevision: number | undefined
 }): number | undefined {
   if (chosenRevision !== undefined && findVersion(versions, chosenRevision)) return chosenRevision
-  return (findDraftVersion(versions) ?? findPublishedVersion(versions))?.revision
+  return (findDraftVersion(versions) ?? findLatestSavedVersion(versions))?.revision
 }
 
 /**

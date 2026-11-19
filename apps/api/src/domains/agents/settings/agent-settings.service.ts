@@ -114,50 +114,64 @@ export class AgentSettingsService {
     return 0
   }
 
-  private async getLastOrUndefined({
+  /** The newest revision, the draft when there is one. */
+  async getLatest({
     connectScope,
     agentId,
-    includesDraft,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
-    includesDraft?: true
-  }): Promise<AgentSettings | undefined> {
-    const last = includesDraft
-      ? await this.agentSettingsRepository.findLatest(connectScope, agentId)
-      : await this.agentSettingsRepository.findLatestPublished(connectScope, agentId)
-    return last ?? undefined
-  }
-  async getLast({
-    connectScope,
-    agentId,
-    includesDraft,
-  }: {
-    connectScope: RequiredConnectScope
-    agentId: string
-    includesDraft?: true
   }): Promise<AgentSettings> {
-    const last = await this.getLastOrUndefined({ connectScope, agentId, includesDraft })
-    if (!last) throw new NotFoundException(`AgentSettings with agentId ${agentId} not found`)
-    return last
+    const latest = await this.agentSettingsRepository.findLatest(connectScope, agentId)
+    if (!latest) throw new NotFoundException(`AgentSettings with agentId ${agentId} not found`)
+    return latest
+  }
+
+  /** The revision in production, which every live channel runs with. */
+  async getProduction({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<AgentSettings> {
+    const production = await this.findProduction({ connectScope, agentId })
+    if (!production) {
+      throw new NotFoundException(`Agent ${agentId} has no version in production`)
+    }
+    return production
   }
 
   /**
-   * The newest published revision, or undefined while the agent was never published: a copy of
-   * an agent starts with a draft only.
+   * The revision in production, or undefined while the agent was never saved: a copy of an agent
+   * starts with a draft only.
    */
-  async findLastPublished({
+  async findProduction({
     connectScope,
     agentId,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
   }): Promise<AgentSettings | undefined> {
-    return this.getLastOrUndefined({ connectScope, agentId })
+    return (await this.agentSettingsRepository.findProduction(connectScope, agentId)) ?? undefined
   }
 
-  /** The newest published revision, or the draft of an agent that was never published. */
-  async getLastPublishedOrDraft({
+  /**
+   * The newest saved revision, or undefined while the agent was never saved. It is newer than the
+   * revision in production when the managers keep an older one live.
+   */
+  async findLatestSaved({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<AgentSettings | undefined> {
+    return (await this.agentSettingsRepository.findLatestSaved(connectScope, agentId)) ?? undefined
+  }
+
+  /** The newest saved revision, or the draft of an agent that was never saved. */
+  async getLastSavedOrDraft({
     connectScope,
     agentId,
   }: {
@@ -165,13 +179,13 @@ export class AgentSettingsService {
     agentId: string
   }): Promise<AgentSettings> {
     return (
-      (await this.findLastPublished({ connectScope, agentId })) ??
-      this.getLast({ connectScope, agentId, includesDraft: true })
+      (await this.findLatestSaved({ connectScope, agentId })) ??
+      this.getLatest({ connectScope, agentId })
     )
   }
 
-  /** The agents among `agentIds` that have a published revision. */
-  async listPublishedAgentIds({
+  /** The agents among `agentIds` that have a revision in production. */
+  async listAgentIdsInProduction({
     connectScope,
     agentIds,
   }: {
@@ -179,7 +193,7 @@ export class AgentSettingsService {
     agentIds: string[]
   }): Promise<Set<string>> {
     return new Set(
-      await this.agentSettingsRepository.findAgentIdsWithPublishedRevision(connectScope, agentIds),
+      await this.agentSettingsRepository.findAgentIdsInProduction(connectScope, agentIds),
     )
   }
 
@@ -189,8 +203,8 @@ export class AgentSettingsService {
    * A playground session with no explicit revision runs the draft when there is one. The Studio
    * playground renders before its settings history has loaded, so the client cannot always name
    * a revision, and defaulting that window to the published one would run a version the header
-   * does not claim. A live or review campaign tester session keeps running the newest published
-   * revision: callers reject a revision on those sessions before reaching here.
+   * does not claim. A live or review campaign tester session runs the revision in production:
+   * callers reject a revision on those sessions before reaching here.
    */
   async getForSession({
     connectScope,
@@ -205,8 +219,8 @@ export class AgentSettingsService {
   }): Promise<AgentSettings> {
     if (revision === undefined) {
       return sessionType === "playground"
-        ? this.getLast({ connectScope, agentId, includesDraft: true })
-        : this.getLast({ connectScope, agentId })
+        ? this.getLatest({ connectScope, agentId })
+        : this.getProduction({ connectScope, agentId })
     }
 
     const agentSettings = await this.get({ connectScope, agentId, revision })
@@ -240,38 +254,82 @@ export class AgentSettingsService {
     })
   }
 
+  /**
+   * Saves the draft as a version. It goes to production when the caller asks for it, and always
+   * when the agent has no version in production yet, so a saved agent is always usable.
+   *
+   * Calling it again on a saved version renames it, except on the version in production, which
+   * stays as it is.
+   */
   async publish({
     connectScope,
     agentId,
     revision,
     revisionName,
     revisionDesc,
+    setAsProduction,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
     revision: number
     revisionName?: string
     revisionDesc?: string
+    setAsProduction?: boolean
   }): Promise<AgentSettings | undefined> {
-    const found = await this.agentSettingsConnectRepository.find(connectScope, {
-      where: { agentId, revision },
-    })
-    if (!found || found.length !== 1 || !found[0]) return undefined
-    // if (!found[0].isDraft) return undefined  => disable check so we can call publish again to update name and/or desc
-    if (found[0].isArchived) return undefined
-    const toUpdate: AgentSettings = found[0]
-    toUpdate.revisionName = revisionName
-    toUpdate.revisionDesc = revisionDesc
-    toUpdate.isDraft = false
+    return this.transactionService.run(async () => {
+      const found = await this.get({ connectScope, agentId, revision })
+      if (!found || found.isArchived) return undefined
+      if (found.isProduction) {
+        throw new UnprocessableEntityException("The version in production cannot be changed")
+      }
 
-    const updated = await this.agentSettingsConnectRepository.updateOneById({
-      connectScope,
-      id: toUpdate.id,
-      fields: { ...toUpdate },
-    })
-    if (!updated) return undefined
+      const fields = { revisionName, revisionDesc, isDraft: false }
+      const updated = await this.agentSettingsConnectRepository.updateOneById({
+        connectScope,
+        id: found.id,
+        fields,
+      })
+      if (!updated) return undefined
 
-    return toUpdate
+      const hasProduction = (await this.findProduction({ connectScope, agentId })) !== undefined
+      if (setAsProduction || !hasProduction) {
+        await this.agentSettingsRepository.setProduction(connectScope, {
+          agentId,
+          agentSettingsId: found.id,
+        })
+        return { ...found, ...fields, isProduction: true }
+      }
+      return { ...found, ...fields }
+    })
+  }
+
+  /** Puts a saved version in production. Every live channel runs it from the next session on. */
+  async setProduction({
+    connectScope,
+    agentId,
+    revision,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    revision: number
+  }): Promise<void> {
+    await this.transactionService.run(async () => {
+      const target = await this.get({ connectScope, agentId, revision })
+      if (!target) {
+        throw new NotFoundException(`Version ${revision} not found for agent ${agentId}`)
+      }
+      if (target.isDraft) {
+        throw new UnprocessableEntityException("Save the draft before putting it in production")
+      }
+      if (target.isArchived) {
+        throw new UnprocessableEntityException(`Version ${revision} is archived`)
+      }
+      if (target.isProduction) return
+      await this.agentSettingsRepository.setProduction(connectScope, {
+        agentId,
+        agentSettingsId: target.id,
+      })
+    })
   }
 
   async archive({
@@ -288,8 +346,11 @@ export class AgentSettingsService {
     })
     if (!found || found.length !== 1) return { success: false }
     if (!found[0] || found[0].isDraft) return { success: false }
+    if (found[0].isProduction) {
+      throw new UnprocessableEntityException("The version in production cannot be archived")
+    }
 
-    const last = await this.getLastOrUndefined({ connectScope, agentId, includesDraft: true })
+    const last = await this.agentSettingsRepository.findLatest(connectScope, agentId)
     if (last && last.revision === revision)
       throw new UnprocessableEntityException("Cannot archive the last revision")
 
@@ -309,11 +370,17 @@ export class AgentSettingsService {
     agentId: string
     agentSettings: Partial<AgentSettingsUpdateFields>
   }): Promise<AgentSettings> {
-    const last = await this.getLastOrUndefined({ connectScope, agentId, includesDraft: true })
+    const last = await this.agentSettingsRepository.findLatest(connectScope, agentId)
     let previousSettings:
       | Omit<
           AgentSettings,
-          "id" | "createdAt" | "updatedAt" | "deletedAt" | "revisionName" | "revisionDesc"
+          | "id"
+          | "createdAt"
+          | "updatedAt"
+          | "deletedAt"
+          | "revisionName"
+          | "revisionDesc"
+          | "isProduction"
         >
       | undefined
     let revision: number
@@ -330,8 +397,8 @@ export class AgentSettingsService {
           },
         })
       ) {
-        // Nothing to write. A draft that already equals the published revision still goes
-        // away: restoring the published version over such a draft must leave none.
+        // Nothing to write. A draft that already equals the newest saved revision still goes
+        // away: restoring that revision over such a draft must leave none.
         if (!last.isDraft) return last
         return (await this.discardDraftWithoutChanges({ connectScope, draft: last })) ?? last
       }
@@ -350,6 +417,7 @@ export class AgentSettingsService {
         deletedAt,
         revisionName,
         revisionDesc,
+        isProduction,
         ...cleanedSettings
       } = last
       previousSettings = cleanedSettings
@@ -370,8 +438,8 @@ export class AgentSettingsService {
       if (!updated) {
         throw new NotFoundException(`AgentSettings with id ${last.id} not found`)
       }
-      const published = await this.discardDraftWithoutChanges({ connectScope, draft: updated })
-      return published ?? updated
+      const latestSaved = await this.discardDraftWithoutChanges({ connectScope, draft: updated })
+      return latestSaved ?? updated
     } else {
       return await this.agentSettingsConnectRepository.createAndSave(connectScope, {
         ...(previousSettings ?? {}),
@@ -384,12 +452,15 @@ export class AgentSettingsService {
   }
 
   /**
-   * Deletes a draft that holds the same settings as the newest published revision, and returns
-   * that revision: an edit the author took back, or a restore of the published version, leaves
-   * no draft behind. What ran on the draft (a playground session, a run) moves to the published
-   * revision first: it holds the same settings, and deleting the draft would otherwise delete
-   * those sessions with it. The draft stays when the agent was never published: it is its only
-   * revision.
+   * Deletes a draft that holds the same settings as the newest saved revision, and returns that
+   * revision: an edit the author took back, or a restore of that revision, leaves no draft behind.
+   * The newest saved revision is the one the draft was copied from and the one the editor shows
+   * once the draft is gone, whichever revision is in production: comparing with an older
+   * production revision would delete a restore of it and bring the newer settings back.
+   *
+   * What ran on the draft (a playground session, a run) moves to that revision first: it holds
+   * the same settings, and deleting the draft would otherwise delete those sessions with it. The
+   * draft stays when the agent was never saved: it is its only revision.
    */
   private async discardDraftWithoutChanges({
     connectScope,
@@ -398,8 +469,11 @@ export class AgentSettingsService {
     connectScope: RequiredConnectScope
     draft: AgentSettings
   }): Promise<AgentSettings | undefined> {
-    const published = await this.findLastPublished({ connectScope, agentId: draft.agentId })
-    if (!published || !hasSameAgentSettings(published, draft)) return undefined
+    const latestSaved = await this.agentSettingsRepository.findLatestSaved(
+      connectScope,
+      draft.agentId,
+    )
+    if (!latestSaved || !hasSameAgentSettings(latestSaved, draft)) return undefined
 
     // One unit: the lock on the draft holds back a session that starts on it and another edit
     // of it, so nothing can point at the draft between the move and the delete, and what the
@@ -409,15 +483,15 @@ export class AgentSettingsService {
         connectScope,
         draft.id,
       )
-      if (!lockedDraft || !hasSameAgentSettings(published, lockedDraft)) return false
+      if (!lockedDraft || !hasSameAgentSettings(latestSaved, lockedDraft)) return false
       await this.agentSettingsRepository.moveRunsToRevision({
         fromAgentSettingsId: lockedDraft.id,
-        toAgentSettingsId: published.id,
+        toAgentSettingsId: latestSaved.id,
       })
       await this.agentSettingsRepository.deleteDraft(connectScope, lockedDraft.id)
       return true
     })
-    return isDeleted ? published : undefined
+    return isDeleted ? latestSaved : undefined
   }
 
   async updateAllSettings({
@@ -462,11 +536,7 @@ export class AgentSettingsService {
       throw new NotFoundException(`Agent with id ${agentId} not found`)
     }
 
-    const agentSettings = await this.getLast({
-      connectScope,
-      agentId,
-      includesDraft: true,
-    })
+    const agentSettings = await this.getLatest({ connectScope, agentId })
 
     const nextOutputJsonSchema =
       agentSettingsFieldsToUpdate.outputJsonSchema !== undefined
@@ -732,7 +802,7 @@ export class AgentSettingsService {
   }): Promise<Fields> {
     if (fieldsToUpdate.model === undefined && fieldsToUpdate.providerOptions === undefined)
       return fieldsToUpdate
-    const current = await this.getLast({ connectScope, agentId, includesDraft: true })
+    const current = await this.getLatest({ connectScope, agentId })
     const model = fieldsToUpdate.model ?? current.model
     const modelChanges =
       fieldsToUpdate.model !== undefined && fieldsToUpdate.model !== current.model

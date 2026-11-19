@@ -36,6 +36,7 @@ import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { StudioRoutes } from "@/studio/routes/helpers"
+import { AgentProductionBar } from "../agent-settings/components/AgentProductionBar"
 import { AgentActions } from "./AgentActions"
 import { AgentEvaluationCard, AgentProductionAppCard } from "./AgentExternalAppCard"
 import { AgentMembersCard } from "./AgentMembersCard"
@@ -110,6 +111,8 @@ export function ExtractionAgentSessionList() {
         action={<AgentActions agent={agent} organizationId={organizationId} />}
       />
 
+      <AgentProductionBar agent={agent} />
+
       <GridContent>
         <GridCard className="bg-muted/35">
           <GridCard.Body>
@@ -124,9 +127,10 @@ export function ExtractionAgentSessionList() {
           </GridCard.Body>
         </GridCard>
 
-        {isPublished && (
+        {agent.currentRevision && (
           <AgentProductionAppCard
             agentId={agent.id}
+            productionRevision={agent.currentRevision.number}
             organizationId={organizationId}
             projectId={agent.projectId}
           />

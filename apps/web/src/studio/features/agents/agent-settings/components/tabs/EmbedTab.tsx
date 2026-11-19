@@ -25,7 +25,7 @@ import {
 import type { AgentEmbedConfig } from "../../../../agent-embed-configs/agent-embed-configs.models"
 import { selectAgentEmbedConfig } from "../../../../agent-embed-configs/agent-embed-configs.selectors"
 import { agentEmbedConfigsActions } from "../../../../agent-embed-configs/agent-embed-configs.slice"
-import { AgentEditorSheet } from "./AgentEditorSheet"
+import { LiveSettingsSection } from "../LiveSettingsSection"
 
 const FORM_ID = "agent-embed-form"
 
@@ -60,38 +60,27 @@ const emptyFormState: EmbedFormState = {
 
 type CopyTarget = "snippet" | "publicPage" | "apiBaseUrl"
 
-type EmbedSheetProps = {
+type EmbedTabProps = {
   onDirtyChange: (dirty: boolean) => void
-  onClose: () => void
 }
 
 /**
  * How the agent is embedded outside the platform. The configuration is not part of the draft:
  * a save applies it at once.
  */
-export function EmbedSheet({ onDirtyChange, onClose }: EmbedSheetProps) {
-  const { t } = useTranslation()
+export function EmbedTab({ onDirtyChange }: EmbedTabProps) {
   const agentId = useCurrentId(selectCurrentAgentId)
   const config = useAppSelector(selectAgentEmbedConfig)
 
   useMount({ actions: agentEmbedConfigsActions, refreshOn: [agentId] })
 
-  if (ADS.isFulfilled(config)) return <WithData onDirtyChange={onDirtyChange} onClose={onClose} />
+  if (ADS.isFulfilled(config)) return <WithData onDirtyChange={onDirtyChange} />
 
-  // The sheet opens at once and shows the loading or the error of the configuration.
-  return (
-    <AgentEditorSheet
-      title={t("agentSettings:tabs.embed")}
-      formId={FORM_ID}
-      isDirty={false}
-      onClose={onClose}
-    >
-      <AsyncRoute data={[config]}>{null}</AsyncRoute>
-    </AgentEditorSheet>
-  )
+  // The loading or the error of the configuration.
+  return <AsyncRoute data={[config]}>{null}</AsyncRoute>
 }
 
-function WithData({ onDirtyChange, onClose }: EmbedSheetProps) {
+function WithData({ onDirtyChange }: EmbedTabProps) {
   const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const agent = useValue(selectCurrentAgentData)
@@ -158,11 +147,10 @@ function WithData({ onDirtyChange, onClose }: EmbedSheetProps) {
   }
 
   return (
-    <AgentEditorSheet
-      title={t("agentSettings:tabs.embed")}
+    <LiveSettingsSection
       formId={FORM_ID}
       isDirty={isDirty}
-      onClose={onClose}
+      onReset={() => config && setForm(toFormState(config))}
     >
       <form
         id={FORM_ID}
@@ -383,7 +371,7 @@ function WithData({ onDirtyChange, onClose }: EmbedSheetProps) {
           )}
         </section>
       </form>
-    </AgentEditorSheet>
+    </LiveSettingsSection>
   )
 }
 

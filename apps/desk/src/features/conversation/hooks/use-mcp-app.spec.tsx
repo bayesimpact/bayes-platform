@@ -51,6 +51,7 @@ function renderCard(options: Partial<Parameters<typeof useMcpApp>[1]> = {}) {
       useMcpApp(frameRef, {
         app: app(),
         html: "<p>Plans</p>",
+        mcpServerId: "server-1",
         onMessage: () => {},
         onFailed: () => {},
         ...options,
@@ -129,5 +130,14 @@ describe("useMcpApp", () => {
 
     unmount()
     expect(host.unmounts).toBe(2)
+  })
+
+  it("names the app's MCP server for its sandbox, and restarts the app for another server", () => {
+    const { rerender } = renderCard()
+    expect(lastMount().sandbox).toMatchObject({ key: "server-1" })
+
+    rerender({ mcpServerId: "server-2" })
+    expect(host.unmounts).toBe(1)
+    expect(lastMount().sandbox).toMatchObject({ key: "server-2" })
   })
 })

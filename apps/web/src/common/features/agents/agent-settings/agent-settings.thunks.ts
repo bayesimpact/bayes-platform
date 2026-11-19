@@ -43,9 +43,35 @@ export const restoreAgentSettings = createAsyncThunk<void, { revision: number },
   },
 )
 
+// It rejects with the API's own message: an archived version, for example, cannot go to production.
+export const setProductionAgentSettings = createAsyncThunk<
+  void,
+  { revision: number },
+  ThunkConfig & { rejectValue: string }
+>(
+  "agentSettings/setProduction",
+  async ({ revision }, { extra: { services }, getState, rejectWithValue }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    try {
+      await services.agentSettings.setProduction({ organizationId, projectId, agentId, revision })
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
+  },
+)
+
 export const createAgentSettings = createAsyncThunk<
   void,
-  { revision: number; revisionName?: string; revisionDesc?: string; onSuccess: () => void },
+  {
+    revision: number
+    revisionName?: string
+    revisionDesc?: string
+    setAsProduction?: boolean
+    onSuccess: () => void
+  },
   ThunkConfig
 >("agentSettings/createOne", async (payload, { extra: { services }, getState }) => {
   const { revision, ...publishPayload } = payload

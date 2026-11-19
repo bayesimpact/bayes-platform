@@ -267,4 +267,38 @@ describe("EvaluationConversationRunProcessorService", () => {
       averageScore: null,
     })
   })
+
+  // Deleting an agent soft-deletes its runs, also while record jobs are queued or in flight.
+  it("processRunRecord - skips a record of a deleted run", async () => {
+    const { run, record, payload } = await seedRunRecord({ recordStatus: "running" })
+    await repositories.evaluationConversationRunRepository.softDelete(run.id)
+
+    await expect(service.processRunRecord(payload)).resolves.toBeUndefined()
+
+    const unchangedRecord =
+      await repositories.evaluationConversationRunRecordRepository.findOneByOrFail({
+        id: record.id,
+      })
+    expect(unchangedRecord.status).toBe("running")
+    expect(mockStatusNotifier.notifyRunStatusChanged).not.toHaveBeenCalled()
+  })
+
+  it("markRecordFailed - does not update the summary of a deleted run", async () => {
+    const { run, record, payload } = await seedRunRecord({ recordStatus: "running" })
+    await repositories.evaluationConversationRunRepository.softDelete(run.id)
+
+    await expect(service.markRecordFailed(payload, new Error("boom"))).resolves.toBeUndefined()
+
+    const updatedRecord =
+      await repositories.evaluationConversationRunRecordRepository.findOneByOrFail({
+        id: record.id,
+      })
+    expect(updatedRecord.status).toBe("error")
+    const deletedRun = await repositories.evaluationConversationRunRepository.findOneOrFail({
+      where: { id: run.id },
+      withDeleted: true,
+    })
+    expect(deletedRun.summary).toEqual(run.summary)
+    expect(mockStatusNotifier.notifyRunStatusChanged).not.toHaveBeenCalled()
+  })
 })

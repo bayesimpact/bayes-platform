@@ -4,7 +4,7 @@ import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import {
   findDraftVersion,
-  findPublishedVersion,
+  findProductionVersion,
   findVersion,
   resolveEffectiveRevision,
 } from "./agent-settings.functions"
@@ -45,19 +45,24 @@ export const selectAgentSettingsDataByAgentId = ({
       const isValid = agentHistoryData.value.some((settings) => settings.agentId === agent.id)
       if (!isValid) return { status: ADS.Error, error: "Agent settings not found", value: null }
 
-      // The draft comes from the history alone, and the published revision falls back on it.
-      // The agents list and the history load with two requests: after a save that creates or
-      // deletes the draft, the list can name a revision the history does not hold, or miss one
-      // it holds. Reading the list first would then find no settings and take the editor off
-      // the screen while the user types.
+      // Everything comes from the history alone. The agents list and the history load with two
+      // requests: after a save that creates or deletes the draft, the list can name a revision the
+      // history does not hold, or miss one it holds. Reading the list first would then find no
+      // settings and take the editor off the screen while the user types.
+      //
+      // With the draft, the editor works on the newest revision: the draft, else the newest saved
+      // one, which the next edit starts from. It is not the production revision when the managers
+      // keep an older one live. Without the draft, the production revision, else the draft of an
+      // agent never saved, such as a fresh copy.
       const versions = agentHistoryData.value
-      const publishedRevision = agent.currentRevision?.number
-      const published =
-        (publishedRevision === undefined ? undefined : findVersion(versions, publishedRevision)) ??
-        findPublishedVersion(versions)
-      const draft = findDraftVersion(versions)
-      // An agent that was never published, such as a fresh copy, only has its draft.
-      const currentSettings = includeDraft ? (draft ?? published) : (published ?? draft)
+      const productionRevision = agent.currentRevision?.number
+      const production =
+        (productionRevision === undefined
+          ? undefined
+          : findVersion(versions, productionRevision)) ?? findProductionVersion(versions)
+      const currentSettings = includeDraft
+        ? versions[0]
+        : (production ?? findDraftVersion(versions))
 
       if (!currentSettings)
         return { status: ADS.Error, error: "Current agent settings not found", value: null }

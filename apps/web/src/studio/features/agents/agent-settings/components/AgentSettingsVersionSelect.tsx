@@ -9,7 +9,7 @@ import { cn } from "@caseai-connect/ui/utils"
 import { TriangleAlertIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { selectStreaming } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
-import { findPublishedVersion } from "@/common/features/agents/agent-settings/agent-settings.functions"
+import { findProductionVersion } from "@/common/features/agents/agent-settings/agent-settings.functions"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import { selectAgentSettingsHistoryDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { agentSettingsActions } from "@/common/features/agents/agent-settings/agent-settings.slice"
@@ -58,7 +58,7 @@ export function AgentSettingsVersionSelect({
     dispatch(agentSettingsActions.setPlaygroundRevision({ agentId, revision }))
   }
 
-  const publishedRevision = findPublishedVersion(versions)?.revision
+  const publishedRevision = findProductionVersion(versions)?.revision
   const selectedVersion = versions.find((version) => version.revision === revision)
 
   const buildVersionDetail = (version: AgentSettings) => {

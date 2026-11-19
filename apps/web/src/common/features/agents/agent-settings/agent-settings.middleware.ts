@@ -3,11 +3,13 @@ import {
   createAgentSettings,
   listAgentSettingsWithDraft,
   restoreAgentSettings,
+  setProductionAgentSettings,
   updateAgentSettings,
 } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { getCurrentId } from "../../helpers"
 import { notificationsActions } from "../../notifications/notifications.slice"
+import { hasAgentSessionChanged } from "../agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
 import { listAgents } from "../agents.thunks"
 import { agentSettingsActions } from "./agent-settings.slice"
 
@@ -25,6 +27,16 @@ const refresh = ({
 }
 
 function registerListeners() {
+  // A new chat or another session opens on the newest version: the version picked in the
+  // previous session does not follow the user.
+  listenerMiddleware.startListening({
+    predicate: (_action, currentState, originalState) =>
+      hasAgentSessionChanged(originalState, currentState),
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(agentSettingsActions.resetPlaygroundRevisions())
+    },
+  })
+
   listenerMiddleware.startListening({
     actionCreator: listAgents.fulfilled,
     effect: async (action, listenerApi) => {
@@ -70,6 +82,33 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           titleKey: "agentSettings:notifications.versionRestoreError",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: setProductionAgentSettings.fulfilled,
+    effect: async (action, listenerApi) => {
+      refresh({ listenerApi })
+
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "agentSettings:notifications.productionSet",
+          titleValues: { revision: action.meta.arg.revision },
+          type: "success",
+        }),
+      )
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: setProductionAgentSettings.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "agentSettings:notifications.productionSetError",
+          description: action.payload || undefined,
           type: "error",
         }),
       )

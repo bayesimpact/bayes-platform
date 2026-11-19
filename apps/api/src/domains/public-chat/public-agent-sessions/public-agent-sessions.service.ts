@@ -108,7 +108,7 @@ export class PublicAgentSessionsService {
 
     // The greeting and the session config come from the published settings, not from
     // the draft an author is editing in the agent editor (#636).
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettings = await this.agentSettingsService.getProduction({
       connectScope: {
         organizationId: embedConfig.organizationId,
         projectId: embedConfig.projectId,

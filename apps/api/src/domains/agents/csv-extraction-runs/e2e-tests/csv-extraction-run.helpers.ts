@@ -132,6 +132,7 @@ export async function createOtherAgentInProject({
   await repositories.agentRepository.save(agent)
   const agentSettings = agentSettingsFactory
     .transient({ organization: context.organization, project: context.project, agent })
+    .production()
     .build()
   await repositories.agentSettingsRepository.save(agentSettings)
   return { agent, agentSettings }

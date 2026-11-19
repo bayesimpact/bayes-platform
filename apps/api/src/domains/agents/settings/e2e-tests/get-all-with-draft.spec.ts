@@ -139,6 +139,25 @@ describe("Agent Settings - getAllWithDraft", () => {
     expect(agentHistory[0]?.revision).toBe(1)
   })
 
+  it("should mark the version in production", async () => {
+    const { organization, project, agent } = await createContext()
+    await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent }).build({ revision: 2 }),
+    )
+
+    const response = await subject()
+    expectResponse(response, 200)
+    expect(
+      response.body.data.map((settings: { revision: number; isProduction: boolean }) => [
+        settings.revision,
+        settings.isProduction,
+      ]),
+    ).toEqual([
+      [2, false],
+      [1, true],
+    ])
+  })
+
   it("should return the settings fields of each revision", async () => {
     const { organization, project, agent } = await createContext()
 
@@ -180,6 +199,7 @@ describe("Agent Settings - getAllWithDraft", () => {
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
       isDraft: false,
+      isProduction: false,
       isArchived: false,
       hasCategories: false,
       documentTagIds: [],

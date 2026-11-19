@@ -11,6 +11,7 @@ declare global {
     readonly VITE_OIDC_SCOPE?: string
     readonly VITE_OIDC_AUTHORIZATION_PARAMS?: string
     readonly VITE_HELP_CENTER_URL?: string
+    readonly VITE_MCP_APP_SANDBOX_ORIGIN?: string
     readonly VITE_APP_VERSION?: string
     readonly VITE_GIT_SHA?: string
     /** The id of a production build, which `version.json` publishes too (vite.config.ts). */

@@ -16,14 +16,17 @@ export function AgentEditorSaveStatus({
   state,
   hasDraft,
   revision,
+  isProduction,
   onRetry,
   onOpenHistory,
 }: {
   state: TabSaveState
   /** The agent has a draft: without one, there is nothing saved to report yet. */
   hasDraft: boolean
-  /** The revision the editor shows: the draft's, or the published one when there is no draft. */
+  /** The revision the editor shows: the draft's, or the newest saved one when there is no draft. */
   revision: number
+  /** The revision the editor shows is the one in production. */
+  isProduction: boolean
   onRetry: () => void
   /** Makes the saved draft a button that opens the version history, where the draft is saved as a version. */
   onOpenHistory?: () => void
@@ -81,13 +84,20 @@ export function AgentEditorSaveStatus({
     )
   }
 
-  // No draft: the editor shows the version the agent runs, in the colour of what is published.
-  const currentVersion = t("agentSettings:autosave.publishedVersion", { revision })
+  // No draft: the editor shows the newest saved version, in the colour of production when it is
+  // the one the agent runs.
+  const currentVersion = t(
+    isProduction
+      ? "agentSettings:autosave.productionVersion"
+      : "agentSettings:autosave.savedVersion",
+    { revision },
+  )
+  const variant = isProduction ? "success" : "secondary"
   if (onOpenHistory) {
     return (
       <Badge
         asChild
-        variant="success"
+        variant={variant}
         className={cn(labelSize, "cursor-pointer hover:brightness-95")}
       >
         <button type="button" aria-haspopup="dialog" onClick={onOpenHistory}>
@@ -97,7 +107,7 @@ export function AgentEditorSaveStatus({
     )
   }
   return (
-    <Badge asChild variant="success" className={labelSize}>
+    <Badge asChild variant={variant} className={labelSize}>
       <output>{currentVersion}</output>
     </Badge>
   )
