@@ -33,7 +33,7 @@ export function ParticipantsTable({ campaign, participants, canRevoke }: Partici
             const email = participant.email
             return (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 aria-label={t`Revoke ${email}`}
                 onClick={() => setRevoking(participant)}
