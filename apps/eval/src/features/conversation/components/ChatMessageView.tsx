@@ -17,6 +17,8 @@ import { UserMessageText } from "./UserMessageText"
 export type ChatMessageViewProps = {
   conversation: ConversationParamsDto
   message: ChatMessage
+  /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
+  hasSourcesTool: boolean
   now: number
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
@@ -37,6 +39,7 @@ export function ChatMessageView({
   conversation,
   message,
   now,
+  hasSourcesTool,
   appsHtml,
   onAppMessage,
   onOpenResource,
@@ -82,6 +85,7 @@ export function ChatMessageView({
       conversation={conversation}
       message={message}
       now={now}
+      hasSourcesTool={hasSourcesTool}
       appsHtml={appsHtml}
       onAppMessage={onAppMessage}
       onOpenResource={onOpenResource}

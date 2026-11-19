@@ -27,6 +27,10 @@ msgstr "{count, plural, one {# pending invitation} other {# pending invitations}
 msgid "{count, plural, one {# review} other {# reviews}}"
 msgstr "{count, plural, one {# review} other {# reviews}}"
 
+#: src/features/conversation/components/SourcesList.tsx
+msgid "{count, plural, one {Used # source} other {Used # sources}}"
+msgstr "{count, plural, one {Used # source} other {Used # sources}}"
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {Used a tool} other {Used tools}}"
@@ -874,6 +878,10 @@ msgstr "No description"
 msgid "No participant yet."
 msgstr "No participant yet."
 
+#: src/features/conversation/components/SourceItem.tsx
+msgid "No passage to show."
+msgstr "No passage to show."
+
 #: src/features/campaigns/components/QuestionListEditor.tsx
 msgid "No question yet."
 msgstr "No question yet."
@@ -939,6 +947,10 @@ msgstr "Open"
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "Open {name}"
 msgstr "Open {name}"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Open {title}"
+msgstr "Open {title}"
 
 #: src/features/conversation/components/ResourcePanel.tsx
 msgid "Open in a new tab"
@@ -1524,6 +1536,10 @@ msgstr "The datasets and the runs of this agent will show on this page."
 msgid "The dictation stopped. Try again."
 msgstr "The dictation stopped. Try again."
 
+#: src/features/conversation/components/SourceItem.tsx
+msgid "The document could not be opened. Try again."
+msgstr "The document could not be opened. Try again."
+
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
@@ -1735,6 +1751,10 @@ msgstr "Unticked: {text}"
 #: src/components/shared/QuestionField.tsx
 msgid "Untitled"
 msgstr "Untitled"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Untitled document"
+msgstr "Untitled document"
 
 #. When a review campaign last changed
 #: src/features/campaigns/components/campaign-columns.tsx

@@ -20,6 +20,7 @@ import {
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
 import { buildProjectAgent } from "./agents.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
@@ -369,7 +370,28 @@ export function buildParticipantWorld(): EvalWorld {
         buildConversationMessage({
           content:
             "For a team of five, the **Pro** plan fits best:\n\n- shared workspaces\n- five seats included\n\nThe Starter plan stops at one team.",
-          toolCalls: [buildToolCall()],
+          toolCalls: [
+            buildToolCall(),
+            // The documents the reply relied on, as the Desk shows them.
+            buildToolCall({
+              name: TOOL_NAMES.sources,
+              arguments: {
+                sources: [
+                  {
+                    documentId: crypto.randomUUID(),
+                    documentTitle: "Pricing guide.pdf",
+                    documentSourceType: "project",
+                    chunks: [
+                      {
+                        chunkId: crypto.randomUUID(),
+                        partialContent: "The Pro plan covers unlimited teams…",
+                      },
+                    ],
+                  },
+                ],
+              },
+            }),
+          ],
         }),
       ],
       [ratedSession.id]: [

@@ -11,6 +11,9 @@ export * from "./common/params.dto"
 export * from "./conversations/conversations.dto"
 export { EvalConversationsRoutes } from "./conversations/conversations.routes"
 export * from "./define-schema-route"
+// Documents
+export * from "./documents/documents.dto"
+export { EvalDocumentsRoutes } from "./documents/documents.routes"
 // Invitations
 export * from "./invitations/invitations.dto"
 export { EvalMyInvitationsRoutes } from "./invitations/invitations.routes"

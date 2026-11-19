@@ -17,12 +17,15 @@ import { McpAppsList } from "./McpAppsList"
 import { MessageActions } from "./MessageActions"
 import { ReplyError } from "./ReplyError"
 import { ResourceCards } from "./ResourceCards"
+import { SourcesList } from "./SourcesList"
 import { ToolSteps } from "./ToolSteps"
 
 export type AssistantMessageViewProps = {
   conversation: ConversationParamsDto
   message: ChatMessage
   now: number
+  /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
+  hasSourcesTool: boolean
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
   /** Opens a resource a reply points to beside the conversation. */
@@ -36,14 +39,15 @@ export type AssistantMessageViewProps = {
 }
 
 /**
- * A reply of the agent: its steps, its text, and what came with it (MCP App cards, resources),
- * then its actions. A reply whose app cannot render shows the tool's
+ * A reply of the agent: its steps, its text, and what came with it (MCP App cards, resources,
+ * sources), then its actions. A reply whose app cannot render shows the tool's
  * text instead, when its own says nothing.
  */
 export function AssistantMessageView({
   conversation,
   message,
   now,
+  hasSourcesTool,
   appsHtml,
   onAppMessage,
   onOpenResource,
@@ -100,6 +104,9 @@ export function AssistantMessageView({
         ) : null}
         {message.resources.length > 0 ? (
           <ResourceCards resources={message.resources} onOpenResource={onOpenResource} />
+        ) : null}
+        {hasSourcesTool && message.sources.length > 0 ? (
+          <SourcesList conversation={conversation} sources={message.sources} />
         ) : null}
         {followUpQuestions.length > 0 ? (
           <FollowUpQuestions questions={followUpQuestions} onSelect={onFollowUpQuestion} />

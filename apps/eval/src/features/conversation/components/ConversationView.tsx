@@ -51,6 +51,8 @@ export type ConversationViewProps = {
   sidePanel?: ReactNode
   /** Called when the conversation opens one of its own panels: the owner then closes its own. */
   onSidePanelDismiss?: () => void
+  /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
+  hasSourcesTool: boolean
 }
 
 /**
@@ -65,6 +67,7 @@ export function ConversationView({
   headerActions,
   sidePanel = null,
   onSidePanelDismiss,
+  hasSourcesTool,
 }: ConversationViewProps) {
   const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
   const sending = useConversationSend(conversation, messages, onFormsChange)
@@ -166,6 +169,7 @@ export function ConversationView({
                               conversation={conversation}
                               message={message}
                               now={now}
+                              hasSourcesTool={hasSourcesTool}
                               appsHtml={appsHtml}
                               onAppMessage={handleAppMessage}
                               onOpenResource={(resource) => {

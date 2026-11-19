@@ -50,6 +50,9 @@ export function TesterSessionPage({ sessionParams }: TesterSessionPageProps) {
       <ConversationView
         conversation={conversation}
         agentName={context.agent.name}
+        // The agent cites sources only when its project has the `sources-tool` feature, which a
+        // tester cannot read: a reply that carries sources shows them.
+        hasSourcesTool
         forms={session?.forms ?? []}
         onFormsChange={() =>
           void queryClient.invalidateQueries({ queryKey: campaignTestKeys.sessions(sessionParams) })

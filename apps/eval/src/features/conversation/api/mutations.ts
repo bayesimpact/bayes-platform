@@ -1,6 +1,7 @@
 import {
   type ConversationParamsDto,
   EvalConversationsRoutes,
+  EvalDocumentsRoutes,
   type MessageFeedbackInputDto,
   type MessageParamsDto,
 } from "@caseai-connect/eval-contracts"
@@ -36,7 +37,23 @@ export function useSendFeedback(conversation: ConversationParamsDto) {
   })
 }
 
-/** Opens the file a person attached to a message, in a new tab, in a new tab. The tab opens at once, while the click still counts as the person's. */
+/**
+ * Opens a document a reply cites, in a new tab. The tab opens at once, while the click still
+ * counts as the person's, and goes to the file once its short-lived URL arrives.
+ */
+export function useOpenDocument(conversation: ConversationParamsDto) {
+  return useMutation({
+    mutationFn: ({ documentId, tab }: { documentId: string; tab: Window | null }) =>
+      openInTab(tab, async () => {
+        const { url } = await apiRequest(EvalDocumentsRoutes.getTemporaryUrl, {
+          params: { ...conversation, documentId },
+        })
+        return url
+      }),
+  })
+}
+
+/** Opens the file a person attached to a message, in a new tab, as `useOpenDocument` does. */
 export function useOpenAttachment(conversation: ConversationParamsDto) {
   return useMutation({
     mutationFn: async ({

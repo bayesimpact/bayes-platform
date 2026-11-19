@@ -307,6 +307,8 @@ describe("a tester's session with the agent", () => {
     renderApp(testerSessionUrlOf(world, "Support assistant pilot", 0))
 
     expect(await screen.findByText(/For a team of five/)).toBeInTheDocument()
+    // The documents the reply relied on show under it, as in the Desk.
+    expect(screen.getByText("Used 1 source")).toBeInTheDocument()
     // The way back leads to the campaign's sessions.
     expect(within(screen.getByRole("main")).getByRole("link", { name: "Back" })).toHaveAttribute(
       "href",

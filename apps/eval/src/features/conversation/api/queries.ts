@@ -1,9 +1,14 @@
-import { type ConversationParamsDto, EvalConversationsRoutes } from "@caseai-connect/eval-contracts"
+import {
+  type ConversationParamsDto,
+  type DocumentParamsDto,
+  EvalConversationsRoutes,
+  EvalDocumentsRoutes,
+} from "@caseai-connect/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { pollWhile } from "@/lib/polling"
 import { type ChatMessage, isBeingWritten, toChatMessages } from "../chat-messages"
-import { conversationKeys } from "./keys"
+import { conversationKeys, documentKeys } from "./keys"
 import { isReplyStreaming } from "./reply-streams"
 
 /** While the server writes a reply this tab does not stream, the messages refetch this often. */
@@ -39,5 +44,15 @@ export const mcpAppsHtmlQueryOptions = (conversation: ConversationParamsDto) =>
     queryKey: conversationKeys.mcpApps(conversation.agentSessionId),
     queryFn: ({ signal }) =>
       apiRequest(EvalConversationsRoutes.getMcpAppsHtml, { params: conversation, signal }),
+    staleTime: 5 * 60 * 1000,
+  })
+
+/** Whether a document a reply cites is shared with every member of the project. */
+export const documentIsPublicQueryOptions = (document: DocumentParamsDto) =>
+  queryOptions({
+    queryKey: documentKeys.isPublic(document.documentId),
+    queryFn: async ({ signal }) =>
+      (await apiRequest(EvalDocumentsRoutes.getIsPublic, { params: document, signal }))
+        .isPublicDocument,
     staleTime: 5 * 60 * 1000,
   })

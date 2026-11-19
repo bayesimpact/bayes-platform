@@ -1,13 +1,19 @@
 import {
   type ConversationMessageOutputDto,
   type ReplyStreamEventDto,
+  type SourcesArgumentsDto,
   type SuggestFollowUpQuestionsArgumentsDto,
   type SurfaceResourcesArgumentsDto,
+  sourcesArgumentsSchema,
   suggestFollowUpQuestionsArgumentsSchema,
   surfaceResourcesArgumentsSchema,
   TOOL_NAMES,
   type ToolName,
 } from "@caseai-connect/eval-contracts"
+
+/** A document a reply relied on, with the passages it cited. */
+export type ChatSource = SourcesArgumentsDto["sources"][number]
+
 import type { z } from "zod"
 
 /** A resource of the agent's libraries a reply points to. */
@@ -44,6 +50,8 @@ export type ChatMessage = {
   createdAt: number | null
   /** Set when the app failed the reply; the content then holds nothing to show. */
   failure: ReplyFailure | null
+  /** The documents the reply relied on, known once the reply is persisted. */
+  sources: ChatSource[]
   /** The resources the reply points to, known once the reply is persisted. */
   resources: ChatResource[]
   /** The file the person attached to their message. */
@@ -140,6 +148,9 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
         toolNames: toolCalls.map((toolCall) => toolCall.name),
         createdAt: message.createdAt ?? null,
         failure: null,
+        sources: readToolArguments(toolCalls, TOOL_NAMES.sources, sourcesArgumentsSchema).flatMap(
+          (toolArguments) => toolArguments.sources,
+        ),
         resources: readToolArguments(
           toolCalls,
           TOOL_NAMES.surfaceResources,
@@ -181,6 +192,7 @@ function newMessage(id: string, role: ChatMessage["role"], now: number): ChatMes
     toolNames: [],
     createdAt: now,
     failure: null,
+    sources: [],
     resources: [],
     attachment: null,
     mcpApps: [],

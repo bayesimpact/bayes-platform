@@ -27,6 +27,10 @@ msgstr "{count, plural, one {# invitation en attente} other {# invitations en at
 msgid "{count, plural, one {# review} other {# reviews}}"
 msgstr "{count, plural, one {# relecture} other {# relectures}}"
 
+#: src/features/conversation/components/SourcesList.tsx
+msgid "{count, plural, one {Used # source} other {Used # sources}}"
+msgstr "{count, plural, one {# source utilisée} other {# sources utilisées}}"
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}"
@@ -874,6 +878,10 @@ msgstr "Pas de description"
 msgid "No participant yet."
 msgstr "Aucun participant pour le moment."
 
+#: src/features/conversation/components/SourceItem.tsx
+msgid "No passage to show."
+msgstr "Aucun passage à afficher."
+
 #: src/features/campaigns/components/QuestionListEditor.tsx
 msgid "No question yet."
 msgstr "Aucune question pour le moment."
@@ -939,6 +947,10 @@ msgstr "Ouvrir"
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "Open {name}"
 msgstr "Ouvrir {name}"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Open {title}"
+msgstr "Ouvrir {title}"
 
 #: src/features/conversation/components/ResourcePanel.tsx
 msgid "Open in a new tab"
@@ -1524,6 +1536,10 @@ msgstr "Les jeux de données et les exécutions de cet agent s'afficheront sur c
 msgid "The dictation stopped. Try again."
 msgstr "La dictée s’est arrêtée. Réessayez."
 
+#: src/features/conversation/components/SourceItem.tsx
+msgid "The document could not be opened. Try again."
+msgstr "Le document n'a pas pu être ouvert. Réessayez."
+
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "Le brouillon et ses questions sont supprimés définitivement. Une campagne active ou clôturée ne peut pas être supprimée."
@@ -1735,6 +1751,10 @@ msgstr "Décochée : {text}"
 #: src/components/shared/QuestionField.tsx
 msgid "Untitled"
 msgstr "Sans titre"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Untitled document"
+msgstr "Document sans titre"
 
 #. When a review campaign last changed
 #: src/features/campaigns/components/campaign-columns.tsx

@@ -2,6 +2,7 @@ import {
   type CampaignReportOutputDto,
   EvalCampaignInvitationsRoutes,
   EvalConversationsRoutes,
+  EvalDocumentsRoutes,
   EvalReviewCampaignsRoutes,
   EvalReviewerRoutes,
   EvalTesterRoutes,
@@ -328,6 +329,10 @@ function conversationHandlers(world: EvalWorld) {
     ),
     mockRoute(EvalConversationsRoutes.getMcpAppsHtml, () => []),
     mockRoute(EvalConversationsRoutes.createMessageFeedback, () => ({ success: true })),
+    mockRoute(EvalDocumentsRoutes.getIsPublic, () => ({ isPublicDocument: true })),
+    mockRoute(EvalDocumentsRoutes.getTemporaryUrl, () => ({
+      url: "https://example.org/pricing-guide.pdf",
+    })),
     mockStreamRoute(EvalConversationsRoutes.streamReply, ({ params, payload }) => {
       const reply = buildConversationMessage({
         content:
