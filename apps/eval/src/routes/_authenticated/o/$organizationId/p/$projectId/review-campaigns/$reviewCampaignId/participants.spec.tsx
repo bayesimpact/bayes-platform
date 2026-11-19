@@ -1,3 +1,4 @@
+import { EvalReviewerRoutes } from "@caseai-connect/eval-contracts"
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
@@ -11,6 +12,7 @@ import {
 import { buildEveryAccessWorld, buildParticipantWorld } from "@/test/factories/eval-world.factory"
 import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
+import { mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 import { sidebarMenuEntries, sidebarMenuLink } from "@/test/sidebar-menus"
@@ -181,6 +183,32 @@ describe("a reviewer's campaign", () => {
     expect(screen.getByText(/^Used (a tool|tools)$/)).toBeInTheDocument()
     // A reviewer reads the reply: no feedback on it.
     expect(screen.queryByRole("button", { name: "Good reply" })).not.toBeInTheDocument()
+  })
+
+  it("reads the HTML of a reply's MCP App through the reviewer's own route", async () => {
+    const world = buildParticipantWorld()
+    const campaign = campaignOf(world, "Pricing questions")
+    const reply = world.reviewSessions[campaign.id]?.[0]?.transcript[1]
+    reply?.toolCalls.push({
+      id: "call-app",
+      name: "show_plans",
+      arguments: {},
+      result: { content: [{ type: "text", text: "Plans" }] },
+      mcpApp: { mcpServerId: "server-1", resourceUri: "ui://plans" },
+    })
+    let htmlReads = 0
+    server.use(
+      // Before the world's handlers, which answer the same route.
+      mockRoute(EvalReviewerRoutes.getSessionMcpAppHtml, () => {
+        htmlReads++
+        return []
+      }),
+      ...worldHandlers(world),
+    )
+    renderApp(reviewSessionUrlOf(world, "Pricing questions", 0))
+
+    expect(await screen.findByText("Used 1 source")).toBeInTheDocument()
+    await waitFor(() => expect(htmlReads).toBe(1))
   })
 
   it("shows the form the agent filled, and what it did not collect", async () => {

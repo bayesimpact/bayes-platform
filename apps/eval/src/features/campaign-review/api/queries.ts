@@ -28,3 +28,14 @@ export const reviewerSessionQueryOptions = (session: CampaignSessionParamsDto) =
     queryKey: campaignReviewKeys.session(session),
     queryFn: ({ signal }) => apiRequest(EvalReviewerRoutes.getSession, { params: session, signal }),
   })
+
+/**
+ * The current HTML of the MCP Apps a session's replies show. The API connects to each MCP server
+ * to read it, so it loads after the session, as the tester's chat loads it.
+ */
+export const reviewerSessionMcpAppsHtmlQueryOptions = (session: CampaignSessionParamsDto) =>
+  queryOptions({
+    queryKey: campaignReviewKeys.mcpAppsHtml(session),
+    queryFn: ({ signal }) =>
+      apiRequest(EvalReviewerRoutes.getSessionMcpAppHtml, { params: session, signal }),
+  })

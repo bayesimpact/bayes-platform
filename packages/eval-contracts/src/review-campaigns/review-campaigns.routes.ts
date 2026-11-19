@@ -1,4 +1,6 @@
+import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
+import { mcpAppHtmlOutputSchema } from "../conversations/conversations.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import {
   campaignInvitationParamsSchema,
@@ -139,6 +141,13 @@ export const EvalReviewerRoutes = {
     path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view`,
     params: campaignSessionParamsSchema,
     response: reviewerSessionOutputSchema,
+  }),
+  /** The current HTML of the MCP Apps the session's replies show, as the tester's chat reads it. */
+  getSessionMcpAppHtml: defineSchemaRoute({
+    method: "get",
+    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view/mcp-app-html`,
+    params: campaignSessionParamsSchema,
+    response: z.array(mcpAppHtmlOutputSchema),
   }),
   createReview: defineSchemaRoute({
     method: "post",

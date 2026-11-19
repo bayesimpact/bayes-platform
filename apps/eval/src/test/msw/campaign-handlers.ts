@@ -241,6 +241,8 @@ function reviewerHandlers(world: EvalWorld, me: MeOutputDto) {
         callerIsSessionOwner: session.testerUserId === me.user.id,
       })),
     })),
+    // The mocked replies show no MCP App: their HTML is empty.
+    mockRoute(EvalReviewerRoutes.getSessionMcpAppHtml, () => []),
     mockRoute(EvalReviewerRoutes.getSession, ({ params }) => {
       const session = find(params.reviewCampaignId, params.sessionId)
       return session ? reviewerViewOf(world, params.reviewCampaignId, session) : apiError(404)

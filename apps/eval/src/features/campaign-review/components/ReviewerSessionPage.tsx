@@ -94,6 +94,7 @@ export function ReviewerSessionPage({ sessionParams }: ReviewerSessionPageProps)
         />
         <SessionTranscript
           messages={session.transcript}
+          session={sessionParams}
           conversation={{
             organizationId: sessionParams.organizationId,
             projectId: sessionParams.projectId,
