@@ -56,14 +56,12 @@ export class AISDKMistralProvider extends AISDKVllmProviderBase<AgentProvider.Mi
     systemPrompt: string
     callOrigin: CallOrigin
   }): string {
-    if (callOrigin === CallOrigin.streamChatResponse_withTools && config.tools) {
-      const toolDocs = this.describeToolsForPrompt(config.tools)
-      if (!toolDocs) return systemPrompt
+    if (
+      callOrigin === CallOrigin.streamChatResponse_withTools &&
+      config.tools &&
+      Object.keys(config.tools).length > 0
+    ) {
       return `${systemPrompt}
-
-##TOOLS
-You have access to the following tools:
-${toolDocs.join("\n")}
 
 (CRITICAL) If a parameters allows null, set the value to null when unknown. Set to null not to quoted "null"`
     }
