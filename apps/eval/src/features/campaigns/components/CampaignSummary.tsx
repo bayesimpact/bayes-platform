@@ -12,7 +12,7 @@ export function CampaignSummary({ aggregates }: CampaignSummaryProps) {
   const { i18n } = useLingui()
   if (!aggregates) {
     return (
-      <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
+      <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
         <Trans>The summary shows once the campaign is closed.</Trans>
       </p>
     )

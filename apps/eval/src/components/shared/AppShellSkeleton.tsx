@@ -10,7 +10,7 @@ export function AppShellSkeleton() {
     >
       <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 pb-16">
         <Skeleton className="h-9 w-80 max-w-full" />
-        <Skeleton className="h-32 w-full max-w-2xl rounded-2xl" />
+        <Skeleton className="h-32 w-full max-w-2xl rounded-lg" />
       </div>
     </AppShell>
   )

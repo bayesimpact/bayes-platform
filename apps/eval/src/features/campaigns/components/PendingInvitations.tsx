@@ -50,7 +50,7 @@ export function PendingInvitations({ campaign, invitations }: PendingInvitations
 
   return (
     <>
-      <ul className="flex flex-col divide-y rounded-xl border">
+      <ul className="flex flex-col divide-y rounded-lg border">
         {invitations.map((invitation) => {
           const email = invitation.invitedEmail
           const role = reviewCampaignRoleSchema.safeParse(invitation.role)

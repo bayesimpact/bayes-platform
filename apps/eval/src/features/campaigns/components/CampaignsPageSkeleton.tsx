@@ -10,7 +10,7 @@ export function CampaignsPageSkeleton() {
         <Skeleton className="h-5 w-96 max-w-full" />
       </div>
       <Skeleton className="h-10 w-80 max-w-full" />
-      <Skeleton className="h-64 w-full rounded-2xl" />
+      <Skeleton className="h-64 w-full rounded-lg" />
     </PageContainer>
   )
 }

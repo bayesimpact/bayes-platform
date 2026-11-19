@@ -24,8 +24,8 @@ export type ParticipantsPanelProps = {
  * The people of a campaign: invite them while it is active, see who answered, and take a role
  * back. A draft invites nobody yet, since nobody could accept.
  */
-/** The cards of the participants: less round, with larger titles, which set the blocks apart. */
-const PARTICIPANTS_CARD = "rounded-lg [&_h2]:text-base"
+/** The cards of the participants: larger titles, which set the blocks apart. */
+const PARTICIPANTS_CARD = "[&_h2]:text-base"
 
 export function ParticipantsPanel({ agent, campaign, campaignParams }: ParticipantsPanelProps) {
   const isActive = campaign.status === "active"
@@ -47,7 +47,7 @@ export function ParticipantsPanel({ agent, campaign, campaignParams }: Participa
 
   if (campaign.status === "draft") {
     return (
-      <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
+      <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
         <Trans>
           Activate the campaign to invite testers and reviewers: they can accept an invitation only
           once it is active.

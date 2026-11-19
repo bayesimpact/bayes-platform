@@ -49,7 +49,7 @@ export function DataTable<TData>({
   const columnCount = table.getVisibleLeafColumns().length
 
   return (
-    <div className="overflow-hidden rounded-2xl border bg-background dark:bg-card">
+    <div className="overflow-hidden rounded-lg border bg-background dark:bg-card">
       <Table className={cn("transition-opacity", isRefreshing && "opacity-60")}>
         <TableHeader className="bg-muted/40">
           {table.getHeaderGroups().map((headerGroup) => (

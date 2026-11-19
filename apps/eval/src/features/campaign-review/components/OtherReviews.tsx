@@ -30,7 +30,7 @@ export function OtherReviews({ reviews, questions }: OtherReviewsProps) {
           {reviews.map((review) => {
             const reviewerId = shortIdOf(review.reviewerUserId)
             return (
-              <li key={review.id} className="flex flex-col gap-2 rounded-xl border p-3">
+              <li key={review.id} className="flex flex-col gap-2 rounded-lg border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-medium">
                     <Trans comment="Names a reviewer by the start of their id">

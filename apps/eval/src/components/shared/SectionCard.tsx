@@ -16,7 +16,7 @@ export function SectionCard({ title, description, aside, className, children }: 
   return (
     <section
       className={cn(
-        "flex flex-col gap-4 rounded-2xl border bg-background p-4 md:p-6 dark:bg-card",
+        "flex flex-col gap-4 rounded-lg border bg-background p-4 md:p-6 dark:bg-card",
         className,
       )}
     >

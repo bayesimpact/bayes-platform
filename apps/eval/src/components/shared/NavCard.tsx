@@ -18,7 +18,7 @@ export function NavCard({ render, icon, title, description, badge }: NavCardProp
     render,
     props: {
       className:
-        "group flex h-full flex-col gap-3 rounded-2xl border bg-background p-5 outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring dark:bg-card",
+        "group flex h-full flex-col gap-3 rounded-lg border bg-background p-5 outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring dark:bg-card",
       children: (
         <>
           <span className="flex items-center justify-between gap-2">

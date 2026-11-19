@@ -14,7 +14,7 @@ export type CampaignAgentCardProps = {
 export function CampaignAgentCard({ agent, action }: CampaignAgentCardProps) {
   const { i18n } = useLingui()
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-2xl border bg-background p-4 dark:bg-card">
+    <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-background p-4 dark:bg-card">
       <span className="flex shrink-0 text-muted-foreground [&_svg]:size-5">
         <AgentTypeIcon type={agent.type} />
       </span>

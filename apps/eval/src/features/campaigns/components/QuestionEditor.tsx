@@ -44,7 +44,7 @@ export function QuestionEditor({
   const position = index + 1
 
   return (
-    <li className="flex flex-col gap-4 rounded-xl border bg-background p-4 dark:bg-card">
+    <li className="flex flex-col gap-4 rounded-lg border bg-background p-4 dark:bg-card">
       <div className="flex items-start gap-2">
         <Controller
           control={control}

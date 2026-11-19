@@ -13,7 +13,7 @@ export function QuestionDistribution({ distribution }: QuestionDistributionProps
   const total = distribution.buckets.reduce((sum, bucket) => sum + bucket.count, 0)
   const responseCount = distribution.responseCount
   return (
-    <div className="flex flex-col gap-3 rounded-xl border p-4">
+    <div className="flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-medium">{distribution.prompt}</h3>
         <span className="flex items-center gap-2 text-sm text-muted-foreground">
