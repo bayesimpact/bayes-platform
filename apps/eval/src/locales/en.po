@@ -29,11 +29,6 @@ msgstr "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongL
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 
-#. The agent of a run and the version it asked
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-msgid "{agentName}, version {revision}"
-msgstr "{agentName}, version {revision}"
-
 #: src/features/conversation/components/Composer.tsx
 msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
 msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
@@ -294,9 +289,10 @@ msgstr "admin"
 msgid "After each session"
 msgstr "After each session"
 
-#. The agent a run asked, and its version
+#. The agent a run asked
+#. The tab of what a run used about its agent
 #. What an invitation gives access to
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Agent"
 msgstr "Agent"
@@ -532,6 +528,7 @@ msgid "Comment"
 msgstr "Comment"
 
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "Compare version {revision} with the others"
 msgstr "Compare version {revision} with the others"
 
@@ -1094,7 +1091,7 @@ msgstr "Input"
 #. The instructions of the agent in a run
 #. The instructions of the judge of a run
 #: src/features/campaigns/agent-version-diff.ts
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "Instructions"
 msgstr "Instructions"
 
@@ -1138,8 +1135,8 @@ msgstr "Invited <0/>"
 msgid "Its records and its runs keep their place."
 msgstr "Its records and its runs keep their place."
 
-#. The judge of a run: the model that graded it
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#. The tab of what a run used about its judge
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "Judge"
 msgstr "Judge"
 
@@ -1223,7 +1220,7 @@ msgstr "Messages"
 #. The model of the agent in a run
 #. The model of the judge of a run
 #: src/features/campaigns/agent-version-diff.ts
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "Model"
 msgstr "Model"
 
@@ -1382,7 +1379,7 @@ msgstr "No session yet."
 msgid "No version chosen yet."
 msgstr "No version chosen yet."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "None"
 msgstr "None"
 
@@ -1398,6 +1395,11 @@ msgstr "Not asked"
 #: src/features/campaign-review/components/FormResultPanel.tsx
 msgid "Not collected"
 msgstr "Not collected"
+
+#. A model with no thinking level set
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Not set"
+msgstr "Not set"
 
 #: src/features/conversation/components/FormFields.tsx
 msgid "Nothing noted yet."
@@ -2286,10 +2288,6 @@ msgstr "The message a person would send to the agent."
 msgid "The model that compares each answer with the expected output."
 msgstr "The model that compares each answer with the expected output."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-msgid "The model that graded each answer, and what it was told."
-msgstr "The model that graded each answer, and what it was told."
-
 #: src/features/campaigns/components/InviteParticipantsForm.tsx
 msgid "The people could not be invited. Try again."
 msgstr "The people could not be invited. Try again."
@@ -2360,6 +2358,7 @@ msgid "The run and its results are deleted for good."
 msgstr "The run and its results are deleted for good."
 
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "The run asked this version"
 msgstr "The run asked this version"
 
@@ -2436,6 +2435,11 @@ msgstr "These people already have access or an invitation."
 #: src/features/campaigns/components/AgentVersionCompare.tsx
 msgid "These two versions have the same settings."
 msgstr "These two versions have the same settings."
+
+#. How much the agent's model thinks, in a run
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Thinking level"
+msgstr "Thinking level"
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Thinking…"
@@ -2588,13 +2592,17 @@ msgstr "Using a tool"
 msgid "Verify your email"
 msgstr "Verify your email"
 
+#. The version of the agent a run asked
 #. The version of the agent a run evaluated
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "Version"
 msgstr "Version"
 
 #. A saved version of an agent's settings, by its number
+#. A version of an agent, by its number
 #: src/features/campaigns/components/AgentVersionTitle.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "Version {revision}"
 msgstr "Version {revision}"
 
@@ -2663,6 +2671,7 @@ msgid "What the tester reported about what happened in this session."
 msgstr "What the tester reported about what happened in this session."
 
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 msgid "What this run used"
 msgstr "What this run used"
 

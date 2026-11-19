@@ -166,8 +166,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). A run's version opens the
   history of the agent's versions on it, the campaigns' `AgentVersionsSheet` without its choice, to
   compare it with the others. A run's page, `evaluations/$datasetId/runs/$runId`
-  (`ConversationRunPage`), shows its figures and all its records, with what it used (the agent's model and
-  instructions at that version, the judge's) in a side panel; its records are read as a dataset's, with
+  (`ConversationRunPage`), shows its figures and all its records, with what it used in a side panel of two tabs (`RunSettingsPanel`): Agent, with its
+  type, the version asked, which opens the history of its versions, its model, its thinking level
+  (`thinkingLevelOf`) and its instructions, and Judge, with its model and its instructions; its records are read as a dataset's, with
   Cancel while it is under way, after a confirmation, and a « ⋯ » menu that holds Retry, after a
   failure, and Delete. Its scores read out of 5, as the judge gives them (`scoreOf`). A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.

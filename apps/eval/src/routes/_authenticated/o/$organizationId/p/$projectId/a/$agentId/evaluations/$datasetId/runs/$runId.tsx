@@ -7,7 +7,12 @@ import {
   conversationDatasetNameQueryOptions,
   loadConversationDatasets,
 } from "@/features/conversation-datasets"
-import { ConversationRunPage, loadConversationRun, runParamsOf } from "@/features/conversation-runs"
+import {
+  ConversationRunPage,
+  loadConversationRun,
+  loadConversationRuns,
+  runParamsOf,
+} from "@/features/conversation-runs"
 import { uuidParams } from "@/lib/not-found"
 
 /** A run of an evaluation of the agent on a dataset: its figures and all its records. */
@@ -26,6 +31,8 @@ export const Route = createFileRoute(
         datasetId: params.datasetId,
       }),
       loadConversationDatasets(context.queryClient, params),
+      // The sidebar lists the dataset's runs, and the side panel opens the agent's versions.
+      loadConversationRuns(context.queryClient, params),
     ])
     if (!isOfDataset) throw notFound()
   },

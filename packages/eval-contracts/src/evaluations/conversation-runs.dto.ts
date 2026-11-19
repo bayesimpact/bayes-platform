@@ -55,6 +55,8 @@ export const conversationRunOutputSchema = z.object({
     instructions: z.string(),
     model: z.string(),
     revision: z.number(),
+    /** The options of the model, as the version set them: its thinking level, its temperature. */
+    providerOptions: z.record(z.string(), z.unknown()),
   }),
   status: conversationRunStatusSchema,
   judgeModel: z.string(),

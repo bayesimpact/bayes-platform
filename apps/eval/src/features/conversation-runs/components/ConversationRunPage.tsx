@@ -16,8 +16,6 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { PanelSection } from "@/components/shared/PanelSection"
-import { SidePanel } from "@/components/shared/SidePanel"
 import { SidePanelToggle } from "@/components/shared/SidePanelToggle"
 import { SplitPage } from "@/components/shared/SplitPage"
 import { StatCard } from "@/components/shared/StatCard"
@@ -44,6 +42,7 @@ import {
 import { conversationRunQueryOptions, conversationRunRecordsQueryOptions } from "../api/queries"
 import { isRunActive, scoreOf } from "../run-status"
 import { conversationRunRecordColumnsOf } from "./conversation-run-record-columns"
+import { RunSettingsPanel } from "./RunSettingsPanel"
 import { RunStatusBadge } from "./RunStatusBadge"
 
 export type ConversationRunPageProps = {
@@ -97,8 +96,8 @@ export function ConversationRunPage({
   } as const
   const started = fullDateTimeOf(run.createdAt, i18n.locale)
   const datasetName = dataset.name
-  const agentName =
-    flattenEvaluationAgents(groups).find((candidate) => candidate.id === run.agentId)?.name ?? "–"
+  const runAgent = flattenEvaluationAgents(groups).find((candidate) => candidate.id === run.agentId)
+  const agentName = runAgent?.name ?? "–"
   const revision = run.agentSettings.revision
   const summary = run.summary
   const hasErrors = (summary?.errors ?? 0) > 0
@@ -107,62 +106,13 @@ export function ConversationRunPage({
     <SplitPage
       panel={
         panel.isOpen ? (
-          <SidePanel
-            title={<Trans>What this run used</Trans>}
+          <RunSettingsPanel
+            run={run}
+            agent={{ name: agentName, type: runAgent?.type ?? agent.type }}
+            agentParams={agentParams}
             onClose={panel.close}
             takesFocus={panel.takesFocus}
-          >
-            <div className="flex flex-col gap-4">
-              <PanelSection
-                title={<Trans comment="The agent a run asked, and its version">Agent</Trans>}
-                description={
-                  <Trans comment="The agent of a run and the version it asked">
-                    {agentName}, version {revision}
-                  </Trans>
-                }
-              >
-                <dl className="flex flex-col gap-3 text-sm">
-                  <div className="flex flex-col gap-1">
-                    <dt className="font-medium">
-                      <Trans comment="The model of the agent in a run">Model</Trans>
-                    </dt>
-                    <dd className="font-mono text-xs">{run.agentSettings.model}</dd>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <dt className="font-medium">
-                      <Trans comment="The instructions of the agent in a run">Instructions</Trans>
-                    </dt>
-                    <dd className="rounded-md border bg-muted/40 p-2 whitespace-pre-wrap wrap-anywhere">
-                      {run.agentSettings.instructions}
-                    </dd>
-                  </div>
-                </dl>
-              </PanelSection>
-              <PanelSection
-                title={<Trans comment="The judge of a run: the model that graded it">Judge</Trans>}
-                description={
-                  <Trans>The model that graded each answer, and what it was told.</Trans>
-                }
-              >
-                <dl className="flex flex-col gap-3 text-sm">
-                  <div className="flex flex-col gap-1">
-                    <dt className="font-medium">
-                      <Trans comment="The model of the judge of a run">Model</Trans>
-                    </dt>
-                    <dd className="font-mono text-xs">{run.judgeModel}</dd>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <dt className="font-medium">
-                      <Trans comment="The instructions of the judge of a run">Instructions</Trans>
-                    </dt>
-                    <dd className="whitespace-pre-wrap wrap-anywhere text-muted-foreground">
-                      {run.judgeInstructions ?? <Trans>None</Trans>}
-                    </dd>
-                  </div>
-                </dl>
-              </PanelSection>
-            </div>
-          </SidePanel>
+          />
         ) : null
       }
     >
