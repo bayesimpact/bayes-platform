@@ -735,8 +735,8 @@ msgid "Draft"
 msgstr "Draft"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
-msgid "e.g. Accept an answer that gives the right fact, whatever its wording."
-msgstr "e.g. Accept an answer that gives the right fact, whatever its wording."
+msgid "e.g. Penalize answers that are not in the expected language"
+msgstr "e.g. Penalize answers that are not in the expected language"
 
 #: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 msgid "e.g. Pricing questions"

@@ -735,8 +735,8 @@ msgid "Draft"
 msgstr "Brouillon"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
-msgid "e.g. Accept an answer that gives the right fact, whatever its wording."
-msgstr "ex. Accepter une réponse qui donne le bon fait, quelle que soit sa formulation."
+msgid "e.g. Penalize answers that are not in the expected language"
+msgstr "ex. Pénaliser les réponses qui ne sont pas dans la langue attendue"
 
 #: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 msgid "e.g. Pricing questions"

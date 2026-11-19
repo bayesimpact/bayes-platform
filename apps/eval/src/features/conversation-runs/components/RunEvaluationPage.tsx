@@ -176,7 +176,7 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
                 {...field}
                 id={judgeInstructionsId}
                 maxLength={CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH}
-                placeholder={t`e.g. Accept an answer that gives the right fact, whatever its wording.`}
+                placeholder={t`e.g. Penalize answers that are not in the expected language`}
                 aria-invalid={fieldState.invalid}
               />
             </Field>
