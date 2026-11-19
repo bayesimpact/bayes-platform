@@ -156,7 +156,7 @@ const PAGES = {
   },
   TesterCampaign: {
     Story: pageStories.TesterCampaign,
-    loaded: () => screen.findByRole("button", { name: "Start a conversation" }),
+    loaded: () => screen.findByRole("button", { name: "Start a session" }),
   },
   NoSession: {
     Story: pageStories.NoSession,

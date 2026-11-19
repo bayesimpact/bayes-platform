@@ -1353,8 +1353,8 @@ msgid "Spread"
 msgstr "Spread"
 
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
-msgid "Start a conversation"
-msgstr "Start a conversation"
+msgid "Start a session"
+msgstr "Start a session"
 
 #. When a session started
 #. When a session started

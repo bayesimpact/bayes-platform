@@ -1353,8 +1353,8 @@ msgid "Spread"
 msgstr "Écart"
 
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
-msgid "Start a conversation"
-msgstr "Démarrer une conversation"
+msgid "Start a session"
+msgstr "Démarrer une session"
 
 #. When a session started
 #. When a session started

@@ -44,20 +44,18 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
 
   return (
     <ParticipantCampaignFrame campaign={campaign} campaignRole="tester" currentTab="overview">
-      <CampaignAgentCard
-        agent={context.agent}
-        action={
-          <Button onClick={newSession.open} disabled={newSession.isPending}>
-            <Trans>Start a conversation</Trans>
-            <ArrowRightIcon data-icon="inline-end" aria-hidden />
-          </Button>
-        }
-      />
+      <CampaignAgentCard agent={context.agent} />
       {/* The table has its own frame: the block of the sessions needs none around it. */}
       <SectionCard
         className="rounded-none border-0 bg-transparent p-0 md:p-0 dark:bg-transparent"
         title={<Trans>Your sessions</Trans>}
-        aside={<Plural value={sessionCount} one="# session" other="# sessions" />}
+        description={<Plural value={sessionCount} one="# session" other="# sessions" />}
+        aside={
+          <Button onClick={newSession.open} disabled={newSession.isPending}>
+            <Trans>Start a session</Trans>
+            <ArrowRightIcon data-icon="inline-end" aria-hidden />
+          </Button>
+        }
       >
         <TesterSessionsTable
           campaign={campaign}

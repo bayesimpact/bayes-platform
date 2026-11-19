@@ -226,7 +226,7 @@ describe("a tester's campaign", () => {
     server.use(...worldHandlers(world))
     const { router } = renderApp(`${campaignUrlOf(world, "Support assistant pilot")}/test`)
 
-    await userEvent.click(await screen.findByRole("button", { name: "Start a conversation" }))
+    await userEvent.click(await screen.findByRole("button", { name: "Start a session" }))
 
     const campaign = campaignOf(world, "Support assistant pilot")
     await waitFor(() => expect(world.testerSessions[campaign.id]).toHaveLength(3))
