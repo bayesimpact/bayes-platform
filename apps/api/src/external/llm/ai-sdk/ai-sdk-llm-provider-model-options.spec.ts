@@ -1,10 +1,12 @@
 import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { AGENT_DEFAULT_MODELS } from "@/domains/agents/settings/agent-models.service"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
+import { AISDKAnthropicProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-anthropic.provider"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKOpenAIProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-openai.provider"
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
@@ -14,6 +16,8 @@ const providers: { [Provider in AgentProvider]: AISDKLLMProviderBase<Provider> }
   [AgentProvider.MedGemma]: new AISDKMedGemmaProvider(),
   [AgentProvider.Mistral]: new AISDKMistralProvider(),
   [AgentProvider.Qwen]: new AISDKQwenProvider(),
+  [AgentProvider.Anthropic]: new AISDKAnthropicProvider(),
+  [AgentProvider.OpenAI]: new AISDKOpenAIProvider(),
   [AgentProvider.Vertex]: new AISDKVertexProvider(),
   [AgentProvider.Vertex3]: new AISDKVertex3Provider(),
   [AgentProvider._Mock]: new AISDKMockProvider(),
@@ -41,6 +45,7 @@ const CATALOG: {
   provider: AgentProvider
   deprecation?: { deprecatedOn: string; recommendedReplacement: AgentModel }
   isDefault: boolean
+  servedOutsideEu?: boolean
   defaultOptions: Record<string, unknown>
   thinkingLevels?: string[]
 }[] = [
@@ -148,6 +153,38 @@ const CATALOG: {
     defaultOptions: { temperature: 0.7 },
   },
   {
+    model: AgentModel.ClaudeSonnet55,
+    provider: AgentProvider.Anthropic,
+    isDefault: false,
+    defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
+  },
+  {
+    model: AgentModel.ClaudeHaiku55,
+    provider: AgentProvider.Anthropic,
+    isDefault: false,
+    defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
+  },
+  {
+    model: AgentModel.ClaudeOpus5,
+    provider: AgentProvider.Anthropic,
+    isDefault: false,
+    defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
+  },
+  {
+    model: AgentModel.Gpt54,
+    provider: AgentProvider.OpenAI,
+    isDefault: false,
+    servedOutsideEu: true,
+    defaultOptions: { providerOptions: { openai: { reasoningEffort: "low" } } },
+  },
+  {
+    model: AgentModel.Gpt54Mini,
+    provider: AgentProvider.OpenAI,
+    isDefault: false,
+    servedOutsideEu: true,
+    defaultOptions: { providerOptions: { openai: { reasoningEffort: "low" } } },
+  },
+  {
     model: AgentModel._Mock,
     provider: AgentProvider._Mock,
     isDefault: false,
@@ -168,8 +205,10 @@ describe("agent model catalog", () => {
     expect(providers[provider].getModelInfos(model).deprecation).toEqual(deprecation)
   })
 
-  it.each(CATALOG)("$model is served in the EU", ({ model, provider }) => {
-    expect(providers[provider].getModelInfos(model).servedOutsideEu === true).toBe(false)
+  it.each(CATALOG)("$model is served where it says", ({ model, provider, servedOutsideEu }) => {
+    expect(providers[provider].getModelInfos(model).servedOutsideEu === true).toBe(
+      servedOutsideEu === true,
+    )
   })
 
   it("has one default model", () => {

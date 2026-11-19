@@ -33,6 +33,8 @@ describe("EvaluationConversationRunGraderLLMService", () => {
       [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.Qwen]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Anthropic]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.OpenAI]: vertexProvider as unknown as LLMProvider,
     })
   })
 

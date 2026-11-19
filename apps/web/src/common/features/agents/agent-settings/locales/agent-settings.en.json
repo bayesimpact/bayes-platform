@@ -89,6 +89,7 @@
       },
       "thinkingLevel": "Thinking level",
       "thinkingLevels": {
+        "none": "None",
         "minimal": "Minimal",
         "low": "Low",
         "medium": "Medium",
