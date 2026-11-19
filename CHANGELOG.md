@@ -26,6 +26,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Agent orchestration: managers read the instructions of an agent before they add it, and confirm before they remove a sub-agent.
 - (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
 - (beta) Embed launcher: a larger button with a dot-grid icon that turns into a close cross, a window that grows out of the button, and a card above the closed button that shows the agent's greeting until the visitor opens the chat, writes or dismisses it.
+- (beta) Embedded chat: the floating window is larger (400 × 704 px at most), its header shows the dot-grid mark instead of a sparkle and a chevron to minimize it, and the launcher shows a chevron while the chat is open.
 
 ### Removed
 
