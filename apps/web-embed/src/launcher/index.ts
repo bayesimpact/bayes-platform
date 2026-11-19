@@ -2,7 +2,7 @@
  * AgentStudio embed launcher.
  *
  * Drop this IIFE onto any host page via:
- *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#2563eb" data-locale="fr" data-display-mode="modal" data-hint="Need help?"></script>
+ *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#000000" data-locale="fr" data-display-mode="modal" data-hint="Need help?"></script>
  *
  * The script injects a floating action button and a chat iframe.
  * Clicking the button toggles the iframe open/closed.
@@ -19,6 +19,7 @@
  *   Starts a new conversation in the widget, for example when the visitor
  *   logs out of the host site.
  */
+import { DEFAULT_PRIMARY_COLOR } from "../theme"
 
 declare global {
   interface Window {
@@ -45,7 +46,7 @@ function init() {
   const position = (_currentScript?.getAttribute("data-position") ?? "bottom-right") as
     | "bottom-right"
     | "bottom-left"
-  const color = _currentScript?.getAttribute("data-color") ?? "#2563eb"
+  const color = _currentScript?.getAttribute("data-color") ?? DEFAULT_PRIMARY_COLOR
   const locale = _currentScript?.getAttribute("data-locale") ?? ""
   const displayMode = (_currentScript?.getAttribute("data-display-mode") ?? "modal") as
     | "modal"
