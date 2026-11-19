@@ -153,8 +153,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   list with its dialog (the `create` search param), then the datasets
   (`ConversationDatasetsSidebarEntries`). A dataset's page has two tabs, Records and Runs (the
   `tab` search param). The dataset whose page shows, or one of whose runs does, lists its runs
-  under it in the sidebar (`ConversationRunLinks` in `features/conversation-runs`), as a campaign
-  lists its sessions.
+  under it in the sidebar, grouped by where they stand (`ConversationRunLinks` in
+  `features/conversation-runs`).
 - The runs of a conversation dataset (`features/conversation-runs`), on the API's
   `evaluation-conversation-runs` routes (`EvalConversationRunsRoutes`). Run evaluation, on a
   dataset's page, opens a page of its own, `evaluations/$datasetId/runs/new`

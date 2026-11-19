@@ -1,9 +1,9 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, ConversationRunStatusDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { SidebarSessionItem } from "@/components/shared/SidebarSessionItem"
-import { SidebarMenuSub } from "@/components/ui/sidebar"
+import { SidebarSubGroupLabel } from "@/components/shared/SidebarSubGroupLabel"
+import { SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { shortDateTimeOf } from "@/lib/format-time"
 import { projectConversationRunsQueryOptions } from "../api/queries"
 import { RUN_STATUS_LABELS } from "../run-status"
@@ -13,9 +13,18 @@ export type ConversationRunLinksProps = {
   datasetId: string
 }
 
+/** The order of the groups: what is under way, then what is over, then what did not end well. */
+const STATUS_ORDER = [
+  "running",
+  "pending",
+  "completed",
+  "failed",
+  "cancelled",
+] as const satisfies ConversationRunStatusDto[]
+
 /**
- * The runs of the open dataset, under it in the sidebar, the newest first: each by when it
- * started, with a mark once it is over, and a struck circle when it failed.
+ * The runs of the open dataset, under it in the sidebar, grouped by where they stand: each by
+ * when it started, the newest first.
  */
 export function ConversationRunLinks({ agentParams, datasetId }: ConversationRunLinksProps) {
   const { i18n } = useLingui()
@@ -32,22 +41,30 @@ export function ConversationRunLinks({ agentParams, datasetId }: ConversationRun
   }
   return (
     <SidebarMenuSub className="mr-0 pr-0">
-      {runs.map((run) => (
-        <SidebarSessionItem
-          key={run.id}
-          link={
-            <Link
-              to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId"
-              params={{ ...agentParams, datasetId, runId: run.id }}
-              activeProps={{ "data-active": true }}
-            />
-          }
-          label={shortDateTimeOf(run.createdAt, i18n.locale)}
-          isDone={run.status === "completed"}
-          hasFailed={run.status === "failed"}
-          stateLabel={i18n._(RUN_STATUS_LABELS[run.status])}
-        />
-      ))}
+      {STATUS_ORDER.map((status) => {
+        const group = runs.filter((run) => run.status === status)
+        if (group.length === 0) return null
+        return [
+          <SidebarSubGroupLabel key={status}>
+            {i18n._(RUN_STATUS_LABELS[status])}
+          </SidebarSubGroupLabel>,
+          ...group.map((run) => (
+            <SidebarMenuSubItem key={run.id}>
+              <SidebarMenuSubButton
+                render={
+                  <Link
+                    to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId"
+                    params={{ ...agentParams, datasetId, runId: run.id }}
+                    activeProps={{ "data-active": true }}
+                  />
+                }
+              >
+                <span className="truncate">{shortDateTimeOf(run.createdAt, i18n.locale)}</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          )),
+        ]
+      })}
     </SidebarMenuSub>
   )
 }

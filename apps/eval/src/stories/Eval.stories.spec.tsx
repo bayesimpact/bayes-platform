@@ -285,7 +285,13 @@ describe("the stories of the app", () => {
 
     const dataset = (await screen.findByRole("link", { name: "Pricing questions" })).closest("li")
     if (!dataset) throw new Error("The sidebar has no entry for the dataset")
-    const runs = await within(dataset).findAllByRole("link", { name: /Completed|Running|Failed/ })
+    // The runs stand under the name of where they are: under way, over, failed.
+    for (const status of ["Running", "Completed", "Failed"]) {
+      expect(await within(dataset).findByText(status)).toBeInTheDocument()
+    }
+    const runs = within(dataset)
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href")?.includes("/runs/"))
     expect(runs).toHaveLength(3)
     // The run whose page shows is the marked one, not its dataset.
     expect(runs.filter((run) => run.getAttribute("aria-current") === "page")).toHaveLength(1)
