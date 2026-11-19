@@ -38,7 +38,7 @@ export function buildConversationRunRecord(
     input: "Which plan should a team of five pick?",
     expectedOutput: "The Pro plan: it includes five seats and shared workspaces.",
     output: "A team of five fits the Pro plan, which comes with five seats.",
-    score: 1,
+    score: 5,
     errorDetails: null,
     traceUrl: null,
     ...overrides,
@@ -103,7 +103,7 @@ export function buildPricingRuns(
       score,
     })
   }
-  const completed = [1, 1, 0.5, 1, 0, 1, 1, 0.75, 1, 1, 1].map(answered)
+  const completed = [5, 5, 3, 5, 0, 5, 5, 4, 5, 5, 5].map(answered)
   completed.push(
     buildConversationRunRecord({
       status: "error",
@@ -115,7 +115,7 @@ export function buildPricingRuns(
     }),
   )
   const underWay = [
-    ...[1, 1, 0.5].map(answered),
+    ...[5, 5, 3].map(answered),
     ...dataset.records.slice(3, 6).map((source) =>
       buildConversationRunRecord({
         status: "running",

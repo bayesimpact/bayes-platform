@@ -1,4 +1,7 @@
-import type { ConversationRunStatusDto } from "@caseai-connect/eval-contracts"
+import {
+  CONVERSATION_RUN_MAX_SCORE,
+  type ConversationRunStatusDto,
+} from "@caseai-connect/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 
@@ -18,9 +21,14 @@ export const isRunActive = (status: ConversationRunStatusDto) =>
 /** How often an active run is read again, in milliseconds. */
 export const ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS = 3000
 
-/** A score from 0 to 1 as a percentage of the locale, such as 92%. */
-export const scoreOf = (score: number, locale: string) =>
-  new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(score)
+/**
+ * A score out of the best one, such as 4 / 5: the score of an answer, a whole number, or the
+ * average of a run, with one decimal at most.
+ */
+export const scoreOf = (score: number, locale: string) => {
+  const format = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 })
+  return `${format.format(score)} / ${format.format(CONVERSATION_RUN_MAX_SCORE)}`
+}
 
 /** The order of the groups of runs: what is under way, then what is over, then what did not end well. */
 export const RUN_STATUS_ORDER = [

@@ -91,7 +91,7 @@ export function conversationRunRecordColumnsOf({
         const score = context.getValue()
         if (score === null) return "–"
         return (
-          <Badge variant={score >= 0.75 ? "secondary" : score >= 0.5 ? "outline" : "destructive"}>
+          <Badge variant={score >= 4 ? "secondary" : score >= 3 ? "outline" : "destructive"}>
             {scoreOf(score, locale)}
           </Badge>
         )

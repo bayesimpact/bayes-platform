@@ -12,6 +12,9 @@ export const EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION =
 /** The longest instructions a run gives its judge, in characters. */
 export const CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH = 4000
 
+/** The best score the judge gives an answer: scores go from 0 to it. */
+export const CONVERSATION_RUN_MAX_SCORE = 5
+
 /** How many records the API returns at most in one page of a run: the app reads them all. */
 export const CONVERSATION_RUN_RECORDS_PAGE_SIZE = 100
 
@@ -76,7 +79,7 @@ export const conversationRunRecordOutputSchema = z.object({
   input: z.string(),
   expectedOutput: z.string(),
   output: z.string().nullable(),
-  /** From 0 to 1, once graded. */
+  /** A whole number from 0 to `CONVERSATION_RUN_MAX_SCORE`, once graded. */
   score: z.number().nullable(),
   errorDetails: z.string().nullable(),
   traceUrl: z.string().nullable(),
