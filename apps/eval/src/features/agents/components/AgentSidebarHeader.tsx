@@ -1,4 +1,5 @@
-import { type EvaluationAgent, flattenEvaluationAgents } from "../evaluation-agents"
+import { switchableAgentCountOf } from "../campaign-agents"
+import type { EvaluationAgent } from "../evaluation-agents"
 import { useEvaluationWorkspace } from "../hooks/use-evaluation-workspace"
 import { AgentIdentity } from "./AgentIdentity"
 import { AgentSwitcher } from "./AgentSwitcher"
@@ -12,8 +13,9 @@ export type AgentSidebarHeaderProps = {
  * that switches agent; with one, it simply shows.
  */
 export function AgentSidebarHeader({ currentAgent }: AgentSidebarHeaderProps) {
-  const { groups } = useEvaluationWorkspace()
-  if (flattenEvaluationAgents(groups).length > 1) {
+  const workspace = useEvaluationWorkspace()
+  const { groups } = workspace
+  if (switchableAgentCountOf(workspace) > 1) {
     return <AgentSwitcher currentAgent={currentAgent} showProject={groups.length > 1} />
   }
   return (

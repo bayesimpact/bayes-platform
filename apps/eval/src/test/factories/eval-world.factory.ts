@@ -427,3 +427,28 @@ export function buildParticipantWorld(): EvalWorld {
     },
   }
 }
+
+/**
+ * A person who only tests, on campaigns of two agents: the sidebar's header switches between them,
+ * and the command center lists them under Your campaigns.
+ */
+export function buildSeveralCampaignAgentsWorld(): EvalWorld {
+  const world = buildParticipantWorld()
+  const [project] = world.projects
+  const [organization] = world.organizations
+  if (!project || !organization) throw new Error("The participant world has a project")
+  const writer = buildProjectAgent(project, { name: "Writing Helper" })
+  const writingPilot = buildReviewCampaign(writer, organization.id, {
+    name: "Writing pilot",
+    description: "Try the helper on the letters you write every week.",
+    status: "active",
+  })
+  return {
+    ...world,
+    agents: [...world.agents, writer],
+    campaigns: [...world.campaigns, writingPilot],
+    myCampaignRoles: { ...world.myCampaignRoles, [writingPilot.id]: ["tester"] },
+    testerSessions: { ...world.testerSessions, [writingPilot.id]: [] },
+    testerSurveys: { ...world.testerSurveys, [writingPilot.id]: null },
+  }
+}

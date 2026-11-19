@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { agentTypeSchema } from "../agents/agents.dto"
 import { projectParamsSchema } from "../common/params.dto"
 
 /** Where a review campaign stands: being prepared, open to its testers and reviewers, or over. */
@@ -190,6 +191,11 @@ export const myReviewCampaignOutputSchema = z.object({
   projectId: z.uuid(),
   agentId: z.uuid(),
   createdAt: z.number(),
+  /**
+   * The agent the campaign reviews, which the person may hold through no project: the agent
+   * switcher lists it. Optional until the API sends it.
+   */
+  agent: z.object({ name: z.string(), type: agentTypeSchema }).optional(),
 })
 
 export type MyReviewCampaignOutputDto = z.output<typeof myReviewCampaignOutputSchema>

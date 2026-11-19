@@ -158,6 +158,10 @@ const PAGES = {
     Story: pageStories.TesterCampaign,
     loaded: () => screen.findByRole("button", { name: "Start a session" }),
   },
+  SeveralAgents: {
+    Story: pageStories.SeveralAgents,
+    loaded: () => screen.findByRole("button", { name: /^Switch agent/ }),
+  },
   NoSession: {
     Story: pageStories.NoSession,
     loaded: () => screen.findByText(/You have not started a session yet/),

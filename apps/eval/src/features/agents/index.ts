@@ -1,5 +1,7 @@
+export { switchableAgentCountOf } from "./campaign-agents"
 export { AgentCommandCenterProvider } from "./components/AgentCommandCenterProvider"
 export { AgentSidebarHeader } from "./components/AgentSidebarHeader"
+export { AgentSwitcher } from "./components/AgentSwitcher"
 export { EvaluationAccessGate } from "./components/EvaluationAccessGate"
 export { NoAgentState } from "./components/NoAgentState"
 export { canEvaluate, requireEvaluationAgent } from "./evaluation-access"

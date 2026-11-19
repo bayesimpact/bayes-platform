@@ -3,11 +3,10 @@ import { ChevronsUpDownIcon } from "lucide-react"
 import { ShortcutHint } from "@/components/shared/ShortcutHint"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { useOpenAgentCommandCenter } from "../agent-command-center-context"
-import type { EvaluationAgent } from "../evaluation-agents"
-import { AgentIdentity } from "./AgentIdentity"
+import { AgentIdentity, type AgentIdentityProps } from "./AgentIdentity"
 
 export type AgentSwitcherProps = {
-  currentAgent: EvaluationAgent
+  currentAgent: AgentIdentityProps["agent"]
   /** Whether to name the agent's project, which matters only when there are several. */
   showProject: boolean
 }

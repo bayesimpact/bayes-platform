@@ -22,15 +22,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Kbd } from "@/components/ui/kbd"
+import type { CampaignAgent } from "../campaign-agents"
 import type { EvaluationAgent, EvaluationProjectAgents } from "../evaluation-agents"
 
 export type AgentCommandCenterProps = {
   groups: EvaluationProjectAgents[]
+  /** The agents the person reaches only through the campaigns they test or review. */
+  campaignAgents: CampaignAgent[]
   /** The agent whose pages show, which the list marks. */
   currentAgentId: string | undefined
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
   onSelect: (agent: EvaluationAgent) => void
+  onSelectCampaignAgent: (agent: CampaignAgent) => void
 }
 
 /**
@@ -54,16 +58,18 @@ const AGENT_TYPES = ["conversation", "extraction"] as const satisfies readonly A
 
 /**
  * The command center that switches agent: every agent of the person, by project, then within
- * a project by type, conversation agents first, in a wide
+ * a project by type, conversation agents first, then the agents of the person's campaigns, in a wide
  * dialog near the top of the window, with a search on the names of the agents, projects and
  * organizations. The arrows move in the list and Enter opens the agent.
  */
 export function AgentCommandCenter({
   groups,
+  campaignAgents,
   currentAgentId,
   isOpen,
   onOpenChange,
   onSelect,
+  onSelectCampaignAgent,
 }: AgentCommandCenterProps) {
   const { t, i18n } = useLingui()
   const hasSeveralProjects = groups.length > 1
@@ -128,37 +134,36 @@ export function AgentCommandCenter({
                 className="**:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:pt-3"
               >
                 {section.agents.map((agent) => (
-                  <CommandItem
+                  <AgentCommandItem
                     key={agent.id}
-                    value={agent.id}
+                    agent={agent}
                     keywords={[agent.name, agent.project.name, agent.project.organization.name]}
+                    isCurrent={agent.id === currentAgentId}
                     onSelect={() => onSelect(agent)}
-                    className={cn(
-                      "gap-3 px-3 py-2.5",
-                      // The agent whose pages show takes the color of the sidebar's active link.
-                      agent.id === currentAgentId &&
-                        "text-primary *:[svg]:text-primary data-selected:text-primary data-selected:*:[svg]:text-primary",
-                    )}
-                  >
-                    <AgentTypeIcon type={agent.type} />
-                    <span className="min-w-0 truncate font-medium">{agent.name}</span>
-                    <CommandShortcut className="flex items-center gap-2 tracking-normal">
-                      {agent.id === currentAgentId ? (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
-                          <Trans comment="Marks the agent whose pages show, in the list that switches agent">
-                            Current
-                          </Trans>
-                        </span>
-                      ) : null}
-                      <ArrowRightIcon
-                        aria-hidden
-                        className="opacity-0 group-data-selected/command-item:opacity-100"
-                      />
-                    </CommandShortcut>
-                  </CommandItem>
+                  />
                 ))}
               </CommandGroup>
             ))}
+            {campaignAgents.length > 0 ? (
+              <CommandGroup
+                heading={
+                  <Trans comment="The section of the agents the person reaches through the campaigns they test or review">
+                    Your campaigns
+                  </Trans>
+                }
+                className="**:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:pt-3"
+              >
+                {campaignAgents.map((agent) => (
+                  <AgentCommandItem
+                    key={agent.id}
+                    agent={agent}
+                    keywords={[agent.name, agent.campaign.name]}
+                    isCurrent={agent.id === currentAgentId}
+                    onSelect={() => onSelectCampaignAgent(agent)}
+                  />
+                ))}
+              </CommandGroup>
+            ) : null}
           </CommandList>
           {/* The keys of the list, for who has a keyboard: a phone shows none. */}
           <div className="hidden flex-wrap items-center gap-x-5 gap-y-1 border-t bg-muted/50 px-4 py-2.5 text-xs text-muted-foreground sm:flex">
@@ -179,5 +184,46 @@ export function AgentCommandCenter({
         </Command>
       </DialogContent>
     </Dialog>
+  )
+}
+
+type AgentCommandItemProps = {
+  agent: { id: string; name: string; type: AgentTypeDto }
+  /** The names a search matches: the agent's, and where it is. */
+  keywords: string[]
+  /** Whether the agent's pages show: it takes the color of the sidebar's active link. */
+  isCurrent: boolean
+  onSelect: () => void
+}
+
+/** An agent of the list, with the icon of its type and, for the current one, its mark. */
+function AgentCommandItem({ agent, keywords, isCurrent, onSelect }: AgentCommandItemProps) {
+  return (
+    <CommandItem
+      value={agent.id}
+      keywords={keywords}
+      onSelect={onSelect}
+      className={cn(
+        "gap-3 px-3 py-2.5",
+        isCurrent &&
+          "text-primary *:[svg]:text-primary data-selected:text-primary data-selected:*:[svg]:text-primary",
+      )}
+    >
+      <AgentTypeIcon type={agent.type} />
+      <span className="min-w-0 truncate font-medium">{agent.name}</span>
+      <CommandShortcut className="flex items-center gap-2 tracking-normal">
+        {isCurrent ? (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+            <Trans comment="Marks the agent whose pages show, in the list that switches agent">
+              Current
+            </Trans>
+          </span>
+        ) : null}
+        <ArrowRightIcon
+          aria-hidden
+          className="opacity-0 group-data-selected/command-item:opacity-100"
+        />
+      </CommandShortcut>
+    </CommandItem>
   )
 }

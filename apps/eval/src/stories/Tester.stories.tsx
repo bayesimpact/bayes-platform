@@ -1,6 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { userEvent, within } from "storybook/test"
 import { campaignUrlOf, testerSessionUrlOf } from "@/test/eval-urls"
-import { buildParticipantWorld, type EvalWorld } from "@/test/factories/eval-world.factory"
+import {
+  buildParticipantWorld,
+  buildSeveralCampaignAgentsWorld,
+  type EvalWorld,
+} from "@/test/factories/eval-world.factory"
 import { evaluation } from "@/test/msw/story-api"
 import { evalMeta } from "./eval-meta"
 
@@ -23,6 +28,18 @@ type Story = StoryObj<typeof meta>
 
 /** The campaign: the agent to test, the tester's sessions and the final survey. */
 export const Campaign: Story = {}
+
+/**
+ * A tester on campaigns of two agents: the top of the sidebar switches agent, and the command
+ * center lists the agents of their campaigns under Your campaigns.
+ */
+export const SeveralAgents: Story = {
+  parameters: evaluation({ world: buildSeveralCampaignAgentsWorld, url: testUrlOf }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: /^Switch agent/ }))
+  },
+}
 
 export const NoSession: Story = {
   parameters: evaluation({ world: buildNoSessionWorld, url: testUrlOf }),

@@ -1898,6 +1898,11 @@ msgstr "Vous n'avez pas encore démarré de session. Vos sessions s'affichent ic
 msgid "You joined {targetName}."
 msgstr "Vous avez rejoint {targetName}."
 
+#. The section of the agents the person reaches through the campaigns they test or review
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Your campaigns"
+msgstr "Vos campagnes"
+
 #: src/features/campaign-test/components/SessionFeedbackForm.tsx
 msgid "Your feedback could not be saved. Try again."
 msgstr "Votre retour n'a pas pu être enregistré. Réessayez."

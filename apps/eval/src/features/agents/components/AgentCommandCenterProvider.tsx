@@ -2,9 +2,11 @@ import { useNavigate, useParams, useSearch } from "@tanstack/react-router"
 import { type ReactNode, useEffect, useState } from "react"
 import { isApplePlatform } from "@/lib/platform"
 import { AgentCommandCenterContext } from "../agent-command-center-context"
-import { type EvaluationAgent, flattenEvaluationAgents } from "../evaluation-agents"
+import { type CampaignAgent, campaignAgentsOf, switchableAgentCountOf } from "../campaign-agents"
+import type { EvaluationAgent } from "../evaluation-agents"
 import { agentPathParams } from "../find-agent"
 import { useEvaluationWorkspace } from "../hooks/use-evaluation-workspace"
+import { campaignPathParams } from "../my-campaigns"
 import { AgentCommandCenter } from "./AgentCommandCenter"
 
 export type AgentCommandCenterProviderProps = {
@@ -18,12 +20,17 @@ export type AgentCommandCenterProviderProps = {
  * person with a single agent gets none: no dialog, and the shortcut stays the browser's.
  */
 export function AgentCommandCenterProvider({ children }: AgentCommandCenterProviderProps) {
-  const { groups } = useEvaluationWorkspace()
+  const workspace = useEvaluationWorkspace()
+  const { groups, myCampaigns } = workspace
   const navigate = useNavigate()
-  const { agentId } = useParams({ strict: false })
+  const { agentId: pageAgentId, reviewCampaignId } = useParams({ strict: false })
+  // A campaign's pages name no agent in their URL: the campaign does.
+  const agentId =
+    pageAgentId ?? myCampaigns.find((campaign) => campaign.id === reviewCampaignId)?.agentId
+  const campaignAgents = campaignAgentsOf(workspace)
   const isAskedByUrl = useSearch({ strict: false, select: (search) => search.switchAgent === true })
   const [isOpenedHere, setIsOpenedHere] = useState(false)
-  const hasSeveralAgents = flattenEvaluationAgents(groups).length > 1
+  const hasSeveralAgents = switchableAgentCountOf(workspace) > 1
   const isOpen = isOpenedHere || isAskedByUrl
 
   // The shortcut is a key of the window, which an effect subscribes to.
@@ -66,16 +73,34 @@ export function AgentCommandCenterProvider({ children }: AgentCommandCenterProvi
     })
   }
 
+  /** An agent reached through a campaign opens that campaign, on the side the person takes part in. */
+  const handleSelectCampaignAgent = (agent: CampaignAgent) => {
+    setIsOpenedHere(false)
+    if (agent.id === agentId) {
+      if (isAskedByUrl) void forgetUrlRequest()
+      return
+    }
+    void navigate({
+      to: agent.campaign.roles.includes("tester")
+        ? "/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test"
+        : "/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review",
+      params: campaignPathParams(agent.campaign),
+      replace: isAskedByUrl,
+    })
+  }
+
   return (
     <AgentCommandCenterContext value={hasSeveralAgents ? () => setIsOpenedHere(true) : null}>
       {children}
       {hasSeveralAgents ? (
         <AgentCommandCenter
           groups={groups}
+          campaignAgents={campaignAgents}
           currentAgentId={agentId}
           isOpen={isOpen}
           onOpenChange={handleOpenChange}
           onSelect={handleSelect}
+          onSelectCampaignAgent={handleSelectCampaignAgent}
         />
       ) : null}
     </AgentCommandCenterContext>

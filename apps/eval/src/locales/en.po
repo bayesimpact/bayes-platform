@@ -1898,6 +1898,11 @@ msgstr "You have not started a session yet. Your sessions show here, with the fe
 msgid "You joined {targetName}."
 msgstr "You joined {targetName}."
 
+#. The section of the agents the person reaches through the campaigns they test or review
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Your campaigns"
+msgstr "Your campaigns"
+
 #: src/features/campaign-test/components/SessionFeedbackForm.tsx
 msgid "Your feedback could not be saved. Try again."
 msgstr "Your feedback could not be saved. Try again."
