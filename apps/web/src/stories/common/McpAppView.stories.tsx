@@ -252,6 +252,9 @@ const meta = {
   parameters: { layout: "padded" },
   args: {
     html: SAMPLE_CARD_HTML,
+    // Names the sandbox of the cards where the Storybook has a sandbox origin: without a
+    // server, a card runs in a frame the app writes itself.
+    mcpServerId: "storybook",
     toolInput: { markdown: "# Hello" },
     // Placeholder: every story overrides it in `render` with a fresh timestamp.
     toolResult: null,

@@ -2,8 +2,15 @@ import { AppBridge, type McpUiHostContext } from "@modelcontextprotocol/ext-apps
 import { buildMcpAppCsp, type McpAppCsp, withMcpAppCsp } from "./csp"
 import { isRecord } from "./is-record"
 import { SandboxTransport, startSandbox } from "./sandbox"
+import { type McpAppSandboxSource, resolveSandboxOrigin } from "./sandbox-origin"
 import { appMessageText, toCallToolResult } from "./tool-result"
 
+/**
+ * How long the sandbox page has to load before its card gives up. A page the host writes itself
+ * loads at once. One that a sandbox origin serves may never load: the name does not resolve, the
+ * certificate is refused, or a proxy answers for it.
+ */
+const SANDBOX_TIMEOUT_IN_MILLISECONDS = 10_000
 /** How long an app has to say it is ready before its card gives up. */
 const INITIALIZE_TIMEOUT_IN_MILLISECONDS = 15_000
 /** Apps often listen for their data late: it is sent again after these delays. */
@@ -23,6 +30,12 @@ export type McpAppMountOptions = {
    * built from them. Without any, the strictest policy applies: no network and no frame.
    */
   csp?: McpAppCsp
+  /**
+   * Where the install serves the sandbox, and whose app this is. With an origin, the host and
+   * the sandbox name each other's origin in every message. Without one, the host writes the
+   * sandbox page itself, in a frame with an opaque origin.
+   */
+  sandbox?: McpAppSandboxSource
   /** The host's name and version, which the app reads at the handshake. */
   hostInfo: { name: string; version: string }
   /** The person's language, which the app gets in its host context. */
@@ -129,7 +142,22 @@ export function mountMcpApp(frame: HTMLIFrameElement, options: McpAppMountOption
     // A timer, so a mount undone at once, as React's double mount in development does, never
     // loads the frame: a frame given its page twice in a row stays empty.
     await new Promise((resolve) => timers.push(setTimeout(resolve, 0)))
-    await startSandbox(frame, sandboxId, controller.signal)
+    const sandboxOrigin = await resolveSandboxOrigin(options.sandbox, window.location.origin)
+    if (controller.signal.aborted) return
+    let sandboxTimer: ReturnType<typeof setTimeout> | undefined
+    const sandboxTimeout = new Promise<never>((_, reject) => {
+      const where = sandboxOrigin ? ` from ${sandboxOrigin}` : ""
+      sandboxTimer = setTimeout(
+        () => reject(new Error(`The sandbox page did not load${where}`)),
+        SANDBOX_TIMEOUT_IN_MILLISECONDS,
+      )
+      timers.push(sandboxTimer)
+    })
+    await Promise.race([
+      startSandbox(frame, sandboxId, controller.signal, sandboxOrigin),
+      sandboxTimeout,
+    ])
+    clearTimeout(sandboxTimer)
     const initialized = new Promise<void>((resolve, reject) => {
       bridge.oninitialized = () => resolve()
       timers.push(
@@ -139,7 +167,7 @@ export function mountMcpApp(frame: HTMLIFrameElement, options: McpAppMountOption
         ),
       )
     })
-    await bridge.connect(new SandboxTransport(frame, sandboxId))
+    await bridge.connect(new SandboxTransport(frame, sandboxId, sandboxOrigin))
     // The HTML travels as data, as its server wrote it, behind the policy the host puts first.
     await bridge.sendSandboxResourceReady({ html: withMcpAppCsp(html, buildMcpAppCsp(csp)) })
     await initialized

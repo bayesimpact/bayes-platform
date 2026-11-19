@@ -20,10 +20,29 @@ const authorizationParamsSchema = optionalText.transform((raw, context) => {
 /** A link the install may set, such as its help center: absent, blank or an http(s) URL. */
 const optionalUrl = optionalText.pipe(z.url({ protocol: /^https?$/ }).optional())
 
+/**
+ * The origin that serves the sandbox of MCP Apps: absent, blank or an http(s) origin with no
+ * path, in which `{label}` may stand for a label of the app's MCP server.
+ */
+const optionalSandboxOrigin = optionalText.refine(
+  (template) => {
+    if (template === undefined) return true
+    const candidate = template.replaceAll("{label}", "label")
+    return URL.canParse(candidate) && /^https?:\/\/[^/]+$/.test(candidate)
+  },
+  { message: "must be an http(s) origin with no path, such as https://{label}.example.org" },
+)
+
 /** What every mode of the Desk configures. */
 const sharedConfigSchema = z.object({
   /** The install's help center, which the user menu links to when it is set. */
   helpCenterUrl: optionalUrl,
+  /**
+   * The origin that serves the sandbox of MCP Apps, apart from the Desk's own, such as
+   * `https://{label}.staging.bayes-usercontent.org`: `{label}` stands for a label of the app's MCP
+   * server. Unset, an app runs in a frame with an opaque origin that the Desk writes itself.
+   */
+  mcpAppSandboxOrigin: optionalSandboxOrigin,
   /** The deployed image tag (`26.10.7`, `main-1234-abc1234`), which the deployment sets. */
   appVersion: optionalText,
   /** The commit the image was built from. */
@@ -70,6 +89,7 @@ function readConfig(): AppConfig {
     return {
       mode: "mock",
       helpCenterUrl: "https://help.example.org",
+      mcpAppSandboxOrigin: undefined,
       appVersion: "26.10.7",
       gitSha: undefined,
       buildId: undefined,
@@ -78,6 +98,7 @@ function readConfig(): AppConfig {
 
   const buildTime = {
     helpCenterUrl: env.VITE_HELP_CENTER_URL,
+    mcpAppSandboxOrigin: env.VITE_MCP_APP_SANDBOX_ORIGIN,
     appVersion: env.VITE_APP_VERSION,
     gitSha: env.VITE_GIT_SHA,
     buildId: env.VITE_BUILD_ID,

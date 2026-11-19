@@ -6,6 +6,7 @@ import {
 } from "@caseai-connect/mcp-app-host"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { MCP_APP_SANDBOX_ORIGIN } from "../../api/api-base"
 import { cn } from "../lib/cn"
 import { Spinner } from "./Spinner"
 
@@ -44,6 +45,7 @@ export function McpAppPlaceholder({ className }: { className?: string }) {
 export function McpAppView({
   html,
   csp,
+  mcpServerId,
   toolInput,
   toolResult,
   onRenderFailed,
@@ -51,6 +53,8 @@ export function McpAppView({
   html: string
   /** The domains the card declares. Without any, it runs with no network and no frame. */
   csp?: McpAppCsp
+  /** The MCP server the card comes from, which names the origin of its sandbox. */
+  mcpServerId?: string
   toolInput: unknown
   toolResult: unknown
   /** The card gave up (handshake error or timeout); the parent can show its text fallback. */
@@ -87,6 +91,7 @@ export function McpAppView({
     const mounted = mountMcpApp(iframe, {
       html,
       csp,
+      sandbox: { template: MCP_APP_SANDBOX_ORIGIN, key: mcpServerId },
       hostInfo: HOST_INFO,
       locale: localeRef.current,
       getToolData: () => ({ input: toolInput, result: toolResult }),
@@ -106,7 +111,7 @@ export function McpAppView({
       if (mountRef.current === mounted) mountRef.current = null
       mounted.unmount()
     }
-  }, [html, csp, toolInput, toolResult])
+  }, [html, csp, mcpServerId, toolInput, toolResult])
 
   if (hasFailed) return null
 
