@@ -31,17 +31,17 @@ export async function loadConversationRuns(queryClient: QueryClient, agent: Agen
   )
 }
 
-/** Loads a run's page: the run, and a page of its records. A run of another dataset is not found. */
+/** Loads a run's page: the run, and all its records. A run of another dataset is not found. */
 export async function loadConversationRun(
   queryClient: QueryClient,
   run: ConversationRunParamsDto,
-  { page, datasetId }: { page: number; datasetId: string },
+  { datasetId }: { datasetId: string },
 ) {
   const [loaded] = await orNotFound(() =>
     Promise.all([
       queryClient.query({ ...conversationRunQueryOptions(run), staleTime: loaderStaleTime }),
       queryClient.query({
-        ...conversationRunRecordsQueryOptions(run, page),
+        ...conversationRunRecordsQueryOptions(run),
         staleTime: loaderStaleTime,
       }),
     ]),

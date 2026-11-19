@@ -1273,10 +1273,6 @@ msgstr "Nouvelle campagne d'évaluation"
 msgid "Next"
 msgstr "Suivant"
 
-#: src/components/shared/TablePagination.tsx
-msgid "Next page"
-msgstr "Page suivante"
-
 #. A field an agent filled in with false
 #. An answer to: Did the agent address your question?
 #: src/features/campaigns/campaign-defaults.ts
@@ -1494,10 +1490,6 @@ msgstr "propriétaire"
 msgid "Page not found"
 msgstr "Page introuvable"
 
-#: src/components/shared/TablePagination.tsx
-msgid "Pages of the table"
-msgstr "Pages du tableau"
-
 #. An answer to: Did the agent address your question?
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Partially"
@@ -1532,10 +1524,6 @@ msgstr "Sélection de ressources utiles"
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "Preview"
 msgstr "Aperçu"
-
-#: src/components/shared/TablePagination.tsx
-msgid "Previous page"
-msgstr "Page précédente"
 
 #. Whether an agent's calls to its model go first
 #: src/features/campaigns/agent-version-diff.ts
@@ -1757,11 +1745,6 @@ msgstr "Retirer l'accès de {revokedEmail} ?"
 #: src/features/campaigns/components/participant-columns.tsx
 msgid "Role"
 msgstr "Rôle"
-
-#. Which rows of a table show, such as: Rows 11–20 of 42
-#: src/components/shared/TablePagination.tsx
-msgid "Rows {first}–{last} of {count}"
-msgstr "Lignes {first} à {last} sur {count}"
 
 #. Starts an evaluation
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx

@@ -1,6 +1,5 @@
 import {
   type AgentParamsDto,
-  CONVERSATION_RUN_RECORDS_PAGE_SIZE,
   type ConversationRunParamsDto,
   EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
@@ -19,7 +18,6 @@ import { FoldingCard } from "@/components/shared/FoldingCard"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatCard } from "@/components/shared/StatCard"
-import { TablePagination } from "@/components/shared/TablePagination"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -50,8 +48,6 @@ export type ConversationRunPageProps = {
   /** The dataset the run asked, and its name, for the way back. */
   dataset: { id: string; name: string }
   runParams: ConversationRunParamsDto
-  /** The page of records shown, counted from 0. */
-  page: number
 }
 
 /**
@@ -63,7 +59,6 @@ export function ConversationRunPage({
   agentParams,
   dataset,
   runParams,
-  page,
 }: ConversationRunPageProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
@@ -72,7 +67,7 @@ export function ConversationRunPage({
   const { data: run } = useSuspenseQuery(conversationRunQueryOptions(runParams))
   const isActive = isRunActive(run.status)
   const { data: results } = useSuspenseQuery(
-    conversationRunRecordsQueryOptions(runParams, page, { isActive }),
+    conversationRunRecordsQueryOptions(runParams, { isActive }),
   )
   const { groups } = useEvaluationWorkspace()
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
@@ -83,7 +78,7 @@ export function ConversationRunPage({
   const canUpdate = can(EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION)
   const canDelete = can(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION)
   const table = useReactTable({
-    data: results.records,
+    data: results,
     columns: conversationRunRecordColumnsOf({
       locale: i18n.locale,
       translate: (descriptor) => i18n._(descriptor),
@@ -91,14 +86,6 @@ export function ConversationRunPage({
     getRowId: (record) => record.id,
     getCoreRowModel: getCoreRowModel(),
   })
-  const runPage = {
-    to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId",
-    params: {
-      ...agentParams,
-      datasetId: dataset.id,
-      runId: runParams.evaluationConversationRunId,
-    },
-  } as const
   const datasetRuns = {
     to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
     params: { ...agentParams, datasetId: dataset.id },
@@ -243,14 +230,6 @@ export function ConversationRunPage({
             ) : (
               <Trans>This run has no record yet.</Trans>
             )
-          }
-        />
-        <TablePagination
-          page={page}
-          pageSize={CONVERSATION_RUN_RECORDS_PAGE_SIZE}
-          total={results.total}
-          onPageChange={(nextPage) =>
-            void navigate({ ...runPage, search: { page: nextPage === 0 ? undefined : nextPage } })
           }
         />
       </section>

@@ -1,6 +1,7 @@
 import {
   CONVERSATION_RUN_RECORDS_PAGE_SIZE,
   type ConversationRunParamsDto,
+  type ConversationRunRecordOutputDto,
   EvalAgentsRoutes,
   EvalConversationRunsRoutes,
   type ProjectParamsDto,
@@ -39,22 +40,29 @@ export const conversationRunQueryOptions = (run: ConversationRunParamsDto) =>
   })
 
 /**
- * A page of a run's records: pages count from 0. `isActive` reads it again every few seconds, as
- * the records of a run under way get their answers and their scores.
+ * All the records of a run. The API pages them: the app reads every page, one after the other.
+ * `isActive` reads them again every few seconds, as the records of a run under way get their
+ * answers and their scores.
  */
 export const conversationRunRecordsQueryOptions = (
   run: ConversationRunParamsDto,
-  page: number,
   { isActive }: { isActive: boolean } = { isActive: false },
 ) =>
   queryOptions({
-    queryKey: conversationRunKeys.recordsPage(run, page),
-    queryFn: ({ signal }) =>
-      apiRequest(EvalConversationRunsRoutes.getRecords, {
-        params: run,
-        query: { page, limit: CONVERSATION_RUN_RECORDS_PAGE_SIZE },
-        signal,
-      }),
+    queryKey: conversationRunKeys.records(run),
+    queryFn: async ({ signal }) => {
+      const records: ConversationRunRecordOutputDto[] = []
+      for (let page = 0; ; page += 1) {
+        const answer = await apiRequest(EvalConversationRunsRoutes.getRecords, {
+          params: run,
+          query: { page, limit: CONVERSATION_RUN_RECORDS_PAGE_SIZE },
+          signal,
+        })
+        records.push(...answer.records)
+        // An empty page ends the reading too, should the total change meanwhile.
+        if (records.length >= answer.total || answer.records.length === 0) return records
+      }
+    },
     refetchInterval: isActive ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS : false,
   })
 

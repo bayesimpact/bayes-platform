@@ -164,8 +164,7 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
   then opens its page. The Runs tab (`ConversationRunsSection`) lists the dataset's runs by any
   agent of the project. A run's page, `evaluations/$datasetId/runs/$runId`
-  (`ConversationRunPage`), shows its figures, what it used, and its records a page at a time (the `page` search param, counted
-  from 0, on the shared `TablePagination`), with
+  (`ConversationRunPage`), shows its figures, what it used, and all its records, read as a dataset's, with
   Cancel while it is under way, Retry after a failure, and Delete. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
   The form state an agent filled during a run and the comparison of runs are not here yet.

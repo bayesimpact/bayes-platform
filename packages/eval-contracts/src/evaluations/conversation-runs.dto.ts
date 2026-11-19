@@ -12,8 +12,8 @@ export const EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION =
 /** The longest instructions a run gives its judge, in characters. */
 export const CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH = 4000
 
-/** How many records a page of a run's results holds at most. */
-export const CONVERSATION_RUN_RECORDS_PAGE_SIZE = 10
+/** How many records the API returns at most in one page of a run: the app reads them all. */
+export const CONVERSATION_RUN_RECORDS_PAGE_SIZE = 100
 
 /** The params of the routes under one conversation run. */
 export const conversationRunParamsSchema = projectParamsSchema.extend({
