@@ -3,6 +3,7 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
+import { AgentName } from "@/components/shared/AgentName"
 import { RatedFeedbackForm } from "@/components/shared/RatedFeedbackForm"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { ParticipantCampaignFrame, useCampaignContext } from "@/features/campaign-context"
@@ -25,7 +26,7 @@ export function TesterSurveyPage({ campaign }: TesterSurveyPageProps) {
       <p className="text-muted-foreground">
         <Trans>Share your overall experience, so the team can evaluate this agent.</Trans>
       </p>
-      <SectionCard title={context.agent.name}>
+      <SectionCard title={<AgentName name={context.agent.name} type={context.agent.type} />}>
         <RatedFeedbackForm
           questions={context.testerEndOfPhaseQuestions}
           feedback={survey}

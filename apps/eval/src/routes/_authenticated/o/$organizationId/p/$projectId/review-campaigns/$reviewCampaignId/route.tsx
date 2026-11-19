@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
-import { AgentBarTitle } from "@/components/shared/AgentBarTitle"
+import { AgentName } from "@/components/shared/AgentName"
 import { AppShell } from "@/components/shared/AppShell"
 import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
@@ -90,7 +90,7 @@ function CampaignLayout() {
       // The sidebar names the agent; the bar above the page takes over while it is closed.
       title={
         <SidebarClosedOnly>
-          <AgentBarTitle name={campaign.agent.name} type={campaign.agent.type} />
+          <AgentName name={campaign.agent.name} type={campaign.agent.type} />
         </SidebarClosedOnly>
       }
     >
