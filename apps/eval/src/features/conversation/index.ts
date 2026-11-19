@@ -1,4 +1,5 @@
 export { stopReplyStream } from "./api/reply-streams"
 export { ConversationSkeleton } from "./components/ConversationSkeleton"
 export { ConversationView } from "./components/ConversationView"
+export { SourcesList } from "./components/SourcesList"
 export { loadConversation } from "./load-conversation"

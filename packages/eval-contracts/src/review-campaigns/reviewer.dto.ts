@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { agentTypeSchema } from "../agents/agents.dto"
+import { sourcesArgumentsSchema } from "../conversations/conversations.dto"
 import {
   RATING_MAX,
   reviewCampaignAnswerInputSchema,
@@ -53,7 +54,14 @@ const reviewerSessionCommonShape = {
   agent: z.object({ id: z.uuid(), name: z.string(), type: agentTypeSchema }),
   /** The messages of the person and of the agent, oldest first. */
   transcript: z.array(
-    z.object({ id: z.uuid(), role: z.string(), content: z.string(), createdAt: z.number() }),
+    z.object({
+      id: z.uuid(),
+      role: z.string(),
+      content: z.string(),
+      createdAt: z.number(),
+      /** The documents an agent's reply relied on, as the tester saw them. */
+      sources: sourcesArgumentsSchema.shape.sources,
+    }),
   ),
   reviewerQuestions: z.array(reviewCampaignQuestionSchema),
   otherReviewerCount: z.number(),

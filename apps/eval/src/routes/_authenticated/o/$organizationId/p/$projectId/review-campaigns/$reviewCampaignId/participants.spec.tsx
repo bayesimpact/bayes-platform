@@ -148,6 +148,14 @@ describe("a reviewer's campaign", () => {
     expect(session?.myReview).toMatchObject({ overallRating: 4, comment: "Right on both." })
   })
 
+  it("shows the sources a reply relied on, as the tester saw them", async () => {
+    const world = buildParticipantWorld()
+    server.use(...worldHandlers(world))
+    renderApp(reviewSessionUrlOf(world, "Pricing questions", 0))
+
+    expect(await screen.findByText("Used 1 source")).toBeInTheDocument()
+  })
+
   it("shows the form the agent filled, and what it did not collect", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))

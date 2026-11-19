@@ -7,6 +7,7 @@ import {
   type ReviewCampaignDetailOutputDto,
   type ReviewCampaignQuestionDto,
   type ReviewerReviewOutputDto,
+  type ReviewerSessionOutputDto,
   reviewCampaignDetailOutputSchema,
   reviewerReviewOutputSchema,
   type TesterSessionOutputDto,
@@ -138,7 +139,7 @@ export type ReviewSessionRecord = {
   sessionId: string
   testerUserId: string
   startedAt: number
-  transcript: { id: string; role: "user" | "assistant"; content: string; createdAt: number }[]
+  transcript: ReviewerSessionOutputDto["transcript"]
   testerFeedback: {
     overallRating: number
     comment: string | null
@@ -166,6 +167,7 @@ export function buildReviewSession(
         role: "user",
         content: "Which plan should a team of five pick?",
         createdAt: startedAt,
+        sources: [],
       },
       {
         id: crypto.randomUUID(),
@@ -173,18 +175,33 @@ export function buildReviewSession(
         content:
           "For a team of five, the **Pro** plan fits best:\n\n- shared workspaces\n- five seats included\n\nThe Starter plan stops at one team.",
         createdAt: startedAt + 4000,
+        sources: [
+          {
+            documentId: crypto.randomUUID(),
+            documentTitle: "Pricing guide.pdf",
+            documentSourceType: "project",
+            chunks: [
+              {
+                chunkId: crypto.randomUUID(),
+                partialContent: "The Pro plan covers unlimited teams…",
+              },
+            ],
+          },
+        ],
       },
       {
         id: crypto.randomUUID(),
         role: "user",
         content: "Can we switch later?",
         createdAt: startedAt + 60_000,
+        sources: [],
       },
       {
         id: crypto.randomUUID(),
         role: "assistant",
         content: "Yes. You can change plan at any time from the billing page.",
         createdAt: startedAt + 64_000,
+        sources: [],
       },
     ],
     testerFeedback: {

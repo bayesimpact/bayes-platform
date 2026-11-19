@@ -224,11 +224,22 @@ export type ListReviewerSessionsResponseDto = {
   sessions: ReviewerSessionListItemDto[]
 }
 
+/** A document a reply relied on, with the passages it cited, as the sources tool wrote it. */
+export type ReviewerTranscriptSourceDto = {
+  documentId: string
+  documentTitle?: string
+  /** `webCrawl` for a page of a crawled website, which has no file to download. */
+  documentSourceType?: string
+  chunks: { chunkId: string; partialContent: string }[]
+}
+
 export type ReviewerSessionTranscriptMessageDto = {
   id: string
   role: string
   content: string
   createdAt: TimeType
+  /** The documents an agent's reply relied on, as the tester saw them; none for a person's message. */
+  sources: ReviewerTranscriptSourceDto[]
 }
 
 export type ReviewerAgentSnapshotDto = Pick<AgentDto, "id" | "name" | "type">

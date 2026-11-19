@@ -91,7 +91,16 @@ export function ReviewerSessionPage({ sessionParams }: ReviewerSessionPageProps)
             </Trans>
           }
         />
-        <SessionTranscript messages={session.transcript} agentName={session.agent.name} />
+        <SessionTranscript
+          messages={session.transcript}
+          agentName={session.agent.name}
+          conversation={{
+            organizationId: sessionParams.organizationId,
+            projectId: sessionParams.projectId,
+            agentId: session.agent.id,
+            agentSessionId: sessionParams.sessionId,
+          }}
+        />
       </PageContainer>
     </SplitPage>
   )

@@ -1,15 +1,24 @@
-import type { ReviewerSessionOutputDto } from "@caseai-connect/eval-contracts"
+import type {
+  ConversationParamsDto,
+  ReviewerSessionOutputDto,
+} from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import { Markdown } from "@/components/shared/Markdown"
+import { SourcesList } from "@/features/conversation"
 
 export type SessionTranscriptProps = {
   messages: ReviewerSessionOutputDto["transcript"]
   agentName: string
+  /** The session as a conversation, which the documents of its sources belong to. */
+  conversation: ConversationParamsDto
 }
 
-/** What the tester and the agent said, oldest first: the agent's replies render their Markdown. */
-export function SessionTranscript({ messages, agentName }: SessionTranscriptProps) {
+/**
+ * What the tester and the agent said, oldest first: the agent's replies render their Markdown and
+ * the sources they relied on, as the Desk shows them.
+ */
+export function SessionTranscript({ messages, agentName, conversation }: SessionTranscriptProps) {
   if (messages.length === 0) {
     return (
       <p className="text-sm text-muted-foreground italic">
@@ -41,7 +50,12 @@ export function SessionTranscript({ messages, agentName }: SessionTranscriptProp
             {isTester ? (
               <p className="whitespace-pre-wrap">{message.content}</p>
             ) : (
-              <Markdown>{message.content}</Markdown>
+              <>
+                <Markdown>{message.content}</Markdown>
+                {message.sources.length > 0 ? (
+                  <SourcesList conversation={conversation} sources={message.sources} />
+                ) : null}
+              </>
             )}
           </li>
         )
