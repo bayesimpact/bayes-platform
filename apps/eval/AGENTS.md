@@ -157,7 +157,12 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   managers and the reviewers read; its CSV is built in the browser from the report. Below its headline figures, one sub-tab per form
   shows how the answers spread, and a last one the sessions.
 - The conversation of a tester's session: `features/conversation`, the Desk's chat on the
-  `review_campaign_tester` session routes, without the memory, the sources and the history. Its
+  `review_campaign_tester` session routes, without the memory (the API gives a test session
+  none) and the history. It stays the Desk's: `npm run check:desk-parity` compares it, and the
+  Markdown it renders with, with the Desk's, and fails on any difference not recorded in
+  `scripts/desk-parity.json` (record a wanted one with `-- --update`). `chat-parity.spec.tsx`,
+  in both apps, renders one conversation to a snapshot that check compares too. The reviewer's
+  transcript shows each reply's sources with the same `SourcesList`. Its
   owner gives it the session's forms and loads them again when the agent fills one in.
 - A rating, a comment and the answers to a campaign's questions go through one form,
   `components/shared/RatedFeedbackForm.tsx` (`lib/rated-feedback.ts`), for the tester's feedback
