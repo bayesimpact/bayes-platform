@@ -80,20 +80,22 @@ export function AppShell({ header, sidebar, footer, title, children }: AppShellP
       </Sidebar>
       <SidebarInset className="h-svh min-h-0 min-w-0">
         {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
-        <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
+        <header className="group/bar relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
           {/* Shows or hides the sidebar, as ⌘B or Ctrl+B does. */}
           <SidebarToggle
             peekHandlers={sidebarPeek.peekHandlers}
             onToggle={sidebarPeek.stopPeeking}
           />
-          <div
-            ref={setBackSlot}
-            className="peer flex min-w-0 shrink items-center text-sm empty:hidden"
-          />
           {/* At phone width, a page's way back takes the place of the title. */}
-          <div className="min-w-0 flex-1 truncate text-sm font-medium max-sm:peer-not-empty:invisible">
+          <div className="min-w-0 shrink truncate text-sm font-medium empty:hidden max-sm:group-has-[[data-slot=header-back]:not(:empty)]/bar:hidden">
             {title}
           </div>
+          <div
+            ref={setBackSlot}
+            data-slot="header-back"
+            className="flex min-w-0 shrink items-center text-sm empty:hidden"
+          />
+          <div className="flex-1" />
           {isPhone ? (
             <HeaderActionsMenu slotRef={setActionsSlot} />
           ) : (

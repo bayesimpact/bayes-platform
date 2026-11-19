@@ -8,12 +8,12 @@ import {
   routerPathOf,
   testerSessionUrlOf,
 } from "@/test/eval-urls"
-import { buildParticipantWorld } from "@/test/factories/eval-world.factory"
+import { buildEveryAccessWorld, buildParticipantWorld } from "@/test/factories/eval-world.factory"
 import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
-import { sidebarMenuEntries } from "@/test/sidebar-menus"
+import { sidebarMenuEntries, sidebarMenuLink } from "@/test/sidebar-menus"
 
 describe("a person who only takes part in campaigns", () => {
   it("opens on their first campaign, with their campaigns in the sidebar and no agent", async () => {
@@ -25,9 +25,16 @@ describe("a person who only takes part in campaigns", () => {
     expect(router.state.location.pathname).toBe(
       routerPathOf(`${campaignUrlOf(world, "Pricing questions")}/review`),
     )
-    // The three campaigns review the same agent: its menus list them by role.
-    expect(sidebarMenuEntries("Tester")).toEqual(["Support assistant pilot"])
-    expect(sidebarMenuEntries("Reviewer")).toEqual(["Pricing questions", "Spring review"])
+    // The three campaigns review the same agent: its menus list them by role. The page is a
+    // reviewer's, so Tester folds until the person opens it.
+    expect(sidebarMenuEntries("Reviewer")).toEqual([
+      "Active",
+      "Pricing questions",
+      "Closed",
+      "Spring review",
+    ])
+    await userEvent.click(screen.getByRole("button", { name: "Tester" }))
+    expect(sidebarMenuEntries("Tester")).toEqual(["Active", "Support assistant pilot"])
     expect(screen.queryByRole("button", { name: /Switch agent/ })).not.toBeInTheDocument()
   })
 
@@ -47,33 +54,62 @@ describe("a reviewer's campaign", () => {
     renderApp(`${campaignUrlOf(world, "Pricing questions")}/review`)
 
     expect(await screen.findByText("3 sessions · 2 to review")).toBeInTheDocument()
+    expect(screen.getByText(/^Created [A-Z][a-z]{2} \d{1,2}, \d{4}$/)).toBeInTheDocument()
     expect(screen.getAllByRole("link", { name: /^Review session/ })).toHaveLength(2)
     expect(screen.getAllByRole("link", { name: /^View session/ })).toHaveLength(1)
-    expect(
-      within(screen.getByRole("main")).getByRole("link", { name: "Report" }),
-    ).toBeInTheDocument()
   })
 
-  it("lists the sessions in the sidebar, those to review apart from those reviewed", async () => {
+  it("opens a session from the list", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))
     const { router } = renderApp(`${campaignUrlOf(world, "Pricing questions")}/review`)
 
-    expect(await screen.findByText("To review")).toBeInTheDocument()
-    expect(screen.getByText("Reviewed")).toBeInTheDocument()
-    const page = screen.getByRole("main")
-    const sessionLinks = screen
-      .getAllByRole("link")
-      // The page lists the sessions too: the sidebar's links are the ones outside it.
-      .filter((link) => !page.contains(link))
-      .filter((link) => link.getAttribute("href")?.includes("/review/sessions/"))
-    expect(sessionLinks).toHaveLength(3)
-
-    await userEvent.click(sessionLinks[0] as HTMLElement)
+    const [firstSession] = await screen.findAllByRole("link", { name: /^Review session/ })
+    await userEvent.click(firstSession as HTMLElement)
 
     expect(await screen.findByRole("complementary", { name: "Session review" })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(
       routerPathOf(reviewSessionUrlOf(world, "Pricing questions", 0)),
+    )
+  })
+
+  it("keeps the agent's sidebar for who holds the agent, the campaign in the Reviewer menu", async () => {
+    const world = buildEveryAccessWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignUrlOf(world, "Spring review")}/review`)
+
+    expect(await screen.findByRole("heading", { name: "Spring review" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("navigation", { name: "Sections of Helpful Assistant" }),
+    ).toBeInTheDocument()
+    expect(sidebarMenuLink("Reviewer", "Spring review")).toHaveAttribute("data-active", "true")
+  })
+
+  it("folds the other sub-menus of Campaigns, and opens them again on a page that is theirs", async () => {
+    const world = buildEveryAccessWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignUrlOf(world, "Spring review")}/review`)
+
+    expect(await screen.findByRole("button", { name: "Reviewer" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+    expect(screen.getByRole("button", { name: "Campaigns" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+    expect(screen.getByRole("button", { name: "Tester" })).not.toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+
+    await userEvent.click(screen.getByRole("link", { name: "List all" }))
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Reviewer" })).not.toHaveAttribute(
+        "aria-expanded",
+        "true",
+      ),
     )
   })
 
@@ -135,12 +171,15 @@ describe("a reviewer's campaign", () => {
   it("reads the campaign's report", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))
-    renderApp(`${campaignUrlOf(world, "Pricing questions")}/review/report`)
+    const { router } = renderApp(`${campaignUrlOf(world, "Pricing questions")}/review`)
 
-    expect(await screen.findByRole("heading", { name: "Campaign report" })).toBeInTheDocument()
-    expect(
-      within(screen.getByRole("main")).getByRole("link", { name: "Pricing questions" }),
-    ).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole("tab", { name: "Report" }))
+
+    expect(await screen.findByText("Mean reviewer rating")).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "Report", selected: true })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(
+      routerPathOf(`${campaignUrlOf(world, "Pricing questions")}/review/report`),
+    )
   })
 })
 
@@ -200,25 +239,18 @@ describe("a tester's campaign", () => {
     )
   })
 
-  it("lists their sessions in the sidebar, and starts a conversation from there", async () => {
+  it("opens the final survey in its tab", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))
-    const { router } = renderApp(`${campaignUrlOf(world, "Support assistant pilot")}/test/survey`)
+    const { router } = renderApp(`${campaignUrlOf(world, "Support assistant pilot")}/test`)
 
-    // The sidebar marks each session: one waits for feedback, the other has it.
-    expect(await screen.findByRole("img", { name: "Feedback to give" })).toBeInTheDocument()
-    expect(screen.getByRole("img", { name: "Feedback given" })).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole("tab", { name: "Final survey" }))
 
-    await userEvent.click(screen.getByRole("button", { name: "New conversation" }))
-
-    const campaign = campaignOf(world, "Support assistant pilot")
-    await waitFor(() => expect(world.testerSessions[campaign.id]).toHaveLength(3))
-    await waitFor(() =>
-      expect(router.state.location.pathname).toBe(
-        routerPathOf(
-          `${campaignUrlOf(world, "Support assistant pilot")}/test/sessions/${world.testerSessions[campaign.id]?.[0]?.id}`,
-        ),
-      ),
+    expect(
+      await screen.findByRole("tab", { name: "Final survey", selected: true }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(
+      routerPathOf(`${campaignUrlOf(world, "Support assistant pilot")}/test/survey`),
     )
   })
 
@@ -258,6 +290,11 @@ describe("a tester's session with the agent", () => {
     renderApp(testerSessionUrlOf(world, "Support assistant pilot", 0))
 
     expect(await screen.findByText(/For a team of five/)).toBeInTheDocument()
+    // The way back leads to the campaign's sessions.
+    expect(within(screen.getByRole("main")).getByRole("link", { name: "Back" })).toHaveAttribute(
+      "href",
+      `${campaignUrlOf(world, "Support assistant pilot")}/test`,
+    )
     await writeMessage(
       screen.getByRole("textbox", { name: "Message to Helpful Assistant" }),
       "Can we pay monthly?",

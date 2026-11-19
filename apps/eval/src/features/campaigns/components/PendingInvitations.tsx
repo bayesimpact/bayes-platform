@@ -11,6 +11,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { useRevokeInvitation } from "../api/mutations"
 import { CampaignRoleLabel } from "./CampaignRoleLabel"
@@ -70,22 +71,40 @@ export function PendingInvitations({ campaign, invitations }: PendingInvitations
                   </span>
                 </span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t`Copy the invitation link of ${email}`}
-                onClick={() => void handleCopy(email)}
-              >
-                <CopyIcon aria-hidden />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t`Delete the invitation of ${email}`}
-                onClick={() => setDeleting(invitation)}
-              >
-                <Trash2Icon aria-hidden />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t`Copy the invitation link of ${email}`}
+                      onClick={() => void handleCopy(email)}
+                    >
+                      <CopyIcon aria-hidden />
+                    </Button>
+                  }
+                />
+                <TooltipContent>
+                  <Trans>Copy the invitation link</Trans>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t`Delete the invitation of ${email}`}
+                      onClick={() => setDeleting(invitation)}
+                    >
+                      <Trash2Icon aria-hidden />
+                    </Button>
+                  }
+                />
+                <TooltipContent>
+                  <Trans>Delete the invitation</Trans>
+                </TooltipContent>
+              </Tooltip>
             </li>
           )
         })}

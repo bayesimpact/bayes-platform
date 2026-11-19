@@ -46,12 +46,13 @@ export function ReviewerSessionPage({ sessionParams }: ReviewerSessionPageProps)
             takesFocus={panel.takesFocus}
           >
             <div className="flex flex-col gap-4">
+              {/* What the tester reported comes first: the reviewer reads it before judging. */}
+              <TesterFeedbackPanel session={session} />
               <ReviewPanel
                 sessionParams={sessionParams}
                 session={session}
                 isOpen={context.status === "active"}
               />
-              <TesterFeedbackPanel session={session} />
               {session.formResult ? <FormResultPanel formResult={session.formResult} /> : null}
               {session.blind ? null : (
                 <OtherReviews

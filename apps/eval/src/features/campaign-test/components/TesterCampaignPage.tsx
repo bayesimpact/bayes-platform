@@ -7,19 +7,20 @@ import { useSuspenseQueries } from "@tanstack/react-query"
 import { ArrowRightIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { CampaignStatusBadge } from "@/components/shared/CampaignStatusBadge"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { PageContainer } from "@/components/shared/PageContainer"
-import { PageHeader } from "@/components/shared/PageHeader"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
-import { CampaignAgentCard, useCampaignContext } from "@/features/campaign-context"
+import {
+  CampaignAgentCard,
+  ParticipantCampaignFrame,
+  useCampaignContext,
+} from "@/features/campaign-context"
 import { useDeleteSession } from "../api/mutations"
 import { testerSessionsQueryOptions, testerSurveyQueryOptions } from "../api/queries"
 import { useOpenNewSession } from "../hooks/use-open-new-session"
 import { SessionFeedbackDialog } from "./SessionFeedbackDialog"
 import { SurveyCard } from "./SurveyCard"
-import { TesterSessionRow } from "./TesterSessionRow"
+import { TesterSessionsTable } from "./TesterSessionsTable"
 
 export type TesterCampaignPageProps = {
   campaign: ReviewCampaignParamsDto
@@ -42,12 +43,7 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
   const sessionCount = sessions.length
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={context.name}
-        badge={<CampaignStatusBadge status={context.status} />}
-        description={context.description}
-      />
+    <ParticipantCampaignFrame campaign={campaign} campaignRole="tester" currentTab="overview">
       <CampaignAgentCard
         agent={context.agent}
         action={
@@ -57,30 +53,18 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
           </Button>
         }
       />
+      {/* The table has its own frame: the block of the sessions needs none around it. */}
       <SectionCard
+        className="rounded-none border-0 bg-transparent p-0 md:p-0 dark:bg-transparent"
         title={<Trans>Your sessions</Trans>}
         aside={<Plural value={sessionCount} one="# session" other="# sessions" />}
       >
-        {sessions.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">
-            <Trans>
-              You have not started a session yet. Your sessions show here, with the feedback you
-              gave on each.
-            </Trans>
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {sessions.map((session) => (
-              <TesterSessionRow
-                key={session.id}
-                campaign={campaign}
-                session={session}
-                onGiveFeedback={(target) => setFeedbackSessionId(target.id)}
-                onDelete={setDeleting}
-              />
-            ))}
-          </ul>
-        )}
+        <TesterSessionsTable
+          campaign={campaign}
+          sessions={sessions}
+          onGiveFeedback={(target) => setFeedbackSessionId(target.id)}
+          onDelete={setDeleting}
+        />
       </SectionCard>
       <SurveyCard campaign={campaign} hasSurvey={survey !== null} />
       <SessionFeedbackDialog
@@ -107,6 +91,6 @@ export function TesterCampaignPage({ campaign }: TesterCampaignPageProps) {
           })
         }}
       />
-    </PageContainer>
+    </ParticipantCampaignFrame>
   )
 }

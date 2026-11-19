@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import type { ReactNode } from "react"
 import { BackLink } from "@/components/shared/BackLink"
+import { CampaignDescription } from "@/components/shared/CampaignDescription"
 import { CampaignStatusBadge } from "@/components/shared/CampaignStatusBadge"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
@@ -80,7 +81,9 @@ export function CampaignPageFrame({
         }
         title={campaign.name}
         badge={<CampaignStatusBadge status={campaign.status} />}
-        description={campaign.description}
+        description={
+          <CampaignDescription description={campaign.description} createdAt={campaign.createdAt} />
+        }
         actions={
           <CampaignStatusActions
             agent={agent}

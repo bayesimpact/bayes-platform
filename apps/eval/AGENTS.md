@@ -74,22 +74,27 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   person holds it. An agent with one section opens on it; with several, its first page is the hub
   (`AgentHubPage`), one card per section, and the sidebar links back to it (Overview). A new
   feature of an agent is a new section there.
-- `AgentSectionsNav` is the sidebar of an agent's pages: Overview, Evaluations, then menus that
-  fold (`SidebarCollapsibleMenu` in `components/shared/`), open at first:
-  - Campaigns, for who manages them (`CampaignsSidebarMenu` in `features/campaigns`): List all,
-    the table of the agent's campaigns, a new campaign, then the campaigns under Active, Draft and
-    Closed. It reads its query inside
-    `SidebarSection` (`components/shared/`), so it never holds the page back;
-  - Tester and Reviewer (`src/routes/-components/ParticipantSidebarMenus.tsx`): the campaigns on
-    this agent the person tests, or reviews, each a link to that side of the campaign. A menu with
-    no campaign does not show. Each campaign of `GET me/review-campaigns` names its agent.
-- A campaign's pages for its participants have a sidebar of their own, under the campaign's name
-  (`CampaignSidebarHeader` in `features/campaign-context`), with the Tester and Reviewer menus of
-  its agent below:
-  - on a campaign's pages under `test/`, the tester's side (`TesterSidebarSection` in
-    `features/campaign-test`): a new conversation, the overview, the final survey, their sessions;
-  - under `review/`, the reviewer's side (`ReviewerSidebarSection` in `features/campaign-review`):
-    the overview, the report, the sessions to review, then the reviewed ones.
+- `AgentSectionsNav` is the sidebar of an agent's pages: Overview, Evaluations, then the
+  Campaigns menu (`CampaignsMenu` in `src/routes/-components/`), which folds
+  (`SidebarCollapsibleMenu` in `components/shared/`) and starts open. It shows when it holds
+  something:
+  - for who manages the agent's campaigns (`CampaignsSidebarEntries` in `features/campaigns`):
+    List all, the table of the agent's campaigns, a new campaign, then the campaigns under Active,
+    Draft and Closed. It reads its query inside `SidebarSection` (`components/shared/`), so it
+    never holds the page back;
+  - then two sub-menus that fold (`SidebarCollapsibleSubMenu`, `ParticipantSidebarMenus.tsx`):
+    Reviewer and Tester, the campaigns on this agent the person reviews, or tests, under Active
+    then Closed, each a link to that side of the campaign. A sub-menu with no campaign does not show. Each campaign of
+    `GET me/review-campaigns` names its agent. Only the sub-menu that holds the current page opens
+    at first, and both on a page neither holds (`useOpenSidebarMenu` in `src/routes/-components/`).
+- A campaign's pages for its participants keep the sidebar of its agent, as on the agent's own
+  pages, where the campaign shows in the Reviewer or Tester sub-menu of Campaigns. A person who
+  only takes part holds no agent: their sidebar names the agent (`CampaignSidebarHeader` in
+  `features/campaign-context`) above a Campaigns menu with those sub-menus alone. The campaign's own pages are tabs, each at
+  its own URL (`ParticipantCampaignFrame` in `features/campaign-context`): Overview and Report for
+  a reviewer, under `review/`; Overview and Final survey for a tester, under `test/`. A tester's
+  overview starts a conversation and lists their sessions; a reviewer's lists the sessions to
+  review.
 - The top bar of the page holds its way back and its actions: `PageHeader`'s `back` and `actions`
   go there (`HeaderBack`, `HeaderActions`), so they stay in view as the page scrolls, and the
   title stays in the page. At phone width, the back link keeps its arrow only and the actions go

@@ -1,31 +1,23 @@
 import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
-import { Trans } from "@lingui/react/macro"
+import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"
 import { useCampaignContext } from "../hooks/use-campaign-context"
 
 export type CampaignSidebarHeaderProps = {
   campaign: ReviewCampaignParamsDto
-  /** What the person does in the campaign on this page. */
-  role: "tester" | "reviewer"
 }
 
-/** The top of the sidebar on a campaign's pages: the campaign, and what the person does in it. */
-export function CampaignSidebarHeader({ campaign, role }: CampaignSidebarHeaderProps) {
+/**
+ * The top of the sidebar on a campaign's pages, for a person who only takes part in it: the agent
+ * it tests, with the icon of its type, as an agent's pages show it.
+ */
+export function CampaignSidebarHeader({ campaign }: CampaignSidebarHeaderProps) {
   const context = useCampaignContext(campaign)
-  const agentName = context.agent.name
   return (
-    <div className="flex min-w-0 flex-col p-2 text-sm leading-tight">
-      <span className="truncate text-xs text-muted-foreground">
-        {role === "tester" ? (
-          <Trans comment="Above a campaign's name in the sidebar: the person tests this agent">
-            Test of {agentName}
-          </Trans>
-        ) : (
-          <Trans comment="Above a campaign's name in the sidebar: the person reviews this agent">
-            Review of {agentName}
-          </Trans>
-        )}
+    <div className="flex h-8 items-center gap-2 p-2 text-sm">
+      <span className="flex shrink-0 [&_svg]:size-4">
+        <AgentTypeIcon type={context.agent.type} />
       </span>
-      <span className="truncate font-medium">{context.name}</span>
+      <span className="truncate font-medium">{context.agent.name}</span>
     </div>
   )
 }

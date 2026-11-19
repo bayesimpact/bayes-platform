@@ -240,15 +240,15 @@ describe("the sections of an agent", () => {
     expect(screen.getByRole("link", { name: "Onboarding answers" })).toBeInTheDocument()
   })
 
-  it("lists the campaigns a person tests or reviews on the agent in a menu per role", async () => {
+  it("lists the campaigns a person reviews or tests on the agent in Campaigns, a sub-menu per role", async () => {
     const world = buildEveryAccessWorld()
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world))
 
     expect(await screen.findByRole("button", { name: "Tester" })).toBeInTheDocument()
-    expect(sectionLinks()).toEqual(["Overview", "Evaluations", "Campaigns", "Tester", "Reviewer"])
-    expect(sidebarMenuEntries("Tester")).toEqual(["Support assistant pilot"])
-    expect(sidebarMenuEntries("Reviewer")).toEqual(["Spring review"])
+    expect(sectionLinks()).toEqual(["Overview", "Evaluations", "Campaigns"])
+    expect(sidebarMenuEntries("Tester")).toEqual(["Active", "Support assistant pilot"])
+    expect(sidebarMenuEntries("Reviewer")).toEqual(["Closed", "Spring review"])
     expect(sidebarMenuLink("Tester", "Support assistant pilot")).toHaveAttribute(
       "href",
       `${campaignUrlOf(world, "Support assistant pilot")}/test`,
@@ -332,7 +332,7 @@ describe("the invitations", () => {
 
     expect(await screen.findByText("You joined Support assistant pilot.")).toBeInTheDocument()
     expect(await screen.findByRole("button", { name: "Tester" })).toBeInTheDocument()
-    expect(sidebarMenuEntries("Tester")).toEqual(["Support assistant pilot"])
+    expect(sidebarMenuEntries("Tester")).toEqual(["Active", "Support assistant pilot"])
     expect(await screen.findByRole("button", { name: "1 pending invitation" })).toBeInTheDocument()
   })
 

@@ -4,6 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { ArrowRightIcon } from "lucide-react"
+import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"
 import { CommandSearchInput } from "@/components/shared/CommandSearchInput"
 import {
   Command,
@@ -22,7 +23,6 @@ import {
 } from "@/components/ui/dialog"
 import { Kbd } from "@/components/ui/kbd"
 import type { EvaluationAgent, EvaluationProjectAgents } from "../evaluation-agents"
-import { AgentTypeIcon } from "./AgentTypeIcon"
 
 export type AgentCommandCenterProps = {
   groups: EvaluationProjectAgents[]

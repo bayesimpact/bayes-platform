@@ -6,16 +6,23 @@ import { SidebarMenuButton, SidebarMenuItem, SidebarMenuSub } from "@/components
 export type SidebarCollapsibleMenuProps = {
   label: ReactNode
   Icon: LucideIcon
+  /** Whether the menu starts open; it does unless told otherwise. */
+  isOpenAtFirst?: boolean
   children: ReactNode
 }
 
 /**
  * An entry of the sidebar that opens a list under it, with a line on its left: the entries of a
- * section of the app. It starts open.
+ * section of the app. It starts open, unless `isOpenAtFirst` says otherwise.
  */
-export function SidebarCollapsibleMenu({ label, Icon, children }: SidebarCollapsibleMenuProps) {
+export function SidebarCollapsibleMenu({
+  label,
+  Icon,
+  isOpenAtFirst = true,
+  children,
+}: SidebarCollapsibleMenuProps) {
   return (
-    <Collapsible defaultOpen render={<SidebarMenuItem />}>
+    <Collapsible defaultOpen={isOpenAtFirst} render={<SidebarMenuItem />}>
       <CollapsibleTrigger render={<SidebarMenuButton className="group/collapsible" />}>
         <Icon aria-hidden />
         <span>{label}</span>
@@ -25,7 +32,7 @@ export function SidebarCollapsibleMenu({ label, Icon, children }: SidebarCollaps
         />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <SidebarMenuSub>{children}</SidebarMenuSub>
+        <SidebarMenuSub className="mr-0 pr-0">{children}</SidebarMenuSub>
       </CollapsibleContent>
     </Collapsible>
   )

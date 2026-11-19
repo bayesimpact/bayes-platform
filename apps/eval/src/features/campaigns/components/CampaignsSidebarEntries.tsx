@@ -6,8 +6,7 @@ import {
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { ListIcon, MegaphoneIcon, PlusIcon } from "lucide-react"
-import { SidebarCollapsibleMenu } from "@/components/shared/SidebarCollapsibleMenu"
+import { ListIcon, PlusIcon } from "lucide-react"
 import { SidebarSection } from "@/components/shared/SidebarSection"
 import { SidebarSubGroupLabel } from "@/components/shared/SidebarSubGroupLabel"
 import { SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
@@ -16,7 +15,7 @@ import { CAMPAIGN_STATUS_LABELS } from "@/lib/campaign-status"
 import { projectCampaignsQueryOptions } from "../api/queries"
 import { sidebarCampaignsOf } from "../sidebar-campaigns"
 
-export type CampaignsSidebarMenuProps = {
+export type CampaignsSidebarEntriesProps = {
   agent: EvaluationAgent
   agentParams: AgentParamsDto
 }
@@ -25,20 +24,13 @@ export type CampaignsSidebarMenuProps = {
 const STATUS_ORDER = ["active", "draft", "closed"] as const satisfies ReviewCampaignStatusDto[]
 
 /**
- * The menu of an agent's review campaigns in the sidebar, for who manages them: the table of them
- * all, the way to a new campaign, then the campaigns, grouped by where they stand.
+ * The entries of the sidebar's Campaigns menu for who manages an agent's campaigns: the table of
+ * them all, the way to a new campaign, then the campaigns, grouped by where they stand.
  */
-export function CampaignsSidebarMenu({ agent, agentParams }: CampaignsSidebarMenuProps) {
+export function CampaignsSidebarEntries({ agent, agentParams }: CampaignsSidebarEntriesProps) {
   const canCreate = hasProjectPermission(agent.project, PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION)
   return (
-    <SidebarCollapsibleMenu
-      Icon={MegaphoneIcon}
-      label={
-        <Trans comment="The sidebar's menu of the review campaigns an agent's managers run">
-          Campaigns
-        </Trans>
-      }
-    >
+    <>
       <SidebarMenuSubItem>
         <SidebarMenuSubButton
           render={
@@ -79,11 +71,11 @@ export function CampaignsSidebarMenu({ agent, agentParams }: CampaignsSidebarMen
       <SidebarSection resetKey={agent.id}>
         <CampaignGroups agent={agent} agentParams={agentParams} />
       </SidebarSection>
-    </SidebarCollapsibleMenu>
+    </>
   )
 }
 
-function CampaignGroups({ agent, agentParams }: CampaignsSidebarMenuProps) {
+function CampaignGroups({ agent, agentParams }: CampaignsSidebarEntriesProps) {
   const { i18n } = useLingui()
   const { data: projectCampaigns } = useSuspenseQuery(projectCampaignsQueryOptions(agentParams))
   const campaigns = sidebarCampaignsOf(projectCampaigns, agent.id)

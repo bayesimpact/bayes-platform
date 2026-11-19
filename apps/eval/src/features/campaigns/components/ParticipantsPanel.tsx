@@ -4,7 +4,7 @@ import {
   type ReviewCampaignDetailOutputDto,
   type ReviewCampaignParamsDto,
 } from "@caseai-connect/eval-contracts"
-import { Trans } from "@lingui/react/macro"
+import { Plural, Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
@@ -41,6 +41,10 @@ export function ParticipantsPanel({ agent, campaign, campaignParams }: Participa
     enabled: canInvite,
   })
 
+  const participants = listParticipants(campaign.memberships)
+  const reviewerCount = participants.filter((participant) => participant.role === "reviewer").length
+  const testerCount = participants.filter((participant) => participant.role === "tester").length
+
   if (campaign.status === "draft") {
     return (
       <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
@@ -76,10 +80,21 @@ export function ParticipantsPanel({ agent, campaign, campaignParams }: Participa
           <PendingInvitations campaign={campaignParams} invitations={invitations} />
         </SectionCard>
       ) : null}
-      <SectionCard className={PARTICIPANTS_CARD} title={<Trans>Participants</Trans>}>
+      {/* The table has its own frame: the block of the participants needs none around it. */}
+      <SectionCard
+        className="rounded-none border-0 bg-transparent p-0 md:p-0 dark:bg-transparent [&_h2]:text-base"
+        title={<Trans>Participants</Trans>}
+        description={
+          <>
+            <Plural value={reviewerCount} one="# reviewer" other="# reviewers" />
+            {" · "}
+            <Plural value={testerCount} one="# tester" other="# testers" />
+          </>
+        }
+      >
         <ParticipantsTable
           campaign={campaignParams}
-          participants={listParticipants(campaign.memberships)}
+          participants={participants}
           canRevoke={canRevoke}
         />
       </SectionCard>

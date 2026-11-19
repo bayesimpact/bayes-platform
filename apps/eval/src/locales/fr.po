@@ -76,6 +76,10 @@ msgstr "{reviewCount, plural, one {# relecture} other {# relectures}}"
 msgid "{reviewerCount, plural, one {# question} other {# questions}}"
 msgstr "{reviewerCount, plural, one {# question} other {# questions}}"
 
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "{reviewerCount, plural, one {# reviewer} other {# reviewers}}"
+msgstr "{reviewerCount, plural, one {# relecteur} other {# relecteurs}}"
+
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "{revokedEmail} could not be revoked. Try again."
 msgstr "L'accès de {revokedEmail} n'a pas pu être retiré. Réessayez."
@@ -101,6 +105,7 @@ msgid "{taskCount, plural, one {# changed task} other {# changed tasks}}"
 msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées}}"
 
 #: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/ParticipantsPanel.tsx
 msgid "{testerCount, plural, one {# tester} other {# testers}}"
 msgstr "{testerCount, plural, one {# testeur} other {# testeurs}}"
 
@@ -256,6 +261,8 @@ msgid "Attachment"
 msgstr "Pièce jointe"
 
 #. Goes to the step before, in a campaign's setup
+#. The link back to the campaign from one of its sessions
+#: src/features/campaign-test/components/TesterSessionPage.tsx
 #: src/features/campaigns/components/SetupStepFooter.tsx
 msgid "Back"
 msgstr "Retour"
@@ -279,16 +286,12 @@ msgstr "Campagne"
 msgid "Campaign for {agentName}, {today}"
 msgstr "Campagne pour {agentName}, {today}"
 
-#: src/features/campaign-report/components/CampaignReport.tsx
-msgid "Campaign report"
-msgstr "Rapport de la campagne"
-
 #. The sidebar's menu of the review campaigns an agent's managers run
 #: src/features/campaigns/components/CampaignPageFrame.tsx
 #: src/features/campaigns/components/CampaignsPage.tsx
-#: src/features/campaigns/components/CampaignsSidebarMenu.tsx
 #: src/features/campaigns/components/NewCampaignPage.tsx
 #: src/routes/-components/AgentHubPage.tsx
+#: src/routes/-components/CampaignsMenu.tsx
 msgid "Campaigns"
 msgstr "Campagnes"
 
@@ -351,6 +354,10 @@ msgstr "Contactez votre administrateur."
 msgid "Conversation agents"
 msgstr "Agents de conversation"
 
+#: src/lib/agent-type-labels.ts
+msgid "Conversational agent"
+msgstr "Agent conversationnel"
+
 #. The copy button, once it copied its text
 #. The copy button, once it copied its text
 #: src/components/shared/CopyButton.tsx
@@ -366,6 +373,10 @@ msgstr "Copier"
 #: src/components/shared/HighlightedCodeBlock.tsx
 msgid "Copy the code"
 msgstr "Copier le code"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Copy the invitation link"
+msgstr "Copier le lien d'invitation"
 
 #: src/features/campaigns/components/PendingInvitations.tsx
 msgid "Copy the invitation link of {email}"
@@ -387,6 +398,11 @@ msgstr "Créez une campagne pour que des testeurs et des relecteurs évaluent ce
 #: src/features/campaigns/components/campaign-columns.tsx
 msgid "Created"
 msgstr "Créée le"
+
+#. When a review campaign was created, such as: Created Nov 19, 2026
+#: src/components/shared/CampaignDescription.tsx
+msgid "Created {createdOn}"
+msgstr "Créée le {createdOn}"
 
 #. The Control key of a keyboard
 #. The Control key of a keyboard
@@ -419,10 +435,14 @@ msgid "Delete “{name}”?"
 msgstr "Supprimer « {name} » ?"
 
 #: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete the invitation"
+msgstr "Supprimer l'invitation"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
 msgid "Delete the invitation of {email}"
 msgstr "Supprimer l'invitation de {email}"
 
-#: src/features/campaign-test/components/TesterSessionRow.tsx
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
 msgid "Delete the session of {started}"
 msgstr "Supprimer la session du {started}"
 
@@ -545,6 +565,10 @@ msgstr "Évaluations"
 msgid "Evaluations are not here yet"
 msgstr "Les évaluations ne sont pas encore ici"
 
+#: src/lib/agent-type-labels.ts
+msgid "Extraction agent"
+msgstr "Agent d'extraction"
+
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Extraction agents"
 msgstr "Agents d'extraction"
@@ -554,13 +578,16 @@ msgstr "Agents d'extraction"
 msgid "Factual"
 msgstr "Factuelle"
 
-#: src/features/campaign-test/components/TesterSessionRow.tsx
-#: src/features/campaign-test/components/TesterSidebarSection.tsx
+#. Whether the tester gave feedback on a session
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Feedback"
+msgstr "Retour"
+
+#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Feedback given"
 msgstr "Retour donné"
 
-#: src/features/campaign-test/components/TesterSessionRow.tsx
-#: src/features/campaign-test/components/TesterSidebarSection.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Feedback to give"
 msgstr "Retour à donner"
 
@@ -573,10 +600,9 @@ msgid "Filling in the form"
 msgstr "Remplissage du formulaire"
 
 #. The setup step with the questions a tester answers once, at the end
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 #: src/features/campaign-test/components/SurveyCard.tsx
-#: src/features/campaign-test/components/TesterSidebarSection.tsx
-#: src/features/campaign-test/components/TesterSurveyPage.tsx
 #: src/features/campaigns/components/ActivateStep.tsx
 #: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
@@ -623,11 +649,11 @@ msgstr "Général"
 msgid "Give a rating from 1 to 5 stars."
 msgstr "Donnez une note de 1 à 5 étoiles."
 
-#: src/features/campaign-test/components/TesterSessionRow.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Give feedback"
 msgstr "Donner mon retour"
 
-#: src/features/campaign-test/components/TesterSessionRow.tsx
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
 msgid "Give feedback on the session of {started}"
 msgstr "Donner mon retour sur la session du {started}"
 
@@ -639,6 +665,11 @@ msgstr "Donnez un nom à la campagne."
 #: src/features/conversation/components/GoodReplyButton.tsx
 msgid "Good reply"
 msgstr "Bonne réponse"
+
+#. Before the first message an agent says in a new session
+#: src/features/campaign-context/components/CampaignAgentCard.tsx
+msgid "Greeting message:"
+msgstr "Message d'accueil :"
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Handing the conversation back"
@@ -733,7 +764,7 @@ msgid "Leave without saving?"
 msgstr "Quitter sans enregistrer ?"
 
 #. The sidebar's link to the table of all an agent's review campaigns
-#: src/features/campaigns/components/CampaignsSidebarMenu.tsx
+#: src/features/campaigns/components/CampaignsSidebarEntries.tsx
 msgid "List all"
 msgstr "Tout afficher"
 
@@ -807,13 +838,9 @@ msgid "Never signed in"
 msgstr "Jamais connecté"
 
 #: src/features/campaigns/components/CampaignsPage.tsx
-#: src/features/campaigns/components/CampaignsSidebarMenu.tsx
+#: src/features/campaigns/components/CampaignsSidebarEntries.tsx
 msgid "New campaign"
 msgstr "Nouvelle campagne"
-
-#: src/features/campaign-test/components/TesterSidebarSection.tsx
-msgid "New conversation"
-msgstr "Nouvelle conversation"
 
 #: src/features/campaigns/components/NewCampaignPage.tsx
 msgid "New review campaign"
@@ -905,7 +932,7 @@ msgid "One answer per tester who filled the final survey."
 msgstr "Une réponse par testeur qui a rempli le questionnaire final."
 
 #. Opens a session with the agent
-#: src/features/campaign-test/components/TesterSessionRow.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Open"
 msgstr "Ouvrir"
 
@@ -921,7 +948,7 @@ msgstr "Ouvrir dans un nouvel onglet"
 msgid "Open on YouTube"
 msgstr "Ouvrir sur YouTube"
 
-#: src/features/campaign-test/components/TesterSessionRow.tsx
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
 msgid "Open the session of {started}"
 msgstr "Ouvrir la session du {started}"
 
@@ -945,11 +972,9 @@ msgstr "Autres relecteurs"
 msgid "Overall rating"
 msgstr "Note globale"
 
-#. The sidebar's link to the first page of a campaign
-#. The sidebar's link to the first page of a campaign
 #. The sidebar's link to the first page of an agent, which lists its sections
-#: src/features/campaign-review/components/ReviewerSidebarSection.tsx
-#: src/features/campaign-test/components/TesterSidebarSection.tsx
+#. The tab with the first page of a campaign, for its participants
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
 #: src/routes/-components/AgentSectionsNav.tsx
 msgid "Overview"
 msgstr "Vue d'ensemble"
@@ -1060,8 +1085,8 @@ msgid "Remove this annotation"
 msgstr "Retirer cette annotation"
 
 #. The tab with the full report of a campaign
-#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
-#: src/features/campaign-review/components/ReviewerSidebarSection.tsx
+#. The tab with the full report of a campaign
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
 #: src/features/campaigns/components/CampaignPageFrame.tsx
 msgid "Report"
 msgstr "Rapport"
@@ -1105,19 +1130,9 @@ msgstr "Campagne de revue"
 msgid "Review campaigns run on conversation agents. To evaluate this agent, ask an owner of its project for the evaluator role."
 msgstr "Les campagnes d'évaluation portent sur les agents de conversation. Pour évaluer cet agent, demandez le rôle d'évaluateur à un propriétaire de son projet."
 
-#. Above a campaign's name in the sidebar: the person reviews this agent
-#: src/features/campaign-context/components/CampaignSidebarHeader.tsx
-msgid "Review of {agentName}"
-msgstr "Relecture de {agentName}"
-
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "Review session {id}"
 msgstr "Relire la session {id}"
-
-#. The sessions a reviewer gave their review of
-#: src/features/campaign-review/components/ReviewerSidebarSection.tsx
-msgid "Reviewed"
-msgstr "Relues"
 
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
@@ -1343,8 +1358,10 @@ msgstr "Démarrer une conversation"
 
 #. When a session started
 #. When a session started
+#. When a session started
 #: src/features/campaign-report/components/report-session-columns.tsx
 #: src/features/campaign-review/components/reviewer-session-columns.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Started"
 msgstr "Démarrée le"
 
@@ -1394,11 +1411,6 @@ msgstr "Changer d'agent"
 #: src/features/agents/components/AgentSwitcher.tsx
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
-
-#. Above a campaign's name in the sidebar: the person tests this agent
-#: src/features/campaign-context/components/CampaignSidebarHeader.tsx
-msgid "Test of {agentName}"
-msgstr "Test de {agentName}"
 
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
@@ -1588,10 +1600,6 @@ msgstr "La session n'a pas pu démarrer. Réessayez."
 msgid "The sessions testers started."
 msgstr "Les sessions démarrées par les testeurs."
 
-#: src/features/campaign-review/components/ReviewerSidebarSection.tsx
-msgid "The sessions to review show here."
-msgstr "Les sessions à relire s'affichent ici."
-
 #: src/components/shared/SignInProblemPage.tsx
 msgid "The sign-in keeps failing"
 msgstr "La connexion échoue à chaque fois"
@@ -1696,11 +1704,6 @@ msgstr "pour se déplacer"
 msgid "to open"
 msgstr "pour ouvrir"
 
-#. The sessions a reviewer did not review yet
-#: src/features/campaign-review/components/ReviewerSidebarSection.tsx
-msgid "To review"
-msgstr "À relire"
-
 #: src/components/shared/RouteErrorState.tsx
 #: src/components/shared/SidebarSection.tsx
 #: src/components/shared/SignInProblemPage.tsx
@@ -1714,6 +1717,11 @@ msgstr "Réessayez dans un instant. Si cette page revient, déconnectez-vous, pu
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Try again to sign in. If this page comes back, close the other tabs of the app."
 msgstr "Réessayez de vous connecter. Si cette page revient, fermez les autres onglets de l'application."
+
+#. The kind of agent a review campaign reviews
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Type"
+msgstr "Type"
 
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Type of question {position}"
@@ -1857,7 +1865,7 @@ msgstr "Vous avez rempli le questionnaire. Merci pour votre retour."
 msgid "You have no access to Evaluation yet"
 msgstr "Vous n'avez pas encore accès à l'Évaluation"
 
-#: src/features/campaign-test/components/TesterCampaignPage.tsx
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
 msgid "You have not started a session yet. Your sessions show here, with the feedback you gave on each."
 msgstr "Vous n'avez pas encore démarré de session. Vos sessions s'affichent ici, avec le retour donné sur chacune."
 
@@ -1922,13 +1930,8 @@ msgid "Your session"
 msgstr "Votre session"
 
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
-#: src/features/campaign-test/components/TesterSidebarSection.tsx
 msgid "Your sessions"
 msgstr "Vos sessions"
-
-#: src/features/campaign-test/components/TesterSidebarSection.tsx
-msgid "Your sessions show here."
-msgstr "Vos sessions s'affichent ici."
 
 #: src/features/campaign-test/components/TesterSurveyPage.tsx
 msgid "Your survey could not be saved. Try again."

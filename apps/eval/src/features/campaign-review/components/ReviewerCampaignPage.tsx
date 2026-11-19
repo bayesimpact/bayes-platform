@@ -1,15 +1,12 @@
 import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { Link } from "@tanstack/react-router"
-import { cn } from "cn"
-import { BarChart3Icon } from "lucide-react"
-import { CampaignStatusBadge } from "@/components/shared/CampaignStatusBadge"
-import { PageContainer } from "@/components/shared/PageContainer"
-import { PageHeader } from "@/components/shared/PageHeader"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { buttonVariants } from "@/components/ui/button"
-import { CampaignAgentCard, useCampaignContext } from "@/features/campaign-context"
+import {
+  CampaignAgentCard,
+  ParticipantCampaignFrame,
+  useCampaignContext,
+} from "@/features/campaign-context"
 import { reviewerSessionsQueryOptions } from "../api/queries"
 import { ReviewerSessionsTable } from "./ReviewerSessionsTable"
 
@@ -17,7 +14,7 @@ export type ReviewerCampaignPageProps = {
   campaign: ReviewCampaignParamsDto
 }
 
-/** A campaign for one of its reviewers: the agent, the sessions to review and the report. */
+/** A campaign for one of its reviewers, its first tab: the agent and the sessions to review. */
 export function ReviewerCampaignPage({ campaign }: ReviewerCampaignPageProps) {
   const context = useCampaignContext(campaign)
   const { data: sessions } = useSuspenseQuery(reviewerSessionsQueryOptions(campaign))
@@ -26,24 +23,11 @@ export function ReviewerCampaignPage({ campaign }: ReviewerCampaignPageProps) {
     (session) => !session.callerHasReviewed && !session.callerIsSessionOwner,
   ).length
   return (
-    <PageContainer>
-      <PageHeader
-        title={context.name}
-        badge={<CampaignStatusBadge status={context.status} />}
-        description={context.description}
-        actions={
-          <Link
-            to="/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/report"
-            params={campaign}
-            className={cn(buttonVariants({ variant: "outline" }))}
-          >
-            <BarChart3Icon data-icon="inline-start" aria-hidden />
-            <Trans>Report</Trans>
-          </Link>
-        }
-      />
+    <ParticipantCampaignFrame campaign={campaign} campaignRole="reviewer" currentTab="overview">
       <CampaignAgentCard agent={context.agent} />
+      {/* The table has its own frame: the block of the sessions needs none around it. */}
       <SectionCard
+        className="rounded-none border-0 bg-transparent p-0 md:p-0 dark:bg-transparent"
         title={<Trans>Sessions to review</Trans>}
         description={
           context.status === "active" ? (
@@ -69,6 +53,6 @@ export function ReviewerCampaignPage({ campaign }: ReviewerCampaignPageProps) {
       >
         <ReviewerSessionsTable campaign={campaign} sessions={sessions} />
       </SectionCard>
-    </PageContainer>
+    </ParticipantCampaignFrame>
   )
 }

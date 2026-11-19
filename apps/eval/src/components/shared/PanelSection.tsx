@@ -14,7 +14,7 @@ export function PanelSection({ title, description, aside, children }: PanelSecti
     <section className="flex flex-col gap-3 border-t pt-4 first:border-t-0 first:pt-0">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-1">
-          <h3 className="font-medium">{title}</h3>
+          <h3 className="text-base font-semibold">{title}</h3>
           {description ? <p className="text-muted-foreground">{description}</p> : null}
         </div>
         {aside ? <div className="text-muted-foreground">{aside}</div> : null}

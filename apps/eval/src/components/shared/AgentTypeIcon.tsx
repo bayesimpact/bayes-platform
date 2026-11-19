@@ -1,5 +1,5 @@
 import type { AgentTypeDto } from "@caseai-connect/eval-contracts"
-import { FileTextIcon, MessageSquareIcon } from "lucide-react"
+import { BotMessageSquareIcon, FileTextIcon } from "lucide-react"
 
 export type AgentTypeIconProps = {
   type: AgentTypeDto
@@ -7,5 +7,5 @@ export type AgentTypeIconProps = {
 
 /** Tells a conversation agent from an extraction agent at a glance. */
 export function AgentTypeIcon({ type }: AgentTypeIconProps) {
-  return type === "extraction" ? <FileTextIcon aria-hidden /> : <MessageSquareIcon aria-hidden />
+  return type === "extraction" ? <FileTextIcon aria-hidden /> : <BotMessageSquareIcon aria-hidden />
 }

@@ -4,9 +4,8 @@ import { Link } from "@tanstack/react-router"
 import { FlaskConicalIcon, LayoutGridIcon } from "lucide-react"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import type { EvaluationAgent } from "@/features/agents"
-import { CampaignsSidebarMenu } from "@/features/campaigns"
 import { AGENT_SECTION_ROUTES, type AgentSection } from "./agent-sections"
-import { ParticipantSidebarMenus } from "./ParticipantSidebarMenus"
+import { CampaignsMenu } from "./CampaignsMenu"
 
 export type AgentSectionsNavProps = {
   agent: EvaluationAgent
@@ -16,8 +15,8 @@ export type AgentSectionsNavProps = {
 
 /**
  * What an agent opens for the person, at the top of the sidebar: the way back to the agent's first
- * page when it holds several sections, its evaluations, the menu of its review campaigns for who
- * manages them, and the menus of the campaigns the person tests or reviews.
+ * page when it holds several sections, its evaluations, the Campaigns menu: the review campaigns
+ * for who manages them, and those the person reviews or tests.
  */
 export function AgentSectionsNav({ agent, agentParams, sections }: AgentSectionsNavProps) {
   const { t } = useLingui()
@@ -64,10 +63,10 @@ export function AgentSectionsNav({ agent, agentParams, sections }: AgentSections
             </SidebarMenuButton>
           </SidebarMenuItem>
         ) : null}
-        {sections.includes("campaigns") ? (
-          <CampaignsSidebarMenu agent={agent} agentParams={agentParams} />
-        ) : null}
-        <ParticipantSidebarMenus agentId={agent.id} />
+        <CampaignsMenu
+          agentId={agent.id}
+          managed={sections.includes("campaigns") ? { agent, agentParams } : null}
+        />
       </SidebarMenu>
     </nav>
   )

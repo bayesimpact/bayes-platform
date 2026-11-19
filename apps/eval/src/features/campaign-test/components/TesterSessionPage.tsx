@@ -4,6 +4,8 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { CheckIcon } from "lucide-react"
 import { useState } from "react"
+import { BackLink } from "@/components/shared/BackLink"
+import { HeaderBack } from "@/components/shared/HeaderBack"
 import { Button } from "@/components/ui/button"
 import { useCampaignContext } from "@/features/campaign-context"
 import { ConversationView } from "@/features/conversation"
@@ -35,42 +37,53 @@ export function TesterSessionPage({ sessionParams }: TesterSessionPageProps) {
   }
 
   return (
-    <ConversationView
-      conversation={conversation}
-      agentName={context.agent.name}
-      forms={session?.forms ?? []}
-      onFormsChange={() =>
-        void queryClient.invalidateQueries({ queryKey: campaignTestKeys.sessions(sessionParams) })
-      }
-      headerActions={
-        canGiveFeedback ? (
-          <Button
-            size="sm"
-            variant={isGivingFeedback ? "secondary" : "default"}
-            aria-pressed={isGivingFeedback}
-            onClick={() => setIsGivingFeedback((current) => !current)}
-          >
-            <CheckIcon data-icon="inline-start" aria-hidden />
-            <Trans>End the session and give feedback</Trans>
-          </Button>
-        ) : null
-      }
-      sidePanel={
-        canGiveFeedback && isGivingFeedback ? (
-          <SessionFeedbackPanel
-            sessionParams={sessionParams}
-            context={context}
-            onClose={() => setIsGivingFeedback(false)}
-            onSubmitted={() =>
-              void navigate({
-                to: "/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test",
-                params: sessionParams,
-              })
-            }
-          />
-        ) : null
-      }
-      onSidePanelDismiss={() => setIsGivingFeedback(false)}
-    />
+    <>
+      {/* The way back to the campaign's sessions, at the start of the bar above the page. */}
+      <HeaderBack>
+        <BackLink
+          to="/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test"
+          params={sessionParams}
+        >
+          <Trans comment="The link back to the campaign from one of its sessions">Back</Trans>
+        </BackLink>
+      </HeaderBack>
+      <ConversationView
+        conversation={conversation}
+        agentName={context.agent.name}
+        forms={session?.forms ?? []}
+        onFormsChange={() =>
+          void queryClient.invalidateQueries({ queryKey: campaignTestKeys.sessions(sessionParams) })
+        }
+        headerActions={
+          canGiveFeedback ? (
+            <Button
+              size="sm"
+              variant={isGivingFeedback ? "secondary" : "default"}
+              aria-pressed={isGivingFeedback}
+              onClick={() => setIsGivingFeedback((current) => !current)}
+            >
+              <CheckIcon data-icon="inline-start" aria-hidden />
+              <Trans>End the session and give feedback</Trans>
+            </Button>
+          ) : null
+        }
+        sidePanel={
+          canGiveFeedback && isGivingFeedback ? (
+            <SessionFeedbackPanel
+              sessionParams={sessionParams}
+              context={context}
+              onClose={() => setIsGivingFeedback(false)}
+              onSubmitted={() =>
+                void navigate({
+                  to: "/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test",
+                  params: sessionParams,
+                })
+              }
+            />
+          ) : null
+        }
+        onSidePanelDismiss={() => setIsGivingFeedback(false)}
+      />
+    </>
   )
 }

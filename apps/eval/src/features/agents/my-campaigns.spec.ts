@@ -10,6 +10,7 @@ const campaign = (name: string): MyReviewCampaignOutputDto => ({
   organizationId: crypto.randomUUID(),
   projectId: crypto.randomUUID(),
   agentId: crypto.randomUUID(),
+  createdAt: Date.now(),
 })
 
 describe("mergeMyCampaigns", () => {

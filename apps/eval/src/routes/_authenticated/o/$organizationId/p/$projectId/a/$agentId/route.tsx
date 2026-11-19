@@ -1,4 +1,5 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
+import { AgentBarTitle } from "@/components/shared/AgentBarTitle"
 import { AppShell } from "@/components/shared/AppShell"
 import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
@@ -50,7 +51,11 @@ function AgentLayout() {
       sidebar={<AgentSectionsNav agent={agent} agentParams={params} sections={sections} />}
       footer={<AppSidebarFooter />}
       // The sidebar names the agent; the bar above the page takes over while it is closed.
-      title={<SidebarClosedOnly>{agent.name}</SidebarClosedOnly>}
+      title={
+        <SidebarClosedOnly>
+          <AgentBarTitle name={agent.name} type={agent.type} />
+        </SidebarClosedOnly>
+      }
     >
       <Outlet />
     </AppShell>

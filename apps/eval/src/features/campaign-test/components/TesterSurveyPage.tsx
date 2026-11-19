@@ -3,12 +3,9 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { BackLink } from "@/components/shared/BackLink"
-import { PageContainer } from "@/components/shared/PageContainer"
-import { PageHeader } from "@/components/shared/PageHeader"
 import { RatedFeedbackForm } from "@/components/shared/RatedFeedbackForm"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { useCampaignContext } from "@/features/campaign-context"
+import { ParticipantCampaignFrame, useCampaignContext } from "@/features/campaign-context"
 import { useSaveSurvey } from "../api/mutations"
 import { testerSurveyQueryOptions } from "../api/queries"
 
@@ -16,7 +13,7 @@ export type TesterSurveyPageProps = {
   campaign: ReviewCampaignParamsDto
 }
 
-/** The survey a tester fills when they finish taking part, and can change while the campaign runs. */
+/** A campaign's Final survey tab: the survey a tester fills when they finish taking part, and can change while the campaign runs. */
 export function TesterSurveyPage({ campaign }: TesterSurveyPageProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -24,21 +21,10 @@ export function TesterSurveyPage({ campaign }: TesterSurveyPageProps) {
   const { data: survey } = useSuspenseQuery(testerSurveyQueryOptions(campaign))
   const saveSurvey = useSaveSurvey(campaign, survey !== null)
   return (
-    <PageContainer>
-      <PageHeader
-        back={
-          <BackLink
-            to="/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test"
-            params={campaign}
-          >
-            {context.name}
-          </BackLink>
-        }
-        title={<Trans>Final survey</Trans>}
-        description={
-          <Trans>Share your overall experience, so the team can evaluate this agent.</Trans>
-        }
-      />
+    <ParticipantCampaignFrame campaign={campaign} campaignRole="tester" currentTab="survey">
+      <p className="text-muted-foreground">
+        <Trans>Share your overall experience, so the team can evaluate this agent.</Trans>
+      </p>
       <SectionCard title={context.agent.name}>
         <RatedFeedbackForm
           questions={context.testerEndOfPhaseQuestions}
@@ -61,6 +47,6 @@ export function TesterSurveyPage({ campaign }: TesterSurveyPageProps) {
           }
         />
       </SectionCard>
-    </PageContainer>
+    </ParticipantCampaignFrame>
   )
 }

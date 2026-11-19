@@ -1,5 +1,4 @@
 export { TesterCampaignPage } from "./components/TesterCampaignPage"
 export { TesterSessionPage } from "./components/TesterSessionPage"
-export { TesterSidebarSection } from "./components/TesterSidebarSection"
 export { TesterSurveyPage } from "./components/TesterSurveyPage"
 export { loadTesterCampaign, loadTesterSession, loadTesterSurvey } from "./load-campaign-test"

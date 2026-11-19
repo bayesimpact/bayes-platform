@@ -189,6 +189,7 @@ export const myReviewCampaignOutputSchema = z.object({
   organizationId: z.uuid(),
   projectId: z.uuid(),
   agentId: z.uuid(),
+  createdAt: z.number(),
 })
 
 export type MyReviewCampaignOutputDto = z.output<typeof myReviewCampaignOutputSchema>
