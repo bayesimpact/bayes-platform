@@ -33,9 +33,6 @@ export function AgentVersionList({ versions, shownId, selectedId, onShow }: Agen
               )}
             >
               <AgentVersionTitle version={version} />
-              {version.description ? (
-                <span className="text-sm text-muted-foreground">{version.description}</span>
-              ) : null}
               <span className="text-xs text-muted-foreground">
                 <Trans>Saved on {savedOn}</Trans>
               </span>

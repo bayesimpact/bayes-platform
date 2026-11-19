@@ -823,7 +823,7 @@ msgid "Image"
 msgstr "Image"
 
 #. The version of an agent its live channels run with
-#: src/features/campaigns/components/AgentVersionTitle.tsx
+#: src/features/campaigns/components/ProductionBadge.tsx
 msgid "In production"
 msgstr "En production"
 
