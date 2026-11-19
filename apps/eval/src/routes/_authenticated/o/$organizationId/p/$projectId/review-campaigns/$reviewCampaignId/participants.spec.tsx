@@ -379,6 +379,12 @@ describe("a tester's session with the agent", () => {
     renderApp(testerSessionUrlOf(world, "Support assistant pilot", 0))
 
     expect(await screen.findByText(/For a team of five/)).toBeInTheDocument()
+    // The tester knows the reviewers read the session.
+    expect(
+      screen.getByText(
+        "The reviewers of this campaign can read everything exchanged in this session.",
+      ),
+    ).toBeInTheDocument()
     // The documents the reply relied on show under it, as in the Desk.
     expect(screen.getByText("Used 1 source")).toBeInTheDocument()
     // The way back leads to the campaign's sessions.

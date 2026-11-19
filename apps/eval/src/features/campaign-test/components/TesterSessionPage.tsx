@@ -2,7 +2,7 @@ import type { CampaignSessionParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { CheckIcon } from "lucide-react"
+import { CheckIcon, EyeIcon } from "lucide-react"
 import { useState } from "react"
 import { BackLink } from "@/components/shared/BackLink"
 import { HeaderBack } from "@/components/shared/HeaderBack"
@@ -47,6 +47,11 @@ export function TesterSessionPage({ sessionParams }: TesterSessionPageProps) {
           <Trans comment="The link back to the campaign from one of its sessions">Back</Trans>
         </BackLink>
       </HeaderBack>
+      {/* The tester knows who reads what they write here before they write it. */}
+      <p className="flex shrink-0 items-center justify-center gap-2 border-b bg-muted/50 px-4 py-2 text-center text-sm text-muted-foreground">
+        <EyeIcon aria-hidden className="size-4 shrink-0" />
+        <Trans>The reviewers of this campaign can read everything exchanged in this session.</Trans>
+      </p>
       <ConversationView
         conversation={conversation}
         agentName={context.agent.name}

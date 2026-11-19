@@ -1631,6 +1631,10 @@ msgstr "La réponse s'est arrêtée avant la fin."
 msgid "The report could not be sent. Try again."
 msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+msgid "The reviewers of this campaign can read everything exchanged in this session."
+msgstr "Les relecteurs de cette campagne peuvent lire tout ce qui est échangé dans cette session."
+
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 msgid "The session and its messages are deleted for good."
 msgstr "La session et ses messages sont supprimés définitivement."

@@ -1631,6 +1631,10 @@ msgstr "The reply stopped before it finished."
 msgid "The report could not be sent. Try again."
 msgstr "The report could not be sent. Try again."
 
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+msgid "The reviewers of this campaign can read everything exchanged in this session."
+msgstr "The reviewers of this campaign can read everything exchanged in this session."
+
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 msgid "The session and its messages are deleted for good."
 msgstr "The session and its messages are deleted for good."
