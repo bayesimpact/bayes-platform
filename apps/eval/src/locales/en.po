@@ -29,6 +29,11 @@ msgstr "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongL
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 
+#. The agent of a run and the version it asked
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "{agentName}, version {revision}"
+msgstr "{agentName}, version {revision}"
+
 #: src/features/conversation/components/Composer.tsx
 msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
 msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
@@ -289,7 +294,9 @@ msgstr "admin"
 msgid "After each session"
 msgstr "After each session"
 
+#. The agent a run asked, and its version
 #. What an invitation gives access to
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Agent"
 msgstr "Agent"
@@ -311,15 +318,6 @@ msgstr "Agent version"
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
 msgid "Agent's answer"
 msgstr "Agent's answer"
-
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-msgid "Agent's instructions"
-msgstr "Agent's instructions"
-
-#. The model of the agent in a run
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-msgid "Agent's model"
-msgstr "Agent's model"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
@@ -1093,13 +1091,15 @@ msgid "Input"
 msgstr "Input"
 
 #. The instructions of an agent
+#. The instructions of the agent in a run
+#. The instructions of the judge of a run
 #: src/features/campaigns/agent-version-diff.ts
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "Instructions"
 msgstr "Instructions"
 
 #. The header of the column of the instructions a run gave its judge
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "Instructions for the judge"
 msgstr "Instructions for the judge"
 
@@ -1137,6 +1137,11 @@ msgstr "Invited <0/>"
 #: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
 msgid "Its records and its runs keep their place."
 msgstr "Its records and its runs keep their place."
+
+#. The judge of a run: the model that graded it
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "Judge"
+msgstr "Judge"
 
 #. The model that graded a run
 #. The model that graded a run
@@ -1217,7 +1222,10 @@ msgid "Messages"
 msgstr "Messages"
 
 #. The language model of an agent
+#. The model of the agent in a run
+#. The model of the judge of a run
 #: src/features/campaigns/agent-version-diff.ts
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "Model"
 msgstr "Model"
 
@@ -2118,10 +2126,6 @@ msgstr "The agent is answering…"
 msgid "The agent's form has no field."
 msgstr "The agent's form has no field."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-msgid "The agent's instructions and model at this version, and the judge's."
-msgstr "The agent's instructions and model at this version, and the judge's."
-
 #: src/features/conversation/components/FormsPanel.tsx
 msgid "The answers the agent collected from the conversation, as it fills them in."
 msgstr "The answers the agent collected from the conversation, as it fills them in."
@@ -2283,6 +2287,10 @@ msgstr "The message a person would send to the agent."
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "The model that compares each answer with the expected output."
 msgstr "The model that compares each answer with the expected output."
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+msgid "The model that graded each answer, and what it was told."
+msgstr "The model that graded each answer, and what it was told."
 
 #: src/features/campaigns/components/InviteParticipantsForm.tsx
 msgid "The people could not be invited. Try again."

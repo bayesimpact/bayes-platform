@@ -117,8 +117,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   without `cn`, the variant's border loses to the base's `border-transparent`.
 - A page in two parts is a `SplitPage` (`components/shared/`): the page on the left, a `SidePanel`
   on the right, each scrolling alone, with a `SidePanelToggle` in the bar above the page.
-  `useSidePanel` shows the panel from the start where the window has room for it. Three pages use
-  it: a campaign's setup with the preview of its forms (the `preview` search param), a session
+  `useSidePanel` shows the panel from the start where the window has room for it. Four pages use
+  it: a run of an evaluation with what it used, a campaign's setup with the preview of its forms (the `preview` search param), a session
   with the reviewer's review, and a tester's conversation with the feedback that ends it
   (`ConversationView`'s `sidePanel`). The blocks of a panel are `PanelSection`s.
 - The command center that switches agent (`AgentCommandCenterProvider` in `features/agents`,
@@ -166,7 +166,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). A run's version opens the
   history of the agent's versions on it, the campaigns' `AgentVersionsSheet` without its choice, to
   compare it with the others. A run's page, `evaluations/$datasetId/runs/$runId`
-  (`ConversationRunPage`), shows its figures, what it used, and all its records, read as a dataset's, with
+  (`ConversationRunPage`), shows its figures and all its records, with what it used (the agent's model and
+  instructions at that version, the judge's) in a side panel; its records are read as a dataset's, with
   Cancel while it is under way, Retry after a failure, and Delete. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
   The form state an agent filled during a run and the comparison of runs are not here yet.

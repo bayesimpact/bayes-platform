@@ -14,9 +14,12 @@ import { toast } from "sonner"
 import { BackLink } from "@/components/shared/BackLink"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
-import { FoldingCard } from "@/components/shared/FoldingCard"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { PanelSection } from "@/components/shared/PanelSection"
+import { SidePanel } from "@/components/shared/SidePanel"
+import { SidePanelToggle } from "@/components/shared/SidePanelToggle"
+import { SplitPage } from "@/components/shared/SplitPage"
 import { StatCard } from "@/components/shared/StatCard"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,6 +34,7 @@ import {
   hasProjectPermission,
   useEvaluationWorkspace,
 } from "@/features/agents"
+import { useSidePanel } from "@/hooks/use-side-panel"
 import { fullDateTimeOf } from "@/lib/format-time"
 import {
   useCancelConversationRun,
@@ -51,8 +55,7 @@ export type ConversationRunPageProps = {
 }
 
 /**
- * A run of an evaluation: where it stands, its figures, the version and the judge it used, and
- * each record with the agent's answer and its score. It follows a run under way by itself.
+ * A run of an evaluation: where it stands, its figures and each record with the agent's answer and its score. It follows a run under way by itself.
  */
 export function ConversationRunPage({
   agent,
@@ -70,6 +73,7 @@ export function ConversationRunPage({
     conversationRunRecordsQueryOptions(runParams, { isActive }),
   )
   const { groups } = useEvaluationWorkspace()
+  const panel = useSidePanel()
   const [confirming, setConfirming] = useState<"cancel" | "delete" | null>(null)
   const cancelRun = useCancelConversationRun(runParams)
   const retryRun = useRetryConversationRun(runParams)
@@ -99,168 +103,204 @@ export function ConversationRunPage({
   const summary = run.summary
   const canRetry = canUpdate && (run.status === "failed" || (summary?.errors ?? 0) > 0) && !isActive
   return (
-    <PageContainer>
-      <PageHeader
-        back={
-          <BackLink {...datasetRuns}>
-            <Trans comment="The link back from a run to the runs of its dataset">Runs</Trans>
-          </BackLink>
-        }
-        title={
-          <Trans comment="The title of a run's page, by when it started">Run of {started}</Trans>
-        }
-        badge={<RunStatusBadge status={run.status} />}
-        description={
-          <Trans comment="Under the title of a run: the dataset it asked and the agent's version">
-            {datasetName} · {agentName}, version {revision}
-          </Trans>
-        }
-        actions={
-          <>
-            {canUpdate && isActive ? (
-              <Button variant="outline" onClick={() => setConfirming("cancel")}>
-                <Trans comment="Stops a run under way">Cancel the run</Trans>
-              </Button>
-            ) : null}
-            {canRetry ? (
-              <Button
-                variant="outline"
-                disabled={retryRun.isPending}
-                onClick={() =>
-                  retryRun.mutate(run.id, {
-                    onSuccess: () => toast.success(t`The run started again.`),
-                    onError: () => toast.error(t`The run could not start again. Try again.`),
-                  })
+    <SplitPage
+      panel={
+        panel.isOpen ? (
+          <SidePanel
+            title={<Trans>What this run used</Trans>}
+            onClose={panel.close}
+            takesFocus={panel.takesFocus}
+          >
+            <div className="flex flex-col gap-4">
+              <PanelSection
+                title={<Trans comment="The agent a run asked, and its version">Agent</Trans>}
+                description={
+                  <Trans comment="The agent of a run and the version it asked">
+                    {agentName}, version {revision}
+                  </Trans>
                 }
               >
-                <RotateCwIcon data-icon="inline-start" aria-hidden />
-                <Trans comment="Asks again the records of a run that failed">Retry</Trans>
-              </Button>
-            ) : null}
-            {canDelete ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
+                <dl className="flex flex-col gap-3 text-sm">
+                  <div className="flex flex-col gap-1">
+                    <dt className="font-medium">
+                      <Trans comment="The model of the agent in a run">Model</Trans>
+                    </dt>
+                    <dd className="font-mono text-xs">{run.agentSettings.model}</dd>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <dt className="font-medium">
+                      <Trans comment="The instructions of the agent in a run">Instructions</Trans>
+                    </dt>
+                    <dd className="rounded-md border bg-muted/40 p-2 whitespace-pre-wrap wrap-anywhere">
+                      {run.agentSettings.instructions}
+                    </dd>
+                  </div>
+                </dl>
+              </PanelSection>
+              <PanelSection
+                title={<Trans comment="The judge of a run: the model that graded it">Judge</Trans>}
+                description={
+                  <Trans>The model that graded each answer, and what it was told.</Trans>
+                }
+              >
+                <dl className="flex flex-col gap-3 text-sm">
+                  <div className="flex flex-col gap-1">
+                    <dt className="font-medium">
+                      <Trans comment="The model of the judge of a run">Model</Trans>
+                    </dt>
+                    <dd className="font-mono text-xs">{run.judgeModel}</dd>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <dt className="font-medium">
+                      <Trans comment="The instructions of the judge of a run">Instructions</Trans>
+                    </dt>
+                    <dd className="whitespace-pre-wrap wrap-anywhere text-muted-foreground">
+                      {run.judgeInstructions ?? <Trans>None</Trans>}
+                    </dd>
+                  </div>
+                </dl>
+              </PanelSection>
+            </div>
+          </SidePanel>
+        ) : null
+      }
+    >
+      <PageContainer>
+        <PageHeader
+          back={
+            <BackLink {...datasetRuns}>
+              <Trans comment="The link back from a run to the runs of its dataset">Runs</Trans>
+            </BackLink>
+          }
+          title={
+            <Trans comment="The title of a run's page, by when it started">Run of {started}</Trans>
+          }
+          badge={<RunStatusBadge status={run.status} />}
+          description={
+            <Trans comment="Under the title of a run: the dataset it asked and the agent's version">
+              {datasetName} · {agentName}, version {revision}
+            </Trans>
+          }
+          actions={
+            <>
+              <SidePanelToggle isOpen={panel.isOpen} onToggle={panel.toggle}>
+                <Trans>What this run used</Trans>
+              </SidePanelToggle>
+              {canUpdate && isActive ? (
+                <Button variant="outline" onClick={() => setConfirming("cancel")}>
+                  <Trans comment="Stops a run under way">Cancel the run</Trans>
+                </Button>
+              ) : null}
+              {canRetry ? (
+                <Button
+                  variant="outline"
+                  disabled={retryRun.isPending}
+                  onClick={() =>
+                    retryRun.mutate(run.id, {
+                      onSuccess: () => toast.success(t`The run started again.`),
+                      onError: () => toast.error(t`The run could not start again. Try again.`),
+                    })
+                  }
                 >
-                  <EllipsisIcon aria-hidden />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem variant="destructive" onClick={() => setConfirming("delete")}>
-                    <Trash2Icon aria-hidden />
-                    <Trans comment="Deletes a run">Delete</Trans>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
-          </>
-        }
-      />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label={<Trans comment="The average score of a run">Average score</Trans>}
-          value={summary?.averageScore == null ? "–" : scoreOf(summary.averageScore, i18n.locale)}
-        />
-        <StatCard
-          label={<Trans comment="How many records of a run the judge graded">Graded</Trans>}
-          value={summary ? `${summary.graded} / ${summary.total}` : "–"}
-        />
-        <StatCard
-          label={<Trans comment="How many records of a run an error stopped">Errors</Trans>}
-          value={summary ? i18n.number(summary.errors) : "–"}
-        />
-        <StatCard
-          label={<Trans comment="The model that graded a run">Judge model</Trans>}
-          value={<span className="font-mono text-base">{run.judgeModel}</span>}
-        />
-      </div>
-      <FoldingCard
-        title={<Trans>What this run used</Trans>}
-        description={
-          <Trans>The agent's instructions and model at this version, and the judge's.</Trans>
-        }
-        isOpenAtFirst={false}
-      >
-        <dl className="flex flex-col gap-3 p-4 text-sm">
-          <div className="flex flex-col gap-1">
-            <dt className="font-medium">
-              <Trans comment="The model of the agent in a run">Agent's model</Trans>
-            </dt>
-            <dd className="font-mono text-xs">{run.agentSettings.model}</dd>
-          </div>
-          <div className="flex flex-col gap-1">
-            <dt className="font-medium">
-              <Trans>Agent's instructions</Trans>
-            </dt>
-            <dd className="max-h-64 overflow-y-auto rounded-md border bg-muted/40 p-2 whitespace-pre-wrap wrap-anywhere">
-              {run.agentSettings.instructions}
-            </dd>
-          </div>
-          <div className="flex flex-col gap-1">
-            <dt className="font-medium">
-              <Trans>Instructions for the judge</Trans>
-            </dt>
-            <dd className="whitespace-pre-wrap wrap-anywhere text-muted-foreground">
-              {run.judgeInstructions ?? <Trans>None</Trans>}
-            </dd>
-          </div>
-        </dl>
-      </FoldingCard>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">
-          <Trans comment="The title of the records of a run">Results</Trans>
-        </h2>
-        <DataTable
-          table={table}
-          empty={
-            run.status === "failed" ? (
-              <Trans>This run failed before it asked a record.</Trans>
-            ) : (
-              <Trans>This run has no record yet.</Trans>
-            )
+                  <RotateCwIcon data-icon="inline-start" aria-hidden />
+                  <Trans comment="Asks again the records of a run that failed">Retry</Trans>
+                </Button>
+              ) : null}
+              {canDelete ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
+                  >
+                    <EllipsisIcon aria-hidden />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem variant="destructive" onClick={() => setConfirming("delete")}>
+                      <Trash2Icon aria-hidden />
+                      <Trans comment="Deletes a run">Delete</Trans>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+            </>
           }
         />
-      </section>
-      <ConfirmDialog
-        isOpen={confirming === "cancel"}
-        onOpenChange={(isOpen) => setConfirming(isOpen ? "cancel" : null)}
-        title={<Trans>Cancel this run?</Trans>}
-        description={
-          <Trans>
-            The records not asked yet stay without an answer. The answers already graded are kept.
-          </Trans>
-        }
-        confirmLabel={<Trans comment="Stops a run under way">Cancel the run</Trans>}
-        dismissLabel={<Trans comment="Gives up cancelling a run under way">Keep it running</Trans>}
-        isDestructive
-        isPending={cancelRun.isPending}
-        onConfirm={() =>
-          cancelRun.mutate(run.id, {
-            onSuccess: () => {
-              toast.success(t`The run was cancelled.`)
-              setConfirming(null)
-            },
-            onError: () => toast.error(t`The run could not be cancelled. Try again.`),
-          })
-        }
-      />
-      <ConfirmDialog
-        isOpen={confirming === "delete"}
-        onOpenChange={(isOpen) => setConfirming(isOpen ? "delete" : null)}
-        title={<Trans>Delete this run?</Trans>}
-        description={<Trans>The run and its results are deleted for good.</Trans>}
-        confirmLabel={<Trans>Delete</Trans>}
-        isDestructive
-        isPending={deleteRun.isPending}
-        onConfirm={() =>
-          deleteRun.mutate(run.id, {
-            onSuccess: () => {
-              toast.success(t`The run was deleted.`)
-              void navigate(datasetRuns)
-            },
-            onError: () => toast.error(t`The run could not be deleted. Try again.`),
-          })
-        }
-      />
-    </PageContainer>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label={<Trans comment="The average score of a run">Average score</Trans>}
+            value={summary?.averageScore == null ? "–" : scoreOf(summary.averageScore, i18n.locale)}
+          />
+          <StatCard
+            label={<Trans comment="How many records of a run the judge graded">Graded</Trans>}
+            value={summary ? `${summary.graded} / ${summary.total}` : "–"}
+          />
+          <StatCard
+            label={<Trans comment="How many records of a run an error stopped">Errors</Trans>}
+            value={summary ? i18n.number(summary.errors) : "–"}
+          />
+          <StatCard
+            label={<Trans comment="The model that graded a run">Judge model</Trans>}
+            value={<span className="font-mono text-base">{run.judgeModel}</span>}
+          />
+        </div>
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">
+            <Trans comment="The title of the records of a run">Results</Trans>
+          </h2>
+          <DataTable
+            table={table}
+            empty={
+              run.status === "failed" ? (
+                <Trans>This run failed before it asked a record.</Trans>
+              ) : (
+                <Trans>This run has no record yet.</Trans>
+              )
+            }
+          />
+        </section>
+        <ConfirmDialog
+          isOpen={confirming === "cancel"}
+          onOpenChange={(isOpen) => setConfirming(isOpen ? "cancel" : null)}
+          title={<Trans>Cancel this run?</Trans>}
+          description={
+            <Trans>
+              The records not asked yet stay without an answer. The answers already graded are kept.
+            </Trans>
+          }
+          confirmLabel={<Trans comment="Stops a run under way">Cancel the run</Trans>}
+          dismissLabel={
+            <Trans comment="Gives up cancelling a run under way">Keep it running</Trans>
+          }
+          isDestructive
+          isPending={cancelRun.isPending}
+          onConfirm={() =>
+            cancelRun.mutate(run.id, {
+              onSuccess: () => {
+                toast.success(t`The run was cancelled.`)
+                setConfirming(null)
+              },
+              onError: () => toast.error(t`The run could not be cancelled. Try again.`),
+            })
+          }
+        />
+        <ConfirmDialog
+          isOpen={confirming === "delete"}
+          onOpenChange={(isOpen) => setConfirming(isOpen ? "delete" : null)}
+          title={<Trans>Delete this run?</Trans>}
+          description={<Trans>The run and its results are deleted for good.</Trans>}
+          confirmLabel={<Trans>Delete</Trans>}
+          isDestructive
+          isPending={deleteRun.isPending}
+          onConfirm={() =>
+            deleteRun.mutate(run.id, {
+              onSuccess: () => {
+                toast.success(t`The run was deleted.`)
+                void navigate(datasetRuns)
+              },
+              onError: () => toast.error(t`The run could not be deleted. Try again.`),
+            })
+          }
+        />
+      </PageContainer>
+    </SplitPage>
   )
 }
