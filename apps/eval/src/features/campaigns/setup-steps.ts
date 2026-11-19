@@ -23,7 +23,7 @@ export const SETUP_STEP_LABELS = {
 
 /** The fields of the setup's form each step checks before the next one. */
 export const SETUP_STEP_FIELDS = {
-  campaign: ["name", "description"],
+  campaign: ["agentSettingsId", "name", "description"],
   session: ["testerPerSessionQuestions"],
   final: ["testerEndOfPhaseQuestions"],
   reviewers: ["reviewerQuestions"],

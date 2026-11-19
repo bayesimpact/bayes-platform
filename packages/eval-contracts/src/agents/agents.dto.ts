@@ -20,3 +20,40 @@ export const projectAgentOutputSchema = z.object({
 })
 
 export type ProjectAgentOutputDto = z.output<typeof projectAgentOutputSchema>
+
+/** Which documents of its project an agent searches: all of them, none, or those of some tags. */
+export const documentsRagModeSchema = z.enum(["all", "none", "tags"])
+
+/**
+ * A version of an agent's settings, as `GET .../agents/:agentId/settings` returns it: the saved
+ * versions, newest first, and the draft when there is one. An archived version is not listed.
+ */
+export const agentVersionOutputSchema = z.object({
+  id: z.uuid(),
+  revision: z.number(),
+  /** The name its author gave it when saving it. */
+  name: z.string().nullable(),
+  description: z.string().nullable(),
+  isDraft: z.boolean(),
+  /** The version every live channel runs with: one at most, never the draft. */
+  isProduction: z.boolean(),
+  /** When it was saved, for a saved version. */
+  updatedAt: z.number(),
+  // What a version holds, which the history compares from one version to another.
+  instructions: z.string(),
+  greetingMessage: z.string().optional(),
+  model: z.string(),
+  providerOptions: z.record(z.string(), z.unknown()),
+  documentsRagMode: documentsRagModeSchema,
+  outputJsonSchema: z.record(z.string(), z.unknown()).optional(),
+  fillFormEnabled: z.boolean(),
+  priorityCallsEnabled: z.boolean(),
+  /** The defaults of the {{variables}} its instructions declare. */
+  variables: z.record(z.string(), z.string()).nullable(),
+  embeddingModel: z.string(),
+  followUpSuggestionsEnabled: z.boolean(),
+  followUpSuggestionsInstructions: z.string().nullable(),
+  followUpSuggestionsMax: z.number(),
+})
+
+export type AgentVersionOutputDto = z.output<typeof agentVersionOutputSchema>

@@ -4,7 +4,7 @@ import {
   CampaignPage,
   CampaignsPageSkeleton,
   campaignEditorSearchSchema,
-  loadCampaign,
+  loadCampaignSetup,
   requireCampaignAgent,
 } from "@/features/campaigns"
 import { uuidParams } from "@/lib/not-found"
@@ -16,7 +16,7 @@ export const Route = createFileRoute(
   params: { parse: uuidParams("reviewCampaignId") },
   validateSearch: campaignEditorSearchSchema,
   beforeLoad: ({ context }) => requireCampaignAgent(context.agent),
-  loader: ({ context, params }) => loadCampaign(context.queryClient, params, context.agent),
+  loader: ({ context, params }) => loadCampaignSetup(context.queryClient, params, context.agent),
   pendingComponent: CampaignsPageSkeleton,
   errorComponent: RouteErrorState,
   component: CampaignRoute,

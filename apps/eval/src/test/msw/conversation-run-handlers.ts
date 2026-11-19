@@ -1,7 +1,6 @@
 import { EvalAgentsRoutes, EvalConversationRunsRoutes } from "@caseai-connect/eval-contracts"
 import {
   buildAgentModels,
-  buildAgentVersions,
   buildConversationRun,
   buildConversationRunRecord,
 } from "../factories/conversation-runs.factory"
@@ -19,7 +18,6 @@ export function conversationRunHandlers(world: EvalWorld) {
     return entry.run
   }
   return [
-    mockRoute(EvalAgentsRoutes.getVersions, () => buildAgentVersions()),
     mockRoute(EvalAgentsRoutes.getModels, () => buildAgentModels()),
     mockRoute(EvalConversationRunsRoutes.getAll, ({ params }) =>
       world.conversationRuns

@@ -1,4 +1,5 @@
-export { defaultCampaignValues } from "./campaign-defaults"
+export { agentVersionsQueryOptions } from "./api/queries"
+export { AgentVersionPicker } from "./components/AgentVersionPicker"
 export { CampaignPage } from "./components/CampaignPage"
 export { CampaignPageFrame } from "./components/CampaignPageFrame"
 export { CampaignsPage } from "./components/CampaignsPage"
@@ -8,7 +9,9 @@ export { NewCampaignPage } from "./components/NewCampaignPage"
 export {
   hasCampaignPages,
   loadCampaign,
+  loadCampaignSetup,
   loadCampaigns,
+  loadNewCampaign,
   prefetchCampaigns,
   requireCampaignAgent,
 } from "./load-campaigns"

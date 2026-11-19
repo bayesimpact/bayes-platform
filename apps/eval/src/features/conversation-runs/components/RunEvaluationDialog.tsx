@@ -28,12 +28,13 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import type { EvaluationAgent } from "@/features/agents"
+import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
 import { useStartConversationRun } from "../api/mutations"
-import { agentSavedVersionsQueryOptions, judgeModelsQueryOptions } from "../api/queries"
+import { judgeModelsQueryOptions } from "../api/queries"
 
 /** What the dialog asks: the version to evaluate, the judge, and how much of the dataset to ask. */
 const runFormSchema = z.object({
-  revision: z.number().int(),
+  versionId: z.uuid(),
   judgeModel: z.string().min(1),
   judgeInstructions: z.string().max(CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH),
   scope: z.enum(["all", "limited"]),
@@ -61,13 +62,12 @@ export function RunEvaluationDialog({
   onStarted,
 }: RunEvaluationDialogProps) {
   const { t } = useLingui()
-  const versionId = useId()
   const judgeModelId = useId()
   const judgeInstructionsId = useId()
   const limitedCountId = useId()
   const allRecordsId = useId()
   const firstRecordsId = useId()
-  const { data: versions } = useSuspenseQuery(agentSavedVersionsQueryOptions(agentParams))
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   const { data: judge } = useSuspenseQuery(judgeModelsQueryOptions(agentParams))
   const startRun = useStartConversationRun(agentParams)
   // The version in production first: it is the one the agent's users talk to.
@@ -75,7 +75,7 @@ export function RunEvaluationDialog({
   const form = useForm({
     resolver: zodResolver(runFormSchema),
     defaultValues: {
-      revision: defaultVersion?.revision ?? 0,
+      versionId: defaultVersion?.id ?? "",
       judgeModel: judge.models.includes(judge.defaultModel)
         ? judge.defaultModel
         : (judge.models[0] ?? ""),
@@ -89,11 +89,13 @@ export function RunEvaluationDialog({
   const datasetName = dataset.name
   const recordCount = dataset.recordCount
   const canRun = versions.length > 0 && judge.models.length > 0
-  const handleSubmit = form.handleSubmit((values) =>
+  const handleSubmit = form.handleSubmit((values) => {
+    const version = versions.find((candidate) => candidate.id === values.versionId)
+    if (!version) return
     startRun.mutate(
       {
         agentId: agentParams.agentId,
-        agentSettingsRevision: values.revision,
+        agentSettingsRevision: version.revision,
         datasetId: dataset.id,
         judgeModel: values.judgeModel,
         judgeInstructions: values.judgeInstructions.trim() || null,
@@ -106,8 +108,8 @@ export function RunEvaluationDialog({
         },
         onError: () => toast.error(t`The evaluation could not start. Try again.`),
       },
-    ),
-  )
+    )
+  })
   return (
     <Dialog
       open
@@ -134,43 +136,20 @@ export function RunEvaluationDialog({
         >
           <Controller
             control={form.control}
-            name="revision"
-            render={({ field }) => (
-              <Field>
-                <FieldLabel htmlFor={versionId}>
-                  <Trans comment="The saved version of an agent that an evaluation asks">
-                    Agent version
-                  </Trans>
-                </FieldLabel>
-                {versions.length === 0 ? (
-                  <FieldError>
-                    <Trans>
-                      This agent has no saved version yet. Save one in the Studio, then run the
-                      evaluation.
-                    </Trans>
-                  </FieldError>
-                ) : (
-                  <NativeSelect
-                    id={versionId}
-                    value={field.value}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
-                  >
-                    {versions.map((version) => {
-                      const revision = version.revision
-                      return (
-                        <NativeSelectOption key={revision} value={revision}>
-                          {version.isProduction
-                            ? t`Version ${revision} · In production`
-                            : t`Version ${revision}`}
-                        </NativeSelectOption>
-                      )
-                    })}
-                  </NativeSelect>
-                )}
-                <FieldDescription>
-                  <Trans>A run evaluates a saved version, never the draft.</Trans>
-                </FieldDescription>
-              </Field>
+            name="versionId"
+            render={({ field, fieldState }) => (
+              <AgentVersionPicker
+                agentParams={agentParams}
+                agentName={agentName}
+                selectedId={field.value}
+                onSelect={field.onChange}
+                description={<Trans>A run evaluates a saved version, never the draft.</Trans>}
+                error={
+                  fieldState.invalid ? (
+                    <Trans>Choose the version the evaluation asks.</Trans>
+                  ) : undefined
+                }
+              />
             )}
           />
           <Controller

@@ -29,7 +29,7 @@ const {
   PageFailsAfterNewRelease,
   ...generalPages
 } = composeStories(generalStories)
-const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
+const { RemoveQuestion, LeaveWithUnsavedChanges, ChooseAgentVersion, ...campaignPages } =
   composeStories(campaignStories)
 const { NewDataset, AddRecord, AddSeveralRecords, RunEvaluation, ...conversationEvaluationPages } =
   composeStories(conversationEvaluationStories)
@@ -131,7 +131,11 @@ const PAGES = {
   },
   NewCampaign: {
     Story: pageStories.NewCampaign,
-    loaded: () => screen.findByRole("button", { name: "Next" }),
+    loaded: () => screen.findByRole("button", { name: "Choose a version" }),
+  },
+  NewCampaignWithNoSavedVersion: {
+    Story: pageStories.NewCampaignWithNoSavedVersion,
+    loaded: () => screen.findByText(/This agent has no saved version yet/),
   },
   DraftCampaign: {
     Story: pageStories.DraftCampaign,
@@ -172,6 +176,14 @@ const PAGES = {
   LockedSetup: {
     Story: pageStories.LockedSetup,
     loaded: () => screen.findByRole("tab", { name: "Session review" }),
+  },
+  ClosedCampaignOnArchivedVersion: {
+    Story: pageStories.ClosedCampaignOnArchivedVersion,
+    loaded: () => screen.findByText("An archived version"),
+  },
+  ClosedCampaignSetup: {
+    Story: pageStories.ClosedCampaignSetup,
+    loaded: () => screen.findByText("Version 2"),
   },
   ClosedCampaign: {
     Story: pageStories.ClosedCampaign,
@@ -255,19 +267,24 @@ describe("the stories of the app", () => {
     expect(within(dialog).getByRole("textbox", { name: "Name" })).toBeInTheDocument()
   })
 
-  it("RunEvaluation picks the version in production and the default judge", async () => {
+  it("RunEvaluation picks the version in production and the default judge, then opens the run", async () => {
     await RunEvaluation.load()
     const { container } = render(<RunEvaluation />)
     await act(() => RunEvaluation.play?.({ canvasElement: container }))
 
     const dialog = await screen.findByRole("dialog", { name: "Run an evaluation" })
-    expect(within(dialog).getByRole("combobox", { name: "Agent version" })).toHaveDisplayValue(
-      "Version 2 · In production",
+    expect(within(dialog).getByRole("group", { name: "Agent version" })).toHaveTextContent(
+      "Spring release",
     )
     expect(within(dialog).getByRole("combobox", { name: "Judge model" })).toHaveValue("model-large")
     expect(
       within(dialog).getByRole("radio", { name: "All 12 records of the dataset" }),
     ).toBeChecked()
+
+    // Run creates the run, starts it and opens its page, which follows it.
+    await userEvent.click(within(dialog).getByRole("button", { name: "Run" }))
+    expect(await screen.findByRole("button", { name: "Cancel the run" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /^Run of / })).toBeInTheDocument()
   })
 
   it("AddRecord asks a record's input and expected output", async () => {
@@ -353,6 +370,16 @@ describe("the stories of the app", () => {
 
     expect(
       await screen.findByRole("alertdialog", { name: "Remove question 1?" }),
+    ).toBeInTheDocument()
+  })
+
+  it("ChooseAgentVersion opens the history of the agent's versions", async () => {
+    await ChooseAgentVersion.load()
+    const { container } = render(<ChooseAgentVersion />)
+    await act(() => ChooseAgentVersion.play?.({ canvasElement: container }))
+
+    expect(
+      await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" }),
     ).toBeInTheDocument()
   })
 

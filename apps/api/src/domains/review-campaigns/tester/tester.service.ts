@@ -103,12 +103,11 @@ export class TesterService {
     })
     if (!agent) throw new NotFoundException(`Agent ${campaign.agentId} not found`)
 
-    const agentSettings = await this.agentSettingsService.getProduction({
+    // The version the campaign's managers chose, whatever runs in production meanwhile.
+    const agentSettings = await this.agentSettingsService.getById({
       connectScope,
-      agentId: agent.id,
+      agentSettingsId: campaign.agentSettingsId,
     })
-    if (!agentSettings)
-      throw new NotFoundException(`AgentSettings for Agent ${campaign.agentId} not found`)
 
     return { agent, agentSettings }
   }

@@ -151,7 +151,21 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   comment comes from the Studio's "Save as test case" and is only read here. In the sidebar,
   Evaluations is then a menu that folds, as Campaigns: List all, New dataset, which opens the
   list with its dialog (the `create` search param), then the datasets
-  (`ConversationDatasetsSidebarEntries`). Of Evaluations and Campaigns, only the menu that holds
+  (`ConversationDatasetsSidebarEntries`). A dataset's page has two tabs, Records and Runs (the
+  `tab` search param).
+- The runs of a conversation dataset (`features/conversation-runs`), on the API's
+  `evaluation-conversation-runs` routes (`EvalConversationRunsRoutes`). Run evaluation, on a
+  dataset's page, opens `RunEvaluationDialog`: the version of the agent, picked with the campaigns'
+  `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
+  project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
+  instructions for the judge, and all the records or the first ones. It creates the run, starts it,
+  then opens its page. The Runs tab (`ConversationRunsSection`) lists the dataset's runs by any
+  agent of the project. A run's page, `evaluations/$datasetId/runs/$runId`
+  (`ConversationRunPage`), shows its figures, what it used, and its records a page at a time, with
+  Cancel while it is under way, Retry after a failure, and Delete. A run under way is read again
+  every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
+  The form state an agent filled during a run and the comparison of runs are not here yet.
+- In the sidebar, of Evaluations and Campaigns, only the menu that holds
   the current page opens at first, and both on a page neither holds (`useOpenSidebarTopMenu` in
   `src/routes/-components/`). An extraction agent's evaluations are not here yet: its
   page says so, and its sidebar keeps a plain link.
@@ -176,6 +190,15 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   others. In the setup, the bar's Activate gives way to the Activate step, and the preview opens
   only the step's form. The three forms have one name each, everywhere: After each session, Final
   survey, Session review, the names their testers and reviewers see.
+- A campaign runs on one saved version of its agent's settings (`agentSettingsId`): the API
+  gives the tester's chat, the tester's context and the reviewer's view that version, whatever
+  goes to production meanwhile. The Campaign step names it (`AgentVersionField`), the one in
+  production by default, and opens the agent's history in a sheet (`AgentVersionsSheet`), as the
+  Studio shows it: the saved versions, never the draft, each one's changes against the version
+  before it or the one in production (`agent-version-diff.ts`, drawn by `@pierre/diffs` in
+  `TextDiff`, the Studio's library), and a button that selects it. The versions come from
+  `GET .../agents/:agentId/settings` (`agent.settings.read`, which a campaign's managers hold).
+  The General card of `CampaignSetupView` names the version of a campaign that no longer changes.
 - Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms
   (`CampaignSetupView`), its General card then one sub-tab per form, as the report does. A form's
   fields are `FeedbackFormFields`, which the setup's preview panel folds in `FeedbackFormPreview`

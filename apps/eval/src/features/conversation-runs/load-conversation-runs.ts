@@ -4,10 +4,10 @@ import type {
   ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
+import { agentVersionsQueryOptions } from "@/features/campaigns"
 import { orNotFound } from "@/lib/not-found"
 import { loaderStaleTime } from "@/lib/start-query"
 import {
-  agentSavedVersionsQueryOptions,
   conversationRunQueryOptions,
   conversationRunRecordsQueryOptions,
   judgeModelsQueryOptions,
@@ -25,7 +25,7 @@ export async function loadConversationRuns(queryClient: QueryClient, agent: Agen
         ...projectConversationRunsQueryOptions(agent),
         staleTime: loaderStaleTime,
       }),
-      queryClient.query({ ...agentSavedVersionsQueryOptions(agent), staleTime: loaderStaleTime }),
+      queryClient.query({ ...agentVersionsQueryOptions(agent), staleTime: loaderStaleTime }),
       queryClient.query({ ...judgeModelsQueryOptions(agent), staleTime: loaderStaleTime }),
     ]),
   )

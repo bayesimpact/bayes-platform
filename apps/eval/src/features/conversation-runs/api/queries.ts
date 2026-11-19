@@ -1,5 +1,4 @@
 import {
-  type AgentParamsDto,
   CONVERSATION_RUN_RECORDS_PAGE_SIZE,
   type ConversationRunParamsDto,
   EvalAgentsRoutes,
@@ -57,18 +56,6 @@ export const conversationRunRecordsQueryOptions = (
         signal,
       }),
     refetchInterval: isActive ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS : false,
-  })
-
-/** The saved versions of an agent a run can evaluate, the newest first: never its draft. */
-export const agentSavedVersionsQueryOptions = (agent: AgentParamsDto) =>
-  queryOptions({
-    queryKey: conversationRunKeys.agentVersions(agent),
-    queryFn: async ({ signal }) => {
-      const versions = await apiRequest(EvalAgentsRoutes.getVersions, { params: agent, signal })
-      return versions
-        .filter((version) => !version.isDraft && !version.isArchived)
-        .sort((first, second) => second.revision - first.revision)
-    },
   })
 
 /** The models of a project that can judge a run, and the one a new run starts with. */

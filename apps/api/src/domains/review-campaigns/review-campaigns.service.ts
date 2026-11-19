@@ -30,6 +30,7 @@ import { TesterService } from "./tester/tester.service"
 
 export type CreateReviewCampaignFields = {
   agentId: string
+  agentSettingsId?: string
   name: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestion[]
@@ -39,6 +40,7 @@ export type CreateReviewCampaignFields = {
 
 export type UpdateReviewCampaignFields = {
   agentId?: string
+  agentSettingsId?: string
   name?: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestion[]
@@ -83,6 +85,7 @@ export class ReviewCampaignsService {
     const agentSettingsId = await this.resolveAgentSettingsId({
       connectScope,
       agentId: fields.agentId,
+      agentSettingsId: fields.agentSettingsId,
     })
 
     return this.reviewCampaignConnectRepository.createAndSave(connectScope, {
@@ -166,12 +169,16 @@ export class ReviewCampaignsService {
       )
     }
 
-    if (configUpdates.agentId !== undefined && configUpdates.agentId !== campaign.agentId) {
+    const isAgentChange =
+      configUpdates.agentId !== undefined && configUpdates.agentId !== campaign.agentId
+    if (isAgentChange || configUpdates.agentSettingsId !== undefined) {
+      const agentId = configUpdates.agentId ?? campaign.agentId
       campaign.agentSettingsId = await this.resolveAgentSettingsId({
         connectScope,
-        agentId: configUpdates.agentId,
+        agentId,
+        agentSettingsId: configUpdates.agentSettingsId,
       })
-      campaign.agentId = configUpdates.agentId
+      campaign.agentId = agentId
     }
     if (configUpdates.name !== undefined) {
       if (!configUpdates.name.trim()) {
@@ -199,12 +206,19 @@ export class ReviewCampaignsService {
     return this.reviewCampaignConnectRepository.saveOne(campaign)
   }
 
+  /**
+   * The version of the agent's settings a campaign runs on: the saved version its managers chose,
+   * else the one in production. Never the draft, which changes under the testers, nor an archived
+   * version.
+   */
   private async resolveAgentSettingsId({
     connectScope,
     agentId,
+    agentSettingsId,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
+    agentSettingsId: string | undefined
   }): Promise<string> {
     const agent = await this.agentRepository.findOne({
       where: {
@@ -216,6 +230,28 @@ export class ReviewCampaignsService {
     if (!agent) {
       throw new UnprocessableEntityException(`Agent ${agentId} not found in this project`)
     }
+
+    if (agentSettingsId !== undefined) {
+      const agentSettings = await this.agentSettingsService.getById({
+        connectScope,
+        agentSettingsId,
+      })
+      if (agentSettings.agentId !== agent.id) {
+        throw new NotFoundException(`AgentSettings with id ${agentSettingsId} not found`)
+      }
+      if (agentSettings.isDraft) {
+        throw new UnprocessableEntityException(
+          "A campaign runs on a saved version of the agent, not its draft",
+        )
+      }
+      if (agentSettings.isArchived) {
+        throw new UnprocessableEntityException(
+          `Version ${agentSettings.revision} is archived and cannot be reviewed in a campaign`,
+        )
+      }
+      return agentSettings.id
+    }
+
     const agentSettings = await this.agentSettingsService.findProduction({
       connectScope,
       agentId: agent.id,

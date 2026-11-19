@@ -1,8 +1,6 @@
 import {
   type AgentModelsOutputDto,
-  type AgentVersionOutputDto,
   agentModelsOutputSchema,
-  agentVersionOutputSchema,
   type ConversationRunOutputDto,
   type ConversationRunRecordOutputDto,
   conversationRunOutputSchema,
@@ -28,26 +26,6 @@ export function buildAgentModels(): AgentModelsOutputDto {
     ],
     defaults: { judge: "model-large" },
   })
-}
-
-/** The versions of an agent: its draft, version 3, and version 2 in production. */
-export function buildAgentVersions(): AgentVersionOutputDto[] {
-  const version = (overrides: Partial<AgentVersionOutputDto>) =>
-    agentVersionOutputSchema.parse({
-      revision: 1,
-      isDraft: false,
-      isArchived: false,
-      isProduction: false,
-      model: "model-large",
-      createdAt: daysAgo(30),
-      ...overrides,
-    })
-  return [
-    version({ revision: 4, isDraft: true, createdAt: daysAgo(1) }),
-    version({ revision: 3, createdAt: daysAgo(4) }),
-    version({ revision: 2, isProduction: true, createdAt: daysAgo(12) }),
-    version({ revision: 1, model: "model-small" }),
-  ]
 }
 
 /** A record of a run, checked against the contract. */

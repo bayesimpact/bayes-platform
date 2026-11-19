@@ -1,8 +1,4 @@
-import type {
-  AgentParamsDto,
-  ConversationRunParamsDto,
-  ProjectParamsDto,
-} from "@caseai-connect/eval-contracts"
+import type { ConversationRunParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
 
 export const conversationRunKeys = {
   all: ["conversation-runs"] as const,
@@ -14,8 +10,6 @@ export const conversationRunKeys = {
   detail: (run: ConversationRunParamsDto) => [...conversationRunKeys.ofRun(run), "detail"] as const,
   recordsPage: (run: ConversationRunParamsDto, page: number) =>
     [...conversationRunKeys.ofRun(run), "records", page] as const,
-  agentVersions: (agent: AgentParamsDto) =>
-    [...conversationRunKeys.all, "versions", agent.agentId] as const,
   projectModels: (project: ProjectParamsDto) =>
     [...conversationRunKeys.all, "models", project.projectId] as const,
 }

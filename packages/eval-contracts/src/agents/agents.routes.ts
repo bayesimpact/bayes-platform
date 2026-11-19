@@ -6,8 +6,8 @@ import {
   projectParamsSchema,
 } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
-import { agentModelsOutputSchema, agentVersionOutputSchema } from "./agent-versions.dto"
-import { projectAgentOutputSchema } from "./agents.dto"
+import { agentModelsOutputSchema } from "./agent-versions.dto"
+import { agentVersionOutputSchema, projectAgentOutputSchema } from "./agents.dto"
 
 export const EvalAgentsRoutes = {
   getAllOfProject: defineSchemaRoute({
@@ -16,7 +16,7 @@ export const EvalAgentsRoutes = {
     params: projectParamsSchema,
     response: z.array(projectAgentOutputSchema),
   }),
-  /** The versions of an agent's settings, its draft included. */
+  /** The versions of an agent's settings, the draft included: `agent.settings.read`. */
   getVersions: defineSchemaRoute({
     method: "get",
     path: `${AGENT_PATH}/settings`,
