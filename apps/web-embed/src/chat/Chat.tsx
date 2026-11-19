@@ -1,6 +1,6 @@
 import type * as React from "react"
-import { cn } from "./lib/cn"
 import { DEFAULT_PRIMARY_COLOR } from "../theme"
+import { cn } from "./lib/cn"
 
 export function Chat({
   className,
