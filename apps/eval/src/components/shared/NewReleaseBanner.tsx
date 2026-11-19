@@ -15,7 +15,7 @@ export function NewReleaseBanner() {
     // Above the fade of the bar, which would blur its top edge.
     <div className="relative z-20 shrink-0 px-4 pb-2">
       {/* An `output` has the status role: a screen reader reads the note once it shows. */}
-      <output className="mx-auto flex max-w-3xl items-start gap-3 rounded-2xl border bg-background p-3 shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-300 dark:bg-card">
+      <output className="mx-auto flex max-w-3xl items-start gap-3 rounded-lg border bg-background p-3 shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-300 dark:bg-card">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <RotateCwIcon aria-hidden className="size-4" />
         </span>
