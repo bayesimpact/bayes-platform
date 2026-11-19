@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent instructions: an advanced mode shows the instructions as a diff with the last saved version and edits them there.
 - Desk: a hidden sidebar shows over the page while the pointer is on the button that shows it.
 - Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon, which runs outside the EU.
+- (beta) Agent models: agents can run on Claude models in the EU and on OpenAI models outside the EU.
 
 ### Changed
 
