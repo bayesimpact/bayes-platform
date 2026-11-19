@@ -282,6 +282,22 @@ describe("the stories of the app", () => {
     expect(screen.getByRole("heading", { name: /^Run of / })).toBeInTheDocument()
   })
 
+  it("CompletedRun lists the runs of its dataset in the sidebar, under the dataset", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    const dataset = (await screen.findByRole("link", { name: "Pricing questions" })).closest("li")
+    if (!dataset) throw new Error("The sidebar has no entry for the dataset")
+    const runs = await within(dataset).findAllByRole("link", { name: /Completed|Running|Failed/ })
+    expect(runs).toHaveLength(3)
+    // The run whose page shows is the marked one, not its dataset.
+    expect(runs.filter((run) => run.getAttribute("aria-current") === "page")).toHaveLength(1)
+    expect(screen.getByRole("link", { name: "Pricing questions" })).not.toHaveAttribute(
+      "aria-current",
+    )
+  })
+
   it("AddRecord asks a record's input and expected output", async () => {
     await AddRecord.load()
     const { container } = render(<AddRecord />)

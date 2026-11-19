@@ -1332,6 +1332,11 @@ msgstr "No review campaign yet"
 msgid "No review campaign yet."
 msgstr "No review campaign yet."
 
+#. Under a dataset in the sidebar, when no evaluation ran on it
+#: src/features/conversation-runs/components/ConversationRunLinks.tsx
+msgid "No run yet."
+msgstr "No run yet."
+
 #: src/features/campaign-review/components/ReviewerSessionLinks.tsx
 msgid "No session to review yet."
 msgstr "No session to review yet."
