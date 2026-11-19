@@ -9,7 +9,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { EllipsisIcon, RotateCwIcon, Trash2Icon } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { BackLink } from "@/components/shared/BackLink"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
@@ -91,7 +91,9 @@ export function ConversationRunPage({
   )
   // A filter that keeps nothing any more, as a run under way moves on, gives way to All.
   const activeFilter = filters.includes(filter) ? filter : "all"
-  const shown = filterResults(results, activeFilter)
+  // The same list from one render to the next: the table reads a new list as new data, and one
+  // made at each render sends it into a loop of renders.
+  const shown = useMemo(() => filterResults(results, activeFilter), [results, activeFilter])
   const cancelRun = useCancelConversationRun(runParams)
   const retryRun = useRetryConversationRun(runParams)
   const deleteRun = useDeleteConversationRun(runParams)
