@@ -144,6 +144,11 @@ msgstr "{sessionCount, plural, one {# session} other {# sessions}}"
 msgid "{star, plural, one {# star} other {# stars}}"
 msgstr "{star, plural, one {# étoile} other {# étoiles}}"
 
+#. A sub-tab of a dataset's runs: a status and how many runs stand at it
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "{statusName} ({count})"
+msgstr "{statusName} ({count})"
+
 #: src/features/conversation/components/Composer.tsx
 msgid "{taskCount, plural, one {# changed task} other {# changed tasks}}"
 msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées}}"

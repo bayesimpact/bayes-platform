@@ -21,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { flattenEvaluationAgents, useEvaluationWorkspace } from "@/features/agents"
 import { fullDateTimeOf } from "@/lib/format-time"
 import { useDeleteConversationRun } from "../api/mutations"
@@ -36,7 +37,7 @@ export type ConversationRunsSectionProps = {
 }
 
 /**
- * The runs of a dataset by any conversation agent of its project, in one table per status, the
+ * The runs of a dataset by any conversation agent of its project, in one sub-tab per status, the
  * newest first in each.
  */
 export function ConversationRunsSection({
@@ -56,6 +57,9 @@ export function ConversationRunsSection({
     flattenEvaluationAgents(groups).map((agent) => [agent.id, agent.name] as const),
   )
   const runCount = runs.length
+  // The statuses that hold runs, in the order of the sub-tabs.
+  const statuses = RUN_STATUS_ORDER.filter((status) => runs.some((run) => run.status === status))
+  const [firstStatus] = statuses
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
@@ -71,24 +75,36 @@ export function ConversationRunsSection({
           <Trans>No evaluation ran on this dataset yet.</Trans>
         </p>
       ) : null}
-      {RUN_STATUS_ORDER.map((status) => {
-        const group = runs.filter((run) => run.status === status)
-        if (group.length === 0) return null
-        return (
-          <div key={status} className="flex flex-col gap-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              {i18n._(RUN_STATUS_LABELS[status])}
-            </h3>
-            <RunsTable
-              runs={group}
-              agentParams={agentParams}
-              datasetId={dataset.datasetId}
-              agentNames={agentNames}
-              onDelete={canDelete ? setDeleted : null}
-            />
-          </div>
-        )
-      })}
+      {firstStatus ? (
+        // Its statuses as keys: a status that gains its first run, or loses its last one, starts
+        // the sub-tabs afresh on one that holds runs.
+        <Tabs key={statuses.join()} defaultValue={firstStatus}>
+          <TabsList variant="line" className="max-w-full overflow-x-auto">
+            {statuses.map((status) => {
+              const statusName = i18n._(RUN_STATUS_LABELS[status])
+              const count = i18n.number(runs.filter((run) => run.status === status).length)
+              return (
+                <TabsTrigger key={status} value={status}>
+                  <Trans comment="A sub-tab of a dataset's runs: a status and how many runs stand at it">
+                    {statusName} ({count})
+                  </Trans>
+                </TabsTrigger>
+              )
+            })}
+          </TabsList>
+          {statuses.map((status) => (
+            <TabsContent key={status} value={status}>
+              <RunsTable
+                runs={runs.filter((run) => run.status === status)}
+                agentParams={agentParams}
+                datasetId={dataset.datasetId}
+                agentNames={agentNames}
+                onDelete={canDelete ? setDeleted : null}
+              />
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : null}
       <ConfirmDialog
         isOpen={deleted !== null}
         onOpenChange={(isOpen) => {
