@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent version in production: managers choose which saved version the app, the embed and the public API run.
 - Agent instructions: an advanced mode shows the instructions as a diff with the last saved version and edits them there.
 - Desk: a hidden sidebar shows over the page while the pointer is on the button that shows it.
+- LLM token burn: dashboards show the tokens used and the cost of every LLM call, per agent and per model.
 
 ### Changed
 

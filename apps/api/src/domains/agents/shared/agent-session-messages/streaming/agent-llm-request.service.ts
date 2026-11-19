@@ -94,6 +94,7 @@ export class AgentLlmRequestService {
     sessionState,
     conversationFormStore,
     syntheticUserContent,
+    assistantMessageId,
   }: {
     agentSessionScope: AgentSessionScope
     getProviderForModel: (model: string) => LLMProvider
@@ -110,6 +111,11 @@ export class AgentLlmRequestService {
      * turn after a handoff, the parent's turn after a conclusion).
      */
     syntheticUserContent?: string
+    /**
+     * The assistant message this turn's answer is written to, so the token
+     * metering can attribute the call's usage to it (ADR 0033).
+     */
+    assistantMessageId?: string
   }): Promise<BuiltLLMRequest> {
     const { session, agent, connectScope } = agentSessionScope
 
@@ -170,6 +176,7 @@ export class AgentLlmRequestService {
       session,
       agent,
       agentSettings,
+      assistantMessageId,
       // Traces: the turns of one user message share a number; the label says
       // which one is the sub-agent's, and which one the parent's resumption.
       spanLabel: agentSessionScope.handoff
@@ -234,11 +241,13 @@ export class AgentLlmRequestService {
     session,
     agent,
     agentSettings,
+    assistantMessageId,
     spanLabel,
   }: {
     session: StreamingSession
     agent: Agent
     agentSettings: AgentSettings
+    assistantMessageId?: string
     spanLabel?: string
   }): LLMCallContext {
     this.logger.log(
@@ -252,6 +261,7 @@ export class AgentLlmRequestService {
       projectId: agent.projectId,
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
+      ...(assistantMessageId ? { agentMessageId: assistantMessageId } : {}),
       ...(spanLabel ? { spanLabel } : {}),
     }
   }
