@@ -21,6 +21,9 @@ export const projectAgentOutputSchema = z.object({
 
 export type ProjectAgentOutputDto = z.output<typeof projectAgentOutputSchema>
 
+/** Which documents of its project an agent searches: all of them, none, or those of some tags. */
+export const documentsRagModeSchema = z.enum(["all", "none", "tags"])
+
 /**
  * A version of an agent's settings, as `GET .../agents/:agentId/settings` returns it: the saved
  * versions, newest first, and the draft when there is one. An archived version is not listed.
@@ -41,7 +44,7 @@ export const agentVersionOutputSchema = z.object({
   greetingMessage: z.string().optional(),
   model: z.string(),
   providerOptions: z.record(z.string(), z.unknown()),
-  documentsRagMode: z.string(),
+  documentsRagMode: documentsRagModeSchema,
   outputJsonSchema: z.record(z.string(), z.unknown()).optional(),
   fillFormEnabled: z.boolean(),
   priorityCallsEnabled: z.boolean(),

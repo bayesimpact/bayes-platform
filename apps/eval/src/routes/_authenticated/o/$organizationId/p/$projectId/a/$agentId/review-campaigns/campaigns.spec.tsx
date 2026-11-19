@@ -10,6 +10,7 @@ import {
 } from "@/test/eval-urls"
 import { agentVersionIdOf } from "@/test/factories/agents.factory"
 import {
+  buildArchivedVersionWorld,
   buildEvalWorld,
   buildNoCampaignWorld,
   buildNoSavedVersionWorld,
@@ -157,6 +158,18 @@ describe("a new campaign", () => {
       ),
     )
     expect(world.campaigns).toEqual([])
+  })
+
+  it("asks a draft whose version was archived to choose another one", async () => {
+    const world = buildArchivedVersionWorld()
+    server.use(...worldHandlers(world))
+    renderApp(campaignEditorUrlOf(world, "Onboarding answers"))
+
+    expect(await screen.findByText("No version chosen yet.")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+    expect(await screen.findByText("Choose the version the campaign runs on.")).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: "After each session" })).not.toBeInTheDocument()
   })
 
   it("asks for a name before it creates the campaign", async () => {
@@ -373,6 +386,14 @@ describe("a campaign's editor", () => {
     expect(await screen.findByText("Version 2")).toBeInTheDocument()
     expect(screen.getByText("Product catalog")).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Choose a version" })).not.toBeInTheDocument()
+  })
+
+  it("says when a closed campaign ran on a version archived since", async () => {
+    const world = buildArchivedVersionWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignEditorUrlOf(world, "Spring review")}?tab=setup`)
+
+    expect(await screen.findByText("An archived version")).toBeInTheDocument()
   })
 
   it("opens a closed campaign on its summary", async () => {

@@ -387,6 +387,7 @@ msgstr "Closing ends the campaign for good: testers can no longer start sessions
 msgid "Comment"
 msgstr "Comment"
 
+#. The label of the choice of what a version is compared with
 #: src/features/campaigns/components/AgentVersionCompare.tsx
 msgid "Compare with"
 msgstr "Compare with"
@@ -1053,6 +1054,16 @@ msgstr "Nothing noted yet."
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Nothing to open for this agent"
 msgstr "Nothing to open for this agent"
+
+#. A setting of an agent that is turned off, in a diff
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Off"
+msgstr "Off"
+
+#. A setting of an agent that is turned on, in a diff
+#: src/features/campaigns/agent-version-diff.ts
+msgid "On"
+msgstr "On"
 
 #: src/features/campaigns/components/ActivateStep.tsx
 #: src/features/campaigns/components/CampaignStatusActions.tsx

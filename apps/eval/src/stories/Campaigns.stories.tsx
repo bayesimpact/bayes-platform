@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { campaignEditorUrlOf, campaignsUrlOf } from "@/test/eval-urls"
 import {
+  buildArchivedVersionWorld,
   buildNoCampaignWorld,
   buildNoSavedVersionWorld,
   type EvalWorld,
@@ -137,6 +138,14 @@ export const LockedSetup: Story = {
 /** A closed campaign's setup, which ran on an older version of the agent than the one in production. */
 export const ClosedCampaignSetup: Story = {
   parameters: evaluation({
+    url: (world) => `${campaignEditorUrlOf(world, "Spring review")}?tab=setup`,
+  }),
+}
+
+/** A closed campaign that ran on a version of the agent archived since. */
+export const ClosedCampaignOnArchivedVersion: Story = {
+  parameters: evaluation({
+    world: buildArchivedVersionWorld,
     url: (world) => `${campaignEditorUrlOf(world, "Spring review")}?tab=setup`,
   }),
 }

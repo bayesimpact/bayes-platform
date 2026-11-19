@@ -387,6 +387,7 @@ msgstr "La clôture est définitive : les testeurs ne peuvent plus démarrer de 
 msgid "Comment"
 msgstr "Commentaire"
 
+#. The label of the choice of what a version is compared with
 #: src/features/campaigns/components/AgentVersionCompare.tsx
 msgid "Compare with"
 msgstr "Comparer avec"
@@ -1053,6 +1054,16 @@ msgstr "Rien de noté pour l'instant."
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Nothing to open for this agent"
 msgstr "Rien à ouvrir pour cet agent"
+
+#. A setting of an agent that is turned off, in a diff
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Off"
+msgstr "Désactivé"
+
+#. A setting of an agent that is turned on, in a diff
+#: src/features/campaigns/agent-version-diff.ts
+msgid "On"
+msgstr "Activé"
 
 #: src/features/campaigns/components/ActivateStep.tsx
 #: src/features/campaigns/components/CampaignStatusActions.tsx

@@ -172,6 +172,21 @@ export function buildNoSavedVersionWorld(): EvalWorld {
 }
 
 /**
+ * The main case, whose closed campaign ran on a version archived since, and whose draft points at
+ * it too: the agent's history no longer lists it.
+ */
+export function buildArchivedVersionWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  const archivedId = crypto.randomUUID()
+  return {
+    ...world,
+    campaigns: world.campaigns.map((campaign) =>
+      campaign.status === "active" ? campaign : { ...campaign, agentSettingsId: archivedId },
+    ),
+  }
+}
+
+/**
  * An owner of a project who is not its evaluator, as owners and admins are by default: the agent
  * opens its review campaigns, and nothing else.
  */

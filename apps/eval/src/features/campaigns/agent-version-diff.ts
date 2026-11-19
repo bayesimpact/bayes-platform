@@ -1,5 +1,5 @@
 import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
-import type { MessageDescriptor } from "@lingui/core"
+import type { I18n, MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 
 /** The fields of a version that change from one version to another, in the order they show. */
@@ -85,13 +85,23 @@ export const AGENT_VERSION_DIFF_FILE_NAMES = {
   followUpSuggestionsMax: "follow-up-suggestions-max.txt",
 } as const satisfies Record<AgentVersionDiffKey, string>
 
-/** A field of a version as text: an object as indented JSON, nothing as an empty text. */
+const SWITCH_LABELS = {
+  on: msg({ message: "On", comment: "A setting of an agent that is turned on, in a diff" }),
+  off: msg({ message: "Off", comment: "A setting of an agent that is turned off, in a diff" }),
+} as const
+
+/**
+ * A field of a version as text, in the person's language: a switch as On or Off, an object as
+ * indented JSON, nothing as an empty text.
+ */
 export function agentVersionFieldText(
   version: AgentVersionOutputDto,
   key: AgentVersionDiffKey,
+  i18n: I18n,
 ): string {
   const value = version[key]
   if (value === undefined || value === null) return ""
+  if (typeof value === "boolean") return i18n._(value ? SWITCH_LABELS.on : SWITCH_LABELS.off)
   if (typeof value === "object") return JSON.stringify(value, null, 2)
   return String(value)
 }
@@ -100,8 +110,9 @@ export function agentVersionFieldText(
 export function changedAgentVersionFields(
   before: AgentVersionOutputDto,
   after: AgentVersionOutputDto,
+  i18n: I18n,
 ): AgentVersionDiffKey[] {
   return AGENT_VERSION_DIFF_KEYS.filter(
-    (key) => agentVersionFieldText(before, key) !== agentVersionFieldText(after, key),
+    (key) => agentVersionFieldText(before, key, i18n) !== agentVersionFieldText(after, key, i18n),
   )
 }

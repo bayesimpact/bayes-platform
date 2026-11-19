@@ -137,6 +137,10 @@ const PAGES = {
     Story: pageStories.LockedSetup,
     loaded: () => screen.findByRole("tab", { name: "Session review" }),
   },
+  ClosedCampaignOnArchivedVersion: {
+    Story: pageStories.ClosedCampaignOnArchivedVersion,
+    loaded: () => screen.findByText("An archived version"),
+  },
   ClosedCampaignSetup: {
     Story: pageStories.ClosedCampaignSetup,
     loaded: () => screen.findByText("Version 2"),

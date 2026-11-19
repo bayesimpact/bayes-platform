@@ -2,7 +2,6 @@ import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { CheckIcon } from "lucide-react"
-import { useState } from "react"
 import { badgeVariants } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
@@ -12,13 +11,10 @@ import {
   AGENT_VERSION_DIFF_LABELS,
   type AgentVersionDiffKey,
   agentVersionFieldText,
-  changedAgentVersionFields,
 } from "../agent-version-diff"
+import { useVersionComparison } from "../hooks/use-version-comparison"
 import { AgentVersionTitle } from "./AgentVersionTitle"
 import { TextDiff } from "./TextDiff"
-
-/** What the version shown is compared with: the version before it, or the one in production. */
-type CompareMode = "previous" | "production"
 
 /** The DOM id of a field's diff, which the line of changed fields scrolls to. */
 const diffIdOf = (key: AgentVersionDiffKey) => `agent-version-diff-${key}`
@@ -45,13 +41,15 @@ export function AgentVersionCompare({
   onSelect,
 }: AgentVersionCompareProps) {
   const { i18n, t } = useLingui()
-  const canCompareWithProduction = production !== undefined && production.id !== version.id
-  const [mode, setMode] = useState<CompareMode>(previous ? "previous" : "production")
-  const before = mode === "previous" || !canCompareWithProduction ? previous : production
-  // The version before shows first: the one in production is older or newer than this one.
-  const [older, newer] =
-    before && before.revision > version.revision ? [version, before] : [before, version]
-  const changedFields = older ? changedAgentVersionFields(older, newer) : []
+  const {
+    mode,
+    setMode,
+    canCompareWithPrevious,
+    canCompareWithProduction,
+    older,
+    newer,
+    changedFields,
+  } = useVersionComparison(version, previous, production)
   const olderRevision = older?.revision
   const newerRevision = newer.revision
 
@@ -74,7 +72,10 @@ export function AgentVersionCompare({
       </div>
       <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3 md:px-6">
         <ToggleGroup
-          aria-label={t`Compare with`}
+          aria-label={t({
+            message: "Compare with",
+            comment: "The label of the choice of what a version is compared with",
+          })}
           variant="outline"
           size="sm"
           spacing={0}
@@ -85,7 +86,7 @@ export function AgentVersionCompare({
             if (next === "previous" || next === "production") setMode(next)
           }}
         >
-          <ToggleGroupItem value="previous" disabled={!previous}>
+          <ToggleGroupItem value="previous" disabled={!canCompareWithPrevious}>
             <Trans>Changes in this version</Trans>
           </ToggleGroupItem>
           <ToggleGroupItem value="production" disabled={!canCompareWithProduction}>
@@ -146,8 +147,8 @@ export function AgentVersionCompare({
               <h4 className="font-semibold">{i18n._(AGENT_VERSION_DIFF_LABELS[key])}</h4>
               <TextDiff
                 name={AGENT_VERSION_DIFF_FILE_NAMES[key]}
-                before={agentVersionFieldText(older, key)}
-                after={agentVersionFieldText(newer, key)}
+                before={agentVersionFieldText(older, key, i18n)}
+                after={agentVersionFieldText(newer, key, i18n)}
               />
             </section>
           ))

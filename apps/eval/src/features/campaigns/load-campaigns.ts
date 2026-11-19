@@ -63,11 +63,23 @@ export async function loadNewCampaign(queryClient: QueryClient, agent: AgentPara
   )
 }
 
-/**
- * Loads a campaign, which is not found when it belongs to another agent, with the saved versions
- * of its agent, which its setup chooses from and names.
- */
+/** Loads a campaign, which is not found when it belongs to another agent. */
 export async function loadCampaign(
+  queryClient: QueryClient,
+  campaign: ReviewCampaignParamsDto,
+  agent: EvaluationAgent,
+) {
+  const detail = await orNotFound(() =>
+    queryClient.query({ ...campaignQueryOptions(campaign), staleTime: loaderStaleTime }),
+  )
+  if (detail.agentId !== agent.id) throw notFound()
+}
+
+/**
+ * Loads a campaign's editor: the campaign, with the saved versions of its agent, which its setup
+ * chooses from and names.
+ */
+export async function loadCampaignSetup(
   queryClient: QueryClient,
   campaign: ReviewCampaignParamsDto,
   agent: EvaluationAgent,
@@ -77,13 +89,10 @@ export async function loadCampaign(
     projectId: campaign.projectId,
     agentId: agent.id,
   }
-  const [detail] = await Promise.all([
-    orNotFound(() =>
-      queryClient.query({ ...campaignQueryOptions(campaign), staleTime: loaderStaleTime }),
-    ),
+  await Promise.all([
+    loadCampaign(queryClient, campaign, agent),
     orNotFound(() =>
       queryClient.query({ ...agentVersionsQueryOptions(agentParams), staleTime: loaderStaleTime }),
     ),
   ])
-  if (detail.agentId !== agent.id) throw notFound()
 }

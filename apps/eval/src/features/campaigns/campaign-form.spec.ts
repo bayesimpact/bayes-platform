@@ -66,18 +66,49 @@ describe("the campaign form", () => {
     expect(input.description).toBeNull()
     expect(input.agentSettingsId).toBe(values.agentSettingsId)
     expect(
-      campaignFormValuesOf({
-        id: crypto.randomUUID(),
-        organizationId: crypto.randomUUID(),
-        projectId: crypto.randomUUID(),
-        agentId: crypto.randomUUID(),
-        status: "draft",
-        createdAt: 0,
-        updatedAt: 0,
-        ...input,
-        agentSettingsId: values.agentSettingsId,
-      }).testerPerSessionQuestions,
+      campaignFormValuesOf(
+        {
+          id: crypto.randomUUID(),
+          organizationId: crypto.randomUUID(),
+          projectId: crypto.randomUUID(),
+          agentId: crypto.randomUUID(),
+          status: "draft",
+          createdAt: 0,
+          updatedAt: 0,
+          ...input,
+          agentSettingsId: values.agentSettingsId,
+        },
+        [],
+      ).testerPerSessionQuestions,
     ).toEqual([{ ...question, optionsText: "Yes, Partially, No" }])
+  })
+})
+
+describe("the version a campaign runs on", () => {
+  it("counts a version no longer listed as no choice, which keeps the saved one", () => {
+    const listedId = crypto.randomUUID()
+    const campaign = {
+      id: crypto.randomUUID(),
+      organizationId: crypto.randomUUID(),
+      projectId: crypto.randomUUID(),
+      agentId: crypto.randomUUID(),
+      agentSettingsId: crypto.randomUUID(),
+      name: "Spring pilot",
+      description: null,
+      status: "draft" as const,
+      testerPerSessionQuestions: [],
+      testerEndOfPhaseQuestions: [],
+      reviewerQuestions: [],
+      createdAt: 0,
+      updatedAt: 0,
+    }
+
+    const values = campaignFormValuesOf(campaign, [])
+    expect(values.agentSettingsId).toBe("")
+    expect(campaignConfigInputOf(values)).not.toHaveProperty("agentSettingsId")
+    expect(campaignConfigInputOf({ ...values, agentSettingsId: listedId }).agentSettingsId).toBe(
+      listedId,
+    )
   })
 })
 

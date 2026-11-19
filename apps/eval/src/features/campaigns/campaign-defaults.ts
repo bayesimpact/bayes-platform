@@ -1,3 +1,4 @@
+import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import type { I18n } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import type { CampaignFormValues, QuestionFormValues } from "./schemas"
@@ -21,11 +22,11 @@ const question = (
 export function defaultCampaignValues(
   i18n: I18n,
   agentName: string,
-  productionVersionId: string | undefined,
+  versions: AgentVersionOutputDto[],
 ): CampaignFormValues {
   const today = new Intl.DateTimeFormat(i18n.locale, { dateStyle: "medium" }).format(new Date())
   return {
-    agentSettingsId: productionVersionId ?? "",
+    agentSettingsId: versions.find((version) => version.isProduction)?.id ?? "",
     name: i18n._(msg`Campaign for ${agentName}, ${today}`),
     description: i18n._(msg`Evaluate the agent's answers and share your feedback.`),
     testerPerSessionQuestions: [
