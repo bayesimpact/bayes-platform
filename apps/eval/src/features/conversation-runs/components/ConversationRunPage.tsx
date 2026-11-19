@@ -101,6 +101,7 @@ export function ConversationRunPage({
     flattenEvaluationAgents(groups).find((candidate) => candidate.id === run.agentId)?.name ?? "–"
   const revision = run.agentSettings.revision
   const summary = run.summary
+  const hasErrors = (summary?.errors ?? 0) > 0
   const canRetry = canUpdate && (run.status === "failed" || (summary?.errors ?? 0) > 0) && !isActive
   return (
     <SplitPage
@@ -234,8 +235,17 @@ export function ConversationRunPage({
             value={summary ? `${summary.graded} / ${summary.total}` : "–"}
           />
           <StatCard
-            label={<Trans comment="How many records of a run an error stopped">Errors</Trans>}
-            value={summary ? i18n.number(summary.errors) : "–"}
+            // In red once a record failed: a run with no error keeps the color of the other figures.
+            label={
+              <span className={hasErrors ? "text-destructive" : undefined}>
+                <Trans comment="How many records of a run an error stopped">Errors</Trans>
+              </span>
+            }
+            value={
+              <span className={hasErrors ? "text-destructive" : undefined}>
+                {summary ? i18n.number(summary.errors) : "–"}
+              </span>
+            }
           />
         </div>
         <section className="flex flex-col gap-3">
