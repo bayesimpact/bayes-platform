@@ -25,7 +25,7 @@ msgstr "{0, plural, one {Line {invalidList} has no input or no expected output.}
 msgid "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongList} are too long.}}"
 msgstr "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongList} are too long.}}"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 
@@ -100,7 +100,7 @@ msgstr "{questionCount, plural, one {# question} other {# questions}}"
 msgid "{recordCount, plural, one {Add # record} other {Add # records}}"
 msgstr "{recordCount, plural, one {Add # record} other {Add # records}}"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "{recordCount, plural, one {The # record of the dataset} other {All # records of the dataset}}"
 msgstr "{recordCount, plural, one {The # record of the dataset} other {All # records of the dataset}}"
 
@@ -201,7 +201,7 @@ msgstr "A new version of Evaluation is available. Reload the page."
 msgid "A new version of the app is available"
 msgstr "A new version of the app is available"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "A run evaluates a saved version, never the draft."
 msgstr "A run evaluates a saved version, never the draft."
 
@@ -449,7 +449,7 @@ msgstr "Can we switch plan later?, Yes, at any time, from the billing page."
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 #: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -488,7 +488,7 @@ msgstr "Choose a version"
 msgid "Choose the version the campaign runs on."
 msgstr "Choose the version the campaign runs on."
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Choose the version the evaluation asks."
 msgstr "Choose the version the evaluation asks."
 
@@ -734,7 +734,7 @@ msgstr "Download CSV"
 msgid "Draft"
 msgstr "Draft"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "e.g. Accept an answer that gives the right fact, whatever its wording."
 msgstr "e.g. Accept an answer that gives the right fact, whatever its wording."
 
@@ -969,7 +969,7 @@ msgstr "From the testers' final surveys."
 msgid "General"
 msgstr "General"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Give a number of records, 1 or more."
 msgstr "Give a number of records, 1 or more."
 
@@ -1036,7 +1036,7 @@ msgstr "Home"
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "How many records"
 msgstr "How many records"
 
@@ -1085,7 +1085,7 @@ msgstr "Instructions"
 msgid "Instructions for the judge"
 msgstr "Instructions for the judge"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Instructions for the judge (optional)"
 msgstr "Instructions for the judge (optional)"
 
@@ -1125,7 +1125,7 @@ msgstr "Its records and its runs keep their place."
 #. The model that grades the answers of an evaluation
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Judge model"
 msgstr "Judge model"
 
@@ -1412,7 +1412,7 @@ msgstr "One answer per tester who filled the final survey."
 msgid "Only one version"
 msgstr "Only one version"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Only the first ones, to try"
 msgstr "Only the first ones, to try"
 
@@ -1586,7 +1586,7 @@ msgid "Records"
 msgstr "Records"
 
 #. How much of a dataset an evaluation asks
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Records to ask"
 msgstr "Records to ask"
 
@@ -1759,15 +1759,16 @@ msgid "Rows {first}–{last} of {count}"
 msgstr "Rows {first}–{last} of {count}"
 
 #. Starts an evaluation
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Run"
 msgstr "Run"
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Run an evaluation"
 msgstr "Run an evaluation"
 
-#. Opens the dialog that starts an evaluation of the agent on a dataset
+#. Opens the page that starts an evaluation of the agent on a dataset
+#. Opens the page that starts an evaluation of the agent on a dataset
 #: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
 msgid "Run evaluation"
 msgstr "Run evaluation"
@@ -2214,11 +2215,11 @@ msgstr "The document could not be opened. Try again."
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "The evaluation could not start. Try again."
 msgstr "The evaluation could not start. Try again."
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "The evaluation started."
 msgstr "The evaluation started."
 
@@ -2266,7 +2267,7 @@ msgstr "The mean of the ratings testers gave their sessions."
 msgid "The message a person would send to the agent."
 msgstr "The message a person would send to the agent."
 
-#: src/features/conversation-runs/components/RunEvaluationDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "The model that compares each answer with the expected output."
 msgstr "The model that compares each answer with the expected output."
 

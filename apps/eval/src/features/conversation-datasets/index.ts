@@ -1,4 +1,7 @@
-export { conversationDatasetNameQueryOptions } from "./api/queries"
+export {
+  conversationDatasetNameQueryOptions,
+  conversationDatasetOfProjectQueryOptions,
+} from "./api/queries"
 export { ConversationDatasetPage } from "./components/ConversationDatasetPage"
 export { ConversationDatasetsPage } from "./components/ConversationDatasetsPage"
 export { ConversationDatasetsSidebarEntries } from "./components/ConversationDatasetsSidebarEntries"

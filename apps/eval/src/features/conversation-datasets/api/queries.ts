@@ -45,3 +45,13 @@ export const conversationDatasetNameQueryOptions = (project: ProjectParamsDto, d
     ...projectConversationDatasetsQueryOptions(project),
     select: (datasets) => datasets.find((dataset) => dataset.id === datasetId)?.name ?? "",
   })
+
+/** A dataset of a project, from the project's list: none when the list lacks it. */
+export const conversationDatasetOfProjectQueryOptions = (
+  project: ProjectParamsDto,
+  datasetId: string,
+) =>
+  queryOptions({
+    ...projectConversationDatasetsQueryOptions(project),
+    select: (datasets) => datasets.find((dataset) => dataset.id === datasetId) ?? null,
+  })

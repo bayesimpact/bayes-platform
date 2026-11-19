@@ -155,7 +155,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `tab` search param).
 - The runs of a conversation dataset (`features/conversation-runs`), on the API's
   `evaluation-conversation-runs` routes (`EvalConversationRunsRoutes`). Run evaluation, on a
-  dataset's page, opens `RunEvaluationDialog`: the version of the agent, picked with the campaigns'
+  dataset's page, opens a page of its own, `evaluations/$datasetId/runs/new`
+  (`RunEvaluationPage`): the version of the agent, picked with the campaigns'
   `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
   project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,

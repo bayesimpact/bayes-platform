@@ -8,13 +8,14 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
+import { cn } from "cn"
 import { EllipsisIcon, PencilIcon, PlayIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
-import { ConversationRunsSection, RunEvaluationDialog } from "@/features/conversation-runs"
+import { ConversationRunsSection } from "@/features/conversation-runs"
 import { fullDateTimeOf } from "@/lib/format-time"
 import { projectConversationDatasetsQueryOptions } from "../api/queries"
 import type { ConversationDatasetTab } from "../schemas"
@@ -59,7 +60,7 @@ export function ConversationDatasetPage({
   const { data: datasets } = useSuspenseQuery(
     projectConversationDatasetsQueryOptions(datasetParams),
   )
-  const [action, setAction] = useState<ConversationDatasetAction | "run" | null>(null)
+  const [action, setAction] = useState<ConversationDatasetAction | null>(null)
   const dataset = datasets.find((candidate) => candidate.id === datasetParams.datasetId)
   // The loader found the dataset: it is missing only while its deletion leaves the page.
   if (!dataset) return null
@@ -91,14 +92,22 @@ export function ConversationDatasetPage({
         }
         actions={
           <>
-            {canRun ? (
-              <Button
-                disabled={dataset.recordCount === 0}
-                title={dataset.recordCount === 0 ? t`Add a record first.` : undefined}
-                onClick={() => setAction("run")}
+            {canRun && dataset.recordCount > 0 ? (
+              <Link
+                to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new"
+                params={datasetPage.params}
+                className={cn(buttonVariants())}
               >
                 <PlayIcon data-icon="inline-start" aria-hidden />
-                <Trans comment="Opens the dialog that starts an evaluation of the agent on a dataset">
+                <Trans comment="Opens the page that starts an evaluation of the agent on a dataset">
+                  Run evaluation
+                </Trans>
+              </Link>
+            ) : null}
+            {canRun && dataset.recordCount === 0 ? (
+              <Button disabled title={t`Add a record first.`}>
+                <PlayIcon data-icon="inline-start" aria-hidden />
+                <Trans comment="Opens the page that starts an evaluation of the agent on a dataset">
                   Run evaluation
                 </Trans>
               </Button>
@@ -166,23 +175,9 @@ export function ConversationDatasetPage({
           }
         />
       )}
-      {action === "run" ? (
-        <RunEvaluationDialog
-          agent={agent}
-          agentParams={agentParams}
-          dataset={dataset}
-          onClose={() => setAction(null)}
-          onStarted={(run) =>
-            void navigate({
-              to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId",
-              params: { ...agentParams, datasetId: dataset.id, runId: run.id },
-            })
-          }
-        />
-      ) : null}
       <ConversationDatasetDialogs
         project={datasetParams}
-        action={action === "run" ? null : action}
+        action={action}
         onClose={() => setAction(null)}
         onDeleted={() =>
           void navigate({

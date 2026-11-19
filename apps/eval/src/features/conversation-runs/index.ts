@@ -1,5 +1,5 @@
 export { ConversationRunPage } from "./components/ConversationRunPage"
 export { ConversationRunsSection } from "./components/ConversationRunsSection"
-export { RunEvaluationDialog } from "./components/RunEvaluationDialog"
+export { RunEvaluationPage } from "./components/RunEvaluationPage"
 export { loadConversationRun, loadConversationRuns, runParamsOf } from "./load-conversation-runs"
 export { conversationRunSearchSchema } from "./schemas"

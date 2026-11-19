@@ -269,20 +269,15 @@ describe("the stories of the app", () => {
 
   it("RunEvaluation picks the version in production and the default judge, then opens the run", async () => {
     await RunEvaluation.load()
-    const { container } = render(<RunEvaluation />)
-    await act(() => RunEvaluation.play?.({ canvasElement: container }))
+    render(<RunEvaluation />)
 
-    const dialog = await screen.findByRole("dialog", { name: "Run an evaluation" })
-    expect(within(dialog).getByRole("group", { name: "Agent version" })).toHaveTextContent(
-      "Spring release",
-    )
-    expect(within(dialog).getByRole("combobox", { name: "Judge model" })).toHaveValue("model-large")
-    expect(
-      within(dialog).getByRole("radio", { name: "All 12 records of the dataset" }),
-    ).toBeChecked()
+    expect(await screen.findByRole("heading", { name: "Run an evaluation" })).toBeInTheDocument()
+    expect(screen.getByRole("group", { name: "Agent version" })).toHaveTextContent("Spring release")
+    expect(screen.getByRole("combobox", { name: "Judge model" })).toHaveValue("model-large")
+    expect(screen.getByRole("radio", { name: "All 12 records of the dataset" })).toBeChecked()
 
     // Run creates the run, starts it and opens its page, which follows it.
-    await userEvent.click(within(dialog).getByRole("button", { name: "Run" }))
+    await userEvent.click(screen.getByRole("button", { name: "Run" }))
     expect(await screen.findByRole("button", { name: "Cancel the run" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: /^Run of / })).toBeInTheDocument()
   })

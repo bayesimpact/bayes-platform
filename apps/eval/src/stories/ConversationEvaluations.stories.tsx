@@ -87,13 +87,11 @@ export const DatasetRuns: Story = {
   }),
 }
 
-/** The dialog that starts an evaluation: the agent's version, the judge and how many records. */
+/** The page that starts an evaluation: the agent's version, the judge and how many records. */
 export const RunEvaluation: Story = {
-  parameters: evaluation({ url: (world) => conversationDatasetUrlOf(world, "Pricing questions") }),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.click(await canvas.findByRole("button", { name: "Run evaluation" }))
-  },
+  parameters: evaluation({
+    url: (world) => `${conversationDatasetUrlOf(world, "Pricing questions")}/runs/new`,
+  }),
 }
 
 /** A run that is over: its figures, then each record with the agent's answer and its score. */
