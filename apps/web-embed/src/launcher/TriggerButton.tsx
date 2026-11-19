@@ -1,5 +1,6 @@
 import { MessageCircleIcon, XIcon } from "lucide-react"
 import { cn } from "../chat/lib/cn"
+import { DEFAULT_PRIMARY_COLOR } from "../theme"
 
 export type TriggerButtonPosition = "bottom-right" | "bottom-left"
 
@@ -17,7 +18,7 @@ export type TriggerButtonProps = {
 export function TriggerButton({
   isOpen,
   onClick,
-  primaryColor = "#2563eb",
+  primaryColor = DEFAULT_PRIMARY_COLOR,
   position = "bottom-right",
   className,
 }: TriggerButtonProps) {
