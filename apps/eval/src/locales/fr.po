@@ -1144,10 +1144,8 @@ msgid "Judge"
 msgstr "Juge"
 
 #. The model that graded a run
-#. The model that graded a run
 #. The model that grades the answers of an evaluation
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Judge model"
 msgstr "Modèle juge"

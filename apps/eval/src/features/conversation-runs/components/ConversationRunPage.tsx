@@ -224,7 +224,7 @@ export function ConversationRunPage({
             </>
           }
         />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             label={<Trans comment="The average score of a run">Average score</Trans>}
             value={summary?.averageScore == null ? "–" : scoreOf(summary.averageScore, i18n.locale)}
@@ -236,10 +236,6 @@ export function ConversationRunPage({
           <StatCard
             label={<Trans comment="How many records of a run an error stopped">Errors</Trans>}
             value={summary ? i18n.number(summary.errors) : "–"}
-          />
-          <StatCard
-            label={<Trans comment="The model that graded a run">Judge model</Trans>}
-            value={<span className="font-mono text-base">{run.judgeModel}</span>}
           />
         </div>
         <section className="flex flex-col gap-3">
