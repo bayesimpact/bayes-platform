@@ -58,7 +58,7 @@ export function ChatFooter({
           data-slot="chat-footer"
           className={cn(
             "m-4 flex cursor-text flex-col rounded-2xl border-2 transition-colors",
-            isFocused ? "border-[var(--embed-primary)]" : "border-gray-200",
+            isFocused ? "border-[var(--embed-accent)]" : "border-gray-200",
             className,
           )}
           onClick={() => inputRef.current?.focus()}
