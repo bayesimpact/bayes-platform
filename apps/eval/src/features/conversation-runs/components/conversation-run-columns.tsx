@@ -14,6 +14,10 @@ const runColumnLabels = {
   started: msg({ message: "Started", comment: "The header of the column of when a run started" }),
   version: msg({ message: "Version", comment: "The version of the agent a run evaluated" }),
   judge: msg({ message: "Judge model", comment: "The model that graded a run" }),
+  judgeInstructions: msg({
+    message: "Instructions for the judge",
+    comment: "The header of the column of the instructions a run gave its judge",
+  }),
   score: msg({ message: "Score", comment: "The average score of a run" }),
   graded: msg({ message: "Graded", comment: "How many records of a run are graded" }),
 } satisfies Record<string, MessageDescriptor>
@@ -57,6 +61,24 @@ export function conversationRunColumnsOf({
     columnHelper.accessor("judgeModel", {
       header: translate(runColumnLabels.judge),
       cell: (context) => <span className="font-mono text-xs">{context.getValue()}</span>,
+    }),
+    columnHelper.accessor((run) => run.judgeInstructions ?? "", {
+      id: "judgeInstructions",
+      header: translate(runColumnLabels.judgeInstructions),
+      enableSorting: false,
+      cell: (context) => {
+        const instructions = context.getValue()
+        if (instructions === "") return <span className="text-muted-foreground">–</span>
+        return (
+          // Two lines at most: the run's page shows them whole.
+          <p
+            title={instructions}
+            className="line-clamp-2 max-w-64 min-w-40 whitespace-normal wrap-anywhere text-muted-foreground"
+          >
+            {instructions}
+          </p>
+        )
+      },
     }),
     columnHelper.accessor((run) => run.summary?.averageScore ?? null, {
       id: "score",
