@@ -8,6 +8,7 @@ import {
 import { buildMe } from "../factories/account.factory"
 import { buildEvalWorld, type EvalWorld } from "../factories/eval-world.factory"
 import { campaignHandlers } from "./campaign-handlers"
+import { conversationDatasetHandlers } from "./conversation-dataset-handlers"
 import { apiError, mockRoute } from "./mock-route"
 
 /** The routes that read a world, for the signed-in person: projects, agents and review campaigns. */
@@ -20,6 +21,7 @@ export function worldHandlers(world: EvalWorld, me = buildMe()) {
       world.agents.filter((agent) => agent.projectId === params.projectId),
     ),
     ...campaignHandlers(world, me),
+    ...conversationDatasetHandlers(world),
     ...invitationHandlers(world),
   ]
 }

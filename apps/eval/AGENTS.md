@@ -136,8 +136,22 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   there is nothing.
 - An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, whose
   `route.tsx` is the frame and `index.tsx` the hub, or the way to the agent's only section.
-  `evaluations/` holds the place of the datasets and the runs, empty for now, for who evaluates
-  the agent (`requireEvaluationAgent` in `features/agents`).
+  `evaluations/` holds its datasets and, later, its runs, for who evaluates the agent
+  (`requireEvaluationAgent` in `features/agents`).
+- The evaluations of a conversation agent (`features/conversation-datasets`), on the API's
+  `evaluation-conversation-datasets` routes (`EvalConversationDatasetsRoutes`): `evaluations/`
+  lists the datasets of the agent's project, which every conversation agent of the project shares,
+  and `evaluations/$datasetId` shows one with its records, a page at a time (the `page` search
+  param, counted from 0, on the shared `TablePagination`). Creating, renaming and deleting a
+  dataset each check their own `evaluation.conversation.dataset.*` permission; a record is added,
+  changed and deleted with the update one, as the API does. A row's actions are Open grouped with
+  a « ⋯ » menu (`DatasetRowActions`); a record's and the dataset page's are a « ⋯ » menu alone.
+  Records are added one at a time (`RecordDialog`) or pasted, one per line, the input then the
+  expected output after the first comma (`BulkRecordsDialog`, `parseBulkRecords`). A record's
+  comment comes from the Studio's "Save as test case" and is only read here. In the sidebar,
+  Evaluations is then a menu that folds, as Campaigns: List all, then the datasets
+  (`ConversationDatasetsSidebarEntries`). An extraction agent's evaluations are not here yet: its
+  page says so, and its sidebar keeps a plain link.
 - Review campaigns, for who manages them (`features/campaigns`), under an agent's
   `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search
   param: setup, participants, summary) and its `report`. The report is a tab too, at its own URL:
@@ -189,14 +203,16 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   required answers.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
-- The mocked API: `src/test/msw/handlers.ts` and `campaign-handlers.ts`, written with `mockRoute`
+- The mocked API: `src/test/msw/handlers.ts`, `campaign-handlers.ts` and
+  `conversation-dataset-handlers.ts`, written with `mockRoute`
   and `mockStreamRoute` (`src/test/msw/mock-route.ts`) and fed by the factories of
   `src/test/factories/`, whose `eval-world.factory.ts` builds the worlds: the owner of a project
   with campaigns who evaluates it too (the main one), an owner who does not, a person who holds
   everything at once, a participant who only tests and reviews, and the edge cases.
   Its URLs come from `src/test/eval-urls.ts`.
-- The stories, in four folders of Storybook under `Evaluation`: `General`
-  (`src/stories/Eval.stories.tsx`), `Review campaigns` (`Campaigns.stories.tsx`), `Reviewer`
+- The stories, in five folders of Storybook under `Evaluation`: `General`
+  (`src/stories/Eval.stories.tsx`), `Conversation evaluations`
+  (`ConversationEvaluations.stories.tsx`), `Review campaigns` (`Campaigns.stories.tsx`), `Reviewer`
   (`Reviewer.stories.tsx`) and `Tester` (`Tester.stories.tsx`), with the meta of
   `src/stories/eval-meta.tsx`. `src/stories/Eval.stories.spec.tsx` renders every story in the
   tests.

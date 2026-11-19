@@ -15,9 +15,23 @@ msgstr "« {removedPrompt} » quitte cette liste, avec ses réglages."
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 
+#. placeholder {0}: invalidLines.length
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{0, plural, one {Line {invalidList} has no input or no expected output.} other {Lines {invalidList} have no input or no expected output.}}"
+msgstr "{0, plural, one {La ligne {invalidList} n'a pas d'entrée ou pas de réponse attendue.} other {Les lignes {invalidList} n'ont pas d'entrée ou pas de réponse attendue.}}"
+
+#. placeholder {0}: tooLongLines.length
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongList} are too long.}}"
+msgstr "{0, plural, one {La ligne {tooLongList} est trop longue.} other {Les lignes {tooLongList} sont trop longues.}}"
+
 #: src/features/conversation/components/Composer.tsx
 msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
 msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
+
+#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
+msgid "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Give the dataset a name of # character or more.} other {Give the dataset a name of # characters or more.}}"
+msgstr "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Donnez au jeu de données un nom d'au moins # caractère.} other {Donnez au jeu de données un nom d'au moins # caractères.}}"
 
 #: src/features/invitations/components/InvitationsButton.tsx
 msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
@@ -73,6 +87,10 @@ msgstr "{projectName} · {organizationName}"
 msgid "{questionCount, plural, one {# question} other {# questions}}"
 msgstr "{questionCount, plural, one {# question} other {# questions}}"
 
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{recordCount, plural, one {Add # record} other {Add # records}}"
+msgstr "{recordCount, plural, one {Ajouter # enregistrement} other {Ajouter # enregistrements}}"
+
 #: src/features/campaign-report/components/QuestionDistribution.tsx
 msgid "{responseCount, plural, one {# answer} other {# answers}}"
 msgstr "{responseCount, plural, one {# réponse} other {# réponses}}"
@@ -118,6 +136,10 @@ msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées
 msgid "{testerCount, plural, one {# tester} other {# testers}}"
 msgstr "{testerCount, plural, one {# testeur} other {# testeurs}}"
 
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "{total, plural, =0 {No record yet} one {# record} other {# records}}"
+msgstr "{total, plural, =0 {Aucun enregistrement pour l'instant} one {# enregistrement} other {# enregistrements}}"
+
 #: src/features/campaign-review/components/ReviewerCampaignPage.tsx
 msgid "{total, plural, one {# session} other {# sessions}}"
 msgstr "{total, plural, one {# session} other {# sessions}}"
@@ -134,6 +156,15 @@ msgstr "<0>{place}</0> · {typeName}"
 #: src/features/conversation/components/Composer.tsx
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> pour aller à la ligne"
+
+#. Before the comment a person wrote in the Studio when they saved an answer as a test case
+#: src/features/conversation-datasets/components/conversation-record-columns.tsx
+msgid "<0>Comment:</0> {comment}"
+msgstr "<0>Commentaire :</0> {comment}"
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "A dataset holds the questions an evaluation asks the agent."
+msgstr "Un jeu de données contient les questions qu'une évaluation pose à l'agent."
 
 #: src/components/shared/NewReleaseBanner.tsx
 msgid "A new version of Evaluation is available"
@@ -195,6 +226,18 @@ msgstr "Active"
 msgid "Add a question"
 msgstr "Ajouter une question"
 
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Add a record"
+msgstr "Ajouter un enregistrement"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Add records"
+msgstr "Ajouter des enregistrements"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Add the record"
+msgstr "Ajouter l'enregistrement"
+
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "admin"
@@ -229,6 +272,10 @@ msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne
 msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
 msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
 
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "An evaluation sends the input to the agent, then grades its answer against the expected output."
+msgstr "Une évaluation envoie l'entrée à l'agent, puis note sa réponse par rapport à la réponse attendue."
+
 #. Opens a note on the passage of a reply the person selected
 #: src/features/conversation/components/SelectionActions.tsx
 msgid "Annotate"
@@ -249,6 +296,10 @@ msgstr "Y a-t-il quelque chose à savoir sur cette session ?"
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "As {role}"
 msgstr "En tant que {role}"
+
+#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+msgid "Ask this agent the questions of a dataset, and have a model grade its answers."
+msgstr "Posez à cet agent les questions d'un jeu de données, et faites noter ses réponses par un modèle."
 
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 msgid "Asked each time a tester ends a session with the agent."
@@ -295,6 +346,15 @@ msgstr "Retour à l'accueil"
 msgid "Back to the app"
 msgstr "Retour à l'accueil"
 
+#. Opens the dialog that adds several records to a dataset at once
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Bulk add"
+msgstr "Ajout en masse"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Bulk add records"
+msgstr "Ajouter des enregistrements en masse"
+
 #. The setup step with a campaign's name
 #: src/features/campaigns/setup-steps.ts
 msgid "Campaign"
@@ -313,8 +373,15 @@ msgstr "Campagne pour {agentName}, {today}"
 msgid "Campaigns"
 msgstr "Campagnes"
 
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Can we switch plan later?, Yes, at any time, from the billing page."
+msgstr "Peut-on changer d'offre plus tard ?, Oui, à tout moment, depuis la page de facturation."
+
 #: src/components/shared/ConfirmDialog.tsx
 #: src/features/campaign-test/components/SessionFeedbackForm.tsx
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
+#: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Cancel"
 msgstr "Annuler"
@@ -412,6 +479,14 @@ msgstr "Copier la réponse"
 msgid "Create a campaign so testers and reviewers can evaluate this agent."
 msgstr "Créez une campagne pour que des testeurs et des relecteurs évaluent cet agent."
 
+#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+msgid "Create a dataset, then add the questions to ask the agent."
+msgstr "Créez un jeu de données, puis ajoutez les questions à poser à l'agent."
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "Create dataset"
+msgstr "Créer le jeu de données"
+
 #. When a review campaign was created
 #: src/features/campaigns/components/campaign-columns.tsx
 msgid "Created"
@@ -434,6 +509,21 @@ msgstr "Ctrl"
 msgid "Current"
 msgstr "Actuel"
 
+#. Under the name of a dataset: what the page shows, and when it last changed
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+msgid "Dataset · Updated {updated}"
+msgstr "Jeu de données · Mis à jour le {updated}"
+
+#. The header of the column of the names, in the list of datasets
+#: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
+msgid "Dataset's name"
+msgstr "Nom du jeu de données"
+
+#. Above the datasets of a project, in the sidebar
+#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
+msgid "Datasets"
+msgstr "Jeux de données"
+
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Decline"
 msgstr "Refuser"
@@ -442,15 +532,26 @@ msgstr "Refuser"
 msgid "Decline the invitation to {name}"
 msgstr "Refuser l’invitation à {name}"
 
+#. Deletes a dataset
+#. Deletes a dataset
+#. Deletes a record of a dataset
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 #: src/features/campaigns/components/PendingInvitations.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+#: src/features/conversation-datasets/components/DatasetRowActions.tsx
 msgid "Delete"
 msgstr "Supprimer"
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "Delete “{name}”?"
 msgstr "Supprimer « {name} » ?"
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "Delete {deletedName}?"
+msgstr "Supprimer {deletedName} ?"
 
 #: src/features/campaigns/components/PendingInvitations.tsx
 msgid "Delete the invitation"
@@ -467,6 +568,10 @@ msgstr "Supprimer la session du {started}"
 #: src/features/campaigns/components/PendingInvitations.tsx
 msgid "Delete this invitation?"
 msgstr "Supprimer cette invitation ?"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Delete this record?"
+msgstr "Supprimer cet enregistrement ?"
 
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 msgid "Delete this session?"
@@ -503,6 +608,10 @@ msgstr "Télécharger le CSV"
 msgid "Draft"
 msgstr "Brouillon"
 
+#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
+msgid "e.g. Pricing questions"
+msgstr "ex. Questions sur les tarifs"
+
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
 msgid "e.g. Support agent, spring review"
 msgstr "ex. Agent de support, revue de printemps"
@@ -523,6 +632,11 @@ msgstr "Chaque personne reçoit une invitation à accepter. Elle doit se connect
 msgid "Each session's tester rating against its reviewers'. The spread is the highest reviewer rating minus the lowest: a high one means the reviewers disagree."
 msgstr "La note du testeur de chaque session, face à celles des relecteurs. L'écart est la plus haute note des relecteurs moins la plus basse : un écart élevé signale un désaccord entre relecteurs."
 
+#. Changes a record of a dataset
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Edit"
+msgstr "Modifier"
+
 #: src/features/conversation/components/QuoteReplyPopover.tsx
 msgid "Edit annotation {number}"
 msgstr "Modifier l'annotation {number}"
@@ -530,6 +644,10 @@ msgstr "Modifier l'annotation {number}"
 #: src/features/campaign-test/components/SurveyCard.tsx
 msgid "Edit my survey"
 msgstr "Modifier mon questionnaire"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Edit the record"
+msgstr "Modifier l'enregistrement"
 
 #. The email address of a participant
 #: src/features/campaigns/components/participant-columns.tsx
@@ -579,6 +697,8 @@ msgstr "L'Évaluation n'a pas le droit d'utiliser votre micro. Autorisez-le dans
 msgid "Evaluation opens to the evaluators and the admins of a project, and to the testers and reviewers of a review campaign. Ask a project admin to give you access."
 msgstr "L'Évaluation est ouverte aux évaluateurs et aux administrateurs d'un projet, ainsi qu'aux testeurs et aux relecteurs d'une campagne d'évaluation. Demandez l'accès à un administrateur du projet."
 
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
 #: src/routes/-components/AgentHubPage.tsx
 #: src/routes/-components/AgentSectionsNav.tsx
 msgid "Evaluations"
@@ -587,6 +707,13 @@ msgstr "Évaluations"
 #: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/index.tsx
 msgid "Evaluations are not here yet"
 msgstr "Les évaluations ne sont pas encore ici"
+
+#. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
+#: src/features/conversation-datasets/components/conversation-record-columns.tsx
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "Expected output"
+msgstr "Réponse attendue"
 
 #: src/lib/agent-type-labels.ts
 msgid "Extraction agent"
@@ -743,6 +870,13 @@ msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-l
 msgid "Image"
 msgstr "Image"
 
+#. What an evaluation sends to the agent
+#. What an evaluation sends to the agent
+#: src/features/conversation-datasets/components/conversation-record-columns.tsx
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "Input"
+msgstr "Entrée"
+
 #: src/features/conversation/components/McpAppCard.tsx
 msgid "Interactive card"
 msgstr "Carte interactive"
@@ -770,6 +904,10 @@ msgstr "Invitez des personnes à tester cet agent, et d'autres à relire leurs c
 msgid "Invited <0/>"
 msgstr "Invitation envoyée <0/>"
 
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "Its records and its runs keep their place."
+msgstr "Ses enregistrements et ses exécutions restent en place."
+
 #. Something that happened less than a minute ago
 #: src/components/shared/RelativeTime.tsx
 msgid "just now"
@@ -789,9 +927,15 @@ msgid "Leave without saving?"
 msgstr "Quitter sans enregistrer ?"
 
 #. The sidebar's link to the table of all an agent's review campaigns
+#. The sidebar's link to the table of all the datasets of an agent's project
 #: src/features/campaigns/components/CampaignsSidebarEntries.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
 msgid "List all"
 msgstr "Tout afficher"
+
+#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
+msgid "List all datasets"
+msgstr "Lister tous les jeux de données"
 
 #: src/features/conversation/components/McpAppPlaceholder.tsx
 msgid "Loading the interactive card…"
@@ -829,8 +973,17 @@ msgid "Messages"
 msgstr "Messages"
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
 msgid "More actions"
 msgstr "Plus d’actions"
+
+#: src/features/conversation-datasets/components/DatasetRowActions.tsx
+msgid "More actions on {name}"
+msgstr "Plus d'actions sur {name}"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "More actions on the record"
+msgstr "Plus d'actions sur l'enregistrement"
 
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Move question {position} down"
@@ -844,12 +997,14 @@ msgstr "Monter la question {position}"
 msgid "My review"
 msgstr "Ma relecture"
 
+#. The name of a dataset
 #. The name of a review campaign
 #. The name of a review campaign
 #. The name of a review campaign
 #: src/features/campaigns/components/campaign-columns.tsx
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
 #: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 msgid "Name"
 msgstr "Nom"
 
@@ -867,6 +1022,11 @@ msgstr "Jamais connecté"
 msgid "New campaign"
 msgstr "Nouvelle campagne"
 
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+msgid "New dataset"
+msgstr "Nouveau jeu de données"
+
 #: src/features/campaigns/components/NewCampaignPage.tsx
 msgid "New review campaign"
 msgstr "Nouvelle campagne d'évaluation"
@@ -875,6 +1035,10 @@ msgstr "Nouvelle campagne d'évaluation"
 #: src/features/campaigns/components/SetupStepFooter.tsx
 msgid "Next"
 msgstr "Suivant"
+
+#: src/components/shared/TablePagination.tsx
+msgid "Next page"
+msgstr "Page suivante"
 
 #. A field an agent filled in with false
 #. An answer to: Did the agent address your question?
@@ -890,6 +1054,14 @@ msgstr "Aucun agent ne correspond à cette recherche."
 #: src/features/campaign-report/components/QuestionDistribution.tsx
 msgid "No answer yet."
 msgstr "Aucune réponse pour le moment."
+
+#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+msgid "No dataset yet"
+msgstr "Aucun jeu de données pour l'instant"
+
+#: src/features/conversation-datasets/components/ConversationDatasetsTable.tsx
+msgid "No dataset yet."
+msgstr "Aucun jeu de données pour l'instant."
 
 #: src/features/campaigns/components/CampaignSetupView.tsx
 msgid "No description"
@@ -968,11 +1140,14 @@ msgstr "Une réponse par session sur laquelle un testeur a donné son retour."
 msgid "One answer per tester who filled the final survey."
 msgstr "Une réponse par testeur qui a rempli le questionnaire final."
 
+#. Opens a dataset from the list of datasets
 #. Opens a session with the agent
 #: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/conversation-datasets/components/DatasetRowActions.tsx
 msgid "Open"
 msgstr "Ouvrir"
 
+#: src/features/conversation-datasets/components/DatasetRowActions.tsx
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "Open {name}"
 msgstr "Ouvrir {name}"
@@ -1027,6 +1202,10 @@ msgstr "propriétaire"
 msgid "Page not found"
 msgstr "Page introuvable"
 
+#: src/components/shared/TablePagination.tsx
+msgid "Pages of the table"
+msgstr "Pages du tableau"
+
 #. An answer to: Did the agent address your question?
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Partially"
@@ -1038,6 +1217,10 @@ msgstr "En partie"
 #: src/features/campaigns/components/ParticipantsPanel.tsx
 msgid "Participants"
 msgstr "Participants"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Paste one record per line: the input, a comma, then the expected output."
+msgstr "Collez un enregistrement par ligne : l'entrée, une virgule, puis la réponse attendue."
 
 #: src/features/campaigns/components/ParticipantsPanel.tsx
 msgid "Pending invitations"
@@ -1057,6 +1240,10 @@ msgstr "Sélection de ressources utiles"
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "Preview"
 msgstr "Aperçu"
+
+#: src/components/shared/TablePagination.tsx
+msgid "Previous page"
+msgstr "Page précédente"
 
 #. What an invitation gives access to
 #: src/features/invitations/components/InvitationItem.tsx
@@ -1089,6 +1276,15 @@ msgstr "Lisez une session, puis donnez votre propre note. L'avis du testeur rest
 #: src/features/campaigns/components/ActivateStep.tsx
 msgid "Ready to open “{name}”?"
 msgstr "Ouvrir « {name} » ?"
+
+#. How many records a dataset holds
+#. The pasted lines that become the records of a dataset
+#. The title of the records of a dataset
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+#: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Records"
+msgstr "Enregistrements"
 
 #: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
@@ -1127,6 +1323,18 @@ msgstr "Retirer la question {removedPosition} ?"
 #: src/features/conversation/components/QuoteReplyPopover.tsx
 msgid "Remove this annotation"
 msgstr "Retirer cette annotation"
+
+#. Renames a dataset
+#. Renames a dataset
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+#: src/features/conversation-datasets/components/DatasetRowActions.tsx
+msgid "Rename"
+msgstr "Renommer"
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "Rename the dataset"
+msgstr "Renommer le jeu de données"
 
 #. The tab with the full report of a campaign
 #. The tab with the full report of a campaign
@@ -1234,6 +1442,11 @@ msgstr "Retirer l'accès de {revokedEmail} ?"
 msgid "Role"
 msgstr "Rôle"
 
+#. Which rows of a table show, such as: Rows 11–20 of 42
+#: src/components/shared/TablePagination.tsx
+msgid "Rows {first}–{last} of {count}"
+msgstr "Lignes {first} à {last} sur {count}"
+
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Run this agent on datasets of conversations, and read how it answered."
 msgstr "Lancez cet agent sur des jeux de données de conversations, puis lisez ses réponses."
@@ -1241,6 +1454,10 @@ msgstr "Lancez cet agent sur des jeux de données de conversations, puis lisez s
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Run this agent on datasets of documents, and read what it extracted."
 msgstr "Lancez cet agent sur des jeux de données de documents, puis lisez ce qu'il a extrait."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Save"
+msgstr "Enregistrer"
 
 #: src/features/campaign-review/components/ReviewPanel.tsx
 #: src/features/campaign-test/components/TesterSurveyPage.tsx
@@ -1568,6 +1785,34 @@ msgstr "La campagne a été supprimée."
 msgid "The changes to this step are not saved yet. They are lost if you leave."
 msgstr "Les changements de cette étape ne sont pas encore enregistrés. Ils sont perdus si vous quittez la page."
 
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "The dataset could not be created. Try again."
+msgstr "Le jeu de données n'a pas pu être créé. Réessayez."
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "The dataset could not be deleted. Try again."
+msgstr "Le jeu de données n'a pas pu être supprimé. Réessayez."
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "The dataset could not be renamed. Try again."
+msgstr "Le jeu de données n'a pas pu être renommé. Réessayez."
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "The dataset was created."
+msgstr "Le jeu de données a été créé."
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "The dataset was deleted."
+msgstr "Le jeu de données a été supprimé."
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "The dataset was renamed."
+msgstr "Le jeu de données a été renommé."
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "The dataset, its records and its runs are deleted for good."
+msgstr "Le jeu de données, ses enregistrements et ses exécutions sont supprimés définitivement."
+
 #: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/index.tsx
 msgid "The datasets and the runs of this agent will show on this page."
 msgstr "Les jeux de données et les exécutions de cet agent s'afficheront sur cette page."
@@ -1591,6 +1836,10 @@ msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
 #: src/features/conversation/components/ReplyError.tsx
 msgid "The file could not be uploaded. Try again."
 msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "The first comma of a line ends the input: the expected output keeps its own."
+msgstr "La première virgule d'une ligne termine l'entrée : la réponse attendue garde les siennes."
 
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "The forms testers and reviewers will fill, as the setup stands."
@@ -1620,6 +1869,10 @@ msgstr "Le lien n'a pas pu être copié."
 msgid "The mean of the ratings testers gave their sessions."
 msgstr "La moyenne des notes que les testeurs ont données à leurs sessions."
 
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "The message a person would send to the agent."
+msgstr "Le message qu'une personne enverrait à l'agent."
+
 #: src/features/campaigns/components/InviteParticipantsForm.tsx
 msgid "The people could not be invited. Try again."
 msgstr "Les personnes n'ont pas pu être invitées. Réessayez."
@@ -1631,6 +1884,42 @@ msgstr "Les personnes sont invitées. Envoyez-leur leur lien d'invitation."
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record could not be added. Try again."
+msgstr "L'enregistrement n'a pas pu être ajouté. Réessayez."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record could not be deleted. Try again."
+msgstr "L'enregistrement n'a pas pu être supprimé. Réessayez."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record could not be saved. Try again."
+msgstr "L'enregistrement n'a pas pu être enregistré. Réessayez."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record leaves the dataset for good."
+msgstr "L'enregistrement quitte le jeu de données définitivement."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record was added."
+msgstr "L'enregistrement a été ajouté."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record was deleted."
+msgstr "L'enregistrement a été supprimé."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record was saved."
+msgstr "L'enregistrement a été modifié."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The records could not be added. Try again."
+msgstr "Les enregistrements n'ont pas pu être ajoutés. Réessayez."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The records were added."
+msgstr "Les enregistrements ont été ajoutés."
 
 #: src/features/conversation/components/ReplyError.tsx
 msgid "The reply stopped before it finished."
@@ -1704,6 +1993,10 @@ msgstr "Cette campagne ne pose aucune question factuelle à ses testeurs."
 #: src/features/campaigns/components/CampaignSetupView.tsx
 msgid "This campaign reviews the agent {agentName}."
 msgstr "Cette campagne évalue l'agent {agentName}."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "This dataset has no record yet."
+msgstr "Ce jeu de données n'a pas encore d'enregistrement."
 
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."
@@ -1804,8 +2097,10 @@ msgstr "Sans titre"
 msgid "Untitled document"
 msgstr "Document sans titre"
 
+#. When a dataset last changed
 #. When a review campaign last changed
 #: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
 msgid "Updated"
 msgstr "Modifiée le"
 
@@ -1838,6 +2133,10 @@ msgstr "La réponse de l'agent était-elle claire ?"
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Were the agent's answers factually correct?"
 msgstr "Les réponses de l'agent étaient-elles exactes ?"
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "What a good answer says."
+msgstr "Ce que dit une bonne réponse."
 
 #: src/features/campaigns/components/CampaignSetupView.tsx
 #: src/features/campaigns/components/FeedbackPreview.tsx
@@ -1897,6 +2196,14 @@ msgstr "Renvoyer les longues lignes à la ligne"
 #: src/features/campaigns/components/InviteParticipantsForm.tsx
 msgid "Write 1 to {maxEmails} valid email addresses."
 msgstr "Écrivez de 1 à {maxEmails} adresses e-mail valides."
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "Write the expected output."
+msgstr "Écrivez la réponse attendue."
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "Write the input."
+msgstr "Écrivez l'entrée."
 
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Write the question."

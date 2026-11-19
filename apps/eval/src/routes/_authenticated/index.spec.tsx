@@ -134,7 +134,7 @@ describe("the app's home", () => {
     const world = buildSeveralProjectsWorld()
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world, "Writing Helper"))
-    expect(await screen.findByText("Evaluations are not here yet")).toBeInTheDocument()
+    expect(await screen.findByText("No dataset yet")).toBeInTheDocument()
 
     await userEvent.keyboard(COMMAND_CENTER_SHORTCUT)
     const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
@@ -207,7 +207,7 @@ describe("the sections of an agent", () => {
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world, "Helpful Assistant"))
 
-    expect(await screen.findByText("Evaluations are not here yet")).toBeInTheDocument()
+    expect(await screen.findByText("No dataset yet")).toBeInTheDocument()
     expect(sectionLinks()).toEqual(["Evaluations"])
   })
 

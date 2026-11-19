@@ -2,8 +2,10 @@ import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { FlaskConicalIcon, LayoutGridIcon } from "lucide-react"
+import { SidebarCollapsibleMenu } from "@/components/shared/SidebarCollapsibleMenu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import type { EvaluationAgent } from "@/features/agents"
+import { ConversationDatasetsSidebarEntries } from "@/features/conversation-datasets"
 import { AGENT_SECTION_ROUTES, type AgentSection } from "./agent-sections"
 import { CampaignsMenu } from "./CampaignsMenu"
 
@@ -15,7 +17,8 @@ export type AgentSectionsNavProps = {
 
 /**
  * What an agent opens for the person, at the top of the sidebar: the way back to the agent's first
- * page when it holds several sections, its evaluations, the Campaigns menu: the review campaigns
+ * page when it holds several sections, its evaluations (for a conversation agent, a menu of its
+ * project's datasets), the Campaigns menu: the review campaigns
  * for who manages them, and those the person reviews or tests.
  */
 export function AgentSectionsNav({ agent, agentParams, sections }: AgentSectionsNavProps) {
@@ -45,7 +48,11 @@ export function AgentSectionsNav({ agent, agentParams, sections }: AgentSections
             </SidebarMenuButton>
           </SidebarMenuItem>
         ) : null}
-        {sections.includes("evaluations") ? (
+        {!sections.includes("evaluations") ? null : agent.type === "conversation" ? (
+          <SidebarCollapsibleMenu Icon={FlaskConicalIcon} label={<Trans>Evaluations</Trans>}>
+            <ConversationDatasetsSidebarEntries agentParams={agentParams} />
+          </SidebarCollapsibleMenu>
+        ) : (
           <SidebarMenuItem>
             <SidebarMenuButton
               render={
@@ -62,7 +69,7 @@ export function AgentSectionsNav({ agent, agentParams, sections }: AgentSections
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        ) : null}
+        )}
         <CampaignsMenu
           agentId={agent.id}
           managed={sections.includes("campaigns") ? { agent, agentParams } : null}

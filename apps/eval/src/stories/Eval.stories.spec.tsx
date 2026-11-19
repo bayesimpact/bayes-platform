@@ -6,6 +6,7 @@ import { userEvent } from "storybook/test"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
 import * as campaignStories from "./Campaigns.stories"
+import * as conversationEvaluationStories from "./ConversationEvaluations.stories"
 import * as generalStories from "./Eval.stories"
 import * as reviewerStories from "./Reviewer.stories"
 import * as testerStories from "./Tester.stories"
@@ -30,6 +31,9 @@ const {
 } = composeStories(generalStories)
 const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
   composeStories(campaignStories)
+const { NewDataset, AddRecord, AddSeveralRecords, ...conversationEvaluationPages } = composeStories(
+  conversationEvaluationStories,
+)
 // The reviewer and the tester both have a story named after their campaign.
 const { ClosedCampaign: ReviewerClosedCampaign, ...reviewerPages } = composeStories(reviewerStories)
 const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStories)
@@ -37,6 +41,7 @@ const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStorie
 const pageStories = {
   ...generalPages,
   ...campaignPages,
+  ...conversationEvaluationPages,
   ...reviewerPages,
   ReviewerClosedCampaign,
   TesterCampaign,
@@ -45,6 +50,26 @@ const pageStories = {
 
 /** Each story of a page, and what it shows once that page loaded: every story is listed. */
 const PAGES = {
+  DatasetList: {
+    Story: pageStories.DatasetList,
+    loaded: () => screen.findByRole("link", { name: "Open Pricing questions" }),
+  },
+  NoDataset: {
+    Story: pageStories.NoDataset,
+    loaded: () => screen.findByText("No dataset yet"),
+  },
+  Dataset: {
+    Story: pageStories.Dataset,
+    loaded: () => screen.findByText("Rows 1–10 of 12"),
+  },
+  DatasetSecondPage: {
+    Story: pageStories.DatasetSecondPage,
+    loaded: () => screen.findByText("Rows 11–12 of 12"),
+  },
+  EmptyDataset: {
+    Story: pageStories.EmptyDataset,
+    loaded: () => screen.findByText("This dataset has no record yet."),
+  },
   Home: {
     Story: pageStories.Home,
     loaded: () => screen.findByRole("heading", { name: "Helpful Assistant" }),
@@ -205,6 +230,37 @@ describe("the stories of the app", () => {
 
     expect(await loaded()).toBeInTheDocument()
     expectNoErrorPage()
+  })
+
+  it("NewDataset asks the name of the dataset", async () => {
+    await NewDataset.load()
+    const { container } = render(<NewDataset />)
+    await act(() => NewDataset.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "New dataset" })
+    expect(within(dialog).getByRole("textbox", { name: "Name" })).toBeInTheDocument()
+  })
+
+  it("AddRecord asks a record's input and expected output", async () => {
+    await AddRecord.load()
+    const { container } = render(<AddRecord />)
+    await act(() => AddRecord.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Add a record" })
+    expect(within(dialog).getByRole("textbox", { name: "Input" })).toBeInTheDocument()
+    expect(within(dialog).getByRole("textbox", { name: "Expected output" })).toBeInTheDocument()
+  })
+
+  it("AddSeveralRecords names the line that makes no record", async () => {
+    await AddSeveralRecords.load()
+    const { container } = render(<AddSeveralRecords />)
+    await act(() => AddSeveralRecords.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Bulk add records" })
+    expect(
+      await within(dialog).findByText("Line 2 has no input or no expected output."),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "Add 1 record" })).toBeDisabled()
   })
 
   it("PageNotFound says so", async () => {

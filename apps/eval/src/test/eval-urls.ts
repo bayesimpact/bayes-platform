@@ -19,6 +19,15 @@ export function evaluationsUrlOf(world: EvalWorld, agentName?: string): string {
   return `${agentUrlOf(world, agentName)}/evaluations`
 }
 
+/** The URL of a conversation dataset of the world's first agent, by its name. */
+export function conversationDatasetUrlOf(world: EvalWorld, datasetName: string): string {
+  const { dataset } = required(
+    world.conversationDatasets.find((candidate) => candidate.dataset.name === datasetName),
+    `the dataset ${datasetName}`,
+  )
+  return `${evaluationsUrlOf(world)}/${dataset.id}`
+}
+
 /** A campaign of the world, by its name. */
 export function campaignOf(world: EvalWorld, campaignName: string) {
   return required(

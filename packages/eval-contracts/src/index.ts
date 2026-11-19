@@ -14,6 +14,9 @@ export * from "./define-schema-route"
 // Documents
 export * from "./documents/documents.dto"
 export { EvalDocumentsRoutes } from "./documents/documents.routes"
+// Evaluations
+export * from "./evaluations/conversation-datasets.dto"
+export { EvalConversationDatasetsRoutes } from "./evaluations/conversation-datasets.routes"
 // Invitations
 export * from "./invitations/invitations.dto"
 export { EvalMyInvitationsRoutes } from "./invitations/invitations.routes"

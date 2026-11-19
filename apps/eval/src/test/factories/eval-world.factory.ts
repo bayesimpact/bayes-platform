@@ -12,6 +12,9 @@ import type {
   TesterSurveyOutputDto,
 } from "@caseai-connect/eval-contracts"
 import {
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
@@ -23,6 +26,10 @@ import {
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
 import { buildProjectAgent } from "./agents.factory"
+import {
+  buildPricingDatasets,
+  type ConversationDatasetRecord,
+} from "./conversation-datasets.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
 import { buildInvitation } from "./invitations.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
@@ -49,6 +56,9 @@ const MANAGER_PERMISSIONS = [
   PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
 ]
 
 /**
@@ -60,6 +70,8 @@ export type EvalWorld = {
   projects: MyProjectOutputDto[]
   agents: ProjectAgentOutputDto[]
   campaigns: ReviewCampaignDetailOutputDto[]
+  /** The conversation datasets of the projects, each with its records. */
+  conversationDatasets: ConversationDatasetRecord[]
   /** The pending invitations of each campaign, by campaign id. */
   invitations: Record<string, CampaignInvitationOutputDto[]>
   /** The report of each campaign, by campaign id: an empty one when none is set. */
@@ -86,6 +98,7 @@ export type EvalWorld = {
 
 const emptyCampaignData = {
   campaigns: [],
+  conversationDatasets: [],
   invitations: {},
   reports: {},
   myCampaignRoles: {},
@@ -145,6 +158,8 @@ export function buildEvalWorld(): EvalWorld {
       ],
     },
     reports: { [active.id]: buildCampaignReport(), [closed.id]: buildCampaignReport() },
+    // Last, so the ids of what comes before stay the ones the stories and the tests know.
+    conversationDatasets: buildPricingDatasets(project.id),
   }
 }
 
