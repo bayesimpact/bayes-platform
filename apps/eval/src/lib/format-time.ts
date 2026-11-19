@@ -26,6 +26,16 @@ export function fullDateTimeOf(moment: number, locale: string): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(moment)
 }
 
+/** A moment in few characters, without its year, in the person's language: "Oct 21, 3:01 PM". */
+export function shortDateTimeOf(moment: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(moment)
+}
+
 /** The date of a moment, in the person's language: "Oct 21, 2026". */
 export function fullDateOf(moment: number, locale: string): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(moment)

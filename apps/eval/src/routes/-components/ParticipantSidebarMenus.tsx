@@ -1,11 +1,14 @@
 import type { ReviewCampaignStatusDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { Link } from "@tanstack/react-router"
+import { Link, useParams } from "@tanstack/react-router"
 import { ClipboardCheckIcon, MessagesSquareIcon } from "lucide-react"
 import { SidebarCollapsibleSubMenu } from "@/components/shared/SidebarCollapsibleSubMenu"
+import { SidebarSection } from "@/components/shared/SidebarSection"
 import { SidebarSubGroupLabel } from "@/components/shared/SidebarSubGroupLabel"
 import { SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { campaignPathParams } from "@/features/agents"
+import { ReviewerSessionLinks } from "@/features/campaign-review"
+import { TesterSessionLinks } from "@/features/campaign-test"
 import { CAMPAIGN_STATUS_LABELS } from "@/lib/campaign-status"
 import { isMenuOpenAtFirst, useOpenSidebarMenu } from "./use-open-sidebar-menu"
 import { useParticipantCampaigns } from "./use-participant-campaigns"
@@ -68,9 +71,17 @@ type CampaignLinksProps = {
   side: "test" | "review"
 }
 
-/** The links of a sub-menu's campaigns, grouped by where they stand. */
+/**
+ * The links of a sub-menu's campaigns, grouped by where they stand. The campaign whose page shows
+ * lists its sessions under it.
+ */
 function CampaignLinks({ campaigns, side }: CampaignLinksProps) {
   const { i18n } = useLingui()
+  const openMenu = useOpenSidebarMenu()
+  const { reviewCampaignId } = useParams({ strict: false })
+  // The campaign whose page shows on this side: a reviewer's page lists no tester's sessions.
+  const isThisSide = openMenu === (side === "test" ? "tester" : "reviewer")
+  const openCampaignId = isThisSide ? reviewCampaignId : undefined
   return STATUS_ORDER.map((status) => {
     const group = campaigns.filter((campaign) => campaign.status === status)
     if (group.length === 0) return null
@@ -99,6 +110,16 @@ function CampaignLinks({ campaigns, side }: CampaignLinksProps) {
           >
             <span className="truncate">{campaign.name}</span>
           </SidebarMenuSubButton>
+          {/* The open campaign lists its sessions under it, on the side its page shows. */}
+          {campaign.id === openCampaignId ? (
+            <SidebarSection resetKey={`${side}-${campaign.id}`}>
+              {side === "test" ? (
+                <TesterSessionLinks campaign={campaignPathParams(campaign)} />
+              ) : (
+                <ReviewerSessionLinks campaign={campaignPathParams(campaign)} />
+              )}
+            </SidebarSection>
+          ) : null}
         </SidebarMenuSubItem>
       )),
     ]

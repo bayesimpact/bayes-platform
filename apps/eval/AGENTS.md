@@ -84,7 +84,10 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
     never holds the page back;
   - then two sub-menus that fold (`SidebarCollapsibleSubMenu`, `ParticipantSidebarMenus.tsx`):
     Reviewer and Tester, the campaigns on this agent the person reviews, or tests, under Active
-    then Closed, each a link to that side of the campaign. A sub-menu with no campaign does not show. Each campaign of
+    then Closed, each a link to that side of the campaign. The campaign whose page shows lists
+    its sessions under it, on the side its page shows (`ReviewerSessionLinks` in
+    `features/campaign-review`, those to review first; `TesterSessionLinks` in
+    `features/campaign-test`), each by a short date with where it stands. A sub-menu with no campaign does not show. Each campaign of
     `GET me/review-campaigns` names its agent. Only the sub-menu that holds the current page opens
     at first, and both on a page neither holds (`useOpenSidebarMenu` in `src/routes/-components/`).
 - A campaign's pages for its participants keep the sidebar of its agent, as on the agent's own

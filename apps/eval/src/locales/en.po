@@ -588,10 +588,12 @@ msgid "Feedback"
 msgstr "Feedback"
 
 #: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
 msgid "Feedback given"
 msgstr "Feedback given"
 
 #: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
 msgid "Feedback to give"
 msgstr "Feedback to give"
 
@@ -894,6 +896,10 @@ msgstr "No review campaign yet"
 msgid "No review campaign yet."
 msgstr "No review campaign yet."
 
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "No session to review yet."
+msgstr "No session to review yet."
+
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "No session yet: testers have not started any."
 msgstr "No session yet: testers have not started any."
@@ -901,6 +907,10 @@ msgstr "No session yet: testers have not started any."
 #: src/features/campaign-report/components/ReportSessionsTable.tsx
 msgid "No session yet: the table fills as testers start sessions."
 msgstr "No session yet: the table fills as testers start sessions."
+
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "No session yet."
+msgstr "No session yet."
 
 #: src/components/shared/AnswerList.tsx
 msgid "Not answered"
@@ -1143,6 +1153,10 @@ msgstr "Review campaigns run on conversation agents. To evaluate this agent, ask
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "Review session {id}"
 msgstr "Review session {id}"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "Reviewed"
+msgstr "Reviewed"
 
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
@@ -1717,6 +1731,10 @@ msgstr "to move"
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "to open"
 msgstr "to open"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "To review"
+msgstr "To review"
 
 #: src/components/shared/RouteErrorState.tsx
 #: src/components/shared/SidebarSection.tsx

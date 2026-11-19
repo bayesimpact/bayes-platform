@@ -588,10 +588,12 @@ msgid "Feedback"
 msgstr "Retour"
 
 #: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
 msgid "Feedback given"
 msgstr "Retour donné"
 
 #: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
 msgid "Feedback to give"
 msgstr "Retour à donner"
 
@@ -894,6 +896,10 @@ msgstr "Aucune campagne d'évaluation pour le moment"
 msgid "No review campaign yet."
 msgstr "Aucune campagne d'évaluation pour le moment."
 
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "No session to review yet."
+msgstr "Aucune session à relire pour l'instant."
+
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "No session yet: testers have not started any."
 msgstr "Aucune session pour le moment : les testeurs n'en ont pas encore démarré."
@@ -901,6 +907,10 @@ msgstr "Aucune session pour le moment : les testeurs n'en ont pas encore démarr
 #: src/features/campaign-report/components/ReportSessionsTable.tsx
 msgid "No session yet: the table fills as testers start sessions."
 msgstr "Aucune session pour le moment : le tableau se remplit quand les testeurs démarrent des sessions."
+
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "No session yet."
+msgstr "Aucune session pour l'instant."
 
 #: src/components/shared/AnswerList.tsx
 msgid "Not answered"
@@ -1143,6 +1153,10 @@ msgstr "Les campagnes d'évaluation portent sur les agents de conversation. Pour
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "Review session {id}"
 msgstr "Relire la session {id}"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "Reviewed"
+msgstr "Relue"
 
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
@@ -1717,6 +1731,10 @@ msgstr "pour se déplacer"
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "to open"
 msgstr "pour ouvrir"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "To review"
+msgstr "À relire"
 
 #: src/components/shared/RouteErrorState.tsx
 #: src/components/shared/SidebarSection.tsx

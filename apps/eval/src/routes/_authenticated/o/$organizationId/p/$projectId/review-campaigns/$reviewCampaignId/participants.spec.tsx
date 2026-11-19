@@ -113,6 +113,28 @@ describe("a reviewer's campaign", () => {
     )
   })
 
+  it("lists the open campaign's sessions under it in the sidebar, those to review first", async () => {
+    const world = buildParticipantWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(`${campaignUrlOf(world, "Pricing questions")}/review`)
+
+    const toReview = await screen.findAllByRole("img", { name: "To review" })
+    const reviewed = screen.getAllByRole("img", { name: "Reviewed" })
+    expect(toReview).toHaveLength(2)
+    expect(reviewed).toHaveLength(1)
+    // To review first: the last mark of the list is the session reviewed.
+    const marks = screen.getAllByRole("img", { name: /^(To review|Reviewed)$/ })
+    expect(marks.at(-1)).toHaveAccessibleName("Reviewed")
+
+    const firstLink = toReview[0]?.closest("a")
+    await userEvent.click(firstLink as HTMLElement)
+
+    await waitFor(() =>
+      expect(router.state.location.pathname).toMatch(/\/review\/sessions\/[0-9a-f-]+$/),
+    )
+    expect(firstLink).toHaveAttribute("data-active", "true")
+  })
+
   it("hides the tester's opinion until the reviewer submits, then shows it with the other reviews", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))
@@ -250,6 +272,15 @@ describe("a tester's campaign", () => {
         ),
       ),
     )
+  })
+
+  it("lists the tester's sessions under the open campaign in the sidebar", async () => {
+    const world = buildParticipantWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignUrlOf(world, "Support assistant pilot")}/test`)
+
+    expect(await screen.findByRole("img", { name: "Feedback to give" })).toBeInTheDocument()
+    expect(screen.getByRole("img", { name: "Feedback given" })).toBeInTheDocument()
   })
 
   it("opens the final survey in its tab", async () => {
