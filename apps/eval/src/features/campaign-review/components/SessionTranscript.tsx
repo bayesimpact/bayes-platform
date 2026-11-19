@@ -1,8 +1,7 @@
-import {
-  type ConversationMessageOutputDto,
-  type ConversationParamsDto,
-  type ReviewerSessionOutputDto,
-  TOOL_NAMES,
+import type {
+  ConversationMessageOutputDto,
+  ConversationParamsDto,
+  ReviewerSessionOutputDto,
 } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { ReadOnlyConversation } from "@/features/conversation"
@@ -17,25 +16,13 @@ export type SessionTranscriptProps = {
 function toConversationMessage(
   message: ReviewerSessionOutputDto["transcript"][number],
 ): ConversationMessageOutputDto {
-  // An API that sends no tool calls still sends the sources: the chat reads them as their tool.
-  const toolCalls =
-    message.toolCalls ??
-    (message.sources.length > 0
-      ? [
-          {
-            id: `${message.id}-sources`,
-            name: TOOL_NAMES.sources,
-            arguments: { sources: message.sources },
-          },
-        ]
-      : [])
   return {
     id: message.id,
     role: message.role === "user" ? "user" : "assistant",
     content: message.content,
     status: "completed",
     createdAt: message.createdAt,
-    toolCalls,
+    toolCalls: message.toolCalls,
   }
 }
 

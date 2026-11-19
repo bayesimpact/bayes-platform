@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { agentTypeSchema } from "../agents/agents.dto"
-import { sourcesArgumentsSchema, toolCallOutputSchema } from "../conversations/conversations.dto"
+import { toolCallOutputSchema } from "../conversations/conversations.dto"
 import {
   RATING_MAX,
   reviewCampaignAnswerInputSchema,
@@ -59,10 +59,8 @@ const reviewerSessionCommonShape = {
       role: z.string(),
       content: z.string(),
       createdAt: z.number(),
-      /** The documents an agent's reply relied on, as the tester saw them. */
-      sources: sourcesArgumentsSchema.shape.sources,
-      /** The tools an agent's reply called, as the tester's chat shows them. */
-      toolCalls: z.array(toolCallOutputSchema).optional(),
+      /** The tools an agent's reply called, as the tester's chat received them. */
+      toolCalls: z.array(toolCallOutputSchema),
     }),
   ),
   reviewerQuestions: z.array(reviewCampaignQuestionSchema),

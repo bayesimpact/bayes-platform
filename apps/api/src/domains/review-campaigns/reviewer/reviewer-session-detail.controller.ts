@@ -5,8 +5,6 @@ import {
   type ReviewerSessionFullDto,
   type ReviewerSessionReviewDto,
   type ReviewerSessionTranscriptMessageDto,
-  type ReviewerTranscriptSourceDto,
-  ToolName,
 } from "@caseai-connect/api-contracts"
 import { Controller, Get, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithAgentSessionInCampaign } from "@/common/context/request.interface"
@@ -94,29 +92,9 @@ function toTranscriptMessageDto(message: AgentMessage): ReviewerSessionTranscrip
     role: message.role,
     content: message.content,
     createdAt: message.createdAt.getTime(),
-    sources: sourcesOf(message),
+    // As the tester's chat received them: the reviewer reads the reply the tester read.
+    toolCalls: message.toolCalls ?? [],
   }
-}
-
-/**
- * The documents a reply relied on, from its `sources` tool calls: the reviewer reads them as the
- * tester did. The other tool calls stay out of the transcript.
- */
-function sourcesOf(message: AgentMessage): ReviewerTranscriptSourceDto[] {
-  return (message.toolCalls ?? [])
-    .filter((toolCall) => toolCall.name === ToolName.Sources)
-    .flatMap((toolCall) => {
-      const sources = toolCall.arguments.sources
-      // The tool's arguments are stored as the model wrote them: keep the well-formed sources.
-      return Array.isArray(sources) ? sources.filter(isTranscriptSource) : []
-    })
-}
-
-function isTranscriptSource(value: unknown): value is ReviewerTranscriptSourceDto {
-  if (typeof value !== "object" || value === null) return false
-  // Safe: an object whose fields are read and checked one by one just below.
-  const source = value as Partial<ReviewerTranscriptSourceDto>
-  return typeof source.documentId === "string" && Array.isArray(source.chunks)
 }
 
 function toReviewerSessionReviewDto(review: ReviewerSessionReview): ReviewerSessionReviewDto {

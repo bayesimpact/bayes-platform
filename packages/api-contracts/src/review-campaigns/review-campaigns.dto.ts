@@ -1,6 +1,7 @@
 import type { AgentDto } from "../agents/agents.dto"
 import type { ConversationAgentSessionDto } from "../agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 import type { AgentSettingsDto } from "../agents/settings/agent-settings.dto"
+import type { AgentSessionToolCallDto } from "../agents/shared/agent-session-messages/agent-session-messages.dto"
 import type { TimeType } from "../generic"
 import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 
@@ -229,22 +230,16 @@ export type ListReviewerSessionsResponseDto = {
   sessions: ReviewerSessionListItemDto[]
 }
 
-/** A document a reply relied on, with the passages it cited, as the sources tool wrote it. */
-export type ReviewerTranscriptSourceDto = {
-  documentId: string
-  documentTitle?: string
-  /** `webCrawl` for a page of a crawled website, which has no file to download. */
-  documentSourceType?: string
-  chunks: { chunkId: string; partialContent: string }[]
-}
-
 export type ReviewerSessionTranscriptMessageDto = {
   id: string
   role: string
   content: string
   createdAt: TimeType
-  /** The documents an agent's reply relied on, as the tester saw them; none for a person's message. */
-  sources: ReviewerTranscriptSourceDto[]
+  /**
+   * The tools an agent's reply called, as the tester's chat received them: its steps, sources,
+   * resources and apps. None for a person's message.
+   */
+  toolCalls: AgentSessionToolCallDto[]
 }
 
 export type ReviewerAgentSnapshotDto = Pick<AgentDto, "id" | "name" | "type">

@@ -169,7 +169,7 @@ export function buildReviewSession(
         role: "user",
         content: "Which plan should a team of five pick?",
         createdAt: startedAt,
-        sources: [],
+        toolCalls: [],
       },
       {
         id: crypto.randomUUID(),
@@ -177,19 +177,6 @@ export function buildReviewSession(
         content:
           "For a team of five, the **Pro** plan fits best:\n\n- shared workspaces\n- five seats included\n\nThe Starter plan stops at one team.",
         createdAt: startedAt + 4000,
-        sources: [
-          {
-            documentId: crypto.randomUUID(),
-            documentTitle: "Pricing guide.pdf",
-            documentSourceType: "project",
-            chunks: [
-              {
-                chunkId: crypto.randomUUID(),
-                partialContent: "The Pro plan covers unlimited teams…",
-              },
-            ],
-          },
-        ],
         toolCalls: [
           buildToolCall(),
           buildToolCall({
@@ -230,14 +217,14 @@ export function buildReviewSession(
         role: "user",
         content: "Can we switch later?",
         createdAt: startedAt + 60_000,
-        sources: [],
+        toolCalls: [],
       },
       {
         id: crypto.randomUUID(),
         role: "assistant",
         content: "Yes. You can change plan at any time from the billing page.",
         createdAt: startedAt + 64_000,
-        sources: [],
+        toolCalls: [],
       },
     ],
     testerFeedback: {
