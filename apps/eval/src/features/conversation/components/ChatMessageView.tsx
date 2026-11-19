@@ -32,6 +32,8 @@ export type ChatMessageViewProps = {
   followUpQuestions: string[]
   /** Sends a suggested question as the person's next message. */
   onFollowUpQuestion: (question: string) => void
+  /** Whether the message is only read, as a reviewer reads a tester's session. */
+  isReadOnly?: boolean
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */
@@ -47,6 +49,7 @@ export function ChatMessageView({
   taskChecks,
   followUpQuestions,
   onFollowUpQuestion,
+  isReadOnly = false,
 }: ChatMessageViewProps) {
   const { t } = useLingui()
   if (message.role === "user") {
@@ -92,6 +95,7 @@ export function ChatMessageView({
       taskChecks={taskChecks}
       followUpQuestions={followUpQuestions}
       onFollowUpQuestion={onFollowUpQuestion}
+      isReadOnly={isReadOnly}
     />
   )
 }

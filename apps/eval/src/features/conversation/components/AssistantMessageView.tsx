@@ -36,6 +36,8 @@ export type AssistantMessageViewProps = {
   followUpQuestions: string[]
   /** Sends a suggested question as the person's next message. */
   onFollowUpQuestion: (question: string) => void
+  /** Whether the reply is only read, as a reviewer reads a tester's: no feedback, no tick. */
+  isReadOnly?: boolean
 }
 
 /**
@@ -54,6 +56,7 @@ export function AssistantMessageView({
   taskChecks,
   followUpQuestions,
   onFollowUpQuestion,
+  isReadOnly = false,
 }: AssistantMessageViewProps) {
   const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
@@ -80,7 +83,7 @@ export function AssistantMessageView({
               // A settled reply's tasks can be ticked once it has the server's id, which the
               // ticks name.
               onTaskToggle={
-                isWriting || isLocalMessageId(message.id)
+                isReadOnly || isWriting || isLocalMessageId(message.id)
                   ? undefined
                   : (task) => taskChecks.toggle({ replyId: message.id, ...task })
               }
@@ -119,8 +122,9 @@ export function AssistantMessageView({
         {message.status === "completed" && text !== "" ? (
           <MessageActions>
             <CopyButton text={text} label={t`Copy the reply`} />
-            {/* A local reply gets its id once the persisted messages replace it. */}
-            {isLocalMessageId(message.id) ? null : (
+            {/* A local reply gets its id once the persisted messages replace it; a reply only
+                read takes no feedback. */}
+            {isReadOnly || isLocalMessageId(message.id) ? null : (
               <>
                 <GoodReplyButton conversation={conversation} agentMessageId={message.id} />
                 <FeedbackDialog conversation={conversation} agentMessageId={message.id} />

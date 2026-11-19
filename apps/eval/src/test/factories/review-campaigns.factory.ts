@@ -11,8 +11,10 @@ import {
   reviewCampaignDetailOutputSchema,
   reviewerReviewOutputSchema,
   type TesterSessionOutputDto,
+  TOOL_NAMES,
   testerSessionOutputSchema,
 } from "@caseai-connect/eval-contracts"
+import { buildToolCall } from "./conversations.factory"
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -187,6 +189,40 @@ export function buildReviewSession(
               },
             ],
           },
+        ],
+        toolCalls: [
+          buildToolCall(),
+          buildToolCall({
+            name: TOOL_NAMES.sources,
+            arguments: {
+              sources: [
+                {
+                  documentId: crypto.randomUUID(),
+                  documentTitle: "Pricing guide.pdf",
+                  documentSourceType: "project",
+                  chunks: [
+                    {
+                      chunkId: crypto.randomUUID(),
+                      partialContent: "The Pro plan covers unlimited teams…",
+                    },
+                  ],
+                },
+              ],
+            },
+          }),
+          buildToolCall({
+            name: TOOL_NAMES.surfaceResources,
+            arguments: {
+              resources: [
+                {
+                  id: "plans-video",
+                  title: "Plans compared, in two minutes",
+                  description: "A short video that walks through every plan.",
+                  link: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                },
+              ],
+            },
+          }),
         ],
       },
       {

@@ -248,11 +248,6 @@ msgstr "Asked once, when a tester finishes taking part."
 msgid "Asked to a reviewer for each session they review."
 msgstr "Asked to a reviewer for each session they review."
 
-#. Names who wrote a message of a transcript: the agent
-#: src/features/campaign-review/components/SessionTranscript.tsx
-msgid "Assistant"
-msgstr "Assistant"
-
 #: src/features/conversation/components/Composer.tsx
 msgid "Attach a file"
 msgstr "Attach a file"
@@ -1435,11 +1430,9 @@ msgid "tester"
 msgstr "tester"
 
 #. A person who tests the agent in a review campaign
-#. Names who wrote a message of a transcript: the tester
 #. The rating the tester gave a session
 #. The sidebar's menu of the campaigns where the person tests an agent
 #: src/features/campaign-report/components/report-session-columns.tsx
-#: src/features/campaign-review/components/SessionTranscript.tsx
 #: src/features/campaigns/components/CampaignRoleLabel.tsx
 #: src/routes/-components/ParticipantSidebarMenus.tsx
 msgid "Tester"

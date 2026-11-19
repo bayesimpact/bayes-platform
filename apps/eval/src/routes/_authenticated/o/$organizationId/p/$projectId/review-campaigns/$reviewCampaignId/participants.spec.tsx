@@ -148,14 +148,17 @@ describe("a reviewer's campaign", () => {
     expect(session?.myReview).toMatchObject({ overallRating: 4, comment: "Right on both." })
   })
 
-  it("shows the assistant's replies with the sources they relied on, as the tester saw them", async () => {
+  it("shows the session as the tester's chat did, only to read", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))
     renderApp(reviewSessionUrlOf(world, "Pricing questions", 0))
 
+    // The reply keeps its steps, its sources and its resources, as the tester saw them.
     expect(await screen.findByText("Used 1 source")).toBeInTheDocument()
-    // The agent's replies are the assistant's, whatever the agent's name.
-    expect(screen.getAllByText("Assistant")).toHaveLength(2)
+    expect(screen.getByText("Plans compared, in two minutes")).toBeInTheDocument()
+    expect(screen.getByText(/^Used (a tool|tools)$/)).toBeInTheDocument()
+    // A reviewer reads the reply: no feedback on it.
+    expect(screen.queryByRole("button", { name: "Good reply" })).not.toBeInTheDocument()
   })
 
   it("shows the form the agent filled, and what it did not collect", async () => {
