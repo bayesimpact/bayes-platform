@@ -1,6 +1,6 @@
 import type { EmbedDisplayMode } from "@caseai-connect/api-contracts"
 import type * as React from "react"
-import { DEFAULT_PRIMARY_COLOR } from "../../theme"
+import { themeVars } from "../../theme"
 import { cn } from "../lib/cn"
 
 export function Chat({
@@ -21,7 +21,7 @@ export function Chat({
       )}
       style={
         {
-          "--embed-primary": primaryColor ?? DEFAULT_PRIMARY_COLOR,
+          ...themeVars(primaryColor),
           ...style,
         } as React.CSSProperties
       }

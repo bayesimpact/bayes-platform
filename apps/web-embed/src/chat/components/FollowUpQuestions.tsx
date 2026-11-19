@@ -47,7 +47,7 @@ export function FollowUpQuestions({
           <button
             type="button"
             onClick={() => onSelect(question)}
-            className="rounded-full border border-[var(--embed-primary)] bg-white px-3 py-1.5 text-left text-[var(--embed-primary)] text-sm transition-colors hover:bg-[var(--embed-primary)] hover:text-white"
+            className="rounded-full border border-[var(--embed-accent)] bg-white px-3 py-1.5 text-left text-[var(--embed-accent)] text-sm transition-colors hover:bg-[var(--embed-accent)] hover:text-[var(--embed-on-accent)]"
           >
             {question}
           </button>

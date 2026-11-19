@@ -22,14 +22,17 @@ export function ChatHeader({
   return (
     <div
       data-slot="chat-header"
-      className={cn("chat-header flex h-16 shrink-0 items-center gap-3 px-5 text-white", className)}
+      className={cn(
+        "chat-header flex h-16 shrink-0 items-center gap-3 px-5 text-[var(--embed-on-primary)]",
+        className,
+      )}
       style={{ backgroundColor: "var(--embed-primary)" }}
       {...props}
     >
       {logoUrl ? (
         <img src={logoUrl} alt={displayName} className="h-9 max-w-[120px] object-contain" />
       ) : (
-        <div className="flex size-9 items-center justify-center rounded-full border border-white/30">
+        <div className="flex size-9 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--embed-on-primary)_30%,transparent)]">
           <SparklesIcon className="size-5" />
         </div>
       )}
@@ -40,7 +43,7 @@ export function ChatHeader({
           aria-label={t("header.newConversationAriaLabel")}
           title={t("header.newConversationAriaLabel")}
           onClick={onNewConversation}
-          className="flex size-8 items-center justify-center rounded-full text-white/60 transition-colors hover:bg-white/20 hover:text-white"
+          className="flex size-8 items-center justify-center rounded-full opacity-60 transition hover:bg-[color-mix(in_srgb,var(--embed-on-primary)_15%,transparent)] hover:opacity-100"
         >
           <SquarePenIcon className="size-4" />
         </button>
@@ -50,7 +53,7 @@ export function ChatHeader({
           type="button"
           aria-label={t("header.closeAriaLabel")}
           onClick={onClose}
-          className="flex size-8 items-center justify-center rounded-full text-white/60 transition-colors hover:bg-white/20 hover:text-white"
+          className="flex size-8 items-center justify-center rounded-full opacity-60 transition hover:bg-[color-mix(in_srgb,var(--embed-on-primary)_15%,transparent)] hover:opacity-100"
         >
           <XIcon className="size-4" />
         </button>

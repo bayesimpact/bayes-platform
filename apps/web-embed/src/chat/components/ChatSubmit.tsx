@@ -24,9 +24,9 @@ export function ChatSubmit({
       data-slot="chat-submit"
       onClick={handleClick}
       disabled={isDisabled}
-      style={{ backgroundColor: "var(--embed-primary)" }}
+      style={{ backgroundColor: "var(--embed-accent)" }}
       className={cn(
-        "flex size-8 items-center justify-center rounded-xl text-white transition-all",
+        "flex size-8 items-center justify-center rounded-xl text-[var(--embed-on-accent)] transition-all",
         "hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-40",
         className,
       )}
