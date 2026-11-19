@@ -10,11 +10,11 @@ import {
   TOOL_NAMES,
   type ToolName,
 } from "@caseai-connect/eval-contracts"
+import { isToolError } from "@caseai-connect/mcp-app-host"
+import type { z } from "zod"
 
 /** A document a reply relied on, with the passages it cited. */
 export type ChatSource = SourcesArgumentsDto["sources"][number]
-
-import type { z } from "zod"
 
 /** A resource of the agent's libraries a reply points to. */
 export type ChatResource = SurfaceResourcesArgumentsDto["resources"][number]
@@ -71,10 +71,13 @@ export type ChatMcpApp = {
   toolResult: unknown
 }
 
-/** The MCP Apps of a reply: a tool with an app pointer and a kept result. */
+/**
+ * The MCP Apps of a reply: a tool with an app pointer and a kept result, which is not an error.
+ * A failed call shows no app: the model reads the error and often calls the tool again.
+ */
 function readMcpApps(toolCalls: ToolCall[]): ChatMcpApp[] {
   return toolCalls.flatMap((toolCall) =>
-    toolCall.mcpApp && toolCall.result !== undefined
+    toolCall.mcpApp && toolCall.result !== undefined && !isToolError(toolCall.result)
       ? [
           {
             toolCallId: toolCall.id,

@@ -3,7 +3,7 @@
   "features/conversation/api/mutations.ts": "7e36d142f46d805e",
   "features/conversation/api/queries.ts": "88a9e22479a38023",
   "features/conversation/api/stream-reply.ts": "9e7d8b974045a859",
-  "features/conversation/chat-messages.ts": "db5c6ea13dd841d3",
+  "features/conversation/chat-messages.ts": "649639c6d179c2ab",
   "features/conversation/components/AssistantMessageView.tsx": "085624ae1576514b",
   "features/conversation/components/ConversationMenu.tsx": "ba5b7ebc9a0e57ae",
   "features/conversation/components/ConversationTitle.tsx": "fcb55301100576ce",
@@ -20,10 +20,8 @@
   "features/conversation/hooks/use-conversation-send.ts": "d1e6b4f6920a6b9e",
   "features/conversation/hooks/use-conversation-title.ts": "f84ea0cbd0572e52",
   "features/conversation/hooks/use-dictation.ts": "f1f455a55dafd75c",
-  "features/conversation/hooks/use-mcp-app.spec.tsx": "a281efc12171c5c3",
-  "features/conversation/hooks/use-mcp-app.ts": "f1b4fde53d04bb28",
+  "features/conversation/hooks/use-mcp-app.spec.tsx": "14db84aff23ef985",
+  "features/conversation/hooks/use-mcp-app.ts": "1c4cf7cedbdd5c32",
   "features/conversation/index.ts": "9b16ccffdb0a3246",
-  "features/conversation/mcp-app-sandbox.spec.tsx": "a9e5791319a8ab8b",
-  "features/conversation/mcp-app-sandbox.ts": "7b678d4e4551c2ea",
   "features/conversation/message-document.ts": "563dd1ed1db8afac"
 }

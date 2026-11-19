@@ -16,15 +16,16 @@ module.exports = {
       name: "no-other-app",
       severity: "error",
       comment:
-        "The app imports nothing from another app or from a package another app owns: its only " +
-        "workspace dependency is @caseai-connect/eval-contracts.",
+        "The app imports nothing from another app or from a package another app owns. Its " +
+        "workspace dependencies are @caseai-connect/eval-contracts and the one package no app " +
+        "owns, @caseai-connect/mcp-app-host (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/eval.
           "^\\.\\./(?!\\.\\./|eval/)[^/]+/",
-          "^\\.\\./\\.\\./packages/(?!eval-contracts/)",
-          "node_modules/@caseai-connect/(?!eval-contracts)",
+          "^\\.\\./\\.\\./packages/(?!(eval-contracts|mcp-app-host)/)",
+          "node_modules/@caseai-connect/(?!(eval-contracts|mcp-app-host)(/|$))",
           "node_modules/@repo/",
         ],
       },

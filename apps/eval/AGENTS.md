@@ -167,6 +167,10 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   in both apps, renders one conversation to a snapshot that check compares too. The reviewer's
   transcript shows each reply's sources with the same `SourcesList`. Its
   owner gives it the session's forms and loads them again when the agent fills one in.
+- MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
+  (`packages/mcp-app-host`), the one package the app shares with the Desk, `apps/web` and
+  `apps/web-embed` (ADR 0031, section 2.4). The chat keeps what is its own, as the Desk does: the
+  `useMcpApp` hook and `McpAppCard` in `features/conversation`, and the lookup of an app's HTML.
 - A rating, a comment and the answers to a campaign's questions go through one form,
   `components/shared/RatedFeedbackForm.tsx` (`lib/rated-feedback.ts`), for the tester's feedback
   and survey and the reviewer's review. The API checks the rating only: the form holds the

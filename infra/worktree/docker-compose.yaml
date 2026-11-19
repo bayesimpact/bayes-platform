@@ -450,6 +450,7 @@ services:
     networks: [default, shared]
     environment:
       <<: *node-env
+      VITE_MCP_APP_SANDBOX_ORIGIN: ${WT_SANDBOX_ORIGIN:-}
       VITE_OIDC_AUTHORITY: ${WT_AUTH_ISSUER}
       VITE_OIDC_CLIENT_ID: platform-web
       VITE_OIDC_AUDIENCE: ""

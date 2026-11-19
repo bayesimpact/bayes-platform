@@ -21,8 +21,7 @@ export type MeOutputDto = z.output<typeof meOutputSchema>
  */
 export const SIGN_IN_REFUSALS = {
   "The identity provider did not return an email for this user": "emailRequired",
-  "An account already exists for this email, but the identity provider does not report the email as verified":
-    "emailNotVerified",
+  "The identity provider does not report the email of this user as verified": "emailNotVerified",
   "An account already exists for this email, and linking by email is disabled (OIDC_ALLOW_EMAIL_LINKING)":
     "emailLinkingDisabled",
 } as const

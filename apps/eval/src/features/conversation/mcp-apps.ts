@@ -1,65 +1,23 @@
 import type { McpAppHtmlOutputDto } from "@caseai-connect/eval-contracts"
-import {
-  type CallToolResult,
-  CallToolResultSchema,
-  type ContentBlock,
-} from "@modelcontextprotocol/sdk/types.js"
-import { isRecord } from "@/lib/is-record"
 import type { ChatMcpApp } from "./chat-messages"
 
 /**
- * The HTML of an app: the first one of its resource, from its server, or from any server for a
- * pointer saved before servers were named. `null` when the API sent none.
+ * The HTML of an app, with the domains it declares: the first one of its resource, from its
+ * server, or from any server for a pointer saved before servers were named. `null` when the API
+ * sent none.
  */
-export function findMcpAppHtml(app: ChatMcpApp, htmls: McpAppHtmlOutputDto[]): string | null {
-  const match = htmls.find(
-    (entry) =>
-      entry.resourceUri === app.resourceUri &&
-      (app.mcpServerId === null || entry.mcpServerId === app.mcpServerId) &&
-      entry.html.trim() !== "",
-  )
-  return match?.html ?? null
-}
-
-/**
- * The raw MCP result the API kept for a tool that shows an app, read with the SDK's schema, or
- * `null` when the result has no `content` or breaks the schema.
- */
-function parseCallToolResult(result: unknown): CallToolResult | null {
-  // The schema gives a missing `content` an empty list: only a result that has one is raw.
-  if (!isRecord(result) || !("content" in result)) return null
-  const parsed = CallToolResultSchema.safeParse(result)
-  return parsed.success ? parsed.data : null
-}
-
-/** The text blocks of an MCP content list, trimmed, without the empty ones. */
-function textsOf(blocks: ContentBlock[]): string[] {
-  return blocks.flatMap((block) =>
-    block.type === "text" && block.text.trim() !== "" ? [block.text.trim()] : [],
-  )
-}
-
-/**
- * A tool result as an MCP App reads it: a raw MCP result as it is, anything else as the
- * structured content of an empty text result.
- */
-export function toCallToolResult(result: unknown): CallToolResult {
+export function findMcpAppHtml(
+  app: ChatMcpApp,
+  htmls: McpAppHtmlOutputDto[],
+): McpAppHtmlOutputDto | null {
   return (
-    parseCallToolResult(result) ?? {
-      content: [{ type: "text", text: "" }],
-      structuredContent: isRecord(result) ? result : { value: result },
-    }
+    htmls.find(
+      (entry) =>
+        entry.resourceUri === app.resourceUri &&
+        (app.mcpServerId === null || entry.mcpServerId === app.mcpServerId) &&
+        entry.html.trim() !== "",
+    ) ?? null
   )
-}
-
-/** The text of a tool result, shown instead of an app that could not render. */
-export function toolResultText(result: unknown): string {
-  return textsOf(parseCallToolResult(result)?.content ?? []).join("\n")
-}
-
-/** The text an app asks to put in the message box: its text blocks, one paragraph each. */
-export function appMessageText(content: ContentBlock[]): string {
-  return textsOf(content).join("\n\n")
 }
 
 /**

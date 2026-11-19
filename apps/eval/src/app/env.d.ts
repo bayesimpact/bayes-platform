@@ -13,6 +13,7 @@ declare global {
     readonly VITE_HELP_CENTER_URL?: string
     readonly VITE_APP_VERSION?: string
     readonly VITE_GIT_SHA?: string
+    readonly VITE_MCP_APP_SANDBOX_ORIGIN?: string
     /** The id of a production build, which `version.json` publishes too (vite.config.ts). */
     readonly VITE_BUILD_ID?: string
   }

@@ -20,6 +20,19 @@ const authorizationParamsSchema = optionalText.transform((raw, context) => {
 /** A link the install may set, such as its help center: absent, blank or an http(s) URL. */
 const optionalUrl = optionalText.pipe(z.url({ protocol: /^https?$/ }).optional())
 
+/**
+ * The origin that serves the sandbox of MCP Apps: absent, blank or an http(s) origin with no
+ * path, in which `{label}` may stand for a label of the app's MCP server.
+ */
+const optionalSandboxOrigin = optionalText.refine(
+  (template) => {
+    if (template === undefined) return true
+    const candidate = template.replaceAll("{label}", "label")
+    return URL.canParse(candidate) && /^https?:\/\/[^/]+$/.test(candidate)
+  },
+  { message: "must be an http(s) origin with no path, such as https://{label}.example.org" },
+)
+
 /** What every mode of the app configures. */
 const sharedConfigSchema = z.object({
   /** The install's help center, which the user menu links to when it is set. */
@@ -28,6 +41,12 @@ const sharedConfigSchema = z.object({
   appVersion: optionalText,
   /** The commit the image was built from. */
   gitSha: optionalText,
+  /**
+   * The origin that serves the sandbox of MCP Apps, apart from the app's own, such as
+   * `https://{label}.staging.bayes-usercontent.org`: `{label}` stands for a label of the app's MCP
+   * server. Unset, an app runs in a frame with an opaque origin that the app writes itself.
+   */
+  mcpAppSandboxOrigin: optionalSandboxOrigin,
 })
 
 const apiModeConfigSchema = sharedConfigSchema.extend({
@@ -67,6 +86,7 @@ function readConfig(): AppConfig {
       helpCenterUrl: "https://help.example.org",
       appVersion: "26.10.7",
       gitSha: undefined,
+      mcpAppSandboxOrigin: undefined,
     }
   }
 
@@ -74,6 +94,7 @@ function readConfig(): AppConfig {
     helpCenterUrl: env.VITE_HELP_CENTER_URL,
     appVersion: env.VITE_APP_VERSION,
     gitSha: env.VITE_GIT_SHA,
+    mcpAppSandboxOrigin: env.VITE_MCP_APP_SANDBOX_ORIGIN,
     oidcAuthority: env.VITE_OIDC_AUTHORITY,
     oidcClientId: env.VITE_OIDC_CLIENT_ID,
     oidcAudience: env.VITE_OIDC_AUDIENCE,
