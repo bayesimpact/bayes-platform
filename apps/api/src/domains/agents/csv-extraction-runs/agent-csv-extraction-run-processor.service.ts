@@ -132,6 +132,7 @@ export class AgentCsvExtractionRunProcessorService {
     connectScope: RequiredConnectScope
     agentCsvExtractionRunId: string
   }): Promise<void> {
+    // Null when the run is gone, a boolean otherwise.
     const shouldGenerateCsv = await this.dataSource.transaction(async (entityManager) => {
       const runRepository = entityManager.getRepository(AgentCsvExtractionRun)
       const runRecordRepository = entityManager.getRepository(AgentCsvExtractionRunRecord)
@@ -148,7 +149,10 @@ export class AgentCsvExtractionRunProcessorService {
         .andWhere("run.project_id = :projectId", { projectId: connectScope.projectId })
         .getOne()
 
-      if (!run || !run.summary) {
+      // Deleting an agent soft-deletes its runs, also while record jobs are still in flight.
+      if (!run) return null
+
+      if (!run.summary) {
         throw new Error(`Run ${agentCsvExtractionRunId} has no summary to update`)
       }
 
@@ -202,6 +206,13 @@ export class AgentCsvExtractionRunProcessorService {
       // Only the worker that actually transitioned the run owns the one-off CSV export.
       return result.affected === 1
     })
+
+    if (shouldGenerateCsv === null) {
+      this.logger.log(
+        `Agent CSV run ${agentCsvExtractionRunId} was deleted; its summary is not updated`,
+      )
+      return
+    }
 
     const updatedRun = await this.getAgentCsvExtractionRun({
       id: agentCsvExtractionRunId,
