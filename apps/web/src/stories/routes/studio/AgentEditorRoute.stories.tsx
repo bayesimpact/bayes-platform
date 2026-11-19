@@ -16,11 +16,14 @@ import { conversationAgentSessionFactory } from "@/common/features/agents/agent-
 import type { IConversationAgentSessionsSpi } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.spi"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
-import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import { runtimeConfig } from "@/config/runtime-config"
 import { buildDecorator, render } from "@/stories/decorators"
+import {
+  buildAgentVersions,
+  buildAgentVersionsBackend,
+} from "@/stories/routes/studio/agent/agent-versions"
 import {
   buildStudioData,
   type StudioStoryArgs,
@@ -53,35 +56,15 @@ type StoryArgs = StudioStoryArgs & {
   withSources?: boolean
   /** The agent suggests follow-up questions, with instructions (Tools tab). */
   withFollowUpQuestions?: boolean
-}
-
-/** Older revisions of the agent so the version history sheet has content to compare. */
-function buildVersions(agentSettings: AgentSettings): AgentSettings[] {
-  return [
-    { ...agentSettings },
-    {
-      ...agentSettings,
-      revision: 2,
-      isDraft: false,
-      name: "Stricter sourcing",
-      description: "Requires the agent to cite a source for every factual claim.",
-      instructions: `${agentSettings.instructions}\nAlways cite your sources.`,
-    },
-    {
-      ...agentSettings,
-      revision: 1,
-      isDraft: false,
-      name: "Initial setup",
-      instructions: "You are a helpful assistant.",
-    },
-  ]
+  /** Saved revision in production; the newest saved one when unset. */
+  productionRevision?: number
 }
 
 /** Serves the seeded data back so history/restore interactions work inside the story. */
-function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
+function buildMockAgentsService(listAgents: () => Agent[]): IAgentsSpi {
   return {
-    getAll: async () => agents,
-    getAllWithDrafts: async () => agents,
+    getAll: async () => listAgents(),
+    getAllWithDrafts: async () => listAgents(),
     getAvailableModels: async () => agentModelsCatalogFactory.build(),
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
@@ -89,29 +72,10 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
     duplicateOne: async () => {
       throw new Error("duplicateOne is not supported in this story")
     },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
+    // The editor saves the name by itself: the story accepts the save and keeps its seeded data.
+    updateOne: async () => ({ success: true }),
     deleteOne: async () => {
       throw new Error("deleteOne is not supported in this story")
-    },
-  }
-}
-function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): IAgentSettingsSpi {
-  return {
-    getAllWithDraft: async () => agentSettingsHistory,
-    getFillFormOutputJsonSchema: async ({ revision }) =>
-      agentSettingsHistory.find((agentSettings) => agentSettings.revision === revision)
-        ?.outputJsonSchema,
-
-    restoreOne: async () => {
-      throw new Error("restoreOne is not supported in this story")
-    },
-    createOne: async () => {
-      throw new Error("createOne is not supported in this story")
-    },
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
     },
   }
 }
@@ -156,6 +120,7 @@ const meta = {
     withEmbeddingModels: { control: "boolean" },
     withSources: { control: "boolean" },
     withFollowUpQuestions: { control: "boolean" },
+    productionRevision: { control: { type: "number", min: 1 } },
   },
   args: {
     ...studioStoryArgs,
@@ -188,6 +153,7 @@ export const ConversationAgent: Story = {
         withEmbeddingModels,
         withSources,
         withFollowUpQuestions,
+        productionRevision,
         ...args
       }) => {
         const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
@@ -272,10 +238,24 @@ export const ConversationAgent: Story = {
               ]
             : []
 
-        const allAgents = [rawParentAgent, ...childAgents]
-        const versions = unpublished
-          ? [{ ...parentAgentSettings, revision: 1, isDraft: true }]
-          : buildVersions(parentAgentSettings)
+        // A copy never saved only has its draft; otherwise saved revisions, the draft on top.
+        const backend = buildAgentVersionsBackend(
+          unpublished
+            ? {
+                agent: rawParentAgent,
+                versions: [{ ...parentAgentSettings, revision: 1, isDraft: true }],
+              }
+            : buildAgentVersions({
+                agent: rawParentAgent,
+                base: parentAgentSettings,
+                savedCount: withDraft ? 2 : 3,
+                productionRevision,
+                withDraft,
+              }),
+        )
+        const parentAgent = backend.getAgent()
+        const allAgents = [parentAgent, ...childAgents]
+        const versions = backend.getVersions()
 
         return {
           state: mergeSeeds(
@@ -285,11 +265,18 @@ export const ConversationAgent: Story = {
             seed.studio.documentTags(documentTags),
             seed.studio.resourceLibraries(resourceLibraries),
             seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
+            // The Orchestration section shows the instructions of each agent it offers as a sub-agent.
+            ...childAgents.map((childAgent) =>
+              seed.studio.agentHistory({
+                agentId: childAgent.id,
+                versions: [agentSettingsFactory.transient({ agent: childAgent }).build()],
+              }),
+            ),
             // The agent layout above the editor lists the agent's conversations.
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
             seed.studio.projectEmbeddingModels(embeddingModels),
-            // Embedding is on, so the Embed tab shows its snippet, links and public API.
+            // Embedding is on, so the Embed section shows its snippet, links and public API.
             seed.studio.agentEmbedConfig(
               agentEmbedConfigFactory
                 .transient({ agent: rawParentAgent })
@@ -298,14 +285,23 @@ export const ConversationAgent: Story = {
             embeddingSeeds,
           ),
           services: {
-            agents: buildMockAgentsService(allAgents),
-            agentSettings: buildMockAgentSettingsService(versions),
+            agents: buildMockAgentsService(() => [backend.getAgent(), ...childAgents]),
+            agentSettings: backend.agentSettings,
             projectEmbeddingModels: buildMockProjectEmbeddingModelsService(embeddingModels),
           },
         }
       },
     ),
   ],
+}
+
+/**
+ * The managers keep version 1 in production while versions 2 and 3 are saved: the editor works on
+ * the newest one, and the header says plainly that another version is live.
+ */
+export const ConversationAgentOlderVersionInProduction: Story = {
+  args: { withDraft: false, productionRevision: 1 },
+  decorators: ConversationAgent.decorators,
 }
 
 /** A fresh copy of an agent opens here: its settings are a draft that was never published. */
@@ -334,7 +330,7 @@ export const ToolsTabWithFollowUpQuestions: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const toolsTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Tools" },
       { timeout: 10_000 },
     )
@@ -354,7 +350,7 @@ export const ModelTabWithEmbeddingModels: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const modelTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Model" },
       { timeout: 10_000 },
     )
@@ -392,6 +388,7 @@ export const GeneralTabWithPromptVariables: Story = {
         description: "Answers questions about a given topic.",
         revision: 3,
         isDraft: false,
+        isProduction: true,
         model: defaultAgentModels.agent,
         instructions: "You are a helpful assistant. Answer the user's questions about {{topic}}.",
         variables: { topic: "The new pricing page" } as Record<string, string>,
@@ -407,8 +404,9 @@ export const GeneralTabWithPromptVariables: Story = {
           seed.studio.mcpServers([]),
         ),
         services: {
-          agents: buildMockAgentsService([agent]),
-          agentSettings: buildMockAgentSettingsService([agentSettings]),
+          agents: buildMockAgentsService(() => [agent]),
+          agentSettings: buildAgentVersionsBackend({ agent, versions: [agentSettings] })
+            .agentSettings,
         },
       }
     }),
@@ -449,6 +447,7 @@ export const PlaygroundSessionStartWithPromptVariables: Story = {
         description: "Answers questions about a given topic.",
         revision: 3,
         isDraft: false,
+        isProduction: true,
         model: defaultAgentModels.agent,
         instructions: "You are a helpful assistant. Answer the user's questions about {{topic}}.",
         variables: { topic: "The new pricing page" } as Record<string, string>,
@@ -464,8 +463,9 @@ export const PlaygroundSessionStartWithPromptVariables: Story = {
           seed.studio.mcpServers([]),
         ),
         services: {
-          agents: buildMockAgentsService([agent]),
-          agentSettings: buildMockAgentSettingsService([agentSettings]),
+          agents: buildMockAgentsService(() => [agent]),
+          agentSettings: buildAgentVersionsBackend({ agent, versions: [agentSettings] })
+            .agentSettings,
           conversationAgentSessions: buildMockConversationAgentSessionsService(),
         },
       }
@@ -486,7 +486,7 @@ export const SourcesTab: Story = {
   decorators: ConversationAgent.decorators,
   play: async ({ canvasElement }) => {
     const sourcesTab = await within(canvasElement).findByRole(
-      "tab",
+      "button",
       { name: "Sources" },
       { timeout: 10_000 },
     )
@@ -506,9 +506,10 @@ function withHelpCenterUrl(helpCenterUrl: string | undefined) {
 }
 
 /**
- * The Embed tab with embedding on: activation, appearance, the widget snippet, the public page
- * and the public API. The deployment has a help center, so the widget guide and the API
- * reference are linked.
+ * The Embed section with embedding on: activation, appearance, the widget snippet, the public
+ * page and the public API. It shows beside the menu, like the other sections, with its own Save
+ * that stays in view while the form scrolls. The deployment has a help center, so the widget
+ * guide and the API reference are linked.
  */
 export const EmbedTab: Story = {
   args: {
@@ -517,24 +518,102 @@ export const EmbedTab: Story = {
   decorators: ConversationAgent.decorators,
   beforeEach: withHelpCenterUrl("https://help.example.org"),
   play: async ({ canvasElement }) => {
-    const embedTab = await within(canvasElement).findByRole(
-      "tab",
+    const embedButton = await within(canvasElement).findByRole(
+      "button",
       { name: "Embed" },
       { timeout: 10_000 },
     )
-    await userEvent.click(embedTab)
+    await userEvent.click(embedButton)
   },
 }
 
-/** The same tab on a deployment without a help center: no links to the guide and the reference. */
+/** The same section on a deployment without a help center: no links to the guide and the reference. */
 export const EmbedTabWithoutHelpCenter: Story = {
   ...EmbedTab,
   beforeEach: withHelpCenterUrl(undefined),
 }
 
+/** Opens the Orchestration section from the editor's menu. */
+async function openOrchestration(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement)
+  const orchestrationButton = await canvas.findByRole(
+    "button",
+    { name: "Orchestration" },
+    { timeout: 10_000 },
+  )
+  await userEvent.click(orchestrationButton)
+  return canvas
+}
+
 /**
- * An extraction agent, as it opens right after its creation: one History and Save version bar,
- * in the page header. The tabs bar adds none of its own.
+ * The Orchestration section with one sub-agent: its tool name and its mode side by side, then
+ * its description with the character count. Under it, the agents that can still be added. The
+ * section shows beside the menu, with its own Save: a change applies in production at once.
+ */
+export const OrchestrationTab: Story = {
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    await expect(await canvas.findByDisplayValue("ask_research_agent")).toBeVisible()
+    // Nothing changed yet: there is nothing to save.
+    await expect(canvas.getByRole("button", { name: "Save" })).toBeDisabled()
+  },
+}
+
+/** No sub-agent yet: the empty state, then every other conversation agent of the project. */
+export const OrchestrationTabWithoutSubAgents: Story = {
+  args: { withSubAgents: false },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    await openOrchestration(canvasElement)
+  },
+}
+
+/**
+ * The user adds a sub-agent, then asks for another section without saving: the editor asks
+ * before it drops the change.
+ */
+export const OrchestrationTabLeftWithUnsavedChanges: Story = {
+  args: { withSubAgents: false },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    const [addButton] = await canvas.findAllByRole("button", { name: "Add" })
+    if (!addButton) throw new Error("The story needs an agent to add as a sub-agent")
+    await userEvent.click(addButton)
+    await expect(canvas.getByRole("button", { name: "Save" })).toBeEnabled()
+    await userEvent.click(canvas.getByRole("button", { name: "General" }))
+    // The dialog renders outside the canvas.
+    await expect(await within(document.body).findByRole("dialog")).toBeVisible()
+  },
+}
+
+/** Removing a sub-agent drops its tool name and its description: it asks first. */
+export const OrchestrationTabRemoveSubAgent: Story = {
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: "Remove" }))
+    await expect(await within(document.body).findByRole("dialog")).toBeVisible()
+  },
+}
+
+/** The instructions of an agent that can be added, read-only, in a full-page sheet. */
+export const OrchestrationTabAgentInstructions: Story = {
+  args: { withSubAgents: false },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const canvas = await openOrchestration(canvasElement)
+    const [instructionsButton] = await canvas.findAllByRole("button", { name: "Instructions" })
+    if (!instructionsButton) throw new Error("The story needs an agent to add as a sub-agent")
+    await userEvent.click(instructionsButton)
+    await expect(await within(document.body).findByRole("dialog")).toBeVisible()
+  },
+}
+
+/**
+ * An extraction agent, as it opens right after its creation: the same editor page as a
+ * conversation agent, with one entry to its versions.
  */
 export const ExtractionAgent: Story = {
   // An extraction agent has no sources, tools, sub-agents or embedding models.
@@ -560,11 +639,15 @@ export const ExtractionAgent: Story = {
         instructions: "Extract the title and summary of the document.",
         revision: 1,
         isDraft: false,
+        isProduction: true,
         model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
       })
       // With a draft, an unpublished revision 2 sits on top of the published revision 1.
       const versions = withDraft
-        ? [{ ...publishedSettings, revision: 2, isDraft: true }, publishedSettings]
+        ? [
+            { ...publishedSettings, revision: 2, isDraft: true, isProduction: false },
+            publishedSettings,
+          ]
         : [publishedSettings]
 
       return {
@@ -576,15 +659,15 @@ export const ExtractionAgent: Story = {
           seed.studio.mcpServers([]),
         ),
         services: {
-          agents: buildMockAgentsService([agent]),
-          agentSettings: buildMockAgentSettingsService(versions),
+          agents: buildMockAgentsService(() => [agent]),
+          agentSettings: buildAgentVersionsBackend({ agent, versions }).agentSettings,
         },
       }
     }),
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await canvas.findByRole("tab", { name: "Output" }, { timeout: 10_000 })
-    await expect(canvas.getAllByRole("button", { name: /history/i })).toHaveLength(1)
+    await canvas.findByRole("button", { name: "Output" }, { timeout: 10_000 })
+    await expect(canvas.getAllByRole("button", { name: /versions/i })).toHaveLength(1)
   },
 }

@@ -25,6 +25,12 @@ export type RuntimeConfig = {
   helpAgentEmbedToken?: string
   helpAgentEmbedColor?: string
   helpAgentEmbedHint?: string
+  /**
+   * The origin that serves the sandbox of MCP App cards, apart from the app's own, such as
+   * `https://{label}.staging.bayes-usercontent.org`: `{label}` stands for a label of the card's
+   * MCP server. Unset, a card runs in a frame with an opaque origin that the app writes itself.
+   */
+  mcpAppSandboxOrigin?: string
   /** Issuer URL of the OpenID Connect provider (Keycloak realm, Dex, Auth0 tenant...). */
   oidcAuthority: string
   /** Public client (Authorization Code + PKCE) registered for the SPA. */
@@ -68,6 +74,7 @@ function readBuildTimeConfig(): RuntimeConfig {
     helpAgentEmbedToken: env.VITE_HELP_AGENT_EMBED_TOKEN,
     helpAgentEmbedColor: env.VITE_HELP_AGENT_EMBED_COLOR,
     helpAgentEmbedHint: env.VITE_HELP_AGENT_EMBED_HINT,
+    mcpAppSandboxOrigin: env.VITE_MCP_APP_SANDBOX_ORIGIN,
     oidcAuthority: env.VITE_OIDC_AUTHORITY ?? "",
     oidcClientId: env.VITE_OIDC_CLIENT_ID ?? "",
     oidcAudience: env.VITE_OIDC_AUDIENCE,

@@ -10,7 +10,10 @@ import {
 import { ExternalLinkIcon, InfoIcon } from "lucide-react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { findModelOptionValue } from "@/common/features/agents/agent-model.helpers"
+import {
+  findModelOptionValue,
+  findThinkingLevelValue,
+} from "@/common/features/agents/agent-model.helpers"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
@@ -45,7 +48,7 @@ export function AgentMetadataDialog({
   const studioUrl = StudioRoutes.agent.build({ organizationId, projectId, agentId })
   const canAccessStudio = abilities.canAccessStudio({ projectId })
   const temperature = findModelOptionValue(agentSettings.providerOptions, "temperature")
-  const thinkingLevel = findModelOptionValue(agentSettings.providerOptions, "thinkingLevel")
+  const thinkingLevel = findThinkingLevelValue(agentSettings.providerOptions)
 
   return (
     <Dialog>

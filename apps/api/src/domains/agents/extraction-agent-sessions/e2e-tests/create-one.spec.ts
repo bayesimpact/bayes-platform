@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { AgentModel, ExtractionAgentSessionsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -10,8 +11,10 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import type { Document } from "@/domains/documents/document.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { userFactory } from "@/domains/users/user.factory"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -73,7 +76,14 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     await app.close()
   })
 
-  const createContext = async () => {
+  /** The document is a file uploaded for a run, by the caller unless `uploadedBy` says otherwise. */
+  const createContext = async ({
+    sourceType = "extraction",
+    uploadedBy = "caller",
+  }: {
+    sourceType?: Document["sourceType"]
+    uploadedBy?: "caller" | "colleague"
+  } = {}) => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
         type: "extraction",
@@ -88,8 +98,11 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
       },
     })
 
+    const colleague = userFactory.build()
+    if (uploadedBy === "colleague") await repositories.userRepository.save(colleague)
     const document = documentFactory.transient({ organization, project }).build({
-      sourceType: "extraction",
+      sourceType,
+      userId: uploadedBy === "caller" ? user.id : colleague.id,
       mimeType: "application/pdf",
       storageRelativePath: "documents/sample.pdf",
     })
@@ -102,14 +115,12 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     authSubject = user.authSubject!
   }
 
-  const subject = async (
-    payload?: typeof ExtractionAgentSessionsRoutes.playground.executeOne.request,
-  ) =>
+  const subject = async (type: "playground" | "live" = "playground") =>
     request({
-      route: ExtractionAgentSessionsRoutes.playground.executeOne,
+      route: ExtractionAgentSessionsRoutes[type].executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: payload ?? { payload: { documentId } },
+      request: { payload: { documentId } },
     })
 
   it("should create an extraction session run", async () => {
@@ -126,5 +137,39 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     })
 
     await expectActivityCreated("extractionAgentSession.execute")
+  })
+
+  describe("the document a run reads", () => {
+    it("runs live on a file the caller uploaded for a run", async () => {
+      await createContext()
+
+      expectResponse(await subject("live"), 201)
+      expect(mockBatchService.enqueueExecuteRun).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+      { case: "a file a colleague uploaded for a run", uploadedBy: "colleague" },
+      { case: "a document of the project", sourceType: "project" },
+    ] as const)("answers 404 for a live run on $case", async (document) => {
+      await createContext(document)
+
+      expectResponse(await subject("live"), 404, `Document ${documentId} not found`)
+      expect(mockBatchService.enqueueExecuteRun).not.toHaveBeenCalled()
+      expect(await repositories.extractionAgentSessionRepository.count()).toBe(0)
+    })
+
+    it("lets a playground run read any document of the project", async () => {
+      await createContext({ sourceType: "project", uploadedBy: "colleague" })
+
+      expectResponse(await subject("playground"), 201)
+    })
+
+    it("answers 404 for a document that does not exist", async () => {
+      await createContext()
+      documentId = randomUUID()
+
+      expectResponse(await subject("playground"), 404, `Document ${documentId} not found`)
+      expect(mockBatchService.enqueueExecuteRun).not.toHaveBeenCalled()
+    })
   })
 })

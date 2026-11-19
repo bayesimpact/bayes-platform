@@ -4,7 +4,7 @@ highlight: Intégration
 description: Rendez un agent conversationnel accessible hors de la plateforme — comme widget de chat sur votre site ou comme page publique autonome partagée par lien ou QR code — avec votre marque et un bandeau optionnel.
 category: guides-agents
 order: 6
-updated: 2026-09-07
+updated: 2026-11-16
 ---
 
 import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
@@ -20,39 +20,41 @@ personnes extérieures à la plateforme, de deux façons :
   code**. Aucun site web n'est nécessaire, ce qui convient à un pilote, un événement
   ou un accès de test.
 
-L'intégration se configure sur l'onglet **Intégration** de l'éditeur d'un **agent
-conversationnel**, dans **Studio**. C'est une fonctionnalité optionnelle : l'onglet
-n'apparaît que si l'intégration est activée pour votre espace de travail et que vous
-modifiez un agent **conversationnel** (les agents d'extraction et de formulaire ne
-l'ont pas). Dans la barre d'onglets de l'éditeur, c'est le dernier onglet, après
-[**Orchestration**](/fr/agent-orchestration) — sauf si l'onglet **Serveurs MCP** est
-activé, qui se place après lui.
+L'intégration se configure dans l'éditeur d'un **agent conversationnel** (un agent
+de formulaire en est un), dans **Studio** : **Intégration** se trouve dans le menu de
+gauche de l'éditeur, sous **Plus**. Elle ne fait pas partie du brouillon de l'agent :
+elle s'ouvre en pleine page avec son propre bouton **Enregistrer**, et vos
+modifications s'appliquent à l'agent **en production** dès que vous les enregistrez.
+Elle n'a pas de versions dans l'[historique des versions](/fr/agent-version-history).
+C'est une fonctionnalité optionnelle : l'entrée n'apparaît que si l'intégration est
+activée pour votre espace de travail. Les agents d'extraction ne l'ont pas.
 
 > **À faire activer.** L'intégration s'active espace de travail par espace de
-> travail. Si l'éditeur de votre agent conversationnel n'a pas d'onglet
-> **Intégration**, c'est que la fonctionnalité n'est pas encore activée — contactez
-> l'équipe Bayes pour en faire la demande.
+> travail. Si l'éditeur de votre agent conversationnel n'a pas d'entrée
+> **Intégration** sous **Plus**, c'est que la fonctionnalité n'est pas encore
+> activée. Contactez l'équipe Bayes pour en faire la demande.
 
 ## Comment fonctionne l'intégration
 
-- Chaque agent conversationnel possède son propre **extrait d'intégration** — une
-  balise `<script>` portant un jeton unique. Ajouter cet extrait à une page web y
-  charge le widget de chat de cet agent.
-- Le même jeton donne à l'agent un **lien de page publique**. Toute personne qui
-  l'ouvre accède au chat complet, sans aucun site hôte.
-- L'extrait et le lien existent que l'intégration soit activée ou non, mais le widget
-  et la page publique ne fonctionnent qu'une fois **Activer l'intégration** activé. Le
-  désactiver les met hors ligne immédiatement : c'est ainsi que vous terminez un accès
-  temporaire.
-- Vous contrôlez **quels sites** peuvent charger le widget avec les **Origines
-  autorisées**, et vous pouvez **personnaliser son apparence** (titre, logo, couleur
-  principale) ainsi que quelques attributs `data-` optionnels sur la balise de script.
+- Chaque agent conversationnel possède son propre **token d'intégration**. La balise
+  `<script>` sous **Widget sur un site** le porte : ajouter cette balise à une page web
+  y charge le widget de chat de cet agent.
+- Le même token donne à l'agent un lien de **page publique**. Toute personne qui
+  l'ouvre accède au chat complet, sans aucun site hôte. Il donne aussi l'**URL de
+  base** de l'[API publique](/fr/public-chat-api), pour construire votre propre
+  interface de chat.
+- La balise, le lien et l'URL existent que l'intégration soit activée ou non, mais le
+  widget, la page publique et l'API publique ne fonctionnent qu'une fois **Activer
+  l'intégration** activé. Le désactiver les met tous les trois hors ligne
+  immédiatement : c'est ainsi que vous terminez un accès temporaire.
+- Vous pouvez **personnaliser l'apparence** (titre, logo, couleur principale) ainsi
+  que quelques attributs `data-` optionnels sur la balise de script.
 - Un **texte de bandeau** optionnel reste affiché au-dessus de la conversation, sur la
   page publique et dans le widget, pour que les visiteurs voient toujours le contexte
   (par exemple *Version de test, réservée à l'équipe pilote*) même si le lien est
   transféré.
-- Les modifications sont enregistrées avec **Mettre à jour** (cet onglet utilise
-  **Mettre à jour**, pas Enregistrer).
+- Les visiteurs parlent à la version **publiée** de l'agent. Les modifications du
+  brouillon les atteignent une fois le brouillon enregistré comme version.
 
 ## Le parcours complet en un coup d'œil
 
@@ -66,88 +68,107 @@ bouton à cliquer et la zone à observer.
 
 ### 1. Ouvrir un agent conversationnel
 
-Dans **Studio**, ouvrez l'agent **conversationnel** que vous voulez intégrer (depuis
-la liste **Agents** de la barre latérale gauche, ou sa carte sur la vue d'ensemble de
-l'espace de travail). L'éditeur de l'agent s'ouvre. Vous devez avoir le droit de gérer
-l'agent.
+Dans **Studio**, ouvrez l'agent **conversationnel** à intégrer (depuis la liste
+**Agents** de la barre latérale gauche, ou sa carte sur la vue d'ensemble de l'espace
+de travail). Sa page s'ouvre. Vous devez avoir le droit de gérer l'agent.
 
-### 2. Ouvrir l'onglet Intégration
+### 2. Ouvrir l'éditeur de l'agent
 
-Dans la barre d'onglets de l'éditeur, cliquez sur **Intégration** — le dernier onglet
-(sauf si l'onglet **Serveurs MCP** est activé, qui se place après lui). Si vous ne le
-voyez pas, l'onglet n'est pas activé pour votre espace de
+En haut à droite de la page de l'agent, cliquez sur **Modifier**. Le bouton indique sur
+quoi l'éditeur s'ouvre : un badge **Brouillon**, ou la version publiée (par exemple
+**v3**).
+
+### 3. Ouvrir Intégration
+
+Dans le menu de gauche de l'éditeur, sous **Plus**, cliquez sur **Intégration** (elle
+porte une icône de lien externe : elle s'ouvre par-dessus l'éditeur). **Intégration**
+s'ouvre en pleine page. Son en-tête indique *Ces réglages ne font pas partie du
+brouillon : ils s'appliquent en production dès que vous enregistrez.*, avec **Fermer**
+et **Enregistrer** en haut à droite (ils apparaissent aussi en bas de la page). Si vous
+ne voyez pas **Intégration**, la fonctionnalité n'est pas activée pour votre espace de
 travail, ou vous n'êtes pas sur un agent **conversationnel** (voir Dépannage).
 
-### 3. Activer l'intégration
+### 4. Activer l'intégration
 
-Activez **Activer l'intégration**. Sa description indique *Permettre à `<nom de
-l'agent>` d'être intégré sur des sites externes via un iframe.* Tant qu'elle est
-désactivée, l'extrait est tout de même généré mais le widget ne se charge pas sur
-votre site.
+Activez **Activer l'intégration**. Sa description indique *Rend `<nom de l'agent>`
+disponible hors de la plateforme : widget, page publique et API publique. Désactivée,
+les trois cessent de fonctionner.*
 
-### 4. Copier l'extrait d'intégration
+### 5. Personnaliser l'apparence
 
-Sous **Extrait d'intégration**, vous trouvez une balise `<script>` en lecture seule.
-Cliquez sur le bouton **copier** à côté, puis, comme l'indique la description,
-*collez cette balise `<script>` avant la balise `</body>` fermante* sur chaque page où
-vous voulez afficher le widget.
+Sous **Apparence** (*Affichée dans l'en-tête du widget et de la page publique.*), quatre
+champs optionnels règlent l'aspect du chat :
 
-L'indication liste les **attributs optionnels** à ajouter à la balise pour ajuster le
-widget :
-
-- **`data-color`** — la couleur du bouton de chat (ex. `#2563eb`).
-- **`data-locale`** — la langue du widget (ex. `fr`).
-- **`data-display-mode`** — mettez `drawer` pour un panneau latéral au lieu d'une
-  bulle.
-- **`data-hint`** — une infobulle affichée au chargement et au survol (ex. `Besoin
-  d'aide ?`).
-
-Sous l'extrait, **Lien de la page publique** est l'URL de la page autonome. Copiez-la
-avec le bouton **copier** et partagez-la sous forme de lien ou de QR code quand vous
-n'avez pas de site pour héberger le widget. Ajoutez `&locale=fr` pour forcer la langue
-de la page.
-
-### 5. Restreindre les origines autorisées
-
-Dans **Origines autorisées**, saisissez une **liste séparée par des virgules** des
-sites autorisés à charger le widget (par exemple `https://app.example.com,
-https://staging.example.com`). Comme le précise la description, **laissez vide pour
-autoriser toutes les origines** — mais en production, il est plus sûr de ne lister que
-vos propres domaines. Si vous utilisez le **lien de la page publique**, laissez la
-liste vide : la page n'a pas de site hôte à autoriser.
-
-### 6. Personnaliser l'apparence du widget
-
-Quatre champs optionnels contrôlent l'aspect du widget :
-
-- **Titre du widget** — le titre affiché dans l'en-tête du chat. Laissé vide, il
-  **correspond au nom de l'agent**.
-- **URL du logo** — l'URL d'une image de logo affichée dans l'en-tête du chat (ex.
+- **Titre du widget** : le titre affiché dans l'en-tête du chat. Laissé vide, il
+  **reprend le nom de l'agent**.
+- **URL du logo** : l'URL d'une image de logo affichée dans l'en-tête du chat (par ex.
   `https://example.com/logo.png`).
-- **Couleur principale** — la couleur principale de l'en-tête du chat. Choisissez-la
-  avec le sélecteur de couleur ou saisissez une **valeur hexadécimale** (ex.
-  `#2563eb`).
-- **Texte du bandeau** — un message optionnel affiché en permanence au-dessus de la
-  conversation, sur la page publique et dans le widget. Précisez-y le contexte : une
+- **Couleur principale** : la couleur de l'en-tête du chat. Choisissez-la avec la
+  pastille de couleur ou saisissez une **valeur hexadécimale** (par ex. `#2563eb`).
+- **Texte du bandeau** : un message optionnel affiché en permanence au-dessus de la
+  conversation, sur la page publique et dans le widget. Indiquez-y le contexte : une
   version de test, le public visé, une période de validité. Laissez-le vide pour
   n'afficher aucun bandeau.
 
-### 7. Mettre à jour
+### 6. Placer le widget sur un site
 
-Cliquez sur **Mettre à jour** pour enregistrer la configuration. Vos modifications —
-état d'activation, origines autorisées, titre, logo, couleur et bandeau — prennent
-effet pour le widget et la page publique.
+Sous **Widget sur un site**, vous trouvez une balise `<script>` en lecture seule.
+Cliquez sur le bouton **copier** à côté, puis, comme l'indique la description,
+*collez cette balise `<script>` avant la balise `</body>` fermante sur chaque page où le
+widget de chat doit apparaître.*
+
+L'indication liste des **attributs optionnels** à ajouter à la balise :
+
+- **`data-color`** : la couleur du bouton de chat (par ex. `#2563eb`).
+- **`data-locale`** : la langue du widget (par ex. `fr`).
+- **`data-display-mode`** : `drawer` pour un panneau latéral au lieu d'une bulle.
+- **`data-hint`** : une infobulle affichée au chargement et au survol (par ex.
+  `Besoin d'aide ?`).
+
+En dessous, **Origines autorisées** indique *Laissez vide pour l'instant.* Le widget
+appelle la plateforme depuis l'adresse de la plateforme, pas depuis votre site : une
+liste sans cette adresse bloque le widget. La vérification du site qui affiche le
+widget n'est pas encore disponible. **Lire le guide du widget** ouvre cette page.
+
+### 7. Partager la page publique
+
+Sous **Page publique**, copiez le lien avec le bouton **copier**. Partagez-le comme lien
+ou QR code quand vous n'avez pas de site pour héberger le widget. La page ne fonctionne
+que lorsque l'intégration est activée. Ajoutez `&locale=fr` pour forcer la langue de la
+page.
+
+### 8. Utiliser l'API publique
+
+Sous **API publique**, copiez l'**URL de base** : toutes les routes de l'API commencent
+par elle, et elle contient le token d'intégration de cet agent. **Lire la référence de
+l'API** ouvre la référence de l'[API de chat publique](/fr/public-chat-api).
+
+### 9. Enregistrer
+
+Cliquez sur **Enregistrer**, en haut ou en bas de la page. Le bouton reste grisé tant
+que vous n'avez rien modifié. Dès que vous modifiez quelque chose, **Fermer** devient
+**Annuler**. Annuler, la croix de fermeture, Échap ou un clic hors de la page avec des
+modifications non enregistrées ouvre la boîte de dialogue **Modifications non
+enregistrées**, qui vous demande s'il faut les **Abandonner**.
+
+### 10. Confirmer
+
+La boîte de dialogue **Appliquer ces réglages maintenant ?** indique *Ces réglages ne
+passent pas par le brouillon : ils s'appliquent à l'agent **en production** dès
+l'enregistrement.* Cliquez sur **Enregistrer** pour les appliquer, ou sur **Annuler**
+pour revenir à la page. Vos modifications (activation, origines autorisées, titre,
+logo, couleur et bandeau) s'appliquent alors au widget, à la page publique et à l'API
+publique.
 
 ## Conseils
 
-- Laissez **Activer l'intégration** désactivé jusqu'à ce que vous ayez réglé vos
-  **Origines autorisées** et votre marque, pour que le widget ne soit publié qu'une
-  fois prêt.
-- Listez vos vrais domaines dans **Origines autorisées** en production ; une liste vide
-  autorise **n'importe quel** site à intégrer l'agent.
+- Laissez **Activer l'intégration** désactivé jusqu'à ce que l'apparence et le
+  bandeau soient réglés, pour que le widget ne soit publié qu'une fois prêt.
+- Laissez les **Origines autorisées** vides pour l'instant : une liste sans l'adresse
+  de la plateforme bloque le widget.
 - Utilisez `data-display-mode="drawer"` pour un panneau latéral plutôt qu'une bulle
   flottante, et `data-locale` pour forcer la langue du widget.
-- Le **Titre du widget** reprend le nom de l'agent — définissez-le explicitement si
+- Le **Titre du widget** reprend le nom de l'agent : définissez-le explicitement si
   vous voulez un autre en-tête pour les visiteurs.
 - Pour un accès temporaire partagé par lien ou QR code, définissez un **Texte du
   bandeau** qui indique à qui l'agent s'adresse, puis désactivez **Activer
@@ -159,24 +180,24 @@ effet pour le widget et la page publique.
 
 ## Dépannage
 
-- **Je ne vois pas l'onglet Intégration** — il n'apparaît que pour les agents
-  **conversationnels**, uniquement si l'intégration est activée pour l'espace de
-  travail, et seulement si vous pouvez gérer l'agent. Les agents d'extraction et de
-  formulaire ne l'affichent jamais.
-- **Le widget n'apparaît pas sur mon site** — vérifiez que **Activer l'intégration**
-  est activé, que l'extrait est collé avant `</body>`, et que l'origine de votre site
-  figure dans les **Origines autorisées** (ou que la liste est vide).
-- **Le widget se charge sur les mauvais sites** — une liste **Origines autorisées**
-  vide autorise toutes les origines ; ajoutez vos domaines spécifiques pour la
-  restreindre.
-- **L'en-tête affiche le nom de l'agent, pas mon titre** — le **Titre du widget** est
-  vide, il reprend donc le nom de l'agent ; saisissez un titre et **Mettez à jour**.
-- **La page publique indique « non disponible »** — **Activer l'intégration** est
-  désactivé, ou les **Origines autorisées** ne sont pas vides. Activez l'intégration et
-  videz la liste des origines.
-- **Le bandeau ne s'affiche pas** — le **Texte du bandeau** est vide ou vous n'avez pas
-  cliqué sur **Mettre à jour** ; le bandeau n'apparaît que lorsque le texte est
-  renseigné.
-- **En lien :** le widget intégré est un agent conversationnel — voir
+- **Je ne vois pas Intégration dans l'éditeur** : elle n'apparaît sous **Plus** que
+  pour les agents **conversationnels** (agents de formulaire compris), uniquement si
+  l'intégration est activée pour l'espace de travail, et seulement si vous pouvez gérer
+  l'agent. Les agents d'extraction ne l'affichent jamais.
+- **Le widget n'apparaît pas sur mon site** : vérifiez qu'**Activer l'intégration** est
+  activé et enregistré, que la balise est collée avant `</body>`, et que les **Origines
+  autorisées** sont vides.
+- **L'en-tête affiche le nom de l'agent, pas mon titre** : le **Titre du widget** est
+  vide, il reprend donc le nom de l'agent ; saisissez un titre, puis **Enregistrez** et
+  confirmez.
+- **La page publique affiche « non disponible »** : **Activer l'intégration** est
+  désactivé, ou les **Origines autorisées** ne sont pas vides. Activez l'intégration,
+  videz la liste des origines, puis **Enregistrez** et confirmez.
+- **Le bandeau ne s'affiche pas** : le **Texte du bandeau** est vide, ou vous n'avez
+  pas enregistré et confirmé. Le bandeau n'apparaît que si le texte est renseigné.
+- **Les visiteurs ne voient pas mes dernières modifications de l'agent** : le widget
+  utilise la version publiée. Ouvrez **Gérer les versions** dans l'éditeur et
+  **Enregistrez la version**.
+- **En lien :** le widget intégré est un agent conversationnel ; voir
   [Ajouter un agent conversationnel](/fr/add-a-conversation-agent) pour configurer ce
   qu'il dit.

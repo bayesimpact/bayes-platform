@@ -161,10 +161,10 @@ export const AGENT_SUB_AGENT_READ_PERMISSION = "agent.sub_agent.read" as const
 export const AGENT_SUB_AGENT_UPDATE_PERMISSION = "agent.sub_agent.update" as const
 
 /**
- * See the revision history of an agent's settings, drafts included. Checked on the
+ * Read an agent's settings: every revision, the draft included. Checked on the
  * agent, and granted on project roles that pass it down to every agent of the project.
  */
-export const AGENT_SETTINGS_DRAFT_READ_PERMISSION = "agent.settings.draft.read" as const
+export const AGENT_SETTINGS_READ_PERMISSION = "agent.settings.read" as const
 
 /**
  * Edit an agent's draft settings, publish the draft as a new revision, restore an older

@@ -13,10 +13,10 @@ import { updateAgentSettingsCategories } from "@/common/features/agents/agent-se
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
-import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
-import { TabSaveButton } from "./TabSaveButton"
+import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
+import { LiveSettingNotice } from "../LiveSettingNotice"
 
-export function SessionCategoriesTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
+export function SessionCategoriesTab({ agentSettings, saveControl }: AgentTabFormProps) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const project = useValue(selectCurrentProjectData)
@@ -24,20 +24,23 @@ export function SessionCategoriesTab({ agentSettings, onDirtyChange }: AgentTabF
 
   const form = useForm<UpdateAgentSettingsCategoriesDto>({
     resolver: zodResolver(updateAgentSettingsCategoriesSchema),
+    shouldFocusError: false,
     defaultValues: { projectAgentSessionCategoryIds: agentSettings.projectAgentSessionCategoryIds },
   })
-  useReportDirty(form.formState.isDirty, onDirtyChange)
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    await dispatch(
-      updateAgentSettingsCategories({ agentId: agentSettings.agentId, fields: values }),
-    ).unwrap()
-    form.reset(values)
+  const { onSubmit } = useAutosave({
+    form,
+    saveControl,
+    save: async ({ values }) => {
+      await dispatch(
+        updateAgentSettingsCategories({ agentId: agentSettings.agentId, fields: values }),
+      ).unwrap()
+    },
   })
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
+        <LiveSettingNotice />
         <FormField
           control={form.control}
           name="projectAgentSessionCategoryIds"
@@ -108,12 +111,6 @@ export function SessionCategoriesTab({ agentSettings, onDirtyChange }: AgentTabF
           )}
 
         <FieldDescription>{t("agentSettings:props.agentSessionCategoriesInUse")}</FieldDescription>
-
-        <TabSaveButton
-          isSubmitting={form.formState.isSubmitting}
-          isDirty={form.formState.isDirty}
-          onCancel={() => form.reset()}
-        />
       </form>
     </Form>
   )

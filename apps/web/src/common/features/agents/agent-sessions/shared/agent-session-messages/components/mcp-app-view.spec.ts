@@ -3,13 +3,11 @@ import { describe, expect, it } from "vitest"
 import {
   findMcpAppHtml,
   getFailedMcpAppFallbackText,
-  getMcpAppMessageText,
   getMcpAppToolResultText,
   getRenderableMcpApp,
   getReplyBubbleText,
   hasMcpAppCard,
   hasMcpAppPointer,
-  isOpenableLink,
 } from "./mcp-app-view"
 
 const baseToolCall: AgentSessionToolCallDto = {
@@ -42,24 +40,58 @@ describe("hasMcpAppCard", () => {
     expect(hasMcpAppCard({ ...cardToolCall, result: undefined })).toBe(false)
     expect(hasMcpAppCard(baseToolCall)).toBe(false)
   })
+
+  it("shows no card for a tool call that failed", () => {
+    const failed: AgentSessionToolCallDto = {
+      ...cardToolCall,
+      result: { content: [{ type: "text", text: "Error fetching the report" }], isError: true },
+    }
+
+    expect(hasMcpAppCard(failed)).toBe(false)
+    expect(getRenderableMcpApp(failed)).toBeUndefined()
+    expect(getReplyBubbleText("The export failed.", [failed], [])).toBe("The export failed.")
+  })
 })
 
 describe("findMcpAppHtml", () => {
   const entries = [{ ...pointer, html: "<html>live</html>" }]
 
-  it("prefers the HTML embedded on the tool call", () => {
-    expect(findMcpAppHtml({ ...pointer, html: "<html>inline</html>" }, entries)).toBe(
-      "<html>inline</html>",
-    )
+  it("prefers the HTML embedded on the tool call, and keeps the server it names", () => {
+    expect(findMcpAppHtml({ ...pointer, html: "<html>inline</html>" }, entries)).toEqual({
+      html: "<html>inline</html>",
+      mcpServerId: pointer.mcpServerId,
+    })
+    expect(
+      findMcpAppHtml({ ...pointer, mcpServerId: "", html: "<html>inline</html>" }, entries),
+    ).toEqual({ html: "<html>inline</html>" })
   })
 
   it("resolves the pointer against the entry read from the same server", () => {
-    expect(findMcpAppHtml(pointer, entries)).toBe("<html>live</html>")
+    expect(findMcpAppHtml(pointer, entries)).toEqual({
+      html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
+    })
     expect(findMcpAppHtml({ ...pointer, mcpServerId: "other-server" }, entries)).toBeUndefined()
   })
 
-  it("accepts any server's entry for a pointer recorded without a server id", () => {
-    expect(findMcpAppHtml({ ...pointer, mcpServerId: "" }, entries)).toBe("<html>live</html>")
+  it("keeps the domains the card declares, for its Content Security Policy", () => {
+    const csp = { connectDomains: ["https://api.example.com"] }
+
+    expect(findMcpAppHtml(pointer, [{ ...pointer, html: "<html>live</html>", csp }])).toEqual({
+      html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
+      csp,
+    })
+    expect(
+      getRenderableMcpApp(cardToolCall, [{ ...pointer, html: "<html>live</html>", csp }])?.csp,
+    ).toEqual(csp)
+  })
+
+  it("accepts any server's entry for a pointer recorded without a server id, and names that server", () => {
+    expect(findMcpAppHtml({ ...pointer, mcpServerId: "" }, entries)).toEqual({
+      html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
+    })
   })
 
   it("is undefined while nothing has been loaded", () => {
@@ -75,6 +107,7 @@ describe("getRenderableMcpApp", () => {
   it("renders a card whose HTML arrived through the separate load", () => {
     expect(getRenderableMcpApp(cardToolCall, [{ ...pointer, html: "<html>live</html>" }])).toEqual({
       html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
       toolInput: cardToolCall.arguments,
       toolResult: cardToolCall.result,
     })
@@ -96,6 +129,7 @@ describe("getRenderableMcpApp", () => {
       }),
     ).toEqual({
       html: "<html><body>Patient</body></html>",
+      mcpServerId: "mcp-server-1",
       toolInput: { query: "hello" },
       toolResult: result,
     })
@@ -184,24 +218,6 @@ describe("getMcpAppToolResultText", () => {
   })
 })
 
-describe("getMcpAppMessageText", () => {
-  it("joins the text blocks of a message the app proposes", () => {
-    expect(
-      getMcpAppMessageText([
-        { type: "text", text: "`First we migrate the database.` Back it up first." },
-        { type: "image", data: "...", mimeType: "image/png" },
-        { type: "text", text: "`switch traffic` When exactly?" },
-      ]),
-    ).toBe("`First we migrate the database.` Back it up first.\n\n`switch traffic` When exactly?")
-  })
-
-  it("is empty when the message carries no text", () => {
-    expect(getMcpAppMessageText([])).toBe("")
-    expect(getMcpAppMessageText([{ type: "text", text: "  \n" }])).toBe("")
-    expect(getMcpAppMessageText([{ type: "image", data: "...", mimeType: "image/png" }])).toBe("")
-  })
-})
-
 describe("getFailedMcpAppFallbackText", () => {
   const cardToolCall: AgentSessionToolCallDto = {
     ...baseToolCall,
@@ -243,24 +259,5 @@ describe("getFailedMcpAppFallbackText", () => {
         ["call-card", "call-silent", "call-second"],
       ),
     ).toBe("Created report.pdf (3 pages).\n\nCreated notes.pdf (1 page).")
-  })
-})
-
-describe("isOpenableLink", () => {
-  it("accepts https and http URLs", () => {
-    expect(isOpenableLink("https://example.com/file.pdf")).toBe(true)
-    expect(isOpenableLink("http://example.com/file.pdf")).toBe(true)
-  })
-
-  it("rejects javascript, data, blob and mailto URLs", () => {
-    expect(isOpenableLink("javascript:alert(1)")).toBe(false)
-    expect(isOpenableLink("data:text/html,<script>alert(1)</script>")).toBe(false)
-    expect(isOpenableLink("blob:https://example.com/uuid")).toBe(false)
-    expect(isOpenableLink("mailto:someone@example.com")).toBe(false)
-  })
-
-  it("rejects relative paths and unparsable strings", () => {
-    expect(isOpenableLink("/relative/path")).toBe(false)
-    expect(isOpenableLink("not a url")).toBe(false)
   })
 })

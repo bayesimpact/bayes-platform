@@ -4,7 +4,7 @@ highlight: extraction
 description: Create an extraction agent that reads an uploaded document and returns structured data matching a JSON schema you define.
 category: guides-agents
 order: 2
-updated: 2026-07-22
+updated: 2026-11-16
 ---
 
 import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
@@ -21,12 +21,21 @@ conversation.
 
 ## How an extraction agent works
 
-You define the **fields to capture** on the **Output** tab (for example `title` and
-`summary`) and write **Instructions** telling the agent what to extract. When the
-agent runs on a document, it returns one JSON object matching those fields. An
-extraction agent has three configuration tabs — **General**, **Model** and
-**Output** — no conversation or greeting settings — and **each tab saves on its
-own** (the editor warns you before you leave a tab with unsaved changes).
+You define the **fields to capture** in the **Output** section (for example `title`
+and `summary`) and write **Instructions** telling the agent what to extract. When the
+agent runs on a document, it returns one JSON object matching those fields.
+
+Once created, the agent opens in its **editor**, a page of its own. Its left menu
+shows **Back**, the agent's name with *Edit Extraction Agent*, then three sections:
+**General**, **Model** and **Output**. There are no conversation or greeting
+settings. Under **More**, **MCP Servers** shows when the feature is enabled and your
+workspace has servers. At the bottom, **Manage versions** opens the
+[version history](/en/agent-version-history).
+
+**There is no Save button.** Each change saves by itself to the agent's **draft**, a
+moment after you stop typing. The status at the top right reads **Saving…**, then
+**Draft saved**. Runs started from the agent's page in Studio use the draft. Other
+runs use the published version, so save the draft as a version when it is ready.
 
 ## The full flow at a glance
 
@@ -51,56 +60,58 @@ determines what the agent does, so pick it before continuing.
 ### 3. Name the agent and create it
 
 Type a **Name** (at least 3 characters) in the **Name** field, then click
-**Create**. Your agent is created with sensible defaults and opens in the editor.
+**Create**. Your agent is created with sensible defaults and its editor opens on
+**General**.
 
-### 4. Set the basics on General
+### 4. Set the basics in General
 
-The editor opens on the **General** tab. Set the:
+Set the:
 
-- **Name** — how the agent appears in your workspace.
-- **Locale** — the language the agent works in.
-- **Instructions** — what the agent should extract from each document.
+- **Name**: how the agent appears in your workspace.
+- **Instructions**: what the agent should extract from each document. The count next
+  to the label shows their length, and the text area grows with the text.
 
-Click **Save**.
+Once the agent has a published version and you change the instructions, an
+**Advanced mode** button appears next to **Instructions**: it shows the diff with the
+published instructions, and you can edit them in it. Each change saves by itself: the
+status at the top right reads **Draft saved**.
 
-### 5. Pick the model on Model
+### 5. Pick the model in Model
 
-Open the **Model** tab and choose the **Model** that powers the agent, and a
-**Temperature** (lower values give more consistent, literal extractions). **Save**.
+Click **Model** in the menu. Under **Answer generation**, choose the **Model** that
+powers the agent and its options, such as the **Temperature** (lower values give more
+consistent, literal extractions).
 
-### 6. Define the output on Output
+### 6. Define the output in Output
 
-Open the **Output** tab and build the fields to extract **visually** — no JSON
-required. Click **Add field** and, for each field, set:
+Click **Output** and build the fields to extract **visually**, with no JSON. Click
+**Add field** and, for each field, set:
 
-- **Field name** — the key it's stored under (e.g. `title`).
-- **Type** — **Text**, **Number**, **Yes / No**, **List**, or **Choice**. **Number**
+- **Field name**: the key it's stored under (e.g. `title`).
+- **Type**: **Text**, **Number**, **Yes / No**, **List**, or **Choice**. **Number**
   offers an optional min/max range, and **Choice** lets you define the allowed values.
-- **Description** — the hint the agent uses to decide what to put there.
-- **Required** — toggle on for fields the agent must fill.
+- **Description**: the hint the agent uses to decide what to put there.
+- **Required**: toggle on for fields the agent must fill.
 
-Remove a field with its **trash** icon. Prefer to edit the schema by hand? Click
-**Advanced mode** (top right) to switch to a raw JSON editor, and **Visual editor**
-to switch back. Click **Save**.
+Remove a field with its **trash** icon.
 
-### 7. Save each tab
+### 7. Edit the schema as JSON
 
-Because each tab is its own form, click **Save** on every tab you change (or
-**Cancel** to discard a tab's edits). The extraction agent is then ready to run on
-documents — see [Run an extraction](/en/run-an-extraction).
+Prefer to edit the schema by hand? Click **Advanced mode** (top right of the field
+list) to switch to a raw JSON editor, and **Visual editor** to switch back. The JSON
+must stay a valid object for the change to save.
 
-## Version history
+### 8. Save the draft as a version
 
-Every save creates a new **version** of the agent. Open **History** (top right of the
-editor, showing the current **v number**) to browse past versions in a side panel,
-**compare** what changed (**Changes in this version** or **Compare with current**),
-and **Restore this version** — which copies those settings as a new current version
-without deleting anything. See [Version history](/en/agent-version-history) for the
-full walkthrough.
+When the draft is ready, click **Manage versions** at the bottom of the menu (or the
+**Draft saved** status). The draft is selected: click **Save version**, name it if you
+wish, and click **Save version** again. The agent then runs with this version. See
+[Version history](/en/agent-version-history), then
+[Run an extraction](/en/run-an-extraction).
 
 ## Tips
 
-- Keep field **descriptions** in the schema clear — the agent uses them to decide
+- Keep field **descriptions** in the schema clear: the agent uses them to decide
   what to put in each field.
 - Use a **low Temperature** (for example `0.2`) for extraction: you want faithful,
   repeatable output rather than creative answers.
@@ -109,17 +120,22 @@ full walkthrough.
 - The visual editor offers **Text**, **Number**, **Yes / No**, **List** and
   **Choice** fields. For **nested objects**, switch to **Advanced mode** and edit the
   JSON.
+- Test the draft from the agent's page before you save it as a version.
 
 ## Troubleshooting
 
-- **The Create button is disabled** — the **Name** must be at least 3 characters.
-- **I don't see the field type I need** — the visual editor covers **Text**,
+- **The Create button is disabled.** The **Name** must be at least 3 characters.
+- **I don't see the field type I need.** The visual editor covers **Text**,
   **Number**, **Yes / No**, **List** and **Choice**; use **Advanced mode** (raw JSON)
   for **nested objects**.
-- **My schema won't save in Advanced mode** — it must be a valid JSON object; the
-  editor shows *Output JSON schema must be a valid JSON object* and keeps you in
-  Advanced mode until you fix it.
-- **I don't see an Output tab** — only non-conversation agents have one. Make sure
-  you created an **Extraction** agent (conversation agents chat instead).
-- **The extracted values look wrong** — refine the field **descriptions** and the
-  **Instructions**, then click **Save** and try again.
+- **My schema won't save in Advanced mode.** It must be a valid JSON object. The
+  editor shows *Output JSON schema must be a valid JSON object*, and the status reads
+  **Unsaved changes** until you fix it.
+- **The status reads Unsaved changes.** A value is invalid, and the field says why, or
+  the save failed, and a red box above the fields, **This change could not be
+  saved**, gives the reason. Fix the value, or click **Retry**.
+- **I don't see an Output section.** Only extraction agents have one. Make sure you
+  created an **Extraction** agent (conversation agents chat instead).
+- **The extracted values look wrong.** Refine the field **descriptions** and the
+  **Instructions**, then run the extraction again. Save the draft as a version once
+  the results are right.

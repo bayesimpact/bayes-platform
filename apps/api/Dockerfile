@@ -84,11 +84,13 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
 RUN npm ci \
     --workspace=@caseai-connect/web \
+    --workspace=@caseai-connect/mcp-app-host \
     --workspace=@caseai-connect/ui \
     --workspace=@caseai-connect/api-contracts \
     --include-workspace-root
@@ -104,7 +106,7 @@ RUN cd apps/web && npm run build
 # Builds apps/desk for its `/app/` base (vite.config.ts): the API serves the
 # result at /app, ahead of the web front. As for the web front, no VITE_* value
 # is baked in: the Desk reads the configuration the API injects into its
-# index.html. Only the Desk and its contracts are installed.
+# index.html. Only the Desk, its contracts and the MCP App host are installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
 
@@ -112,15 +114,18 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/desk/package.json ./apps/desk/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
+COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
     --workspace=@caseai-connect/desk \
     --workspace=@caseai-connect/desk-contracts \
+    --workspace=@caseai-connect/mcp-app-host \
     --include-workspace-root
 
 COPY apps/desk ./apps/desk
 COPY packages/desk-contracts ./packages/desk-contracts
+COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/typescript-config ./packages/typescript-config
 
 RUN cd apps/desk && npm run build

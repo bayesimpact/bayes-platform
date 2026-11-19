@@ -31,6 +31,7 @@ type StoryArgs = StudioStoryArgs & {
   withRecords?: boolean
   withRuns?: boolean
   withManyOutputFields?: boolean
+  withUnsavedAgent?: boolean
 }
 
 // Revision 1 is the agent factory's published revision, so the dialog finds its current settings.
@@ -61,16 +62,26 @@ const manyFieldsOutputJsonSchema = agentOutputJsonSchemaFactory.build({
 })
 
 const decorator = buildDecorator<StoryArgs>(
-  ({ withRecords, withRuns, withManyOutputFields, ...args }) => {
+  ({ withRecords, withRuns, withManyOutputFields, withUnsavedAgent, ...args }) => {
     const { baseSeeds, project, agents: studioAgents } = buildStudioData(args)
     const dataset = evaluationExtractionDatasetFactory.transient({ project }).build({
       recordCount: withRecords ? 3 : 0,
       ...(withManyOutputFields ? { schemaMapping: buildManyFieldsSchemaMapping() } : {}),
     })
     // The run dialog lists only extraction agents.
-    const agents = withManyOutputFields
+    const savedAgents = withManyOutputFields
       ? [agentFactory.transient({ project }).build({ type: "extraction" }), ...studioAgents]
       : studioAgents
+    // A copy that was never saved has a draft only: the run dialog must not offer it.
+    const agents = withUnsavedAgent
+      ? [
+          ...savedAgents,
+          agentFactory
+            .unpublished()
+            .transient({ project })
+            .build({ type: "extraction", name: "Unsaved Assistant" }),
+        ]
+      : savedAgents
     const records = withRecords
       ? evaluationExtractionDatasetRecordRowFactory.transient({ dataset }).buildList(3)
       : []
@@ -123,12 +134,14 @@ const meta = {
     withRecords: { control: "boolean" },
     withRuns: { control: "boolean" },
     withManyOutputFields: { control: "boolean" },
+    withUnsavedAgent: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withRecords: false,
     withRuns: false,
     withManyOutputFields: false,
+    withUnsavedAgent: false,
   },
   render: render({ routes: evalRoutes, path: EvalRoutes.extractionDataset.path }),
 } satisfies Meta<StoryArgs>
@@ -145,6 +158,15 @@ export const WithRunHistory: Story = {
     withAgents: true,
     withRecords: true,
     withRuns: true,
+  },
+  decorators: [decorator],
+}
+
+/** Open the Run dialog: it offers no agent, because the only one was never saved. */
+export const WithUnsavedAgent: Story = {
+  args: {
+    withRecords: true,
+    withUnsavedAgent: true,
   },
   decorators: [decorator],
 }

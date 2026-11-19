@@ -17,6 +17,7 @@ import {
 import { runHandoffTurns } from "@/domains/agents/shared/agent-session-messages/streaming/handoff-turn-loop"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
+import type { McpAppResource } from "@/external/mcp/mcp-app-resource"
 import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
 import type { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -67,7 +68,7 @@ export class PublicChatService {
   }
 
   /** Current HTML of every MCP App card the session's replies point at, by cache key. */
-  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<Map<string, string>> {
+  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<Map<string, McpAppResource>> {
     const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
       publicSession.id,
     )
@@ -96,7 +97,7 @@ export class PublicChatService {
     }
     // Visitors must be answered by the published settings, never by the draft an
     // author is editing in the agent editor (#636).
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettings = await this.agentSettingsService.getProduction({
       connectScope,
       agentId: publicSession.agentId,
     })

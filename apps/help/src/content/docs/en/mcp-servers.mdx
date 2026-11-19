@@ -4,7 +4,7 @@ highlight: MCP
 description: Connect external MCP tool servers to your workspace and enable them per agent, so an agent can call outside tools while it answers.
 category: guides-agents
 order: 8
-updated: 2026-09-08
+updated: 2026-11-16
 ---
 
 import McpServersWalkthrough from "@/components/McpServersWalkthrough.astro"
@@ -16,8 +16,8 @@ individual agents that should use it.
 
 MCP servers have two surfaces in **Studio**: a workspace-level **MCP Servers** page
 (its own item in the left sidebar, next to **Members** and **Admin**), where you
-connect and remove servers; and an **MCP Servers** tab in a **conversation agent's**
-editor, where you enable a connected server for that agent.
+connect and remove servers; and an **MCP Servers** section in an agent's editor,
+under **More**, where you enable a connected server for that agent.
 
 > **Optional feature — ask to have it enabled.** MCP servers are turned on per
 > workspace. If you don't see **MCP Servers** in the Studio sidebar, the feature
@@ -29,8 +29,14 @@ editor, where you enable a connected server for that agent.
   optional **API Key**. The key is stored encrypted and is never shown again after
   you save it.
 - Connecting a server does **not** by itself give any agent access to it. You enable
-  each server **per agent** from the agent's **MCP Servers** tab — a server that is
-  off for an agent is invisible to it.
+  each server **per agent** from the **MCP Servers** section of the agent's editor. A
+  server that is off for an agent is invisible to it.
+- The switches are not part of the agent's draft: a change applies at once, with no
+  Save button, and it has no versions in the
+  [version history](/en/agent-version-history).
+- Conversation agents see every server. Extraction agents see only the servers you
+  connected, not the built-in **PDF export** server: an extraction run has no chat
+  reply to attach a file to.
 - There is **no edit**: a server has only **connect** and **delete**. To change a
   URL or key, delete the server and connect it again.
 - Deleting a server removes it for **every** agent that was using it — those agents
@@ -89,29 +95,30 @@ Clicking the trash icon opens the **Delete MCP Server** confirmation: *Are you s
 you want to delete “…”? Agents using this server will lose access to its tools.*
 Confirm with **Delete**, or **Cancel** to keep it.
 
-### 7. Open an agent to enable a server for it
+### 7. Open an agent's editor
 
-Connecting a server doesn't enable it anywhere yet. In **Studio**, open a
-**conversation agent** to edit it (from the sidebar **Agents** list or its card on
-the workspace overview).
+Connecting a server doesn't enable it anywhere yet. In **Studio**, open the agent
+(from the sidebar **Agents** list or its card on the workspace overview), then click
+**Edit** at the top right of its page. The agent editor opens.
 
-### 8. Open the MCP Servers tab
+### 8. Open MCP Servers
 
-In the agent editor, open the **MCP Servers** tab. It's the **last** tab, after
-[**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed). When
-the platform is configured for it, every workspace has at least the built-in
-**PDF export** server, so this tab is always there once the feature is enabled.
+In the editor's left menu, under **More**, click **MCP Servers**. It shows when the
+feature is enabled and the agent has servers to choose from. When the platform is
+configured for it, every workspace has at least the built-in **PDF export** server,
+so a conversation agent always shows it once the feature is enabled. This section has
+no save status at the top right: it is not part of the draft.
 
 ### 9. Toggle a server on for this agent
 
-The tab lists every server connected to the workspace, each with a **switch**.
-Toggle a server **on** to give this agent access to its tools; toggle it **off** to
-remove that access. The change takes effect immediately — there's no separate Save
-on this tab.
+The section lists every server the agent can use, each with a **switch**. Toggle a
+server **on** to give this agent access to its tools; toggle it **off** to remove
+that access. The change applies at once, in production: there's no Save button and no
+draft.
 
 ### 10. Jump back to manage servers
 
-The tab header has a **Manage servers** link (external-link icon) that opens the
+The section header has a **Manage servers** link (external-link icon) that opens the
 workspace **MCP Servers** page in a new tab, so you can connect or remove servers
 without losing your place in the editor.
 
@@ -139,6 +146,6 @@ link is valid for 15 minutes.
 - **Create is blocked** — the **URL** must be a valid address (for example starting
   with `https://`), and the **Name** can't be empty.
 - **An agent stopped using a server's tools** — check the server is still **on** for
-  that agent in its **MCP Servers** tab, and that the server wasn't deleted on the
+  that agent in the **MCP Servers** section of its editor, and that the server wasn't deleted on the
   workspace page (deleting removes it for every agent).
 - **The download link says it expired** — ask the agent to export again.

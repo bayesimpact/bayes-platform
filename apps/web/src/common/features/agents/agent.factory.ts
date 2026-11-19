@@ -48,20 +48,30 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
   }
 
   const types = ["conversation", "extraction"] as const
+  const currentRevision = published
+    ? {
+        name: params.currentRevision?.name,
+        description: params.currentRevision?.description,
+        updatedAt: params.currentRevision?.updatedAt ?? faker.date.recent().getTime(),
+        number: params.currentRevision?.number ?? 1,
+      }
+    : undefined
   return {
     createdAt: params.createdAt ?? faker.date.past().getTime(),
     id: params.id ?? faker.string.uuid(),
     name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
     projectId: project.id,
     type: params.type ?? faker.helpers.arrayElement(types),
-    currentRevision: published
+    currentRevision,
+    // By default the newest saved revision is the one in production.
+    latestSavedRevision: params.latestSavedRevision
       ? {
-          name: params.currentRevision?.name,
-          description: params.currentRevision?.description,
-          updatedAt: params.currentRevision?.updatedAt ?? faker.date.recent().getTime(),
-          number: params.currentRevision?.number ?? 1,
+          name: params.latestSavedRevision.name,
+          description: params.latestSavedRevision.description,
+          updatedAt: params.latestSavedRevision.updatedAt ?? faker.date.recent().getTime(),
+          number: params.latestSavedRevision.number ?? 1,
         }
-      : undefined,
+      : currentRevision,
     draftRevision: params.draftRevision
       ? {
           name: params.draftRevision.name,
@@ -105,6 +115,62 @@ const temperatureOnlyOptionsDefaultingTo = (temperature: number) => ({
   ...temperatureOnlyOptions,
   defaultOptions: { temperature },
 })
+
+/** The options of a Claude 5.x model: an effort only, Claude rejects a temperature. */
+const claudeOptions = {
+  optionsSchema: {
+    $schema: JSON_SCHEMA_DRAFT,
+    type: "object",
+    properties: {
+      providerOptions: {
+        type: "object",
+        properties: {
+          anthropic: {
+            type: "object",
+            properties: {
+              effort: { type: "string", enum: ["low", "medium", "high"] },
+            },
+            required: ["effort"],
+            additionalProperties: false,
+          },
+        },
+        required: ["anthropic"],
+        additionalProperties: false,
+      },
+    },
+    required: ["providerOptions"],
+    additionalProperties: false,
+  },
+  defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
+}
+
+/** The options of an OpenAI model: a reasoning effort only. */
+const openAIOptions = {
+  optionsSchema: {
+    $schema: JSON_SCHEMA_DRAFT,
+    type: "object",
+    properties: {
+      providerOptions: {
+        type: "object",
+        properties: {
+          openai: {
+            type: "object",
+            properties: {
+              reasoningEffort: { type: "string", enum: ["none", "low", "medium", "high"] },
+            },
+            required: ["reasoningEffort"],
+            additionalProperties: false,
+          },
+        },
+        required: ["openai"],
+        additionalProperties: false,
+      },
+    },
+    required: ["providerOptions"],
+    additionalProperties: false,
+  },
+  defaultOptions: { providerOptions: { openai: { reasoningEffort: "low" } } },
+}
 
 /** The options of a Gemini 3.x model: a thinking level, and a temperature for the oldest ones. */
 function vertex3Options({
@@ -258,6 +324,20 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
     servedOutsideEu: false,
     ...temperatureOnlyOptionsDefaultingTo(0.7),
   },
+  ...[AgentModel.ClaudeSonnet55, AgentModel.ClaudeHaiku55, AgentModel.ClaudeOpus5].map((model) => ({
+    model,
+    provider: AgentProvider.Anthropic,
+    deprecation: null,
+    servedOutsideEu: false,
+    ...claudeOptions,
+  })),
+  ...[AgentModel.Gpt54, AgentModel.Gpt54Mini].map((model) => ({
+    model,
+    provider: AgentProvider.OpenAI,
+    deprecation: null,
+    servedOutsideEu: true,
+    ...openAIOptions,
+  })),
 ]
 
 /** Models past their deprecation date: the API no longer offers them. */

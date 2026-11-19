@@ -162,6 +162,55 @@ export const gemini = {
   },
 }
 
+/** Responses of the Anthropic Messages API, as Vertex AI serves it (`rawPredict`, `streamRawPredict`). */
+export const anthropicMessages = {
+  usage: { input_tokens: 11, output_tokens: 7 },
+
+  text(text: string) {
+    return jsonResponse({
+      id: "msg_1",
+      type: "message",
+      role: "assistant",
+      model: "claude",
+      content: [{ type: "text", text }],
+      stop_reason: "end_turn",
+      stop_sequence: null,
+      usage: anthropicMessages.usage,
+    })
+  },
+
+  streamedText(chunks: string[]) {
+    return sseResponse([
+      {
+        type: "message_start",
+        message: {
+          id: "msg_1",
+          type: "message",
+          role: "assistant",
+          model: "claude",
+          content: [],
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 11, output_tokens: 0 },
+        },
+      },
+      { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } },
+      ...chunks.map((text) => ({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "text_delta", text },
+      })),
+      { type: "content_block_stop", index: 0 },
+      {
+        type: "message_delta",
+        delta: { stop_reason: "end_turn", stop_sequence: null },
+        usage: { output_tokens: 7 },
+      },
+      { type: "message_stop" },
+    ])
+  },
+}
+
 /** Responses of the OpenAI chat completions API, as vLLM serves it. */
 export const openAiChat = {
   usage: { prompt_tokens: 11, completion_tokens: 7, total_tokens: 18 },

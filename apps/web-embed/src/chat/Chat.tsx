@@ -1,4 +1,5 @@
 import type * as React from "react"
+import { themeVars } from "../theme"
 import { cn } from "./lib/cn"
 
 export function Chat({
@@ -17,7 +18,7 @@ export function Chat({
       )}
       style={
         {
-          "--embed-primary": primaryColor ?? "#2563eb",
+          ...themeVars(primaryColor),
           ...style,
         } as React.CSSProperties
       }

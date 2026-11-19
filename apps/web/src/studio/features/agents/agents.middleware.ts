@@ -33,15 +33,10 @@ function registerListeners() {
     actionCreator: updateAgent.fulfilled,
     effect: async (action, listenerApi) => {
       const agentId = action.meta.arg.agentId
+      // No success notification: the agent editor saves the name by itself and shows the state
+      // of the save.
       await listenerApi.dispatch(listAgents({ includeDrafts: true }))
       await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
-
-      listenerApi.dispatch(
-        notificationsActions.show({
-          titleKey: "agent:notifications.updated",
-          type: "success",
-        }),
-      )
     },
   })
   listenerMiddleware.startListening({

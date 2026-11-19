@@ -13,7 +13,7 @@ export function AgentTabSectionHeader({
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-1">
-        <h3 className="font-medium text-sm">{title}</h3>
+        <h3 className="font-semibold text-base">{title}</h3>
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       {action}

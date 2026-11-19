@@ -275,7 +275,10 @@ describe("Agent Sessions - Auth", () => {
         agentFactory.transient({ organization, project }).build({ type: "conversation" }),
       )
       await repositories.agentSettingsRepository.save(
-        agentSettingsFactory.transient({ organization, project, agent: otherAgent }).build(),
+        agentSettingsFactory
+          .production()
+          .transient({ organization, project, agent: otherAgent })
+          .build(),
       )
       authSubject = user.authSubject!
       organizationId = organization.id

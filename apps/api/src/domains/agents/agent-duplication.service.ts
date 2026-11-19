@@ -68,12 +68,12 @@ export class AgentDuplicationService {
       if (!source) {
         throw new NotFoundException(`Agent with id ${agentId} not found`)
       }
-      // The latest revision is the draft when there is one. An agent that was never published
-      // has only its draft to give.
+      // The latest revision is the draft when there is one. The published source is the version
+      // in production, or the draft of an agent that was never saved.
       const sourceSettings =
         settingsSource === "draft"
           ? await this.agentSettingsRepository.findLatest(connectScope, agentId)
-          : ((await this.agentSettingsRepository.findLatestPublished(connectScope, agentId)) ??
+          : ((await this.agentSettingsRepository.findProduction(connectScope, agentId)) ??
             (await this.agentSettingsRepository.findLatest(connectScope, agentId)))
       if (!sourceSettings) {
         throw new NotFoundException(`AgentSettings with agentId ${agentId} not found`)

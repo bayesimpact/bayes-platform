@@ -34,6 +34,7 @@ const versions: AgentSettings[] = [
   {
     ...baseSettings,
     revision: 4,
+    isProduction: true,
     instructions:
       "You are a helpful assistant.\nAnswer clearly and concisely.\nAlways cite your sources.",
     providerOptions: { temperature: 0.3 },
@@ -76,6 +77,7 @@ const schemaVersions: AgentSettings[] = [
   {
     ...schemaSettings,
     revision: 2,
+    isProduction: true,
     outputJsonSchema: agentOutputJsonSchemaFactory.build({
       properties: {
         title: { type: "string", description: "Short title" },
@@ -122,5 +124,40 @@ export const SchemaChange: Story = {
 }
 
 export const SingleVersion: Story = {
-  decorators: [withRedux({ state: seedHistory(agent, [{ ...baseSettings, revision: 1 }]) })],
+  decorators: [
+    withRedux({
+      state: seedHistory(agent, [{ ...baseSettings, revision: 1, isProduction: true }]),
+    }),
+  ],
+}
+
+/** Version 2 stays in production while 3 and 4 are saved, with a draft on top. */
+const olderProductionVersions: AgentSettings[] = [
+  {
+    ...baseSettings,
+    revision: 5,
+    isDraft: true,
+    instructions:
+      "You are a helpful assistant.\nAnswer clearly and concisely.\nAlways cite your sources.\nOffer a next step.",
+    updatedAt: Date.now() - 1000 * 60 * 10,
+  },
+  ...versions.map((version) => ({ ...version, isProduction: version.revision === 2 })),
+]
+
+/** The same agent, as the agents list names its versions for that history. */
+const agentWithOlderProduction = agentFactory.transient({ project }).build({
+  id: agent.id,
+  type: agent.type,
+  name: agent.name,
+  currentRevision: { number: 2 },
+  latestSavedRevision: { number: 4 },
+  draftRevision: { number: 5 },
+})
+
+export const OlderVersionInProduction: Story = {
+  decorators: [
+    withRedux({
+      state: seedHistory(agentWithOlderProduction, olderProductionVersions),
+    }),
+  ],
 }

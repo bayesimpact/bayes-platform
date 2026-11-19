@@ -61,8 +61,8 @@ describe("buildSubAgentTools", () => {
       buildLLMConfig: (params) => params as never,
       conversationAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
       agentSettingsService: {
-        getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        getProduction: jest.fn().mockResolvedValue(childAgentSettings),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async () => ({
         toolDescriptions: {},
@@ -155,8 +155,8 @@ describe("buildSubAgentTools", () => {
         findOrCreateSubSession: jest.fn(),
       } as never,
       agentSettingsService: {
-        getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        getProduction: jest.fn().mockResolvedValue(childAgentSettings),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async ({
         onExecute,
@@ -307,8 +307,8 @@ describe("buildSubAgentTools", () => {
       buildLLMConfig: (params) => params as never,
       conversationAgentSessionsService: { findOrCreateSubSession } as never,
       agentSettingsService: {
-        getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        getProduction: jest.fn().mockResolvedValue(childAgentSettings),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async () => ({
         toolDescriptions: {},
@@ -442,8 +442,8 @@ describe("buildSubAgentTools", () => {
       buildLLMConfig: (params) => params as never,
       conversationAgentSessionsService: { findOrCreateSubSession } as never,
       agentSettingsService: {
-        getLast: jest.fn().mockResolvedValue(childAgentSettings),
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+        getProduction: jest.fn().mockResolvedValue(childAgentSettings),
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set([childAgent.id])),
       } as never,
       buildTools: async () => ({
         toolDescriptions: {},
@@ -504,7 +504,7 @@ describe("buildSubAgentTools", () => {
       type: "conversation",
     }
     const parentAgent = { ...childAgent, id: "parent-agent-id", name: "Orchestrator" }
-    const getLast = jest.fn()
+    const getProduction = jest.fn()
 
     const { tools, hasSubAgentTools, handoffCandidates } = await buildSubAgentTools({
       activeAgentController: {
@@ -544,8 +544,8 @@ describe("buildSubAgentTools", () => {
       buildLLMConfig: (params) => params as never,
       conversationAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
       agentSettingsService: {
-        getLast,
-        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set<string>()),
+        getProduction,
+        listAgentIdsInProduction: jest.fn().mockResolvedValue(new Set<string>()),
       } as never,
       buildTools: jest.fn() as never,
       generateMasterPrompt: () => "system prompt",
@@ -560,6 +560,6 @@ describe("buildSubAgentTools", () => {
     expect(tools).toEqual({})
     expect(hasSubAgentTools).toBe(false)
     expect(handoffCandidates).toEqual([])
-    expect(getLast).not.toHaveBeenCalled()
+    expect(getProduction).not.toHaveBeenCalled()
   })
 })

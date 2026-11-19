@@ -97,6 +97,11 @@ describe("Agents - getAvailableModels", () => {
       AgentModel.MistralSmall31_24B,
       AgentModel.MistralSmall32_24B,
       AgentModel.Qwen38_27B,
+      AgentModel.ClaudeSonnet55,
+      AgentModel.ClaudeHaiku55,
+      AgentModel.ClaudeOpus5,
+      AgentModel.Gpt54,
+      AgentModel.Gpt54Mini,
     ])
   })
 
@@ -164,6 +169,11 @@ describe("Agents - getAvailableModels", () => {
       AgentModel.Gemma4_31B,
       AgentModel.MistralSmall32_24B,
       AgentModel.Qwen38_27B,
+      AgentModel.ClaudeSonnet55,
+      AgentModel.ClaudeHaiku55,
+      AgentModel.ClaudeOpus5,
+      AgentModel.Gpt54,
+      AgentModel.Gpt54Mini,
     ]) {
       expect(entryOf(models, model)?.isAvailable).toBe(false)
     }

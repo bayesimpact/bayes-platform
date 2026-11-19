@@ -72,10 +72,19 @@ export class EvaluationConversationRunProcessorService {
 
     // Re-read the run: the payload carries an enqueue-time snapshot whose
     // status is always pending/running, so checking it would never skip.
-    const evaluationConversationRun = await this.getEvaluationConversationRun({
-      id: payload.evaluationConversationRun.id,
-      connectScope,
-    })
+    const evaluationConversationRun =
+      await this.evaluationConversationRunConnectRepository.getOneById(
+        connectScope,
+        payload.evaluationConversationRun.id,
+      )
+
+    // Deleting an agent soft-deletes its runs: the record has nothing left to update.
+    if (!evaluationConversationRun) {
+      this.logger.log(
+        `Evaluation run ${payload.evaluationConversationRun.id} was deleted; skipping record ${runRecordId}`,
+      )
+      return
+    }
 
     if (
       evaluationConversationRun.status === "cancelled" ||
@@ -118,7 +127,7 @@ export class EvaluationConversationRunProcessorService {
     connectScope: RequiredConnectScope
     evaluationConversationRunId: string
   }): Promise<void> {
-    await this.dataSource.transaction(async (entityManager) => {
+    const runFound = await this.dataSource.transaction(async (entityManager) => {
       const runRepository = entityManager.getRepository(EvaluationConversationRun)
       const runRecordRepository = entityManager.getRepository(EvaluationConversationRunRecord)
 
@@ -134,7 +143,10 @@ export class EvaluationConversationRunProcessorService {
         .andWhere("run.project_id = :projectId", { projectId: connectScope.projectId })
         .getOne()
 
-      if (!run || !run.summary) {
+      // Deleting an agent soft-deletes its runs, also while record jobs are still in flight.
+      if (!run) return false
+
+      if (!run.summary) {
         throw new Error(`Run ${evaluationConversationRunId} has no summary to update`)
       }
 
@@ -184,7 +196,7 @@ export class EvaluationConversationRunProcessorService {
           .where("id = :id", { id: evaluationConversationRunId })
           .andWhere("status = :running", { running: "running" })
           .execute()
-        return
+        return true
       }
 
       const isCompleted = summary.running === 0 && summary.graded === summary.total
@@ -197,7 +209,15 @@ export class EvaluationConversationRunProcessorService {
           .andWhere("status = :running", { running: "running" })
           .execute()
       }
+      return true
     })
+
+    if (!runFound) {
+      this.logger.log(
+        `Evaluation run ${evaluationConversationRunId} was deleted; its summary is not updated`,
+      )
+      return
+    }
 
     const updatedRun = await this.getEvaluationConversationRun({
       id: evaluationConversationRunId,

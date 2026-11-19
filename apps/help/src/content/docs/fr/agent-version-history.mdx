@@ -1,32 +1,55 @@
 ---
 title: Historique des versions
 highlight: Historique
-description: À chaque enregistrement d'un agent, ses paramètres sont versionnés — parcourez les versions passées, comparez précisément ce qui a changé, et restaurez n'importe quelle version antérieure en un clic.
+description: Vos modifications vont dans un brouillon. Enregistrez le brouillon comme version quand il est prêt, comparez les versions champ par champ et restaurez-en une plus ancienne.
 category: guides-agents
 order: 7
-updated: 2026-07-22
+updated: 2026-11-16
 ---
 
 import VersionHistoryWalkthrough from "@/components/VersionHistoryWalkthrough.astro"
 
-Chaque agent conserve un **historique des versions** de ses paramètres. À chaque fois
-que vous enregistrez un onglet de l'éditeur, la plateforme enregistre une nouvelle
-**version** — vous pouvez donc revoir comment l'agent était configuré auparavant,
-**comparer** ce qui a changé, et **restaurer** une version antérieure si une
-modification ne convient pas.
+Chaque agent conserve un **historique des versions** de ses paramètres. Les
+modifications faites dans l'éditeur de l'agent s'enregistrent d'elles-mêmes dans un
+**brouillon**. Les utilisateurs continuent de parler à la version publiée tant que
+vous n'avez pas **enregistré le brouillon comme version**. L'historique vous permet de
+voir ce qui a changé, de publier le brouillon et de **restaurer** une version plus
+ancienne si une modification ne convient pas.
 
-C'est disponible sur **tous les agents** (conversationnel, extraction, formulaire)
-depuis le bouton **Historique** en haut à droite de l'éditeur d'agent — quel que soit
-l'onglet ouvert.
+C'est disponible sur **tous les agents** (conversationnel, extraction, formulaire).
+Ouvrez-le avec le bouton **Gérer les versions**, en bas du menu de l'éditeur de
+l'agent, quelle que soit la section ouverte.
 
-## Ce qui est suivi
+## Brouillon et versions
 
-Une version capture les paramètres enregistrés de l'agent, et la comparaison met en
-évidence précisément lesquels ont changé entre deux versions, champ par champ — par
-exemple les **Instructions**, le **Message d'accueil**, le **Modèle**, la
-**Température**, la **Langue**, la **Source de réponse**, et le **schéma
-de sortie**. Restaurer ne supprime jamais rien : cela copie les paramètres d'une
-ancienne version dans une **nouvelle** version actuelle.
+- **Le brouillon.** Chaque modification dans les sections de l'éditeur (**Général**,
+  **Modèle**, **Sources**, **Outils**, **Catégories de conversation**, **Sortie**)
+  s'enregistre d'elle-même dans le brouillon, un court instant après votre dernière
+  frappe. Il n'y a pas de bouton Enregistrer. Le statut en haut à droite de l'éditeur
+  affiche **Enregistrement…**, puis **Brouillon enregistré**. Si vous annulez vos
+  modifications et que le brouillon redevient identique à la version publiée, le
+  brouillon est supprimé.
+- **Une version.** **Enregistrer la version** transforme le brouillon en version
+  numérotée. L'agent l'utilise alors : les utilisateurs, l'application et
+  l'intégration parlent à cette version. Votre modification suivante crée un nouveau
+  brouillon.
+- **Ce qui est suivi.** La comparaison montre, champ par champ, ce qui a changé entre
+  deux versions : par exemple les **Instructions**, le **Message d'accueil**, le
+  **Modèle**, les **Options du modèle**, la **Source de réponse**, le **Modèle
+  d'embedding**, les **Appels prioritaires**, le **Remplissage de formulaire**, le
+  **Schéma JSON de sortie**, les **Variables de prompt** et les réglages des questions
+  de relance.
+- **Ce qui n'est pas suivi.** Les **Serveurs MCP**, l'**Orchestration** et
+  l'**Intégration** ne font pas partie du brouillon. Ils s'appliquent à l'agent en
+  production dès que vous les enregistrez : ils n'ont donc pas de versions. C'est
+  aussi le cas de trois réglages des sections du brouillon : les **Étiquettes de
+  document** et les **Bibliothèques de ressources** de **Sources**, et les
+  **Catégories de conversation** cochées. Ils s'enregistrent d'eux-mêmes comme le
+  reste, mais sur l'agent lui-même : ils s'appliquent aussitôt et une restauration ne
+  les change pas.
+
+Restaurer ne supprime jamais rien : cela copie les paramètres d'une ancienne version
+dans une **nouvelle** version, qui devient l'actuelle.
 
 ## Le parcours complet en un coup d'œil
 
@@ -38,68 +61,105 @@ bouton à cliquer et la zone à observer.
 
 ## Étape par étape
 
-### 1. Ouvrir l'Historique
+### 1. Ouvrir l'historique des versions
 
-Dans l'éditeur d'agent, cliquez sur **Historique** en haut à droite. Le bouton porte
-un badge indiquant la **version actuelle** (par ex. **v3**). Un panneau apparaît
-depuis la droite.
+Dans l'éditeur de l'agent, cliquez sur **Gérer les versions** en bas du menu de
+gauche. Vous pouvez aussi cliquer sur le statut en haut à droite de l'éditeur :
+**Brouillon enregistré** quand l'agent a un brouillon, ou **Version *n* · publiée**
+quand il n'en a pas.
 
 ### 2. Parcourir les versions
 
-Le panneau **Historique des versions** liste chaque version enregistrée, **la plus
-récente en premier**. Chaque ligne indique **Version *n*** et sa date
-d'enregistrement ; la plus récente est marquée **Actuelle**.
+L'**Historique des versions** s'ouvre en plein écran, avec la description *Parcourez,
+comparez et restaurez les paramètres précédents de* votre agent. La colonne de gauche
+liste chaque version, **la plus récente en premier**. Chaque ligne affiche **Version
+*n***, son nom et sa description s'il y en a, et sa date d'enregistrement. Le
+brouillon porte un badge **Brouillon**, et la version utilisée par l'agent porte un
+badge **Actuelle**. Quand l'agent a un brouillon, il est sélectionné en premier.
+Cliquez sur une ligne pour sélectionner une autre version.
 
 ### 3. Choisir ce qu'on compare
 
-Sélectionnez une version antérieure, puis choisissez un mode de comparaison :
+Au-dessus de la comparaison, choisissez avec quoi comparer la version sélectionnée :
 
-- **Changements de cette version** — ce qui a changé entre la version sélectionnée et
-  celle juste avant.
-- **Comparer avec l'actuelle** — la différence entre la version sélectionnée et les
-  paramètres actuels.
+- **Changements de cette version** : ce qui a changé entre la version sélectionnée et
+  la précédente.
+- **Comparer avec l'actuelle** : la différence entre la version sélectionnée et la
+  version publiée.
+- **Comparer avec le brouillon** : la différence entre la version sélectionnée et le
+  brouillon. Ce choix n'apparaît que si l'agent a un brouillon.
 
-Une légende indique quelles deux versions vous comparez. S'il n'y a qu'une version,
-vous verrez **Une seule version** ; si deux versions sont identiques, **Aucune
-différence**.
+Un choix est grisé quand il ne s'applique pas à la version sélectionnée. Une légende
+indique les deux versions comparées, par exemple *Changements de la version 2 à la
+version 3.* Avec une seule version, vous voyez **Une seule version**. Quand deux
+versions sont identiques, vous voyez **Aucune différence**.
 
 ### 4. Lire la comparaison
 
-La comparaison montre une **différence champ par champ** de tout ce qui a changé — le
-texte supprimé en rouge, le texte ajouté en vert — pour voir exactement comment les
-paramètres diffèrent (instructions, modèle, température, etc.).
+Une ligne nomme chaque champ modifié, par exemple *2 champs modifiés :*
+**Instructions** **Message d'accueil**. Cliquez sur le nom d'un champ pour aller à sa
+différence. Chaque différence montre le texte retiré en rouge et le texte ajouté en
+vert.
 
-### 5. Restaurer une version
+### 5. Enregistrer le brouillon comme version
 
-Vous avez trouvé une version à récupérer ? Cliquez sur **Restaurer cette version**.
-(Le bouton est désactivé sur la version **Actuelle** — il n'y a rien à restaurer.)
+Sélectionnez la version qui porte le badge **Brouillon**. Cliquez sur **Enregistrer
+la version** en haut à droite de la comparaison.
 
-### 6. Confirmer la restauration
+### 6. Nommer la version et confirmer
 
-Une boîte de dialogue — **Restaurer la version *n* ?** — explique que les paramètres
-de cette version seront **copiés comme nouvelle version** et deviendront les
-paramètres actuels, et qu'**aucune version n'est supprimée**. Confirmez pour
-l'appliquer ; l'éditeur se recharge avec les paramètres restaurés comme nouvelle
-version actuelle.
+La boîte de dialogue **Enregistrer la version *n* ?** explique : *La version n devient
+les paramètres utilisés par cet agent. Les modifications suivantes créeront une
+nouvelle version brouillon.* Remplissez si vous le voulez :
+
+- **Nom de la version** (indication *Nommez cette version*). **Facultatif**.
+- **Description de la version** (indication *Décrivez ce qui a changé dans cette
+  version*). **Facultatif**.
+
+Cliquez sur **Enregistrer la version**. La version perd son badge **Brouillon** et
+reçoit le badge **Actuelle**. Le statut de l'éditeur affiche alors **Version *n* ·
+publiée**.
+
+### 7. Restaurer une version plus ancienne
+
+Sélectionnez une version plus ancienne dans la liste, puis cliquez sur **Restaurer
+cette version** en haut à droite de la comparaison. Le bouton est grisé sur la version
+la plus récente : il n'y a rien à restaurer.
+
+### 8. Confirmer la restauration
+
+La boîte de dialogue **Restaurer la version *n* ?** explique que *Les paramètres de la
+version n seront copiés comme nouvelle version et deviendront les paramètres actuels.
+Aucune version n'est supprimée.* Cliquez sur **Restaurer cette version** pour
+l'appliquer, ou sur **Annuler**. L'éditeur se recharge avec les paramètres restaurés.
 
 ## Conseils
 
-- Enregistrez souvent — chaque enregistrement est un point de restauration, vous
-  pouvez donc expérimenter librement et revenir en arrière.
-- Utilisez **Comparer avec l'actuelle** pour passer en revue tout ce qui a changé
-  depuis une version fiable avant de restaurer.
-- La restauration est sûre et réversible : elle crée une nouvelle version, vous
-  pourrez toujours restaurer de nouveau en avant.
+- Modifiez l'agent librement : les utilisateurs ne voient vos modifications qu'une
+  fois que vous cliquez sur **Enregistrer la version**.
+- Testez le brouillon avant de l'enregistrer comme version : dans le playground de la
+  page de l'agent, le sélecteur de version peut utiliser le brouillon.
+- Donnez un **Nom de la version** aux versions importantes, par exemple *Réponses plus
+  courtes* : vous les retrouvez plus vite dans la liste.
+- Utilisez **Comparer avec l'actuelle** pour revoir tout ce qui a changé depuis la
+  version publiée avant d'enregistrer le brouillon.
+- Restaurer est sans risque : cela crée une nouvelle version, vous pouvez donc
+  toujours revenir en avant.
 
 ## Dépannage
 
-- **Je ne vois pas le bouton Historique** — il est en haut à droite de l'**éditeur
-  d'agent** ; ouvrez un agent et placez-vous sur son écran d'édition.
-- **Le panneau indique « Une seule version »** — l'agent n'a été enregistré qu'une
-  fois ; il n'y a rien à comparer tant que vous n'avez pas enregistré une
-  modification.
-- **Restaurer est désactivé** — vous avez sélectionné la version **Actuelle** ;
-  choisissez-en une plus ancienne pour la restaurer.
-- **Une modification a cassé l'agent** — ouvrez l'**Historique**, trouvez la dernière
-  bonne version, et **Restaurez**-la — rien de ce que vous avez enregistré n'est
-  perdu.
+- **Je ne vois pas Gérer les versions.** Le bouton est en bas du menu de gauche de
+  l'éditeur de l'agent. Sur un écran étroit, ouvrez d'abord le menu avec le bouton de
+  la barre latérale.
+- **Le panneau indique « Une seule version ».** L'agent n'a qu'une version. Il n'y a
+  rien à comparer pour le moment.
+- **Mon brouillon a disparu.** Vous avez annulé vos modifications : le brouillon était
+  identique à la version publiée et il a été supprimé. Le statut affiche **Version *n*
+  · publiée**.
+- **Les utilisateurs reçoivent encore les anciennes réponses.** Vos modifications sont
+  dans le brouillon. Ouvrez l'historique, sélectionnez le brouillon et cliquez sur
+  **Enregistrer la version**.
+- **Restaurer est grisé.** Vous avez sélectionné la version la plus récente. Choisissez
+  une version plus ancienne.
+- **Une modification a cassé l'agent.** Ouvrez l'historique, trouvez la dernière bonne
+  version et **restaurez**-la. Rien de ce que vous avez enregistré n'est perdu.

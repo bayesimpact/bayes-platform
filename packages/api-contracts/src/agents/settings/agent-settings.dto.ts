@@ -23,6 +23,11 @@ export enum AgentModel {
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
   MistralSmall32_24B = "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
   Qwen38_27B = "Qwen/Qwen3.8-27B",
+  ClaudeSonnet55 = "claude-sonnet-5-5",
+  ClaudeHaiku55 = "claude-haiku-5-5",
+  ClaudeOpus5 = "claude-opus-5",
+  Gpt54 = "gpt-5.4",
+  Gpt54Mini = "gpt-5.4-mini",
   _Mock = "mock-language-model-v3",
 }
 
@@ -33,6 +38,8 @@ export enum AgentProvider {
   Mistral = "MISTRAL",
   Vertex3 = "VERTEX-3",
   Qwen = "QWEN",
+  Anthropic = "ANTHROPIC",
+  OpenAI = "OPENAI",
   _Mock = "MOCK",
 }
 export const AgentModelToAgentProvider = {
@@ -50,8 +57,30 @@ export const AgentModelToAgentProvider = {
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
   [AgentModel.MistralSmall32_24B]: AgentProvider.Mistral,
   [AgentModel.Qwen38_27B]: AgentProvider.Qwen,
+  [AgentModel.ClaudeSonnet55]: AgentProvider.Anthropic,
+  [AgentModel.ClaudeHaiku55]: AgentProvider.Anthropic,
+  [AgentModel.ClaudeOpus5]: AgentProvider.Anthropic,
+  [AgentModel.Gpt54]: AgentProvider.OpenAI,
+  [AgentModel.Gpt54Mini]: AgentProvider.OpenAI,
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
+
+/**
+ * The providers whose models take a service tier, priority or flex: Gemini 3.x (Vertex AI's
+ * shared request type) and OpenAI (the service tier of the Responses API). Priority needs the
+ * project's `llm-priority-calls` flag and the agent's toggle; flex needs the project's
+ * `llm-flex-workers` flag and only applies to background jobs.
+ */
+const SERVICE_TIER_PROVIDERS: readonly AgentProvider[] = [
+  AgentProvider.Vertex3,
+  AgentProvider.OpenAI,
+]
+
+/** Whether `model` can be called with a service tier (priority or flex). */
+export function supportsServiceTiers(model: string | undefined): boolean {
+  if (model === undefined || !(model in AgentModelToAgentProvider)) return false
+  return SERVICE_TIER_PROVIDERS.includes(AgentModelToAgentProvider[model as AgentModel])
+}
 
 export type AgentModelOf<Provider extends AgentProvider> = {
   [Model in AgentModel]: (typeof AgentModelToAgentProvider)[Model] extends Provider ? Model : never
@@ -125,6 +154,12 @@ export type AgentSettingsDto = {
   variables: Record<string, string> | null
   isArchived: boolean
   isDraft: boolean
+  /**
+   * The saved revision every live channel runs with (Desk, embed, public API, sub-agents...).
+   * Chosen by the agent's managers: saving a new revision does not move it, except the very
+   * first one. At most one revision per agent carries it, and never the draft.
+   */
+  isProduction: boolean
   mcpServers: AgentMcpServerDto[]
   model: AgentModel
   name?: string
@@ -224,11 +259,13 @@ export const FOLLOW_UP_SUGGESTIONS_MAX = 4
 /** Value of `followUpSuggestionsMax` on a new agent. */
 export const FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX = 2
 export const FOLLOW_UP_SUGGESTIONS_INSTRUCTIONS_MAX_LENGTH = 2000
+/** Longest greeting an agent can send. The editor shows it next to the field. */
+export const GREETING_MESSAGE_MAX_LENGTH = 2000
 
 // Every editable agent field lives on a settings revision. This is the single source of truth
 // for their validation; the create/update payload schemas below are all derived from it.
 export const agentSettingsValidationSchema = z.object({
-  greetingMessage: z.string().max(2000).optional(),
+  greetingMessage: z.string().max(GREETING_MESSAGE_MAX_LENGTH).optional(),
   instructions: z.string(),
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),
@@ -317,7 +354,11 @@ export const updateAgentSettingsOutputSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema,
 })
 
-const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
+const greetingMessageUpdateSchema = z
+  .string()
+  .max(GREETING_MESSAGE_MAX_LENGTH)
+  .nullable()
+  .optional()
 
 export const updateAgentSettingsGeneralSchema = agentSettingsValidationSchema
   .pick({ instructions: true, variables: true })
@@ -393,5 +434,10 @@ export type PartialUpdateAgentSettingsDto = z.infer<typeof partialUpdateAgentSet
 export const agentSettingsCreateSchema = z.object({
   revisionName: z.string().optional(),
   revisionDesc: z.string().optional(),
+  /**
+   * Also make the saved revision the production one. Ignored for the agent's first saved
+   * revision, which always becomes production since there is nothing else to run.
+   */
+  setAsProduction: z.boolean().optional(),
 })
 export type CreateAgentSettingsDto = z.infer<typeof agentSettingsCreateSchema>

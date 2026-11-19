@@ -13,6 +13,7 @@ import {
 import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
+import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { runtimeConfig } from "@/config/runtime-config"
 import { useReportDirty } from "@/studio/features/agents/agent-settings/components/agent-tab-form.shared"
@@ -24,6 +25,9 @@ import {
 import type { AgentEmbedConfig } from "../../../../agent-embed-configs/agent-embed-configs.models"
 import { selectAgentEmbedConfig } from "../../../../agent-embed-configs/agent-embed-configs.selectors"
 import { agentEmbedConfigsActions } from "../../../../agent-embed-configs/agent-embed-configs.slice"
+import { LiveSettingsSection } from "../LiveSettingsSection"
+
+const FORM_ID = "agent-embed-form"
 
 type EmbedFormState = {
   isEnabled: boolean
@@ -56,20 +60,27 @@ const emptyFormState: EmbedFormState = {
 
 type CopyTarget = "snippet" | "publicPage" | "apiBaseUrl"
 
-export function EmbedTab({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }) {
+type EmbedTabProps = {
+  onDirtyChange: (dirty: boolean) => void
+}
+
+/**
+ * How the agent is embedded outside the platform. The configuration is not part of the draft:
+ * a save applies it at once.
+ */
+export function EmbedTab({ onDirtyChange }: EmbedTabProps) {
   const agentId = useCurrentId(selectCurrentAgentId)
   const config = useAppSelector(selectAgentEmbedConfig)
 
   useMount({ actions: agentEmbedConfigsActions, refreshOn: [agentId] })
 
-  return (
-    <AsyncRoute data={[config]}>
-      <WithData onDirtyChange={onDirtyChange} />
-    </AsyncRoute>
-  )
+  if (ADS.isFulfilled(config)) return <WithData onDirtyChange={onDirtyChange} />
+
+  // The loading or the error of the configuration.
+  return <AsyncRoute data={[config]}>{null}</AsyncRoute>
 }
 
-function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }) {
+function WithData({ onDirtyChange }: EmbedTabProps) {
   const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const agent = useValue(selectCurrentAgentData)
@@ -136,218 +147,231 @@ function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }
   }
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
-      <section className="min-w-0 rounded-lg border p-4">
-        <AgentTabSectionHeader
-          title={t("agentSettings:embed.enabledLabel")}
-          description={t("agentSettings:embed.enabledDescription", { name: agent.name })}
-          action={
-            <Switch
-              id="embed-enabled"
-              aria-label={t("agentSettings:embed.enabledLabel")}
-              checked={form.isEnabled}
-              onCheckedChange={(isEnabled) => setForm((prev) => ({ ...prev, isEnabled }))}
-            />
-          }
-        />
-      </section>
-
-      <section className="min-w-0 space-y-4 rounded-lg border p-4">
-        <AgentTabSectionHeader
-          title={t("agentSettings:embed.appearance.title")}
-          description={t("agentSettings:embed.appearance.description")}
-        />
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="embed-title">{t("agentSettings:embed.titleLabel")}</FieldLabel>
-            <FieldDescription>
-              {t("agentSettings:embed.titleDescription", { name: agent.name })}
-            </FieldDescription>
-            <Input
-              id="embed-title"
-              value={form.title}
-              onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-              placeholder={agent.name}
-            />
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="embed-logo-url">
-              {t("agentSettings:embed.logoUrlLabel")}
-            </FieldLabel>
-            <FieldDescription>{t("agentSettings:embed.logoUrlDescription")}</FieldDescription>
-            <Input
-              id="embed-logo-url"
-              type="url"
-              value={form.logoUrl}
-              onChange={(e) => setForm((prev) => ({ ...prev, logoUrl: e.target.value }))}
-              placeholder={t("agentSettings:embed.logoUrlPlaceholder")}
-            />
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="embed-primary-color">
-              {t("agentSettings:embed.primaryColorLabel")}
-            </FieldLabel>
-            <FieldDescription>{t("agentSettings:embed.primaryColorDescription")}</FieldDescription>
-            <div className="flex items-center gap-2">
-              <input
-                id="embed-primary-color-picker"
-                type="color"
-                value={form.primaryColor || "#2563eb"}
-                onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                className="h-9 w-10 cursor-pointer rounded border border-input p-0.5"
+    <LiveSettingsSection
+      formId={FORM_ID}
+      isDirty={isDirty}
+      onReset={() => config && setForm(toFormState(config))}
+    >
+      <form
+        id={FORM_ID}
+        className="grid grid-cols-[minmax(0,1fr)] gap-4"
+        onSubmit={(event) => {
+          event.preventDefault()
+          handleUpdate()
+        }}
+      >
+        <section className="min-w-0 rounded-lg border p-4">
+          <AgentTabSectionHeader
+            title={t("agentSettings:embed.enabledLabel")}
+            description={t("agentSettings:embed.enabledDescription", { name: agent.name })}
+            action={
+              <Switch
+                id="embed-enabled"
+                aria-label={t("agentSettings:embed.enabledLabel")}
+                checked={form.isEnabled}
+                onCheckedChange={(isEnabled) => setForm((prev) => ({ ...prev, isEnabled }))}
               />
+            }
+          />
+        </section>
+
+        <section className="min-w-0 space-y-4 rounded-lg border p-4">
+          <AgentTabSectionHeader
+            title={t("agentSettings:embed.appearance.title")}
+            description={t("agentSettings:embed.appearance.description")}
+          />
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="embed-title">{t("agentSettings:embed.titleLabel")}</FieldLabel>
+              <FieldDescription>
+                {t("agentSettings:embed.titleDescription", { name: agent.name })}
+              </FieldDescription>
               <Input
-                id="embed-primary-color"
-                value={form.primaryColor}
-                onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                placeholder="#2563eb"
-                className="font-mono"
+                id="embed-title"
+                value={form.title}
+                onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                placeholder={agent.name}
               />
-            </div>
-          </Field>
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="embed-banner-text">
-              {t("agentSettings:embed.bannerTextLabel")}
-            </FieldLabel>
-            <FieldDescription>{t("agentSettings:embed.bannerTextDescription")}</FieldDescription>
-            <Textarea
-              id="embed-banner-text"
-              value={form.bannerText}
-              onChange={(e) => setForm((prev) => ({ ...prev, bannerText: e.target.value }))}
-              placeholder={t("agentSettings:embed.bannerTextPlaceholder")}
-              rows={2}
-              maxLength={300}
-            />
-          </Field>
-        </FieldGroup>
-      </section>
+            <Field>
+              <FieldLabel htmlFor="embed-logo-url">
+                {t("agentSettings:embed.logoUrlLabel")}
+              </FieldLabel>
+              <FieldDescription>{t("agentSettings:embed.logoUrlDescription")}</FieldDescription>
+              <Input
+                id="embed-logo-url"
+                type="url"
+                value={form.logoUrl}
+                onChange={(e) => setForm((prev) => ({ ...prev, logoUrl: e.target.value }))}
+                placeholder={t("agentSettings:embed.logoUrlPlaceholder")}
+              />
+            </Field>
 
-      {config && (
-        <section className="min-w-0 space-y-4 rounded-lg border p-4">
-          <AgentTabSectionHeader
-            title={t("agentSettings:embed.snippetLabel")}
-            description={t("agentSettings:embed.snippetDescription")}
-          />
-          <div className="flex gap-2 items-start">
-            <Textarea
-              readOnly
-              aria-label={t("agentSettings:embed.snippetLabel")}
-              value={embedSnippet}
-              rows={2}
-              className="font-mono text-xs resize-none"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => handleCopy("snippet")}
-            >
-              {copied === "snippet" ? (
-                <CheckIcon className="size-4" />
-              ) : (
-                <CopyIcon className="size-4" />
-              )}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">{t("agentSettings:embed.snippetHint")}</p>
-          <Field>
-            <FieldLabel htmlFor="allowed-origins">
-              {t("agentSettings:embed.allowedOriginsLabel")}
-            </FieldLabel>
-            <FieldDescription>
-              {t("agentSettings:embed.allowedOriginsDescription", { embedOrigin: embedBaseUrl })}
-            </FieldDescription>
-            <Input
-              id="allowed-origins"
-              value={form.allowedOriginsText}
-              onChange={(e) => setForm((prev) => ({ ...prev, allowedOriginsText: e.target.value }))}
-              placeholder={t("agentSettings:embed.allowedOriginsPlaceholder")}
-            />
-          </Field>
-          {widgetGuideUrl && (
-            <HelpLink href={widgetGuideUrl} label={t("agentSettings:embed.widgetGuideLink")} />
-          )}
+            <Field>
+              <FieldLabel htmlFor="embed-primary-color">
+                {t("agentSettings:embed.primaryColorLabel")}
+              </FieldLabel>
+              <FieldDescription>
+                {t("agentSettings:embed.primaryColorDescription")}
+              </FieldDescription>
+              <div className="flex items-center gap-2">
+                <input
+                  id="embed-primary-color-picker"
+                  type="color"
+                  value={form.primaryColor || "#000000"}
+                  onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
+                  className="h-9 w-10 cursor-pointer rounded border border-input p-0.5"
+                />
+                <Input
+                  id="embed-primary-color"
+                  value={form.primaryColor}
+                  onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
+                  placeholder="#000000"
+                  className="font-mono"
+                />
+              </div>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="embed-banner-text">
+                {t("agentSettings:embed.bannerTextLabel")}
+              </FieldLabel>
+              <FieldDescription>{t("agentSettings:embed.bannerTextDescription")}</FieldDescription>
+              <Textarea
+                id="embed-banner-text"
+                value={form.bannerText}
+                onChange={(e) => setForm((prev) => ({ ...prev, bannerText: e.target.value }))}
+                placeholder={t("agentSettings:embed.bannerTextPlaceholder")}
+                rows={2}
+                maxLength={300}
+              />
+            </Field>
+          </FieldGroup>
         </section>
-      )}
 
-      {config && (
-        <section className="min-w-0 space-y-4 rounded-lg border p-4">
-          <AgentTabSectionHeader
-            title={t("agentSettings:embed.publicPageLabel")}
-            description={t("agentSettings:embed.publicPageDescription", { name: agent.name })}
-          />
-          <div className="flex gap-2 items-start">
-            <Input
-              id="embed-public-page-url"
-              aria-label={t("agentSettings:embed.publicPageLabel")}
-              readOnly
-              value={publicPageUrl}
-              className="font-mono text-xs"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => handleCopy("publicPage")}
-            >
-              {copied === "publicPage" ? (
-                <CheckIcon className="size-4" />
-              ) : (
-                <CopyIcon className="size-4" />
-              )}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">{t("agentSettings:embed.publicPageHint")}</p>
-        </section>
-      )}
-
-      <section className="min-w-0 space-y-4 rounded-lg border p-4">
-        <AgentTabSectionHeader
-          title={t("agentSettings:embed.apiSection.title")}
-          description={t("agentSettings:embed.apiSection.description")}
-        />
         {config && (
-          <Field>
-            <FieldLabel htmlFor="embed-api-base-url">
-              {t("agentSettings:embed.apiBaseUrlLabel")}
-            </FieldLabel>
-            <FieldDescription>{t("agentSettings:embed.apiBaseUrlDescription")}</FieldDescription>
+          <section className="min-w-0 space-y-4 rounded-lg border p-4">
+            <AgentTabSectionHeader
+              title={t("agentSettings:embed.snippetLabel")}
+              description={t("agentSettings:embed.snippetDescription")}
+            />
             <div className="flex gap-2 items-start">
-              <Input
-                id="embed-api-base-url"
+              <Textarea
                 readOnly
-                value={apiBaseUrl}
-                className="font-mono text-xs"
+                aria-label={t("agentSettings:embed.snippetLabel")}
+                value={embedSnippet}
+                rows={2}
+                className="font-mono text-xs resize-none"
               />
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => handleCopy("apiBaseUrl")}
+                onClick={() => handleCopy("snippet")}
               >
-                {copied === "apiBaseUrl" ? (
+                {copied === "snippet" ? (
                   <CheckIcon className="size-4" />
                 ) : (
                   <CopyIcon className="size-4" />
                 )}
               </Button>
             </div>
-          </Field>
+            <p className="text-xs text-muted-foreground">{t("agentSettings:embed.snippetHint")}</p>
+            <Field>
+              <FieldLabel htmlFor="allowed-origins">
+                {t("agentSettings:embed.allowedOriginsLabel")}
+              </FieldLabel>
+              <FieldDescription>
+                {t("agentSettings:embed.allowedOriginsDescription", { embedOrigin: embedBaseUrl })}
+              </FieldDescription>
+              <Input
+                id="allowed-origins"
+                value={form.allowedOriginsText}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, allowedOriginsText: e.target.value }))
+                }
+                placeholder={t("agentSettings:embed.allowedOriginsPlaceholder")}
+              />
+            </Field>
+            {widgetGuideUrl && (
+              <HelpLink href={widgetGuideUrl} label={t("agentSettings:embed.widgetGuideLink")} />
+            )}
+          </section>
         )}
-        {apiReferenceUrl && (
-          <HelpLink href={apiReferenceUrl} label={t("agentSettings:embed.apiReferenceLink")} />
-        )}
-      </section>
 
-      <div className="flex justify-end">
-        <Button type="button" className="w-fit" onClick={handleUpdate}>
-          {t("actions:update")}
-        </Button>
-      </div>
-    </div>
+        {config && (
+          <section className="min-w-0 space-y-4 rounded-lg border p-4">
+            <AgentTabSectionHeader
+              title={t("agentSettings:embed.publicPageLabel")}
+              description={t("agentSettings:embed.publicPageDescription", { name: agent.name })}
+            />
+            <div className="flex gap-2 items-start">
+              <Input
+                id="embed-public-page-url"
+                aria-label={t("agentSettings:embed.publicPageLabel")}
+                readOnly
+                value={publicPageUrl}
+                className="font-mono text-xs"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => handleCopy("publicPage")}
+              >
+                {copied === "publicPage" ? (
+                  <CheckIcon className="size-4" />
+                ) : (
+                  <CopyIcon className="size-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("agentSettings:embed.publicPageHint")}
+            </p>
+          </section>
+        )}
+
+        <section className="min-w-0 space-y-4 rounded-lg border p-4">
+          <AgentTabSectionHeader
+            title={t("agentSettings:embed.apiSection.title")}
+            description={t("agentSettings:embed.apiSection.description")}
+          />
+          {config && (
+            <Field>
+              <FieldLabel htmlFor="embed-api-base-url">
+                {t("agentSettings:embed.apiBaseUrlLabel")}
+              </FieldLabel>
+              <FieldDescription>{t("agentSettings:embed.apiBaseUrlDescription")}</FieldDescription>
+              <div className="flex gap-2 items-start">
+                <Input
+                  id="embed-api-base-url"
+                  readOnly
+                  value={apiBaseUrl}
+                  className="font-mono text-xs"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleCopy("apiBaseUrl")}
+                >
+                  {copied === "apiBaseUrl" ? (
+                    <CheckIcon className="size-4" />
+                  ) : (
+                    <CopyIcon className="size-4" />
+                  )}
+                </Button>
+              </div>
+            </Field>
+          )}
+          {apiReferenceUrl && (
+            <HelpLink href={apiReferenceUrl} label={t("agentSettings:embed.apiReferenceLink")} />
+          )}
+        </section>
+      </form>
+    </LiveSettingsSection>
   )
 }
 

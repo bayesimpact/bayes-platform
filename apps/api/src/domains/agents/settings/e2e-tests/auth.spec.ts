@@ -374,6 +374,52 @@ describe("Agent Settings - Auth", () => {
     })
   })
 
+  describe("AgentSettingsRoutes.setProduction", () => {
+    const subject = async () =>
+      request({
+        route: AgentSettingsRoutes.setProduction,
+        pathParams: removeNullish({ organizationId, projectId, agentId, revision: "1" }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      await createContextForRole("project_owner")
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("project_owner")
+      projectId = randomUUID()
+      expectResponse(await subject(), 404)
+    })
+    it("requires a valid agent ID", async () => {
+      await createContextForRole("project_owner")
+      agentId = randomUUID()
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("project_owner")
+      authSubject = mockForeignAuthSubject()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("requires the agent to be part of the project", async () => {
+      const { organization } = await createContextForRole("project_owner")
+      const project2 = await repositories.projectRepository.save(
+        projectFactory.transient({ organization }).build(),
+      )
+      projectId = project2.id
+      expectResponse(await subject(), 404) //exception thrown by guard
+    })
+    it("doesn't allow a simple member to choose the version in production", async () => {
+      await createContextForRole("project_member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
   describe("role matrix", () => {
     const createContextForRoles = async ({
       projectRole,
@@ -462,6 +508,13 @@ describe("Agent Settings - Auth", () => {
         token: "token",
       })
 
+    const setProduction = async () =>
+      request({
+        route: AgentSettingsRoutes.setProduction,
+        pathParams: revisionPathParams(),
+        token: "token",
+      })
+
     // The business outcome of a mutation depends on the seeded revisions, so an allowed
     // call only has to get past the permission check.
     const expectAllowed = (response: { status: number }) => {
@@ -520,6 +573,7 @@ describe("Agent Settings - Auth", () => {
       expectAllowed(await restoreOne())
       expectAllowed(await createOne())
       expectAllowed(await archiveOne())
+      expectAllowed(await setProduction())
     })
 
     it("doesn't let an agent member who owns the project change the settings", async () => {
@@ -528,6 +582,7 @@ describe("Agent Settings - Auth", () => {
       expectForbidden(await restoreOne())
       expectForbidden(await createOne())
       expectForbidden(await archiveOne())
+      expectForbidden(await setProduction())
     })
 
     it("doesn't let an organization admin outside the project read or change the settings", async () => {
@@ -542,6 +597,7 @@ describe("Agent Settings - Auth", () => {
       expectForbidden(await restoreOne())
       expectForbidden(await createOne())
       expectForbidden(await archiveOne())
+      expectForbidden(await setProduction())
     })
   })
 })

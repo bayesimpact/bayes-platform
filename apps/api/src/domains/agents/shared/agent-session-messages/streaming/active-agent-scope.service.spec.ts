@@ -21,7 +21,7 @@ describe("ActiveAgentScopeService", () => {
   const buildService = (publishedSettings: unknown) =>
     new ActiveAgentScopeService(
       { findAgentById: jest.fn().mockResolvedValue(activeAgent) } as never,
-      { findLastPublished: jest.fn().mockResolvedValue(publishedSettings) } as never,
+      { findProduction: jest.fn().mockResolvedValue(publishedSettings) } as never,
     )
 
   const resolve = (service: ActiveAgentScopeService) =>

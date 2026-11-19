@@ -23,7 +23,7 @@ New, optional:
 | Variable | Default | Meaning |
 |---|---|---|
 | `OIDC_ALLOW_EMAIL_LINKING` | `true` | Links a first sign-in to the account of someone added by email |
-| `OIDC_TRUST_UNVERIFIED_EMAIL` | `false` | Links even when the provider does not report the email as verified. Only for a single-tenant provider the customer fully controls |
+| `OIDC_TRUST_UNVERIFIED_EMAIL` | `false` | Accepts a first sign-in even when the provider does not report the email as verified. Only for a single-tenant provider the customer fully controls |
 
 ### Web front served by the API (`WEB_*`, Helm `web.env`)
 
@@ -61,7 +61,7 @@ WEB_OIDC_CLIENT_ID=<the SPA application client id>
 - **Trailing slash.** `OIDC_ISSUER_URL` must equal the `iss` claim of the access tokens. Auth0 issuers end with `/`, Keycloak issuers do not.
 - **JSON values.** `OIDC_AUTHORIZATION_PARAMS` is a JSON object whose values are strings. A malformed value stops the API at start, on purpose.
 - **Organization.** The web app no longer sends the Auth0 `organization` parameter by itself. An Auth0 application set to "Business users" only needs `OIDC_AUTHORIZATION_PARAMS`, or the login fails.
-- **Verified emails.** People added by email, or invited but never signed in, are linked at their first sign-in only if the provider returns `email_verified: true`. Accounts the old code created through the Management API were unverified: their first sign-in is refused with an explicit message until the email is verified in the provider. Accounts that already signed in are found by their `sub` and are not affected.
+- **Verified emails.** A first sign-in is accepted only if the provider returns `email_verified: true`, for a new person as for someone added by email or invited but never signed in. A provider that never sends this claim needs `OIDC_TRUST_UNVERIFIED_EMAIL=true`. Accounts the old code created through the Management API were unverified: their first sign-in is refused with an explicit message until the email is verified in the provider. Accounts that already signed in are found by their `sub` and are not affected.
 - **Refresh tokens.** The web app asks for `offline_access`. A provider that does not allow it for the user fails the token exchange (Keycloak: "Offline tokens not allowed"). Allow it, or set `WEB_OIDC_SCOPE=openid profile email`.
 - **Logout.** The web app uses the provider's `end_session_endpoint`. On Auth0, enable "RP-Initiated Logout End Session Endpoint Discovery" on the tenant and keep the app URL in the "Allowed Logout URLs", or the user is signed back in right away.
 

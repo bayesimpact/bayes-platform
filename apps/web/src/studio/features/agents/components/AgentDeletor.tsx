@@ -5,10 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { Trash2Icon } from "lucide-react"
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -16,37 +13,32 @@ import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { deleteAgent } from "../agents.thunks"
 
-export function AgentDeletorWithTrigger({
+/** Dialog that deletes an agent, opened by its caller (the "More" menu of the agent page). */
+export function AgentDeletorDialog({
   organizationId,
   agent,
+  open,
+  onClose,
 }: {
   organizationId: string
   agent: Agent
+  open: boolean
+  onClose: () => void
 }) {
   const navigate = useNavigate()
-  const [open, setOpen] = useState(false)
 
   const path = StudioRoutes.project.build({ organizationId, projectId: agent.projectId })
 
   const handleSuccess = () => {
     navigate(path, { replace: true })
-    setOpen(false)
-  }
-
-  const handleClose = () => {
-    setOpen(false)
+    onClose()
   }
 
   if (!agent) return null
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Trash2Icon />
-        </Button>
-      </DialogTrigger>
-      <Content agent={agent} onSuccess={handleSuccess} onClose={handleClose} />
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <Content agent={agent} onSuccess={handleSuccess} onClose={onClose} />
     </Dialog>
   )
 }

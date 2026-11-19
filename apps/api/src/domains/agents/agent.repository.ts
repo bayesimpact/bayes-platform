@@ -83,7 +83,7 @@ export class AgentRepository {
     agentIds: readonly string[],
   ): Promise<AgentSummary[]> {
     if (agentIds.length === 0) return []
-    return this.publishedConversationAgents(projectId)
+    return this.productionConversationAgents(projectId)
       .andWhere("agent.id IN (:...agentIds)", { agentIds: [...agentIds] })
       .orderBy("agent.createdAt", "ASC")
       .getMany()
@@ -94,7 +94,7 @@ export class AgentRepository {
     projectId: string,
     agentId: string,
   ): Promise<AgentSummary | null> {
-    return this.publishedConversationAgents(projectId)
+    return this.productionConversationAgents(projectId)
       .andWhere("agent.id = :agentId", { agentId })
       .getOne()
   }
@@ -147,19 +147,18 @@ export class AgentRepository {
     return this.transactionService.getManager().getRepository(Agent)
   }
 
-  /** Conversation agents of the project with a published revision, as id, name and type. */
-  private publishedConversationAgents(projectId: string): SelectQueryBuilder<Agent> {
+  /** Conversation agents of the project with a revision in production, as id, name and type. */
+  private productionConversationAgents(projectId: string): SelectQueryBuilder<Agent> {
     return this.repo()
       .createQueryBuilder("agent")
       .select(["agent.id", "agent.name", "agent.type"])
       .where("agent.projectId = :projectId", { projectId })
       .andWhere("agent.type = :type", { type: "conversation" })
       .andWhere(
-        `EXISTS (SELECT 1 FROM agent_settings published
-          WHERE published.agent_id = agent.id
-            AND published.is_draft = false
-            AND published.is_archived = false
-            AND published.deleted_at IS NULL)`,
+        `EXISTS (SELECT 1 FROM agent_settings production
+          WHERE production.agent_id = agent.id
+            AND production.is_production = true
+            AND production.deleted_at IS NULL)`,
       )
   }
 

@@ -2,7 +2,7 @@
  * AgentStudio embed launcher.
  *
  * Drop this IIFE onto any host page via:
- *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#2563eb" data-locale="fr" data-display-mode="modal" data-hint="Need help?"></script>
+ *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#000000" data-locale="fr" data-display-mode="modal" data-hint="Need help?"></script>
  *
  * The script injects a floating action button and a chat iframe.
  * Clicking the button toggles the iframe open/closed.
@@ -19,6 +19,7 @@
  *   Starts a new conversation in the widget, for example when the visitor
  *   logs out of the host site.
  */
+import { DEFAULT_PRIMARY_COLOR, themeColors } from "../theme"
 
 declare global {
   interface Window {
@@ -45,7 +46,7 @@ function init() {
   const position = (_currentScript?.getAttribute("data-position") ?? "bottom-right") as
     | "bottom-right"
     | "bottom-left"
-  const color = _currentScript?.getAttribute("data-color") ?? "#2563eb"
+  const color = _currentScript?.getAttribute("data-color") ?? DEFAULT_PRIMARY_COLOR
   const locale = _currentScript?.getAttribute("data-locale") ?? ""
   const displayMode = (_currentScript?.getAttribute("data-display-mode") ?? "modal") as
     | "modal"
@@ -349,6 +350,7 @@ function makeFabButton(color: string): HTMLButtonElement {
     "height: 56px",
     "border-radius: 50%",
     `background: ${color}`,
+    `color: ${themeColors(color).onPrimary}`,
     "border: none",
     "cursor: pointer",
     "display: flex",
@@ -363,11 +365,11 @@ function makeFabButton(color: string): HTMLButtonElement {
 }
 
 function chatIconSvg() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
 }
 
 function closeIconSvg() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
 }
 
 if (document.readyState === "loading") {

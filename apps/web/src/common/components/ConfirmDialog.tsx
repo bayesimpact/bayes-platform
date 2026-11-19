@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next"
 type Props = {
   open: boolean
   title: string
-  description?: string
+  description?: React.ReactNode
   confirmLabel?: string
   confirmIcon?: React.ReactNode
   /** Destructive by default, for deletions. Use `default` for a change that is not one. */

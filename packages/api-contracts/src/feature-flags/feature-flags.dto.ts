@@ -29,12 +29,20 @@ export const FeatureFlags = [
     description: "Access and utilize qwen models.",
   }),
   featureFlag({
+    key: "anthropic",
+    description: "Access and utilize Claude models (Anthropic, served by Vertex AI in the EU).",
+  }),
+  featureFlag({
+    key: "openai",
+    description: "Access and utilize OpenAI models (served outside the EU).",
+  }),
+  featureFlag({
     key: "llm-priority-calls",
-    description: "Access and set priority for Gemini 3.x models",
+    description: "Access and set priority for Gemini 3.x and OpenAI models",
   }),
   featureFlag({
     key: "llm-flex-workers",
-    description: "Use flex in worker's calls for Gemini 3.x models",
+    description: "Use flex in worker's calls for Gemini 3.x and OpenAI models",
   }),
   featureFlag({
     key: "project-analytics",

@@ -4,7 +4,7 @@ highlight: conversationnel
 description: Créez un agent conversationnel qui discute avec les utilisateurs, en s'appuyant sur les documents et les bibliothèques de ressources de votre espace de travail.
 category: guides-agents
 order: 1
-updated: 2026-10-30
+updated: 2026-11-16
 ---
 
 import AddConversationAgentWalkthrough from "@/components/AddConversationAgentWalkthrough.astro"
@@ -21,12 +21,29 @@ latérale gauche). **Conversation** est le type par défaut.
 
 ## Comment fonctionne l'éditeur
 
-Une fois créé, l'agent s'ouvre dans un éditeur à onglets — pour un agent
-conversationnel : **Général**, **Modèle**, **Sources** (documents et
-bibliothèques de ressources), et (quand ils sont disponibles) **Catégories de conversation**,
-[**Orchestration**](/fr/agent-orchestration) et [**Intégration**](/fr/agent-embed). **Chaque onglet est un formulaire à part et
-s'enregistre séparément** — cliquez sur **Enregistrer** sur un onglet pour conserver
-ses modifications ; l'éditeur vous avertit avant de quitter un onglet non enregistré.
+Une fois créé, l'agent s'ouvre dans son **éditeur**, une page à part entière. Son menu
+de gauche affiche **Retour** (pour quitter l'éditeur), le nom de l'agent avec
+*Modifier l'agent conversationnel*, puis les sections :
+
+- **Général**, **Modèle**, **Sources**, **Outils** et, quand votre espace de travail a
+  des catégories, **Catégories de conversation**. Ces sections écrivent dans le
+  **brouillon** de l'agent.
+- Sous **Plus** : [**Serveurs MCP**](/fr/mcp-servers),
+  [**Orchestration**](/fr/agent-orchestration) et [**Intégration**](/fr/agent-embed),
+  quand ils sont activés. Ces réglages ne font pas partie du brouillon : ils
+  s'appliquent à l'agent en production.
+- En bas, **Gérer les versions** ouvre l'[historique des
+  versions](/fr/agent-version-history).
+
+**Les sections du brouillon n'ont pas de bouton Enregistrer.** Chaque modification
+s'enregistre d'elle-même dans le brouillon, un court instant après votre dernière
+frappe. Le statut en haut à droite de l'éditeur indique où elle en est :
+**Enregistrement…**, puis **Brouillon enregistré**. Les utilisateurs continuent de
+parler à la version publiée tant que vous n'avez pas enregistré le brouillon comme
+version. Trois réglages font exception : les **Étiquettes de document** et les
+**Bibliothèques de ressources** de **Sources**, et les **Catégories de conversation**,
+s'enregistrent sur l'agent lui-même et s'appliquent aussitôt. Un nouvel agent n'a pas encore de version publiée : il atteint ses
+utilisateurs une fois que vous cliquez sur **Enregistrer la version**.
 
 ## Le parcours complet en un coup d'œil
 
@@ -52,18 +69,40 @@ Dans la boîte de dialogue **Nouvel agent**, sous **Type d'agent**, gardez
 ### 3. Nommer l'agent et le créer
 
 Saisissez un **Nom** (au moins 3 caractères), puis cliquez sur **Créer**. Votre
-agent est créé avec des valeurs par défaut pertinentes et s'ouvre dans l'éditeur.
+agent est créé avec des valeurs par défaut pertinentes et son éditeur s'ouvre sur
+**Général**.
 
 ### 4. Général
 
-Définissez le **Nom**, la **Langue** (la langue de travail de l'agent), le **Message
-d'accueil** (le premier message envoyé) et les **Instructions** (qui définissent son
-comportement et son ton). Cliquez sur **Enregistrer**.
+Définissez :
+
+- le **Nom** : comment l'agent apparaît dans votre espace de travail ;
+- le **Message d'accueil** : le premier message envoyé par l'agent au début d'une
+  conversation. Le compteur à côté du libellé indique sa longueur et son maximum, par
+  exemple *50 / 2 000 caractères* ;
+- les **Instructions** : ce qui définit le comportement et le ton de l'agent. Le
+  compteur à côté du libellé indique leur longueur.
+
+Les deux zones de texte s'agrandissent avec leur contenu. Une fois que l'agent a une
+version publiée et que vous modifiez les instructions, un bouton **Mode avancé**
+apparaît à côté d'**Instructions**. Il affiche vos instructions sous forme de
+différences avec les instructions publiées, et vous pouvez les modifier directement
+dans ces différences. Cliquez à nouveau dessus pour revenir au champ simple.
+
+Quand vos instructions déclarent des `{{variables}}` et que l'option est activée pour
+votre espace de travail, un encadré **Variables de prompt** sous les instructions
+définit leurs valeurs par défaut.
+
+Chaque modification s'enregistre d'elle-même : le statut en haut à droite affiche
+**Brouillon enregistré**.
 
 ### 5. Modèle
 
-Ouvrez l'onglet **Modèle**, choisissez le **Modèle** et une **Température** (élevée =
-plus variée, basse = plus ciblée). **Enregistrez**.
+Cliquez sur **Modèle** dans le menu. Sous **Génération des réponses**, choisissez le
+**Modèle** et ses options, comme la **Température** (élevée = plus variée, basse =
+plus ciblée) ou le **Niveau de réflexion**, selon le modèle. Sous **Recherche dans les
+documents**, choisissez le **Modèle d'embedding** utilisé pour chercher dans vos
+documents.
 
 **Appels prioritaires** (optionnel). Sur les modèles Gemini 3.x, activez **Appels
 prioritaires** pour obtenir un temps de réponse plus bas et plus stable, utile pour
@@ -74,80 +113,135 @@ l'équipe Bayes pour en faire la demande.
 
 ### 6. Sources : documents
 
-Ouvrez l'onglet **Sources**. Sa première section, **Documents**, définit ce que
-l'agent consulte pour répondre. Choisissez la **Source de réponse** :
+Cliquez sur **Sources**. Sa première section, **Documents**, définit ce que l'agent
+consulte pour répondre. Choisissez la **Source de réponse** :
 
-- **Répondre sans consulter de documents** — aucun document consulté.
-- **Rechercher dans tous les documents** — tous les documents de l'espace de travail.
-- **Recherche dans les documents étiquetés** — uniquement les documents portant les
+- **Répondre sans consulter de documents** : aucun document consulté.
+- **Rechercher dans tous les documents** : tous les documents de l'espace de travail.
+- **Recherche dans les documents étiquetés** : uniquement les documents portant les
   **Étiquettes de document** choisies.
 
 Voir [Documents](/fr/documents) pour téléverser et étiqueter au préalable.
 
 ### 7. Sources : bibliothèques de ressources
 
-Toujours dans l'onglet **Sources**, la section **Bibliothèques de ressources**
-rattache les **bibliothèques** que l'agent peut proposer. Cliquez sur **Add library**,
-choisissez-en une, et elle apparaît sous forme d'étiquette. Utilisez **Gérer les
-bibliothèques** pour ouvrir le gestionnaire. Cliquez une seule fois sur
-**Enregistrer** pour tout l'onglet : documents et bibliothèques sont enregistrés
-ensemble. Voir [Bibliothèques de ressources](/fr/resource-libraries) pour les créer
-au préalable.
+Toujours dans **Sources**, la section **Bibliothèques de ressources** rattache les
+**bibliothèques** que l'agent peut proposer pendant une conversation. Cliquez sur
+**Add library**, choisissez-en une, et elle apparaît sous forme d'étiquette. Utilisez
+**Gérer les bibliothèques** pour ouvrir le gestionnaire. Voir [Bibliothèques de
+ressources](/fr/resource-libraries) pour les créer au préalable.
 
-### 8. Catégories de conversation
+### 8. Outils
 
-Si votre espace de travail a des catégories de conversation, ouvrez l'onglet
-**Catégories de conversation** et cochez celles qui s'appliquent (**Tout
+Cliquez sur **Outils**. Chaque outil a un interrupteur :
+
+- **Remplissage de formulaire** : l'agent remplit un formulaire structuré à partir des
+  réponses de l'utilisateur. Une fois activé, vous définissez les champs du formulaire
+  (voir [Ajouter un agent de formulaire](/fr/add-a-form-agent)).
+- **Suggérer des questions de relance** : après une réponse, l'agent suggère des
+  questions courtes sur lesquelles l'utilisateur peut cliquer. Réglez le **Maximum par
+  réponse** et, si vous le voulez, des **Instructions** sur quand et comment les
+  écrire.
+- **Mémoire** (quand elle est activée pour votre espace de travail) : **Désactivée**,
+  **Demander avant d'enregistrer** ou **Enregistrer automatiquement**.
+
+### 9. Catégories de conversation
+
+Si votre espace de travail a des catégories de conversation, cliquez sur **Catégories
+de conversation** et cochez celles qui s'appliquent à cet agent (**Tout
 sélectionner** les ajoute toutes). Les catégories déjà utilisées dans les
-conversations de cet agent ne peuvent pas être décochées. **Enregistrez**.
+conversations de cet agent ne peuvent pas être décochées.
 
-### 9. Orchestration
+### 10. Orchestration
 
-Quand l'orchestration est activée, ouvrez l'onglet **Orchestration** pour ajouter des
-**sous-agents** auxquels cet agent peut déléguer. Choisissez parmi les **Agents
-conversationnels disponibles**, donnez à chacun un **Nom de l'outil** et une
-**Description de l'outil**, et activez-le. **Enregistrez**.
+Quand l'orchestration est activée, cliquez sur **Orchestration** sous **Plus**. Elle
+s'ouvre en pleine page avec le message *Ces réglages ne font pas partie du brouillon :
+ils s'appliquent en production dès que vous enregistrez.* Ajoutez des **sous-agents**
+depuis les **Agents conversationnels disponibles**, donnez à chacun un **Nom de
+l'outil** et une **Description de l'outil**, et activez-le. Cliquez sur
+**Enregistrer**, puis confirmez dans **Appliquer ces réglages maintenant ?**. Voir
+[Orchestration](/fr/agent-orchestration).
 
-### 10. Intégration
+### 11. Intégration
 
-Quand l'intégration est activée, ouvrez l'onglet **Intégration** pour placer l'agent
-sur un site externe : activez **Activer l'intégration**, copiez l'**Extrait
-d'intégration**, et réglez les **Origines autorisées**, le **Titre du widget**,
-l'**URL du logo** et la **Couleur principale**. Cliquez sur **Mettre à jour**.
+Quand l'intégration est activée, cliquez sur **Intégration** sous **Plus**. Elle
+s'ouvre aussi en pleine page. Activez **Activer l'intégration**, réglez
+l'**Apparence** (**Titre du widget**, **URL du logo**, **Couleur principale**, **Texte
+du bandeau**) et copiez le code sous **Widget sur un site**. Cliquez sur
+**Enregistrer**, puis confirmez. Voir [Intégration](/fr/agent-embed).
 
-## Historique des versions
+### 12. Enregistrer le brouillon comme version
 
-Chaque enregistrement crée une nouvelle **version** de l'agent. Ouvrez **Historique**
-(en haut à droite de l'éditeur, avec le **v numéro** actuel) pour parcourir les
-versions passées dans un panneau latéral, **comparer** les changements
-(**Changements de cette version** ou **Comparer avec l'actuelle**), et **Restaurer
-cette version** — ce qui copie ces paramètres comme nouvelle version actuelle sans
-rien supprimer. Voir [Historique des versions](/fr/agent-version-history) pour le
-guide complet.
+Quand le brouillon est prêt, cliquez sur **Gérer les versions** en bas du menu (ou sur
+le statut **Brouillon enregistré**). Dans l'historique des versions, le brouillon est
+sélectionné : cliquez sur **Enregistrer la version**, nommez-la si vous le voulez, et
+cliquez à nouveau sur **Enregistrer la version**. L'agent utilise désormais cette
+version, et les utilisateurs peuvent y accéder. Voir [Historique des
+versions](/fr/agent-version-history).
+
+## La page de l'agent
+
+Cliquez sur l'agent dans la liste **Agents** de la barre latérale gauche pour ouvrir
+sa page. En haut à droite :
+
+- **Modifier** ouvre l'éditeur. Son badge indique sur quoi l'éditeur s'ouvre :
+  **Brouillon** quand l'agent a un brouillon (ou n'a jamais été publié), ou la version
+  publiée, par exemple **v3**.
+- Le bouton **Plus** (trois points) contient **Dupliquer** et **Supprimer**.
+
+Sous le nom de l'agent, des cartes mènent à ses autres pages : **Nouvelle discussion**
+(le playground), **Retours utilisateurs**, **Application** avec un badge
+**Production** (*L'agent tel que ses utilisateurs le voient, dans sa version
+publiée.*, affichée une fois l'agent publié), **Évaluation**, et **Membres** (voir
+[Inviter un utilisateur](/fr/add-a-user)). Certaines cartes n'apparaissent que si vous
+pouvez les utiliser.
+
+**Dupliquer un agent.** Dans **Plus**, cliquez sur **Dupliquer**. La boîte de dialogue
+**Dupliquer l'agent** explique que la copie reprend les réglages, les outils, les
+sous-agents et les sources, et démarre en brouillon ; les conversations, l'analytique
+et les réglages d'intégration ne sont pas copiés. Réglez le **Nom** (par défaut le nom
+de l'agent suivi de *(copie)*). Quand l'agent a à la fois un brouillon et une version
+publiée, choisissez les **Réglages à copier** : **Brouillon (version *n*)** ou
+**Version publiée *n***. Cliquez sur **Dupliquer** : la copie s'ouvre dans son
+éditeur.
+
+**Supprimer un agent.** Dans **Plus**, cliquez sur **Supprimer**. La boîte de dialogue
+**Supprimer l'agent** demande *Êtes-vous sûr de vouloir supprimer "nom" ? Cette action
+est irréversible.* Cliquez sur **Supprimer** pour confirmer, ou sur **Annuler**.
 
 ## Conseils
 
-- Rédigez les **Instructions** dans la même langue que la **Langue** de l'agent.
+- Rédigez les **Instructions** dans la langue de vos utilisateurs.
 - Utilisez **Recherche dans les documents étiquetés** pour cibler les bons documents
   dans un grand espace de travail.
-- Pensez à **Enregistrer** chaque onglet — les modifications d'un onglet ne sont pas
-  conservées si vous passez à un autre sans enregistrer.
-- **Catégories de conversation**, **Orchestration**, **Intégration** et **Serveurs
-  MCP** n'apparaissent que si l'espace de travail a des catégories ou si ces
-  fonctionnalités sont activées — vous verrez peut-être moins d'onglets.
+- Modifiez le brouillon librement : les utilisateurs ne voient rien tant que vous
+  n'avez pas cliqué sur **Enregistrer la version**, sauf pour les étiquettes de
+  document, les bibliothèques de ressources et les catégories de conversation, qui
+  s'appliquent aussitôt.
+- **Catégories de conversation**, **Serveurs MCP**, **Orchestration** et
+  **Intégration** n'apparaissent que si l'espace de travail a des catégories ou si ces
+  fonctionnalités sont activées. Vous verrez peut-être moins de sections.
+- La page de l'agent indique sur quoi l'éditeur s'ouvre : son bouton **Modifier**
+  porte un badge **Brouillon** quand l'agent a un brouillon, ou la version publiée
+  (par exemple **v3**) quand il n'en a pas.
 
 ## Dépannage
 
-- **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
-  caractères.
-- **L'agent ignore mes documents** — vérifiez la **Source de réponse** dans
-  **Sources** ; « Répondre sans consulter de documents » ne consulte aucun document.
-- **Aucune étiquette à choisir** — l'option **Recherche dans les documents
-  étiquetés** et le sélecteur **Étiquettes de document** n'apparaissent qu'une fois
-  vos documents étiquetés ; voir [Documents](/fr/documents).
-- **Mes modifications ont disparu** — chaque onglet s'enregistre séparément. Cliquez
-  sur **Enregistrer** (ou **Mettre à jour** sur **Intégration**) avant de changer
-  d'onglet ; l'éditeur vous avertit en cas de modifications non enregistrées.
-- **Je ne vois pas l'onglet Orchestration ou Intégration** — ce sont des
-  fonctionnalités optionnelles ; demandez au **Owner** ou à un **Admin** de l'espace
-  de travail si elles ne sont pas activées.
+- **Le bouton Créer est désactivé.** Le **Nom** doit comporter au moins 3 caractères.
+- **L'agent ignore mes documents.** Vérifiez la **Source de réponse** dans
+  **Sources** : « Répondre sans consulter de documents » ne consulte aucun document.
+- **Aucune étiquette à choisir.** L'option **Recherche dans les documents étiquetés**
+  et le sélecteur **Étiquettes de document** n'apparaissent qu'une fois vos documents
+  étiquetés ; voir [Documents](/fr/documents).
+- **Le statut affiche Modifications non enregistrées.** Une modification n'a pas pu
+  être enregistrée. Soit une valeur n'est pas valide, et le champ indique pourquoi
+  (par exemple *Le nom doit comporter au moins 3 caractères*), soit l'enregistrement a
+  échoué, et un encadré rouge au-dessus des champs, **Cette modification n'a pas pu
+  être enregistrée**, en donne la raison. Corrigez la valeur, ou cliquez sur
+  **Réessayer**. Si vous quittez la section, la boîte de dialogue **Modifications non
+  enregistrées** vous demande s'il faut les **Abandonner**.
+- **Les utilisateurs ne voient pas mes modifications.** Elles sont dans le brouillon.
+  Cliquez sur **Gérer les versions**, puis sur **Enregistrer la version**.
+- **Je ne vois pas Orchestration ou Intégration.** Ce sont des fonctionnalités
+  optionnelles, réservées aux agents conversationnels. Contactez l'équipe Bayes pour
+  les faire activer pour votre espace de travail.

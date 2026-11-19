@@ -40,6 +40,12 @@ export type AgentDto = {
 export type AgentWithDraftDto = Omit<AgentDto, "currentRevision"> & {
   currentRevision?: AgentRevisionDto
   draftRevision?: AgentRevisionDto
+  /**
+   * The newest saved revision, which the playground runs when there is no draft. It is newer
+   * than `currentRevision` when the managers keep an older version in production. Missing while
+   * the agent was never saved.
+   */
+  latestSavedRevision?: AgentRevisionDto
 }
 
 const agentSubAgentToolNameSchema = z
@@ -60,10 +66,13 @@ const agentSubAgentToolNameSchema = z
 export const agentSubAgentModeSchema = z.enum(["relay", "handoff"])
 export type AgentSubAgentMode = z.infer<typeof agentSubAgentModeSchema>
 
+/** Longest description of a sub-agent's tool, in characters. */
+export const SUB_AGENT_DESCRIPTION_MAX_LENGTH = 2000
+
 const replaceAgentSubAgentSchema = z.object({
   childAgentId: z.string().uuid(),
   toolName: agentSubAgentToolNameSchema,
-  description: z.string().trim().max(2000).default(""),
+  description: z.string().trim().max(SUB_AGENT_DESCRIPTION_MAX_LENGTH).default(""),
   enabled: z.boolean(),
   mode: agentSubAgentModeSchema.default("relay"),
 })

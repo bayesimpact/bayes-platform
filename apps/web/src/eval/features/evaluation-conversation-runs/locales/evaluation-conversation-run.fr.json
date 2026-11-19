@@ -7,13 +7,13 @@
     "selectAgentDescription": "Choisissez l'agent de conversation à évaluer sur ce dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Sélectionner un agent",
-    "noAgents": "Aucun agent de conversation disponible dans ce projet.",
+    "noAgents": "Aucun agent de conversation avec une version enregistrée dans ce projet.",
     "version": {
       "label": "Version",
       "placeholder": "Sélectionner une version",
       "loading": "Chargement des versions...",
       "item": "v{{revision}} — {{detail}}",
-      "current": "Actuelle ({{date}})",
+      "production": "En production ({{date}})",
       "revision": "v{{revision}}"
     },
     "judgeModel": {

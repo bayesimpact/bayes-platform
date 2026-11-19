@@ -74,7 +74,7 @@ export type EvaluationConversationRunRecordDto = {
 // Request DTOs
 export const createEvaluationConversationRunSchema = z.object({
   agentId: z.string(),
-  // Agent-settings revision to pin on the run; null pins the latest revision.
+  // Saved agent-settings revision to pin on the run; null pins the revision in production.
   agentSettingsRevision: z.number().int().nullable(),
   datasetId: z.string(),
   // LLM judge model used to grade this run's records.

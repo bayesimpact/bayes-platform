@@ -1,5 +1,6 @@
 import { MessageCircleIcon, XIcon } from "lucide-react"
 import { cn } from "../chat/lib/cn"
+import { DEFAULT_PRIMARY_COLOR, themeColors } from "../theme"
 
 export type TriggerButtonPosition = "bottom-right" | "bottom-left"
 
@@ -17,7 +18,7 @@ export type TriggerButtonProps = {
 export function TriggerButton({
   isOpen,
   onClick,
-  primaryColor = "#2563eb",
+  primaryColor = DEFAULT_PRIMARY_COLOR,
   position = "bottom-right",
   className,
 }: TriggerButtonProps) {
@@ -26,9 +27,9 @@ export function TriggerButton({
       type="button"
       aria-label={isOpen ? "Close chat" : "Open chat"}
       onClick={onClick}
-      style={{ backgroundColor: primaryColor }}
+      style={{ backgroundColor: primaryColor, color: themeColors(primaryColor).onPrimary }}
       className={cn(
-        "pointer-events-auto flex size-14 items-center justify-center rounded-full text-white shadow-lg",
+        "pointer-events-auto flex size-14 items-center justify-center rounded-full shadow-lg",
         "transition-all duration-200 hover:brightness-90 hover:scale-105 active:scale-95",
         position === "bottom-right" ? "self-end" : "self-start",
         className,

@@ -14,6 +14,14 @@ The Desk (`apps/desk`, profile `desk`) answers on the environment's own host und
 the API under `/api`: its Traefik router sits between theirs, so the three share one origin as in
 production. While it runs, the `/app` pages of the web app are out of reach in that environment.
 
+The sandbox of MCP App cards answers on a domain of its own, as on the hosted platform:
+`<label>.local.bayes-usercontent.org`, one label per MCP server, where staging has
+`<label>.staging.bayes-usercontent.org`. Its names resolve to your machine, and the team's
+certificate covers them. Every environment shares that domain: the web service of the environment
+whose page frames the sandbox serves it, for the sandbox page alone. The tooling sets
+`WT_SANDBOX_DOMAIN` and `WT_SANDBOX_ORIGIN`, both empty when the environment has no such domain,
+and a card then runs in a frame its app writes itself.
+
 The team's tooling creates, runs and removes these environments, and serves their dashboard at
 http://dev.connect.localhost:8800.
 
@@ -24,6 +32,9 @@ This repository keeps what an environment is made of, since it changes with the 
   volumes. A pull request that adds a service or a workspace updates it in the same change.
 - [init.sh](init.sh): installs the dependencies in those volumes when `package-lock.json` changed,
   then builds what the dev servers need.
+- [workers.Dockerfile](workers.Dockerfile): the image of the workers, the Node image plus Docling
+  on the CPU build of Torch, so documents are extracted as in production. Its first build takes
+  several minutes; later ones reuse its layers until `requirements-docling.txt` changes.
 - [db-init.sh](db-init.sh): copies the main checkout's database into `connect_wt_<name>` and
   creates an empty `connect_wt_<name>__test`.
 - [`infra/database`](../database): the shared stack (Postgres, Redis, Traefik, Phoenix,

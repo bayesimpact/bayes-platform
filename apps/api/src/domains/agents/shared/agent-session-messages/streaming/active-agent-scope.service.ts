@@ -18,7 +18,7 @@ export const TURN_AGENT_RELATIONS = ["documentTags", "sessionCategories", "resou
 /**
  * Who answers the next turn of a session. The session's own agent unless a
  * handoff is in progress, in which case the sub-agent recorded as the active
- * agent answers, with its latest published settings: the playground's version
+ * agent answers, with its settings in production: the playground's version
  * picker applies to the agent under test, not to the sub-agent it hands the
  * conversation to. Falls back to the session's agent when the recorded agent
  * no longer exists in the project, or has no published version left.
@@ -59,7 +59,7 @@ export class ActiveAgentScopeService {
       return { agent: rootAgent, agentSettings: rootAgentSettings }
     }
 
-    const agentSettings = await this.agentSettingsService.findLastPublished({
+    const agentSettings = await this.agentSettingsService.findProduction({
       connectScope,
       agentId: activeAgent.id,
     })

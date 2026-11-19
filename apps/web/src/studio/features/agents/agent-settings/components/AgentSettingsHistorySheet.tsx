@@ -10,9 +10,10 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { AgentSettingsExplorer } from "./AgentSettingsExplorer"
+import { CloseAgentSettingsHistoryContext } from "./agent-settings-history-sheet-context"
 
 /**
- * Side sheet holding the revision timeline, per-field diffs and restore. Shared by the
+ * Full-screen sheet holding the revision timeline, per-field diffs and restore. Shared by the
  * editor's history button and the revision badges in the playground, which open it
  * preselected on the revision they label.
  *
@@ -37,11 +38,12 @@ export function AgentSettingsHistorySheet({
 }) {
   const { t } = useTranslation()
   const [internalOpen, setInternalOpen] = useState(false)
+  const handleOpenChange = onOpenChange ?? setInternalOpen
 
   return (
-    <Sheet open={open ?? internalOpen} onOpenChange={onOpenChange ?? setInternalOpen}>
+    <Sheet open={open ?? internalOpen} onOpenChange={handleOpenChange}>
       {trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
-      <SheetContent side="right" className="w-full gap-0 sm:max-w-4xl">
+      <SheetContent side="right" className="w-full gap-0 sm:max-w-none">
         <SheetHeader className="border-b">
           <SheetTitle>{t("agentSettings:history.title")}</SheetTitle>
           <SheetDescription>
@@ -49,7 +51,9 @@ export function AgentSettingsHistorySheet({
           </SheetDescription>
         </SheetHeader>
 
-        <AgentSettingsExplorer initialRevision={initialRevision} />
+        <CloseAgentSettingsHistoryContext value={() => handleOpenChange(false)}>
+          <AgentSettingsExplorer initialRevision={initialRevision} />
+        </CloseAgentSettingsHistoryContext>
       </SheetContent>
     </Sheet>
   )

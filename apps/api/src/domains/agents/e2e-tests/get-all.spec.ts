@@ -88,9 +88,11 @@ describe("Agents - getAll", () => {
     await repositories.agentRepository.save([agent1, agent2])
 
     const agentSettings1 = agentSettingsFactory
+      .production()
       .transient({ organization, project, agent: agent1 })
       .build()
     const agentSettings2 = agentSettingsFactory
+      .production()
       .transient({ organization, project, agent: agent2 })
       .build()
     await repositories.agentSettingsRepository.save([agentSettings1, agentSettings2])
@@ -117,10 +119,13 @@ describe("Agents - getAll", () => {
 
     const agent = agentFactory.transient({ organization, project }).build({ name: "Named Agent" })
     await repositories.agentRepository.save(agent)
-    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build({
-      revisionName: "Launch",
-      revisionDesc: "The revision we launched with",
-    })
+    const agentSettings = agentSettingsFactory
+      .production()
+      .transient({ organization, project, agent })
+      .build({
+        revisionName: "Launch",
+        revisionDesc: "The revision we launched with",
+      })
     await repositories.agentSettingsRepository.save(agentSettings)
     await addUserToAgent({ repositories, agent, user })
     const storedSettings = await repositories.agentSettingsRepository.findOneOrFail({
@@ -138,7 +143,7 @@ describe("Agents - getAll", () => {
     })
   })
 
-  it("should expose the greeting of the published revision, not the draft's", async () => {
+  it("should expose the greeting of the revision in production, not the draft's", async () => {
     const { organization, project, user } = await createContext()
 
     const agent = agentFactory
@@ -147,7 +152,11 @@ describe("Agents - getAll", () => {
     await repositories.agentRepository.save(agent)
     const publishedRevision = agentSettingsFactory
       .transient({ organization, project, agent })
-      .build({ revision: 1, greetingMessage: "Hello! How can I help you today?" })
+      .build({
+        revision: 1,
+        greetingMessage: "Hello! How can I help you today?",
+        isProduction: true,
+      })
     const draftRevision = agentSettingsFactory
       .transient({ organization, project, agent })
       .build({ revision: 2, greetingMessage: "A greeting still in draft", isDraft: true })
@@ -162,14 +171,14 @@ describe("Agents - getAll", () => {
     )
   })
 
-  it("should return the last published revision and ignore a newer draft", async () => {
+  it("should return the revision in production and ignore a newer draft", async () => {
     const { organization, project, user } = await createContext()
 
     const agent = agentFactory.transient({ organization, project }).build({ name: "Drafted Agent" })
     await repositories.agentRepository.save(agent)
     const publishedRevision = agentSettingsFactory
       .transient({ organization, project, agent })
-      .build({ revision: 1, revisionName: "Published" })
+      .build({ revision: 1, revisionName: "Published", isProduction: true })
     const draftRevision = agentSettingsFactory
       .transient({ organization, project, agent })
       .build({ revision: 2, revisionName: "Draft", isDraft: true })
@@ -195,7 +204,10 @@ describe("Agents - getAll", () => {
     ])
     if (!publishedAgent || !copiedAgent) throw new Error("agents not saved")
     await repositories.agentSettingsRepository.save([
-      agentSettingsFactory.transient({ organization, project, agent: publishedAgent }).build(),
+      agentSettingsFactory
+        .production()
+        .transient({ organization, project, agent: publishedAgent })
+        .build(),
       agentSettingsFactory.draft().transient({ organization, project, agent: copiedAgent }).build(),
     ])
     await addUserToAgent({ repositories, agent: publishedAgent, user })
@@ -217,7 +229,7 @@ describe("Agents - getAll", () => {
     if (!ownedAgent || !usedAgent || !reviewedAgent) throw new Error("agents not saved")
     await repositories.agentSettingsRepository.save(
       [ownedAgent, usedAgent, reviewedAgent].map((agent) =>
-        agentSettingsFactory.transient({ organization, project, agent }).build(),
+        agentSettingsFactory.production().transient({ organization, project, agent }).build(),
       ),
     )
     // A workspace member: their agent roles alone decide what they may do.
@@ -265,7 +277,7 @@ describe("Agents - getAll", () => {
       agentFactory.transient({ organization, project }).build({ name: "Evaluated Agent" }),
     )
     await repositories.agentSettingsRepository.save(
-      agentSettingsFactory.transient({ organization, project, agent }).build(),
+      agentSettingsFactory.production().transient({ organization, project, agent }).build(),
     )
     // The evaluator role reads every agent of the project, with no role on any of them.
     await addMemberByEmailToProject({

@@ -1,22 +1,36 @@
-import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
-import { AlertTriangleIcon } from "lucide-react"
-import { type ReactNode, useMemo, useState } from "react"
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
+import {
+  AlertTriangleIcon,
+  BracesIcon,
+  CodeXmlIcon,
+  CpuIcon,
+  LibraryBigIcon,
+  type LucideIcon,
+  NetworkIcon,
+  ServerIcon,
+  SlidersHorizontalIcon,
+  TagsIcon,
+  WrenchIcon,
+} from "lucide-react"
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useBlocker } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import { selectAgentSettingsRestoreCount } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
 import { useValue } from "@/common/hooks/use-value"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
-import { EmbedTab } from "@/studio/features/agents/agent-settings/components/tabs/EmbedTab"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
-import { AgentSettingsCreateButton } from "../agent-settings/components/AgentSettingsCreateButton"
-import { AgentSettingsHistory } from "../agent-settings/components/AgentSettingsHistory"
+import type { TabSaveState } from "../agent-settings/components/agent-tab-autosave"
+import type { TabSaveControl } from "../agent-settings/components/agent-tab-form.shared"
+import { EmbedTab } from "../agent-settings/components/tabs/EmbedTab"
 import { GeneralTab } from "../agent-settings/components/tabs/GeneralTab"
 import { McpServersTab } from "../agent-settings/components/tabs/McpServersTab"
 import { ModelTab } from "../agent-settings/components/tabs/ModelTab"
@@ -25,12 +39,14 @@ import { OutputTab } from "../agent-settings/components/tabs/OutputTab"
 import { SessionCategoriesTab } from "../agent-settings/components/tabs/SessionCategoriesTab"
 import { SourcesTab } from "../agent-settings/components/tabs/SourcesTab"
 import { ToolsTab } from "../agent-settings/components/tabs/ToolsTab"
+import { AgentEditorPageView } from "./AgentEditorPageView"
 
 export type AgentEditorOrchestration = {
   agents: Agent[]
   subAgents: AgentSubAgent[]
 }
 
+/** The tabs of the editor, which are also what a `?tab=` deep link can open. */
 export const agentEditorTabKeys = [
   "general",
   "model",
@@ -38,49 +54,61 @@ export const agentEditorTabKeys = [
   "sources",
   "tools",
   "categories",
-  "orchestration",
   "mcpServers",
+  "orchestration",
   "embed",
 ] as const
 export type TabKey = (typeof agentEditorTabKeys)[number]
 
-type DirtyHandler = (dirty: boolean) => void
-/** Switches tab, asking first when the current one has unsaved changes. */
-type OpenTab = (tab: TabKey) => void
+type TabContext = {
+  saveControl: TabSaveControl
+  /** For a tab with its own Save: tells the editor whether it holds unsaved changes. */
+  onDirtyChange: (dirty: boolean) => void
+  /** Switches tab, once the current one is saved. */
+  openTab: (tab: TabKey) => void
+}
 type TabConfig = {
   value: TabKey
   label: string
-  render: (onDirtyChange: DirtyHandler, openTab: OpenTab) => ReactNode
+  icon: LucideIcon
+  /** The tab writes to the draft and saves by itself: the editor shows the state of its save. */
+  autosave?: boolean
+  render: (context: TabContext) => ReactNode
 }
 
 /**
  * Agent editor. Each tab is a self-contained form that owns its own save (see the per-tab
- * components). Only the active tab is mounted, so leaving a tab discards its edits; we prompt
- * with a ConfirmDialog before switching tabs or navigating away while a tab has unsaved changes.
+ * components). The tabs write to the draft and save by themselves, a short pause after each
+ * change. The settings that are not part of the draft (orchestration, embed) go live when they
+ * are saved: their tabs sit under "More" in the menu and have their own Save.
+ *
+ * It is a page of its own, outside the Studio layout, with its sections in a sidebar
+ * (`AgentEditorPageView`), for conversation and extraction agents alike.
+ *
+ * Only the active tab is mounted. Before the editor switches tab or lets the user navigate
+ * away, it saves what waits in the active tab. It prompts with a ConfirmDialog only for changes
+ * that cannot be saved (an invalid value, a failed save) or for a tab with its own Save that
+ * holds unsaved changes.
  */
 export function AgentEditor({
   agent,
   agentSettings,
-  className,
   orchestration,
   defaultTab,
-  onDirtyChange,
-  showVersionActions = false,
+  onBack,
+  banner,
 }: {
   agent: Agent
   agentSettings: AgentSettings
-  className?: string
+  /** Leaves the editor. */
+  onBack?: () => void
+  /** Shown above the active section. */
+  banner?: ReactNode
   orchestration?: AgentEditorOrchestration
   /** Which tab to open on (defaults to "general"). Deep links pass the `?tab=` param through. */
   defaultTab?: TabKey
-  /** Reports whether the active tab has unsaved changes, e.g. to disable a publish action. */
-  onDirtyChange?: (dirty: boolean) => void
-  /**
-   * Shows the History and Save version buttons next to the tabs. For a page whose header has no
-   * such buttons, like the extraction agent page that embeds the editor.
-   */
-  showVersionActions?: boolean
 }) {
+  const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
@@ -88,21 +116,27 @@ export function AgentEditor({
 
   const tabs = useMemo<TabConfig[]>(() => {
     const isConversation = agent.type === "conversation"
+    // The tabs with their own Save: they come last, after the MCP servers.
+    const liveTabs: TabConfig[] = []
     const list: TabConfig[] = [
       {
         value: "general",
         label: t("agentSettings:tabs.general"),
-        render: (onDirtyChange) => (
-          <GeneralTab agent={agent} agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        icon: SlidersHorizontalIcon,
+        autosave: true,
+        render: ({ saveControl }) => (
+          <GeneralTab agent={agent} agentSettings={agentSettings} saveControl={saveControl} />
         ),
       },
       {
         value: "model",
         label: t("agentSettings:tabs.model"),
-        render: (onDirtyChange, openTab) => (
+        icon: CpuIcon,
+        autosave: true,
+        render: ({ saveControl, openTab }) => (
           <ModelTab
             agentSettings={agentSettings}
-            onDirtyChange={onDirtyChange}
+            saveControl={saveControl}
             onOpenSourcesTab={isConversation ? () => openTab("sources") : undefined}
           />
         ),
@@ -115,10 +149,12 @@ export function AgentEditor({
       list.push({
         value: "sources",
         label: t("agentSettings:tabs.sources"),
-        render: (onDirtyChange, openTab) => (
+        icon: LibraryBigIcon,
+        autosave: true,
+        render: ({ saveControl, openTab }) => (
           <SourcesTab
             agentSettings={agentSettings}
-            onDirtyChange={onDirtyChange}
+            saveControl={saveControl}
             onOpenModelTab={() => openTab("model")}
           />
         ),
@@ -127,8 +163,10 @@ export function AgentEditor({
       list.push({
         value: "tools",
         label: t("agentSettings:tabs.tools"),
-        render: (onDirtyChange) => (
-          <ToolsTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        icon: WrenchIcon,
+        autosave: true,
+        render: ({ saveControl }) => (
+          <ToolsTab agentSettings={agentSettings} saveControl={saveControl} />
         ),
       })
 
@@ -136,17 +174,20 @@ export function AgentEditor({
         list.push({
           value: "categories",
           label: t("agentSettings:tabs.categories"),
-          render: (onDirtyChange) => (
-            <SessionCategoriesTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+          icon: TagsIcon,
+          autosave: true,
+          render: ({ saveControl }) => (
+            <SessionCategoriesTab agentSettings={agentSettings} saveControl={saveControl} />
           ),
         })
       }
 
       if (hasFeature("agent-orchestration") && orchestration) {
-        list.push({
+        liveTabs.push({
           value: "orchestration",
           label: t("agentSettings:tabs.orchestration"),
-          render: (onDirtyChange) => (
+          icon: NetworkIcon,
+          render: ({ onDirtyChange }) => (
             <OrchestrationTab
               agent={agent}
               availableAgents={orchestration.agents}
@@ -158,10 +199,11 @@ export function AgentEditor({
       }
 
       if (hasFeature("agent-embed")) {
-        list.push({
+        liveTabs.push({
           value: "embed",
           label: t("agentSettings:tabs.embed"),
-          render: (onDirtyChange) => <EmbedTab onDirtyChange={onDirtyChange} />,
+          icon: CodeXmlIcon,
+          render: ({ onDirtyChange }) => <EmbedTab onDirtyChange={onDirtyChange} />,
         })
       }
     }
@@ -170,8 +212,10 @@ export function AgentEditor({
       list.push({
         value: "output",
         label: t("agentSettings:tabs.output"),
-        render: (onDirtyChange) => (
-          <OutputTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        icon: BracesIcon,
+        autosave: true,
+        render: ({ saveControl }) => (
+          <OutputTab agentSettings={agentSettings} saveControl={saveControl} />
         ),
       })
     }
@@ -184,6 +228,7 @@ export function AgentEditor({
       list.push({
         value: "mcpServers",
         label: t("agentSettings:tabs.mcpServers"),
+        icon: ServerIcon,
         render: () => (
           <McpServersTab
             agentId={agent.id}
@@ -194,24 +239,60 @@ export function AgentEditor({
       })
     }
 
-    return list
+    return [...list, ...liveTabs]
   }, [agent, agentSettings, project, hasFeature, orchestration, projectMcpServers, t])
 
-  const [nav, setNav] = useState<{ active: TabKey; pending: TabKey | null }>({
+  const [nav, setNav] = useState<{
+    active: TabKey
+    pending: TabKey | null
+    /** The active tab has its own Save and holds changes the user did not save. */
+    liveDirty: boolean
+    /** The version history is open. */
+    history: boolean
+  }>(() => ({
     active: defaultTab ?? "general",
     pending: null,
-  })
-  const [dirty, setDirty] = useState(false)
+    liveDirty: false,
+    history: false,
+  }))
+  const [save, setSave] = useState<{ state: TabSaveState; reason?: string }>({ state: "saved" })
+  const saveState = save.state
+  // The active tab puts here how to save now what waits for its pause.
+  const flushRef = useRef<(() => void) | null>(null)
+  // A restore replaces the settings under the forms: they reload on it.
+  const restoreCount = useAppSelector(selectAgentSettingsRestoreCount)
 
-  const handleDirtyChange = (next: boolean) => {
-    setDirty(next)
-    onDirtyChange?.(next)
-  }
+  const handleSaveStateChange = useCallback((next: TabSaveState, reason?: string) => {
+    setSave({ state: next, reason })
+    // The history waited for this save, and the save failed: it stays closed.
+    if (next === "unsaved") setNav((prev) => (prev.history ? { ...prev, history: false } : prev))
+  }, [])
+  const handleLiveDirtyChange = useCallback(
+    (dirty: boolean) =>
+      setNav((prev) => (prev.liveDirty === dirty ? prev : { ...prev, liveDirty: dirty })),
+    [],
+  )
 
   // Browser-level leave (refresh / close tab); in-app navigation is handled by the blocker below.
-  usePreventLeave(dirty)
-  const blocker = useBlocker(dirty)
+  // A tab with its own Save guards its changes against a browser-level leave.
+  usePreventLeave(saveState !== "saved")
+  const blocker = useBlocker(saveState !== "saved" || nav.liveDirty)
   const isLeavingEditor = blocker.state === "blocked"
+  const isLeaving = nav.pending !== null || isLeavingEditor
+  // Changes that would be lost: the dialog below asks whether to drop them.
+  const hasUnsavableChanges = saveState === "unsaved" || nav.liveDirty
+
+  // The user asked to leave the tab while it held changes. Save them now, then let the user go.
+  useEffect(() => {
+    if (!isLeaving || hasUnsavableChanges) return
+    if (saveState === "saving") {
+      flushRef.current?.()
+      return
+    }
+    if (nav.pending)
+      setNav((prev) => ({ ...prev, active: nav.pending ?? prev.active, pending: null }))
+    else blocker.proceed?.()
+  }, [isLeaving, hasUnsavableChanges, saveState, nav.pending, blocker])
 
   const activeTab = tabs.find((tab) => tab.value === nav.active) ?? tabs[0]
 
@@ -219,17 +300,32 @@ export function AgentEditor({
 
   const requestTabChange = (next: string) => {
     if (next === nav.active) return
-    if (dirty) {
-      setNav((prev) => ({ ...prev, pending: next as TabKey }))
+    if (saveState === "saved" && !nav.liveDirty) {
+      setNav((prev) => ({ ...prev, active: next as TabKey, pending: null }))
     } else {
-      setNav({ active: next as TabKey, pending: null })
+      setNav((prev) => ({ ...prev, pending: next as TabKey }))
     }
+  }
+
+  const requestHistory = (open: boolean) => {
+    // A restore reloads the active tab: the changes a tab with its own Save holds would be lost.
+    if (open && (saveState === "unsaved" || nav.liveDirty)) {
+      dispatch(
+        notificationsActions.show({
+          type: "error",
+          titleKey: "agentSettings:autosave.unsavedBeforeVersions",
+        }),
+      )
+      return
+    }
+    if (open && saveState === "saving") flushRef.current?.()
+    setNav((prev) => ({ ...prev, history: open }))
   }
 
   const handleConfirm = () => {
     if (nav.pending) {
-      setNav({ active: nav.pending, pending: null })
-      handleDirtyChange(false)
+      setNav((prev) => ({ ...prev, active: nav.pending ?? prev.active, pending: null }))
+      handleSaveStateChange("saved")
     } else if (isLeavingEditor) {
       blocker.proceed?.()
     }
@@ -243,39 +339,49 @@ export function AgentEditor({
     }
   }
 
+  // Also keyed on the restore count so the active tab form reloads fresh defaults after a
+  // version is restored from the history sheet. The key must not follow the settings
+  // themselves (revision, updatedAt): each automatic save changes them, and a reload would
+  // take the focus away from the field the user is typing in.
+  const activeSection = (
+    <div key={`${activeTab.value}-${restoreCount}`} className="flex flex-col gap-4">
+      {/* Why the API refused the save, right above the fields it concerns. */}
+      {saveState === "unsaved" && save.reason && (
+        <Alert variant="destructive">
+          <AlertTriangleIcon />
+          <AlertTitle>{t("agentSettings:autosave.refused")}</AlertTitle>
+          <AlertDescription>{save.reason}</AlertDescription>
+        </Alert>
+      )}
+      {activeTab.render({
+        saveControl: { onStateChange: handleSaveStateChange, flushRef },
+        onDirtyChange: handleLiveDirtyChange,
+        openTab: requestTabChange,
+      })}
+    </div>
+  )
+  const viewProps = {
+    agent,
+    agentSettings,
+    sections: tabs,
+    activeSection: activeTab.value,
+    onSelectSection: requestTabChange,
+    saveState,
+    onRetrySave: () => flushRef.current?.(),
+    // Publishing and restoring act on the draft: the history only opens once the draft holds
+    // everything the tab shows.
+    isHistoryOpen: nav.history && saveState === "saved",
+    onHistoryOpenChange: requestHistory,
+  }
+
   return (
-    <div className={className}>
-      <Tabs value={nav.active} onValueChange={requestTabChange}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <TabsList>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {showVersionActions && (
-            <ButtonGroup>
-              <AgentSettingsHistory agent={agent} agentSettings={agentSettings} />
-              <AgentSettingsCreateButton agentSettings={agentSettings} hasUnsavedChanges={dirty} />
-            </ButtonGroup>
-          )}
-        </div>
-        {/* Also keyed on the revision and updatedAt so the active tab form reloads fresh defaults
-            after a version is restored from the history sheet. Restoring over an existing draft
-            keeps the same revision (the draft is overwritten in place), so revision alone is not
-            enough to detect it. */}
-        <TabsContent
-          key={`${activeTab.value}-${agentSettings.revision}-${agentSettings.updatedAt}`}
-          value={activeTab.value}
-          className="mt-4"
-        >
-          {activeTab.render(handleDirtyChange, requestTabChange)}
-        </TabsContent>
-      </Tabs>
+    <>
+      <AgentEditorPageView {...viewProps} onBack={() => onBack?.()} banner={banner}>
+        {activeSection}
+      </AgentEditorPageView>
 
       <ConfirmDialog
-        open={nav.pending !== null || isLeavingEditor}
+        open={isLeaving && hasUnsavableChanges}
         title={t("agentSettings:unsavedChanges.title")}
         description={t("agentSettings:unsavedChanges.description")}
         confirmLabel={t("actions:discard")}
@@ -283,6 +389,6 @@ export function AgentEditor({
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
-    </div>
+    </>
   )
 }

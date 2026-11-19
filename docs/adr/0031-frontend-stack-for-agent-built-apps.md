@@ -3,6 +3,8 @@
 * **Status**: Proposed
 * **Date**: 2026-10-20
 * **Deciders**: Alexis
+* **Amended**: 2026-11-16, by Didier: the sandbox of MCP Apps is one package every app imports
+  (section 2.4, "The one shared package")
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -46,7 +48,8 @@ skill only starts empty folders, so it is not run here: this ADR carries its rul
 Three constraints frame the work:
 
 * The Desk is an app of its own. It shares no code with `apps/web` or Studio: its code, its
-  packages, its endpoints and its DTOs are its own.
+  packages, its endpoints and its DTOs are its own. One package is the exception: the sandbox of
+  MCP Apps (section 2.4).
 * The NestJS API and `packages/api-contracts` keep their conventions, routes and DTOs. The Desk's
   endpoints sit next to the existing ones and call the same domain services.
 * Every Desk endpoint has a Zod schema for what it receives and for what it returns.
@@ -64,7 +67,8 @@ kit.
 
 **Every frontend is rebuilt, one app at a time, as an app of its own, on the stack and the rules
 below, chosen for coding agents. The Desk comes first: it becomes `apps/desk`, a Vite SPA served by
-the API at `/app`, which shares no code with `apps/web`. Its contracts live in
+the API at `/app`, which shares no code with `apps/web` but the sandbox of MCP Apps (section
+2.4). Its contracts live in
 `packages/desk-contracts`, and it calls only Desk endpoints. Each endpoint has Zod schemas for its
 params, query, body, response and stream events, and both the API and the Desk enforce them at
 runtime.**
@@ -185,6 +189,7 @@ apps/desk/
     test/                   setup, MSW handlers, fixture factories, render helpers
   .storybook/               Storybook on the MSW handlers
 packages/desk-contracts/    the Desk's routes and Zod schemas
+packages/mcp-app-host/      the sandbox of MCP Apps, which every app imports
 ```
 
 dependency-cruiser enforces the direction of imports between the folders of `src/`:
@@ -194,17 +199,60 @@ dependency-cruiser enforces the direction of imports between the folders of `src
   code moves to `lib/` or `components/shared/`.
 * `components/`, `hooks/` and `lib/` import neither `features/` nor `routes/`.
 * The Desk imports nothing from another app or from a package another app owns: `apps/web`,
-  `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its only workspace
-  dependency is `@caseai-connect/desk-contracts`. Only `lib/auth/` imports `oidc-client-ts`.
+  `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its workspace
+  dependencies are `@caseai-connect/desk-contracts` and `@caseai-connect/mcp-app-host`, the one
+  package no app owns (see below). Only `lib/auth/` imports `oidc-client-ts`.
 * No cycles.
 
 knip reports unused files, exports and dependencies. Both tools run in the Desk's
 `check:boundaries` script, which CI already runs through turbo. They only see imports, so these
 boundaries can still be bypassed (section 6).
 
-The Desk shares no code with the other apps: what it needs lives in it, even where `apps/web` has
-its own version. Whether the apps of the new stack share code with each other is decided when the
+Apart from the package below, the Desk shares no code with the other apps: what it needs lives in
+it, even where `apps/web` has its own version. Whether the apps of the new stack share code with each other is decided when the
 second one starts (section 7).
+
+**The one shared package.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
+App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
+the Content Security Policy built from the domains an app declares, and the checks on the links
+and messages an app asks for. `apps/web`, `apps/web-embed` and the
+Desk all import it. It is the security boundary between an MCP server's HTML and the person's
+session, so it has one implementation: its three copies had already drifted (one checked
+the messages it received, two did not), and a fix made in one copy left the two others
+exposed. The package stays within these limits, which keep the Desk a closed world for everything
+else:
+
+* No app owns it, and it holds nothing of an app: no React, no component, no style, no
+  translation, no contract. Each app keeps its own hook or component around it, its placeholder,
+  its texts and the way it finds an app's HTML.
+* It depends on `@modelcontextprotocol/ext-apps` and `@modelcontextprotocol/sdk` alone, and
+  imports no other workspace package, `packages/api-contracts` included. What an app passes it is
+  typed by the package itself.
+* It follows the TypeScript options of the new stack (`erasableSyntaxOnly`,
+  `verbatimModuleSyntax`), resolves through its `exports` with no build, and has its own specs.
+
+**The sandbox origin.** An install may serve the outer frame from an origin of its own, on a domain
+apart from the platform's: `https://{label}.<environment>.bayes-usercontent.org` on the hosted
+platform. The host and the sandbox then name each other's origin in every message, where a frame
+written through `srcdoc` has an opaque origin that only a random id can stand for.
+
+* The label is the start of the SHA-256 of the app's MCP server id, 32 hexadecimal characters: the
+  apps of one server share an origin, which no other server has. The package computes it, so the
+  three apps cannot disagree.
+* Each app reads the origin's template in its own configuration (`mcpAppSandboxOrigin` for
+  `apps/web` and the Desk, `VITE_MCP_APP_SANDBOX_ORIGIN` for `apps/web-embed`) and passes it to
+  the package. The build of `apps/web` publishes the page of the outer frame at
+  `/mcp-app-sandbox.html`, from the package's `sandbox-page` export, and the install lets the
+  sandbox origin reach that one path.
+* The frame that runs the app keeps its opaque origin, and its policy. The sandbox origin holds no
+  cookie and no storage an app could read, so any page may frame it: it only gets a frame that
+  runs the HTML it sends itself. Giving an app the sandbox origin (storage, a stable origin for
+  CORS) needs its own decision, and a list of the hosts the page answers to.
+* The page is served with no Content Security Policy: a `srcdoc` frame inherits its parent's.
+* Without a template, or for an app whose server is unknown, the host writes the page itself, as
+  before. Local development, the tests and Storybook run that way.
+
+No other package is shared on these grounds. A second one needs its own decision.
 
 ### 2.5 Code conventions
 
@@ -761,7 +809,9 @@ part of it invalidates.
 ## 4. Consequences
 
 * The Desk depends on no other app's code. Its sign-in, components, tokens, theme files,
-  contracts and translations are its own, and a change in Studio cannot break it.
+  contracts and translations are its own, and a change in Studio cannot break it. The sandbox of
+  MCP Apps is the exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk,
+  `apps/web` and `apps/web-embed` at once, on purpose.
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
@@ -799,6 +849,9 @@ part of it invalidates.
 * **Sharing `apps/web`'s sign-in, components and onboarding.** It would give one session for both
   apps and nothing to register in each install, but the Desk would move with the code and the
   releases of `apps/web`.
+* **A sandbox of MCP Apps in each app.** It was the first state: the Desk, `apps/web` and
+  `apps/web-embed` each had their copy. It kept the Desk free of any shared code, but a security
+  boundary in three copies is three boundaries to review and to fix.
 * **Desk contracts as a folder of `packages/api-contracts`.** One build less, but the Desk would
   import a package shared with Studio, with its TypeScript 5.5 build and the enums of its shared
   files.
@@ -839,7 +892,8 @@ part of it invalidates.
 * The Desk's independence is not fully enforced yet. dependency-cruiser only sees imports: a copied
   file, a CSS import or an edit of its configuration can still bring code of `apps/web`,
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
-  has to be found.
+  has to be found. The same holds for `packages/mcp-app-host`: no tool checks yet that it imports
+  no other workspace package.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to
   `PermissionService` as well?

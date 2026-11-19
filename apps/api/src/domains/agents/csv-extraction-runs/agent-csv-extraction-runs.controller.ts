@@ -102,11 +102,12 @@ export abstract class AgentCsvExtractionRunsController {
   }
 
   /**
-   * Settings the run is pinned to.
+   * Settings the run is pinned to: the revision in production, unless a playground run names
+   * another one.
    *
-   * Choosing a version is gated on the caller's project roles. Admins and owners are exactly the
+   * Choosing a version is also gated on the caller's project roles. Admins and owners are exactly the
    * roles that can list the versions, since the settings history endpoint sits behind the same
-   * check. Everyone else keeps getting the newest published revision.
+   * check. Everyone else keeps getting the revision in production.
    */
   private async resolveAgentSettings({
     connectScope,
@@ -120,12 +121,18 @@ export abstract class AgentCsvExtractionRunsController {
     revision: number | undefined
   }): Promise<AgentSettings> {
     if (revision === undefined) {
-      return this.agentSettingsService.getLast({ connectScope, agentId })
+      return this.agentSettingsService.getProduction({ connectScope, agentId })
     }
     // `agent_settings.revision` is a Postgres `integer`; anything outside its 32-bit signed range
     // reaches TypeORM as-is and produces a driver error instead of a clean rejection here.
     if (!(Number.isInteger(revision) && revision > 0 && revision <= 2147483647)) {
       throw new ForbiddenException("Settings version must be an integer")
+    }
+    // Any run other than a playground one runs the version in production.
+    if (this.type !== "playground") {
+      throw new ForbiddenException(
+        "Choosing a settings version is only available in the playground",
+      )
     }
     const managesAgent = projectRoles.some(
       (projectRole) =>
@@ -334,11 +341,10 @@ export abstract class AgentCsvExtractionRunsController {
   }
 
   /**
-   * The CSV a run reads, loaded in the caller's project. On the live routes, open to every
-   * project member, it must be a CSV the caller uploaded for a run: a knowledge-base document
-   * needs `document.read`, and a colleague's upload is theirs. The playground routes are for
-   * admins and owners, who may read any document of the project. Anything else answers 404, as
-   * if absent.
+   * The CSV a run reads, loaded in the caller's project. It must be a CSV the caller uploaded for
+   * a run, as on the live routes, open to every project member: a knowledge-base document needs
+   * `document.read`, and a colleague's upload is theirs. Only the playground routes, for admins
+   * and owners, may read any document of the project. Anything else answers 404, as if absent.
    */
   private async getRunCsvDocument(request: EndpointRequestWithAgent, documentId: string) {
     const document = await this.documentsService.findById({
@@ -347,7 +353,7 @@ export abstract class AgentCsvExtractionRunsController {
     })
     const isCallerUpload =
       document?.sourceType === "extraction" && document.userId === request.user.id
-    if (!document || (this.type === "live" && !isCallerUpload)) {
+    if (!document || (this.type !== "playground" && !isCallerUpload)) {
       throw new NotFoundException(`Document ${documentId} not found`)
     }
     return document

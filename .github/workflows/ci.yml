@@ -50,8 +50,8 @@ jobs:
             echo "web-tests=false" >> "$GITHUB_OUTPUT"
           fi
           # The Desk's tests, translation checks and build run when the Desk,
-          # its contracts or the dependencies changed.
-          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|package\.json$|package-lock\.json$)'; then
+          # its contracts, the MCP App host it shares or the dependencies changed.
+          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|packages/mcp-app-host/|package\.json$|package-lock\.json$)'; then
             echo "desk-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "desk-tests=false" >> "$GITHUB_OUTPUT"
@@ -184,13 +184,18 @@ jobs:
         if: needs.changes.outputs.web-tests == 'true'
         run: npm run test --workspace=@caseai-connect/web
 
+      # The sandbox of MCP Apps, which the web front, the embed and the Desk share.
+      - name: Run MCP App host tests
+        if: needs.changes.outputs.web-tests == 'true'
+        run: npm run test --workspace=@caseai-connect/mcp-app-host
+
   desk-tests:
     needs: changes
     runs-on: ubuntu-latest
     steps:
       - name: Skip, nothing the Desk checks exercise changed
         if: needs.changes.outputs.desk-tests == 'false'
-        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, package.json or package-lock.json"
+        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, packages/mcp-app-host, package.json or package-lock.json"
 
       - name: Checkout code
         if: needs.changes.outputs.desk-tests == 'true'
