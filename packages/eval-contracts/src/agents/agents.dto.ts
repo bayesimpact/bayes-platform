@@ -36,6 +36,21 @@ export const agentVersionOutputSchema = z.object({
   isProduction: z.boolean(),
   /** When it was saved, for a saved version. */
   updatedAt: z.number(),
+  // What a version holds, which the history compares from one version to another.
+  instructions: z.string(),
+  greetingMessage: z.string().optional(),
+  model: z.string(),
+  providerOptions: z.record(z.string(), z.unknown()),
+  documentsRagMode: z.string(),
+  outputJsonSchema: z.record(z.string(), z.unknown()).optional(),
+  fillFormEnabled: z.boolean(),
+  priorityCallsEnabled: z.boolean(),
+  /** The defaults of the {{variables}} its instructions declare. */
+  variables: z.record(z.string(), z.string()).nullable(),
+  embeddingModel: z.string(),
+  followUpSuggestionsEnabled: z.boolean(),
+  followUpSuggestionsInstructions: z.string().nullable(),
+  followUpSuggestionsMax: z.number(),
 })
 
 export type AgentVersionOutputDto = z.output<typeof agentVersionOutputSchema>

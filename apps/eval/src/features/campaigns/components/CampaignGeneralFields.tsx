@@ -78,7 +78,7 @@ export function CampaignGeneralFields({
           </Field>
         )}
       />
-      <AgentVersionField control={form.control} agentParams={agentParams} />
+      <AgentVersionField control={form.control} agentParams={agentParams} agentName={agentName} />
     </section>
   )
 }

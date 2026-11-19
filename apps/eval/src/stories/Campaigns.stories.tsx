@@ -33,10 +33,23 @@ export const NoCampaign: Story = {
 
 /**
  * The first step of a new campaign: its name, and the saved version of the agent it runs on, the
- * one in production at first. The next step creates it as a draft.
+ * one in production at first, which the history of the versions changes. The next step creates
+ * it as a draft.
  */
 export const NewCampaign: Story = {
   parameters: evaluation({ url: (world) => `${campaignsUrlOf(world)}/new` }),
+}
+
+/**
+ * The history of the agent's saved versions, from a new campaign: each version, what it changed
+ * and how it differs from the one in production, and the button that picks it.
+ */
+export const ChooseAgentVersion: Story = {
+  parameters: evaluation({ url: (world) => `${campaignsUrlOf(world)}/new` }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: "Choose a version" }))
+  },
 }
 
 /** A new campaign for an agent never saved: it has no version to run on yet. */

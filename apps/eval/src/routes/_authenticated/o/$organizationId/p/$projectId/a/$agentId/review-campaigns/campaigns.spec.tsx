@@ -108,21 +108,37 @@ describe("a new campaign", () => {
     server.use(...worldHandlers(world))
     renderApp(`${campaignsUrlOf(world)}/new`)
 
-    // The saved versions, newest first: the draft is not one of them.
-    const versions = await screen.findAllByRole("radio")
-    expect(versions).toHaveLength(4)
-    expect(screen.getByRole("radio", { name: /Version 3.*In production/ })).toHaveAttribute(
-      "aria-checked",
+    expect(await screen.findByText("Version 3")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Choose a version" }))
+
+    // The history lists the saved versions, newest first: the draft is not one of them.
+    const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    const history = within(sheet)
+    expect(history.queryByRole("button", { name: /Version 5/ })).not.toBeInTheDocument()
+    expect(history.getByRole("button", { name: /Version 3.*Spring release/ })).toHaveAttribute(
+      "aria-current",
       "true",
     )
-    expect(screen.queryByRole("radio", { name: /Version 5/ })).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole("radio", { name: /Version 2/ }))
+    // The version in production is the campaign's already, and shows what it changed.
+    expect(history.getByRole("button", { name: "Selected" })).toBeDisabled()
+    expect(history.getByText("Showing changes from version 2 to version 3.")).toBeInTheDocument()
+    expect(history.getByRole("link", { name: "Greeting" })).toBeInTheDocument()
+
+    await userEvent.click(history.getByRole("button", { name: /Version 4.*Shorter answers/ }))
+    await userEvent.click(history.getByRole("button", { name: "Compare with production" }))
+    expect(
+      await history.findByText("Showing changes from version 3 to version 4."),
+    ).toBeInTheDocument()
+    await userEvent.click(history.getByRole("button", { name: "Select this version" }))
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
+    expect(screen.getByText("Shorter answers")).toBeInTheDocument()
     await userEvent.click(screen.getByRole("button", { name: "Next" }))
 
     expect(await screen.findByRole("heading", { name: "After each session" })).toBeInTheDocument()
     const [agent] = world.agents
     if (!agent) throw new Error("The world has an agent")
-    expect(world.campaigns[0]?.agentSettingsId).toBe(agentVersionIdOf(agent, 2))
+    expect(world.campaigns[0]?.agentSettingsId).toBe(agentVersionIdOf(agent, 4))
   })
 
   it("says when the agent has no saved version, and creates nothing", async () => {
@@ -131,7 +147,7 @@ describe("a new campaign", () => {
     renderApp(`${campaignsUrlOf(world)}/new`)
 
     expect(await screen.findByText(/This agent has no saved version yet/)).toBeInTheDocument()
-    expect(screen.queryByRole("radio")).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Choose a version" })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole("button", { name: "Next" }))
 
     await waitFor(() =>
@@ -356,7 +372,7 @@ describe("a campaign's editor", () => {
 
     expect(await screen.findByText("Version 2")).toBeInTheDocument()
     expect(screen.getByText("Product catalog")).toBeInTheDocument()
-    expect(screen.queryByRole("radio", { name: /Version/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Choose a version" })).not.toBeInTheDocument()
   })
 
   it("opens a closed campaign on its summary", async () => {

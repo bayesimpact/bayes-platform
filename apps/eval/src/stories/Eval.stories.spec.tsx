@@ -28,7 +28,7 @@ const {
   PageFailsAfterNewRelease,
   ...generalPages
 } = composeStories(generalStories)
-const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
+const { RemoveQuestion, LeaveWithUnsavedChanges, ChooseAgentVersion, ...campaignPages } =
   composeStories(campaignStories)
 // The reviewer and the tester both have a story named after their campaign.
 const { ClosedCampaign: ReviewerClosedCampaign, ...reviewerPages } = composeStories(reviewerStories)
@@ -91,7 +91,7 @@ const PAGES = {
   },
   NewCampaign: {
     Story: pageStories.NewCampaign,
-    loaded: () => screen.findByRole("radio", { name: /Version 3/ }),
+    loaded: () => screen.findByRole("button", { name: "Choose a version" }),
   },
   NewCampaignWithNoSavedVersion: {
     Story: pageStories.NewCampaignWithNoSavedVersion,
@@ -276,6 +276,16 @@ describe("the stories of the app", () => {
 
     expect(
       await screen.findByRole("alertdialog", { name: "Remove question 1?" }),
+    ).toBeInTheDocument()
+  })
+
+  it("ChooseAgentVersion opens the history of the agent's versions", async () => {
+    await ChooseAgentVersion.load()
+    const { container } = render(<ChooseAgentVersion />)
+    await act(() => ChooseAgentVersion.play?.({ canvasElement: container }))
+
+    expect(
+      await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" }),
     ).toBeInTheDocument()
   })
 
