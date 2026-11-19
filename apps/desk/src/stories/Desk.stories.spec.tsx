@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react"
 import { composeStories, composeStory, setProjectAnnotations } from "@storybook/react-vite"
 import { useQueryClient } from "@tanstack/react-query"
-import { act, render, screen, within } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
@@ -26,6 +26,7 @@ const {
   Loading,
   NewReleaseOut,
   PageFailsAfterNewRelease,
+  SidebarClosed,
   ...generalPages
 } = composeStories(generalStories)
 const { ReplyFails, PassageSelected, ...conversationPages } = composeStories(conversationStories)
@@ -178,6 +179,44 @@ describe("the stories of the Desk", () => {
         .getAllByRole("option")
         .map((item) => item.textContent),
     ).toEqual(["Document Reader", "Helpful Assistant"])
+  })
+
+  it("SidebarClosed peeks at the sidebar while the pointer is on its button, and hides it after", async () => {
+    await SidebarClosed.load()
+    const { container } = render(<SidebarClosed />)
+    expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
+    await SidebarClosed.play?.({ canvasElement: container })
+    const toggle = await screen.findByRole("button", { name: "Show the sidebar" })
+    // The sidebar stays in the page when hidden, out of view: what it shows is its peek.
+    const sidebarOf = (name: string) =>
+      screen.getByRole("link", { name }).closest("[data-slot=sidebar-container]")
+    expect(sidebarOf("Compare the plans")).not.toHaveAttribute("data-peek")
+
+    await userEvent.hover(toggle)
+    expect(sidebarOf("Compare the plans")).toHaveAttribute("data-peek", "true")
+
+    await userEvent.unhover(toggle)
+    await waitFor(() => expect(sidebarOf("Compare the plans")).not.toHaveAttribute("data-peek"))
+    expect(screen.getByRole("button", { name: "Show the sidebar" })).toBeInTheDocument()
+  })
+
+  it("SidebarClosed opens the sidebar for good on a click of its button, even while it peeks", async () => {
+    await SidebarClosed.load()
+    const { container } = render(<SidebarClosed />)
+    expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
+    await SidebarClosed.play?.({ canvasElement: container })
+
+    const toggle = await screen.findByRole("button", { name: "Show the sidebar" })
+    await userEvent.hover(toggle)
+    await userEvent.click(toggle)
+    await userEvent.unhover(toggle)
+
+    expect(await screen.findByRole("button", { name: "Hide the sidebar" })).toBeInTheDocument()
+    expect(
+      screen
+        .getByRole("link", { name: "Compare the plans" })
+        .closest("[data-slot=sidebar-container]"),
+    ).not.toHaveAttribute("data-peek")
   })
 
   it("NewReleaseOut shows a banner whose button reloads the page", async () => {

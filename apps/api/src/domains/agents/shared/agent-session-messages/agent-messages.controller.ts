@@ -151,11 +151,21 @@ export abstract class AgentMessagesController {
     attachmentDocumentId: string,
   ): Promise<Routes["getAttachmentDocumentTemporaryUrl"]["response"]> {
     this.assertSessionType(request)
+    const connectScope = getRequiredConnectScope(request)
     const attachmentDocument = await this.agentMessageAttachmentDocumentsService.findById({
-      connectScope: getRequiredConnectScope(request),
+      connectScope,
       attachmentDocumentId,
     })
-    if (!attachmentDocument) {
+    // A file is read through the conversation that holds it: the attachment of another
+    // conversation of the project answers 404, as if absent.
+    const isOfThisConversation =
+      attachmentDocument !== null &&
+      (await this.conversationAgentSessionsService.hasMessageWithAttachment({
+        agentSessionId: request.agentSession.id,
+        attachmentDocumentId,
+        connectScope,
+      }))
+    if (!attachmentDocument || !isOfThisConversation) {
       throw new NotFoundException("Attachment document not found")
     }
 

@@ -4,11 +4,16 @@ import type {
   DocumentsRagMode,
   EmbeddingModel,
 } from "@caseai-connect/api-contracts"
-import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
+import { Column, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 
 @ConnectEntityWithUniqueIndex("agent_settings", "agentId", "revision")
+// At most one revision of an agent is in production.
+@Index("UQ_agent_settings_production", ["agentId"], {
+  unique: true,
+  where: '"is_production" = true AND "deleted_at" IS NULL',
+})
 export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "uuid", name: "agent_id", nullable: false })
   agentId!: string
@@ -31,6 +36,14 @@ export class AgentSettings extends ConnectEntityBase {
 
   @Column({ type: "boolean", name: "is_archived", default: false })
   isArchived!: boolean
+
+  /**
+   * The saved revision every live channel runs with (the Desk, public chat, review campaigns,
+   * sub-agent calls). Managers choose it; it is never the draft nor an archived revision. The
+   * first saved revision of an agent goes to production by itself.
+   */
+  @Column({ type: "boolean", name: "is_production", default: false })
+  isProduction!: boolean
 
   @Column({ type: "text", name: "instructions", nullable: false })
   instructions!: string

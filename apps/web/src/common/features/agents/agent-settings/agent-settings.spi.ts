@@ -27,6 +27,11 @@ export interface IAgentSettingsSpi {
       revision: number
     },
   ) => Promise<SuccessResponseDTO>
+  setProduction: (
+    params: BaseParams & {
+      revision: number
+    },
+  ) => Promise<SuccessResponseDTO>
   createOne: (
     params: BaseParams & {
       revision: number

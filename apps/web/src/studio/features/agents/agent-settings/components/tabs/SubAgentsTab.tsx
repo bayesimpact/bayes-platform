@@ -13,17 +13,15 @@ import {
   Item,
   ItemActions,
   ItemContent,
-  ItemDescription,
   ItemGroup,
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
 import { BotIcon, PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useValue } from "@/common/hooks/use-value"
+import { AgentInstructionsSheet } from "../AgentInstructionsSheet"
 import { SubAgentItem } from "../SubAgentItem"
 
 export type AgentSubAgentFormValue = {
@@ -115,27 +113,30 @@ export function SubAgentsTab({
         )}
       </Field>
 
-      <Field>
-        <FieldLabel>{t("agentSettings:orchestration.availableTitle")}</FieldLabel>
-        {availableAgents.length === 0 ? (
-          <p className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
-            {t("agentSettings:orchestration.noAvailableAgents")}
-          </p>
-        ) : (
+      {availableAgents.length > 0 ? (
+        <Field>
+          <FieldLabel>{t("agentSettings:orchestration.availableTitle")}</FieldLabel>
           <div className="grid gap-3 md:grid-cols-2">
             {availableAgents.map((agent) => (
               <AgentItem key={agent.id} agent={agent} addSubAgent={addSubAgent} />
             ))}
           </div>
-        )}
-      </Field>
+        </Field>
+      ) : (
+        // Every agent is already a sub-agent: nothing more to say. With no sub-agent either,
+        // the project has no other agent, and the user must know why nothing can be added.
+        value.length === 0 && (
+          <p className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
+            {t("agentSettings:orchestration.noAvailableAgents")}
+          </p>
+        )
+      )}
     </FieldGroup>
   )
 }
 
 function AgentItem({ agent, addSubAgent }: { agent: Agent; addSubAgent: (agent: Agent) => void }) {
   const { t } = useTranslation()
-  const agentSettings = useValue(selectAgentSettingsDataByAgentId({ agentId: agent.id }))
   const Icon = getAgentIcon(agent.type)
   return (
     <Item key={agent.id} variant="outline">
@@ -148,9 +149,10 @@ function AgentItem({ agent, addSubAgent }: { agent: Agent; addSubAgent: (agent: 
           {/* A copy that was never published is not offered to the orchestrator until it is. */}
           {!agent.currentRevision && <Badge variant="warning">{t("status:draft")}</Badge>}
         </ItemTitle>
-        <ItemDescription>{agentSettings.instructions}</ItemDescription>
       </ItemContent>
-      <ItemActions>
+      {/* On a line of their own, under the name: the name keeps the whole width. */}
+      <ItemActions className="w-full justify-between">
+        <AgentInstructionsSheet agent={agent} />
         <Button type="button" variant="outline" size="sm" onClick={() => addSubAgent(agent)}>
           <PlusIcon />
           {t("agentSettings:orchestration.add")}

@@ -48,20 +48,30 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
   }
 
   const types = ["conversation", "extraction"] as const
+  const currentRevision = published
+    ? {
+        name: params.currentRevision?.name,
+        description: params.currentRevision?.description,
+        updatedAt: params.currentRevision?.updatedAt ?? faker.date.recent().getTime(),
+        number: params.currentRevision?.number ?? 1,
+      }
+    : undefined
   return {
     createdAt: params.createdAt ?? faker.date.past().getTime(),
     id: params.id ?? faker.string.uuid(),
     name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
     projectId: project.id,
     type: params.type ?? faker.helpers.arrayElement(types),
-    currentRevision: published
+    currentRevision,
+    // By default the newest saved revision is the one in production.
+    latestSavedRevision: params.latestSavedRevision
       ? {
-          name: params.currentRevision?.name,
-          description: params.currentRevision?.description,
-          updatedAt: params.currentRevision?.updatedAt ?? faker.date.recent().getTime(),
-          number: params.currentRevision?.number ?? 1,
+          name: params.latestSavedRevision.name,
+          description: params.latestSavedRevision.description,
+          updatedAt: params.latestSavedRevision.updatedAt ?? faker.date.recent().getTime(),
+          number: params.latestSavedRevision.number ?? 1,
         }
-      : undefined,
+      : currentRevision,
     draftRevision: params.draftRevision
       ? {
           name: params.draftRevision.name,

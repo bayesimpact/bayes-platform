@@ -9,15 +9,17 @@ import {
   agentSettingsDiffLabelKeys,
   listChangedAgentSettingsFields,
 } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
+import { ProductionDot } from "./AgentRevisionStatusBadge"
 import { AgentSettingsCreateButton } from "./AgentSettingsCreateButton"
 import { AgentSettingsFieldDiff, agentSettingsFieldDiffId } from "./AgentSettingsFieldDiff"
 import { AgentSettingsRestoreButton } from "./AgentSettingsRestoreButton"
+import { AgentSettingsSetProductionButton } from "./AgentSettingsSetProductionButton"
 
 /** How long the button of a changed field stays highlighted after a click. */
 const JUMP_HIGHLIGHT_MS = 800
 
 /**
- * What the selected revision is diffed against: the revision right before it, the published
+ * What the selected revision is diffed against: the revision right before it, the production
  * version the agent runs with, or the pending draft.
  */
 export type AgentSettingsCompareMode = "previous" | "current" | "draft"
@@ -26,8 +28,8 @@ export type AgentSettingsCompareAvailability = Record<AgentSettingsCompareMode, 
 
 /**
  * Right pane of the version history: pick what the selected revision is compared against,
- * review the per-field diffs, and act on the selected revision: save the draft as a version,
- * or restore an older revision.
+ * review the per-field diffs, and act on the selected revision: save the draft as a version, put
+ * a saved revision in production, or restore an older revision.
  */
 export function AgentSettingsCompare({
   before,
@@ -74,13 +76,19 @@ export function AgentSettingsCompare({
 
   return (
     <div className="flex min-w-0 flex-1 flex-col">
-      {/* First what is selected and the one action on it, then what it is compared with: the
-          action no longer shares a line with the comparison switch. */}
+      {/* First what is selected and the actions on it, then what it is compared with: the
+          actions no longer share a line with the comparison switch. */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4">
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             {t("agentSettings:history.revisionLabel", { revision: selected.revision })}
             {selected.isDraft && <Badge variant="warning">{t("status:draft")}</Badge>}
+            {selected.isProduction && (
+              <Badge variant="success">
+                <ProductionDot />
+                {t("agentSettings:production.badge")}
+              </Badge>
+            )}
           </h3>
           {selected.name?.trim() && (
             <p className="truncate text-sm text-muted-foreground">{selected.name}</p>
@@ -94,7 +102,10 @@ export function AgentSettingsCompare({
             buttonProps={{ size: "default", className: undefined }}
           />
         ) : (
-          <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+          <div className="flex items-center gap-2">
+            <AgentSettingsSetProductionButton selected={selected} />
+            <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
+          </div>
         )}
       </div>
 

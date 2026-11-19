@@ -4,7 +4,7 @@ highlight: API
 description: Construisez votre propre client de chat sur un agent public. Routes, en-têtes, événements envoyés par le serveur, codes d'erreur et limites de l'API de chat publique, version 1.
 category: developers
 order: 1
-updated: 2026-11-06
+updated: 2026-11-18
 apiVersion: "1.5"
 ---
 
@@ -139,6 +139,11 @@ curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
 |---|---|---|
 | `payload.externalVisitorId` | string, optionnel | Votre identifiant stable du visiteur. Les outils le reçoivent. N'y mettez pas de donnée personnelle |
 | `payload.variables` | objet, optionnel | Valeurs des `{{variables}}` que les instructions de l'agent déclarent, par nom de variable |
+
+`externalVisitorId` n'est pas authentifié. La plateforme enregistre la valeur que l'appelant
+envoie et la transmet aux outils telle quelle, et toute personne qui a le jeton d'intégration
+peut envoyer n'importe quelle valeur. Un outil ne doit jamais s'en servir seul pour décider de
+ce qu'un visiteur peut lire ou faire.
 
 ```json
 {

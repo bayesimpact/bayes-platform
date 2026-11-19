@@ -61,6 +61,10 @@ export const RUN_NOT_FOUND_ERROR =
 export const EVALUATED_AGENT_NOT_FOUND_ERROR =
   "Agent or version not found, or you are not allowed to evaluate it. Call get_agent to see the versions you can use."
 
+/** For a person who sees the draft: a run evaluates a published version only. */
+export const EVALUATED_VERSION_IS_DRAFT_ERROR =
+  "This version is a draft, and a run evaluates a published version only. Ask the user to publish the draft in the studio, then run the evaluation again."
+
 export type McpEvaluationDataset = {
   id: string
   name: string
@@ -79,7 +83,7 @@ export type McpEvaluationRun = {
   agentId: string
   /** The agent version the run evaluates, pinned when the run was created. */
   agentRevision: number
-  /** True while that version is still a draft, which the agent's users do not see. */
+  /** True for a run created on a draft, before runs were limited to published versions. */
   agentRevisionIsDraft: boolean
   datasetId: string
   judgeModel: AgentModel
@@ -100,9 +104,6 @@ export type McpEvaluationRunRecord = {
 }
 
 export type McpPage<Item> = { items: Item[]; total: number; page: number; limit: number }
-
-/** The agent version a run evaluates: a revision number, the draft, or the latest published one. */
-export type McpAgentRevisionChoice = number | "draft" | undefined
 
 /**
  * What the platform MCP endpoint does with conversation evaluations on behalf of a person. The
@@ -226,8 +227,8 @@ export class McpEvaluationToolsService {
   }
 
   /**
-   * Creates a run and starts it, like the Evaluation workspace's Run button. A run can pin the
-   * agent's draft, so a client evaluates its changes before a person publishes them in the studio.
+   * Creates a run and starts it, like the Evaluation workspace's Run button. A run pins a
+   * published version: a person publishes the draft in the studio before a client evaluates it.
    */
   async runEvaluation(
     caller: McpCaller,
@@ -235,7 +236,7 @@ export class McpEvaluationToolsService {
       projectId: string
       agentId: string
       datasetId: string
-      agentRevision?: McpAgentRevisionChoice
+      agentRevision?: number
       judgeModel: AgentModel
       judgeInstructions: string | null
     },
@@ -246,8 +247,9 @@ export class McpEvaluationToolsService {
     ])
     if (!connectScope) return { ok: false, error: EVALUATION_PROJECT_NOT_FOUND_ERROR }
 
-    const agentSettings = await this.resolveAgentSettings(caller, connectScope, input)
-    if (!agentSettings) return { ok: false, error: EVALUATED_AGENT_NOT_FOUND_ERROR }
+    const resolved = await this.resolveAgentSettings(caller, connectScope, input)
+    if (!resolved.ok) return resolved
+    const agentSettings = resolved.value
     if (!(await this.findDataset(connectScope, input.datasetId))) {
       return { ok: false, error: DATASET_NOT_FOUND_ERROR }
     }
@@ -380,40 +382,30 @@ export class McpEvaluationToolsService {
   }
 
   /**
-   * The settings the run pins: a given revision, the draft, or the latest published one. The
-   * person must see the agent, and its draft when the revision is one.
+   * The settings the run pins: a given published revision, or the one in production. The
+   * person must see the agent. A draft is never evaluated: a person who reads the agent's
+   * settings is told so, and anyone else gets the same answer as for a missing version.
    */
   private async resolveAgentSettings(
     caller: McpCaller,
     connectScope: RequiredConnectScope,
-    input: { agentId: string; agentRevision?: McpAgentRevisionChoice },
-  ): Promise<AgentSettings | null> {
+    input: { agentId: string; agentRevision?: number },
+  ): Promise<McpResult<AgentSettings>> {
+    const notFound = { ok: false as const, error: EVALUATED_AGENT_NOT_FOUND_ERROR }
     const agent = { type: "agent" as const, id: input.agentId }
     if (!(await this.permissionService.has(caller.userId, AGENT_READ_PERMISSION, agent))) {
-      return null
+      return notFound
     }
     const { agentId, agentRevision } = input
     const settings =
       agentRevision === undefined
-        ? await this.agentSettingsService.findLastPublished({ connectScope, agentId })
-        : agentRevision === "draft"
-          ? await this.findDraft(connectScope, agentId)
-          : await this.agentSettingsService.get({ connectScope, agentId, revision: agentRevision })
-    if (!settings || settings.isArchived) return null
-    if (!settings.isDraft) return settings
-    return (await this.agentToolsService.canSeeDraft(caller.userId, agentId)) ? settings : null
-  }
-
-  private async findDraft(
-    connectScope: RequiredConnectScope,
-    agentId: string,
-  ): Promise<AgentSettings | undefined> {
-    const all = await this.agentSettingsService.getAll({
-      connectScope,
-      agentId,
-      includesDraft: true,
-    })
-    return all.find((settings) => settings.isDraft)
+        ? await this.agentSettingsService.findProduction({ connectScope, agentId })
+        : await this.agentSettingsService.get({ connectScope, agentId, revision: agentRevision })
+    if (!settings || settings.isArchived) return notFound
+    if (!settings.isDraft) return { ok: true, value: settings }
+    return (await this.agentToolsService.canReadSettings(caller.userId, agentId))
+      ? { ok: false, error: EVALUATED_VERSION_IS_DRAFT_ERROR }
+      : notFound
   }
 
   private async findDataset(connectScope: RequiredConnectScope, datasetId: string) {

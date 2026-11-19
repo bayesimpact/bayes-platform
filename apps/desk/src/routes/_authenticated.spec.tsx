@@ -28,11 +28,7 @@ const refuseMe = (message: string) =>
 
 describe("a sign-in the API refuses", () => {
   it("is explained, and sends the person nowhere on its own", async () => {
-    server.use(
-      refuseMe(
-        "An account already exists for this email, but the identity provider does not report the email as verified",
-      ),
-    )
+    server.use(refuseMe("The identity provider does not report the email of this user as verified"))
     renderApp("/app/")
 
     expect(await screen.findByText("Verify your email")).toBeInTheDocument()

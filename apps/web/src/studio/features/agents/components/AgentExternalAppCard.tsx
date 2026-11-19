@@ -92,22 +92,27 @@ export function AgentEvaluationCard({
 }
 
 /**
- * Opens the agent in the app its users see, which runs its published version. Its caller shows
- * it once the agent is published: the app lists no agent that only has a draft.
+ * Opens the agent in the app its users see, which runs its version in production: the badge
+ * names it. Its caller shows it once the agent is published: the app lists no agent that only has
+ * a draft.
  */
 export function AgentProductionAppCard({
   agentId,
+  productionRevision,
   organizationId,
   projectId,
   withBorderBottom,
-}: AgentCardProps & { agentId: string }) {
+}: AgentCardProps & { agentId: string; productionRevision: number }) {
   const { t } = useTranslation()
   return (
     <AgentExternalAppCard
       title={
         <>
           {t("actions:goToApp")}
-          <Badge variant="success">{t("agent:productionAppCard.badge")}</Badge>
+          <Badge variant="success">
+            {t("agent:productionAppCard.badge")}
+            <span className="font-bold">v{productionRevision}</span>
+          </Badge>
         </>
       }
       description={t("agent:productionAppCard.description")}

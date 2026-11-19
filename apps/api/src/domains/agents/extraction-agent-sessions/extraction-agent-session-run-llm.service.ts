@@ -140,6 +140,8 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
         organizationId: connectScope.organizationId,
         projectId: connectScope.projectId,
         agentId: agent.id,
+        runType: savedRun.type,
+        userId: savedRun.userId,
         status: savedRun.status,
         updatedAt: savedRun.updatedAt.getTime(),
       })
@@ -188,6 +190,8 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
       organizationId: connectScope.organizationId,
       projectId: connectScope.projectId,
       agentId,
+      runType: savedRun.type,
+      userId: savedRun.userId,
       status: savedRun.status,
       updatedAt: savedRun.updatedAt.getTime(),
     })

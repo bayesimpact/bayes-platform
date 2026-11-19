@@ -107,7 +107,10 @@ describe("ReviewCampaigns - updateOne", () => {
       agentFactory.transient({ organization, project }).build(),
     )
     const otherAgentSettings = await repositories.agentSettingsRepository.save(
-      agentSettingsFactory.transient({ organization, project, agent: otherAgent }).build(),
+      agentSettingsFactory
+        .production()
+        .transient({ organization, project, agent: otherAgent })
+        .build(),
     )
 
     const response = await subject({ payload: { agentId: otherAgent.id } })

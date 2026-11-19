@@ -103,7 +103,7 @@ export class TesterService {
     })
     if (!agent) throw new NotFoundException(`Agent ${campaign.agentId} not found`)
 
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettings = await this.agentSettingsService.getProduction({
       connectScope,
       agentId: agent.id,
     })

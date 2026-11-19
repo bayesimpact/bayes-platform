@@ -1,7 +1,11 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { expect, userEvent, within } from "storybook/test"
-import { agentFactory, defaultAgentModels } from "@/common/features/agents/agent.factory"
+import {
+  agentFactory,
+  agentModelsCatalogFactory,
+  defaultAgentModels,
+} from "@/common/features/agents/agent.factory"
 import {
   conversationAgentSessionFactory,
   extractionAgentSessionSummaryFactory,
@@ -10,6 +14,10 @@ import { agentSettingsFactory } from "@/common/features/agents/agent-settings/ag
 import type { Agent } from "@/common/features/agents/agents.models"
 import { buildDecorator, render } from "@/stories/decorators"
 import { sortRecentlyCreated } from "@/stories/helpers"
+import {
+  buildAgentVersions,
+  buildAgentVersionsBackend,
+} from "@/stories/routes/studio/agent/agent-versions"
 import {
   buildStudioData,
   type StudioStoryArgs,
@@ -37,6 +45,10 @@ type StoryArgs = StudioStoryArgs & {
   canReviewConversations?: boolean
   /** Lists MCP servers in the project and turns on `agent-mcp`: the editor shows its MCP tab. */
   withMcpServers?: boolean
+  /** How many saved revisions the agent has. */
+  savedCount?: number
+  /** Saved revision in production; the newest saved one when unset. */
+  productionRevision?: number
 }
 
 const meta = {
@@ -56,6 +68,8 @@ const meta = {
     withDeprecatedModel: { control: "boolean" },
     canReviewConversations: { control: "boolean" },
     withMcpServers: { control: "boolean" },
+    savedCount: { control: { type: "number", min: 1, max: 5 } },
+    productionRevision: { control: { type: "number", min: 1 } },
   },
   args: {
     ...studioStoryArgs,
@@ -68,6 +82,7 @@ const meta = {
     withDeprecatedModel: false,
     canReviewConversations: false,
     withMcpServers: false,
+    savedCount: 1,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agent.path }),
 } satisfies Meta<StoryArgs>
@@ -87,6 +102,8 @@ export const Default: Story = {
         withDeprecatedModel,
         canReviewConversations,
         withMcpServers,
+        savedCount = 1,
+        productionRevision,
         ...args
       }) => {
         const { baseSeeds, user, project, agents } = buildStudioData(
@@ -96,31 +113,32 @@ export const Default: Story = {
         )
         const [firstAgent, ...restAgents] = agents
         const withFillForm = agentType === "conversation" && !!fillForm
-        const currentAgent = unpublished
+        const rawAgent = unpublished
           ? agentFactory
               .unpublished()
               .transient({ project })
               .build({ id: firstAgent?.id, name: firstAgent?.name, type: agentType })
-          : agentFactory.transient({ project }).build({
-              ...firstAgent,
-              type: agentType,
-              currentRevision: { number: 1 },
-              // An unpublished draft revision is newer than the published one.
-              draftRevision: withDraft ? { number: 2 } : undefined,
-            })
-        const currentAgentSettings = (
-          withFillForm ? agentSettingsFactory.fillForm() : agentSettingsFactory
-        )
-          .transient({ agent: currentAgent })
+          : agentFactory.transient({ project }).build({ ...firstAgent, type: agentType })
+        const baseSettings = (withFillForm ? agentSettingsFactory.fillForm() : agentSettingsFactory)
+          .transient({ agent: rawAgent })
           .build({
-            revision: currentAgent.currentRevision?.number ?? 1,
+            revision: 1,
             model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
           })
-        const draftAgentSettings = currentAgent.draftRevision
-          ? { ...currentAgentSettings, revision: currentAgent.draftRevision.number, isDraft: true }
-          : undefined
-        // A copy that was never published only has its draft in the history.
-        const publishedAgentSettings = currentAgent.currentRevision ? [currentAgentSettings] : []
+        // A copy that was never saved only has its draft; otherwise saved revisions, one of them
+        // in production, and the draft on top when there is one.
+        const backend = buildAgentVersionsBackend(
+          unpublished
+            ? { agent: rawAgent, versions: [{ ...baseSettings, isDraft: true }] }
+            : buildAgentVersions({
+                agent: rawAgent,
+                base: baseSettings,
+                savedCount,
+                productionRevision,
+                withDraft,
+              }),
+        )
+        const currentAgent = backend.getAgent()
 
         const conversationSessionFactory = conversationAgentSessionFactory.transient({
           agent: currentAgent,
@@ -152,21 +170,45 @@ export const Default: Story = {
             seed.extractionAgentSessions({
               [currentAgent.id]: { csvSessions: [], others: extractionSessions },
             }),
-            seed.studio.agentHistory({
-              agentId: currentAgent.id,
-              versions: draftAgentSettings
-                ? [draftAgentSettings, ...publishedAgentSettings]
-                : publishedAgentSettings,
-            }),
+            seed.studio.agentHistory({ agentId: currentAgent.id, versions: backend.getVersions() }),
             // The extraction page embeds the agent editor, which lists the project's MCP servers.
             seed.studio.mcpServers(
               withMcpServers ? mcpServerFactory.transient({ project }).buildList(2) : [],
             ),
           ),
+          services: {
+            agents: {
+              getAll: async () => [...restAgents, backend.getAgent()],
+              getAllWithDrafts: async () => [...restAgents, backend.getAgent()],
+              getAvailableModels: async () => agentModelsCatalogFactory.build(),
+              createOne: async () => {
+                throw new Error("createOne is not supported in this story")
+              },
+              duplicateOne: async () => {
+                throw new Error("duplicateOne is not supported in this story")
+              },
+              updateOne: async () => {
+                throw new Error("updateOne is not supported in this story")
+              },
+              deleteOne: async () => {
+                throw new Error("deleteOne is not supported in this story")
+              },
+            },
+            agentSettings: backend.agentSettings,
+          },
         }
       },
     ),
   ],
+}
+
+/**
+ * Five saved versions, version 2 in production: the header says which one is live, and the
+ * managers switch it from there.
+ */
+export const AgentOlderVersionInProduction: Story = {
+  args: { savedCount: 5, productionRevision: 2 },
+  decorators: Default.decorators,
 }
 
 export const AgentConvWithSessions: Story = {

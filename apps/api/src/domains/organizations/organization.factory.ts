@@ -157,7 +157,7 @@ export async function createOrganizationWithAgent(
   await repositories.agentRepository.save(agent)
   const agentSettings = agentSettingsFactory
     .transient({ project, organization, agent })
-    .build(params.agentSettings)
+    .build(withProductionDefault(params.agentSettings))
   await repositories.agentSettingsRepository.save(agentSettings)
   const agentMembership = agentMembershipFactory
     .withRoles("agent_owner")
@@ -375,7 +375,7 @@ export async function createOrganizationWithAgentAndSubAgents(
 
   const agentSettings = agentSettingsFactory
     .transient({ project, organization, agent })
-    .build(params.agentSettings)
+    .build(withProductionDefault(params.agentSettings))
   await repositories.agentSettingsRepository.save(agentSettings)
 
   const subAgents: SubAgentItem[] = []
@@ -386,7 +386,7 @@ export async function createOrganizationWithAgentAndSubAgents(
 
       const subAgentSettings = agentSettingsFactory
         .transient({ project, organization, agent: subAgent })
-        .build(sub.subAgentSettings)
+        .build(withProductionDefault(sub.subAgentSettings))
       await repositories.agentSettingsRepository.save(subAgentSettings)
 
       const agentSubAgent = agentSubAgentFactory
@@ -402,6 +402,7 @@ export async function createOrganizationWithAgentAndSubAgents(
 
     const subAgentSettings = agentSettingsFactory
       .transient({ project, organization, agent: subAgent })
+      .production()
       .build()
     await repositories.agentSettingsRepository.save(subAgentSettings)
 
@@ -418,5 +419,18 @@ export async function createOrganizationWithAgentAndSubAgents(
     agent,
     agentSettings,
     subAgents,
+  }
+}
+
+/**
+ * The agent's only revision is in production once it is saved, as the API makes it on the first
+ * save. A draft or an archived revision is not.
+ */
+function withProductionDefault(
+  agentSettings: Partial<AgentSettings> | undefined,
+): Partial<AgentSettings> {
+  return {
+    isProduction: !agentSettings?.isDraft && !agentSettings?.isArchived,
+    ...agentSettings,
   }
 }

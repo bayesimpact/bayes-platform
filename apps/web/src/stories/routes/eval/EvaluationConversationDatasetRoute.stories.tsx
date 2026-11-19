@@ -25,43 +25,57 @@ import {
 type StoryArgs = StudioStoryArgs & {
   withRecords?: boolean
   withRuns?: boolean
+  withUnsavedAgent?: boolean
 }
 
-const decorator = buildDecorator<StoryArgs>(({ withRecords, withRuns, ...args }) => {
-  const { baseSeeds, project, agents } = buildStudioData(args)
-  const dataset = evaluationConversationDatasetFactory
-    .transient({ project })
-    .build({ recordCount: withRecords ? 3 : 0 })
-  const records = withRecords
-    ? evaluationConversationDatasetRecordFactory.transient({ dataset }).buildList(3)
-    : []
-  const paginatedRecords = {
-    records,
-    total: records.length,
-    page: 0,
-    limit: DEFAULT_PAGE_SIZE,
-  }
-  const agent = agents[0] ?? agentFactory.transient({ project }).build()
-  const runs = withRuns
-    ? evaluationConversationRunFactory.transient({ dataset, agent }).buildList(3)
-    : []
-  return {
-    state: mergeSeeds(
-      baseSeeds,
-      seed.eval.conversationDatasets([dataset], { currentId: dataset.id }),
-      seed.eval.conversationDatasetRecords(paginatedRecords),
-      seed.eval.conversationRuns(runs),
-    ),
-    services: {
-      agents: buildMockAgentsService({ agents }),
-      evaluationConversationDatasets: buildMockConversationDatasetsService({
-        datasets: [dataset],
-        records: paginatedRecords,
-      }),
-      evaluationConversationRuns: buildMockConversationRunsService({ runs }),
-    },
-  }
-})
+const decorator = buildDecorator<StoryArgs>(
+  ({ withRecords, withRuns, withUnsavedAgent, ...args }) => {
+    const { baseSeeds, project, agents: studioAgents } = buildStudioData(args)
+    // A copy that was never saved has a draft only: the run dialog must not offer it.
+    const agents = withUnsavedAgent
+      ? [
+          ...studioAgents,
+          agentFactory
+            .unpublished()
+            .transient({ project })
+            .build({ type: "conversation", name: "Unsaved Assistant" }),
+        ]
+      : studioAgents
+    const dataset = evaluationConversationDatasetFactory
+      .transient({ project })
+      .build({ recordCount: withRecords ? 3 : 0 })
+    const records = withRecords
+      ? evaluationConversationDatasetRecordFactory.transient({ dataset }).buildList(3)
+      : []
+    const paginatedRecords = {
+      records,
+      total: records.length,
+      page: 0,
+      limit: DEFAULT_PAGE_SIZE,
+    }
+    const agent = agents[0] ?? agentFactory.transient({ project }).build()
+    const runs = withRuns
+      ? evaluationConversationRunFactory.transient({ dataset, agent }).buildList(3)
+      : []
+    return {
+      state: mergeSeeds(
+        baseSeeds,
+        seed.agents(agents),
+        seed.eval.conversationDatasets([dataset], { currentId: dataset.id }),
+        seed.eval.conversationDatasetRecords(paginatedRecords),
+        seed.eval.conversationRuns(runs),
+      ),
+      services: {
+        agents: buildMockAgentsService({ agents }),
+        evaluationConversationDatasets: buildMockConversationDatasetsService({
+          datasets: [dataset],
+          records: paginatedRecords,
+        }),
+        evaluationConversationRuns: buildMockConversationRunsService({ runs }),
+      },
+    }
+  },
+)
 
 const meta = {
   title: "routes/eval/conversation/dataset",
@@ -70,11 +84,13 @@ const meta = {
     ...studioStoryArgTypes,
     withRecords: { control: "boolean" },
     withRuns: { control: "boolean" },
+    withUnsavedAgent: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withRecords: false,
     withRuns: false,
+    withUnsavedAgent: false,
   },
   render: render({ routes: evalRoutes, path: EvalRoutes.conversationDataset.path }),
 } satisfies Meta<StoryArgs>
@@ -89,6 +105,15 @@ export const Empty: Story = {
 export const WithRecords: Story = {
   args: {
     withRecords: true,
+  },
+  decorators: [decorator],
+}
+
+/** Open the Run dialog: it offers no agent, because the only one was never saved. */
+export const WithUnsavedAgent: Story = {
+  args: {
+    withRecords: true,
+    withUnsavedAgent: true,
   },
   decorators: [decorator],
 }

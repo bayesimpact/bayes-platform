@@ -130,7 +130,7 @@ export abstract class ConversationAgentSessionsController {
         const session = sessionByAgentId.get(subAgent.childAgentId)
         if (!session || !subAgent.childAgent) return []
 
-        const settings = await this.agentSettingsService.getLastPublishedOrDraft({
+        const settings = await this.getSettingsForForms({
           connectScope,
           agentId: subAgent.childAgentId,
         })
@@ -155,9 +155,7 @@ export abstract class ConversationAgentSessionsController {
   /**
    * The current form schema of every agent that filled a form in these
    * sessions (the session's agent, or a sub-agent that took the conversation
-   * over): the Studio renders each form with its own agent's fields. An agent
-   * that was never published, such as a copy tried in its playground, gives
-   * its draft's schema.
+   * over): the Studio renders each form with its own agent's fields.
    */
   private async resolveFormSchemas({
     connectScope,
@@ -171,14 +169,28 @@ export abstract class ConversationAgentSessionsController {
     )
     const entries = await Promise.all(
       [...agentIds].map(async (agentId) => {
-        const settings = await this.agentSettingsService.getLastPublishedOrDraft({
-          connectScope,
-          agentId,
-        })
+        const settings = await this.getSettingsForForms({ connectScope, agentId })
         return [agentId, settings.fillFormEnabled ? settings.outputJsonSchema : null] as const
       }),
     )
     return new Map(entries)
+  }
+
+  /**
+   * The settings whose form schema renders an agent's forms in these sessions: the version in
+   * production. A playground session alone gets the newest saved version, or the draft of an
+   * agent that was never saved, such as a copy tried in its playground.
+   */
+  private getSettingsForForms({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }) {
+    return this.type === "playground"
+      ? this.agentSettingsService.getLastSavedOrDraft({ connectScope, agentId })
+      : this.agentSettingsService.getProduction({ connectScope, agentId })
   }
 }
 
@@ -189,7 +201,8 @@ function toDto(
 ) {
   return (entity: ConversationAgentSession): ConversationAgentSessionDto => {
     // FIXME: should use this.permissionService.listGlobalPermissions(user.id) to determine if the user can view the trace
-    const traceUrl = agentSessionType === "live" ? undefined : telemetryTraceUrl(entity.traceId)
+    const traceUrl =
+      agentSessionType === "playground" ? telemetryTraceUrl(entity.traceId) : undefined
     return {
       id: entity.id,
       agentId: entity.agentId,

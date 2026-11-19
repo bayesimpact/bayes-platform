@@ -80,6 +80,7 @@ export abstract class ExtractionAgentSessionsController {
     }
 
     const connectScope = getRequiredConnectScope(request)
+    await this.assertRunDocument(request, documentId)
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
       agentId: request.agent.id,
@@ -97,12 +98,33 @@ export abstract class ExtractionAgentSessionsController {
   }
 
   /**
+   * The document a run reads is one the caller may read. A live run, open to every member, reads
+   * only a file its caller uploaded for a run: the project's other documents sit behind
+   * `document.read`, and a colleague's upload is theirs. Only the playground routes, for admins
+   * and owners, may run on any document of the project. Anything else answers 404, as if absent.
+   */
+  private async assertRunDocument(
+    request: EndpointRequestWithAgent,
+    documentId: string,
+  ): Promise<void> {
+    const document = await this.documentsService.findById({
+      connectScope: getRequiredConnectScope(request),
+      documentId,
+    })
+    const isCallerUpload =
+      document?.sourceType === "extraction" && document.userId === request.user.id
+    if (!document || (this.type !== "playground" && !isCallerUpload)) {
+      throw new NotFoundException(`Document ${documentId} not found`)
+    }
+  }
+
+  /**
    * Settings the run is pinned to, which is what its worker will use.
    *
    * A playground run with no explicit revision uses the draft when there is one. The extraction
    * screen renders before its settings history has loaded, so the client cannot always name a
    * revision, and defaulting that window to the published one would run a version the picker does
-   * not claim. A live run keeps using the newest published revision; it can never reach here with
+   * not claim. A live run keeps using the revision in production; it can never reach here with
    * a revision, that is rejected in the handler.
    */
   private async resolveAgentSettings({
@@ -116,8 +138,8 @@ export abstract class ExtractionAgentSessionsController {
   }): Promise<AgentSettings> {
     if (revision === undefined) {
       return this.type === "playground"
-        ? this.agentSettingsService.getLast({ connectScope, agentId, includesDraft: true })
-        : this.agentSettingsService.getLast({ connectScope, agentId })
+        ? this.agentSettingsService.getLatest({ connectScope, agentId })
+        : this.agentSettingsService.getProduction({ connectScope, agentId })
     }
 
     const agentSettings = await this.agentSettingsService.get({ connectScope, agentId, revision })
@@ -139,7 +161,10 @@ export abstract class ExtractionAgentSessionsController {
         (event) =>
           event.organizationId === connectScope.organizationId &&
           event.projectId === connectScope.projectId &&
-          event.agentId === request.agent.id,
+          event.agentId === request.agent.id &&
+          // A run is its creator's: a colleague's run, or one of the other type, is not followed.
+          event.runType === this.type &&
+          event.userId === request.user.id,
       ),
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )
@@ -245,7 +270,8 @@ export abstract class ExtractionAgentSessionsController {
 
 function toSummaryDto(agentSessionType: BaseAgentSessionType) {
   return (entity: ExtractionAgentSession): ExtractionAgentSessionSummaryDto => {
-    const traceUrl = agentSessionType === "live" ? undefined : telemetryTraceUrl(entity.traceId)
+    const traceUrl =
+      agentSessionType === "playground" ? telemetryTraceUrl(entity.traceId) : undefined
     return {
       id: entity.id,
       agentId: entity.agentId,

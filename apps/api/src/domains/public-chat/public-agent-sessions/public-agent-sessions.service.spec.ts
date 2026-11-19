@@ -39,7 +39,10 @@ describe("PublicAgentSessionsService", () => {
     const { organization, project } = await createOrganizationWithProject(repositories)
     const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
-    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    const agentSettings = agentSettingsFactory
+      .production()
+      .transient({ organization, project, agent })
+      .build()
     await repositories.agentSettingsRepository.save(agentSettings)
     const embedConfig = agentEmbedConfigFactory
       .transient({ organization, project, agent })

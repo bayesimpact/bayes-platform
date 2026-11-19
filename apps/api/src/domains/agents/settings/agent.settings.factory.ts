@@ -20,6 +20,10 @@ class AgentSettingsFactory extends Factory<AgentSettings, AgentSettingsTransient
     return this.params({ isDraft: true })
   }
 
+  production() {
+    return this.params({ isProduction: true })
+  }
+
   archived() {
     return this.params({ isArchived: true })
   }
@@ -62,6 +66,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       agent: transientParams.agent,
       isDraft: params.isDraft ?? false,
       isArchived: params.isArchived ?? false,
+      isProduction: params.isProduction ?? false,
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,

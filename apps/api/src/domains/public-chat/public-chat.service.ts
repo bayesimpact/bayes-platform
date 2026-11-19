@@ -97,7 +97,7 @@ export class PublicChatService {
     }
     // Visitors must be answered by the published settings, never by the draft an
     // author is editing in the agent editor (#636).
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettings = await this.agentSettingsService.getProduction({
       connectScope,
       agentId: publicSession.agentId,
     })

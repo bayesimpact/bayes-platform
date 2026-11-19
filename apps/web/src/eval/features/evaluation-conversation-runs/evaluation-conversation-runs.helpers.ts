@@ -3,7 +3,7 @@ import type { AgentModel } from "@caseai-connect/api-contracts"
 /** The fields of the dialog that starts a conversation evaluation run. */
 export type RunFormValues = {
   agentId: string
-  // null = no explicit choice yet; the newest revision is used once history loads.
+  // null = no version picked yet: the form asks for one.
   selectedRevision: number | null
   judgeModel: AgentModel
   judgeInstructions: string

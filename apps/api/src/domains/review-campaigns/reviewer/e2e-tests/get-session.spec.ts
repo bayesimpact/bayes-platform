@@ -87,7 +87,10 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
     await repositories.agentRepository.save(agent)
 
-    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    const agentSettings = agentSettingsFactory
+      .production()
+      .transient({ organization, project, agent })
+      .build()
     await repositories.agentSettingsRepository.save(agentSettings)
 
     const factory =
@@ -449,9 +452,9 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     expect(response.body.data.formResult).toBeNull()
   })
 
-  it("reads the last published revision, not a newer draft (#636)", async () => {
+  it("reads the revision in production, not a newer draft (#636)", async () => {
     const { organization, project, agent, agentSettings } = await seedCampaignAndSession()
-    // The draft enables fillForm; the published revision does not. The reviewer
+    // The draft enables fillForm; the revision in production does not. The reviewer
     // context must keep describing what the tester actually ran.
     await repositories.agentSettingsRepository.save(
       agentSettingsFactory

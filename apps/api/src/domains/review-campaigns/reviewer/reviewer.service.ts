@@ -196,7 +196,7 @@ export class ReviewerService {
     }
     // The reviewer context must describe the published settings, not the draft an
     // author may be editing in the agent editor (#636).
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettings = await this.agentSettingsService.getProduction({
       connectScope,
       agentId: campaign.agentId,
     })

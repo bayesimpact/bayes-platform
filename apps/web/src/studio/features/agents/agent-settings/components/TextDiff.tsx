@@ -8,6 +8,7 @@ import {
   isHighlighterLoaded,
   parseDiffFromFile,
   preloadHighlighter,
+  processFile,
   type SupportedLanguages,
 } from "@pierre/diffs"
 import { Editor } from "@pierre/diffs/edit"
@@ -21,6 +22,23 @@ import { useEffect, useMemo, useState } from "react"
 function toDiffContents(value: string): string {
   if (value === "" || value.endsWith("\n")) return value
   return `${value}\n`
+}
+
+/**
+ * The diff of two texts. Two equal texts have no change, and a diff with no change renders
+ * nothing, not even its lines. So equal texts get one hunk where every line is unchanged: the
+ * text shows in full, and an edit in it shows as a change at once, in the same editor.
+ */
+function buildFileDiff(name: string, before: string, after: string) {
+  const oldFile = { name, contents: before }
+  const newFile = { name, contents: after }
+  if (before === after && before !== "") {
+    const lines = before.slice(0, -1).split("\n")
+    const hunk = `@@ -1,${lines.length} +1,${lines.length} @@\n${lines.map((line) => ` ${line}`).join("\n")}\n`
+    const unchanged = processFile(`--- ${name}\n+++ ${name}\n${hunk}`, { oldFile, newFile })
+    if (unchanged) return unchanged
+  }
+  return parseDiffFromFile(oldFile, newFile)
 }
 
 /**
@@ -64,7 +82,7 @@ const DIFF_OPTIONS = { diffStyle: "unified", disableFileHeader: true, overflow: 
 
 /**
  * Unified diff of two texts, rendered with @pierre/diffs. `name` is a file name: its extension
- * picks the syntax highlighting.
+ * picks the syntax highlighting. Two equal texts show in full, with no change.
  *
  * With `onChange`, the new text is edited in the diff itself and the diff follows each change.
  * The old text stays read-only.
@@ -87,11 +105,7 @@ export function TextDiff({
   const shownAfter = onChange ? initialAfter : after
 
   const fileDiff = useMemo(
-    () =>
-      parseDiffFromFile(
-        { name, contents: toDiffContents(before) },
-        { name, contents: toDiffContents(shownAfter) },
-      ),
+    () => buildFileDiff(name, toDiffContents(before), toDiffContents(shownAfter)),
     [name, before, shownAfter],
   )
 

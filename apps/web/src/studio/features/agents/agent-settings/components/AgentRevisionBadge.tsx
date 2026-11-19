@@ -6,12 +6,13 @@ import type { AgentSettings } from "@/common/features/agents/agent-settings/agen
 import type { Agent } from "@/common/features/agents/agents.models"
 import { buildDate } from "@/common/utils/build-date"
 import { findVersion } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
+import { ProductionDot } from "./AgentRevisionStatusBadge"
 import { AgentSettingsHistorySheet } from "./AgentSettingsHistorySheet"
 
 /**
  * Clickable `v{revision}` badge. Opens the version history sheet preselected on the
- * revision it labels. The tooltip adds the revision name and date when the matching
- * history entry is loaded.
+ * revision it labels. It says when that revision is the draft or the one in production. The
+ * tooltip adds the revision name and date when the matching history entry is loaded.
  *
  * The sheet is controlled from here rather than through its `trigger` prop: a trigger
  * wrapped in a Radix `Tooltip` root would swallow the injected click handler (the
@@ -33,6 +34,7 @@ export function AgentRevisionBadge({
   const [open, setOpen] = useState(false)
   const version = findVersion(versions, revision)
   const isDraft = version?.isDraft ?? false
+  const isProduction = version?.isProduction ?? false
 
   return (
     <>
@@ -40,8 +42,8 @@ export function AgentRevisionBadge({
         <TooltipTrigger asChild>
           <Badge
             asChild
-            variant={isDraft ? "warning" : "secondary"}
-            className="cursor-pointer hover:bg-secondary/70"
+            variant={isDraft ? "warning" : isProduction ? "success" : "secondary"}
+            className="cursor-pointer hover:brightness-95"
             aria-label={t("agentSettings:history.revisionBadgeAria", { revision })}
           >
             <button
@@ -50,8 +52,17 @@ export function AgentRevisionBadge({
               aria-expanded={open}
               onClick={() => setOpen(true)}
             >
-              {t("agentSettings:history.revisionBadge", { revision })}{" "}
-              {isDraft && `- ${t("agentSettings:history.draft")}`}
+              {isProduction ? (
+                <>
+                  <ProductionDot />
+                  {t("agentSettings:autosave.productionVersion", { revision })}
+                </>
+              ) : (
+                <>
+                  {t("agentSettings:history.revisionBadge", { revision })}{" "}
+                  {isDraft && `- ${t("agentSettings:history.draft")}`}
+                </>
+              )}
             </button>
           </Badge>
         </TooltipTrigger>

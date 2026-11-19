@@ -172,7 +172,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     await createContext("project_admin")
     const draft = await seedRevision({ revision: 2, isDraft: true })
 
-    const response = await subject(2)
+    const response = await subject(2, "playground")
 
     expectResponse(response, 201)
     expect(response.body.data.agentSettingsId).toBe(draft.id)
@@ -196,7 +196,19 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     await createContext("project_member")
     await seedRevision({ revision: 2, isDraft: true })
 
-    expectResponse(await subject(2), 403)
+    expectResponse(await subject(2, "playground"), 403)
+  })
+
+  it("returns 403 when a live run asks for a revision, even from an owner", async () => {
+    // A live run always runs the version in production: only the playground names another one.
+    await createContext()
+    await seedRevision({ revision: 2, isDraft: true })
+
+    expectResponse(
+      await subject(2),
+      403,
+      "Choosing a settings version is only available in the playground",
+    )
   })
 
   it("lets a plain member create a run when asking for no revision", async () => {
@@ -223,14 +235,14 @@ describe("AgentCsvExtractionRuns - createOne", () => {
   it("returns 404 for a revision the agent does not have", async () => {
     await createContext()
 
-    expectResponse(await subject(9), 404)
+    expectResponse(await subject(9, "playground"), 404)
   })
 
   it("returns 422 for an archived revision", async () => {
     await createContext()
     await seedRevision({ revision: 2, isArchived: true })
 
-    expectResponse(await subject(2), 422)
+    expectResponse(await subject(2, "playground"), 422)
   })
 
   it("rejects a revision that is not an integer", async () => {

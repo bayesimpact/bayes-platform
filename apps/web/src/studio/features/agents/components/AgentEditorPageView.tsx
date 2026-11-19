@@ -14,27 +14,27 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@caseai-connect/ui/shad/sidebar"
-import { ArrowLeftIcon, ExternalLinkIcon, HistoryIcon } from "lucide-react"
+import { ArrowLeftIcon, HistoryIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { AgentEditorSaveStatus } from "../agent-settings/components/AgentEditorSaveStatus"
+import { AgentProductionVersionButton } from "../agent-settings/components/AgentProductionVersionButton"
 import { AgentSettingsHistorySheet } from "../agent-settings/components/AgentSettingsHistorySheet"
 import type { AgentEditorViewProps } from "./agent-editor-view.types"
 
 /**
  * The agent editor as a page of its own: a layout that does not sit in the Studio's. Its
  * sidebar is the editor's menu: first the sections that save by themselves to the draft, then,
- * under "More", the settings outside the draft, which apply when they are saved.
+ * under "More", the settings outside the draft, which apply when they are saved. Every entry
+ * shows in the zone beside the sidebar.
  */
 export function AgentEditorPageView({
   agent,
   agentSettings,
   sections,
-  sheets,
   activeSection,
   onSelectSection,
-  onOpenSheet,
   saveState,
   onRetrySave,
   isHistoryOpen,
@@ -93,7 +93,7 @@ export function AgentEditorPageView({
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {liveSections.length + sheets.length > 0 && (
+          {liveSections.length > 0 && (
             <SidebarGroup>
               <SidebarGroupLabel>{t("actions:more")}</SidebarGroupLabel>
               <SidebarGroupContent>
@@ -110,16 +110,6 @@ export function AgentEditorPageView({
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
-                  {sheets.map((sheet) => (
-                    <SidebarMenuItem key={sheet.value}>
-                      <SidebarMenuButton onClick={() => onOpenSheet(sheet.value)}>
-                        <sheet.icon />
-                        <span>{sheet.label}</span>
-                        {/* It opens over the page, in a full-page sheet. */}
-                        <ExternalLinkIcon className="ml-auto text-muted-foreground" />
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -127,8 +117,14 @@ export function AgentEditorPageView({
         </SidebarContent>
 
         {/* The versions concern the whole agent, not one section: their entry stays in the menu.
-            It is a full button, set apart by a line, so it stands out from the menu's entries. */}
-        <SidebarFooter className="border-t p-3">
+            It is a full button, set apart by a line, so it stands out from the menu's entries.
+            The version in production sits above it and opens the same history. */}
+        <SidebarFooter className="gap-3 border-t p-3">
+          <AgentProductionVersionButton
+            agent={agent}
+            onOpenHistory={() => onHistoryOpenChange(true)}
+            className="w-full justify-start"
+          />
           <AgentSettingsHistorySheet
             agent={agent}
             open={isHistoryOpen}
@@ -153,6 +149,7 @@ export function AgentEditorPageView({
                 state={saveState}
                 hasDraft={agentSettings.isDraft}
                 revision={agentSettings.revision}
+                isProduction={agentSettings.isProduction}
                 onRetry={onRetrySave}
                 onOpenHistory={() => onHistoryOpenChange(true)}
               />

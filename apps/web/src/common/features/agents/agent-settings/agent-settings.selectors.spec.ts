@@ -81,6 +81,20 @@ describe("selectAgentSettingsDataByAgentId", () => {
     ).toBe(draft)
     expect(selectAgentSettingsDataByAgentId({ agentId: agent.id })(state).value).toBe(published)
   })
+
+  it("reads the production revision, and the newest saved one for the editor", () => {
+    const agent = agentFactory.transient({ project }).build({ currentRevision: { number: 1 } })
+    const production = agentSettingsFactory
+      .transient({ agent })
+      .build({ revision: 1, isProduction: true })
+    const newestSaved = agentSettingsFactory.transient({ agent }).build({ revision: 2 })
+    const state = buildState(agent, [newestSaved, production])
+
+    expect(selectAgentSettingsDataByAgentId({ agentId: agent.id })(state).value).toBe(production)
+    expect(
+      selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true })(state).value,
+    ).toBe(newestSaved)
+  })
 })
 
 describe("selectPlaygroundAgentSettings", () => {
