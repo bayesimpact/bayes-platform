@@ -42,7 +42,11 @@ export function findMcpAppHtml(
   mcpApp: AgentSessionMcpAppDto,
   htmlEntries: AgentSessionMcpAppHtml[],
 ): Pick<McpAppViewModel, "html" | "csp" | "mcpServerId"> | undefined {
-  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return { html: mcpApp.html }
+  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) {
+    return mcpApp.mcpServerId
+      ? { html: mcpApp.html, mcpServerId: mcpApp.mcpServerId }
+      : { html: mcpApp.html }
+  }
   const entry = htmlEntries.find(
     (candidate) =>
       candidate.resourceUri === mcpApp.resourceUri &&

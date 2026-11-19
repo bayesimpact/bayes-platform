@@ -11,7 +11,7 @@ export type McpAppCardProps = {
   /** The domains the app declares. Without any, it runs with no network and no frame. */
   csp?: McpAppCsp
   /** The MCP server the app comes from, which names the origin of its sandbox. */
-  mcpServerId?: string
+  mcpServerId: string
   onMessage: (text: string) => void
   /** Called once when the app cannot render, so the reply shows the tool's text instead. */
   onFailed: (toolCallId: string) => void

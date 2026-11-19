@@ -15,7 +15,7 @@ type UseMcpAppOptions = {
   /** The domains the app declares, for its Content Security Policy. */
   csp?: McpAppCsp
   /** The MCP server the app comes from, which names the origin of its sandbox. */
-  mcpServerId?: string
+  mcpServerId: string
   /** Puts a text the app proposes in the message box, which the person then sends or not. */
   onMessage: (text: string) => void
   /** Called once when the app cannot render. */
@@ -26,9 +26,9 @@ type UseMcpAppOptions = {
  * Runs an MCP App in the sandbox of a frame, through the host all the platform's apps share
  * (`@caseai-connect/mcp-app-host`): the handshake, the tool's input and result, the app's height,
  * and the links and messages it asks for. The frame talks to the browser outside React, which an
- * effect is for. The card is keyed by its tool call, so the app restarts only for new HTML,
- * new declared domains or another server. The app gets the person's language in its host context, and follows it
- * when they pick another one.
+ * effect is for. The card is keyed by its tool call, so the app restarts only for new HTML, new
+ * declared domains or another server. The app gets the person's language in its host context, and
+ * follows it when they pick another one.
  */
 export function useMcpApp(
   frameRef: RefObject<HTMLIFrameElement | null>,

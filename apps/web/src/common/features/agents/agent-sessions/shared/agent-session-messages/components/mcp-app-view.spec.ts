@@ -56,10 +56,14 @@ describe("hasMcpAppCard", () => {
 describe("findMcpAppHtml", () => {
   const entries = [{ ...pointer, html: "<html>live</html>" }]
 
-  it("prefers the HTML embedded on the tool call", () => {
+  it("prefers the HTML embedded on the tool call, and keeps the server it names", () => {
     expect(findMcpAppHtml({ ...pointer, html: "<html>inline</html>" }, entries)).toEqual({
       html: "<html>inline</html>",
+      mcpServerId: pointer.mcpServerId,
     })
+    expect(
+      findMcpAppHtml({ ...pointer, mcpServerId: "", html: "<html>inline</html>" }, entries),
+    ).toEqual({ html: "<html>inline</html>" })
   })
 
   it("resolves the pointer against the entry read from the same server", () => {
@@ -125,6 +129,7 @@ describe("getRenderableMcpApp", () => {
       }),
     ).toEqual({
       html: "<html><body>Patient</body></html>",
+      mcpServerId: "mcp-server-1",
       toolInput: { query: "hello" },
       toolResult: result,
     })

@@ -41,6 +41,18 @@ function mcpAppSandboxPage(): Plugin {
   }
 }
 
+/**
+ * The domain every label of a sandbox origin sits under, such as `local.example.org` for
+ * `https://{label}.local.example.org`, or `undefined` when the template gives none: the dev
+ * server then accepts no sandbox host, and the app says why a card cannot load.
+ */
+function sandboxDomainOf(template: string | undefined): string | undefined {
+  const candidate = template?.trim().replaceAll("{label}", "label")
+  if (!candidate || !URL.canParse(candidate)) return undefined
+  const [, ...domain] = new URL(candidate).hostname.split(".")
+  return domain.length > 0 ? domain.join(".") : undefined
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "")
@@ -48,13 +60,8 @@ export default defineConfig(({ mode }) => {
 
   // The dev server answers the sandbox origin of MCP App cards too, for the sandbox page: every
   // label of that origin's domain is a host it must accept.
-  const sandboxOrigin = env.VITE_MCP_APP_SANDBOX_ORIGIN?.trim()
-  const allowedHosts = [
-    "connect.localhost",
-    ...(sandboxOrigin ? [new URL(sandboxOrigin.replace("{label}.", "")).hostname] : []).map(
-      (domain) => `.${domain}`,
-    ),
-  ]
+  const sandboxDomain = sandboxDomainOf(env.VITE_MCP_APP_SANDBOX_ORIGIN)
+  const allowedHosts = ["connect.localhost", ...(sandboxDomain ? [`.${sandboxDomain}`] : [])]
 
   const httpsConfig = fs.existsSync(path.join(certsDir, "key.pem"))
     ? {
