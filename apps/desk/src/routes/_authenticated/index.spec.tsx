@@ -5,6 +5,7 @@ import { HttpResponse } from "msw"
 import { describe, expect, it, vi } from "vitest"
 import { activateLocale, detectLocale } from "@/app/i18n"
 import { rememberLastAgent } from "@/features/agents"
+import { isApplePlatform } from "@/lib/platform"
 import { agentOf, agentUrlOf, routerPathOf } from "@/test/desk-urls"
 import {
   buildDeskWorld,
@@ -20,8 +21,8 @@ import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
 /**
- * Checks the groups of the agent switcher's list, each named by its project and organization, in
- * their order on screen.
+ * Checks the groups of the command center's list, each named by its project, its organization and
+ * its type of agent, in their order on screen.
  */
 async function expectSwitcherGroups(names: string[]) {
   const list = await screen.findByRole("listbox")
@@ -29,6 +30,17 @@ async function expectSwitcherGroups(names: string[]) {
     names.map((name) => within(list).getByRole("group", { name })),
   )
 }
+
+/** Checks the agents of the command center's list, by their accessible names, in their order. */
+async function expectSwitcherOptions(names: string[]) {
+  const list = await screen.findByRole("listbox")
+  expect(within(list).queryAllByRole("option")).toEqual(
+    names.map((name) => within(list).getByRole("option", { name })),
+  )
+}
+
+/** The shortcut that opens the command center: ⌘K on an Apple system, Ctrl+K elsewhere. */
+const commandCenterShortcut = isApplePlatform() ? "{Meta>}k{/Meta}" : "{Control>}k{/Control}"
 
 describe("the Desk's home", () => {
   it("opens a new conversation with the only agent, with its history and no switcher", async () => {
@@ -44,7 +56,10 @@ describe("the Desk's home", () => {
       expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus(),
     )
     expect(router.state.location.pathname).toBe(routerPathOf(agentUrlOf(world)))
-    expect(screen.queryByRole("combobox", { name: /Switch agent/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Switch agent/ })).not.toBeInTheDocument()
+    // With nothing to switch to, the shortcut opens no command center.
+    await userEvent.keyboard(commandCenterShortcut)
+    expect(screen.queryByRole("dialog", { name: "Switch agent" })).not.toBeInTheDocument()
     // The open sidebar names the agent, as the switcher would: the bar above the page does not.
     expect(screen.getAllByText("Helpful Assistant")).toHaveLength(1)
     expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
@@ -57,28 +72,50 @@ describe("the Desk's home", () => {
     expect(screen.getByText("Yesterday")).toBeInTheDocument()
   })
 
-  it("lets a person with several agents switch agent", async () => {
+  it("lets a person with several agents switch agent in the command center", async () => {
     server.use(...worldHandlers(buildSeveralAgentsWorld()))
     renderApp("/app/")
 
-    const switcher = await screen.findByRole("combobox", {
+    const switcher = await screen.findByRole("button", {
       name: "Switch agent, current agent: Document Reader",
     })
     await userEvent.click(switcher)
-    const list = await screen.findByRole("listbox")
-    expect(
-      within(list)
-        .getAllByRole("option")
-        .map((item) => item.textContent),
-    ).toEqual(["Document Reader", "Helpful Assistant", "Writing Helper"])
-    expect(screen.getByRole("combobox", { name: "Search an agent" })).toHaveFocus()
+    const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
+    // Conversation agents come first, the current agent is marked.
+    await expectSwitcherOptions(["Helpful Assistant", "Writing Helper", "Document Reader Current"])
+    await expectSwitcherGroups(["Conversation agents", "Extraction agents"])
+    expect(within(dialog).getByRole("combobox", { name: "Search an agent" })).toHaveFocus()
 
-    await userEvent.click(within(list).getByRole("option", { name: "Helpful Assistant" }))
+    await userEvent.click(within(dialog).getByRole("option", { name: "Helpful Assistant" }))
 
     expect(
       await screen.findByRole("heading", { name: "How can I help you today?" }),
     ).toBeInTheDocument()
+    expect(screen.queryByRole("dialog", { name: "Switch agent" })).not.toBeInTheDocument()
     expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
+  })
+
+  it("opens the command center with the shortcut, and Enter opens the agent chosen with the arrows", async () => {
+    server.use(...worldHandlers(buildSeveralAgentsWorld()))
+    renderApp("/app/")
+    await screen.findByRole("button", { name: /Switch agent/ })
+
+    await userEvent.keyboard(commandCenterShortcut)
+    await screen.findByRole("dialog", { name: "Switch agent" })
+    await userEvent.keyboard("{ArrowDown}{Enter}")
+
+    expect(
+      await screen.findByRole("button", { name: "Switch agent, current agent: Writing Helper" }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("dialog", { name: "Switch agent" })).not.toBeInTheDocument()
+
+    // The shortcut closes it too.
+    await userEvent.keyboard(commandCenterShortcut)
+    await screen.findByRole("dialog", { name: "Switch agent" })
+    await userEvent.keyboard(commandCenterShortcut)
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Switch agent" })).not.toBeInTheDocument(),
+    )
   })
 
   it("leaves out of the switcher an agent the person may read but not open a session with", async () => {
@@ -86,48 +123,46 @@ describe("the Desk's home", () => {
     renderApp("/app/")
 
     await userEvent.click(
-      await screen.findByRole("combobox", { name: "Switch agent, current agent: Document Reader" }),
+      await screen.findByRole("button", { name: "Switch agent, current agent: Document Reader" }),
     )
-    const list = await screen.findByRole("listbox")
-    expect(
-      within(list)
-        .getAllByRole("option")
-        .map((item) => item.textContent),
-    ).toEqual(["Document Reader", "Helpful Assistant"])
+    await expectSwitcherOptions(["Helpful Assistant", "Document Reader Current"])
   })
 
-  it("groups the agents by project when the person has several projects", async () => {
+  it("groups the agents by project, then by type, when the person has several projects", async () => {
     server.use(...worldHandlers(buildSeveralProjectsWorld()))
     renderApp("/app/")
 
-    await userEvent.click(await screen.findByRole("combobox", { name: /Switch agent/ }))
+    await userEvent.click(await screen.findByRole("button", { name: /Switch agent/ }))
 
     await expectSwitcherGroups([
-      "Help center · Operations",
-      "Pricing · Product",
-      "Support · Product",
+      "Help center · Operations · Conversation agents",
+      "Pricing · Product · Conversation agents",
+      "Support · Product · Conversation agents",
+      "Support · Product · Extraction agents",
     ])
   })
 
-  it("finds an agent by its name or its project's in the switcher", async () => {
+  it("finds an agent by every word of its names in the command center", async () => {
     server.use(...worldHandlers(buildSeveralProjectsWorld()))
     renderApp("/app/")
 
-    await userEvent.click(await screen.findByRole("combobox", { name: /Switch agent/ }))
-    const search = await screen.findByRole("combobox", { name: "Search an agent" })
-    const optionNames = () =>
-      within(screen.getByRole("listbox"))
-        .queryAllByRole("option")
-        .map((option) => option.textContent)
+    await userEvent.click(await screen.findByRole("button", { name: /Switch agent/ }))
+    const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
+    const search = within(dialog).getByRole("combobox", { name: "Search an agent" })
 
-    await userEvent.type(search, "help center")
-    expect(optionNames()).toEqual(["Help Center Guide"])
-    await expectSwitcherGroups(["Help center · Operations"])
+    // "reader" is in the agent's name, "support" in its project's.
+    await userEvent.type(search, "support reader")
+    await expectSwitcherOptions(["Document Reader"])
+    await expectSwitcherGroups(["Support · Product · Extraction agents"])
+
+    await userEvent.clear(search)
+    await userEvent.type(search, "operations")
+    await expectSwitcherOptions(["Help Center Guide Current"])
 
     await userEvent.clear(search)
     await userEvent.type(search, "nothing like this")
-    expect(optionNames()).toEqual([])
-    expect(screen.getByText("No agent matches this search.")).toBeInTheDocument()
+    await expectSwitcherOptions([])
+    expect(within(dialog).getByText("No agent matches this search.")).toBeInTheDocument()
   })
 
   it("opens the agent the person used last", async () => {
@@ -137,7 +172,7 @@ describe("the Desk's home", () => {
     renderApp("/app/")
 
     expect(
-      await screen.findByRole("combobox", { name: "Switch agent, current agent: Writing Helper" }),
+      await screen.findByRole("button", { name: "Switch agent, current agent: Writing Helper" }),
     ).toBeInTheDocument()
   })
 
