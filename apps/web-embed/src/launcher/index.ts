@@ -108,12 +108,15 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
   const iframe = document.createElement("iframe")
   iframe.src = iframeSrc
   iframe.style.cssText = [
-    "width: 380px",
-    "height: 600px",
-    "max-height: calc(100vh - 100px)",
+    // A messenger's size: tall enough that an answer with a list fits without scrolling, and
+    // never wider or taller than the screen leaves around the button.
+    "width: 400px",
+    "max-width: calc(100vw - 32px)",
+    "height: 704px",
+    "max-height: calc(100vh - 112px)",
     "border: none",
-    "border-radius: 16px",
-    "box-shadow: 0 12px 40px rgba(0,0,0,0.2)",
+    "border-radius: 18px",
+    "box-shadow: 0 16px 48px rgba(0,0,0,0.22)",
     "background: white",
     `transform-origin: ${isRight ? "bottom right" : "bottom left"}`,
   ].join(";")
@@ -494,7 +497,7 @@ function makeFabButton(color: string): HTMLButtonElement {
     "padding: 0",
     "pointer-events: auto",
   ].join(";")
-  button.innerHTML = dotsIconSvg()
+  button.innerHTML = `<span class="as-ico">${dotsIconSvg()}${chevronDownSvg()}</span>`
   // One wave across the dots shortly after load, to say the button is alive without nagging.
   window.setTimeout(() => button.classList.add("as-fab--greet"), 800)
   window.setTimeout(() => button.classList.remove("as-fab--greet"), 2400)
@@ -507,19 +510,22 @@ function setFabOpen(button: HTMLButtonElement, open: boolean) {
   button.setAttribute("aria-label", open ? "Close chat" : "Open chat")
 }
 
+/** The chevron the button shows while the chat is open: pressing it folds the window back. */
+function chevronDownSvg() {
+  return `<svg class="as-chevron" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`
+}
+
 /**
- * The launcher's icon: the 3×3 grid of dots of the Bayes mark. Open, the four dots off the
- * diagonals fade out and the five left draw the close cross, so one icon serves both states and
- * the change reads as a motion rather than a swap. Each dot carries its distance from the top-left
- * corner, which staggers the hover wave.
+ * The launcher's icon: the 3×3 grid of dots of the Bayes mark. Each dot carries its distance from
+ * the top-left corner, which staggers the hover wave. Open, the grid gathers into its centre and
+ * gives way to a chevron, as a messenger's launcher does.
  */
 function dotsIconSvg(size = 26) {
   const dots: string[] = []
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 3; col++) {
-      const diagonal = row === col || row + col === 2
       dots.push(
-        `<circle class="as-dot${diagonal ? " as-dot--x" : ""}" style="--as-i:${row + col}" cx="${6 + col * 6}" cy="${6 + row * 6}" r="1.8" fill="currentColor"/>`,
+        `<circle class="as-dot" style="--as-i:${row + col}" cx="${6 + col * 6}" cy="${6 + row * 6}" r="1.8" fill="currentColor"/>`,
       )
     }
   }
@@ -540,11 +546,13 @@ function injectLauncherStyles() {
 .as-fab:hover{transform:scale(1.07);box-shadow:0 10px 28px rgba(0,0,0,.26)}
 .as-fab:active{transform:scale(.94)}
 .as-fab:focus-visible{outline:3px solid rgba(0,0,0,.35);outline-offset:3px}
-.as-dots{transition:transform .36s cubic-bezier(.16,1,.3,1)}
+.as-ico{position:relative;display:block;width:28px;height:28px}
+.as-ico>svg{position:absolute;inset:0;margin:auto}
+.as-dots{transition:transform .32s cubic-bezier(.16,1,.3,1),opacity .2s ease}
+.as-chevron{opacity:0;transform:rotate(-90deg) scale(.6);transition:transform .36s cubic-bezier(.16,1,.3,1),opacity .2s ease}
+.as-fab--open .as-chevron{opacity:1;transform:none}
 .as-dot{transform-box:fill-box;transform-origin:center;transition:opacity .18s ease,transform .3s cubic-bezier(.16,1,.3,1)}
-.as-fab--open .as-dots{transform:rotate(90deg)}
-.as-fab--open .as-dot:not(.as-dot--x){opacity:0;transform:scale(.2)}
-.as-fab--open .as-dot--x{transform:scale(1.2)}
+.as-fab--open .as-dots{transform:scale(.3) rotate(90deg);opacity:0}
 .as-row:has(.as-fab--open) .as-hint,.as-row--preview .as-hint{opacity:0!important}
 .as-preview{opacity:0;transform:translateY(10px) scale(.96);visibility:hidden;pointer-events:none;transition:opacity .22s ease,transform .36s cubic-bezier(.16,1,.3,1),visibility 0s linear .36s}
 .as-preview--on{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .22s ease,transform .36s cubic-bezier(.16,1,.3,1),visibility 0s}
@@ -553,7 +561,7 @@ function injectLauncherStyles() {
 @keyframes as-wave{0%,100%{transform:scale(1)}40%{transform:scale(1.3)}}
 .as-frame{opacity:0;transform:translateY(16px) scale(.94);visibility:hidden;pointer-events:none;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s linear .32s}
 .as-frame--open{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s}
-@media (prefers-reduced-motion: reduce){.as-fab,.as-dots,.as-dot,.as-frame,.as-frame--open,.as-preview,.as-preview--on{transition:none!important;animation:none!important}.as-fab:hover{transform:none}}
+@media (prefers-reduced-motion: reduce){.as-fab,.as-dots,.as-dot,.as-chevron,.as-frame,.as-frame--open,.as-preview,.as-preview--on{transition:none!important;animation:none!important}.as-fab:hover{transform:none}}
 `
   document.head.appendChild(style)
 }

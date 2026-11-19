@@ -126,6 +126,7 @@ function EmbedChatInner({
           agentName={agentName}
           logoUrl={theme?.logoUrl}
           onClose={onClose}
+          collapsible={displayMode === "modal"}
           onNewConversation={onNewConversation}
         />
       )}
