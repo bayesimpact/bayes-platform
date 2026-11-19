@@ -224,7 +224,7 @@ export function ConversationRunPage({
             </>
           }
         />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           <StatCard
             label={<Trans comment="The average score of a run">Average score</Trans>}
             value={summary?.averageScore == null ? "–" : scoreOf(summary.averageScore, i18n.locale)}
