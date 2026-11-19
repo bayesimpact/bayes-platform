@@ -192,22 +192,7 @@ export function ConversationRunPage({
                   <Trans comment="Stops a run under way">Cancel the run</Trans>
                 </Button>
               ) : null}
-              {canRetry ? (
-                <Button
-                  variant="outline"
-                  disabled={retryRun.isPending}
-                  onClick={() =>
-                    retryRun.mutate(run.id, {
-                      onSuccess: () => toast.success(t`The run started again.`),
-                      onError: () => toast.error(t`The run could not start again. Try again.`),
-                    })
-                  }
-                >
-                  <RotateCwIcon data-icon="inline-start" aria-hidden />
-                  <Trans comment="Asks again the records of a run that failed">Retry</Trans>
-                </Button>
-              ) : null}
-              {canDelete ? (
+              {canRetry || canDelete ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
@@ -215,10 +200,30 @@ export function ConversationRunPage({
                     <EllipsisIcon aria-hidden />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem variant="destructive" onClick={() => setConfirming("delete")}>
-                      <Trash2Icon aria-hidden />
-                      <Trans comment="Deletes a run">Delete</Trans>
-                    </DropdownMenuItem>
+                    {canRetry ? (
+                      <DropdownMenuItem
+                        disabled={retryRun.isPending}
+                        onClick={() =>
+                          retryRun.mutate(run.id, {
+                            onSuccess: () => toast.success(t`The run started again.`),
+                            onError: () =>
+                              toast.error(t`The run could not start again. Try again.`),
+                          })
+                        }
+                      >
+                        <RotateCwIcon aria-hidden />
+                        <Trans comment="Asks again the records of a run that failed">Retry</Trans>
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canDelete ? (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setConfirming("delete")}
+                      >
+                        <Trash2Icon aria-hidden />
+                        <Trans comment="Deletes a run">Delete</Trans>
+                      </DropdownMenuItem>
+                    ) : null}
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : null}
