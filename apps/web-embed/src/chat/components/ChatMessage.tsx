@@ -2,7 +2,7 @@ import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
 } from "@caseai-connect/api-contracts"
-import { AlertCircleIcon, CopyIcon } from "lucide-react"
+import { AlertCircleIcon, CheckIcon, CopyIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "../lib/cn"
@@ -74,6 +74,7 @@ export function ChatMessage({
       // "aborted": the stream died with the server before anything was written.
       const isError = message.status === "error" || message.status === "aborted" || isEmpty
       const showTextBubble = isError || isStreaming || bubbleContent.length > 0
+      const isCopyable = !isStreaming && !isError && bubbleContent.length > 0
 
       return (
         <div className="flex w-full flex-col">
@@ -81,7 +82,10 @@ export function ChatMessage({
             <ChatBotMessage>
               <div
                 className={cn(
-                  "rounded-2xl p-4 text-sm",
+                  "group relative rounded-2xl p-4 text-sm",
+                  // The copy button sits in the bubble's bottom-right corner, inside a bottom
+                  // padding of its own, so it never covers the last line of text.
+                  isCopyable && "pb-7",
                   isError
                     ? "border border-red-200 bg-red-50 text-red-800"
                     : "bg-gray-100 text-gray-900",
@@ -89,12 +93,12 @@ export function ChatMessage({
               >
                 {isStreaming && message.content.trim().length === 0 && <ThinkingIndicator />}
                 {isError ? <ErrorIndicator /> : <MarkdownWrapper content={bubbleContent} />}
+                {isCopyable && <CopyButton content={bubbleContent} />}
               </div>
 
-              {!isStreaming && !isError && bubbleContent.length > 0 && (
+              {!isStreaming && !isError && bubbleContent.length > 0 && sourcesTool && (
                 <div className="mt-1 flex flex-col items-start">
-                  <CopyButton content={bubbleContent} />
-                  {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
+                  <SourcesTool toolCall={sourcesTool} />
                 </div>
               )}
             </ChatBotMessage>
@@ -178,10 +182,11 @@ function CopyButton({ content }: { content: string }) {
       type="button"
       aria-label={t("message.copyAriaLabel")}
       disabled={copied}
+      title={t("message.copyAriaLabel")}
       onClick={() => void handleClick()}
-      className="flex size-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
+      className="absolute right-2 bottom-1 flex size-6 items-center justify-center rounded-md text-gray-400 opacity-0 transition hover:bg-gray-200 hover:text-gray-700 focus-visible:opacity-100 group-hover:opacity-100 disabled:opacity-100 [@media(hover:none)]:opacity-70"
     >
-      <CopyIcon className="size-3.5" />
+      {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
     </button>
   )
 }
