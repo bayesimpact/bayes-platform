@@ -133,6 +133,7 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
               selectedId={field.value}
               onSelect={field.onChange}
               description={<Trans>A run evaluates a saved version, never the draft.</Trans>}
+              selectedNote={<Trans>The evaluation asks this version</Trans>}
               error={
                 fieldState.invalid ? (
                   <Trans>Choose the version the evaluation asks.</Trans>

@@ -27,11 +27,14 @@ export function conversationRunColumnsOf({
   agent,
   locale,
   translate,
+  renderVersion,
   renderActions,
 }: {
   agent: AgentParamsDto
   locale: string
   translate: (descriptor: MessageDescriptor) => string
+  /** The version a run asked, which opens the history of the agent's versions on it. */
+  renderVersion: (run: ConversationRunOutputDto) => ReactNode
   /** What a row offers: the way to its run, and what the person can do with it. */
   renderActions: (run: ConversationRunOutputDto) => ReactNode
 }): ColumnDef<ConversationRunOutputDto, unknown>[] {
@@ -56,6 +59,7 @@ export function conversationRunColumnsOf({
     columnHelper.accessor((run) => run.agentSettings.revision, {
       id: "version",
       header: translate(runColumnLabels.version),
+      cell: (context) => renderVersion(context.row.original),
       meta: { headerClassName: "text-right", cellClassName: "text-right tabular-nums" },
     }),
     columnHelper.accessor("judgeModel", {

@@ -31,6 +31,7 @@ export function AgentVersionField({ control, agentParams, agentName }: AgentVers
               Testers chat with this version and reviewers read it, for the whole campaign.
             </Trans>
           }
+          selectedNote={<Trans>The campaign runs on this version</Trans>}
           error={
             fieldState.invalid ? <Trans>Choose the version the campaign runs on.</Trans> : undefined
           }

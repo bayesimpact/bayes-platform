@@ -24,9 +24,10 @@ export type AgentVersionCompareProps = {
   /** The saved version before it, none for the first one. */
   previous: AgentVersionOutputDto | undefined
   production: AgentVersionOutputDto | undefined
-  /** Whether the campaign runs on this version already. */
+  /** Whether this version is the one chosen already. */
   isSelected: boolean
-  onSelect: () => void
+  /** Picks this version; `null` shows no button, as when the versions are only read. */
+  onSelect: (() => void) | null
 }
 
 /**
@@ -59,16 +60,18 @@ export function AgentVersionCompare({
         <h3 className="text-base font-semibold">
           <AgentVersionTitle version={version} />
         </h3>
-        <Button onClick={onSelect} disabled={isSelected}>
-          {isSelected ? (
-            <>
-              <CheckIcon data-icon="inline-start" />
-              <Trans comment="The version a review campaign runs on already">Selected</Trans>
-            </>
-          ) : (
-            <Trans>Select this version</Trans>
-          )}
-        </Button>
+        {onSelect ? (
+          <Button onClick={onSelect} disabled={isSelected}>
+            {isSelected ? (
+              <>
+                <CheckIcon data-icon="inline-start" />
+                <Trans comment="The version a review campaign runs on already">Selected</Trans>
+              </>
+            ) : (
+              <Trans>Select this version</Trans>
+            )}
+          </Button>
+        ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3 md:px-6">
         <ToggleGroup

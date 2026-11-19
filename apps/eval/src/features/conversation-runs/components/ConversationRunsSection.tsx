@@ -1,5 +1,6 @@
 import type {
   AgentParamsDto,
+  AgentVersionOutputDto,
   ConversationDatasetParamsDto,
   ConversationRunOutputDto,
 } from "@caseai-connect/eval-contracts"
@@ -22,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
 import { fullDateTimeOf } from "@/lib/format-time"
 import { useDeleteConversationRun } from "../api/mutations"
 import { projectConversationRunsQueryOptions } from "../api/queries"
@@ -30,6 +32,8 @@ import { conversationRunColumnsOf } from "./conversation-run-columns"
 
 export type ConversationRunsSectionProps = {
   agentParams: AgentParamsDto
+  /** The name of the agent, which titles the history of its versions. */
+  agentName: string
   dataset: ConversationDatasetParamsDto
   /** Whether the person deletes runs. */
   canDelete: boolean
@@ -41,12 +45,17 @@ export type ConversationRunsSectionProps = {
  */
 export function ConversationRunsSection({
   agentParams,
+  agentName,
   dataset,
   canDelete,
 }: ConversationRunsSectionProps) {
   const { t, i18n } = useLingui()
   const { data: projectRuns } = useSuspenseQuery(projectConversationRunsQueryOptions(dataset))
   const [deleted, setDeleted] = useState<ConversationRunOutputDto | null>(null)
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
+  // The version a run asked, whose history shows.
+  const [shownRevision, setShownRevision] = useState<number | null>(null)
+  const shownVersion = versions.find((version) => version.revision === shownRevision)
   const deleteRun = useDeleteConversationRun(dataset)
   // The agent's own runs: the sidebar names the agent, so the page is about it alone.
   const runs = projectRuns.filter(
@@ -96,11 +105,26 @@ export function ConversationRunsSection({
                 runs={runs.filter((run) => run.status === status)}
                 agentParams={agentParams}
                 datasetId={dataset.datasetId}
+                versions={versions}
+                onShowVersion={setShownRevision}
                 onDelete={canDelete ? setDeleted : null}
               />
             </TabsContent>
           ))}
         </Tabs>
+      ) : null}
+      {shownVersion ? (
+        <AgentVersionsSheet
+          isOpen
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setShownRevision(null)
+          }}
+          agentName={agentName}
+          versions={versions}
+          selectedId={shownVersion.id}
+          selectedNote={<Trans>The run asked this version</Trans>}
+          onSelect={null}
+        />
       ) : null}
       <ConfirmDialog
         isOpen={deleted !== null}
@@ -131,12 +155,22 @@ type RunsTableProps = {
   runs: ConversationRunOutputDto[]
   agentParams: AgentParamsDto
   datasetId: string
+  /** The saved versions of the agent, which a run's version opens. */
+  versions: AgentVersionOutputDto[]
+  onShowVersion: (revision: number) => void
   /** Asks to delete a run, for who may; none hides the action. */
   onDelete: ((run: ConversationRunOutputDto) => void) | null
 }
 
 /** The runs that stand at one status. */
-function RunsTable({ runs, agentParams, datasetId, onDelete }: RunsTableProps) {
+function RunsTable({
+  runs,
+  agentParams,
+  datasetId,
+  versions,
+  onShowVersion,
+  onDelete,
+}: RunsTableProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { t, i18n } = useLingui()
@@ -146,6 +180,22 @@ function RunsTable({ runs, agentParams, datasetId, onDelete }: RunsTableProps) {
       agent: agentParams,
       locale: i18n.locale,
       translate: (descriptor) => i18n._(descriptor),
+      renderVersion: (run) => {
+        const revision = run.agentSettings.revision
+        // An archived version is not in the history: its number shows alone.
+        if (!versions.some((version) => version.revision === revision)) return revision
+        return (
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 tabular-nums"
+            aria-label={t`Compare version ${revision} with the others`}
+            onClick={() => onShowVersion(revision)}
+          >
+            {revision}
+          </Button>
+        )
+      },
       renderActions: (run) => {
         const started = fullDateTimeOf(run.createdAt, i18n.locale)
         return (

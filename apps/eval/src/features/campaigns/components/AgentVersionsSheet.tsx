@@ -1,6 +1,6 @@
 import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
-import { useState } from "react"
+import { type ReactNode, useState } from "react"
 import {
   Sheet,
   SheetContent,
@@ -17,15 +17,18 @@ export type AgentVersionsSheetProps = {
   agentName: string
   /** The saved versions of the agent, newest first: never empty. */
   versions: AgentVersionOutputDto[]
-  /** The version the campaign runs on, none while it has none. */
+  /** The version the history opens on and marks: the one chosen, none while there is none. */
   selectedId: string
-  onSelect: (versionId: string) => void
+  /** What marks that version in the list, such as: The campaign runs on this version. */
+  selectedNote: ReactNode
+  /** Picks a version; `null` leaves the history to read and compare only. */
+  onSelect: ((versionId: string) => void) | null
 }
 
 /**
  * The history of the agent's saved versions, as the Studio shows it: each version, what it
- * changed, and how it differs from the one in production. The manager picks the one the
- * campaign runs on.
+ * changed, and how it differs from the one in production. Its owner may let the person pick one,
+ * for a campaign or an evaluation, or only show them, as from a run.
  */
 export function AgentVersionsSheet({
   isOpen,
@@ -33,6 +36,7 @@ export function AgentVersionsSheet({
   agentName,
   versions,
   selectedId,
+  selectedNote,
   onSelect,
 }: AgentVersionsSheetProps) {
   return (
@@ -46,14 +50,20 @@ export function AgentVersionsSheet({
             <Trans>Versions of {agentName}</Trans>
           </SheetTitle>
           <SheetDescription>
-            <Trans>
-              Browse and compare the saved versions of the agent, then choose the one the campaign
-              runs on.
-            </Trans>
+            {onSelect ? (
+              <Trans>Browse and compare the saved versions of the agent, then choose one.</Trans>
+            ) : (
+              <Trans>Browse and compare the saved versions of the agent.</Trans>
+            )}
           </SheetDescription>
         </SheetHeader>
         {/* Its own component: the version shown starts from the selected one at each opening. */}
-        <AgentVersionsBrowser versions={versions} selectedId={selectedId} onSelect={onSelect} />
+        <AgentVersionsBrowser
+          versions={versions}
+          selectedId={selectedId}
+          selectedNote={selectedNote}
+          onSelect={onSelect}
+        />
       </SheetContent>
     </Sheet>
   )
@@ -61,10 +71,15 @@ export function AgentVersionsSheet({
 
 type AgentVersionsBrowserProps = Pick<
   AgentVersionsSheetProps,
-  "versions" | "selectedId" | "onSelect"
+  "versions" | "selectedId" | "selectedNote" | "onSelect"
 >
 
-function AgentVersionsBrowser({ versions, selectedId, onSelect }: AgentVersionsBrowserProps) {
+function AgentVersionsBrowser({
+  versions,
+  selectedId,
+  selectedNote,
+  onSelect,
+}: AgentVersionsBrowserProps) {
   const [shownId, setShownId] = useState(
     () => versions.find((version) => version.id === selectedId)?.id ?? versions[0]?.id ?? "",
   )
@@ -77,6 +92,7 @@ function AgentVersionsBrowser({ versions, selectedId, onSelect }: AgentVersionsB
         versions={versions}
         shownId={shown.id}
         selectedId={selectedId}
+        selectedNote={selectedNote}
         onShow={setShownId}
       />
       <AgentVersionCompare
@@ -86,7 +102,7 @@ function AgentVersionsBrowser({ versions, selectedId, onSelect }: AgentVersionsB
         previous={versions[index + 1]}
         production={versions.find((version) => version.isProduction)}
         isSelected={shown.id === selectedId}
-        onSelect={() => onSelect(shown.id)}
+        onSelect={onSelect ? () => onSelect(shown.id) : null}
       />
     </div>
   )

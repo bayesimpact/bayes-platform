@@ -156,6 +156,7 @@ export function ConversationDatasetPage({
       {tab === "runs" ? (
         <ConversationRunsSection
           agentParams={agentParams}
+          agentName={agent.name}
           dataset={datasetParams}
           canDelete={can(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION)}
         />

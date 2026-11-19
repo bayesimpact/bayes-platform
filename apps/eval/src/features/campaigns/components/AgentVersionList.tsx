@@ -1,6 +1,7 @@
 import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
+import type { ReactNode } from "react"
 import { fullDateOf } from "@/lib/format-time"
 import { AgentVersionTitle } from "./AgentVersionTitle"
 
@@ -8,13 +9,21 @@ export type AgentVersionListProps = {
   versions: AgentVersionOutputDto[]
   /** The version the right pane shows. */
   shownId: string
-  /** The version the campaign runs on, which the list marks. */
+  /** The version chosen, which the list marks. */
   selectedId: string
+  /** What marks it. */
+  selectedNote: ReactNode
   onShow: (versionId: string) => void
 }
 
 /** The left pane of the versions: the saved versions of the agent, newest first. */
-export function AgentVersionList({ versions, shownId, selectedId, onShow }: AgentVersionListProps) {
+export function AgentVersionList({
+  versions,
+  shownId,
+  selectedId,
+  selectedNote,
+  onShow,
+}: AgentVersionListProps) {
   const { i18n } = useLingui()
   return (
     <ul className="flex max-h-56 shrink-0 flex-col overflow-y-auto border-b md:max-h-none md:w-72 md:border-r md:border-b-0">
@@ -37,9 +46,7 @@ export function AgentVersionList({ versions, shownId, selectedId, onShow }: Agen
                 <Trans>Saved on {savedOn}</Trans>
               </span>
               {version.id === selectedId ? (
-                <span className="text-xs font-medium text-primary">
-                  <Trans>The campaign runs on this version</Trans>
-                </span>
+                <span className="text-xs font-medium text-primary">{selectedNote}</span>
               ) : null}
             </button>
           </li>

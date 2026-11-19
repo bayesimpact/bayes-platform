@@ -413,8 +413,12 @@ msgid "Back to the app"
 msgstr "Back to the app"
 
 #: src/features/campaigns/components/AgentVersionsSheet.tsx
-msgid "Browse and compare the saved versions of the agent, then choose the one the campaign runs on."
-msgstr "Browse and compare the saved versions of the agent, then choose the one the campaign runs on."
+msgid "Browse and compare the saved versions of the agent, then choose one."
+msgstr "Browse and compare the saved versions of the agent, then choose one."
+
+#: src/features/campaigns/components/AgentVersionsSheet.tsx
+msgid "Browse and compare the saved versions of the agent."
+msgstr "Browse and compare the saved versions of the agent."
 
 #. Opens the dialog that adds several records to a dataset at once
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
@@ -528,6 +532,10 @@ msgstr "Closing ends the campaign for good: testers can no longer start sessions
 #: src/features/campaigns/components/FeedbackFormFields.tsx
 msgid "Comment"
 msgstr "Comment"
+
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "Compare version {revision} with the others"
+msgstr "Compare version {revision} with the others"
 
 #. The label of the choice of what a version is compared with
 #: src/features/campaigns/components/AgentVersionCompare.tsx
@@ -2160,7 +2168,7 @@ msgstr "The campaign is closed: you can read the sessions and the reviews."
 msgid "The campaign is closed."
 msgstr "The campaign is closed."
 
-#: src/features/campaigns/components/AgentVersionList.tsx
+#: src/features/campaigns/components/AgentVersionField.tsx
 msgid "The campaign runs on this version"
 msgstr "The campaign runs on this version"
 
@@ -2215,6 +2223,10 @@ msgstr "The document could not be opened. Try again."
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
+
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+msgid "The evaluation asks this version"
+msgstr "The evaluation asks this version"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "The evaluation could not start. Try again."
@@ -2340,6 +2352,10 @@ msgstr "The reviewers of this campaign can read everything exchanged in this ses
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 msgid "The run and its results are deleted for good."
 msgstr "The run and its results are deleted for good."
+
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "The run asked this version"
+msgstr "The run asked this version"
 
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "The run could not be cancelled. Try again."

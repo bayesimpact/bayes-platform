@@ -315,6 +315,21 @@ describe("the stories of the app", () => {
     ).toBeInTheDocument()
   })
 
+  it("DatasetRuns opens the history of the agent's versions from a run's version, only to read", async () => {
+    const { DatasetRuns } = pageStories
+    await DatasetRuns.load()
+    render(<DatasetRuns />)
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Compare version 2 with the others" }),
+    )
+    const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    expect(within(sheet).getByText("The run asked this version")).toBeInTheDocument()
+    expect(
+      within(sheet).queryByRole("button", { name: "Select this version" }),
+    ).not.toBeInTheDocument()
+  })
+
   it("AddRecord asks a record's input and expected output", async () => {
     await AddRecord.load()
     const { container } = render(<AddRecord />)

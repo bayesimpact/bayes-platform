@@ -413,8 +413,12 @@ msgid "Back to the app"
 msgstr "Retour à l'accueil"
 
 #: src/features/campaigns/components/AgentVersionsSheet.tsx
-msgid "Browse and compare the saved versions of the agent, then choose the one the campaign runs on."
-msgstr "Parcourez et comparez les versions enregistrées de l'agent, puis choisissez celle sur laquelle tourne la campagne."
+msgid "Browse and compare the saved versions of the agent, then choose one."
+msgstr "Parcourez et comparez les versions enregistrées de l'agent, puis choisissez-en une."
+
+#: src/features/campaigns/components/AgentVersionsSheet.tsx
+msgid "Browse and compare the saved versions of the agent."
+msgstr "Parcourez et comparez les versions enregistrées de l'agent."
 
 #. Opens the dialog that adds several records to a dataset at once
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
@@ -528,6 +532,10 @@ msgstr "La clôture est définitive : les testeurs ne peuvent plus démarrer de 
 #: src/features/campaigns/components/FeedbackFormFields.tsx
 msgid "Comment"
 msgstr "Commentaire"
+
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "Compare version {revision} with the others"
+msgstr "Comparer la version {revision} aux autres"
 
 #. The label of the choice of what a version is compared with
 #: src/features/campaigns/components/AgentVersionCompare.tsx
@@ -2160,7 +2168,7 @@ msgstr "La campagne est clôturée : vous pouvez lire les sessions et les relect
 msgid "The campaign is closed."
 msgstr "La campagne est clôturée."
 
-#: src/features/campaigns/components/AgentVersionList.tsx
+#: src/features/campaigns/components/AgentVersionField.tsx
 msgid "The campaign runs on this version"
 msgstr "La campagne tourne sur cette version"
 
@@ -2215,6 +2223,10 @@ msgstr "Le document n'a pas pu être ouvert. Réessayez."
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "Le brouillon et ses questions sont supprimés définitivement. Une campagne active ou clôturée ne peut pas être supprimée."
+
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+msgid "The evaluation asks this version"
+msgstr "L'évaluation interroge cette version"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "The evaluation could not start. Try again."
@@ -2340,6 +2352,10 @@ msgstr "Les relecteurs de cette campagne peuvent lire tout ce qui est échangé 
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 msgid "The run and its results are deleted for good."
 msgstr "L'exécution et ses résultats sont supprimés définitivement."
+
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+msgid "The run asked this version"
+msgstr "L'exécution a interrogé cette version"
 
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "The run could not be cancelled. Try again."

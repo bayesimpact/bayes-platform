@@ -18,6 +18,8 @@ export type AgentVersionPickerProps = {
   onSelect: (versionId: string) => void
   /** What the version is chosen for, under the field's name. */
   description: ReactNode
+  /** What marks the chosen version in the history, such as: The campaign runs on this version. */
+  selectedNote: ReactNode
   /** What the field says when no version is chosen and one is needed. */
   error?: ReactNode
 }
@@ -32,6 +34,7 @@ export function AgentVersionPicker({
   selectedId,
   onSelect,
   description,
+  selectedNote,
   error,
 }: AgentVersionPickerProps) {
   const { i18n } = useLingui()
@@ -78,6 +81,7 @@ export function AgentVersionPicker({
             agentName={agentName}
             versions={versions}
             selectedId={selectedId}
+            selectedNote={selectedNote}
             onSelect={(versionId) => {
               onSelect(versionId)
               setIsOpen(false)
