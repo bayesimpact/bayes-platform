@@ -61,8 +61,9 @@ export function ExtractionDatasetPage({
       agentParams={agentParams}
       dataset={dataset}
       tab={hasRecords ? tab : null}
-      // The records have a column per column of the file.
-      isWide={hasRecords && tab === "records"}
+      // The records have a column per column of the file. The runs take the same width, so the
+      // page does not change width from one tab to the other.
+      isWide={hasRecords}
       run={
         can(EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION)
           ? { disabledReason: hasRecords ? null : t`Build the dataset from a CSV file first.` }
