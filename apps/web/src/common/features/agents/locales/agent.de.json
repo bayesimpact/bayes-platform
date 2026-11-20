@@ -82,7 +82,6 @@
     },
     "playground": "Playground",
     "notifications": {
-      "updated": "Agent erfolgreich aktualisiert",
       "updateError": "Agent konnte nicht aktualisiert werden",
       "deleted": "Agent erfolgreich gelöscht",
       "deleteError": "Agent konnte nicht gelöscht werden",
@@ -90,6 +89,15 @@
       "createError": "Agent konnte nicht erstellt werden",
       "duplicated": "Agent als Entwurf dupliziert",
       "duplicateError": "Agent konnte nicht dupliziert werden"
+    },
+    "evaluationCard": {
+      "description": "Die Antworten des Agenten anhand eines Datensatzes messen.",
+      "open": "Evaluierung in einem neuen Tab öffnen"
+    },
+    "productionAppCard": {
+      "description": "Der Agent, wie seine Benutzer ihn sehen, in seiner veröffentlichten Version.",
+      "open": "App in einem neuen Tab öffnen",
+      "badge": "Produktion"
     }
   }
 }

@@ -10,12 +10,17 @@
       "createdAt": "Fecha de creación",
       "placeholders": {
         "content": "Describa el problema que encontró con este mensaje..."
+      },
+      "rating": {
+        "positive": "Buena respuesta",
+        "negative": "Problema notificado"
       }
     },
     "create": {
       "button": "Notificar",
       "title": "Notificar un problema con este mensaje",
-      "description": "Indique los detalles del problema que encontró con este mensaje. Sus comentarios nos ayudarán a mejorar nuestros agentes."
+      "description": "Indique los detalles del problema que encontró con este mensaje. Sus comentarios nos ayudarán a mejorar nuestros agentes.",
+      "negative": "Notificar un problema"
     },
     "list": {
       "description": "Gestione los comentarios sobre los mensajes del agente.",

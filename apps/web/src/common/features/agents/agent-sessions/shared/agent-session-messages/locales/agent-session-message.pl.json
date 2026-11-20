@@ -1,20 +1,21 @@
 {
   "agentSessionMessage": {
     "attachment": "Załącznik",
+    "followUpQuestions": "Sugerowane pytania",
     "navigator": {
       "title": "Przejdź do wiadomości",
       "trigger": "Przejdź do wiadomości",
       "search": "Szukaj pytań…",
       "empty": "Brak pasujących pytań"
     },
-    "thinking": [
-      "Myślę…",
-      "Wciąż myślę…",
-      "Analizuję…",
-      "Łączę fakty…",
-      "Składam odpowiedź…",
-      "Zaczynam pisać…"
-    ],
+    "thinking": {
+      "0": "Myślę…",
+      "1": "Wciąż myślę…",
+      "2": "Analizuję…",
+      "3": "Łączę fakty…",
+      "4": "Składam odpowiedź…",
+      "5": "Zaczynam pisać…"
+    },
     "interrupted": "Ta odpowiedź została przerwana przed zakończeniem.",
     "mcpApp": {
       "loading": "Wczytywanie interaktywnej karty…"

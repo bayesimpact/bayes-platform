@@ -8,6 +8,7 @@
     "helpCenter": "Hilfecenter",
     "editProfile": "Profil bearbeiten",
     "connectedApps": "Verbundene Apps",
+    "version": "Version {{version}}",
     "editProfileDialog": {
       "title": "Profil bearbeiten",
       "namePlaceholder": "Ihr Name",
@@ -24,10 +25,13 @@
     "invitations": {
       "title": "Offene Einladungen",
       "description": "Nehmen Sie eine Einladung an, um Zugriff zu erhalten.",
-      "projectBadge": "Projekt",
+      "projectBadge": "Arbeitsbereich",
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Review-Kampagne",
-      "roleLabel": "Rolle"
+      "roleLabel": "Rolle",
+      "workspaceRoleLabel": "Rolle im Arbeitsbereich",
+      "agentsLabel": "Agentenzugriff",
+      "everyAgent": "Alle Agenten"
     },
     "notifications": {
       "invitationAnswerError": "Die Einladung konnte nicht beantwortet werden",

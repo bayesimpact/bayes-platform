@@ -4,17 +4,21 @@
     "agentSettingsHistory": "Historial de configuración del agente",
     "selectAgentSettings": "Seleccionar configuración del agente",
     "props": {
+      "nameDescription": "Este nombre identifica al agente en el Studio y en la aplicación. El agente no lo conoce: si se le pregunta su nombre, no responde con este. Para darle un nombre, escríbalo en las instrucciones.",
       "createdAt": "Fecha de creación",
       "instructions": "Instrucciones",
       "formConfiguration": "Configuración del formulario",
       "greeting": "Mensaje de bienvenida",
       "documentsRagMode": "Fuente de las respuestas",
-      "locale": "Idioma",
       "model": "Modelo",
       "outputJsonSchema": "Esquema JSON de salida",
       "fillFormEnabled": "Completar formularios",
       "priorityCallsEnabled": "Llamadas prioritarias",
       "promptVariables": "Variables del prompt",
+      "embeddingModel": "Modelo de embedding",
+      "followUpSuggestionsEnabled": "Preguntas de seguimiento",
+      "followUpSuggestionsInstructions": "Instrucciones de las preguntas de seguimiento",
+      "followUpSuggestionsMax": "Número máximo de preguntas de seguimiento",
       "schemaBuilder": {
         "advancedMode": "Modo avanzado",
         "visualMode": "Editor visual",
@@ -35,8 +39,8 @@
         "orderQuestionsHint": "Si está activado, el asistente pide cada campo en el orden siguiente. Desactívelo para que elija el orden.",
         "enumValuesEmpty": "Añadir opciones",
         "enumValues_one": "{{count}} opción",
-        "enumValues_other": "{{count}} opciones",
         "enumValues_many": "{{count}} opciones",
+        "enumValues_other": "{{count}} opciones",
         "enumValuesPlaceholder": "Añadir una opción",
         "enumValueAdd": "Añadir opción",
         "enumValueRemove": "Quitar la opción {{value}}",
@@ -72,9 +76,9 @@
         "greeting": "Mensaje de bienvenida opcional que el agente envía primero al iniciar una nueva conversación",
         "documentsRagMode": "Seleccione el uso de los documentos",
         "model": "Seleccione un modelo",
+        "embeddingModel": "Seleccione el modelo de embedding",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Introduzca la temperatura 0.0 - 2.0",
-        "locale": "Seleccione el idioma de las respuestas del agente",
         "thinkingLevel": "Seleccione el nivel de razonamiento"
       },
       "validation": {
@@ -86,12 +90,16 @@
       },
       "thinkingLevel": "Nivel de razonamiento",
       "thinkingLevels": {
+        "none": "Ninguno",
         "minimal": "Mínimo",
         "low": "Bajo",
         "medium": "Medio",
         "high": "Alto"
       },
-      "modelOptions": "Opciones del modelo"
+      "modelOptions": "Opciones del modelo",
+      "characterCount_one": "{{formattedCount}} carácter",
+      "characterCount_other": "{{formattedCount}} caracteres",
+      "characterCountWithMax": "{{current}} / {{max}} caracteres"
     },
     "defaultPromptDialog": {
       "title": "Instrucciones",
@@ -103,7 +111,6 @@
       "model": "Modelo",
       "output": "Salida",
       "sources": "Fuentes",
-      "resourceLibraries": "Bibliotecas de recursos",
       "tools": "Herramientas",
       "categories": "Categorías de conversación",
       "orchestration": "Orquestación",
@@ -121,10 +128,26 @@
       "title": "Cambios sin guardar",
       "description": "Tiene cambios sin guardar que se perderán. ¿Desea descartarlos?"
     },
+    "autosave": {
+      "saving": "Guardando…",
+      "saved": "Borrador guardado",
+      "unsaved": "Cambios sin guardar",
+      "refused": "No se pudo guardar este cambio",
+      "unsavedBeforeVersions": "Corrija los cambios sin guardar antes de gestionar las versiones",
+      "productionVersion": "v{{revision}} · en producción",
+      "savedVersion": "v{{revision}} · guardada"
+    },
+    "liveSettings": {
+      "immediate": "Un cambio aquí se aplica de inmediato <strong>en producción</strong>.",
+      "notice": "Los cambios aquí se aplican al agente en producción en cuanto guarde.",
+      "confirmSave": {
+        "title": "¿Aplicar esta configuración ahora?",
+        "description": "Estos cambios se aplican al agente <strong>en producción</strong> en cuanto guarde."
+      }
+    },
     "create": {
       "button": "Guardar versión",
       "noDraft": "No hay ningún borrador que crear. Guarde primero un cambio para crear una nueva versión en borrador.",
-      "unsavedChanges": "Guarde o descarte sus cambios antes de publicar.",
       "optional": "Opcional",
       "props": {
         "revisionName": "Nombre de la versión",
@@ -132,28 +155,29 @@
         "placeholders": {
           "revisionName": "Asigne un nombre a esta versión",
           "revisionDesc": "Describa qué cambió en esta versión"
-        }
+        },
+        "setAsProduction": "Poner esta versión en producción"
       },
       "dialog": {
         "title": "¿Guardar la versión {{revision}}?",
-        "description": "La versión {{revision}} pasa a ser la configuración con la que funciona este agente. Los cambios posteriores inician una nueva versión en borrador.",
+        "description": "La versión {{revision}} queda fijada. Los cambios posteriores inician una nueva versión en borrador.",
         "submit": "Guardar versión"
-      }
+      },
+      "setAsProductionDescription": "La aplicación, la integración y la API pública iniciarán las nuevas conversaciones con ella. Si no, la versión {{current}} sigue en producción.",
+      "firstVersionProduction": "Es la primera versión guardada del agente, así que pasa a producción."
     },
     "history": {
-      "button": "Historial",
       "title": "Historial de versiones",
-      "description": "Explore, compare y restaure configuraciones anteriores de {{name}}.",
+      "description": "Explore, compare y restaure las versiones de {{name}}, y elija la que está en producción.",
       "loadError": "No se pudo cargar el historial de versiones",
       "revisionLabel": "Versión {{revision}}",
-      "currentBadge": "Actual",
       "revisionBadge": "v{{revision}}",
       "revisionBadgeAria": "Versión {{revision}} de la configuración del agente",
       "messageRevisionTooltip": "Respondido con la versión {{revision}}",
       "runRevisionTooltip": "Extraído con la versión {{revision}}",
       "headerRevisionTooltip": "Los nuevos mensajes usan la versión {{revision}}",
       "compareWithPrevious": "Cambios en esta versión",
-      "compareWithCurrent": "Comparar con la actual",
+      "compareWithCurrent": "Comparar con producción",
       "compareWithDraft": "Comparar con el borrador",
       "comparing": "Cambios de la versión {{before}} a la versión {{after}}.",
       "noChangesTitle": "Sin diferencias",
@@ -163,16 +187,21 @@
       "restore": "Restaurar esta versión",
       "restoreDialog": {
         "title": "¿Restaurar la versión {{revision}}?",
-        "description": "La configuración de la versión {{revision}} se copiará como una nueva versión y pasará a ser la configuración actual. No se elimina ninguna versión."
+        "description": "La configuración de la versión {{revision}} se copia en el borrador para que pueda modificarla y guardarla como una nueva versión. La versión en producción no cambia."
       },
-      "draft": "Borrador"
+      "draft": "Borrador",
+      "manage": "Gestionar versiones",
+      "changedFields_one": "{{count}} campo modificado:",
+      "changedFields_other": "{{count}} campos modificados:",
+      "advancedMode": "Modo avanzado",
+      "advancedModeHint": "Compara el borrador con la v{{revision}}, la última versión guardada. Sus cambios van al borrador."
     },
     "version": {
       "ariaLabel": "Versión de la configuración que usan los nuevos mensajes",
       "extractionAriaLabel": "Versión de la configuración que usan las extracciones",
       "placeholder": "Seleccionar una versión",
       "item": "v{{revision}} — {{detail}}",
-      "current": "Actual ({{date}})"
+      "current": "En producción ({{date}})"
     },
     "orchestration": {
       "selectedTitle": "Subagentes",
@@ -183,6 +212,10 @@
       "missingAgent": "Agente no encontrado",
       "add": "Añadir",
       "remove": "Quitar",
+      "removeConfirm": {
+        "title": "¿Quitar {{name}} de los subagentes?",
+        "description": "Se perderán el nombre de la herramienta y su descripción."
+      },
       "enabled": "Activado",
       "disabled": "Desactivado",
       "toolName": "Nombre de la herramienta",
@@ -201,15 +234,15 @@
       "loading": "Cargando la configuración de integración…",
       "loadError": "No se pudo cargar la configuración de integración.",
       "enabledLabel": "Activar integración",
-      "enabledDescription": "Permitir que {{name}} se integre en sitios web externos mediante un iframe.",
-      "snippetLabel": "Código de integración",
-      "snippetDescription": "Pegue esta etiqueta <script> antes de la etiqueta de cierre </body> en cada página donde quiera que aparezca el widget de chat.",
+      "enabledDescription": "Hace que {{name}} esté disponible fuera de la plataforma: el widget, la página pública y la API pública. Si se desactiva, los tres dejan de funcionar.",
+      "snippetLabel": "Widget en un sitio web",
+      "snippetDescription": "Pegue esta etiqueta <script> antes de la etiqueta de cierre </body> en cada página donde deba aparecer el widget de chat.",
       "snippetHint": "Atributos opcionales: data-color=\"#2563eb\" (color del botón), data-locale=\"fr\" (idioma del widget), data-display-mode=\"drawer\" (panel lateral en lugar de burbuja), data-hint=\"¿Necesita ayuda?\" (información que se muestra al cargar y al pasar el cursor).",
-      "publicPageLabel": "Enlace de la página pública",
+      "publicPageLabel": "Página pública",
       "publicPageDescription": "Comparta este enlace, o un código QR del mismo, para que {{name}} esté disponible sin un sitio web anfitrión.",
       "publicPageHint": "La página solo funciona mientras la integración está activada. Añada &locale=fr para forzar el idioma.",
       "allowedOriginsLabel": "Orígenes permitidos",
-      "allowedOriginsDescription": "Lista de orígenes permitidos separados por comas (p. ej., https://app.example.com). Déjela vacía para permitir todos los orígenes.",
+      "allowedOriginsDescription": "Déjela vacía por ahora. El widget llama a la plataforma desde {{embedOrigin}}, no desde su sitio web: una lista sin esta dirección bloquea el widget. La comprobación del sitio web que muestra el widget aún no está disponible.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
       "titleLabel": "Título del widget",
       "titleDescription": "Título que se muestra en la cabecera del chat. Si se deja vacío, se usa {{name}}.",
@@ -220,20 +253,42 @@
       "primaryColorDescription": "Color principal de la cabecera del widget de chat. Introduzca un valor hexadecimal (p. ej., #2563eb).",
       "bannerTextLabel": "Texto del aviso",
       "bannerTextDescription": "Aviso opcional fijado sobre la conversación, en la página pública y en el widget. Úselo para indicar el contexto, como una versión de prueba o el público al que se dirige.",
-      "bannerTextPlaceholder": "Versión de prueba, solo para el equipo piloto"
+      "bannerTextPlaceholder": "Versión de prueba, solo para el equipo piloto",
+      "appearance": {
+        "title": "Apariencia",
+        "description": "Se muestra en la cabecera del widget y de la página pública."
+      },
+      "apiSection": {
+        "title": "API pública",
+        "description": "Para crear su propia interfaz de chat, llame directamente a la API en lugar de usar el widget."
+      },
+      "apiBaseUrlLabel": "URL base",
+      "apiBaseUrlDescription": "Todas las rutas de la API empiezan con esta URL. Contiene el token de integración de este agente.",
+      "apiReferenceLink": "Leer la referencia de la API",
+      "widgetGuideLink": "Leer la guía del widget"
     },
     "promptVariables": {
       "title": "Variables del prompt",
       "description": "Valores predeterminados de las variables que el agente declara en sus instrucciones. Se usan cuando una sesión empieza sin valor para alguna de ellas."
     },
-    "source_one": "{{count}} fuente",
-    "source_other": "{{count}} fuentes",
-    "source_many": "{{count}} fuentes",
     "source_zero": "Sin fuentes",
+    "source_one": "{{count}} fuente",
+    "source_many": "{{count}} fuentes",
+    "source_other": "{{count}} fuentes",
     "model": {
+      "generation": {
+        "title": "Generación de respuestas",
+        "description": "El modelo que redacta las respuestas del agente."
+      },
       "priorityCalls": {
         "title": "Llamadas prioritarias",
         "description": "Tiempo de respuesta menor y más estable, con un costo por llamada más alto."
+      },
+      "embeddingModel": {
+        "title": "Búsqueda en los documentos",
+        "description": "El modelo que encuentra, en los documentos del proyecto, los pasajes relacionados con cada pregunta.",
+        "help": "Un modelo aparece cuando el proyecto ha terminado de generar los embeddings de sus documentos con él.",
+        "chooseDocuments": "Elegir los documentos consultados"
       }
     },
     "tools": {
@@ -241,6 +296,14 @@
         "title": "Completar formularios",
         "description": "Permite al agente rellenar un formulario estructurado a partir de las respuestas del usuario durante la conversación.",
         "schemaDescription": "Defina los campos del formulario que el agente debe rellenar. El orden de los campos es el orden en que el agente hace sus preguntas."
+      },
+      "followUpSuggestions": {
+        "title": "Sugerir preguntas de seguimiento",
+        "description": "Después de una respuesta, el agente puede sugerir preguntas cortas en las que el usuario hace clic para continuar la conversación.",
+        "instructions": "Instrucciones",
+        "instructionsDescription": "Opcional. Indique al agente cuándo y cómo escribir las preguntas.",
+        "instructionsPlaceholder": "Por ejemplo: solo cuando la respuesta contiene un término difícil.",
+        "max": "Máximo por respuesta"
       },
       "memory": {
         "title": "Memoria",
@@ -255,14 +318,35 @@
     "notifications": {
       "versionRestored": "Versión del agente restaurada correctamente",
       "versionRestoreError": "No se pudo restaurar la versión del agente",
-      "versionPublished": "Versión del agente publicada correctamente",
+      "versionPublished": "Versión del agente guardada",
       "versionPublishError": "No se pudo publicar la versión del agente",
-      "updated": "Agente actualizado correctamente",
-      "updateError": "No se pudo actualizar el agente",
       "embedConfigUpdated": "Configuración de integración actualizada correctamente",
       "embedConfigUpdateError": "No se pudo actualizar la configuración de integración",
       "subAgentsUpdated": "Subagentes actualizados correctamente",
-      "subAgentsUpdateError": "No se pudieron actualizar los subagentes"
+      "subAgentsUpdateError": "No se pudieron actualizar los subagentes",
+      "productionSet": "La versión {{revision}} está ahora en producción",
+      "productionSetError": "No se pudo cambiar la versión en producción"
+    },
+    "sources": {
+      "documents": {
+        "title": "Documentos",
+        "description": "Los documentos del proyecto en los que el agente busca para responder.",
+        "embeddingModel": "Modelo de embedding: {{model}}"
+      }
+    },
+    "production": {
+      "badge": "En producción",
+      "saved": "Guardada",
+      "none": "Sin producción",
+      "noneDescription": "Guarde una versión para que este agente esté disponible en la aplicación, la integración y la API pública.",
+      "set": "Poner en producción",
+      "dialog": {
+        "title": "¿Poner la versión {{revision}} en producción?",
+        "description": "La aplicación, la integración, la API pública y los agentes que llaman a este iniciarán las nuevas conversaciones con la versión {{revision}}. Las conversaciones ya iniciadas conservan su versión.",
+        "replaces": "La versión {{current}} sale de producción. Queda en el historial y puede volver a ponerla en cualquier momento."
+      },
+      "description": "La aplicación, la integración y la API pública inician las nuevas conversaciones con esta versión.",
+      "openHistory": "Abrir el historial de versiones para cambiar la versión en producción"
     }
   }
 }

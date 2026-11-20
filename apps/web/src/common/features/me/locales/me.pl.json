@@ -8,6 +8,7 @@
     "helpCenter": "Centrum pomocy",
     "editProfile": "Edytuj profil",
     "connectedApps": "Połączone aplikacje",
+    "version": "Wersja {{version}}",
     "editProfileDialog": {
       "title": "Edytuj profil",
       "namePlaceholder": "Twoje imię i nazwisko",
@@ -24,10 +25,13 @@
     "invitations": {
       "title": "Oczekujące zaproszenia",
       "description": "Zaakceptuj zaproszenie, aby uzyskać dostęp.",
-      "projectBadge": "Projekt",
+      "projectBadge": "Przestrzeń robocza",
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Kampania recenzji",
-      "roleLabel": "Rola"
+      "roleLabel": "Rola",
+      "workspaceRoleLabel": "Rola w przestrzeni roboczej",
+      "agentsLabel": "Dostęp do agentów",
+      "everyAgent": "Wszyscy agenci"
     },
     "notifications": {
       "invitationAnswerError": "Nie udało się odpowiedzieć na zaproszenie",

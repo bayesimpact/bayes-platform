@@ -1,19 +1,6 @@
 {
   "projectMembership": {
     "members": "Mitglieder",
-    "props": {
-      "validation": {
-        "emailDuplicate": "E-Mail-Adresse bereits hinzugefügt",
-        "emailInvalid": "Ungültige E-Mail-Adresse"
-      }
-    },
-    "create": {
-      "button": "Admins einladen",
-      "title": "Admins einladen",
-      "description": "Geben Sie die E-Mail-Adressen der Personen ein, die diesen Arbeitsbereich verwalten sollen. Sie nehmen die Einladung nach der Anmeldung an.",
-      "label": "E-Mail-Adresse",
-      "placeholder": "E-Mail-Adresse eingeben"
-    },
     "pendingInvitations": {
       "title": "Offene Einladungen",
       "description": "Zu diesem Projekt eingeladene Personen, die noch nicht geantwortet haben."
@@ -34,12 +21,15 @@
       "rolesAdded_one": "Rollen für {{count}} Mitglied hinzugefügt",
       "rolesAdded_other": "Rollen für {{count}} Mitglieder hinzugefügt",
       "membersRemoved_one": "{{count}} Mitglied entfernt",
-      "membersRemoved_other": "{{count}} Mitglieder entfernt"
+      "membersRemoved_other": "{{count}} Mitglieder entfernt",
+      "agentsGiven_one": "{{count}} Person, die bereits im Arbeitsbereich ist, hat ihre Agenten erhalten",
+      "agentsGiven_other": "{{count}} Personen, die bereits im Arbeitsbereich sind, haben ihre Agenten erhalten"
     },
     "roleNames": {
       "project_owner": "Inhaber",
       "project_admin": "Admin",
       "project_member": "Mitglied",
+      "project_evaluator": "Evaluator",
       "agent_owner": "Inhaber",
       "agent_admin": "Admin",
       "agent_member": "Mitglied",
@@ -93,6 +83,7 @@
       "you": "Sie",
       "selfTitle": "Dies ist Ihre eigene Seite",
       "selfDescription": "Sie können Ihre eigenen Rollen nicht ändern. Eine andere Person, die diesen Arbeitsbereich verwaltet, kann sie ändern.",
+      "selfDescriptionEvaluator": "Sie können sich die Evaluator-Rolle selbst geben oder wieder entziehen. Ihre anderen Rollen ändert eine andere Person, die diesen Arbeitsbereich verwaltet.",
       "addErrorTitle": "Die Rolle wurde nicht hinzugefügt",
       "addErrorDetail": "{{role}} für {{resource}}: {{error}}",
       "addError": "Die Rolle konnte nicht hinzugefügt werden. Versuchen Sie es erneut.",
@@ -118,7 +109,8 @@
           "project": "Die Berechtigungen für diesen Arbeitsbereich ändern sich sofort.",
           "agent": "Die Berechtigungen für diesen Agenten ändern sich sofort.",
           "review_campaign": "Die Beteiligung an dieser Review-Kampagne ändert sich sofort."
-        }
+        },
+        "selfEffect": "Ihre Berechtigungen für diesen Arbeitsbereich ändern sich sofort."
       },
       "noAccess": "Kein Zugriff",
       "cannotRemove": "{{role}} kann nicht entfernt werden",
@@ -136,7 +128,8 @@
         "active": "Aktiv",
         "closed": "Abgeschlossen"
       },
-      "ownerLocked": "Die Inhaberrolle wird beim Erstellen des Arbeitsbereichs oder des Agenten festgelegt und kann hier nicht geändert werden."
+      "ownerLocked": "Die Inhaberrolle wird beim Erstellen des Arbeitsbereichs oder des Agenten festgelegt und kann hier nicht geändert werden.",
+      "selfLocked": "Niemand kann seine eigenen Rollen ändern, außer der Evaluator-Rolle. Eine andere Person, die diesen Arbeitsbereich verwaltet, kann diese ändern."
     }
   }
 }

@@ -4,17 +4,21 @@
     "agentSettingsHistory": "Verlauf der Agenteneinstellungen",
     "selectAgentSettings": "Agenteneinstellungen auswählen",
     "props": {
+      "nameDescription": "Dieser Name kennzeichnet den Agenten im Studio und in der App. Der Agent kennt ihn nicht: Wenn er nach seinem Namen gefragt wird, antwortet er nicht mit diesem. Um ihm einen Namen zu geben, schreiben Sie ihn in die Anweisungen.",
       "createdAt": "Erstellt am",
       "instructions": "Anweisungen",
       "formConfiguration": "Formularkonfiguration",
       "greeting": "Begrüßung",
       "documentsRagMode": "Antwortquelle",
-      "locale": "Sprache",
       "model": "Modell",
       "outputJsonSchema": "JSON-Ausgabeschema",
       "fillFormEnabled": "Formularausfüllung",
       "priorityCallsEnabled": "Priorisierte Aufrufe",
       "promptVariables": "Prompt-Variablen",
+      "embeddingModel": "Embedding-Modell",
+      "followUpSuggestionsEnabled": "Folgefragen",
+      "followUpSuggestionsInstructions": "Anweisungen für Folgefragen",
+      "followUpSuggestionsMax": "Maximale Anzahl an Folgefragen",
       "schemaBuilder": {
         "advancedMode": "Erweiterter Modus",
         "visualMode": "Visueller Editor",
@@ -71,9 +75,9 @@
         "greeting": "Optionale Begrüßung, die der Agent zu Beginn einer neuen Unterhaltung zuerst sendet",
         "documentsRagMode": "Dokumentnutzung auswählen",
         "model": "Modell auswählen",
+        "embeddingModel": "Embedding-Modell auswählen",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Temperatur zwischen 0,0 und 2,0 eingeben",
-        "locale": "Sprache für Antworten des Agenten auswählen",
         "thinkingLevel": "Denkstufe auswählen"
       },
       "validation": {
@@ -85,12 +89,16 @@
       },
       "thinkingLevel": "Denkstufe",
       "thinkingLevels": {
+        "none": "Keine",
         "minimal": "Minimal",
         "low": "Niedrig",
         "medium": "Mittel",
         "high": "Hoch"
       },
-      "modelOptions": "Modelloptionen"
+      "modelOptions": "Modelloptionen",
+      "characterCount_one": "{{formattedCount}} Zeichen",
+      "characterCount_other": "{{formattedCount}} Zeichen",
+      "characterCountWithMax": "{{current}} / {{max}} Zeichen"
     },
     "defaultPromptDialog": {
       "title": "Anweisungen",
@@ -102,7 +110,6 @@
       "model": "Modell",
       "output": "Ausgabe",
       "sources": "Quellen",
-      "resourceLibraries": "Ressourcenbibliotheken",
       "tools": "Tools",
       "categories": "Unterhaltungskategorien",
       "orchestration": "Orchestrierung",
@@ -120,10 +127,26 @@
       "title": "Nicht gespeicherte Änderungen",
       "description": "Sie haben nicht gespeicherte Änderungen, die verloren gehen. Möchten Sie sie verwerfen?"
     },
+    "autosave": {
+      "saving": "Wird gespeichert…",
+      "saved": "Entwurf gespeichert",
+      "unsaved": "Nicht gespeicherte Änderungen",
+      "refused": "Diese Änderung konnte nicht gespeichert werden",
+      "unsavedBeforeVersions": "Beheben Sie die nicht gespeicherten Änderungen, bevor Sie Versionen verwalten",
+      "productionVersion": "v{{revision}} · in Produktion",
+      "savedVersion": "v{{revision}} · gespeichert"
+    },
+    "liveSettings": {
+      "immediate": "Eine Änderung hier gilt sofort <strong>in Produktion</strong>.",
+      "notice": "Änderungen hier gelten für den Agenten in Produktion, sobald Sie speichern.",
+      "confirmSave": {
+        "title": "Diese Einstellungen jetzt anwenden?",
+        "description": "Diese Änderungen gelten für den Agenten <strong>in Produktion</strong>, sobald Sie speichern."
+      }
+    },
     "create": {
       "button": "Version speichern",
       "noDraft": "Kein Entwurf vorhanden. Speichern Sie zuerst eine Änderung, um eine neue Entwurfsversion zu erstellen.",
-      "unsavedChanges": "Speichern oder verwerfen Sie Ihre Änderungen vor dem Veröffentlichen.",
       "optional": "Optional",
       "props": {
         "revisionName": "Versionsname",
@@ -131,28 +154,29 @@
         "placeholders": {
           "revisionName": "Diese Version benennen",
           "revisionDesc": "Beschreiben Sie, was sich in dieser Version geändert hat"
-        }
+        },
+        "setAsProduction": "Diese Version in Produktion nehmen"
       },
       "dialog": {
         "title": "Version {{revision}} speichern?",
-        "description": "Version {{revision}} wird zu den Einstellungen, mit denen dieser Agent arbeitet. Spätere Änderungen erzeugen eine neue Entwurfsversion.",
+        "description": "Version {{revision}} wird eingefroren. Spätere Änderungen erzeugen eine neue Entwurfsversion.",
         "submit": "Version speichern"
-      }
+      },
+      "setAsProductionDescription": "Die App, die Einbettung und die öffentliche API starten neue Unterhaltungen mit ihr. Andernfalls bleibt Version {{current}} in Produktion.",
+      "firstVersionProduction": "Dies ist die erste gespeicherte Version des Agenten, daher geht sie in Produktion."
     },
     "history": {
-      "button": "Verlauf",
       "title": "Versionsverlauf",
-      "description": "Frühere Einstellungen von {{name}} durchsuchen, vergleichen und wiederherstellen.",
+      "description": "Versionen von {{name}} durchsuchen, vergleichen und wiederherstellen und die Version in Produktion auswählen.",
       "loadError": "Versionsverlauf konnte nicht geladen werden",
       "revisionLabel": "Version {{revision}}",
-      "currentBadge": "Aktuell",
       "revisionBadge": "v{{revision}}",
       "revisionBadgeAria": "Version {{revision}} der Agenteneinstellungen",
       "messageRevisionTooltip": "Mit Version {{revision}} beantwortet",
       "runRevisionTooltip": "Mit Version {{revision}} extrahiert",
       "headerRevisionTooltip": "Neue Nachrichten verwenden Version {{revision}}",
       "compareWithPrevious": "Änderungen in dieser Version",
-      "compareWithCurrent": "Mit aktueller vergleichen",
+      "compareWithCurrent": "Mit Produktion vergleichen",
       "compareWithDraft": "Mit Entwurf vergleichen",
       "comparing": "Änderungen von Version {{before}} zu Version {{after}} werden angezeigt.",
       "noChangesTitle": "Keine Unterschiede",
@@ -162,16 +186,21 @@
       "restore": "Diese Version wiederherstellen",
       "restoreDialog": {
         "title": "Version {{revision}} wiederherstellen?",
-        "description": "Die Einstellungen von Version {{revision}} werden als neue Version kopiert und zu den aktuellen Einstellungen. Es wird keine Version gelöscht."
+        "description": "Die Einstellungen von Version {{revision}} werden in den Entwurf kopiert, damit Sie sie bearbeiten und als neue Version speichern können. Die Version in Produktion ändert sich nicht."
       },
-      "draft": "Entwurf"
+      "draft": "Entwurf",
+      "manage": "Versionen verwalten",
+      "changedFields_one": "{{count}} geändertes Feld:",
+      "changedFields_other": "{{count}} geänderte Felder:",
+      "advancedMode": "Erweiterter Modus",
+      "advancedModeHint": "Sie vergleichen den Entwurf mit v{{revision}}, der zuletzt gespeicherten Version. Ihre Änderungen gehen in den Entwurf."
     },
     "version": {
       "ariaLabel": "Einstellungsversion für neue Nachrichten",
       "extractionAriaLabel": "Einstellungsversion für Extraktionen",
       "placeholder": "Version auswählen",
       "item": "v{{revision}} – {{detail}}",
-      "current": "Aktuell ({{date}})"
+      "current": "In Produktion ({{date}})"
     },
     "orchestration": {
       "selectedTitle": "Sub-Agenten",
@@ -182,6 +211,10 @@
       "missingAgent": "Fehlender Agent",
       "add": "Hinzufügen",
       "remove": "Entfernen",
+      "removeConfirm": {
+        "title": "{{name}} aus den Sub-Agenten entfernen?",
+        "description": "Der Tool-Name und seine Beschreibung gehen verloren."
+      },
       "enabled": "Aktiviert",
       "disabled": "Deaktiviert",
       "toolName": "Tool-Name",
@@ -200,15 +233,15 @@
       "loading": "Einbettungskonfiguration wird geladen…",
       "loadError": "Einbettungskonfiguration konnte nicht geladen werden.",
       "enabledLabel": "Einbettung aktivieren",
-      "enabledDescription": "Erlauben, dass {{name}} per iframe auf externen Websites eingebettet wird.",
-      "snippetLabel": "Einbettungs-Snippet",
+      "enabledDescription": "Macht {{name}} außerhalb der Plattform verfügbar: Widget, öffentliche Seite und öffentliche API. Wenn deaktiviert, funktionieren alle drei nicht mehr.",
+      "snippetLabel": "Widget auf einer Website",
       "snippetDescription": "Fügen Sie diesen <script>-Tag vor dem schließenden </body>-Tag auf jeder Seite ein, auf der das Chat-Widget erscheinen soll.",
       "snippetHint": "Optionale Attribute: data-color=\"#2563eb\" (Farbe der Schaltfläche), data-locale=\"fr\" (Sprache des Widgets), data-display-mode=\"drawer\" (Seitenleiste statt Chat-Blase), data-hint=\"Need help?\" (Tooltip, der beim Laden und beim Darüberfahren mit der Maus erscheint).",
-      "publicPageLabel": "Link zur öffentlichen Seite",
+      "publicPageLabel": "Öffentliche Seite",
       "publicPageDescription": "Teilen Sie diesen Link oder einen QR-Code davon, um {{name}} ohne Host-Website verfügbar zu machen.",
       "publicPageHint": "Die Seite funktioniert nur, solange die Einbettung aktiviert ist. Fügen Sie &locale=fr hinzu, um die Sprache festzulegen.",
       "allowedOriginsLabel": "Zulässige Ursprünge",
-      "allowedOriginsDescription": "Kommagetrennte Liste zulässiger Ursprünge (z. B. https://app.example.com). Leer lassen, um alle Ursprünge zuzulassen.",
+      "allowedOriginsDescription": "Vorerst leer lassen. Das Widget ruft die Plattform von {{embedOrigin}} aus auf, nicht von Ihrer Website: Eine Liste ohne diese Adresse blockiert das Widget. Die Prüfung der Website, die das Widget anzeigt, ist noch nicht verfügbar.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
       "titleLabel": "Widget-Titel",
       "titleDescription": "Titel in der Kopfzeile des Chats. Standardmäßig {{name}}, wenn leer.",
@@ -219,19 +252,41 @@
       "primaryColorDescription": "Primärfarbe in der Kopfzeile des Chat-Widgets. Geben Sie einen Hex-Wert ein (z. B. #2563eb).",
       "bannerTextLabel": "Bannertext",
       "bannerTextDescription": "Optionaler Hinweis, der über der Unterhaltung angeheftet wird, auf der öffentlichen Seite und im Widget. Nutzen Sie ihn, um den Kontext anzugeben, etwa eine Testversion oder die Zielgruppe.",
-      "bannerTextPlaceholder": "Testversion, nur für das Pilotteam"
+      "bannerTextPlaceholder": "Testversion, nur für das Pilotteam",
+      "appearance": {
+        "title": "Darstellung",
+        "description": "Wird in der Kopfzeile des Widgets und der öffentlichen Seite angezeigt."
+      },
+      "apiSection": {
+        "title": "Öffentliche API",
+        "description": "Um eine eigene Chat-Oberfläche zu bauen, rufen Sie die API direkt auf, statt das Widget zu verwenden."
+      },
+      "apiBaseUrlLabel": "Basis-URL",
+      "apiBaseUrlDescription": "Jede Route der API beginnt mit dieser URL. Sie enthält das Einbettungstoken dieses Agenten.",
+      "apiReferenceLink": "API-Referenz lesen",
+      "widgetGuideLink": "Widget-Leitfaden lesen"
     },
     "promptVariables": {
       "title": "Prompt-Variablen",
       "description": "Standardwerte für die Variablen, die der Agent in seinen Anweisungen deklariert. Werden verwendet, wenn eine Sitzung ohne Wert für eine davon startet."
     },
+    "source_zero": "Keine Quellen",
     "source_one": "{{count}} Quelle",
     "source_other": "{{count}} Quellen",
-    "source_zero": "Keine Quellen",
     "model": {
+      "generation": {
+        "title": "Antwortgenerierung",
+        "description": "Das Modell, das die Antworten des Agenten schreibt."
+      },
       "priorityCalls": {
         "title": "Priorisierte Aufrufe",
         "description": "Kürzere und stabilere Antwortzeiten, zu höheren Kosten pro Aufruf."
+      },
+      "embeddingModel": {
+        "title": "Dokumentsuche",
+        "description": "Das Modell, das in den Dokumenten des Projekts die Passagen findet, die zu jeder Frage passen.",
+        "help": "Ein Modell erscheint, sobald das Projekt seine Dokumente damit vektorisiert hat.",
+        "chooseDocuments": "Durchsuchte Dokumente auswählen"
       }
     },
     "tools": {
@@ -239,6 +294,14 @@
         "title": "Formularausfüllung",
         "description": "Der Agent füllt während der Unterhaltung anhand der Antworten des Benutzers ein strukturiertes Formular aus.",
         "schemaDescription": "Legen Sie die Formularfelder fest, die der Agent ausfüllen soll. Die Reihenfolge der Felder ist die Reihenfolge, in der der Agent seine Fragen stellt."
+      },
+      "followUpSuggestions": {
+        "title": "Folgefragen vorschlagen",
+        "description": "Nach einer Antwort kann der Agent kurze Fragen vorschlagen, die der Benutzer anklicken kann, um die Unterhaltung fortzusetzen.",
+        "instructions": "Anweisungen",
+        "instructionsDescription": "Optional. Sagen Sie dem Agenten, wann und wie er die Fragen schreiben soll.",
+        "instructionsPlaceholder": "Zum Beispiel: nur, wenn die Antwort einen schwierigen Begriff enthält.",
+        "max": "Maximum pro Antwort"
       },
       "memory": {
         "title": "Gedächtnis",
@@ -253,14 +316,35 @@
     "notifications": {
       "versionRestored": "Agentenversion erfolgreich wiederhergestellt",
       "versionRestoreError": "Agentenversion konnte nicht wiederhergestellt werden",
-      "versionPublished": "Agentenversion erfolgreich veröffentlicht",
+      "versionPublished": "Agentenversion gespeichert",
       "versionPublishError": "Agentenversion konnte nicht veröffentlicht werden",
-      "updated": "Agent erfolgreich aktualisiert",
-      "updateError": "Agent konnte nicht aktualisiert werden",
       "embedConfigUpdated": "Einbettungskonfiguration erfolgreich aktualisiert",
       "embedConfigUpdateError": "Einbettungskonfiguration konnte nicht aktualisiert werden",
       "subAgentsUpdated": "Sub-Agenten erfolgreich aktualisiert",
-      "subAgentsUpdateError": "Sub-Agenten konnten nicht aktualisiert werden"
+      "subAgentsUpdateError": "Sub-Agenten konnten nicht aktualisiert werden",
+      "productionSet": "Version {{revision}} ist jetzt in Produktion",
+      "productionSetError": "Die Version in Produktion konnte nicht geändert werden"
+    },
+    "sources": {
+      "documents": {
+        "title": "Dokumente",
+        "description": "Die Dokumente des Projekts, die der Agent für seine Antworten durchsucht.",
+        "embeddingModel": "Embedding-Modell: {{model}}"
+      }
+    },
+    "production": {
+      "badge": "In Produktion",
+      "saved": "Gespeichert",
+      "none": "Nicht in Produktion",
+      "noneDescription": "Speichern Sie eine Version, um diesen Agenten in der App, der Einbettung und der öffentlichen API verfügbar zu machen.",
+      "set": "In Produktion nehmen",
+      "dialog": {
+        "title": "Version {{revision}} in Produktion nehmen?",
+        "description": "Die App, die Einbettung, die öffentliche API und die Agenten, die diesen aufrufen, starten neue Unterhaltungen mit Version {{revision}}. Bereits begonnene Unterhaltungen behalten ihre Version.",
+        "replaces": "Version {{current}} verlässt die Produktion. Sie bleibt im Verlauf, und Sie können sie jederzeit zurückholen."
+      },
+      "description": "Die App, die Einbettung und die öffentliche API starten neue Unterhaltungen mit dieser Version.",
+      "openHistory": "Versionsverlauf öffnen, um die Version in Produktion zu ändern"
     }
   }
 }

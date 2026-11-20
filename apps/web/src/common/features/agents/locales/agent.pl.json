@@ -82,7 +82,6 @@
     },
     "playground": "Playground",
     "notifications": {
-      "updated": "Zaktualizowano agenta",
       "updateError": "Nie udało się zaktualizować agenta",
       "deleted": "Usunięto agenta",
       "deleteError": "Nie udało się usunąć agenta",
@@ -90,6 +89,15 @@
       "createError": "Nie udało się utworzyć agenta",
       "duplicated": "Zduplikowano agenta jako wersję roboczą",
       "duplicateError": "Nie udało się zduplikować agenta"
+    },
+    "evaluationCard": {
+      "description": "Mierz jakość odpowiedzi agenta na zbiorze danych.",
+      "open": "Otwórz ewaluację w nowej karcie"
+    },
+    "productionAppCard": {
+      "description": "Agent tak, jak widzą go użytkownicy, w opublikowanej wersji.",
+      "open": "Otwórz aplikację w nowej karcie",
+      "badge": "Produkcja"
     }
   }
 }

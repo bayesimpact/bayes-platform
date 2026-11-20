@@ -43,11 +43,20 @@
       "agent_settings_draft_update": {
         "name": "Modificare le bozze degli agenti",
         "description": "Modificare le impostazioni in bozza degli agenti di cui sei proprietario o amministratore nei progetti selezionati (modello, istruzioni). La pubblicazione resta nello studio."
+      },
+      "evaluation_conversation_dataset_update": {
+        "name": "Modificare i dataset di valutazione",
+        "description": "Creare dataset di valutazione nei progetti selezionati, e leggere e aggiungere le loro domande e risposte attese."
+      },
+      "evaluation_conversation_run_create": {
+        "name": "Eseguire valutazioni",
+        "description": "Valutare agenti su un dataset e leggere risposte e punteggi. Ogni esecuzione chiama modelli linguistici per ogni domanda del dataset."
       }
     },
     "resource": {
       "project": "Progetti",
-      "agent": "Agenti"
+      "agent": "Agenti",
+      "evaluation": "Valutazioni"
     },
     "appPermission": {
       "document_read": {
@@ -120,7 +129,8 @@
       }
     },
     "notifications": {
-      "approveError": "Impossibile concedere l'accesso"
+      "approveError": "Impossibile concedere l'accesso",
+      "alreadyInstalled": "Qualcuno ha appena installato questa app su quello spazio di lavoro. Ricarica la pagina per vedere chi."
     },
     "appResource": {
       "document": "Documenti",
@@ -135,7 +145,28 @@
       "update": "Modifica",
       "delete": "Eliminazione",
       "conversation_session_external_create": "Chat esterne",
-      "settings_draft_update": "Modifica bozze"
+      "settings_draft_update": "Modifica bozze",
+      "conversation_dataset_update": "Modificare i dataset",
+      "conversation_run_create": "Eseguire"
+    },
+    "appPermissionsDialog": {
+      "button_one": "{{count}} autorizzazione",
+      "button_other": "{{count}} autorizzazioni",
+      "title": "Autorizzazioni di {{name}}",
+      "description": {
+        "requested": "Ciò che {{name}} richiede quando qualcuno la connette. Chi la connette sceglie cosa concedere.",
+        "granted": "Ciò che {{name}} può fare su questo progetto."
+      }
+    },
+    "installedByMe": "Installata da te. Installarla di nuovo la riconnette.",
+    "installedBy": "Installata da {{installer}}",
+    "reconnect": "Riconnetti {{name}}",
+    "alreadyInstalled": {
+      "title": "{{name}} è già installata su questo spazio di lavoro",
+      "byMember": "<installer/> l'ha installata. Chiedigli di riconnetterla o di cambiarne le autorizzazioni, se serve. Per usare {{name}} tu stesso, chiedigli di invitarti nell'app.",
+      "byFormerMember": "La persona che l'ha installata non può più gestire le app di questo spazio di lavoro. Puoi riconnetterla: le autorizzazioni che concedi qui sostituiscono quelle attuali e i suoi token attuali smettono di funzionare. Diventi quindi tu chi l'ha installata.",
+      "replace": "Per sostituire questa installazione, revocala dalle <settings>app installate</settings> dello spazio di lavoro, poi installa di nuovo {{name}}. {{name}} si interrompe subito e le conversazioni della vecchia installazione non vengono riprese.",
+      "error": "Scegli un altro spazio di lavoro o revoca prima l'installazione attuale."
     }
   }
 }

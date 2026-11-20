@@ -1,19 +1,6 @@
 {
   "projectMembership": {
     "members": "Membri",
-    "props": {
-      "validation": {
-        "emailDuplicate": "Email già aggiunta",
-        "emailInvalid": "Indirizzo email non valido"
-      }
-    },
-    "create": {
-      "button": "Invita amministratori",
-      "title": "Invita amministratori",
-      "description": "Inserisci gli indirizzi email delle persone che devono gestire questo spazio di lavoro. Accetteranno l'invito dopo aver effettuato l'accesso.",
-      "label": "Indirizzo email",
-      "placeholder": "Inserisci l'indirizzo email"
-    },
     "pendingInvitations": {
       "title": "Inviti in attesa",
       "description": "Persone invitate a questo progetto che non hanno ancora risposto."
@@ -32,16 +19,19 @@
       "peopleInvited": "Persone invitate",
       "inviteError": "Impossibile invitare le persone",
       "rolesAdded_one": "Ruoli aggiunti a {{count}} membro",
-      "rolesAdded_other": "Ruoli aggiunti a {{count}} membri",
       "rolesAdded_many": "Ruoli aggiunti a {{count}} membri",
+      "rolesAdded_other": "Ruoli aggiunti a {{count}} membri",
       "membersRemoved_one": "{{count}} membro rimosso",
+      "membersRemoved_many": "{{count}} membri rimossi",
       "membersRemoved_other": "{{count}} membri rimossi",
-      "membersRemoved_many": "{{count}} membri rimossi"
+      "agentsGiven_one": "{{count}} persona già nello spazio di lavoro ha ricevuto i suoi agenti",
+      "agentsGiven_other": "{{count}} persone già nello spazio di lavoro hanno ricevuto i loro agenti"
     },
     "roleNames": {
       "project_owner": "Proprietario",
       "project_admin": "Amministratore",
       "project_member": "Membro",
+      "project_evaluator": "Valutatore",
       "agent_owner": "Proprietario",
       "agent_admin": "Amministratore",
       "agent_member": "Membro",
@@ -64,8 +54,8 @@
         "description": "Prova un'altra ricerca o rimuovi un filtro."
       },
       "selected_one": "{{count}} membro selezionato",
-      "selected_other": "{{count}} membri selezionati",
       "selected_many": "{{count}} membri selezionati",
+      "selected_other": "{{count}} membri selezionati",
       "addRoles": "Aggiungi ruoli",
       "removeBlocked": {
         "project": "Uno spazio di lavoro deve avere almeno un proprietario. Deseleziona un proprietario per rimuovere gli altri.",
@@ -74,8 +64,8 @@
       "genericError": "Si è verificato un problema. Riprova.",
       "addRolesDialog": {
         "title_one": "Aggiungi ruoli a {{count}} membro",
-        "title_other": "Aggiungi ruoli a {{count}} membri",
         "title_many": "Aggiungi ruoli a {{count}} membri",
+        "title_other": "Aggiungi ruoli a {{count}} membri",
         "description": {
           "project": "I ruoli si aggiungono a quelli già assegnati. Le loro autorizzazioni su questo spazio di lavoro cambiano subito.",
           "agent": "I ruoli si aggiungono a quelli già assegnati. Le loro autorizzazioni su questo agente cambiano subito."
@@ -85,8 +75,8 @@
       },
       "removeDialog": {
         "title_one": "Rimuovere {{name}}?",
-        "title_other": "Rimuovere {{count}} membri?",
         "title_many": "Rimuovere {{count}} membri?",
+        "title_other": "Rimuovere {{count}} membri?",
         "description": {
           "project": "Perderanno l'accesso a questo spazio di lavoro, ai suoi agenti e alle sue campagne di revisione. L'operazione non può essere annullata.",
           "agent": "Perderanno i loro ruoli su questo agente e resteranno membri dello spazio di lavoro. L'operazione non può essere annullata."
@@ -98,6 +88,7 @@
       "you": "Tu",
       "selfTitle": "Questa è la tua pagina",
       "selfDescription": "Nessuno può modificare i propri ruoli. Può farlo un altro responsabile di questo spazio di lavoro.",
+      "selfDescriptionEvaluator": "Puoi assegnarti il ruolo di valutatore o toglierlo. Gli altri tuoi ruoli li cambia un altro responsabile di questo spazio di lavoro.",
       "addErrorTitle": "Il ruolo non è stato aggiunto",
       "addErrorDetail": "{{role}} su {{resource}}: {{error}}",
       "addError": "Impossibile aggiungere il ruolo. Riprova.",
@@ -123,7 +114,8 @@
           "project": "Le sue autorizzazioni su questo spazio di lavoro cambiano subito.",
           "agent": "Le sue autorizzazioni su questo agente cambiano subito.",
           "review_campaign": "Il suo ruolo in questa campagna di revisione cambia subito."
-        }
+        },
+        "selfEffect": "Le tue autorizzazioni su questo spazio di lavoro cambiano subito."
       },
       "noAccess": "Nessun accesso",
       "cannotRemove": "{{role}} non può essere rimosso",
@@ -132,8 +124,8 @@
       "addRole": "Aggiungi ruolo",
       "addARole": "Aggiungi un ruolo",
       "permissions_one": "{{count}} autorizzazione",
-      "permissions_other": "{{count}} autorizzazioni",
       "permissions_many": "{{count}} autorizzazioni",
+      "permissions_other": "{{count}} autorizzazioni",
       "details": {
         "conversation": "Conversazione",
         "extraction": "Estrazione",
@@ -142,7 +134,8 @@
         "active": "Attiva",
         "closed": "Chiusa"
       },
-      "ownerLocked": "Il ruolo di proprietario viene assegnato alla creazione dello spazio di lavoro o dell'agente e non si modifica da qui."
+      "ownerLocked": "Il ruolo di proprietario viene assegnato alla creazione dello spazio di lavoro o dell'agente e non si modifica da qui.",
+      "selfLocked": "Nessuno può modificare i propri ruoli, tranne il ruolo di valutatore. Può farlo un altro responsabile di questo spazio di lavoro."
     }
   }
 }

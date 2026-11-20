@@ -43,11 +43,20 @@
       "agent_settings_draft_update": {
         "name": "Edycja wersji roboczych agentów",
         "description": "Zmiana ustawień roboczych agentów, których jesteś właścicielem lub administratorem w wybranych projektach (model, instrukcje). Publikowanie pozostaje w Studio."
+      },
+      "evaluation_conversation_dataset_update": {
+        "name": "Edycja zbiorów danych do ewaluacji",
+        "description": "Tworzenie zbiorów danych do ewaluacji w wybranych projektach oraz odczyt i dodawanie ich pytań i oczekiwanych odpowiedzi."
+      },
+      "evaluation_conversation_run_create": {
+        "name": "Uruchamianie ewaluacji",
+        "description": "Ewaluacja agentów na zbiorze danych oraz odczyt odpowiedzi i wyników. Każde uruchomienie wywołuje modele językowe dla każdego pytania ze zbioru danych."
       }
     },
     "resource": {
       "project": "Projekty",
-      "agent": "Agenci"
+      "agent": "Agenci",
+      "evaluation": "Ewaluacje"
     },
     "appPermission": {
       "document_read": {
@@ -120,7 +129,8 @@
       }
     },
     "notifications": {
-      "approveError": "Nie udało się przyznać dostępu"
+      "approveError": "Nie udało się przyznać dostępu",
+      "alreadyInstalled": "Ktoś właśnie zainstalował tę aplikację w tej przestrzeni roboczej. Odśwież stronę, aby zobaczyć kto."
     },
     "appResource": {
       "document": "Dokumenty",
@@ -135,7 +145,29 @@
       "update": "Edycja",
       "delete": "Usuwanie",
       "conversation_session_external_create": "Czaty zewnętrzne",
-      "settings_draft_update": "Edycja wersji roboczych"
+      "settings_draft_update": "Edycja wersji roboczych",
+      "conversation_dataset_update": "Edycja zbiorów danych",
+      "conversation_run_create": "Uruchamianie"
+    },
+    "appPermissionsDialog": {
+      "button_one": "{{count}} uprawnienie",
+      "button_few": "{{count}} uprawnienia",
+      "button_many": "{{count}} uprawnień",
+      "title": "Uprawnienia aplikacji {{name}}",
+      "description": {
+        "requested": "O co prosi {{name}}, gdy ktoś ją łączy. Osoba, która ją łączy, wybiera, co przyznać.",
+        "granted": "Co {{name}} może robić w tym projekcie."
+      }
+    },
+    "installedByMe": "Zainstalowana przez Ciebie. Ponowna instalacja połączy ją ponownie.",
+    "installedBy": "Zainstalowana przez {{installer}}",
+    "reconnect": "Połącz ponownie {{name}}",
+    "alreadyInstalled": {
+      "title": "{{name}} jest już zainstalowana w tej przestrzeni roboczej",
+      "byMember": "Zainstalowała ją osoba <installer/>. Poproś ją, jeśli trzeba ponownie połączyć aplikację lub zmienić jej uprawnienia. Aby samemu korzystać z {{name}}, poproś o zaproszenie w aplikacji.",
+      "byFormerMember": "Osoba, która ją zainstalowała, nie może już zarządzać aplikacjami tej przestrzeni roboczej. Możesz połączyć ją ponownie: uprawnienia przyznane tutaj zastąpią obecne, a jej obecne tokeny przestaną działać. Staniesz się wtedy osobą, która ją zainstalowała.",
+      "replace": "Aby zastąpić tę instalację, cofnij ją w <settings>zainstalowanych aplikacjach</settings> przestrzeni roboczej, a następnie zainstaluj {{name}} ponownie. {{name}} od razu przestanie działać, a rozmowy z poprzedniej instalacji nie zostaną przeniesione.",
+      "error": "Wybierz inną przestrzeń roboczą albo najpierw cofnij obecną instalację."
     }
   }
 }

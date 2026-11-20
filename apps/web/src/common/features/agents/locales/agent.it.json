@@ -82,7 +82,6 @@
     },
     "playground": "Area di prova",
     "notifications": {
-      "updated": "Agente aggiornato",
       "updateError": "Aggiornamento dell'agente non riuscito",
       "deleted": "Agente eliminato",
       "deleteError": "Eliminazione dell'agente non riuscita",
@@ -90,6 +89,15 @@
       "createError": "Creazione dell'agente non riuscita",
       "duplicated": "Agente duplicato come bozza",
       "duplicateError": "Duplicazione dell'agente non riuscita"
+    },
+    "evaluationCard": {
+      "description": "Misura le risposte dell'agente su un dataset.",
+      "open": "Apri la valutazione in una nuova scheda"
+    },
+    "productionAppCard": {
+      "description": "L'agente come lo vedono i suoi utenti, nella versione pubblicata.",
+      "open": "Apri l'app in una nuova scheda",
+      "badge": "Produzione"
     }
   }
 }

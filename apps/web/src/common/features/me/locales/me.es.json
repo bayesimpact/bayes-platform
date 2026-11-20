@@ -8,6 +8,7 @@
     "helpCenter": "Centro de ayuda",
     "editProfile": "Editar perfil",
     "connectedApps": "Aplicaciones conectadas",
+    "version": "Versión {{version}}",
     "editProfileDialog": {
       "title": "Editar perfil",
       "namePlaceholder": "Su nombre",
@@ -24,10 +25,13 @@
     "invitations": {
       "title": "Invitaciones pendientes",
       "description": "Acepte una invitación para obtener acceso.",
-      "projectBadge": "Proyecto",
+      "projectBadge": "Espacio de trabajo",
       "agentBadge": "Agente",
       "reviewCampaignBadge": "Campaña de revisión",
-      "roleLabel": "Rol"
+      "roleLabel": "Rol",
+      "workspaceRoleLabel": "Rol en el espacio de trabajo",
+      "agentsLabel": "Acceso a los agentes",
+      "everyAgent": "Todos los agentes"
     },
     "notifications": {
       "invitationAnswerError": "No se pudo responder a la invitación",

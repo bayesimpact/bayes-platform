@@ -6,16 +6,25 @@
       "title": "Brak połączonych aplikacji",
       "description": "Aplikacje połączone z tym projektem pojawią się tutaj wraz z zakresem dostępu."
     },
-    "installedOn": "Połączono {{date}}",
     "noPermissions": "Nie przyznano uprawnień",
     "revoke": {
       "action": "Cofnij dostęp",
       "title": "Cofnąć dostęp aplikacji {{name}}?",
-      "description": "{{name}} od razu straci dostęp do tego projektu. Ponowna instalacja wymaga nowej autoryzacji."
+      "description": "{{name}} od razu straci dostęp do tego projektu. Rozmowy pozostają przy tej instalacji: ponowna instalacja wymaga nowej autoryzacji i zaczyna się bez nich."
     },
     "notifications": {
       "revoked": "Cofnięto dostęp aplikacji",
       "revokeError": "Nie udało się cofnąć dostępu aplikacji"
+    },
+    "permissions": {
+      "menuItem_one": "Wyświetl uprawnienie",
+      "menuItem_few": "Wyświetl {{count}} uprawnienia",
+      "menuItem_many": "Wyświetl {{count}} uprawnień"
+    },
+    "installedBy": "Połączona przez <installer>{{installer}}</installer> {{date}}",
+    "installer": {
+      "memberHint": "Poproś tę osobę o ponowne połączenie {{name}} lub zmianę uprawnień.",
+      "formerMemberHint": "Ta osoba nie może już zarządzać aplikacjami tej przestrzeni roboczej. Aby ponownie połączyć {{name}}, zainstaluj ją ponownie z aplikacji lub poproś właściciela przestrzeni roboczej."
     }
   }
 }

@@ -19,6 +19,14 @@
       "title": "Ø Benutzerfragen pro Sitzung",
       "description": "Durchschnittliche Benutzernachrichten pro Sitzung und Tag",
       "metricLabel": "Pro Tag"
+    },
+    "emptySessions": {
+      "note_one": "{{emptyCount}} ohne Frage geöffnete Sitzung wird nicht gezählt ({{share}} von {{sessionCount}} Sitzungen).",
+      "note_other": "{{emptyCount}} ohne Frage geöffnete Sitzungen werden nicht gezählt ({{share}} von {{sessionCount}} Sitzungen).",
+      "warning": {
+        "title": "Die meisten Sitzungen enthalten keine Frage",
+        "description": "{{emptyCount}} von {{sessionCount}} Sitzungen ({{share}}) wurden ohne Benutzernachricht geöffnet. Sie werden nicht als Unterhaltungen gezählt. Das passiert oft, wenn eine Integration die Sitzung beim Laden der Seite erstellt und nicht bei der ersten Nachricht."
+      }
     }
   }
 }

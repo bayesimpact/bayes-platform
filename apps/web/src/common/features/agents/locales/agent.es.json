@@ -82,7 +82,6 @@
     },
     "playground": "Entorno de pruebas",
     "notifications": {
-      "updated": "Agente actualizado correctamente",
       "updateError": "No se pudo actualizar el agente",
       "deleted": "Agente eliminado correctamente",
       "deleteError": "No se pudo eliminar el agente",
@@ -90,6 +89,15 @@
       "createError": "No se pudo crear el agente",
       "duplicated": "Agente duplicado como borrador",
       "duplicateError": "No se pudo duplicar el agente"
+    },
+    "evaluationCard": {
+      "description": "Mida las respuestas del agente en un conjunto de datos.",
+      "open": "Abrir la evaluación en una nueva pestaña"
+    },
+    "productionAppCard": {
+      "description": "El agente tal como lo ven sus usuarios, en su versión publicada.",
+      "open": "Abrir la aplicación en una nueva pestaña",
+      "badge": "Producción"
     }
   }
 }

@@ -10,12 +10,17 @@
       "createdAt": "Creato il",
       "placeholders": {
         "content": "Descrivi il problema riscontrato con questo messaggio..."
+      },
+      "rating": {
+        "positive": "Buona risposta",
+        "negative": "Problema segnalato"
       }
     },
     "create": {
       "button": "Segnala",
       "title": "Segnala un problema con questo messaggio",
-      "description": "Fornisci i dettagli del problema riscontrato con questo messaggio. Il tuo feedback ci aiuterà a migliorare i nostri agenti."
+      "description": "Fornisci i dettagli del problema riscontrato con questo messaggio. Il tuo feedback ci aiuterà a migliorare i nostri agenti.",
+      "negative": "Segnala un problema"
     },
     "list": {
       "description": "Gestisci i feedback sui messaggi degli agenti.",

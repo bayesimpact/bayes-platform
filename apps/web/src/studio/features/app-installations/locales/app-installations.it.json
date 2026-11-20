@@ -6,16 +6,24 @@
       "title": "Ancora nessuna app connessa",
       "description": "Le app che connetti a questo progetto compaiono qui, con ciò a cui possono accedere."
     },
-    "installedOn": "Connessa il {{date}}",
     "noPermissions": "Nessuna autorizzazione concessa",
     "revoke": {
       "action": "Revoca",
       "title": "Revocare {{name}}?",
-      "description": "{{name}} perde immediatamente l'accesso a questo progetto. Per reinstallarla servirà una nuova autorizzazione."
+      "description": "{{name}} perde subito l'accesso a questo progetto. Le sue conversazioni restano legate a questa installazione: per reinstallarla serve una nuova autorizzazione e si riparte senza di esse."
     },
     "notifications": {
       "revoked": "App revocata",
       "revokeError": "Impossibile revocare l'app"
+    },
+    "permissions": {
+      "menuItem_one": "Vedi l'autorizzazione",
+      "menuItem_other": "Vedi le {{count}} autorizzazioni"
+    },
+    "installedBy": "Connessa da <installer>{{installer}}</installer> il {{date}}",
+    "installer": {
+      "memberHint": "Chiedigli di riconnettere {{name}} o di cambiarne le autorizzazioni.",
+      "formerMemberHint": "Questa persona non può più gestire le app di questo spazio di lavoro. Per riconnettere {{name}}, installala di nuovo dall'app o chiedi a un proprietario dello spazio di lavoro."
     }
   }
 }

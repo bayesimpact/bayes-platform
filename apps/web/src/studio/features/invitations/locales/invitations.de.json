@@ -9,11 +9,60 @@
       "description": "Eingeladen {{invitedAt}}",
       "revoke": "Einladung löschen",
       "copyLink": "Einladungslink kopieren",
-      "linkCopied": "Einladungslink kopiert"
+      "linkCopied": "Einladungslink kopiert",
+      "removeAgent": "Diesen Agenten aus der Einladung entfernen"
     },
     "deleteDialog": {
       "title": "Einladung löschen?",
       "description": "{{email}} kann diese Einladung nicht mehr annehmen."
+    },
+    "inviteDialog": {
+      "title": "Personen in {{workspaceName}} einladen",
+      "description": "Wählen Sie aus, was sie erhalten. Jede Person erhält eine Einladung und nimmt sie einmal an.",
+      "emailsLabel": "E-Mail-Adressen",
+      "emailsPlaceholder": "name@example.org, another@example.org",
+      "emailsRequired": "Fügen Sie mindestens eine E-Mail-Adresse hinzu.",
+      "invalidEmail": "„{{email}}“ ist keine gültige E-Mail-Adresse.",
+      "removeEmail": "{{email}} entfernen",
+      "workspaceRoleLabel": "Rolle im Arbeitsbereich",
+      "roleDescriptions": {
+        "project_admin": "Verwaltet den Arbeitsbereich, seine Mitglieder und alle Agenten.",
+        "project_member": "Nutzt nur die Agenten, die für die Person ausgewählt wurden."
+      },
+      "agentsLabel": "Agentenzugriff",
+      "noAgents": "Dieser Arbeitsbereich hat noch keinen Agenten.",
+      "noMatch": "Keine Treffer.",
+      "inviteCount_one": "{{count}} Person einladen",
+      "inviteCount_other": "{{count}} Personen einladen"
+    },
+    "confirmation": {
+      "title": "Einladung in {{workspaceName}} bestätigen",
+      "invitedGet_one": "Diese Person erhält eine Einladung. Sobald sie sie annimmt, hat sie:",
+      "invitedGet_other": "Diese {{count}} Personen erhalten eine Einladung. Sobald sie sie annehmen, haben sie:",
+      "role": "Rolle",
+      "workspaceRole": "Rolle im Arbeitsbereich",
+      "agents": "Agentenzugriff",
+      "everyAgent": "Alle Agenten",
+      "noAgent": "Kein Agent",
+      "addedTo": "Zu {{agents}} hinzugefügt",
+      "directTitle_one": "{{count}} Person erhält sofort Zugriff",
+      "directTitle_other": "{{count}} Personen erhalten sofort Zugriff",
+      "directHint": "Bereits im Arbeitsbereich, daher muss keine Einladung angenommen werden.",
+      "unchangedTitle_one": "{{count}} Person behält ihren bisherigen Zugriff",
+      "unchangedTitle_other": "{{count}} Personen behalten ihren bisherigen Zugriff",
+      "unchangedHint": "Die Einladung ändert für sie nichts.",
+      "promoteHint": "{{access}}. Weisen Sie auf der Mitgliederseite eine höhere Rolle zu.",
+      "updatedTitle_one": "{{count}} offene Einladung gibt mehr Zugriff",
+      "updatedTitle_other": "{{count}} offene Einladungen geben mehr Zugriff",
+      "updatedHint": "Bereits eingeladen: Die Einladung wird ergänzt und erneut gesendet.",
+      "alsoGives": "Gibt außerdem Zugriff auf {{agents}}",
+      "alreadyInvited": "Bereits eingeladen: {{access}}",
+      "accessOnAgents": "{{role}}, für {{agents}}",
+      "accessOnNoAgent": "{{role}}, für keinen Agenten"
+    },
+    "removeAgentDialog": {
+      "title": "Diesen Agenten aus der Einladung entfernen?",
+      "description": "{{email}} erhält {{agentName}} nicht mehr. Der Rest der Einladung bleibt bestehen."
     }
   }
 }

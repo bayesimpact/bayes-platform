@@ -19,6 +19,14 @@
       "title": "Prom. de preguntas del usuario por sesión",
       "description": "Promedio de mensajes del usuario por sesión y por día",
       "metricLabel": "Por día"
+    },
+    "emptySessions": {
+      "note_one": "{{emptyCount}} sesión abierta sin pregunta no se cuenta ({{share}} de {{sessionCount}} sesiones).",
+      "note_other": "{{emptyCount}} sesiones abiertas sin pregunta no se cuentan ({{share}} de {{sessionCount}} sesiones).",
+      "warning": {
+        "title": "La mayoría de las sesiones no tienen ninguna pregunta",
+        "description": "{{emptyCount}} de {{sessionCount}} sesiones ({{share}}) se abrieron sin ningún mensaje del usuario. No se cuentan como conversaciones. Suele ocurrir cuando una integración crea la sesión al cargar la página, y no con el primer mensaje."
+      }
     }
   }
 }

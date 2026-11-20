@@ -1,19 +1,6 @@
 {
   "projectMembership": {
     "members": "Członkowie",
-    "props": {
-      "validation": {
-        "emailDuplicate": "Ten adres e-mail został już dodany",
-        "emailInvalid": "Nieprawidłowy adres e-mail"
-      }
-    },
-    "create": {
-      "button": "Zaproś administratorów",
-      "title": "Zaproś administratorów",
-      "description": "Wpisz adresy e-mail osób, które mają zarządzać tą przestrzenią roboczą. Zaakceptują zaproszenie po zalogowaniu.",
-      "label": "Adres e-mail",
-      "placeholder": "Wpisz adres e-mail"
-    },
     "pendingInvitations": {
       "title": "Oczekujące zaproszenia",
       "description": "Osoby zaproszone do tego projektu, które jeszcze nie odpowiedziały."
@@ -38,12 +25,16 @@
       "membersRemoved_one": "Usunięto {{count}} członka",
       "membersRemoved_few": "Usunięto {{count}} członków",
       "membersRemoved_many": "Usunięto {{count}} członków",
-      "membersRemoved_other": "Usunięto {{count}} członka"
+      "membersRemoved_other": "Usunięto {{count}} członka",
+      "agentsGiven_one": "{{count}} osoba już obecna w przestrzeni roboczej otrzymała swoich agentów",
+      "agentsGiven_few": "{{count}} osoby już obecne w przestrzeni roboczej otrzymały swoich agentów",
+      "agentsGiven_many": "{{count}} osób już obecnych w przestrzeni roboczej otrzymało swoich agentów"
     },
     "roleNames": {
       "project_owner": "Właściciel",
       "project_admin": "Administrator",
       "project_member": "Członek",
+      "project_evaluator": "Ewaluator",
       "agent_owner": "Właściciel",
       "agent_admin": "Administrator",
       "agent_member": "Członek",
@@ -103,6 +94,7 @@
       "you": "Ty",
       "selfTitle": "To Twoja strona",
       "selfDescription": "Nie możesz zmieniać własnych ról. Może to zrobić inna osoba zarządzająca tą przestrzenią roboczą.",
+      "selfDescriptionEvaluator": "Możesz nadać sobie rolę ewaluatora lub ją odebrać. Pozostałe role zmienia inna osoba zarządzająca tą przestrzenią roboczą.",
       "addErrorTitle": "Nie dodano roli",
       "addErrorDetail": "{{role}} ({{resource}}): {{error}}",
       "addError": "Nie udało się dodać roli. Spróbuj ponownie.",
@@ -128,7 +120,8 @@
           "project": "Uprawnienia w tej przestrzeni roboczej zmienią się od razu.",
           "agent": "Uprawnienia w tym agencie zmienią się od razu.",
           "review_campaign": "Udział w tej kampanii recenzji zmieni się od razu."
-        }
+        },
+        "selfEffect": "Twoje uprawnienia w tej przestrzeni roboczej zmienią się od razu."
       },
       "noAccess": "Brak dostępu",
       "cannotRemove": "Nie można usunąć roli {{role}}",
@@ -148,7 +141,8 @@
         "active": "Aktywna",
         "closed": "Zamknięta"
       },
-      "ownerLocked": "Rola właściciela jest ustalana przy tworzeniu przestrzeni roboczej lub agenta i nie można jej tutaj zmienić."
+      "ownerLocked": "Rola właściciela jest ustalana przy tworzeniu przestrzeni roboczej lub agenta i nie można jej tutaj zmienić.",
+      "selfLocked": "Nikt nie może zmieniać własnych ról, z wyjątkiem roli ewaluatora. Tę rolę może zmienić inna osoba zarządzająca tą przestrzenią roboczą."
     }
   }
 }

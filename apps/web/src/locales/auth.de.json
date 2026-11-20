@@ -13,7 +13,7 @@
       "signInRefused": {
         "emailNotVerified": {
           "title": "E-Mail-Adresse bestätigen",
-          "message": "Für Ihre E-Mail-Adresse wartet ein Konto, aber Ihr Identitätsanbieter hat sie noch nicht bestätigt.",
+          "message": "Ihr Identitätsanbieter hat Ihre E-Mail-Adresse noch nicht bestätigt.",
           "hint": "Öffnen Sie die Bestätigungs-E-Mail Ihres Identitätsanbieters und prüfen Sie auch Ihren Spam-Ordner. Klicken Sie auf den enthaltenen Link und dann auf „erneut versuchen“."
         },
         "emailRequired": {

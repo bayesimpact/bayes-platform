@@ -13,7 +13,7 @@
       "signInRefused": {
         "emailNotVerified": {
           "title": "Verifica la tua email",
-          "message": "Un account attende il tuo indirizzo email, ma il tuo provider di identità non lo ha ancora verificato.",
+          "message": "Il tuo provider di identità non ha ancora verificato il tuo indirizzo email.",
           "hint": "Apri l'email di verifica inviata dal tuo provider di identità e controlla anche la cartella spam. Fai clic sul link che contiene, poi su riprova."
         },
         "emailRequired": {

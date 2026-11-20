@@ -10,12 +10,17 @@
       "createdAt": "Utworzono",
       "placeholders": {
         "content": "Opisz problem, który wystąpił w tej wiadomości..."
+      },
+      "rating": {
+        "positive": "Dobra odpowiedź",
+        "negative": "Zgłoszony problem"
       }
     },
     "create": {
       "button": "Zgłoś",
       "title": "Zgłoś problem z tą wiadomością",
-      "description": "Opisz szczegółowo problem, który wystąpił w tej wiadomości. Twoja opinia pomoże nam ulepszyć naszych agentów."
+      "description": "Opisz szczegółowo problem, który wystąpił w tej wiadomości. Twoja opinia pomoże nam ulepszyć naszych agentów.",
+      "negative": "Zgłoś problem"
     },
     "list": {
       "description": "Zarządzaj opiniami o wiadomościach agentów.",

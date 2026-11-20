@@ -13,7 +13,7 @@
       "signInRefused": {
         "emailNotVerified": {
           "title": "Zweryfikuj adres e-mail",
-          "message": "Na Twój adres e-mail czeka konto, ale dostawca tożsamości jeszcze go nie zweryfikował.",
+          "message": "Twój dostawca tożsamości jeszcze nie zweryfikował Twojego adresu e-mail.",
           "hint": "Otwórz wiadomość weryfikacyjną od dostawcy tożsamości i sprawdź folder spam. Kliknij zawarty w niej link, a następnie „spróbuj ponownie”."
         },
         "emailRequired": {

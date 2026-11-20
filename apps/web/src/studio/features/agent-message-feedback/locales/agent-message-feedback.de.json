@@ -10,12 +10,17 @@
       "createdAt": "Erstellt am",
       "placeholders": {
         "content": "Beschreiben Sie das Problem, das bei dieser Nachricht aufgetreten ist..."
+      },
+      "rating": {
+        "positive": "Gute Antwort",
+        "negative": "Gemeldetes Problem"
       }
     },
     "create": {
       "button": "Melden",
       "title": "Problem mit dieser Nachricht melden",
-      "description": "Bitte beschreiben Sie das Problem, das bei dieser Nachricht aufgetreten ist. Ihr Feedback hilft uns, unsere Agenten zu verbessern."
+      "description": "Bitte beschreiben Sie das Problem, das bei dieser Nachricht aufgetreten ist. Ihr Feedback hilft uns, unsere Agenten zu verbessern.",
+      "negative": "Problem melden"
     },
     "list": {
       "description": "Feedback zu Agentennachrichten verwalten.",

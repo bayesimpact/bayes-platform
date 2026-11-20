@@ -43,11 +43,20 @@
       "agent_settings_draft_update": {
         "name": "Agentenentwürfe bearbeiten",
         "description": "Die Entwurfseinstellungen der Agenten ändern, die Sie in den ausgewählten Projekten besitzen oder verwalten (Modell, Anweisungen). Veröffentlicht wird weiterhin im Studio."
+      },
+      "evaluation_conversation_dataset_update": {
+        "name": "Evaluierungsdatensätze bearbeiten",
+        "description": "Evaluierungsdatensätze in den ausgewählten Projekten erstellen sowie ihre Fragen und erwarteten Antworten lesen und hinzufügen."
+      },
+      "evaluation_conversation_run_create": {
+        "name": "Evaluierungen ausführen",
+        "description": "Agenten anhand eines Datensatzes evaluieren und die Antworten und Bewertungen lesen. Jeder Durchlauf ruft für jede Frage des Datensatzes Sprachmodelle auf."
       }
     },
     "resource": {
       "project": "Projekte",
-      "agent": "Agenten"
+      "agent": "Agenten",
+      "evaluation": "Evaluierungen"
     },
     "appPermission": {
       "document_read": {
@@ -120,7 +129,8 @@
       }
     },
     "notifications": {
-      "approveError": "Der Zugriff konnte nicht gewährt werden"
+      "approveError": "Der Zugriff konnte nicht gewährt werden",
+      "alreadyInstalled": "Jemand hat diese App gerade in diesem Arbeitsbereich installiert. Laden Sie die Seite neu, um zu sehen, wer."
     },
     "appResource": {
       "document": "Dokumente",
@@ -135,7 +145,28 @@
       "update": "Bearbeiten",
       "delete": "Löschen",
       "conversation_session_external_create": "Externe Chats",
-      "settings_draft_update": "Entwürfe bearbeiten"
+      "settings_draft_update": "Entwürfe bearbeiten",
+      "conversation_dataset_update": "Datensätze bearbeiten",
+      "conversation_run_create": "Ausführen"
+    },
+    "appPermissionsDialog": {
+      "button_one": "{{count}} Berechtigung",
+      "button_other": "{{count}} Berechtigungen",
+      "title": "Berechtigungen von {{name}}",
+      "description": {
+        "requested": "Was {{name}} anfordert, wenn jemand die App verbindet. Die Person, die sie verbindet, wählt aus, was gewährt wird.",
+        "granted": "Was {{name}} in diesem Projekt tun kann."
+      }
+    },
+    "installedByMe": "Von Ihnen installiert. Eine erneute Installation verbindet die App neu.",
+    "installedBy": "Installiert von {{installer}}",
+    "reconnect": "{{name}} neu verbinden",
+    "alreadyInstalled": {
+      "title": "{{name}} ist in diesem Arbeitsbereich bereits installiert",
+      "byMember": "<installer/> hat die App installiert. Fragen Sie diese Person, wenn die App neu verbunden oder ihre Berechtigungen geändert werden sollen. Um {{name}} selbst zu nutzen, bitten Sie sie, Sie in der App einzuladen.",
+      "byFormerMember": "Die Person, die die App installiert hat, kann die Apps dieses Arbeitsbereichs nicht mehr verwalten. Sie können die App neu verbinden: Die Berechtigungen, die Sie hier gewähren, ersetzen die aktuellen, und ihre aktuellen Tokens funktionieren nicht mehr. Danach gelten Sie als installierende Person.",
+      "replace": "Um diese Installation zu ersetzen, widerrufen Sie sie unter <settings>Installierte Apps</settings> des Arbeitsbereichs und installieren Sie {{name}} dann erneut. {{name}} stoppt sofort, und die Unterhaltungen der alten Installation werden nicht übernommen.",
+      "error": "Wählen Sie einen anderen Arbeitsbereich oder widerrufen Sie zuerst die aktuelle Installation."
     }
   }
 }

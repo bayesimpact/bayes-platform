@@ -13,7 +13,7 @@
       "signInRefused": {
         "emailNotVerified": {
           "title": "Verifique su correo electrónico",
-          "message": "Hay una cuenta esperando su dirección de correo electrónico, pero su proveedor de identidad aún no la ha verificado.",
+          "message": "Su proveedor de identidad aún no ha verificado su dirección de correo electrónico.",
           "hint": "Abra el correo de verificación que le envió su proveedor de identidad y revise también la carpeta de spam. Haga clic en el enlace que contiene y luego en reintentar."
         },
         "emailRequired": {
