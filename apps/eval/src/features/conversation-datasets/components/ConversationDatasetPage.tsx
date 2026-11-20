@@ -61,6 +61,9 @@ export function ConversationDatasetPage({
       agentParams={agentParams}
       dataset={dataset}
       tab={tab}
+      // The runs have many columns: the page takes all the width, on both tabs, as an extraction
+      // dataset's does.
+      isWide
       run={
         can(EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION)
           ? { disabledReason: dataset.recordCount === 0 ? t`Add a record first.` : null }

@@ -78,7 +78,8 @@ export function ConversationRunPage({
         ) : null
       }
     >
-      <PageContainer>
+      {/* The results have many columns, and long texts: the page takes all the width. */}
+      <PageContainer isWide>
         <RunPageHeader
           agentParams={agentParams}
           datasetId={dataset.id}
