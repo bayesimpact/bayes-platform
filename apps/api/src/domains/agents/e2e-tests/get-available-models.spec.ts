@@ -91,6 +91,9 @@ describe("Agents - getAvailableModels", () => {
       AgentModel.Gemini36Flash,
       AgentModel.Gemini37Flash,
       AgentModel.Gemini38Flash,
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
       AgentModel.MedGemma10_27B,
       AgentModel.Gemma4_26B,
       AgentModel.Gemma4_31B,
@@ -100,6 +103,7 @@ describe("Agents - getAvailableModels", () => {
       AgentModel.ClaudeSonnet55,
       AgentModel.ClaudeHaiku55,
       AgentModel.ClaudeOpus5,
+      AgentModel.ClaudeOpus55,
       AgentModel.Gpt54,
       AgentModel.Gpt54Mini,
     ])
@@ -125,6 +129,14 @@ describe("Agents - getAvailableModels", () => {
       servedOutsideEu: false,
     })
     expect(entryOf(models, AgentModel.Gemini36Flash)).toMatchObject({
+      provider: AgentProvider.Vertex3,
+      deprecation: {
+        deprecatedOn: "2026-11-19",
+        recommendedReplacement: AgentModel.Gemini38Flash,
+      },
+      servedOutsideEu: false,
+    })
+    expect(entryOf(models, AgentModel.Gemini38Flash)).toMatchObject({
       provider: AgentProvider.Vertex3,
       deprecation: null,
       servedOutsideEu: false,
@@ -155,14 +167,14 @@ describe("Agents - getAvailableModels", () => {
     ).not.toHaveProperty("temperature")
   })
 
-  it("offers the vertex 3 models only, without any feature flag", async () => {
+  it("offers the vertex 3 and 4 models only, without any feature flag", async () => {
     await createContext()
 
     const { models } = await subject()
 
     expect(
       new Set(models.filter((entry) => entry.isAvailable).map((entry) => entry.provider)),
-    ).toEqual(new Set([AgentProvider.Vertex3]))
+    ).toEqual(new Set([AgentProvider.Vertex3, AgentProvider.Vertex4]))
     for (const model of [
       AgentModel.MedGemma10_27B,
       AgentModel.Gemma4_26B,
@@ -172,6 +184,7 @@ describe("Agents - getAvailableModels", () => {
       AgentModel.ClaudeSonnet55,
       AgentModel.ClaudeHaiku55,
       AgentModel.ClaudeOpus5,
+      AgentModel.ClaudeOpus55,
       AgentModel.Gpt54,
       AgentModel.Gpt54Mini,
     ]) {
@@ -186,6 +199,25 @@ describe("Agents - getAvailableModels", () => {
 
     expect(entryOf(models, AgentModel.Gemma4_26B)?.isAvailable).toBe(true)
     expect(entryOf(models, AgentModel.MistralSmall32_24B)?.isAvailable).toBe(false)
+  })
+
+  it("offers the Gemini 4 models without a feature flag, carbon outside the EU", async () => {
+    await createContext()
+
+    const { models } = await subject()
+
+    for (const model of [AgentModel.Gemini4Argon, AgentModel.Gemini4Hydrogen]) {
+      expect(entryOf(models, model)).toMatchObject({
+        provider: AgentProvider.Vertex4,
+        isAvailable: true,
+        servedOutsideEu: false,
+      })
+    }
+    expect(entryOf(models, AgentModel.Gemini4Carbon)).toMatchObject({
+      provider: AgentProvider.Vertex4,
+      isAvailable: true,
+      servedOutsideEu: true,
+    })
   })
 
   it("no longer offers a model past its deprecation date, but still describes it", async () => {

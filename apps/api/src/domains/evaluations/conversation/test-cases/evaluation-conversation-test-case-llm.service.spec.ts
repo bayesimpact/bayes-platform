@@ -44,6 +44,7 @@ describe("EvaluationConversationTestCaseLlmService", () => {
       [AgentProvider._Mock]: mockProvider as unknown as LLMProvider,
       [AgentProvider.Vertex]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.Vertex3]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex4]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.Mistral]: mistralProvider as unknown as LLMProvider,
       [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,

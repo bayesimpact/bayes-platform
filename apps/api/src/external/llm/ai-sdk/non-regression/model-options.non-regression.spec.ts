@@ -26,6 +26,7 @@ import { AISDKOpenAIProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-open
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
+import { AISDKVertex4Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex4.provider"
 
 jest.mock("google-auth-library", () => ({
   GoogleAuth: jest.fn().mockImplementation(() => ({
@@ -97,6 +98,15 @@ const PROVIDERS: ProviderUnderTest[] = [
   {
     provider: AgentProvider.Vertex3,
     instance: new AISDKVertex3Provider(),
+    locations: GEMINI_LOCATIONS,
+    responseFor: {
+      generateText: () => gemini.text("Hello"),
+      streamChatResponse: () => gemini.streamedText(["Hel", "lo"]),
+    },
+  },
+  {
+    provider: AgentProvider.Vertex4,
+    instance: new AISDKVertex4Provider(),
     locations: GEMINI_LOCATIONS,
     responseFor: {
       generateText: () => gemini.text("Hello"),

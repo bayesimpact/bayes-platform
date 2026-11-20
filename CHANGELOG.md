@@ -12,6 +12,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent version in production: managers choose which saved version the app, the embed and the public API run.
 - Agent instructions: an advanced mode shows the instructions as a diff with the last saved version and edits them there.
 - Desk: a hidden sidebar shows over the page while the pointer is on the button that shows it.
+- Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon, which runs outside the EU.
+- (beta) Agent models: agents can run on Claude models in the EU and on OpenAI models outside the EU.
 
 ### Changed
 
@@ -24,6 +26,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Desk agent switcher: a search window lists the agents by project and type, and opens with Ctrl+K or ⌘K.
 - (beta) Agent orchestration and embed: both sections of the editor apply in production and keep an explicit save with a confirmation.
 - (beta) Agent orchestration: managers read the instructions of an agent before they add it, and confirm before they remove a sub-agent.
+- Agent models: gemini-3.6-flash retires on 19 November 2026 and gemini-3.7-flash on 28 January 2027.
 - (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
 - (beta) Embed launcher: a larger button with a dot-grid icon that turns into a close cross, a window that grows out of the button, and a card above the closed button that shows the agent's greeting until the visitor opens the chat, writes or dismisses it.
 - (beta) Embedded chat: the floating window is larger (400 × 704 px at most), its header shows the dot-grid mark instead of a sparkle and a chevron to minimize it, and the launcher shows a chevron while the chat is open.

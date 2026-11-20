@@ -8,6 +8,7 @@ import { AISDKOpenAIProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-open
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
+import { AISDKVertex4Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex4.provider"
 
 /**
  * The provider/model matrix shared by every live-regression spec in this
@@ -38,6 +39,24 @@ export const PROVIDER_CASES: ProviderCase[] = [
     model: AgentModel.Gemma4_31B,
     buildProvider: () => new AISDKGemmaProvider(),
     unavailableReason: vllmUnavailableReason("VLLM_GEMMA4_31B_URL"),
+  },
+  {
+    label: "Gemini 4 Argon (Vertex4, eu)",
+    model: AgentModel.Gemini4Argon,
+    buildProvider: () => new AISDKVertex4Provider(),
+    unavailableReason: () => null,
+  },
+  {
+    label: "Gemini 4 Hydrogen (Vertex4, eu)",
+    model: AgentModel.Gemini4Hydrogen,
+    buildProvider: () => new AISDKVertex4Provider(),
+    unavailableReason: () => null,
+  },
+  {
+    label: "Gemini 4 Carbon (Vertex4, global)",
+    model: AgentModel.Gemini4Carbon,
+    buildProvider: () => new AISDKVertex4Provider(),
+    unavailableReason: () => null,
   },
   {
     label: "Gemini 3.8 Flash (Vertex3)",
@@ -116,6 +135,12 @@ export const PROVIDER_CASES: ProviderCase[] = [
   {
     label: "Claude Opus 5 (Vertex, eu)",
     model: AgentModel.ClaudeOpus5,
+    buildProvider: () => new AISDKAnthropicProvider(),
+    unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
+  },
+  {
+    label: "Claude Opus 5.5 (Vertex, eu)",
+    model: AgentModel.ClaudeOpus55,
     buildProvider: () => new AISDKAnthropicProvider(),
     unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
   },

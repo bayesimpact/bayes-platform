@@ -10,6 +10,7 @@ import { AISDKOpenAIProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-open
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
+import { AISDKVertex4Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex4.provider"
 
 const providers: { [Provider in AgentProvider]: AISDKLLMProviderBase<Provider> } = {
   [AgentProvider.Gemma]: new AISDKGemmaProvider(),
@@ -20,12 +21,13 @@ const providers: { [Provider in AgentProvider]: AISDKLLMProviderBase<Provider> }
   [AgentProvider.OpenAI]: new AISDKOpenAIProvider(),
   [AgentProvider.Vertex]: new AISDKVertexProvider(),
   [AgentProvider.Vertex3]: new AISDKVertex3Provider(),
+  [AgentProvider.Vertex4]: new AISDKVertex4Provider(),
   [AgentProvider._Mock]: new AISDKMockProvider(),
 }
 
 const ALL_THINKING_LEVELS = ["minimal", "low", "medium", "high"]
 
-const vertex3Options = ({
+const vertexOptions = ({
   temperature,
   thinkingLevel,
 }: {
@@ -70,42 +72,66 @@ const CATALOG: {
     model: AgentModel.Gemini31FlashLite,
     provider: AgentProvider.Vertex3,
     isDefault: false,
-    defaultOptions: vertex3Options({ temperature: 1, thinkingLevel: "minimal" }),
+    defaultOptions: vertexOptions({ temperature: 1, thinkingLevel: "minimal" }),
     thinkingLevels: ALL_THINKING_LEVELS,
   },
   {
     model: AgentModel.Gemini35FlashLite,
     provider: AgentProvider.Vertex3,
     isDefault: true,
-    defaultOptions: vertex3Options({ thinkingLevel: "minimal" }),
+    defaultOptions: vertexOptions({ thinkingLevel: "minimal" }),
     thinkingLevels: ALL_THINKING_LEVELS,
   },
   {
     model: AgentModel.Gemini35Flash,
     provider: AgentProvider.Vertex3,
     isDefault: false,
-    defaultOptions: vertex3Options({ temperature: 1, thinkingLevel: "medium" }),
+    defaultOptions: vertexOptions({ temperature: 1, thinkingLevel: "medium" }),
     thinkingLevels: ALL_THINKING_LEVELS,
   },
   {
     model: AgentModel.Gemini36Flash,
     provider: AgentProvider.Vertex3,
+    deprecation: { deprecatedOn: "2026-11-19", recommendedReplacement: AgentModel.Gemini38Flash },
     isDefault: false,
-    defaultOptions: vertex3Options({ thinkingLevel: "medium" }),
+    defaultOptions: vertexOptions({ thinkingLevel: "medium" }),
     thinkingLevels: ALL_THINKING_LEVELS,
   },
   {
     model: AgentModel.Gemini37Flash,
     provider: AgentProvider.Vertex3,
+    deprecation: { deprecatedOn: "2027-01-28", recommendedReplacement: AgentModel.Gemini38Flash },
     isDefault: false,
-    defaultOptions: vertex3Options({ thinkingLevel: "medium" }),
+    defaultOptions: vertexOptions({ thinkingLevel: "medium" }),
     thinkingLevels: ["low", "medium", "high"],
   },
   {
     model: AgentModel.Gemini38Flash,
     provider: AgentProvider.Vertex3,
     isDefault: false,
-    defaultOptions: vertex3Options({ thinkingLevel: "medium" }),
+    defaultOptions: vertexOptions({ thinkingLevel: "medium" }),
+    thinkingLevels: ["low", "medium", "high"],
+  },
+  {
+    model: AgentModel.Gemini4Argon,
+    provider: AgentProvider.Vertex4,
+    isDefault: false,
+    defaultOptions: vertexOptions({ thinkingLevel: "medium" }),
+    thinkingLevels: ["low", "medium", "high"],
+  },
+  {
+    model: AgentModel.Gemini4Carbon,
+    provider: AgentProvider.Vertex4,
+    isDefault: false,
+    servedOutsideEu: true,
+    defaultOptions: vertexOptions({ thinkingLevel: "low" }),
+    thinkingLevels: ["low", "medium"],
+  },
+  {
+    model: AgentModel.Gemini4Hydrogen,
+    provider: AgentProvider.Vertex4,
+    isDefault: false,
+    defaultOptions: vertexOptions({ thinkingLevel: "medium" }),
     thinkingLevels: ["low", "medium", "high"],
   },
   {
@@ -166,6 +192,12 @@ const CATALOG: {
   },
   {
     model: AgentModel.ClaudeOpus5,
+    provider: AgentProvider.Anthropic,
+    isDefault: false,
+    defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
+  },
+  {
+    model: AgentModel.ClaudeOpus55,
     provider: AgentProvider.Anthropic,
     isDefault: false,
     defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
