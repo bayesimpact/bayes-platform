@@ -161,7 +161,7 @@ export function ExtractionRecordSheet({
                   </Trans>
                 </h3>
                 <p className="rounded-lg border border-destructive/30 p-3 text-sm whitespace-pre-wrap wrap-anywhere text-destructive">
-                  {record.errorDetails ?? "–"}
+                  {record.errorDetails}
                 </p>
               </section>
             ) : null}

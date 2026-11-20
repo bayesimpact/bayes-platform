@@ -62,7 +62,7 @@ export function ConversationRunPage({
   const revision = run.agentSettings.revision
   const summary = run.summary
   const hasErrors = (summary?.errors ?? 0) > 0
-  const canRetry = canUpdate && (run.status === "failed" || (summary?.errors ?? 0) > 0) && !isActive
+  const canRetry = canUpdate && (run.status === "failed" || hasErrors) && !isActive
   return (
     <SplitPage
       panel={
@@ -106,7 +106,7 @@ export function ConversationRunPage({
           />
           <StatCard
             label={<Trans comment="How many records of a run the judge graded">Graded</Trans>}
-            value={summary ? `${summary.graded} / ${summary.total}` : "–"}
+            value={summary ? `${i18n.number(summary.graded)} / ${i18n.number(summary.total)}` : "–"}
           />
           <StatCard
             // In red once a record failed: a run with no error keeps the color of the other figures.

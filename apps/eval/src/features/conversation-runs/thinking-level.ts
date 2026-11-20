@@ -18,7 +18,11 @@ function findOption(options: Record<string, unknown>, key: string): unknown {
 
 /** The thinking levels the models share, as the app says them. */
 const THINKING_LEVEL_LABELS: Record<string, MessageDescriptor> = {
-  none: msg({ message: "None", comment: "A thinking level of a model: it does not think" }),
+  none: msg({
+    message: "None",
+    context: "thinking level",
+    comment: "A thinking level of a model: it does not think",
+  }),
   minimal: msg({ message: "Minimal", comment: "A thinking level of a model" }),
   low: msg({ message: "Low", comment: "A thinking level of a model" }),
   medium: msg({ message: "Medium", comment: "A thinking level of a model" }),

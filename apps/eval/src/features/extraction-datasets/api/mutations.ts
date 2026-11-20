@@ -7,6 +7,7 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
+import { EXTRACTION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"
 import { putFileToSignedUrl } from "@/lib/upload-file"
 import { extractionDatasetKeys } from "./keys"
 
@@ -35,7 +36,10 @@ export function useRenameExtractionDataset(project: ProjectParamsDto) {
   })
 }
 
-/** Deletes a dataset with its records: its own queries go, so a step back does not show it. */
+/**
+ * Deletes a dataset with its records: its own queries go, so a step back does not show it. The
+ * API deletes its runs with it, so the runs load again too.
+ */
 export function useDeleteExtractionDataset(project: ProjectParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -46,7 +50,10 @@ export function useDeleteExtractionDataset(project: ProjectParamsDto) {
         queryKey: extractionDatasetKeys.records({ ...project, datasetId }),
       }),
     onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: extractionDatasetKeys.ofProject(project) }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: extractionDatasetKeys.ofProject(project) }),
+        queryClient.invalidateQueries({ queryKey: EXTRACTION_RUNS_QUERY_KEY }),
+      ]),
   })
 }
 
@@ -110,6 +117,14 @@ export function useDeleteExtractionFiles(project: ProjectParamsDto) {
           }),
         ),
       ),
+    // The columns of a deleted file go with it.
+    onSuccess: (_answer, documentIds) => {
+      for (const documentId of documentIds) {
+        queryClient.removeQueries({
+          queryKey: extractionDatasetKeys.fileColumns(project, documentId),
+        })
+      }
+    },
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: extractionDatasetKeys.files(project) }),
   })

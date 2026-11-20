@@ -126,7 +126,11 @@ export function ExtractionRunPage({
                 Matches
               </Trans>
             }
-            value={summary ? `${summary.perfectMatches} / ${summary.total}` : "–"}
+            value={
+              summary
+                ? `${i18n.number(summary.perfectMatches)} / ${i18n.number(summary.total)}`
+                : "–"
+            }
           />
           <StatCard
             label={

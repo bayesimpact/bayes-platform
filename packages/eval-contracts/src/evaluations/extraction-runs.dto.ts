@@ -122,6 +122,8 @@ export const extractionRunRecordsOutputSchema = z.object({
   limit: z.number(),
 })
 
+export type ExtractionRunRecordsOutputDto = z.output<typeof extractionRunRecordsOutputSchema>
+
 /** What creates a run: the agent and its saved version, the dataset, and how each field reads. */
 export const extractionRunInputSchema = z.strictObject({
   evaluationExtractionDatasetId: z.uuid(),

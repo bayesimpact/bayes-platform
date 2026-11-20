@@ -1,5 +1,6 @@
 import {
   CONVERSATION_RUN_RECORDS_PAGE_SIZE,
+  type ConversationRunOutputDto,
   type ConversationRunParamsDto,
   type ConversationRunRecordOutputDto,
   EvalAgentsRoutes,
@@ -8,11 +9,8 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import {
-  ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS,
-  isRunActive,
-  type RunStatus,
-} from "@/lib/run-status"
+import { pollWhile } from "@/lib/polling"
+import { ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS, isRunActive } from "@/lib/run-status"
 import { conversationRunKeys } from "./keys"
 
 /**
@@ -26,30 +24,38 @@ export const projectConversationRunsQueryOptions = (project: ProjectParamsDto) =
       const runs = await apiRequest(EvalConversationRunsRoutes.getAll, { params: project, signal })
       return runs.sort((first, second) => second.createdAt - first.createdAt)
     },
-    refetchInterval: (query) =>
-      query.state.data?.some((run) => isRunActive(run.status))
-        ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS
-        : false,
+    refetchInterval: pollWhile(
+      (runs: ConversationRunOutputDto[] | undefined) =>
+        runs?.some((run) => isRunActive(run.status)) ?? false,
+      ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS,
+    ),
   })
 
 /** A run, read again every few seconds while it is under way. */
-export const conversationRunQueryOptions = (run: ConversationRunParamsDto) =>
-  queryOptions({
+export const conversationRunQueryOptions = (run: ConversationRunParamsDto) => {
+  // The plain read: its key carries the run's type, for the read of the cache below.
+  const plain = queryOptions({
     queryKey: conversationRunKeys.detail(run),
+    queryFn: ({ signal }) => apiRequest(EvalConversationRunsRoutes.getOne, { params: run, signal }),
+  })
+  return queryOptions({
+    queryKey: plain.queryKey,
     queryFn: async ({ signal, client }) => {
       const read = await apiRequest(EvalConversationRunsRoutes.getOne, { params: run, signal })
       // The run just ended: its records are read one last time, with their last answers.
-      const before = client.getQueryData<{ status: RunStatus }>(conversationRunKeys.detail(run))
+      const before = client.getQueryData(plain.queryKey)
       if (before && isRunActive(before.status) && !isRunActive(read.status)) {
         void client.invalidateQueries({ queryKey: conversationRunKeys.records(run) })
       }
       return read
     },
-    refetchInterval: (query) =>
-      query.state.data && isRunActive(query.state.data.status)
-        ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS
-        : false,
+    refetchInterval: pollWhile(
+      (current: ConversationRunOutputDto | undefined) =>
+        current !== undefined && isRunActive(current.status),
+      ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS,
+    ),
   })
+}
 
 /**
  * All the records of a run. The API pages them: the app reads every page, one after the other.
@@ -75,7 +81,10 @@ export const conversationRunRecordsQueryOptions = (
         if (records.length >= answer.total || answer.records.length === 0) return records
       }
     },
-    refetchInterval: isActive ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS : false,
+    refetchInterval: pollWhile<ConversationRunRecordOutputDto[]>(
+      () => isActive,
+      ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS,
+    ),
   })
 
 /** The models of a project that can judge a run, and the one a new run starts with. */

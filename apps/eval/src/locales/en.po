@@ -423,7 +423,7 @@ msgstr "Agent and fields"
 msgid "Agent and judge"
 msgstr "Agent and judge"
 
-#. The saved version of the agent's settings a review campaign runs on
+#. The saved version of the agent's settings a review campaign or an evaluation runs on
 #. The saved version of the agent's settings a review campaign runs on
 #: src/features/campaigns/components/AgentVersionPicker.tsx
 #: src/features/campaigns/components/CampaignSetupView.tsx
@@ -655,6 +655,7 @@ msgstr "Check two runs or more to compare them."
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
+#. The empty choice of the column a field of the agent is compared with
 #: src/features/extraction-runs/components/KeyMappingField.tsx
 msgid "Choose a column…"
 msgstr "Choose a column…"
@@ -752,6 +753,7 @@ msgstr "Compare with"
 msgid "Compare with production"
 msgstr "Compare with production"
 
+#. How a run reads a field of the agent: compared with a column, named next
 #: src/features/extraction-runs/components/KeyMappingField.tsx
 msgid "Compared with"
 msgstr "Compared with"
@@ -1354,14 +1356,18 @@ msgstr "Give this agent the rows of a dataset, and compare what it extracts with
 msgid "Good reply"
 msgstr "Good reply"
 
-#. A record of a run the judge graded
 #. How many records of a run are graded
 #. How many records of a run the judge graded
 #. How many records of a run the judge graded
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 #: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+msgid "Graded"
+msgstr "Graded"
+
+#. A record of a run the judge graded
 #: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
+msgctxt "record status"
 msgid "Graded"
 msgstr "Graded"
 
@@ -1888,9 +1894,14 @@ msgstr "No session yet."
 msgid "No version chosen yet."
 msgstr "No version chosen yet."
 
-#. A thinking level of a model: it does not think
+#. A run whose judge got no instructions
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "None"
+msgstr "None"
+
+#. A thinking level of a model: it does not think
 #: src/features/conversation-runs/thinking-level.ts
+msgctxt "thinking level"
 msgid "None"
 msgstr "None"
 
@@ -1969,6 +1980,7 @@ msgstr "One answer per tester who filled the final survey."
 msgid "Only one version"
 msgstr "Only one version"
 
+#. How a run reads a field of the agent: shown, and compared with nothing
 #. Under a field of an extraction run that is shown and not compared
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 #: src/features/extraction-runs/components/KeyMappingField.tsx
@@ -3068,8 +3080,8 @@ msgid "The records could not be added. Try again."
 msgstr "The records could not be added. Try again."
 
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
-msgid "The records could not load. Try again."
-msgstr "The records could not load. Try again."
+msgid "The records could not load."
+msgstr "The records could not load."
 
 #: src/components/shared/RunPageHeader.tsx
 msgid "The records not asked yet stay without an answer. The answers already graded are kept."
@@ -3092,8 +3104,9 @@ msgid "The report could not be sent. Try again."
 msgstr "The report could not be sent. Try again."
 
 #: src/features/extraction-runs/components/ExtractionResultsSection.tsx
-msgid "The results could not load. Try again."
-msgstr "The results could not load. Try again."
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "The results could not load."
+msgstr "The results could not load."
 
 #: src/features/campaign-test/components/TesterSessionPage.tsx
 msgid "The reviewers of this campaign can read everything exchanged in this session."
@@ -3337,6 +3350,7 @@ msgstr "Took {took}"
 #: src/components/shared/RouteErrorState.tsx
 #: src/components/shared/SidebarSection.tsx
 #: src/components/shared/SignInProblemPage.tsx
+#: src/components/shared/TableLoadError.tsx
 #: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
 msgid "Try again"
 msgstr "Try again"

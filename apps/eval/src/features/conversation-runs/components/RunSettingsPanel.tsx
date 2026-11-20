@@ -164,7 +164,9 @@ export function RunSettingsPanel({
               label={<Trans comment="The instructions of the judge of a run">Instructions</Trans>}
             >
               <p className="whitespace-pre-wrap wrap-anywhere text-muted-foreground">
-                {run.judgeInstructions ?? <Trans>None</Trans>}
+                {run.judgeInstructions ?? (
+                  <Trans comment="A run whose judge got no instructions">None</Trans>
+                )}
               </p>
             </Fact>
           </dl>

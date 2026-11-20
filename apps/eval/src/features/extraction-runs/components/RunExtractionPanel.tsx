@@ -1,5 +1,4 @@
 import type { AgentParamsDto, ExtractionDatasetOutputDto } from "@caseai-connect/eval-contracts"
-import { extractionRunKeyMappingEntrySchema } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -8,27 +7,16 @@ import { PlayIcon } from "lucide-react"
 import { useId } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
-import { z } from "zod"
-import { isRunScopeValid, RunScopeField } from "@/components/shared/RunScopeField"
+import { RunScopeField } from "@/components/shared/RunScopeField"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
 import type { EvaluationAgent } from "@/features/agents"
 import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
 import { columnsOfRole } from "@/lib/extraction-columns"
 import { useStartExtractionRun } from "../api/mutations"
-import { defaultKeyMappingOf, isKeyMappingComplete } from "../key-mapping"
+import { defaultKeyMappingOf } from "../key-mapping"
+import { extractionRunFormSchema } from "../schemas"
 import { KeyMappingField } from "./KeyMappingField"
-
-/** What the page asks: the version to evaluate, how its fields read, and how many records. */
-const runFormSchema = z
-  .object({
-    versionId: z.uuid(),
-    keyMapping: z.array(extractionRunKeyMappingEntrySchema).refine(isKeyMappingComplete),
-    scope: z.enum(["all", "limited"]),
-    // `NaN` while its field is empty: it only counts for an evaluation of the first records.
-    limitedCount: z.number(),
-  })
-  .refine(isRunScopeValid, { path: ["limitedCount"] })
 
 export type RunExtractionPanelProps = {
   agent: EvaluationAgent
@@ -57,7 +45,7 @@ export function RunExtractionPanel({
   // The version in production first: it is the one the agent's users get.
   const defaultVersion = versions.find((version) => version.isProduction) ?? versions[0]
   const form = useForm({
-    resolver: zodResolver(runFormSchema),
+    resolver: zodResolver(extractionRunFormSchema),
     defaultValues: {
       versionId: defaultVersion?.id ?? "",
       keyMapping: defaultVersion ? defaultKeyMappingOf(defaultVersion, targetColumns) : [],
@@ -68,7 +56,6 @@ export function RunExtractionPanel({
   const scope = useWatch({ control: form.control, name: "scope" })
   const limitedCount = useWatch({ control: form.control, name: "limitedCount" })
   const agentName = agent.name
-  const canStart = versions.length > 0
   const datasetName = dataset.name
   const handleSubmit = form.handleSubmit((values) => {
     const version = versions.find((candidate) => candidate.id === values.versionId)
@@ -109,7 +96,7 @@ export function RunExtractionPanel({
           <Button type="button" variant="outline" onClick={onClose}>
             <Trans>Cancel</Trans>
           </Button>
-          <Button type="submit" form={formId} disabled={!canStart || startRun.isPending}>
+          <Button type="submit" form={formId} disabled={startRun.isPending}>
             <PlayIcon data-icon="inline-start" aria-hidden />
             <Trans comment="Starts an evaluation">Run</Trans>
           </Button>

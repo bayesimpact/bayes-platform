@@ -159,7 +159,6 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 - The runs of a conversation dataset (`features/conversation-runs`), on the API's
   `evaluation-conversation-runs` routes (`EvalConversationRunsRoutes`). Run evaluation, on a
   dataset's page, opens a side panel of the dataset's page, which the `run` search param shows
-  (`RunEvaluationPanel`)
   (`RunEvaluationPanel`): the version of the agent, picked with the campaigns'
   `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
   project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
@@ -301,8 +300,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   Desk's `RelativeTime`, on `Intl`.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
-- The mocked API: `src/test/msw/handlers.ts`, `campaign-handlers.ts` and
-  `conversation-dataset-handlers.ts`, written with `mockRoute`
+- The mocked API: `src/test/msw/handlers.ts`, with one file of handlers per area beside it
+  (`campaign-handlers.ts`, `conversation-dataset-handlers.ts`, `conversation-run-handlers.ts`,
+  `extraction-dataset-handlers.ts`, `extraction-run-handlers.ts`), written with `mockRoute`
   and `mockStreamRoute` (`src/test/msw/mock-route.ts`) and fed by the factories of
   `src/test/factories/`, whose `eval-world.factory.ts` builds the worlds: the owner of a project
   with campaigns who evaluates it too (the main one), an owner who does not, a person who holds

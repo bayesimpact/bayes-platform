@@ -3,6 +3,7 @@ import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Trans } from "@lingui/react/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
+import { cn } from "cn"
 import { LoaderCircleIcon } from "lucide-react"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"
 import { FilledForm } from "./FilledForm"
@@ -68,7 +69,10 @@ export function conversationRunRecordColumnsOf({
             event.stopPropagation()
             onOpen(context.row.original)
           }}
-          className={`${TEXT_CLASSES} cursor-pointer rounded-sm text-left font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50`}
+          className={cn(
+            TEXT_CLASSES,
+            "cursor-pointer rounded-sm text-left font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+          )}
         >
           {context.getValue()}
         </button>
@@ -104,7 +108,7 @@ export function conversationRunRecordColumnsOf({
           )
         }
         if (status === "error") {
-          return <p className={`${TEXT_CLASSES} text-destructive`}>{errorDetails ?? "–"}</p>
+          return <p className={cn(TEXT_CLASSES, "text-destructive")}>{errorDetails ?? "–"}</p>
         }
         return <span className="text-muted-foreground">–</span>
       },

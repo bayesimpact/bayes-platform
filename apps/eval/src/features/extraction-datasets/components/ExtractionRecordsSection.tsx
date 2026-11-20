@@ -9,6 +9,8 @@ import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useState } from "react"
 import { ColumnFilters } from "@/components/shared/ColumnFilters"
 import { DataTable } from "@/components/shared/DataTable"
+import { TableLoadError } from "@/components/shared/TableLoadError"
+import { TableLoadingRows } from "@/components/shared/TableLoadingRows"
 import { TablePagination } from "@/components/shared/TablePagination"
 import { COLUMN_ROLE_LABELS, columnsOf } from "@/lib/extraction-columns"
 import {
@@ -107,9 +109,13 @@ export function ExtractionRecordsSection({
         openRowId={openRecordId}
         empty={
           records.isPending ? (
-            <Trans>Loading the records…</Trans>
+            <TableLoadingRows>
+              <Trans>Loading the records…</Trans>
+            </TableLoadingRows>
           ) : records.isError ? (
-            <Trans>The records could not load. Try again.</Trans>
+            <TableLoadError onRetry={() => void records.refetch()}>
+              <Trans>The records could not load.</Trans>
+            </TableLoadError>
           ) : isFiltering ? (
             <Trans>No record passes these filters.</Trans>
           ) : (

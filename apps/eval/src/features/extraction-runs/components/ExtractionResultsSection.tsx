@@ -13,6 +13,8 @@ import { ColumnFilters } from "@/components/shared/ColumnFilters"
 import { DataTable } from "@/components/shared/DataTable"
 import { ResultFilters } from "@/components/shared/ResultFilters"
 import { RunProgressNote } from "@/components/shared/RunProgressNote"
+import { TableLoadError } from "@/components/shared/TableLoadError"
+import { TableLoadingRows } from "@/components/shared/TableLoadingRows"
 import { TablePagination } from "@/components/shared/TablePagination"
 import { Button } from "@/components/ui/button"
 import { cellTextOf, columnsOf, columnsOfRole } from "@/lib/extraction-columns"
@@ -178,9 +180,13 @@ export function ExtractionResultsSection({
         openRowId={openRecordId}
         empty={
           results.isPending ? (
-            <Trans>Loading the results…</Trans>
+            <TableLoadingRows>
+              <Trans>Loading the results…</Trans>
+            </TableLoadingRows>
           ) : results.isError ? (
-            <Trans>The results could not load. Try again.</Trans>
+            <TableLoadError onRetry={() => void results.refetch()}>
+              <Trans>The results could not load.</Trans>
+            </TableLoadError>
           ) : hasFilters(recordsSearch) ? (
             <Trans>No result passes these filters.</Trans>
           ) : isRunActive(run.status) ? (

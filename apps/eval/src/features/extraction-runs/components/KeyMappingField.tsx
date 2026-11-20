@@ -66,8 +66,20 @@ export function KeyMappingField({ mapping, onChange, targetColumns, error }: Key
                     change(field, { mode: event.target.value === "fyi" ? "fyi" : "scored" })
                   }
                 >
-                  <NativeSelectOption value="scored">{t`Compared with`}</NativeSelectOption>
-                  <NativeSelectOption value="fyi">{t`Only shown`}</NativeSelectOption>
+                  <NativeSelectOption value="scored">
+                    {t({
+                      message: "Compared with",
+                      comment:
+                        "How a run reads a field of the agent: compared with a column, named next",
+                    })}
+                  </NativeSelectOption>
+                  <NativeSelectOption value="fyi">
+                    {t({
+                      message: "Only shown",
+                      comment:
+                        "How a run reads a field of the agent: shown, and compared with nothing",
+                    })}
+                  </NativeSelectOption>
                 </NativeSelect>
                 {entry.mode === "scored" ? (
                   <NativeSelect
@@ -76,7 +88,13 @@ export function KeyMappingField({ mapping, onChange, targetColumns, error }: Key
                     value={entry.datasetColumnId}
                     onChange={(event) => change(field, { datasetColumnId: event.target.value })}
                   >
-                    <NativeSelectOption value="">{t`Choose a column…`}</NativeSelectOption>
+                    <NativeSelectOption value="">
+                      {t({
+                        message: "Choose a column…",
+                        comment:
+                          "The empty choice of the column a field of the agent is compared with",
+                      })}
+                    </NativeSelectOption>
                     {targetColumns.map((column) => (
                       <NativeSelectOption key={column.id} value={column.id}>
                         {column.finalName}

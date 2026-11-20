@@ -11,8 +11,7 @@ import { PlayIcon } from "lucide-react"
 import { useId } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
-import { z } from "zod"
-import { isRunScopeValid, RunScopeField } from "@/components/shared/RunScopeField"
+import { RunScopeField } from "@/components/shared/RunScopeField"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -22,18 +21,7 @@ import type { EvaluationAgent } from "@/features/agents"
 import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
 import { useStartConversationRun } from "../api/mutations"
 import { judgeModelsQueryOptions } from "../api/queries"
-
-/** What the dialog asks: the version to evaluate, the judge, and how much of the dataset to ask. */
-const runFormSchema = z
-  .object({
-    versionId: z.uuid(),
-    judgeModel: z.string().min(1),
-    judgeInstructions: z.string().max(CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH),
-    scope: z.enum(["all", "limited"]),
-    // `NaN` while its field is empty: it only counts for an evaluation of the first records.
-    limitedCount: z.number(),
-  })
-  .refine(isRunScopeValid, { path: ["limitedCount"] })
+import { conversationRunFormSchema } from "../schemas"
 
 export type RunEvaluationPanelProps = {
   agent: EvaluationAgent
@@ -64,7 +52,7 @@ export function RunEvaluationPanel({
   // The version in production first: it is the one the agent's users talk to.
   const defaultVersion = versions.find((version) => version.isProduction) ?? versions[0]
   const form = useForm({
-    resolver: zodResolver(runFormSchema),
+    resolver: zodResolver(conversationRunFormSchema),
     defaultValues: {
       versionId: defaultVersion?.id ?? "",
       judgeModel: judge.models.some((model) => model.model === judge.defaultModel)
@@ -80,7 +68,7 @@ export function RunEvaluationPanel({
   const agentName = agent.name
   const datasetName = dataset.name
   const recordCount = dataset.recordCount
-  const canStart = versions.length > 0 && judge.models.length > 0
+  const canStart = judge.models.length > 0
   const handleSubmit = form.handleSubmit((values) => {
     const version = versions.find((candidate) => candidate.id === values.versionId)
     if (!version) return

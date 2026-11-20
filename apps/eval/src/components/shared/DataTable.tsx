@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro"
 import {
+  type Cell,
   flexRender,
   type Header,
   type Row,
@@ -99,7 +100,7 @@ export function DataTable<TData>({
                       key={cell.id}
                       className={cn("align-top", cell.column.columnDef.meta?.cellClassName)}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      <CellContent cell={cell} />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -126,7 +127,13 @@ type HeaderContentProps<TData> = {
 }
 
 function HeaderContent<TData>({ header }: HeaderContentProps<TData>) {
-  const content = flexRender(header.column.columnDef.header, header.getContext())
+  // As for a cell below: the header's function is called, not mounted as a component.
+  "use no memo"
+  const definition = header.column.columnDef.header
+  const content =
+    typeof definition === "function"
+      ? definition(header.getContext())
+      : flexRender(definition, header.getContext())
   if (!header.column.getCanSort()) return content
   const sorted = header.column.getIsSorted()
   const Icon = sorted === "asc" ? ArrowUpIcon : sorted === "desc" ? ArrowDownIcon : ArrowUpDownIcon
@@ -140,4 +147,24 @@ function HeaderContent<TData>({ header }: HeaderContentProps<TData>) {
       <Icon aria-hidden className={cn("size-3", sorted === false && "opacity-40")} />
     </button>
   )
+}
+
+type CellContentProps<TData> = {
+  cell: Cell<TData, unknown>
+}
+
+/**
+ * What a cell shows. A table builds its columns at each render, with the handlers of its props,
+ * so the function of a cell is a new one each time: mounted as a component, as `flexRender` does,
+ * it would be a new component at each render, and what the cell holds would mount again and lose
+ * its state, such as a row's open menu while a run under way reads its list again. Called here
+ * instead, it returns the same components at the same place, which keep their state.
+ */
+function CellContent<TData>({ cell }: CellContentProps<TData>) {
+  // The cell of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
+  "use no memo"
+  const definition = cell.column.columnDef.cell
+  return typeof definition === "function"
+    ? definition(cell.getContext())
+    : flexRender(definition, cell.getContext())
 }

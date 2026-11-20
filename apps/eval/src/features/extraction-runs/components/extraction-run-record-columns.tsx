@@ -120,7 +120,10 @@ export function extractionRunRecordColumnsOf({
                 event.stopPropagation()
                 onOpen(context.row.original)
               }}
-              className={`${TEXT_CLASSES} cursor-pointer rounded-sm text-left font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50`}
+              className={cn(
+                TEXT_CLASSES,
+                "cursor-pointer rounded-sm text-left font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              )}
             >
               {context.getValue() || "–"}
             </button>

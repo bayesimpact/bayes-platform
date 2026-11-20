@@ -14,6 +14,8 @@ import { CompareRunsPageFrame } from "@/components/shared/CompareRunsPageFrame"
 import { type RunFigure, RunFiguresTable } from "@/components/shared/RunFiguresTable"
 import { RunStatusBadge } from "@/components/shared/RunStatusBadge"
 import { RunVersionButton } from "@/components/shared/RunVersionButton"
+import { TableLoadError } from "@/components/shared/TableLoadError"
+import { TableLoadingRows } from "@/components/shared/TableLoadingRows"
 import { TablePagination } from "@/components/shared/TablePagination"
 import {
   Table,
@@ -64,10 +66,14 @@ export function ExtractionRunsComparePage({
   // The version of a run whose history shows, to compare it with the others.
   const [shownRevision, setShownRevision] = useState<number | null>(null)
   const shownVersion = versions.find((version) => version.revision === shownRevision)
-  // The runs of this dataset among those asked, in the order the person picked them.
+  // The agent's runs of this dataset among those asked, in the order the person picked them.
   const runs = runIds.flatMap((runId) => {
     const run = projectRuns.find((candidate) => candidate.id === runId)
-    return run && run.evaluationExtractionDatasetId === dataset.id ? [run] : []
+    return run &&
+      run.evaluationExtractionDatasetId === dataset.id &&
+      run.agentId === agentParams.agentId
+      ? [run]
+      : []
   })
   const [firstInputColumn] = columnsOfRole(dataset, "input")
   // useQueries: another page keeps the rows shown until its own arrive, for each run.
@@ -82,6 +88,7 @@ export function ExtractionRunsComparePage({
     ),
   })
   const isLoading = recordsByRun.some((records) => records.isPending)
+  const hasFailed = recordsByRun.some((records) => records.isError)
   // The run that asked the most records has the most pages.
   const recordTotal = Math.max(0, ...recordsByRun.map((records) => records.data?.total ?? 0))
   const runCount = runs.length
@@ -208,7 +215,19 @@ export function ExtractionRunsComparePage({
                     className="h-24 text-center text-muted-foreground"
                   >
                     {isLoading ? (
-                      <Trans>Loading the results…</Trans>
+                      <TableLoadingRows>
+                        <Trans>Loading the results…</Trans>
+                      </TableLoadingRows>
+                    ) : hasFailed ? (
+                      <TableLoadError
+                        onRetry={() => {
+                          for (const records of recordsByRun) {
+                            if (records.isError) void records.refetch()
+                          }
+                        }}
+                      >
+                        <Trans>The results could not load.</Trans>
+                      </TableLoadError>
                     ) : (
                       <Trans>These runs have no record yet.</Trans>
                     )}

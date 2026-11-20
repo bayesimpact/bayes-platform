@@ -423,7 +423,7 @@ msgstr "Agent et champs"
 msgid "Agent and judge"
 msgstr "Agent et juge"
 
-#. The saved version of the agent's settings a review campaign runs on
+#. The saved version of the agent's settings a review campaign or an evaluation runs on
 #. The saved version of the agent's settings a review campaign runs on
 #: src/features/campaigns/components/AgentVersionPicker.tsx
 #: src/features/campaigns/components/CampaignSetupView.tsx
@@ -655,6 +655,7 @@ msgstr "Cochez deux exécutions ou plus pour les comparer."
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
 
+#. The empty choice of the column a field of the agent is compared with
 #: src/features/extraction-runs/components/KeyMappingField.tsx
 msgid "Choose a column…"
 msgstr "Choisir une colonne…"
@@ -752,6 +753,7 @@ msgstr "Comparer avec"
 msgid "Compare with production"
 msgstr "Comparer avec la production"
 
+#. How a run reads a field of the agent: compared with a column, named next
 #: src/features/extraction-runs/components/KeyMappingField.tsx
 msgid "Compared with"
 msgstr "Comparé à"
@@ -837,7 +839,7 @@ msgstr "Créer le jeu de données"
 #. When a review campaign was created
 #: src/features/campaigns/components/campaign-columns.tsx
 msgid "Created"
-msgstr "Créée le"
+msgstr "Créée"
 
 #. When a review campaign was created, such as: Created 5 days ago
 #: src/components/shared/CampaignDescription.tsx
@@ -1354,16 +1356,20 @@ msgstr "Donnez à cet agent les lignes d'un jeu de données, et comparez ce qu'i
 msgid "Good reply"
 msgstr "Bonne réponse"
 
-#. A record of a run the judge graded
 #. How many records of a run are graded
 #. How many records of a run the judge graded
 #. How many records of a run the judge graded
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 #: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
 msgid "Graded"
 msgstr "Notés"
+
+#. A record of a run the judge graded
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
+msgctxt "record status"
+msgid "Graded"
+msgstr "Noté"
 
 #. The first message of an agent in a conversation
 #: src/features/campaigns/agent-version-diff.ts
@@ -1888,11 +1894,16 @@ msgstr "Aucune session pour l'instant."
 msgid "No version chosen yet."
 msgstr "Aucune version choisie pour le moment."
 
-#. A thinking level of a model: it does not think
+#. A run whose judge got no instructions
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
-#: src/features/conversation-runs/thinking-level.ts
 msgid "None"
 msgstr "Aucune"
+
+#. A thinking level of a model: it does not think
+#: src/features/conversation-runs/thinking-level.ts
+msgctxt "thinking level"
+msgid "None"
+msgstr "Aucun"
 
 #: src/components/shared/AnswerList.tsx
 msgid "Not answered"
@@ -1969,6 +1980,7 @@ msgstr "Une réponse par testeur qui a rempli le questionnaire final."
 msgid "Only one version"
 msgstr "Une seule version"
 
+#. How a run reads a field of the agent: shown, and compared with nothing
 #. Under a field of an extraction run that is shown and not compared
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 #: src/features/extraction-runs/components/KeyMappingField.tsx
@@ -2694,7 +2706,7 @@ msgstr "Démarrer une session"
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/extraction-runs/components/extraction-run-columns.tsx
 msgid "Started"
-msgstr "Démarrée le"
+msgstr "Démarrée"
 
 #. A row of the comparison of runs: where each run stands
 #. A row of the comparison of runs: where each run stands
@@ -3068,8 +3080,8 @@ msgid "The records could not be added. Try again."
 msgstr "Les enregistrements n'ont pas pu être ajoutés. Réessayez."
 
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
-msgid "The records could not load. Try again."
-msgstr "Les enregistrements n'ont pas pu se charger. Réessayez."
+msgid "The records could not load."
+msgstr "Les enregistrements n'ont pas pu se charger."
 
 #: src/components/shared/RunPageHeader.tsx
 msgid "The records not asked yet stay without an answer. The answers already graded are kept."
@@ -3092,8 +3104,9 @@ msgid "The report could not be sent. Try again."
 msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 
 #: src/features/extraction-runs/components/ExtractionResultsSection.tsx
-msgid "The results could not load. Try again."
-msgstr "Les résultats n'ont pas pu se charger. Réessayez."
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "The results could not load."
+msgstr "Les résultats n'ont pas pu se charger."
 
 #: src/features/campaign-test/components/TesterSessionPage.tsx
 msgid "The reviewers of this campaign can read everything exchanged in this session."
@@ -3337,6 +3350,7 @@ msgstr "Durée : {took}"
 #: src/components/shared/RouteErrorState.tsx
 #: src/components/shared/SidebarSection.tsx
 #: src/components/shared/SignInProblemPage.tsx
+#: src/components/shared/TableLoadError.tsx
 #: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
 msgid "Try again"
 msgstr "Réessayer"
@@ -3378,7 +3392,7 @@ msgstr "Document sans titre"
 #: src/components/shared/dataset-columns.tsx
 #: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
 msgid "Updated"
-msgstr "Modifiée le"
+msgstr "Modifié"
 
 #: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
 msgid "Upload a CSV file"

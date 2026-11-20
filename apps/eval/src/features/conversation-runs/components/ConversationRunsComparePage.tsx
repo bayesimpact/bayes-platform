@@ -56,10 +56,14 @@ export function ConversationRunsComparePage({
   // The version of a run whose history shows, to compare it with the others.
   const [shownRevision, setShownRevision] = useState<number | null>(null)
   const shownVersion = versions.find((version) => version.revision === shownRevision)
-  // The runs of this dataset among those asked, in the order the person picked them.
+  // The agent's runs of this dataset among those asked, in the order the person picked them.
   const runs = runIds.flatMap((runId) => {
     const run = projectRuns.find((candidate) => candidate.id === runId)
-    return run && run.evaluationConversationDatasetId === dataset.id ? [run] : []
+    return run &&
+      run.evaluationConversationDatasetId === dataset.id &&
+      run.agentId === agentParams.agentId
+      ? [run]
+      : []
   })
   const recordsByRun = useSuspenseQueries({
     queries: runs.map((run) =>

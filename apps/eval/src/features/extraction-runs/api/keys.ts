@@ -1,8 +1,9 @@
 import type { ExtractionRunParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
 import type { RecordsSearch } from "@/lib/records-search"
+import { EXTRACTION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"
 
 export const extractionRunKeys = {
-  all: ["extraction-runs"] as const,
+  all: EXTRACTION_RUNS_QUERY_KEY,
   ofProject: (project: ProjectParamsDto) =>
     [...extractionRunKeys.all, "project", project.organizationId, project.projectId] as const,
   /** A run and its records. */

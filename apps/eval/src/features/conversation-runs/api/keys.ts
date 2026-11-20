@@ -1,7 +1,8 @@
 import type { ConversationRunParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import { CONVERSATION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"
 
 export const conversationRunKeys = {
-  all: ["conversation-runs"] as const,
+  all: CONVERSATION_RUNS_QUERY_KEY,
   ofProject: (project: ProjectParamsDto) =>
     [...conversationRunKeys.all, "project", project.organizationId, project.projectId] as const,
   /** A run and its records. */

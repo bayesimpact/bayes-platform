@@ -10,7 +10,11 @@ export type RunRecordStatusBadgeProps = {
 }
 
 const LABELS = {
-  graded: msg({ message: "Graded", comment: "A record of a run the judge graded" }),
+  graded: msg({
+    message: "Graded",
+    context: "record status",
+    comment: "A record of a run the judge graded",
+  }),
   error: msg({ message: "Error", comment: "A record of a run an error stopped" }),
   running: msg({ message: "Waiting", comment: "A record of a run the agent has not answered yet" }),
   cancelled: msg({

@@ -7,6 +7,7 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { type QueryClient, useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
+import { CONVERSATION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"
 import { conversationDatasetKeys } from "./keys"
 
 /** A dataset's records changed: they load again, and the list, which counts them. */
@@ -41,7 +42,10 @@ export function useRenameConversationDataset(project: ProjectParamsDto) {
   })
 }
 
-/** Deletes a dataset with its records: its own queries go, so a step back does not show it. */
+/**
+ * Deletes a dataset with its records: its own queries go, so a step back does not show it. The
+ * API deletes its runs with it, so the runs load again too.
+ */
 export function useDeleteConversationDataset(project: ProjectParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -52,7 +56,10 @@ export function useDeleteConversationDataset(project: ProjectParamsDto) {
         queryKey: conversationDatasetKeys.records({ ...project, datasetId }),
       }),
     onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: conversationDatasetKeys.ofProject(project) }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: conversationDatasetKeys.ofProject(project) }),
+        queryClient.invalidateQueries({ queryKey: CONVERSATION_RUNS_QUERY_KEY }),
+      ]),
   })
 }
 

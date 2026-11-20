@@ -4,21 +4,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-
-/** How much of a dataset an evaluation asks: all its records, or the first ones only. */
-type RunScope = "all" | "limited"
-
-/**
- * Whether a form's scope can start an evaluation: the count only matters, and must be a whole
- * number of records, when the evaluation asks the first ones.
- */
-export const isRunScopeValid = ({
-  scope,
-  limitedCount,
-}: {
-  scope: RunScope
-  limitedCount: number
-}) => scope === "all" || (Number.isInteger(limitedCount) && limitedCount >= 1)
+import type { RunScope } from "@/lib/run-scope"
 
 export type RunScopeFieldProps = {
   /** How many records the dataset holds. */

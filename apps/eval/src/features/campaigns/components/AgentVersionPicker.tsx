@@ -44,7 +44,7 @@ export function AgentVersionPicker({
   return (
     <FieldSet data-invalid={isInvalid}>
       <FieldLegend variant="label">
-        <Trans comment="The saved version of the agent's settings a review campaign runs on">
+        <Trans comment="The saved version of the agent's settings a review campaign or an evaluation runs on">
           Agent version
         </Trans>
       </FieldLegend>

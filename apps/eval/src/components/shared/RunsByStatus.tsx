@@ -1,5 +1,5 @@
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { type ReactNode, useState } from "react"
+import { type ReactNode, useMemo, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   RUN_STATUS_LABELS,
@@ -7,6 +7,9 @@ import {
   type RunStatus,
   type RunSummary,
 } from "@/lib/run-status"
+
+/** No run: a status always holds some, since the sub-tabs are those of the runs there are. */
+const NO_RUN: never[] = []
 
 export type RunsByStatusProps<TRun extends RunSummary> = {
   /** The agent's runs of a dataset, the newest first. */
@@ -30,6 +33,15 @@ export function RunsByStatus<TRun extends RunSummary>({
   const runCount = runs.length
   // The statuses that hold runs, in the order of the sub-tabs.
   const statuses = RUN_STATUS_ORDER.filter((status) => runs.some((run) => run.status === status))
+  // The runs of each status: the rows of a table, the same array from one render to the next
+  // while the runs are the same.
+  const runsByStatus = useMemo(
+    () =>
+      new Map(
+        RUN_STATUS_ORDER.map((status) => [status, runs.filter((run) => run.status === status)]),
+      ),
+    [runs],
+  )
   const [firstStatus] = statuses
   // The sub-tab the person chose stays, while it holds runs: a run that ends, read again by
   // itself, must not take them to another sub-tab.
@@ -63,7 +75,7 @@ export function RunsByStatus<TRun extends RunSummary>({
           <TabsList variant="line" className="max-w-full overflow-x-auto">
             {statuses.map((status) => {
               const statusName = i18n._(RUN_STATUS_LABELS[status])
-              const count = i18n.number(runs.filter((run) => run.status === status).length)
+              const count = i18n.number(runsByStatus.get(status)?.length ?? 0)
               return (
                 <TabsTrigger key={status} value={status}>
                   <Trans comment="A sub-tab of a dataset's runs: a status and how many runs stand at it">
@@ -75,7 +87,7 @@ export function RunsByStatus<TRun extends RunSummary>({
           </TabsList>
           {statuses.map((status) => (
             <TabsContent key={status} value={status}>
-              {renderTable(runs.filter((run) => run.status === status))}
+              {renderTable(runsByStatus.get(status) ?? NO_RUN)}
             </TabsContent>
           ))}
         </Tabs>

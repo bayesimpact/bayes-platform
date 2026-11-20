@@ -3,6 +3,7 @@ import type {
   ExtractionDatasetRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
+import { cn } from "cn"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"
 import { Badge } from "@/components/ui/badge"
 import { cellTextOf } from "@/lib/extraction-columns"
@@ -60,7 +61,10 @@ export function extractionRecordColumnsOf({
                 event.stopPropagation()
                 onOpen(context.row.original)
               }}
-              className={`${TEXT_CLASSES} cursor-pointer rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50`}
+              className={cn(
+                TEXT_CLASSES,
+                "cursor-pointer rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              )}
             >
               {text}
             </button>

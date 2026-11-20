@@ -5,14 +5,13 @@ import {
   type ExtractionDatasetOutputDto,
   type ExtractionDatasetParamsDto,
   extractionDatasetColumnRoleSchema,
-  extractionDatasetNameInputSchema,
+  extractionDatasetSetupInputSchema,
 } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { Fragment, useId, useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { z } from "zod"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -28,19 +27,8 @@ import {
 import { useSetUpExtractionDataset } from "../api/mutations"
 import { FilePreviewTable } from "./FilePreviewTable"
 
-/** What the form holds: each column of the file, the name it takes and its role. */
-const columnsFormSchema = z.object({
-  name: extractionDatasetNameInputSchema.shape.name,
-  columns: z.array(
-    z.object({
-      id: z.string(),
-      index: z.number(),
-      originalName: z.string(),
-      finalName: z.string(),
-      role: extractionDatasetColumnRoleSchema,
-    }),
-  ),
-})
+/** The role of a column until the person says what it is: left out. */
+const DEFAULT_ROLE: ExtractionDatasetColumnRoleDto = "ignore"
 
 export type ExtractionColumnsFormProps = {
   dataset: ExtractionDatasetOutputDto
@@ -67,7 +55,7 @@ export function ExtractionColumnsForm({
   const nameId = useId()
   const setUp = useSetUpExtractionDataset(datasetParams)
   const form = useForm({
-    resolver: zodResolver(columnsFormSchema),
+    resolver: zodResolver(extractionDatasetSetupInputSchema),
     defaultValues: {
       name: dataset.name,
       columns: fileColumns.map((column, index) => ({
@@ -76,7 +64,7 @@ export function ExtractionColumnsForm({
         originalName: column.name,
         finalName: column.name,
         // Left out until the person says what the column is.
-        role: "ignore" as ExtractionDatasetColumnRoleDto,
+        role: DEFAULT_ROLE,
       })),
     },
   })
