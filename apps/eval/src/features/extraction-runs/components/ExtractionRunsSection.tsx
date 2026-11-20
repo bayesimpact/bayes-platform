@@ -104,7 +104,7 @@ export function ExtractionRunsSection({
           agentName={agentName}
           versions={versions}
           selectedId={shownVersion.id}
-          selectedNote={<Trans>The run asked this version</Trans>}
+          selectedNote={<Trans>The run used this version</Trans>}
           onSelect={null}
         />
       ) : null}

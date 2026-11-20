@@ -671,8 +671,8 @@ msgstr "Choisissez la version sur laquelle tourne la campagne."
 
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 #: src/features/extraction-runs/components/RunExtractionPanel.tsx
-msgid "Choose the version the evaluation asks."
-msgstr "Choisissez la version que l'évaluation interroge."
+msgid "Choose the version the evaluation uses."
+msgstr "Choisissez la version que l'évaluation utilise."
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "Close “{name}”?"
@@ -2937,11 +2937,6 @@ msgstr "Le brouillon et ses questions sont supprimés définitivement. Une campa
 
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 #: src/features/extraction-runs/components/RunExtractionPanel.tsx
-msgid "The evaluation asks this version"
-msgstr "L'évaluation interroge cette version"
-
-#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
-#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation could not start. Try again."
 msgstr "L'évaluation n'a pas pu démarrer. Réessayez."
 
@@ -2957,6 +2952,11 @@ msgstr "L'exécution de l'évaluation est terminée."
 #: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation started."
 msgstr "L'évaluation a démarré."
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "The evaluation uses this version"
+msgstr "L'évaluation utilise cette version"
 
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "The file could not be opened. Try again."
@@ -3102,15 +3102,6 @@ msgstr "Les relecteurs de cette campagne peuvent lire tout ce qui est échangé 
 msgid "The run and its results are deleted for good."
 msgstr "L'exécution et ses résultats sont supprimés définitivement."
 
-#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
-#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
-msgid "The run asked this version"
-msgstr "L'exécution a interrogé cette version"
-
 #: src/components/shared/RunPageHeader.tsx
 msgid "The run could not be cancelled. Try again."
 msgstr "L'exécution n'a pas pu être annulée. Réessayez."
@@ -3126,6 +3117,15 @@ msgstr "L'exécution n'a pas pu être relancée. Réessayez."
 #: src/components/shared/RunPageHeader.tsx
 msgid "The run started again."
 msgstr "L'exécution a été relancée."
+
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "The run used this version"
+msgstr "L'exécution a utilisé cette version"
 
 #: src/components/shared/RunPageHeader.tsx
 msgid "The run was cancelled."

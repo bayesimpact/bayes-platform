@@ -177,7 +177,7 @@ export function RunSettingsPanel({
           agentName={agent.name}
           versions={versions}
           selectedId={version.id}
-          selectedNote={<Trans>The run asked this version</Trans>}
+          selectedNote={<Trans>The run used this version</Trans>}
           onSelect={null}
         />
       ) : null}

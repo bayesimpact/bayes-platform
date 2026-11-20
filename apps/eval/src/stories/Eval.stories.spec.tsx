@@ -331,7 +331,7 @@ describe("the stories of the app", () => {
     // A run's version opens the history of the agent's versions, to see what changed.
     await userEvent.click(screen.getByRole("button", { name: "Compare version 2 with the others" }))
     const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
-    expect(within(sheet).getByText("The run asked this version")).toBeInTheDocument()
+    expect(within(sheet).getByText("The run used this version")).toBeInTheDocument()
     await userEvent.keyboard("{Escape}")
     // The record one run failed on has a score in the other run only.
     const row = (await screen.findByText("Do unused seats get refunded?")).closest("tr")
@@ -363,7 +363,7 @@ describe("the stories of the app", () => {
       await screen.findByRole("button", { name: "Compare version 2 with the others" }),
     )
     const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
-    expect(within(sheet).getByText("The run asked this version")).toBeInTheDocument()
+    expect(within(sheet).getByText("The run used this version")).toBeInTheDocument()
     expect(
       within(sheet).queryByRole("button", { name: "Select this version" }),
     ).not.toBeInTheDocument()

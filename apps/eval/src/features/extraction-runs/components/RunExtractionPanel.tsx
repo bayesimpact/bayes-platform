@@ -140,10 +140,10 @@ export function RunExtractionPanel({
                 )
               }}
               description={<Trans>A run evaluates a saved version, never the draft.</Trans>}
-              selectedNote={<Trans>The evaluation asks this version</Trans>}
+              selectedNote={<Trans>The evaluation uses this version</Trans>}
               error={
                 fieldState.invalid ? (
-                  <Trans>Choose the version the evaluation asks.</Trans>
+                  <Trans>Choose the version the evaluation uses.</Trans>
                 ) : undefined
               }
             />

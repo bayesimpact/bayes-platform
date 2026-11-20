@@ -671,8 +671,8 @@ msgstr "Choose the version the campaign runs on."
 
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 #: src/features/extraction-runs/components/RunExtractionPanel.tsx
-msgid "Choose the version the evaluation asks."
-msgstr "Choose the version the evaluation asks."
+msgid "Choose the version the evaluation uses."
+msgstr "Choose the version the evaluation uses."
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "Close “{name}”?"
@@ -2937,11 +2937,6 @@ msgstr "The draft and its questions are deleted for good. An active or closed ca
 
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 #: src/features/extraction-runs/components/RunExtractionPanel.tsx
-msgid "The evaluation asks this version"
-msgstr "The evaluation asks this version"
-
-#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
-#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation could not start. Try again."
 msgstr "The evaluation could not start. Try again."
 
@@ -2957,6 +2952,11 @@ msgstr "The evaluation run is complete."
 #: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation started."
 msgstr "The evaluation started."
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "The evaluation uses this version"
+msgstr "The evaluation uses this version"
 
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "The file could not be opened. Try again."
@@ -3102,15 +3102,6 @@ msgstr "The reviewers of this campaign can read everything exchanged in this ses
 msgid "The run and its results are deleted for good."
 msgstr "The run and its results are deleted for good."
 
-#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
-#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
-msgid "The run asked this version"
-msgstr "The run asked this version"
-
 #: src/components/shared/RunPageHeader.tsx
 msgid "The run could not be cancelled. Try again."
 msgstr "The run could not be cancelled. Try again."
@@ -3126,6 +3117,15 @@ msgstr "The run could not start again. Try again."
 #: src/components/shared/RunPageHeader.tsx
 msgid "The run started again."
 msgstr "The run started again."
+
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "The run used this version"
+msgstr "The run used this version"
 
 #: src/components/shared/RunPageHeader.tsx
 msgid "The run was cancelled."
