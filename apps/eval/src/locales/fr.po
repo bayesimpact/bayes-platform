@@ -397,10 +397,10 @@ msgid "agent"
 msgstr "agent"
 
 #. The agent a run asked
-#. The agent a run asked
 #. The tab of what a run used about its agent
 #. The tab of what a run used about its agent
 #. What an invitation gives access to
+#: src/components/shared/RunAgentFacts.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 #: src/features/invitations/components/InvitationItem.tsx
@@ -646,8 +646,7 @@ msgstr "Discuter"
 msgid "Chat in the session of {started}"
 msgstr "Discuter dans la session du {started}"
 
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
-#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+#: src/components/shared/RunsSection.tsx
 msgid "Check two runs or more to compare them."
 msgstr "Cochez deux exécutions ou plus pour les comparer."
 
@@ -738,9 +737,8 @@ msgstr "Comparer des exécutions"
 msgid "Compare the run of {started}"
 msgstr "Comparer l'exécution du {started}"
 
+#: src/components/shared/RunAgentFacts.tsx
 #: src/components/shared/RunVersionButton.tsx
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Compare version {revision} with the others"
 msgstr "Comparer la version {revision} aux autres"
 
@@ -2012,9 +2010,7 @@ msgid "Open in a new tab"
 msgstr "Ouvrir dans un nouvel onglet"
 
 #. A link to the page of the agent in the Studio, where it is set up
-#. A link to the page of the agent in the Studio, where it is set up
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/components/shared/RunAgentFacts.tsx
 msgid "Open in Studio"
 msgstr "Ouvrir dans le Studio"
 
@@ -3132,12 +3128,10 @@ msgstr "L'exécution n'a pas pu être relancée. Réessayez."
 msgid "The run started again."
 msgstr "L'exécution a été relancée."
 
+#: src/components/shared/RunAgentFacts.tsx
+#: src/components/shared/RunsSection.tsx
 #: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
-#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "The run used this version"
 msgstr "L'exécution a utilisé cette version"
 
@@ -3434,26 +3428,22 @@ msgid "Verify your email"
 msgstr "Vérifiez votre email"
 
 #. The version of the agent a run asked
-#. The version of the agent a run asked
 #. The version of the agent a run evaluated
 #. The version of the agent a run evaluated
 #. The version of the agent a run evaluated
 #. The version of the agent a run evaluated
+#: src/components/shared/RunAgentFacts.tsx
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/extraction-run-columns.tsx
-#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Version"
 msgstr "Version"
 
 #. A saved version of an agent's settings, by its number
 #. A version of an agent, by its number
-#. A version of an agent, by its number
 #: src/components/shared/AgentVersionTitle.tsx
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
-#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/components/shared/RunAgentFacts.tsx
 msgid "Version {revision}"
 msgstr "Version {revision}"
 

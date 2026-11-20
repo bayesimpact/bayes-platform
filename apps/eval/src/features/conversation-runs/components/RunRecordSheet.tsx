@@ -1,5 +1,6 @@
 import type { ConversationRunRecordOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 import { ExternalLink } from "@/components/shared/ExternalLink"
 import { Markdown } from "@/components/shared/Markdown"
@@ -10,7 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { useCanReadTraces } from "@/features/account"
+import { canReadTracesQueryOptions } from "@/features/account"
 import { FilledForm } from "./FilledForm"
 import { RunRecordScore } from "./RunRecordScore"
 import { RunRecordStatusBadge } from "./RunRecordStatusBadge"
@@ -38,7 +39,7 @@ function Block({ title, children }: { title: ReactNode; children: ReactNode }) {
  */
 export function RunRecordSheet({ record, onClose }: RunRecordSheetProps) {
   // The trace of an answer is for the few who may read traces.
-  const canReadTraces = useCanReadTraces()
+  const { data: canReadTraces } = useSuspenseQuery(canReadTracesQueryOptions())
   return (
     <Sheet
       open={record !== null}

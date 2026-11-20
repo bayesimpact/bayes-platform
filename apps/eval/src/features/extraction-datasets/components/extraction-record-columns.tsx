@@ -6,12 +6,10 @@ import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { cn } from "cn"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"
 import { Badge } from "@/components/ui/badge"
+import { CELL_TEXT_CLASSES } from "@/lib/cell-text"
 import { cellTextOf } from "@/lib/extraction-columns"
 
 const columnHelper = createColumnHelper<ExtractionDatasetRecordOutputDto>()
-
-/** A record's text in a cell: three lines at most, which the record's sheet shows whole. */
-const TEXT_CLASSES = "line-clamp-3 min-w-40 whitespace-pre-wrap wrap-anywhere"
 
 /**
  * The columns of a dataset's records: the number of the row, then one per column of the dataset,
@@ -51,7 +49,7 @@ export function extractionRecordColumnsOf({
         ),
         cell: (context) => {
           const text = context.getValue() || "–"
-          if (index > 0) return <p className={TEXT_CLASSES}>{text}</p>
+          if (index > 0) return <p className={CELL_TEXT_CLASSES}>{text}</p>
           return (
             <button
               type="button"
@@ -62,7 +60,7 @@ export function extractionRecordColumnsOf({
                 onOpen(context.row.original)
               }}
               className={cn(
-                TEXT_CLASSES,
+                CELL_TEXT_CLASSES,
                 "cursor-pointer rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               )}
             >

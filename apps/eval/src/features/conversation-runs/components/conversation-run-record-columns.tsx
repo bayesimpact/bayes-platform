@@ -6,6 +6,7 @@ import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { cn } from "cn"
 import { LoaderCircleIcon } from "lucide-react"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"
+import { CELL_TEXT_CLASSES } from "@/lib/cell-text"
 import { FilledForm } from "./FilledForm"
 import { RunRecordScore } from "./RunRecordScore"
 import { RunRecordStatusBadge } from "./RunRecordStatusBadge"
@@ -27,9 +28,6 @@ const recordColumnLabels = {
   }),
   score: msg({ message: "Score", comment: "The score the judge gave an answer" }),
 } satisfies Record<string, MessageDescriptor>
-
-/** A record's text in a cell: three lines at most, which the record's sheet shows whole. */
-const TEXT_CLASSES = "line-clamp-3 min-w-40 whitespace-pre-wrap wrap-anywhere"
 
 /**
  * The columns of a run's records: what the agent got, what it should answer, what it answered,
@@ -70,7 +68,7 @@ export function conversationRunRecordColumnsOf({
             onOpen(context.row.original)
           }}
           className={cn(
-            TEXT_CLASSES,
+            CELL_TEXT_CLASSES,
             "cursor-pointer rounded-sm text-left font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
           )}
         >
@@ -81,7 +79,7 @@ export function conversationRunRecordColumnsOf({
     columnHelper.accessor("expectedOutput", {
       header: translate(recordColumnLabels.expectedOutput),
       enableSorting: false,
-      cell: (context) => <p className={TEXT_CLASSES}>{context.getValue()}</p>,
+      cell: (context) => <p className={CELL_TEXT_CLASSES}>{context.getValue()}</p>,
     }),
     columnHelper.accessor("output", {
       header: translate(recordColumnLabels.output),
@@ -89,7 +87,7 @@ export function conversationRunRecordColumnsOf({
       cell: (context) => {
         const { status, errorDetails } = context.row.original
         const output = context.getValue()
-        if (output) return <p className={TEXT_CLASSES}>{output}</p>
+        if (output) return <p className={CELL_TEXT_CLASSES}>{output}</p>
         if (status === "running") {
           return (
             <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -108,7 +106,7 @@ export function conversationRunRecordColumnsOf({
           )
         }
         if (status === "error") {
-          return <p className={cn(TEXT_CLASSES, "text-destructive")}>{errorDetails ?? "–"}</p>
+          return <p className={cn(CELL_TEXT_CLASSES, "text-destructive")}>{errorDetails ?? "–"}</p>
         }
         return <span className="text-muted-foreground">–</span>
       },

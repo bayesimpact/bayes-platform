@@ -4,6 +4,7 @@ import type {
   ExtractionRunRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
 import { CheckIcon, XIcon } from "lucide-react"
 import { ExternalLink } from "@/components/shared/ExternalLink"
@@ -14,7 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { useCanReadTraces } from "@/features/account"
+import { canReadTracesQueryOptions } from "@/features/account"
 import { cellTextOf } from "@/lib/extraction-columns"
 import { RecordStatusBadge } from "./RecordStatusBadge"
 
@@ -43,7 +44,7 @@ export function ExtractionRecordSheet({
   onClose,
 }: ExtractionRecordSheetProps) {
   // The trace of an answer is for the few who may read traces.
-  const canReadTraces = useCanReadTraces()
+  const { data: canReadTraces } = useSuspenseQuery(canReadTracesQueryOptions())
   return (
     <Sheet
       open={record !== null}

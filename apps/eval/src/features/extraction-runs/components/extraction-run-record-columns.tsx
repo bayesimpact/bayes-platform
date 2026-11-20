@@ -11,6 +11,7 @@ import { CheckIcon, XIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"
 import { Badge } from "@/components/ui/badge"
+import { CELL_TEXT_CLASSES } from "@/lib/cell-text"
 import { cellTextOf } from "@/lib/extraction-columns"
 import { RecordStatusBadge } from "./RecordStatusBadge"
 
@@ -38,9 +39,6 @@ const recordColumnLabels = {
     comment: "A field of a record that differs from the value expected",
   }),
 } satisfies Record<string, MessageDescriptor>
-
-/** A record's text in a cell: three lines at most, which the record's sheet shows whole. */
-const TEXT_CLASSES = "line-clamp-3 min-w-40 whitespace-pre-wrap wrap-anywhere"
 
 /** The key the API sorts and filters a column of the dataset the agent read by. */
 export const inputKeyOf = (columnId: string) => `input_${columnId}`
@@ -121,14 +119,14 @@ export function extractionRunRecordColumnsOf({
                 onOpen(context.row.original)
               }}
               className={cn(
-                TEXT_CLASSES,
+                CELL_TEXT_CLASSES,
                 "cursor-pointer rounded-sm text-left font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               )}
             >
               {context.getValue() || "–"}
             </button>
           ) : (
-            <p className={TEXT_CLASSES}>{context.getValue() || "–"}</p>
+            <p className={CELL_TEXT_CLASSES}>{context.getValue() || "–"}</p>
           ),
       }),
     ),
@@ -148,7 +146,7 @@ export function extractionRunRecordColumnsOf({
             if (!result) return <span className="text-muted-foreground">–</span>
             const value = context.getValue() || "–"
             if (result.status === "fyi") {
-              return <p className={cn(TEXT_CLASSES, "text-muted-foreground")}>{value}</p>
+              return <p className={cn(CELL_TEXT_CLASSES, "text-muted-foreground")}>{value}</p>
             }
             const isMatch = result.status === "match"
             const Mark = isMatch ? CheckIcon : XIcon
@@ -185,7 +183,7 @@ export function extractionRunRecordColumnsOf({
             headerOf(columnNameOf(entry.datasetColumnId), translate(recordColumnLabels.target)),
           cell: (context) =>
             context.row.original.comparison?.[field] ? (
-              <p className={TEXT_CLASSES}>{context.getValue() || "–"}</p>
+              <p className={CELL_TEXT_CLASSES}>{context.getValue() || "–"}</p>
             ) : (
               <span className="text-muted-foreground">–</span>
             ),
@@ -199,7 +197,9 @@ export function extractionRunRecordColumnsOf({
             id: ERROR_DETAILS_KEY,
             header: translate(recordColumnLabels.errorDetails),
             cell: (context) => (
-              <p className={cn(TEXT_CLASSES, "text-xs text-destructive")}>{context.getValue()}</p>
+              <p className={cn(CELL_TEXT_CLASSES, "text-xs text-destructive")}>
+                {context.getValue()}
+              </p>
             ),
           }),
         ]
