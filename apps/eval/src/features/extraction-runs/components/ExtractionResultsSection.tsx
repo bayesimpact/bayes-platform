@@ -5,9 +5,11 @@ import type {
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { DownloadIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { DataTable } from "@/components/shared/DataTable"
 import { ResultFilters } from "@/components/shared/ResultFilters"
+import { Button } from "@/components/ui/button"
 import { cellTextOf, columnsOf, columnsOfRole } from "@/lib/extraction-columns"
 import {
   EXTRACTION_RESULT_FILTER_LABELS,
@@ -23,14 +25,21 @@ export type ExtractionResultsSectionProps = {
   /** The dataset the run asked: its columns name the values of each record. */
   dataset: ExtractionDatasetOutputDto
   results: ExtractionRunRecordOutputDto[]
+  /** Opens the results as a CSV file, once the run has one; none hides the button. */
+  onDownloadCsv: (() => void) | null
 }
 
 /**
  * The results of an extraction run: its records, each cut to a few lines, with filters that
  * narrow them to the mismatches, the errors or what waits. A row opens its record whole, in a
- * sheet.
+ * sheet. A run that is over offers its results as a CSV file, beside the filters.
  */
-export function ExtractionResultsSection({ run, dataset, results }: ExtractionResultsSectionProps) {
+export function ExtractionResultsSection({
+  run,
+  dataset,
+  results,
+  onDownloadCsv,
+}: ExtractionResultsSectionProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { t, i18n } = useLingui()
@@ -74,15 +83,23 @@ export function ExtractionResultsSection({ run, dataset, results }: ExtractionRe
         <h2 className="text-lg font-semibold">
           <Trans comment="The title of the records of a run">Results</Trans>
         </h2>
-        <ResultFilters
-          filters={filters.map((candidate) => ({
-            value: candidate,
-            label: i18n._(EXTRACTION_RESULT_FILTER_LABELS[candidate]),
-            count: filterExtractionResults(results, candidate).length,
-          }))}
-          value={activeFilter}
-          onChange={setFilter}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <ResultFilters
+            filters={filters.map((candidate) => ({
+              value: candidate,
+              label: i18n._(EXTRACTION_RESULT_FILTER_LABELS[candidate]),
+              count: filterExtractionResults(results, candidate).length,
+            }))}
+            value={activeFilter}
+            onChange={setFilter}
+          />
+          {onDownloadCsv ? (
+            <Button variant="outline" size="sm" onClick={onDownloadCsv}>
+              <DownloadIcon data-icon="inline-start" aria-hidden />
+              <Trans comment="Opens the results of a run as a CSV file">Download CSV</Trans>
+            </Button>
+          ) : null}
+        </div>
       </div>
       <DataTable
         table={table}

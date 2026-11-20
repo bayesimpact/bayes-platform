@@ -881,7 +881,7 @@ msgstr "Terminé"
 #. Opens the results of a run as a CSV file
 #. Opens the results of a run as a CSV file
 #: src/features/campaign-report/components/DownloadReportButton.tsx
-#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
 #: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "Download CSV"
 msgstr "Télécharger le CSV"

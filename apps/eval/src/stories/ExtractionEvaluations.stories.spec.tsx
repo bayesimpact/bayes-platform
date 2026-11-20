@@ -180,6 +180,8 @@ describe("the stories of the extraction evaluations", () => {
     render(<CompletedRun />)
 
     const filters = await screen.findByRole("group", { name: "Filter the results" })
+    // A run that is over offers its results as a CSV file, beside the filters.
+    expect(screen.getByRole("button", { name: "Download CSV" })).toBeInTheDocument()
     await userEvent.click(within(filters).getByRole("button", { name: "Mismatches (2)" }))
     expect(screen.queryByText("Charged twice for the Pro plan")).not.toBeInTheDocument()
     // Under a value that differs, the value expected.

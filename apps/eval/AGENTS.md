@@ -209,7 +209,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   its matches, mismatches and errors, then its results: one column per field, with a mark and the
   value expected under a value that differs, filters, and a sheet with the whole record. Its side
   panel has two tabs, Agent and Fields. A run that is over offers its results as a CSV file
-  (`useOpenRunCsv`). A run under way is read again every 3 seconds.
+  (`useOpenRunCsv`), from a button beside the filters of its results, and from its row's menu in
+  the Runs tab. A run under way is read again every 3 seconds.
 - Review campaigns, for who manages them (`features/campaigns`), under an agent's
   `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search
   param: setup, participants, summary) and its `report`. The report is a tab too, at its own URL:

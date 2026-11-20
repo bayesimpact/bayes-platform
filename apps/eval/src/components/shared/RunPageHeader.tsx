@@ -31,8 +31,6 @@ export type RunPageHeaderProps = {
   description: ReactNode
   /** The side panel of the page: whether it shows, and the name of what it holds. */
   panel: { isOpen: boolean; onToggle: () => void; label: ReactNode }
-  /** Other entries of the « ⋯ » menu, above Retry and Delete. */
-  menuItems?: ReactNode
   /** Stops the run, for who may; none hides the action. */
   cancelRun: MutationLike<string> | null
   /** Asks again the records that failed, for who may and when some did; none hides the action. */
@@ -52,7 +50,6 @@ export function RunPageHeader({
   run,
   description,
   panel,
-  menuItems,
   cancelRun,
   retryRun,
   deleteRun,
@@ -112,7 +109,7 @@ export function RunPageHeader({
                 <Trans comment="Stops a run under way">Cancel the run</Trans>
               </Button>
             ) : null}
-            {menuItems || retryRun || deleteRun ? (
+            {retryRun || deleteRun ? (
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
@@ -120,7 +117,6 @@ export function RunPageHeader({
                   <EllipsisIcon aria-hidden />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {menuItems}
                   {retryRun ? (
                     <DropdownMenuItem
                       disabled={retryRun.isPending}

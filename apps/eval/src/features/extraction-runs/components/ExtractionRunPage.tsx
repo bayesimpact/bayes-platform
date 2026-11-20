@@ -7,13 +7,11 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { DownloadIcon } from "lucide-react"
 import { toast } from "sonner"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { RunPageHeader } from "@/components/shared/RunPageHeader"
 import { SplitPage } from "@/components/shared/SplitPage"
 import { StatCard } from "@/components/shared/StatCard"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { useSidePanel } from "@/hooks/use-side-panel"
 import { isRunActive } from "@/lib/run-status"
@@ -99,21 +97,6 @@ export function ExtractionRunPage({
             onToggle: panel.toggle,
             label: <Trans>Agent and fields</Trans>,
           }}
-          menuItems={
-            csvDocumentId ? (
-              <DropdownMenuItem
-                onClick={() =>
-                  openCsv.mutate(
-                    { documentId: csvDocumentId, tab: openBlankTab() },
-                    { onError: () => toast.error(t`The CSV file could not be opened. Try again.`) },
-                  )
-                }
-              >
-                <DownloadIcon aria-hidden />
-                <Trans comment="Opens the results of a run as a CSV file">Download CSV</Trans>
-              </DropdownMenuItem>
-            ) : null
-          }
           cancelRun={canUpdate ? cancelRun : null}
           retryRun={canRetry ? retryRun : null}
           deleteRun={can(EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION) ? deleteRun : null}
@@ -157,7 +140,20 @@ export function ExtractionRunPage({
             }
           />
         </div>
-        <ExtractionResultsSection run={run} dataset={dataset} results={results} />
+        <ExtractionResultsSection
+          run={run}
+          dataset={dataset}
+          results={results}
+          onDownloadCsv={
+            csvDocumentId
+              ? () =>
+                  openCsv.mutate(
+                    { documentId: csvDocumentId, tab: openBlankTab() },
+                    { onError: () => toast.error(t`The CSV file could not be opened. Try again.`) },
+                  )
+              : null
+          }
+        />
       </PageContainer>
     </SplitPage>
   )
