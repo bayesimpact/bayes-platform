@@ -328,6 +328,11 @@ describe("the stories of the app", () => {
     // One run gave its judge instructions: the figures say so, and name each judge's model.
     expect(screen.getByRole("cell", { name: "Instructions for the judge" })).toBeInTheDocument()
     expect(screen.getByRole("cell", { name: "Judge model" })).toBeInTheDocument()
+    // A run's version opens the history of the agent's versions, to see what changed.
+    await userEvent.click(screen.getByRole("button", { name: "Compare version 2 with the others" }))
+    const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    expect(within(sheet).getByText("The run asked this version")).toBeInTheDocument()
+    await userEvent.keyboard("{Escape}")
     // The record one run failed on has a score in the other run only.
     const row = (await screen.findByText("Do unused seats get refunded?")).closest("tr")
     if (!row) throw new Error("The comparison has no row for the record")

@@ -3098,9 +3098,11 @@ msgstr "Les relecteurs de cette campagne peuvent lire tout ce qui est échangé 
 msgid "The run and its results are deleted for good."
 msgstr "L'exécution et ses résultats sont supprimés définitivement."
 
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 #: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "The run asked this version"
 msgstr "L'exécution a interrogé cette version"

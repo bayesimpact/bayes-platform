@@ -8,10 +8,12 @@ import {
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQueries, useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
+import { useState } from "react"
 import { ComparedRunHead } from "@/components/shared/ComparedRunHead"
 import { CompareRunsPageFrame } from "@/components/shared/CompareRunsPageFrame"
 import { type RunFigure, RunFiguresTable } from "@/components/shared/RunFiguresTable"
 import { RunStatusBadge } from "@/components/shared/RunStatusBadge"
+import { RunVersionButton } from "@/components/shared/RunVersionButton"
 import { TablePagination } from "@/components/shared/TablePagination"
 import {
   Table,
@@ -21,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
 import { cellTextOf, columnsOfRole } from "@/lib/extraction-columns"
 import { extractionRunRecordsQueryOptions, projectExtractionRunsQueryOptions } from "../api/queries"
 import { matchedFieldsOf } from "../key-mapping"
@@ -31,6 +34,8 @@ import { RecordStatusBadge } from "./RecordStatusBadge"
 
 export type ExtractionRunsComparePageProps = {
   agentParams: AgentParamsDto
+  /** The name of the agent, which titles the history of its versions. */
+  agentName: string
   /** The dataset the runs asked: its name, and the columns that name each record. */
   dataset: ExtractionDatasetOutputDto
   /** The ids of the runs to compare, in the order the person picked them. */
@@ -47,6 +52,7 @@ export type ExtractionRunsComparePageProps = {
  */
 export function ExtractionRunsComparePage({
   agentParams,
+  agentName,
   dataset,
   runIds,
   page,
@@ -54,6 +60,10 @@ export function ExtractionRunsComparePage({
 }: ExtractionRunsComparePageProps) {
   const { i18n } = useLingui()
   const { data: projectRuns } = useSuspenseQuery(projectExtractionRunsQueryOptions(agentParams))
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
+  // The version of a run whose history shows, to compare it with the others.
+  const [shownRevision, setShownRevision] = useState<number | null>(null)
+  const shownVersion = versions.find((version) => version.revision === shownRevision)
   // The runs of this dataset among those asked, in the order the person picked them.
   const runs = runIds.flatMap((runId) => {
     const run = projectRuns.find((candidate) => candidate.id === runId)
@@ -86,7 +96,13 @@ export function ExtractionRunsComparePage({
     {
       key: "version",
       label: <Trans comment="The version of the agent a run evaluated">Version</Trans>,
-      render: (run) => run.agentRevision,
+      render: (run) => (
+        <RunVersionButton
+          revision={run.agentRevision}
+          versions={versions}
+          onShow={setShownRevision}
+        />
+      ),
     },
     {
       key: "matchRate",
@@ -249,6 +265,19 @@ export function ExtractionRunsComparePage({
           onPageChange={onPageChange}
         />
       </section>
+      {shownVersion ? (
+        <AgentVersionsSheet
+          isOpen
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setShownRevision(null)
+          }}
+          agentName={agentName}
+          versions={versions}
+          selectedId={shownVersion.id}
+          selectedNote={<Trans>The run asked this version</Trans>}
+          onSelect={null}
+        />
+      ) : null}
     </CompareRunsPageFrame>
   )
 }

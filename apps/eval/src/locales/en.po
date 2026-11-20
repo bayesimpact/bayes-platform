@@ -3098,9 +3098,11 @@ msgstr "The reviewers of this campaign can read everything exchanged in this ses
 msgid "The run and its results are deleted for good."
 msgstr "The run and its results are deleted for good."
 
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 #: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "The run asked this version"
 msgstr "The run asked this version"

@@ -64,6 +64,7 @@ function CompareRunsRoute() {
 }
 
 function ConversationCompareRoute() {
+  const { agent } = Route.useRouteContext()
   const params = Route.useParams()
   const { runs } = Route.useSearch()
   const { data: dataset } = useSuspenseQuery(
@@ -72,11 +73,17 @@ function ConversationCompareRoute() {
   // A dataset the project does not hold has no run to compare.
   if (!dataset) throw notFound()
   return (
-    <ConversationRunsComparePage agentParams={params} dataset={dataset} runIds={runIdsOf(runs)} />
+    <ConversationRunsComparePage
+      agentParams={params}
+      agentName={agent.name}
+      dataset={dataset}
+      runIds={runIdsOf(runs)}
+    />
   )
 }
 
 function ExtractionCompareRoute() {
+  const { agent } = Route.useRouteContext()
   const params = Route.useParams()
   const { runs, page } = Route.useSearch()
   const navigate = Route.useNavigate()
@@ -88,6 +95,7 @@ function ExtractionCompareRoute() {
   return (
     <ExtractionRunsComparePage
       agentParams={params}
+      agentName={agent.name}
       dataset={dataset}
       runIds={runIdsOf(runs)}
       page={page ?? 0}

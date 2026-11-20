@@ -6,10 +6,12 @@ import type {
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
+import { useState } from "react"
 import { ComparedRunHead } from "@/components/shared/ComparedRunHead"
 import { CompareRunsPageFrame } from "@/components/shared/CompareRunsPageFrame"
 import { type RunFigure, RunFiguresTable } from "@/components/shared/RunFiguresTable"
 import { RunStatusBadge } from "@/components/shared/RunStatusBadge"
+import { RunVersionButton } from "@/components/shared/RunVersionButton"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -19,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
 import {
   conversationRunRecordsQueryOptions,
   projectConversationRunsQueryOptions,
@@ -28,6 +31,8 @@ import { scoreOf } from "../score"
 
 export type ConversationRunsComparePageProps = {
   agentParams: AgentParamsDto
+  /** The name of the agent, which titles the history of its versions. */
+  agentName: string
   /** The dataset the runs asked. */
   dataset: { id: string; name: string }
   /** The ids of the runs to compare, in the order the person picked them. */
@@ -35,16 +40,22 @@ export type ConversationRunsComparePageProps = {
 }
 
 /**
- * Runs of a conversation dataset side by side: their figures, the best average score in green,
+ * Runs of a conversation dataset side by side: their figures, the best average score in green
+ * and each version a link to the history of the agent's versions,
  * then each record of the dataset with the score each run got on it, the best one in green.
  */
 export function ConversationRunsComparePage({
   agentParams,
+  agentName,
   dataset,
   runIds,
 }: ConversationRunsComparePageProps) {
   const { i18n } = useLingui()
   const { data: projectRuns } = useSuspenseQuery(projectConversationRunsQueryOptions(agentParams))
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
+  // The version of a run whose history shows, to compare it with the others.
+  const [shownRevision, setShownRevision] = useState<number | null>(null)
+  const shownVersion = versions.find((version) => version.revision === shownRevision)
   // The runs of this dataset among those asked, in the order the person picked them.
   const runs = runIds.flatMap((runId) => {
     const run = projectRuns.find((candidate) => candidate.id === runId)
@@ -67,7 +78,13 @@ export function ConversationRunsComparePage({
     {
       key: "version",
       label: <Trans comment="The version of the agent a run evaluated">Version</Trans>,
-      render: (run) => run.agentSettings.revision,
+      render: (run) => (
+        <RunVersionButton
+          revision={run.agentSettings.revision}
+          versions={versions}
+          onShow={setShownRevision}
+        />
+      ),
     },
     {
       key: "model",
@@ -243,6 +260,19 @@ export function ConversationRunsComparePage({
           </Table>
         </div>
       </section>
+      {shownVersion ? (
+        <AgentVersionsSheet
+          isOpen
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setShownRevision(null)
+          }}
+          agentName={agentName}
+          versions={versions}
+          selectedId={shownVersion.id}
+          selectedNote={<Trans>The run asked this version</Trans>}
+          onSelect={null}
+        />
+      ) : null}
     </CompareRunsPageFrame>
   )
 }
