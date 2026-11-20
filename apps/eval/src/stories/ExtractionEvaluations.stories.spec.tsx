@@ -67,6 +67,14 @@ const PAGES = {
     Story: pageStories.FailedRun,
     loaded: () => screen.findByText("This run failed before it asked a record."),
   },
+  ResultsFailToLoad: {
+    Story: pageStories.ResultsFailToLoad,
+    // The table says its results could not load, with the way to read them again.
+    loaded: async () => {
+      await screen.findByText("The results could not load.")
+      return screen.findByRole("button", { name: "Try again" })
+    },
+  },
   CompareRuns: {
     Story: pageStories.CompareRuns,
     loaded: () => screen.findByRole("heading", { name: "Record by record" }),

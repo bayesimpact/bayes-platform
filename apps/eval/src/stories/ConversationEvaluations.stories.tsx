@@ -1,3 +1,4 @@
+import { EvalAgentsRoutes } from "@caseai-connect/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fireEvent, userEvent, within } from "storybook/test"
 import {
@@ -6,7 +7,11 @@ import {
   conversationRunUrlOf,
   evaluationsUrlOf,
 } from "@/test/eval-urls"
-import { buildSeveralProjectsWorld } from "@/test/factories/eval-world.factory"
+import {
+  buildCancelledRunWorld,
+  buildSeveralProjectsWorld,
+} from "@/test/factories/eval-world.factory"
+import { mockRoute } from "@/test/msw/mock-route"
 import { evaluation } from "@/test/msw/story-api"
 import { evalMeta } from "./eval-meta"
 
@@ -105,6 +110,24 @@ export const RunUnderWay: Story = {
 /** A run that failed before it asked a record, which a person can retry. */
 export const FailedRun: Story = {
   parameters: evaluation({ url: (world) => conversationRunUrlOf(world, "failed") }),
+}
+
+/** A run a person stopped: the records it had not asked yet stand as not asked. */
+export const CancelledRun: Story = {
+  parameters: evaluation({
+    world: buildCancelledRunWorld,
+    url: (world) => conversationRunUrlOf(world, "cancelled"),
+  }),
+}
+
+/** The form that starts an evaluation, in a project where no model can judge it. */
+export const RunEvaluationWithNoJudge: Story = {
+  parameters: evaluation({
+    handlers: () => [
+      mockRoute(EvalAgentsRoutes.getModels, () => ({ models: [], defaults: { judge: "" } })),
+    ],
+    url: (world) => `${conversationDatasetUrlOf(world, "Pricing questions")}?run=true`,
+  }),
 }
 
 /** The two runs that are over, side by side: their figures, then the score of each record. */

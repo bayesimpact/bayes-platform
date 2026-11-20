@@ -1839,6 +1839,10 @@ msgstr "Aucune évaluation n'a encore été lancée sur ce jeu de données."
 msgid "No fields filled"
 msgstr "Aucun champ rempli"
 
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "No model of this project can judge an evaluation. Ask an admin of the project to make one available."
+msgstr "Aucun modèle de ce projet ne peut juger une évaluation. Demandez à un administrateur du projet d'en rendre un disponible."
+
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "No participant yet."
 msgstr "Aucun participant pour le moment."
@@ -3198,6 +3202,10 @@ msgstr "Ces personnes ont déjà un accès ou une invitation."
 #: src/components/shared/CompareRunsPageFrame.tsx
 msgid "These runs are gone, or are not runs of this dataset."
 msgstr "Ces exécutions n'existent plus, ou ne sont pas des exécutions de ce jeu de données."
+
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "These runs did not ask the same number of records. Each run shows its own page: a dash can stand for a record the run shows on another page."
+msgstr "Ces exécutions n'ont pas interrogé le même nombre d'enregistrements. Chaque exécution affiche sa propre page : un tiret peut correspondre à un enregistrement que l'exécution affiche sur une autre page."
 
 #: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
 #: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx

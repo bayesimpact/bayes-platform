@@ -1839,6 +1839,10 @@ msgstr "No evaluation ran on this dataset yet."
 msgid "No fields filled"
 msgstr "No fields filled"
 
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "No model of this project can judge an evaluation. Ask an admin of the project to make one available."
+msgstr "No model of this project can judge an evaluation. Ask an admin of the project to make one available."
+
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "No participant yet."
 msgstr "No participant yet."
@@ -3198,6 +3202,10 @@ msgstr "These people already have access or an invitation."
 #: src/components/shared/CompareRunsPageFrame.tsx
 msgid "These runs are gone, or are not runs of this dataset."
 msgstr "These runs are gone, or are not runs of this dataset."
+
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "These runs did not ask the same number of records. Each run shows its own page: a dash can stand for a record the run shows on another page."
+msgstr "These runs did not ask the same number of records. Each run shows its own page: a dash can stand for a record the run shows on another page."
 
 #: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
 #: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx

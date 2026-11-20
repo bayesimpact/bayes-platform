@@ -90,6 +90,22 @@ const PAGES = {
     Story: pageStories.FailedRun,
     loaded: () => screen.findByText("This run failed before it asked a record."),
   },
+  CancelledRun: {
+    Story: pageStories.CancelledRun,
+    // The records the run had not asked yet have their own filter.
+    loaded: async () => {
+      await screen.findByText("Cancelled", { selector: "[data-slot=badge]" })
+      return screen.findByRole("button", { name: "Not asked (3)" })
+    },
+  },
+  RunEvaluationWithNoJudge: {
+    Story: pageStories.RunEvaluationWithNoJudge,
+    // The form says why it cannot start a run.
+    loaded: async () => {
+      await screen.findByText(/No model of this project can judge an evaluation/)
+      return screen.findByRole("button", { name: "Run" })
+    },
+  },
   EmptyDataset: {
     Story: pageStories.EmptyDataset,
     loaded: () => screen.findByText("This dataset has no record yet."),

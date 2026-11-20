@@ -32,6 +32,8 @@ export type ExtractionComparisonRecordsProps = {
   hasFailed: boolean
   /** Reads again the records that could not load. */
   onRetry: () => void
+  /** Whether the runs did not ask the same number of records: their pages may not line up. */
+  isUneven: boolean
 }
 
 /**
@@ -49,6 +51,7 @@ export function ExtractionComparisonRecords({
   isLoading,
   hasFailed,
   onRetry,
+  isUneven,
 }: ExtractionComparisonRecordsProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
@@ -121,6 +124,14 @@ export function ExtractionComparisonRecords({
             Where each record stands in each run, with how many of its compared fields match.
           </Trans>
         </p>
+        {isUneven ? (
+          <p className="text-sm text-muted-foreground">
+            <Trans>
+              These runs did not ask the same number of records. Each run shows its own page: a dash
+              can stand for a record the run shows on another page.
+            </Trans>
+          </p>
+        ) : null}
       </div>
       <DataTable
         table={table}

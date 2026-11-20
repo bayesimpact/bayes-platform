@@ -31,7 +31,7 @@ export function conversationDatasetUrlOf(world: EvalWorld, datasetName: string):
 /** The URL of the first run of the world that stands at that status, on its dataset's page. */
 export function conversationRunUrlOf(
   world: EvalWorld,
-  status: "running" | "completed" | "failed",
+  status: "running" | "completed" | "failed" | "cancelled",
 ): string {
   const { run } = required(
     world.conversationRuns.find((candidate) => candidate.run.status === status),

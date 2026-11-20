@@ -15,7 +15,7 @@ import { AgentVersionPicker } from "@/components/shared/AgentVersionPicker"
 import { RunScopeField } from "@/components/shared/RunScopeField"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import type { EvaluationAgent } from "@/features/agents"
@@ -166,9 +166,18 @@ export function RunEvaluationPanel({
                   )
                 })}
               </NativeSelect>
-              <FieldDescription>
-                <Trans>The model that compares each answer with the expected output.</Trans>
-              </FieldDescription>
+              {canStart ? (
+                <FieldDescription>
+                  <Trans>The model that compares each answer with the expected output.</Trans>
+                </FieldDescription>
+              ) : (
+                <FieldError>
+                  <Trans>
+                    No model of this project can judge an evaluation. Ask an admin of the project to
+                    make one available.
+                  </Trans>
+                </FieldError>
+              )}
             </Field>
           )}
         />

@@ -260,6 +260,22 @@ export function buildExtractionWorld(): EvalWorld {
 }
 
 /**
+ * The main case, whose run under way a person stopped: the records it had not asked yet stand as
+ * not asked. Its figures stay as they were, as the API does not count them again.
+ */
+export function buildCancelledRunWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  for (const entry of world.conversationRuns) {
+    if (entry.run.status !== "running") continue
+    entry.run.status = "cancelled"
+    for (const record of entry.records) {
+      if (record.status === "running") record.status = "cancelled"
+    }
+  }
+  return world
+}
+
+/**
  * The main case, whose closed campaign ran on a version archived since, and whose draft points at
  * it too: the agent's history no longer lists it.
  */

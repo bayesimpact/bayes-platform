@@ -200,6 +200,7 @@ export function ExtractionRunsComparePage({
         isLoading={pages.isLoading}
         hasFailed={pages.hasFailed}
         onRetry={pages.retry}
+        isUneven={new Set(runs.map((run) => run.summary?.total ?? 0)).size > 1}
       />
       {shownVersion ? (
         <AgentVersionsSheet

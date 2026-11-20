@@ -1,3 +1,4 @@
+import { EvalExtractionRunsRoutes } from "@caseai-connect/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import {
@@ -11,6 +12,7 @@ import {
   buildExtractionWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/eval-world.factory"
+import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { evaluation } from "@/test/msw/story-api"
 import { evalMeta } from "./eval-meta"
 
@@ -127,6 +129,15 @@ export const FailedRun: Story = {
   parameters: evaluation({
     world: buildExtractionWorld,
     url: (world) => extractionRunUrlOf(world, "failed"),
+  }),
+}
+
+/** A run whose results could not load: the table says so, and offers to read them again. */
+export const ResultsFailToLoad: Story = {
+  parameters: evaluation({
+    world: buildExtractionWorld,
+    handlers: () => [mockRoute(EvalExtractionRunsRoutes.getRecords, () => apiError(500))],
+    url: (world) => extractionRunUrlOf(world, "completed"),
   }),
 }
 
