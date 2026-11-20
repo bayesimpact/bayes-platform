@@ -1,4 +1,5 @@
 import {
+  type DatasetNameInputDto,
   EvalExtractionDatasetsRoutes,
   EXTRACTION_DATASET_FILE_MIME_TYPE,
   type ExtractionDatasetParamsDto,
@@ -15,7 +16,7 @@ import { extractionDatasetKeys } from "./keys"
 export function useCreateExtractionDataset(project: ProjectParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (body: { name: string }) =>
+    mutationFn: (body: DatasetNameInputDto) =>
       apiRequest(EvalExtractionDatasetsRoutes.createOne, { params: project, body }),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: extractionDatasetKeys.ofProject(project) }),

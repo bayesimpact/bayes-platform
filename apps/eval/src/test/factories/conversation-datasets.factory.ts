@@ -35,7 +35,6 @@ export function buildConversationDataset(
   const dataset = conversationDatasetOutputSchema.omit({ recordCount: true }).parse({
     id: crypto.randomUUID(),
     name: "Pricing questions",
-    createdAt: daysAgo(5),
     updatedAt: daysAgo(1),
     ...overrides,
   })
@@ -78,7 +77,6 @@ export function buildPricingDatasets(projectId: string): ConversationDatasetReco
     ),
     buildConversationDataset(projectId, {
       name: "Onboarding questions",
-      createdAt: daysAgo(2),
       updatedAt: daysAgo(2),
     }),
   ]

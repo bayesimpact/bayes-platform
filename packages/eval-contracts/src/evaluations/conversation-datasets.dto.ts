@@ -9,9 +9,6 @@ export const EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION =
 export const EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION =
   "evaluation.conversation.dataset.delete" as const
 
-/** The shortest name of a dataset. */
-export const CONVERSATION_DATASET_NAME_MIN_LENGTH = 3
-
 /** The longest input, and the longest expected output, of a record, in characters. */
 export const CONVERSATION_DATASET_RECORD_MAX_LENGTH = 10_000
 
@@ -35,7 +32,6 @@ export const conversationDatasetOutputSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   recordCount: z.number(),
-  createdAt: z.number(),
   updatedAt: z.number(),
 })
 
@@ -71,13 +67,6 @@ export const conversationDatasetRecordsOutputSchema = z.object({
 export type ConversationDatasetRecordsOutputDto = z.output<
   typeof conversationDatasetRecordsOutputSchema
 >
-
-/** The name of a new dataset, or the new name of one. */
-export const conversationDatasetNameInputSchema = z.strictObject({
-  name: z.string().trim().min(CONVERSATION_DATASET_NAME_MIN_LENGTH),
-})
-
-export type ConversationDatasetNameInputDto = z.input<typeof conversationDatasetNameInputSchema>
 
 /** A record to add to a dataset, or what a record becomes. */
 export const conversationDatasetRecordInputSchema = z.strictObject({

@@ -1,5 +1,5 @@
 import {
-  CONVERSATION_DATASET_NAME_MIN_LENGTH,
+  DATASET_NAME_MIN_LENGTH,
   type ExtractionDatasetColumnRoleDto,
   type ExtractionDatasetFileColumnOutputDto,
   type ExtractionDatasetOutputDto,
@@ -130,7 +130,7 @@ export function ExtractionColumnsForm({
               {fieldState.invalid ? (
                 <FieldError>
                   <Plural
-                    value={CONVERSATION_DATASET_NAME_MIN_LENGTH}
+                    value={DATASET_NAME_MIN_LENGTH}
                     one="Give the dataset a name of # character or more."
                     other="Give the dataset a name of # characters or more."
                   />

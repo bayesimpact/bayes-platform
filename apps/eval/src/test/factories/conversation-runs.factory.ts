@@ -25,7 +25,7 @@ export function buildAgentModels(): AgentModelsOutputDto {
       {
         model: "model-old",
         isAvailable: true,
-        deprecation: { deprecatedOn: "2027-01-31" },
+        deprecation: {},
         servedOutsideEu: false,
       },
       { model: "model-legacy", isAvailable: false, deprecation: null, servedOutsideEu: false },

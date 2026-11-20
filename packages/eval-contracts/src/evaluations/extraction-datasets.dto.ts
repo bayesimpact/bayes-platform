@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { projectParamsSchema } from "../common/params.dto"
-import { conversationDatasetNameInputSchema } from "./conversation-datasets.dto"
+import { columnFiltersSchema } from "../common/query.dto"
+import { datasetNameInputSchema } from "./datasets.dto"
 
 /** The permissions of a project's extraction datasets, which only its evaluators hold. */
 export const EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION =
@@ -96,11 +97,8 @@ export const extractionDatasetOutputSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   recordCount: z.number(),
-  /** The file the records were built from, `null` until the dataset is set up. */
-  documentId: z.uuid().nullable(),
   /** The columns by their id: empty until the dataset is set up. */
   schemaMapping: z.record(z.string(), extractionDatasetColumnSchema),
-  createdAt: z.number(),
   updatedAt: z.number(),
 })
 
@@ -121,8 +119,8 @@ export type ExtractionDatasetRecordOutputDto = z.output<typeof extractionDataset
 export const extractionDatasetRecordsQuerySchema = z.strictObject({
   page: z.coerce.number<string>().int().min(0),
   limit: z.coerce.number<string>().int().min(1).max(100),
-  /** A JSON object: the text each column must hold, by the column's id. */
-  columnFilters: z.string().optional(),
+  /** The text each column must hold, by the column's id. */
+  columnFilters: columnFiltersSchema.optional(),
   /** The id of the column the records are sorted by: the order of the file without it. */
   sortBy: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
@@ -136,13 +134,13 @@ export const extractionDatasetRecordsOutputSchema = z.object({
   limit: z.number(),
 })
 
-/** The name of a new dataset, or the new name of one: the rule of every dataset. */
-export const extractionDatasetNameInputSchema = conversationDatasetNameInputSchema
+/** A column of a dataset, as the route that sets the dataset up takes it. */
+const extractionDatasetColumnInputSchema = z.strictObject(extractionDatasetColumnSchema.shape)
 
 /** What sets a dataset up: its name, and the columns of the file with their names and roles. */
 export const extractionDatasetSetupInputSchema = z.strictObject({
-  name: extractionDatasetNameInputSchema.shape.name,
-  columns: z.array(extractionDatasetColumnSchema).min(1),
+  name: datasetNameInputSchema.shape.name,
+  columns: z.array(extractionDatasetColumnInputSchema).min(1),
 })
 
 export type ExtractionDatasetSetupInputDto = z.input<typeof extractionDatasetSetupInputSchema>

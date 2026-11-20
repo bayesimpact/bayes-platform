@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { projectParamsSchema } from "../common/params.dto"
+import { columnFiltersSchema } from "../common/query.dto"
 import { conversationRunStatusSchema } from "./conversation-runs.dto"
 
 /** The permissions of a project's extraction runs, which only its evaluators hold. */
@@ -35,6 +36,11 @@ export const extractionRunKeyMappingEntrySchema = z.object({
 })
 
 export type ExtractionRunKeyMappingEntryDto = z.output<typeof extractionRunKeyMappingEntrySchema>
+
+/** How a run reads a field, as the route that creates the run takes it. */
+export const extractionRunKeyMappingEntryInputSchema = z.strictObject(
+  extractionRunKeyMappingEntrySchema.shape,
+)
 
 /** The figures of a run: how many records match on every scored field, differ, failed or wait. */
 export const extractionRunSummarySchema = z.object({
@@ -90,7 +96,6 @@ export const extractionRunRecordOutputSchema = z.object({
   evaluationExtractionDatasetRecordId: z.uuid(),
   status: extractionRunRecordStatusSchema,
   comparison: z.record(z.string(), extractionRunRecordFieldSchema).nullable(),
-  agentRawOutput: z.record(z.string(), z.unknown()).nullable(),
   errorDetails: z.string().nullable(),
   /** The row of the dataset, with a value per column id. */
   datasetRecordData: z.record(z.string(), z.unknown()).nullable(),
@@ -108,8 +113,8 @@ export type ExtractionRunRecordOutputDto = z.output<typeof extractionRunRecordOu
 export const extractionRunRecordsQuerySchema = z.strictObject({
   page: z.coerce.number<string>().int().min(0),
   limit: z.coerce.number<string>().int().min(1).max(100),
-  /** A JSON object: the text each of those must hold, by its key. */
-  columnFilters: z.string().optional(),
+  /** The text each of those must hold, by its key. */
+  columnFilters: columnFiltersSchema.optional(),
   /** The key the records are sorted by: the order of the dataset without it. */
   sortBy: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
@@ -130,7 +135,7 @@ export const extractionRunInputSchema = z.strictObject({
   agentId: z.uuid(),
   /** A saved version of the agent; `null` takes the one in production. */
   agentSettingsRevision: z.number().int().nullable(),
-  keyMapping: z.array(extractionRunKeyMappingEntrySchema).min(1),
+  keyMapping: z.array(extractionRunKeyMappingEntryInputSchema).min(1),
 })
 
 export type ExtractionRunInputDto = z.input<typeof extractionRunInputSchema>

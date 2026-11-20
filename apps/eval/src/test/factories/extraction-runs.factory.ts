@@ -34,7 +34,6 @@ export function buildExtractionRunRecord(
     comparison: {
       title: { agentValue: "Sample title", groundTruth: "Sample title", status: "match" },
     },
-    agentRawOutput: { title: "Sample title" },
     errorDetails: null,
     datasetRecordData: { [columnIdOf(0)]: "A sample message." },
     traceUrl: null,
@@ -99,11 +98,6 @@ function answeredRecord(
       category: field(category, wrong.category),
       summary: { agentValue: summary, groundTruth: null, status: "fyi" },
     },
-    agentRawOutput: {
-      title: wrong.title ?? title,
-      category: wrong.category ?? category,
-      summary,
-    },
     datasetRecordData: source.data,
   })
 }
@@ -117,7 +111,6 @@ function unansweredRecord(
     evaluationExtractionDatasetRecordId: source.id,
     status,
     comparison: null,
-    agentRawOutput: null,
     errorDetails: status === "error" ? "The model did not answer in time." : null,
     datasetRecordData: source.data,
   })

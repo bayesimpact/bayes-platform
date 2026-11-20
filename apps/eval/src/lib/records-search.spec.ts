@@ -17,7 +17,7 @@ describe("recordsQueryOf", () => {
       status: "error",
     })
     expect(query.page).toBe(2)
-    expect(JSON.parse(query.columnFilters ?? "")).toEqual({ status: "error", "column-1": "plan" })
+    expect(query.columnFilters).toEqual({ status: "error", "column-1": "plan" })
   })
 
   it("sorts up unless the search says down", () => {

@@ -1,7 +1,7 @@
 import {
-  type ConversationDatasetNameInputDto,
   type ConversationDatasetParamsDto,
   type ConversationDatasetRecordInputDto,
+  type DatasetNameInputDto,
   EvalConversationDatasetsRoutes,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
@@ -21,7 +21,7 @@ const invalidateRecords = (queryClient: QueryClient, dataset: ConversationDatase
 export function useCreateConversationDataset(project: ProjectParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (body: ConversationDatasetNameInputDto) =>
+    mutationFn: (body: DatasetNameInputDto) =>
       apiRequest(EvalConversationDatasetsRoutes.createOne, { params: project, body }),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: conversationDatasetKeys.ofProject(project) }),

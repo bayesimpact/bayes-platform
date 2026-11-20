@@ -1,4 +1,4 @@
-import { extractionRunKeyMappingEntrySchema } from "@caseai-connect/eval-contracts"
+import { extractionRunKeyMappingEntryInputSchema } from "@caseai-connect/eval-contracts"
 import { z } from "zod"
 import { recordsSearchSchema } from "@/lib/records-search"
 import { isRunScopeValid, runScopeShape } from "@/lib/run-scope"
@@ -12,7 +12,7 @@ import { EXTRACTION_RESULT_FILTERS } from "./result-filters"
 export const extractionRunFormSchema = z
   .object({
     versionId: z.uuid(),
-    keyMapping: z.array(extractionRunKeyMappingEntrySchema).refine(isKeyMappingComplete),
+    keyMapping: z.array(extractionRunKeyMappingEntryInputSchema).refine(isKeyMappingComplete),
     ...runScopeShape,
   })
   .refine(isRunScopeValid, { path: ["limitedCount"] })

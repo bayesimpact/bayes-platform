@@ -73,7 +73,6 @@ export function extractionDatasetHandlers(world: EvalWorld) {
       world.extractionDatasets.push(
         buildExtractionDataset(params.projectId, {
           name: payload.name,
-          createdAt: Date.now(),
           updatedAt: Date.now(),
         }),
       )
@@ -84,7 +83,6 @@ export function extractionDatasetHandlers(world: EvalWorld) {
       const file = findFile(params.documentId)
       if (!entry || !file) return apiError(404)
       entry.dataset.name = payload.name
-      entry.dataset.documentId = file.file.id
       entry.dataset.schemaMapping = Object.fromEntries(
         payload.columns.map((column) => [column.id, column]),
       )

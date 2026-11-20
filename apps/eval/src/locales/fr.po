@@ -48,11 +48,6 @@ msgstr "{columnName} : {filterText}"
 msgid "{comparedCount, plural, one {Compare # run} other {Compare # runs}}"
 msgstr "{comparedCount, plural, one {Comparer # exécution} other {Comparer # exécutions}}"
 
-#: src/components/shared/DatasetNameDialog.tsx
-#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
-msgid "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Give the dataset a name of # character or more.} other {Give the dataset a name of # characters or more.}}"
-msgstr "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Donnez au jeu de données un nom d'au moins # caractère.} other {Donnez au jeu de données un nom d'au moins # caractères.}}"
-
 #: src/features/invitations/components/InvitationsButton.tsx
 msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
 msgstr "{count, plural, one {# invitation en attente} other {# invitations en attente}}"
@@ -72,6 +67,11 @@ msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}
 #: src/features/campaign-report/components/QuestionDistribution.tsx
 msgid "{count} answers, {percent}"
 msgstr "{count} réponses, {percent}"
+
+#: src/components/shared/DatasetNameDialog.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "{DATASET_NAME_MIN_LENGTH, plural, one {Give the dataset a name of # character or more.} other {Give the dataset a name of # characters or more.}}"
+msgstr "{DATASET_NAME_MIN_LENGTH, plural, one {Donnez au jeu de données un nom d'au moins # caractère.} other {Donnez au jeu de données un nom d'au moins # caractères.}}"
 
 #. Under the title of a run: the dataset it asked and the agent's version
 #. Under the title of a run: the dataset it asked and the agent's version

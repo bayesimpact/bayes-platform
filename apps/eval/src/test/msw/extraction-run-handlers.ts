@@ -62,7 +62,6 @@ export function extractionRunHandlers(world: EvalWorld) {
             evaluationExtractionDatasetRecordId: record.id,
             status: "running",
             comparison: null,
-            agentRawOutput: null,
             datasetRecordData: record.data,
           }),
         ),

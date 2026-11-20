@@ -1,3 +1,4 @@
+import { datasetNameInputSchema } from "./datasets.dto"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
@@ -8,7 +9,6 @@ import {
   extractionDatasetFileParamsSchema,
   extractionDatasetFilePresignInputSchema,
   extractionDatasetFilePresignOutputSchema,
-  extractionDatasetNameInputSchema,
   extractionDatasetOutputSchema,
   extractionDatasetParamsSchema,
   extractionDatasetRecordsOutputSchema,
@@ -69,7 +69,7 @@ export const EvalExtractionDatasetsRoutes = {
     method: "post",
     path: `${DATASETS_PATH}/createOne`,
     params: projectParamsSchema,
-    body: extractionDatasetNameInputSchema,
+    body: datasetNameInputSchema,
     response: successOutputSchema,
   }),
   /** Builds the records of a dataset from a file, with the name and the role of each column. */
@@ -84,7 +84,7 @@ export const EvalExtractionDatasetsRoutes = {
     method: "patch",
     path: `${DATASET_PATH}/rename`,
     params: extractionDatasetParamsSchema,
-    body: extractionDatasetNameInputSchema,
+    body: datasetNameInputSchema,
     response: successOutputSchema,
   }),
   deleteOne: defineSchemaRoute({

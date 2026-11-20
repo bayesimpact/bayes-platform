@@ -1,9 +1,9 @@
+import { datasetNameInputSchema } from "./datasets.dto"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { successOutputSchema } from "../review-campaigns/review-campaigns.dto"
 import {
-  conversationDatasetNameInputSchema,
   conversationDatasetOutputSchema,
   conversationDatasetParamsSchema,
   conversationDatasetRecordInputSchema,
@@ -28,14 +28,14 @@ export const EvalConversationDatasetsRoutes = {
     method: "post",
     path: `${DATASETS_PATH}/createOne`,
     params: projectParamsSchema,
-    body: conversationDatasetNameInputSchema,
+    body: datasetNameInputSchema,
     response: successOutputSchema,
   }),
   renameOne: defineSchemaRoute({
     method: "patch",
     path: `${DATASET_PATH}/rename`,
     params: conversationDatasetParamsSchema,
-    body: conversationDatasetNameInputSchema,
+    body: datasetNameInputSchema,
     response: successOutputSchema,
   }),
   deleteOne: defineSchemaRoute({

@@ -152,9 +152,7 @@ export function buildExtractionDataset(
   const dataset = extractionDatasetOutputSchema.omit({ recordCount: true }).parse({
     id: crypto.randomUUID(),
     name: "Support messages",
-    documentId: null,
     schemaMapping: {},
-    createdAt: daysAgo(5),
     updatedAt: daysAgo(1),
     ...overrides,
   })
@@ -186,23 +184,19 @@ export function buildSupportDatasets(projectId: string): {
       buildExtractionDataset(
         projectId,
         {
-          documentId: file.file.id,
           schemaMapping: Object.fromEntries(SUPPORT_COLUMNS.map((column) => [column.id, column])),
         },
         recordsOf(file),
       ),
       buildExtractionDataset(projectId, {
         name: "Product feedback",
-        createdAt: daysAgo(2),
         updatedAt: daysAgo(2),
       }),
       buildExtractionDataset(
         projectId,
         {
           name: "All messages",
-          documentId: file.file.id,
           schemaMapping: Object.fromEntries(SUPPORT_COLUMNS.map((column) => [column.id, column])),
-          createdAt: daysAgo(9),
           updatedAt: daysAgo(8),
         },
         // Enough records for several pages: the main rows, over and over, each with its number.

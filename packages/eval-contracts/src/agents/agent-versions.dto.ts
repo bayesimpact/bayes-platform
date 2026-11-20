@@ -6,8 +6,8 @@ export const agentModelsOutputSchema = z.object({
     z.object({
       model: z.string(),
       isAvailable: z.boolean(),
-      /** When its provider retires the model, for a model on its way out. */
-      deprecation: z.object({ deprecatedOn: z.string() }).nullable(),
+      /** Present for a model its provider retires: the app reads only whether it is there. */
+      deprecation: z.object({}).nullable(),
       servedOutsideEu: z.boolean(),
     }),
   ),

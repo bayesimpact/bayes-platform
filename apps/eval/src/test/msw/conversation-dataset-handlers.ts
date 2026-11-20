@@ -24,7 +24,6 @@ export function conversationDatasetHandlers(world: EvalWorld) {
       world.conversationDatasets.push(
         buildConversationDataset(params.projectId, {
           name: payload.name,
-          createdAt: Date.now(),
           updatedAt: Date.now(),
         }),
       )

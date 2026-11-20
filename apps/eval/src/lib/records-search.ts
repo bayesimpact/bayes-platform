@@ -24,8 +24,8 @@ export const NO_RECORDS_SEARCH = {
 } satisfies RecordsSearch
 
 /**
- * What a records search asks the API: the page, the order, and the filters as the JSON object the
- * API reads, with those the caller adds.
+ * What a records search asks the API: the page, the order, and the filters, with those the caller
+ * adds.
  */
 export function recordsQueryOf(
   { page, sortBy, sortOrder, filters }: RecordsSearch,
@@ -36,7 +36,7 @@ export function recordsQueryOf(
   return {
     page: page ?? 0,
     limit,
-    columnFilters: Object.keys(allFilters).length > 0 ? JSON.stringify(allFilters) : undefined,
+    columnFilters: Object.keys(allFilters).length > 0 ? allFilters : undefined,
     sortBy,
     sortOrder: sortBy ? (sortOrder ?? "asc") : undefined,
   }

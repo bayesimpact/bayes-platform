@@ -1,7 +1,4 @@
-import {
-  CONVERSATION_DATASET_NAME_MIN_LENGTH,
-  conversationDatasetNameInputSchema,
-} from "@caseai-connect/eval-contracts"
+import { DATASET_NAME_MIN_LENGTH, datasetNameInputSchema } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { type ReactNode, useId } from "react"
@@ -42,7 +39,7 @@ export function DatasetNameDialog({
   const { t } = useLingui()
   const nameId = useId()
   const form = useForm({
-    resolver: zodResolver(conversationDatasetNameInputSchema),
+    resolver: zodResolver(datasetNameInputSchema),
     defaultValues: { name: defaultName },
   })
   const handleSubmit = form.handleSubmit((values) => onSubmit(values.name))
@@ -81,7 +78,7 @@ export function DatasetNameDialog({
                 {fieldState.invalid ? (
                   <FieldError>
                     <Plural
-                      value={CONVERSATION_DATASET_NAME_MIN_LENGTH}
+                      value={DATASET_NAME_MIN_LENGTH}
                       one="Give the dataset a name of # character or more."
                       other="Give the dataset a name of # characters or more."
                     />

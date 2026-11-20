@@ -2,7 +2,7 @@
 type RecordsQuery = {
   page: number
   limit: number
-  columnFilters?: string
+  columnFilters?: Record<string, string>
   sortBy?: string
   sortOrder?: "asc" | "desc"
 }
@@ -17,7 +17,7 @@ export function pageOfRecords<TRecord>(
   query: RecordsQuery,
   textOf: (record: TRecord, key: string) => string,
 ) {
-  const filters: Record<string, string> = query.columnFilters ? JSON.parse(query.columnFilters) : {}
+  const filters = query.columnFilters ?? {}
   const kept = records.filter((record) =>
     Object.entries(filters).every(([key, text]) =>
       textOf(record, key).toLowerCase().includes(text.toLowerCase()),
