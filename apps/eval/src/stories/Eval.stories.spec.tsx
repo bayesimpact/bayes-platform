@@ -93,10 +93,6 @@ const PAGES = {
     Story: pageStories.NewCampaign,
     loaded: () => screen.findByRole("button", { name: "Choose a version" }),
   },
-  NewCampaignWithNoSavedVersion: {
-    Story: pageStories.NewCampaignWithNoSavedVersion,
-    loaded: () => screen.findByText(/This agent has no saved version yet/),
-  },
   DraftCampaign: {
     Story: pageStories.DraftCampaign,
     loaded: () => screen.findByRole("textbox", { name: "Name" }),

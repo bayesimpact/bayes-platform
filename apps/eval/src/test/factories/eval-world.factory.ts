@@ -23,7 +23,7 @@ import {
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
-import { agentVersionIdOf, buildAgentVersion, buildProjectAgent } from "./agents.factory"
+import { agentVersionIdOf, buildProjectAgent } from "./agents.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
 import { buildInvitation } from "./invitations.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
@@ -154,20 +154,6 @@ export function buildEvalWorld(): EvalWorld {
       ],
     },
     reports: { [active.id]: buildCampaignReport(), [closed.id]: buildCampaignReport() },
-  }
-}
-
-/**
- * The owner of a project whose agent was never saved, a copy of another one for instance: it has
- * a draft only, which no campaign runs on.
- */
-export function buildNoSavedVersionWorld(): EvalWorld {
-  const world = buildNoCampaignWorld()
-  return {
-    ...world,
-    agentVersions: Object.fromEntries(
-      world.agents.map((agent) => [agent.id, [buildAgentVersion(agent, 1, { isDraft: true })]]),
-    ),
   }
 }
 

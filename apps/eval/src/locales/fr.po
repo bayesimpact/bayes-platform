@@ -1862,10 +1862,6 @@ msgstr "Cet agent n'a qu'une version enregistrée : il n'y a rien à comparer."
 msgid "This agent has no published version yet. Publish it, then create the campaign."
 msgstr "Cet agent n'a pas encore de version publiée. Publiez-le, puis créez la campagne."
 
-#: src/features/campaigns/components/AgentVersionField.tsx
-msgid "This agent has no saved version yet. Save its settings in the Studio, then come back."
-msgstr "Cet agent n'a pas encore de version enregistrée. Enregistrez ses paramètres dans le Studio, puis revenez."
-
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "This campaign asks its testers no factual question."
 msgstr "Cette campagne ne pose aucune question factuelle à ses testeurs."

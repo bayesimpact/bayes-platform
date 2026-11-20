@@ -46,45 +46,36 @@ export function AgentVersionField({ control, agentParams, agentName }: AgentVers
                 Testers chat with this version and reviewers read it, for the whole campaign.
               </Trans>
             </FieldDescription>
-            {versions.length === 0 ? (
-              <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                <Trans>
-                  This agent has no saved version yet. Save its settings in the Studio, then come
-                  back.
-                </Trans>
-              </p>
-            ) : (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
-                {selected ? (
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <AgentVersionTitle version={selected} />
-                    <span className="text-sm text-muted-foreground">
-                      <Trans>Saved on {savedOn}</Trans>
-                    </span>
-                  </div>
-                ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+              {selected ? (
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <AgentVersionTitle version={selected} />
                   <span className="text-sm text-muted-foreground">
-                    <Trans>No version chosen yet.</Trans>
+                    <Trans>Saved on {savedOn}</Trans>
                   </span>
-                )}
-                <Button type="button" variant="outline" onClick={() => setIsOpen(true)}>
-                  <HistoryIcon data-icon="inline-start" />
-                  <Trans>Choose a version</Trans>
-                </Button>
-                <AgentVersionsSheet
-                  isOpen={isOpen}
-                  onOpenChange={setIsOpen}
-                  agentName={agentName}
-                  versions={versions}
-                  selectedId={field.value}
-                  onSelect={(versionId) => {
-                    field.onChange(versionId)
-                    setIsOpen(false)
-                  }}
-                />
-              </div>
-            )}
-            {fieldState.invalid && versions.length > 0 ? (
+                </div>
+              ) : (
+                <span className="text-sm text-muted-foreground">
+                  <Trans>No version chosen yet.</Trans>
+                </span>
+              )}
+              <Button type="button" variant="outline" onClick={() => setIsOpen(true)}>
+                <HistoryIcon data-icon="inline-start" />
+                <Trans>Choose a version</Trans>
+              </Button>
+              <AgentVersionsSheet
+                isOpen={isOpen}
+                onOpenChange={setIsOpen}
+                agentName={agentName}
+                versions={versions}
+                selectedId={field.value}
+                onSelect={(versionId) => {
+                  field.onChange(versionId)
+                  setIsOpen(false)
+                }}
+              />
+            </div>
+            {fieldState.invalid ? (
               <FieldError>
                 <Trans>Choose the version the campaign runs on.</Trans>
               </FieldError>
