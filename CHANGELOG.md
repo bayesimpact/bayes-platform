@@ -30,7 +30,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
 - (beta) Embed launcher: a larger button with a dot-grid icon that turns into a close cross, a window that grows out of the button, and a card above the closed button that shows the agent's greeting until the visitor opens the chat, writes or dismisses it.
 - (beta) Embedded chat: the floating window is larger (400 × 704 px at most), its header shows the dot-grid mark instead of a sparkle and a chevron to minimize it, and the launcher shows a chevron while the chat is open.
-- (beta) Embedded chat: while the agent thinks or calls a tool, and while a card loads, the chat shows the dot grid of the launcher with a wave running across it, in the agent's colour, instead of a grey spinner.
+- (beta) Embedded chat: while the agent thinks or calls a tool, and while a card loads, the chat shows the dot grid of the launcher in the agent's colour, instead of a grey spinner: the links of the star draw in a random order, each dot lights with a small bounce, a sheen crosses the finished star and the dots swap places before the next draw. The label beside it has a sliding sheen.
 - (beta) Embedded chat: the copy button sits inside the answer bubble, in its bottom-right corner, shows on hover (always on touch screens) and turns into a check once copied.
 
 ### Removed
