@@ -1,5 +1,5 @@
 import { composeStories, setProjectAnnotations } from "@storybook/react-vite"
-import { render, screen, within } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import { userEvent } from "storybook/test"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
@@ -33,6 +33,15 @@ const PAGES = {
       expect(screen.queryByRole("columnheader", { name: /internal_note/ })).not.toBeInTheDocument()
       return screen.findByText("Search fails on accented words")
     },
+  },
+  LargeDataset: {
+    Story: pageStories.LargeDataset,
+    // The first page of its records, of the three the API holds.
+    loaded: () => screen.findByText("Rows 1–50 of 120"),
+  },
+  LargeRun: {
+    Story: pageStories.LargeRun,
+    loaded: () => screen.findByText("Rows 1–50 of 120"),
   },
   DatasetRuns: {
     Story: pageStories.DatasetRuns,
@@ -117,17 +126,37 @@ describe("the stories of the extraction evaluations", () => {
     expect(screen.queryByRole("columnheader", { name: /source/ })).not.toBeInTheDocument()
   })
 
-  it("Dataset narrows its records with a search", async () => {
-    const { Dataset } = pageStories
-    await Dataset.load()
-    render(<Dataset />)
+  it("LargeDataset pages, searches and sorts its records through the API", async () => {
+    const { LargeDataset } = pageStories
+    await LargeDataset.load()
+    render(<LargeDataset />)
 
-    await userEvent.type(
-      await screen.findByRole("searchbox", { name: "Search the records" }),
-      "invoice",
+    // A page at a time: the next one holds the records after the fiftieth.
+    expect(await screen.findByText("Rows 1–50 of 120")).toBeInTheDocument()
+    expect(screen.queryByText(/^#51 /)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Next page" }))
+    expect(await screen.findByText("Rows 51–100 of 120")).toBeInTheDocument()
+    expect(screen.getByText(/^#51 /)).toBeInTheDocument()
+
+    // A search looks for a text in one column, in the whole dataset, and goes back to page one.
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Column to search in" }),
+      "title",
     )
-    expect(await screen.findByText("Invoice with a company address")).toBeInTheDocument()
-    expect(screen.queryByText("Search fails on accented words")).not.toBeInTheDocument()
+    await userEvent.type(screen.getByRole("searchbox", { name: "Text to look for" }), "invoice")
+    await userEvent.click(screen.getByRole("button", { name: "Search" }))
+    expect(await screen.findByText("15 records hold this text")).toBeInTheDocument()
+    expect(screen.getByText(/^#6 /)).toBeInTheDocument()
+    expect(screen.queryByText(/^#51 /)).not.toBeInTheDocument()
+
+    // A header sorts by its column: the API gives the order.
+    await userEvent.click(screen.getByRole("button", { name: /^message/ }))
+    await waitFor(() =>
+      expect(screen.getByRole("columnheader", { name: /^message/ })).toHaveAttribute(
+        "aria-sort",
+        "ascending",
+      ),
+    )
   })
 
   it("RunEvaluation pairs the agent's fields with the target columns, then opens the run", async () => {
@@ -183,7 +212,10 @@ describe("the stories of the extraction evaluations", () => {
     // A run that is over offers its results as a CSV file, beside the filters.
     expect(screen.getByRole("button", { name: "Download CSV" })).toBeInTheDocument()
     await userEvent.click(within(filters).getByRole("button", { name: "Mismatches (2)" }))
-    expect(screen.queryByText("Charged twice for the Pro plan")).not.toBeInTheDocument()
+    // The API keeps the mismatches only.
+    await waitFor(() =>
+      expect(screen.queryByText("Charged twice for the Pro plan")).not.toBeInTheDocument(),
+    )
     // Under a value that differs, the value expected.
     expect(screen.getByText("Expected: Product")).toBeInTheDocument()
 

@@ -22,8 +22,9 @@ import {
   useOpenRunCsv,
   useRetryExtractionRun,
 } from "../api/mutations"
-import { extractionRunQueryOptions, extractionRunRecordsQueryOptions } from "../api/queries"
+import { extractionRunQueryOptions } from "../api/queries"
 import { matchRateOf, percentOf } from "../match-rate"
+import type { ExtractionRunSearch } from "../schemas"
 import { ExtractionResultsSection } from "./ExtractionResultsSection"
 import { ExtractionRunPanel } from "./ExtractionRunPanel"
 
@@ -33,6 +34,9 @@ export type ExtractionRunPageProps = {
   /** The dataset the run asked: its name, for the way back, and its columns. */
   dataset: ExtractionDatasetOutputDto
   runParams: ExtractionRunParamsDto
+  /** Which results show: the page, the order, the search and the filter, from the URL. */
+  search: ExtractionRunSearch
+  onSearchChange: (search: ExtractionRunSearch) => void
 }
 
 /**
@@ -45,13 +49,12 @@ export function ExtractionRunPage({
   agentParams,
   dataset,
   runParams,
+  search,
+  onSearchChange,
 }: ExtractionRunPageProps) {
   const { t, i18n } = useLingui()
   const { data: run } = useSuspenseQuery(extractionRunQueryOptions(runParams))
   const isActive = isRunActive(run.status)
-  const { data: results } = useSuspenseQuery(
-    extractionRunRecordsQueryOptions(runParams, { isActive }),
-  )
   const panel = useSidePanel()
   const cancelRun = useCancelExtractionRun(runParams)
   const retryRun = useRetryExtractionRun(runParams)
@@ -142,8 +145,10 @@ export function ExtractionRunPage({
         </div>
         <ExtractionResultsSection
           run={run}
+          runParams={runParams}
           dataset={dataset}
-          results={results}
+          search={search}
+          onSearchChange={onSearchChange}
           onDownloadCsv={
             csvDocumentId
               ? () =>

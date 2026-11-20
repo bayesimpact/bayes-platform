@@ -193,13 +193,22 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   (`lib/run-status.ts`) and the search params of the datasets' pages (`lib/dataset-search.ts`).
   The routes under `evaluations/` are the same for both types: each picks its feature from
   `agent.type`.
+- A table of records the API pages keeps its page, its order and its search in the URL
+  (`lib/records-search.ts`: `recordsSearchSchema`, `recordsQueryOf`, which builds the API's
+  `columnFilters`, `sortBy` and `sortOrder`), reads its page with `useQuery` and
+  `keepPreviousData`, and shows `ColumnSearch` (a column and a text, applied on Enter or the
+  button) and `TablePagination` around the `DataTable`. The route's component gives the search
+  and takes its changes. The records of an extraction dataset, the results of an extraction run
+  and the comparison of runs work that way, 50 rows a page. The records of a conversation dataset
+  and of a conversation run, written by hand and few, are still read whole.
 - The evaluations of an extraction agent (`features/extraction-datasets`,
   `features/extraction-runs`), on the API's `evaluation-extraction-datasets` and
   `evaluation-extraction-runs` routes. A new dataset has no record: its page shows what builds
   them (`ExtractionDatasetSetup`), a CSV file of the project to choose or to upload (presign, PUT
   to the signed URL, confirm), then the name and the role of each of its columns: input, target,
-  reference or ignore (`lib/extraction-columns.ts`). A dataset with records shows them all, the
-  ignored columns left out, with a search and sortable headers, both in the browser. A new run
+  reference or ignore (`lib/extraction-columns.ts`). A dataset with records shows them a page at a time, the
+  ignored columns left out: the API pages, sorts and searches them, as a dataset may hold
+  thousands (`ExtractionRecordsSection`). A new run
   (`RunExtractionPage`) picks a saved version, pairs each field of the version's output schema
   with a target column or only shows it (`key-mapping.ts`), and asks all the records or the first
   ones. The Runs tab adds a box per run: two runs or more open in
@@ -207,7 +216,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   the cell's own component (`RunCompareCheckbox`) on TanStack's row selection, so it is not
   remounted, and keeps the focus, when the table renders again. A run's page shows its match rate,
   its matches, mismatches and errors, then its results: one column per field, with a mark and the
-  value expected under a value that differs, filters, and a sheet with the whole record. Its side
+  value expected under a value that differs, filters by status, and a sheet with the whole record.
+  Its results come a page at a time too, as the comparison's records do. Its side
   panel has two tabs, Agent and Fields. A run that is over offers its results as a CSV file
   (`useOpenRunCsv`), from a button beside the filters of its results, and from its row's menu in
   the Runs tab. A run under way is read again every 3 seconds.

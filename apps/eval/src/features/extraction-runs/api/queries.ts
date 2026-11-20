@@ -2,11 +2,11 @@ import {
   EvalExtractionRunsRoutes,
   EXTRACTION_RUN_RECORDS_PAGE_SIZE,
   type ExtractionRunParamsDto,
-  type ExtractionRunRecordOutputDto,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
-import { queryOptions } from "@tanstack/react-query"
+import { keepPreviousData, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
+import { type RecordsSearch, recordsQueryOf } from "@/lib/records-search"
 import { ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS, isRunActive } from "@/lib/run-status"
 import { extractionRunKeys } from "./keys"
 
@@ -39,28 +39,24 @@ export const extractionRunQueryOptions = (run: ExtractionRunParamsDto) =>
   })
 
 /**
- * All the records of a run. The API pages them: the app reads every page, one after the other.
- * `isActive` reads them again every few seconds, as the records of a run under way get their
- * values.
+ * A page of the records of a run, narrowed and sorted by the API: a run may hold thousands of
+ * them. `filters` narrows them further, to one status for instance. Another page, order or search
+ * keeps the rows shown until its own arrive. `isActive` reads the page again every few seconds,
+ * as the records of a run under way get their values.
  */
 export const extractionRunRecordsQueryOptions = (
   run: ExtractionRunParamsDto,
-  { isActive }: { isActive: boolean } = { isActive: false },
+  search: RecordsSearch,
+  { filters = {}, isActive = false }: { filters?: Record<string, string>; isActive?: boolean } = {},
 ) =>
   queryOptions({
-    queryKey: extractionRunKeys.records(run),
-    queryFn: async ({ signal }) => {
-      const records: ExtractionRunRecordOutputDto[] = []
-      for (let page = 0; ; page += 1) {
-        const answer = await apiRequest(EvalExtractionRunsRoutes.getRecords, {
-          params: run,
-          query: { page, limit: EXTRACTION_RUN_RECORDS_PAGE_SIZE },
-          signal,
-        })
-        records.push(...answer.records)
-        // An empty page ends the reading too, should the total change meanwhile.
-        if (records.length >= answer.total || answer.records.length === 0) return records
-      }
-    },
+    queryKey: extractionRunKeys.recordsPage(run, search, filters),
+    queryFn: ({ signal }) =>
+      apiRequest(EvalExtractionRunsRoutes.getRecords, {
+        params: run,
+        query: recordsQueryOf(search, EXTRACTION_RUN_RECORDS_PAGE_SIZE, filters),
+        signal,
+      }),
+    placeholderData: keepPreviousData,
     refetchInterval: isActive ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS : false,
   })

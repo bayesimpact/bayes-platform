@@ -1,11 +1,12 @@
-import type {
-  AgentParamsDto,
-  ExtractionDatasetOutputDto,
-  ExtractionRunOutputDto,
-  ExtractionRunRecordOutputDto,
+import {
+  type AgentParamsDto,
+  EXTRACTION_RUN_RECORDS_PAGE_SIZE,
+  type ExtractionDatasetOutputDto,
+  type ExtractionRunOutputDto,
+  type ExtractionRunRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query"
+import { useQueries, useSuspenseQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 import type { ReactNode } from "react"
@@ -13,6 +14,7 @@ import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { RunStatusBadge } from "@/components/shared/RunStatusBadge"
+import { TablePagination } from "@/components/shared/TablePagination"
 import { TimeAgo } from "@/components/shared/TimeAgo"
 import {
   Table,
@@ -36,16 +38,22 @@ export type ExtractionRunsComparePageProps = {
   dataset: ExtractionDatasetOutputDto
   /** The ids of the runs to compare, in the order the person picked them. */
   runIds: string[]
+  /** The page of the records compared, counted from 0. */
+  page: number
+  onPageChange: (page: number) => void
 }
 
 /**
- * Runs of a dataset side by side: their figures, the best match rate in green, then each record
- * of the dataset with where it stands in each run.
+ * Runs of a dataset side by side: their figures, the best match rate in green, then the records
+ * of the dataset, a page at a time, with where each stands in each run. Every run gives the same
+ * page of its records, in the order of the dataset, and a record takes one row whatever the run.
  */
 export function ExtractionRunsComparePage({
   agentParams,
   dataset,
   runIds,
+  page,
+  onPageChange,
 }: ExtractionRunsComparePageProps) {
   const { i18n } = useLingui()
   const { data: projectRuns } = useSuspenseQuery(projectExtractionRunsQueryOptions(agentParams))
@@ -54,11 +62,15 @@ export function ExtractionRunsComparePage({
     const run = projectRuns.find((candidate) => candidate.id === runId)
     return run && run.evaluationExtractionDatasetId === dataset.id ? [run] : []
   })
-  const recordsByRun = useSuspenseQueries({
+  // useQueries: another page keeps the rows shown until its own arrive, for each run.
+  const recordsByRun = useQueries({
     queries: runs.map((run) =>
-      extractionRunRecordsQueryOptions(extractionRunParamsOf(agentParams, run.id)),
+      extractionRunRecordsQueryOptions(extractionRunParamsOf(agentParams, run.id), { page }),
     ),
   })
+  const isLoading = recordsByRun.some((records) => records.isPending)
+  // The run that asked the most records has the most pages.
+  const recordTotal = Math.max(0, ...recordsByRun.map((records) => records.data?.total ?? 0))
   const datasetRuns = {
     to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
     params: { ...agentParams, datasetId: dataset.id },
@@ -133,7 +145,10 @@ export function ExtractionRunsComparePage({
     },
   ]
   const rows = comparisonRowsOf(
-    runs.map((run, index) => ({ runId: run.id, records: recordsByRun[index]?.data ?? [] })),
+    runs.map((run, index) => ({
+      runId: run.id,
+      records: recordsByRun[index]?.data?.records ?? [],
+    })),
     columnsOfRole(dataset, "input").map((column) => column.id),
   )
   const runHeads = runs.map((run) => (
@@ -240,7 +255,11 @@ export function ExtractionRunsComparePage({
                         colSpan={runCount + 1}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        <Trans>These runs have no record yet.</Trans>
+                        {isLoading ? (
+                          <Trans>Loading the results…</Trans>
+                        ) : (
+                          <Trans>These runs have no record yet.</Trans>
+                        )}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -281,6 +300,12 @@ export function ExtractionRunsComparePage({
                 </TableBody>
               </Table>
             </div>
+            <TablePagination
+              page={page}
+              pageSize={EXTRACTION_RUN_RECORDS_PAGE_SIZE}
+              total={recordTotal}
+              onPageChange={onPageChange}
+            />
           </section>
         </>
       )}

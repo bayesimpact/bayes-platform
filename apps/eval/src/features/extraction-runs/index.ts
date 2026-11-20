@@ -7,6 +7,5 @@ export {
   extractionRunParamsOf,
   loadExtractionRun,
   loadExtractionRuns,
-  loadExtractionRunsComparison,
 } from "./load-extraction-runs"
-export { compareRunsSearchSchema, runIdsOf } from "./schemas"
+export { compareRunsSearchSchema, extractionRunSearchSchema, runIdsOf } from "./schemas"

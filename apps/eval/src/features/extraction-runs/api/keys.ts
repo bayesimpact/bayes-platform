@@ -1,4 +1,5 @@
 import type { ExtractionRunParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { RecordsSearch } from "@/lib/records-search"
 
 export const extractionRunKeys = {
   all: ["extraction-runs"] as const,
@@ -9,4 +10,10 @@ export const extractionRunKeys = {
     [...extractionRunKeys.all, "run", run.evaluationExtractionRunId] as const,
   detail: (run: ExtractionRunParamsDto) => [...extractionRunKeys.ofRun(run), "detail"] as const,
   records: (run: ExtractionRunParamsDto) => [...extractionRunKeys.ofRun(run), "records"] as const,
+  /** A page of the records of a run, for one order, one search and the filters added to it. */
+  recordsPage: (
+    run: ExtractionRunParamsDto,
+    search: RecordsSearch,
+    filters: Record<string, string>,
+  ) => [...extractionRunKeys.records(run), search, filters] as const,
 }

@@ -10,7 +10,7 @@ const columnHelper = createColumnHelper<ExtractionDatasetRecordOutputDto>()
 
 /**
  * The columns of a dataset's records: one per column of the dataset, named with its role, each
- * value cut after three lines.
+ * value cut after three lines. A column's id is the dataset column's, which the API sorts by.
  */
 export function extractionRecordColumnsOf({
   columns,

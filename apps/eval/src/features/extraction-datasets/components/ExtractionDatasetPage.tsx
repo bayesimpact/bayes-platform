@@ -15,6 +15,7 @@ import { DatasetPageFrame, type DatasetTab } from "@/components/shared/DatasetPa
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { ExtractionRunsSection } from "@/features/extraction-runs"
 import { isSetUp } from "@/lib/extraction-columns"
+import type { RecordsSearch } from "@/lib/records-search"
 import { projectExtractionDatasetsQueryOptions } from "../api/queries"
 import { ExtractionDatasetDialogs } from "./ExtractionDatasetDialogs"
 import { ExtractionDatasetSetup } from "./ExtractionDatasetSetup"
@@ -26,6 +27,9 @@ export type ExtractionDatasetPageProps = {
   datasetParams: ExtractionDatasetParamsDto
   /** The tab shown: the dataset's records, or its runs. */
   tab: DatasetTab
+  /** Which records show: the page, the order and the search, from the URL. */
+  recordsSearch: RecordsSearch
+  onRecordsSearchChange: (search: RecordsSearch) => void
 }
 
 /**
@@ -38,6 +42,8 @@ export function ExtractionDatasetPage({
   agentParams,
   datasetParams,
   tab,
+  recordsSearch,
+  onRecordsSearchChange,
 }: ExtractionDatasetPageProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -80,7 +86,12 @@ export function ExtractionDatasetPage({
           canDelete={can(EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION)}
         />
       ) : (
-        <ExtractionRecordsSection dataset={dataset} datasetParams={datasetParams} />
+        <ExtractionRecordsSection
+          dataset={dataset}
+          datasetParams={datasetParams}
+          search={recordsSearch}
+          onSearchChange={onRecordsSearchChange}
+        />
       )}
       <ExtractionDatasetDialogs
         project={datasetParams}

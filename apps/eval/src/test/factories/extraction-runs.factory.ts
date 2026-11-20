@@ -123,6 +123,26 @@ function unansweredRecord(
   })
 }
 
+/** A run that is over on a large dataset: its records fill several pages, a few of them wrong. */
+export function buildLargeRun(
+  projectId: string,
+  agentId: string,
+  dataset: ExtractionDatasetEntry,
+): ExtractionRunEntry {
+  return buildExtractionRun(
+    projectId,
+    {
+      agentId,
+      evaluationExtractionDatasetId: dataset.dataset.id,
+      createdAt: daysAgo(7),
+      updatedAt: daysAgo(7) + 640_000,
+    },
+    dataset.records.map((source, index) =>
+      index % 10 === 3 ? answeredRecord(source, { category: "Support" }) : answeredRecord(source),
+    ),
+  )
+}
+
 /**
  * The runs of the main dataset by the main agent: one under way, two over, on two versions, and
  * one that failed. Each takes its records from the dataset's.

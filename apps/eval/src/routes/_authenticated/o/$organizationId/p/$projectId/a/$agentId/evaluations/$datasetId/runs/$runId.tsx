@@ -20,16 +20,19 @@ import {
 import {
   ExtractionRunPage,
   extractionRunParamsOf,
+  extractionRunSearchSchema,
   loadExtractionRun,
   loadExtractionRuns,
 } from "@/features/extraction-runs"
 import { uuidParams } from "@/lib/not-found"
 
-/** A run of an evaluation of the agent on a dataset: its figures and all its records. */
+/** A run of an evaluation of the agent on a dataset: its figures and its records. */
 export const Route = createFileRoute(
   "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId",
 )({
   params: { parse: uuidParams("datasetId", "runId") },
+  // Which results of an extraction run show: the API pages them.
+  validateSearch: extractionRunSearchSchema,
   beforeLoad: ({ context }) => requireEvaluationAgent(context.agent),
   loader: async ({ context, params }) => {
     const isConversation = context.agent.type === "conversation"
@@ -82,6 +85,8 @@ function ConversationRunRoute() {
 function ExtractionRunRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
+  const search = Route.useSearch()
+  const navigate = Route.useNavigate()
   const { data: dataset } = useSuspenseQuery(
     extractionDatasetOfProjectQueryOptions(params, params.datasetId),
   )
@@ -93,6 +98,9 @@ function ExtractionRunRoute() {
       agentParams={params}
       dataset={dataset}
       runParams={extractionRunParamsOf(params, params.runId)}
+      search={search}
+      // Another page, order, search or filter replaces the one in the URL.
+      onSearchChange={(next) => void navigate({ search: next, replace: true })}
     />
   )
 }

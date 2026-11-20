@@ -52,7 +52,7 @@ import {
   type ExtractionDatasetEntry,
   type ExtractionFileEntry,
 } from "./extraction-datasets.factory"
-import { buildSupportRuns, type ExtractionRunEntry } from "./extraction-runs.factory"
+import { buildLargeRun, buildSupportRuns, type ExtractionRunEntry } from "./extraction-runs.factory"
 import { buildInvitation } from "./invitations.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
 import {
@@ -229,7 +229,8 @@ const SUPPORT_OUTPUT_SCHEMA = {
 
 /**
  * The evaluator of a project whose one agent extracts fields: its project holds two CSV files, a
- * dataset built from one of them with its runs, and a dataset that waits for its file.
+ * dataset built from one of them with its runs, a dataset that waits for its file, and a large
+ * dataset with a run, whose records fill several pages.
  */
 export function buildExtractionWorld(): EvalWorld {
   const organization = buildMyOrganization()
@@ -237,6 +238,7 @@ export function buildExtractionWorld(): EvalWorld {
   const agent = buildProjectAgent(project, { name: "Document Reader", type: "extraction" })
   const { files, datasets } = buildSupportDatasets(project.id)
   const [supportDataset] = datasets
+  const largeDataset = datasets.find((candidate) => candidate.dataset.name === "All messages")
   return {
     ...emptyCampaignData,
     organizations: [organization],
@@ -252,7 +254,11 @@ export function buildExtractionWorld(): EvalWorld {
     },
     extractionFiles: files,
     extractionDatasets: datasets,
-    extractionRuns: supportDataset ? buildSupportRuns(project.id, agent.id, supportDataset) : [],
+    extractionRuns: [
+      ...(supportDataset ? buildSupportRuns(project.id, agent.id, supportDataset) : []),
+      // Last, so the first run that is over stays one of the main dataset.
+      ...(largeDataset ? [buildLargeRun(project.id, agent.id, largeDataset)] : []),
+    ],
   }
 }
 

@@ -21,11 +21,21 @@ const recordColumnLabels = {
 /** A record's text in a cell: three lines at most, which the record's sheet shows whole. */
 const TEXT_CLASSES = "line-clamp-3 min-w-40 whitespace-pre-wrap wrap-anywhere"
 
+/** The key the API sorts and searches a column of the dataset the agent read by. */
+export const inputKeyOf = (columnId: string) => `input_${columnId}`
+
+/** The key the API sorts and searches what the agent returned for a field by. */
+export const agentKeyOf = (field: string) => `agent_${field}`
+
+/** The key the API searches the value a field should have by. */
+export const targetKeyOf = (field: string) => `target_${field}`
+
 /**
  * The columns of an extraction run's records: where each stands, what the agent read, then one
  * column per field the run reads, with what the agent returned, a mark that says whether it is
  * the value expected, and that value under it when it differs. The first input opens the record's
- * sheet, for the keyboard: a click anywhere on the row does too.
+ * sheet, for the keyboard: a click anywhere on the row does too. A column's id is the key the API
+ * sorts by, as it sorts the records a page shows.
  */
 export function extractionRunRecordColumnsOf({
   translate,
@@ -48,16 +58,14 @@ export function extractionRunRecordColumnsOf({
 }): ColumnDef<ExtractionRunRecordOutputDto, unknown>[] {
   // Safe: each helper call types its own value, and the list holds them as columns of any value.
   return [
-    columnHelper.display({
-      id: "status",
+    columnHelper.accessor("status", {
       header: translate(recordColumnLabels.status),
-      cell: (context) => <RecordStatusBadge status={context.row.original.status} />,
+      cell: (context) => <RecordStatusBadge status={context.getValue()} />,
     }),
     ...inputColumns.map((column, index) =>
       columnHelper.accessor((record) => cellTextOf(record.datasetRecordData?.[column.id]), {
-        id: `input-${column.id}`,
+        id: inputKeyOf(column.id),
         header: column.finalName,
-        enableSorting: false,
         cell: (context) =>
           index === 0 ? (
             <button
@@ -78,46 +86,49 @@ export function extractionRunRecordColumnsOf({
       }),
     ),
     ...keyMapping.map((entry) =>
-      columnHelper.display({
-        id: `field-${entry.agentOutputKey}`,
-        header: () => <span className="font-mono">{entry.agentOutputKey}</span>,
-        cell: (context) => {
-          const field = context.row.original.comparison?.[entry.agentOutputKey]
-          if (!field) return <span className="text-muted-foreground">–</span>
-          const value = cellTextOf(field.agentValue)
-          if (field.status === "fyi") {
-            return <p className={cn(TEXT_CLASSES, "text-muted-foreground")}>{value || "–"}</p>
-          }
-          const isMatch = field.status === "match"
-          const Mark = isMatch ? CheckIcon : XIcon
-          return (
-            <div className="flex min-w-40 items-start gap-1.5">
-              <Mark
-                aria-hidden
-                className={cn(
-                  "mt-0.5 size-4 shrink-0",
-                  isMatch ? "text-green-700 dark:text-green-400" : "text-destructive",
-                )}
-              />
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <p
+      columnHelper.accessor(
+        (record) => cellTextOf(record.comparison?.[entry.agentOutputKey]?.agentValue),
+        {
+          id: agentKeyOf(entry.agentOutputKey),
+          header: () => <span className="font-mono">{entry.agentOutputKey}</span>,
+          cell: (context) => {
+            const field = context.row.original.comparison?.[entry.agentOutputKey]
+            if (!field) return <span className="text-muted-foreground">–</span>
+            const value = context.getValue()
+            if (field.status === "fyi") {
+              return <p className={cn(TEXT_CLASSES, "text-muted-foreground")}>{value || "–"}</p>
+            }
+            const isMatch = field.status === "match"
+            const Mark = isMatch ? CheckIcon : XIcon
+            return (
+              <div className="flex min-w-40 items-start gap-1.5">
+                <Mark
+                  aria-hidden
                   className={cn(
-                    "line-clamp-3 whitespace-pre-wrap wrap-anywhere",
-                    !isMatch && "text-destructive",
+                    "mt-0.5 size-4 shrink-0",
+                    isMatch ? "text-green-700 dark:text-green-400" : "text-destructive",
                   )}
-                >
-                  {value || "–"}
-                </p>
-                {isMatch ? null : (
-                  <p className="line-clamp-2 text-xs wrap-anywhere text-muted-foreground">
-                    {expectedLabel(cellTextOf(field.groundTruth))}
+                />
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <p
+                    className={cn(
+                      "line-clamp-3 whitespace-pre-wrap wrap-anywhere",
+                      !isMatch && "text-destructive",
+                    )}
+                  >
+                    {value || "–"}
                   </p>
-                )}
+                  {isMatch ? null : (
+                    <p className="line-clamp-2 text-xs wrap-anywhere text-muted-foreground">
+                      {expectedLabel(cellTextOf(field.groundTruth))}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )
+            )
+          },
         },
-      }),
+      ),
     ),
   ] as ColumnDef<ExtractionRunRecordOutputDto, unknown>[]
 }

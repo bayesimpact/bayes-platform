@@ -8,6 +8,7 @@ import { ExtractionDatasetPage, loadExtractionDataset } from "@/features/extract
 import { loadExtractionRuns } from "@/features/extraction-runs"
 import { datasetSearchSchema } from "@/lib/dataset-search"
 import { uuidParams } from "@/lib/not-found"
+import { NO_RECORDS_SEARCH } from "@/lib/records-search"
 
 /**
  * A dataset of the agent's project, of the agent's type: all its records, and its runs. An
@@ -37,10 +38,32 @@ export const Route = createFileRoute(
 function DatasetRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
-  const { tab } = Route.useSearch()
-  const DatasetPage =
-    agent.type === "conversation" ? ConversationDatasetPage : ExtractionDatasetPage
+  const { tab, ...recordsSearch } = Route.useSearch()
+  const navigate = Route.useNavigate()
+  if (agent.type === "conversation") {
+    return (
+      <ConversationDatasetPage
+        agent={agent}
+        agentParams={params}
+        datasetParams={params}
+        tab={tab ?? "records"}
+      />
+    )
+  }
   return (
-    <DatasetPage agent={agent} agentParams={params} datasetParams={params} tab={tab ?? "records"} />
+    <ExtractionDatasetPage
+      agent={agent}
+      agentParams={params}
+      datasetParams={params}
+      tab={tab ?? "records"}
+      recordsSearch={recordsSearch}
+      // Another page, order or search replaces the one in the URL, and the tab stays.
+      onRecordsSearchChange={(next) =>
+        void navigate({
+          search: (previous) => ({ ...previous, ...NO_RECORDS_SEARCH, ...next }),
+          replace: true,
+        })
+      }
+    />
   )
 }

@@ -84,6 +84,14 @@ msgstr "{deletedEmail} will no longer be able to accept it."
 msgid "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
 msgstr "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
 
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "{field}, agent's value"
+msgstr "{field}, agent's value"
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "{field}, value expected"
+msgstr "{field}, value expected"
+
 #. A filter of a run's results and how many it keeps, such as: Errors (1)
 #: src/components/shared/ResultFilters.tsx
 msgid "{filterName} ({count})"
@@ -92,6 +100,10 @@ msgstr "{filterName} ({count})"
 #: src/features/campaigns/components/ActivateStep.tsx
 msgid "{finalCount, plural, one {# question} other {# questions}}"
 msgstr "{finalCount, plural, one {# question} other {# questions}}"
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "{foundCount, plural, =0 {No record holds this text} one {# record holds this text} other {# records hold this text}}"
+msgstr "{foundCount, plural, =0 {No record holds this text} one {# record holds this text} other {# records hold this text}}"
 
 #. Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
@@ -623,6 +635,10 @@ msgstr "Closing ends the campaign for good: testers can no longer start sessions
 #: src/features/extraction-runs/components/KeyMappingField.tsx
 msgid "Column the field {field} is compared with"
 msgstr "Column the field {field} is compared with"
+
+#: src/components/shared/ColumnSearch.tsx
+msgid "Column to search in"
+msgstr "Column to search in"
 
 #: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
 #: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
@@ -1438,6 +1454,15 @@ msgstr "List all datasets"
 msgid "Loading the interactive card…"
 msgstr "Loading the interactive card…"
 
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "Loading the records…"
+msgstr "Loading the records…"
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Loading the results…"
+msgstr "Loading the results…"
+
 #. The filter of the results the judge graded 2 out of 5 or less
 #: src/features/conversation-runs/result-filters.ts
 msgid "Low scores"
@@ -1460,11 +1485,9 @@ msgstr "Match rate"
 #. How many records of a run match on every compared field
 #. How many records of a run match on every compared field
 #. How many records of a run match on every compared field, out of all of them
-#. The filter of the results where every scored field has the value expected
 #: src/features/extraction-runs/components/extraction-run-columns.tsx
 #: src/features/extraction-runs/components/ExtractionRunPage.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
-#: src/features/extraction-runs/result-filters.ts
 msgid "Matches"
 msgstr "Matches"
 
@@ -1602,6 +1625,10 @@ msgstr "New review campaign"
 msgid "Next"
 msgstr "Next"
 
+#: src/components/shared/TablePagination.tsx
+msgid "Next page"
+msgstr "Next page"
+
 #. A field an agent filled in with false
 #. An answer to: Did the agent address your question?
 #: src/features/campaigns/campaign-defaults.ts
@@ -1657,6 +1684,10 @@ msgstr "No question yet."
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
 msgid "No record matches this search."
 msgstr "No record matches this search."
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "No result matches this search."
+msgstr "No result matches this search."
 
 #: src/features/campaigns/components/CampaignsEmptyState.tsx
 msgid "No review campaign yet"
@@ -1858,6 +1889,10 @@ msgstr "owner"
 msgid "Page not found"
 msgstr "Page not found"
 
+#: src/components/shared/TablePagination.tsx
+msgid "Pages of the table"
+msgstr "Pages of the table"
+
 #. An answer to: Did the agent address your question?
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Partially"
@@ -1892,6 +1927,10 @@ msgstr "Picking useful resources"
 #: src/features/campaigns/components/FeedbackPreview.tsx
 msgid "Preview"
 msgstr "Preview"
+
+#: src/components/shared/TablePagination.tsx
+msgid "Previous page"
+msgstr "Previous page"
 
 #. Whether an agent's calls to its model go first
 #: src/features/campaigns/agent-version-diff.ts
@@ -2160,6 +2199,11 @@ msgstr "Role of the column {originalName}"
 msgid "Role of the selected columns"
 msgstr "Role of the selected columns"
 
+#. Which rows of a table show, such as: Rows 11–20 of 42
+#: src/components/shared/TablePagination.tsx
+msgid "Rows {first}–{last} of {count}"
+msgstr "Rows {first}–{last} of {count}"
+
 #. Starts an evaluation
 #. Starts an evaluation
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
@@ -2243,6 +2287,11 @@ msgstr "Score"
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
+#. The button that applies the search of a table
+#: src/components/shared/ColumnSearch.tsx
+msgid "Search"
+msgstr "Search"
+
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Search an agent"
 msgstr "Search an agent"
@@ -2254,10 +2303,6 @@ msgstr "Search an agent by its name, its project or its organization."
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Search an agent or a project…"
 msgstr "Search an agent or a project…"
-
-#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
-msgid "Search the records"
-msgstr "Search the records"
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Searching the knowledge base"
@@ -2527,6 +2572,10 @@ msgstr "Testers chat with this version and reviewers read it, for the whole camp
 msgid "text"
 msgstr "text"
 
+#: src/components/shared/ColumnSearch.tsx
+msgid "Text to look for"
+msgstr "Text to look for"
+
 #: src/features/conversation/components/GoodReplyButton.tsx
 msgid "Thank you for your feedback."
 msgstr "Thank you for your feedback."
@@ -2786,6 +2835,10 @@ msgstr "The record was saved."
 msgid "The records could not be added. Try again."
 msgstr "The records could not be added. Try again."
 
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "The records could not load. Try again."
+msgstr "The records could not load. Try again."
+
 #: src/components/shared/RunPageHeader.tsx
 msgid "The records not asked yet stay without an answer. The answers already graded are kept."
 msgstr "The records not asked yet stay without an answer. The answers already graded are kept."
@@ -2805,6 +2858,10 @@ msgstr "The reply stopped before it finished."
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "The report could not be sent. Try again."
 msgstr "The report could not be sent. Try again."
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "The results could not load. Try again."
+msgstr "The results could not load. Try again."
 
 #: src/features/campaign-test/components/TesterSessionPage.tsx
 msgid "The reviewers of this campaign can read everything exchanged in this session."

@@ -91,6 +91,18 @@ export function extractionDatasetUrlOf(world: EvalWorld, datasetName: string): s
   return `${evaluationsUrlOf(world)}/${dataset.id}`
 }
 
+/** The URL of the first extraction run of a dataset, by the dataset's name. */
+export function extractionRunOfDatasetUrlOf(world: EvalWorld, datasetName: string): string {
+  const datasetUrl = extractionDatasetUrlOf(world, datasetName)
+  const { run } = required(
+    world.extractionRuns.find((candidate) =>
+      datasetUrl.endsWith(candidate.run.evaluationExtractionDatasetId),
+    ),
+    `a run of ${datasetName}`,
+  )
+  return `${datasetUrl}/runs/${run.id}`
+}
+
 /** The URL of the first extraction run of the world that stands at that status. */
 export function extractionRunUrlOf(
   world: EvalWorld,
@@ -103,11 +115,14 @@ export function extractionRunUrlOf(
   return `${evaluationsUrlOf(world)}/${run.evaluationExtractionDatasetId}/runs/${run.id}`
 }
 
-/** The URL of the comparison of the world's extraction runs that are over. */
+/** The URL of the comparison of the runs that are over on the dataset of the first of them. */
 export function extractionCompareUrlOf(world: EvalWorld): string {
-  const runs = world.extractionRuns.filter((candidate) => candidate.run.status === "completed")
-  const [first] = runs
+  const completed = world.extractionRuns.filter((candidate) => candidate.run.status === "completed")
+  const [first] = completed
   const datasetId = required(first, "a completed run").run.evaluationExtractionDatasetId
+  const runs = completed.filter(
+    (candidate) => candidate.run.evaluationExtractionDatasetId === datasetId,
+  )
   const ids = runs.map((candidate) => candidate.run.id).join(",")
   return `${evaluationsUrlOf(world)}/${datasetId}/compare?runs=${ids}`
 }

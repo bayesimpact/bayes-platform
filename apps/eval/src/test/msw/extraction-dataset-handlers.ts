@@ -8,6 +8,7 @@ import {
   recordsOf,
 } from "../factories/extraction-datasets.factory"
 import { apiError, mockRoute } from "./mock-route"
+import { pageOfRecords } from "./records-page"
 
 /** The storage a file's bytes go to: its signed URLs start with it. */
 const STORAGE_URL = "https://storage.example.org/extraction-files"
@@ -109,13 +110,9 @@ export function extractionDatasetHandlers(world: EvalWorld) {
     mockRoute(EvalExtractionDatasetsRoutes.getRecords, ({ params, query }) => {
       const entry = find(params.datasetId)
       if (!entry) return apiError(404)
-      const start = query.page * query.limit
-      return {
-        records: entry.records.slice(start, start + query.limit),
-        total: entry.records.length,
-        page: query.page,
-        limit: query.limit,
-      }
+      return pageOfRecords(entry.records, query, (record, columnId) =>
+        String(record.data[columnId] ?? ""),
+      )
     }),
   ]
 }

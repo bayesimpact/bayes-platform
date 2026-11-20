@@ -1,7 +1,19 @@
+import type { ExtractionRunRecordOutputDto } from "@caseai-connect/eval-contracts"
 import { EvalExtractionRunsRoutes } from "@caseai-connect/eval-contracts"
 import type { EvalWorld } from "../factories/eval-world.factory"
 import { buildExtractionRun, buildExtractionRunRecord } from "../factories/extraction-runs.factory"
 import { apiError, mockRoute } from "./mock-route"
+import { pageOfRecords } from "./records-page"
+
+/** The value of a run's record under a key of the API: its status, or a value by its prefix. */
+function runRecordTextOf(record: ExtractionRunRecordOutputDto, key: string): string {
+  if (key === "status") return record.status
+  if (key === "errorDetails") return record.errorDetails ?? ""
+  if (key.startsWith("input_")) return String(record.datasetRecordData?.[key.slice(6)] ?? "")
+  if (key.startsWith("target_")) return String(record.comparison?.[key.slice(7)]?.groundTruth ?? "")
+  if (key.startsWith("agent_")) return String(record.comparison?.[key.slice(6)]?.agentValue ?? "")
+  return ""
+}
 
 /** The extraction runs of a project and their records: list, start, stop, retry, delete. */
 export function extractionRunHandlers(world: EvalWorld) {
@@ -26,13 +38,7 @@ export function extractionRunHandlers(world: EvalWorld) {
     mockRoute(EvalExtractionRunsRoutes.getRecords, ({ params, query }) => {
       const entry = find(params.evaluationExtractionRunId)
       if (!entry) return apiError(404)
-      const start = query.page * query.limit
-      return {
-        records: entry.records.slice(start, start + query.limit),
-        total: entry.records.length,
-        page: query.page,
-        limit: query.limit,
-      }
+      return pageOfRecords(entry.records, query, runRecordTextOf)
     }),
     mockRoute(EvalExtractionRunsRoutes.createOne, ({ params, payload }) => {
       const dataset = world.extractionDatasets.find(

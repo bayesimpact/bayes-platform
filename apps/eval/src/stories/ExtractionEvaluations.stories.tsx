@@ -4,6 +4,7 @@ import {
   evaluationsUrlOf,
   extractionCompareUrlOf,
   extractionDatasetUrlOf,
+  extractionRunOfDatasetUrlOf,
   extractionRunUrlOf,
 } from "@/test/eval-urls"
 import {
@@ -73,6 +74,14 @@ export const Dataset: Story = {
   }),
 }
 
+/** A dataset of 120 records: the API pages them, 50 at a time, sorts them and searches them. */
+export const LargeDataset: Story = {
+  parameters: evaluation({
+    world: buildExtractionWorld,
+    url: (world) => extractionDatasetUrlOf(world, "All messages"),
+  }),
+}
+
 /** The runs of a dataset: one under way, two over and one that failed. */
 export const DatasetRuns: Story = {
   parameters: evaluation({
@@ -94,6 +103,14 @@ export const CompletedRun: Story = {
   parameters: evaluation({
     world: buildExtractionWorld,
     url: (world) => extractionRunUrlOf(world, "completed"),
+  }),
+}
+
+/** A run of 120 records: its results come a page at a time, as its dataset's records do. */
+export const LargeRun: Story = {
+  parameters: evaluation({
+    world: buildExtractionWorld,
+    url: (world) => extractionRunOfDatasetUrlOf(world, "All messages"),
   }),
 }
 

@@ -2,11 +2,11 @@ import {
   EvalExtractionDatasetsRoutes,
   EXTRACTION_DATASET_RECORDS_PAGE_SIZE,
   type ExtractionDatasetParamsDto,
-  type ExtractionDatasetRecordOutputDto,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
-import { queryOptions } from "@tanstack/react-query"
+import { keepPreviousData, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
+import { type RecordsSearch, recordsQueryOf } from "@/lib/records-search"
 import { extractionDatasetKeys } from "./keys"
 
 /** The extraction datasets of a project, the last changed first. */
@@ -33,25 +33,22 @@ export const extractionDatasetOfProjectQueryOptions = (
   })
 
 /**
- * All the records of a dataset, in the order of its file. The API pages them: the app reads
- * every page, one after the other, so the page shows the whole dataset.
+ * A page of the records of a dataset, narrowed and sorted by the API: a dataset may hold
+ * thousands of them. Another page, order or search keeps the rows shown until its own arrive.
  */
-export const extractionDatasetRecordsQueryOptions = (dataset: ExtractionDatasetParamsDto) =>
+export const extractionDatasetRecordsQueryOptions = (
+  dataset: ExtractionDatasetParamsDto,
+  search: RecordsSearch,
+) =>
   queryOptions({
-    queryKey: extractionDatasetKeys.records(dataset),
-    queryFn: async ({ signal }) => {
-      const records: ExtractionDatasetRecordOutputDto[] = []
-      for (let page = 0; ; page += 1) {
-        const answer = await apiRequest(EvalExtractionDatasetsRoutes.getRecords, {
-          params: dataset,
-          query: { page, limit: EXTRACTION_DATASET_RECORDS_PAGE_SIZE },
-          signal,
-        })
-        records.push(...answer.records)
-        // An empty page ends the reading too, should the total change meanwhile.
-        if (records.length >= answer.total || answer.records.length === 0) return records
-      }
-    },
+    queryKey: extractionDatasetKeys.recordsPage(dataset, search),
+    queryFn: ({ signal }) =>
+      apiRequest(EvalExtractionDatasetsRoutes.getRecords, {
+        params: dataset,
+        query: recordsQueryOf(search, EXTRACTION_DATASET_RECORDS_PAGE_SIZE),
+        signal,
+      }),
+    placeholderData: keepPreviousData,
   })
 
 /** The CSV files of a project, the last uploaded first. */

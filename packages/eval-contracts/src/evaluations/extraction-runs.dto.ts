@@ -10,8 +10,8 @@ export const EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION =
 export const EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION =
   "evaluation.extraction.run.delete" as const
 
-/** How many records the API returns at most in one page of a run: the app reads them all. */
-export const EXTRACTION_RUN_RECORDS_PAGE_SIZE = 100
+/** How many records of a run the app shows in a page: a run may hold thousands. */
+export const EXTRACTION_RUN_RECORDS_PAGE_SIZE = 50
 
 /** The params of the routes under one extraction run. */
 export const extractionRunParamsSchema = projectParamsSchema.extend({
@@ -99,10 +99,20 @@ export const extractionRunRecordOutputSchema = z.object({
 
 export type ExtractionRunRecordOutputDto = z.output<typeof extractionRunRecordOutputSchema>
 
-/** A page of a run's records: `page` counts from 0. */
+/**
+ * A page of a run's records: `page` counts from 0. The API narrows and sorts the records by
+ * `status`, by `errorDetails`, by a column of the dataset the agent read (`input_<column id>`),
+ * by the value a field should have (`target_<field>`) or by what the agent returned for it
+ * (`agent_<field>`).
+ */
 export const extractionRunRecordsQuerySchema = z.strictObject({
   page: z.coerce.number<string>().int().min(0),
   limit: z.coerce.number<string>().int().min(1).max(100),
+  /** A JSON object: the text each of those must hold, by its key. */
+  columnFilters: z.string().optional(),
+  /** The key the records are sorted by: the order of the dataset without it. */
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export const extractionRunRecordsOutputSchema = z.object({

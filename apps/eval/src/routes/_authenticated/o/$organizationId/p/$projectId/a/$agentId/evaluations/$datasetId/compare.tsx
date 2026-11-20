@@ -11,12 +11,14 @@ import {
   compareRunsSearchSchema,
   ExtractionRunsComparePage,
   loadExtractionRuns,
-  loadExtractionRunsComparison,
   runIdsOf,
 } from "@/features/extraction-runs"
 import { uuidParams } from "@/lib/not-found"
 
-/** Runs of an extraction agent on a dataset, side by side: the `runs` search param names them. */
+/**
+ * Runs of an extraction agent on a dataset, side by side: the `runs` search param names them,
+ * and `page` is the page of their records.
+ */
 export const Route = createFileRoute(
   "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare",
 )({
@@ -27,12 +29,10 @@ export const Route = createFileRoute(
     // Only the runs of an extraction agent compare.
     if (context.agent.type !== "extraction") throw notFound()
   },
-  loaderDeps: ({ search }) => ({ runs: search.runs }),
-  loader: ({ context, params, deps }) =>
+  loader: ({ context, params }) =>
     Promise.all([
       loadExtractionDatasets(context.queryClient, params),
       loadExtractionRuns(context.queryClient, params),
-      loadExtractionRunsComparison(context.queryClient, params, runIdsOf(deps.runs)),
     ]),
   pendingComponent: CampaignsPageSkeleton,
   errorComponent: RouteErrorState,
@@ -41,13 +41,22 @@ export const Route = createFileRoute(
 
 function CompareRunsRoute() {
   const params = Route.useParams()
-  const { runs } = Route.useSearch()
+  const { runs, page } = Route.useSearch()
+  const navigate = Route.useNavigate()
   const { data: dataset } = useSuspenseQuery(
     extractionDatasetOfProjectQueryOptions(params, params.datasetId),
   )
   // A dataset the project does not hold has no run to compare.
   if (!dataset) throw notFound()
   return (
-    <ExtractionRunsComparePage agentParams={params} dataset={dataset} runIds={runIdsOf(runs)} />
+    <ExtractionRunsComparePage
+      agentParams={params}
+      dataset={dataset}
+      runIds={runIdsOf(runs)}
+      page={page ?? 0}
+      onPageChange={(next) =>
+        void navigate({ search: (previous) => ({ ...previous, page: next }), replace: true })
+      }
+    />
   )
 }

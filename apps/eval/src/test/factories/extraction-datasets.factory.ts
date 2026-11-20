@@ -160,8 +160,8 @@ export function buildExtractionDataset(
 }
 
 /**
- * The files and the datasets of the main project: one file, a dataset built from it, and a
- * dataset that waits for its file.
+ * The files and the datasets of the main project: two files, a dataset built from one of them, a
+ * dataset that waits for its file, and a large one, whose records fill several pages.
  */
 export function buildSupportDatasets(projectId: string): {
   files: ExtractionFileEntry[]
@@ -194,6 +194,24 @@ export function buildSupportDatasets(projectId: string): {
         createdAt: daysAgo(2),
         updatedAt: daysAgo(2),
       }),
+      buildExtractionDataset(
+        projectId,
+        {
+          name: "All messages",
+          documentId: file.file.id,
+          schemaMapping: Object.fromEntries(SUPPORT_COLUMNS.map((column) => [column.id, column])),
+          createdAt: daysAgo(9),
+          updatedAt: daysAgo(8),
+        },
+        // Enough records for several pages: the main rows, over and over, each with its number.
+        recordsOf({
+          ...file,
+          rows: Array.from({ length: 120 }, (_, index) => {
+            const [message = "", ...rest] = SUPPORT_ROWS[index % SUPPORT_ROWS.length] ?? []
+            return [`#${index + 1} ${message}`, ...rest]
+          }),
+        }),
+      ),
     ],
   }
 }

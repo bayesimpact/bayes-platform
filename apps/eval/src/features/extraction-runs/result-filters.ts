@@ -1,13 +1,18 @@
-import type { ExtractionRunRecordOutputDto } from "@caseai-connect/eval-contracts"
+import type {
+  ExtractionRunOutputDto,
+  ExtractionRunRecordStatusDto,
+} from "@caseai-connect/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 
-/** What the table of a run's results can be narrowed to. */
+/**
+ * What the table of a run's results can be narrowed to: the API keeps the records whose status
+ * holds a text, so the matches, whose name the mismatches hold too, are not among them.
+ */
 export const EXTRACTION_RESULT_FILTERS = [
   "all",
   "mismatches",
   "errors",
-  "matches",
   "waiting",
   "notAsked",
 ] as const
@@ -22,10 +27,6 @@ export const EXTRACTION_RESULT_FILTER_LABELS = {
     comment: "The filter of the results where a field differs from the value expected",
   }),
   errors: msg({ message: "Errors", comment: "The filter of the results an error stopped" }),
-  matches: msg({
-    message: "Matches",
-    comment: "The filter of the results where every scored field has the value expected",
-  }),
   waiting: msg({
     message: "Waiting",
     comment: "The filter of the results the agent has not answered yet",
@@ -36,17 +37,35 @@ export const EXTRACTION_RESULT_FILTER_LABELS = {
   }),
 } satisfies Record<ExtractionResultFilter, MessageDescriptor>
 
-const PREDICATES = {
-  all: () => true,
-  mismatches: (record) => record.status === "mismatch",
-  errors: (record) => record.status === "error",
-  matches: (record) => record.status === "match",
-  waiting: (record) => record.status === "running",
-  notAsked: (record) => record.status === "cancelled",
-} satisfies Record<ExtractionResultFilter, (record: ExtractionRunRecordOutputDto) => boolean>
+/** The status of the records a filter keeps: none for the filter that keeps them all. */
+const STATUSES = {
+  all: null,
+  mismatches: "mismatch",
+  errors: "error",
+  waiting: "running",
+  notAsked: "cancelled",
+} satisfies Record<ExtractionResultFilter, ExtractionRunRecordStatusDto | null>
 
-/** The records a filter keeps. */
-export const filterExtractionResults = (
-  records: ExtractionRunRecordOutputDto[],
-  filter: ExtractionResultFilter,
-) => records.filter(PREDICATES[filter])
+/** What a filter asks the API, beside the search: the status of the records it keeps. */
+export function resultFiltersOf(filter: ExtractionResultFilter): Record<string, string> {
+  const status = STATUSES[filter]
+  return status ? { status } : {}
+}
+
+/**
+ * How many records each filter keeps, from the figures of the run: those it never asked are what
+ * is left once the others are counted.
+ */
+export function resultCountsOf(
+  summary: ExtractionRunOutputDto["summary"],
+): Record<ExtractionResultFilter, number> {
+  if (!summary) return { all: 0, mismatches: 0, errors: 0, waiting: 0, notAsked: 0 }
+  const { total, perfectMatches, mismatches, errors, running } = summary
+  return {
+    all: total,
+    mismatches,
+    errors,
+    waiting: running,
+    notAsked: Math.max(0, total - perfectMatches - mismatches - errors - running),
+  }
+}

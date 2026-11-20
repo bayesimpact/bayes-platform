@@ -152,24 +152,27 @@ export function ExtractionColumnsForm({
               )}
             </Label>
           </div>
-          <NativeSelect
-            aria-label={t`Role of the selected columns`}
-            disabled={checkedCount === 0}
-            // Back to its first option after each choice: it is an action, not a value.
-            value=""
-            onChange={(event) => {
-              const role = extractionDatasetColumnRoleSchema.safeParse(event.target.value)
-              if (!role.success) return
-              for (const index of checked) form.setValue(`columns.${index}.role`, role.data)
-            }}
-          >
-            <NativeSelectOption value="">{t`Give the selection a role…`}</NativeSelectOption>
-            {COLUMN_ROLES.map((role) => (
-              <NativeSelectOption key={role} value={role}>
-                {i18n._(COLUMN_ROLE_LABELS[role])}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+          {/* The select fills its frame: the frame gives it its width. */}
+          <div className="w-full sm:w-64">
+            <NativeSelect
+              aria-label={t`Role of the selected columns`}
+              disabled={checkedCount === 0}
+              // Back to its first option after each choice: it is an action, not a value.
+              value=""
+              onChange={(event) => {
+                const role = extractionDatasetColumnRoleSchema.safeParse(event.target.value)
+                if (!role.success) return
+                for (const index of checked) form.setValue(`columns.${index}.role`, role.data)
+              }}
+            >
+              <NativeSelectOption value="">{t`Give the selection a role…`}</NativeSelectOption>
+              {COLUMN_ROLES.map((role) => (
+                <NativeSelectOption key={role} value={role}>
+                  {i18n._(COLUMN_ROLE_LABELS[role])}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
         </div>
         <ul className="flex flex-col divide-y rounded-lg border">
           {fields.map((field, index) => {

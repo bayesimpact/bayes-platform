@@ -10,8 +10,8 @@ export const EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION =
 export const EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION =
   "evaluation.extraction.dataset.delete" as const
 
-/** How many records the API returns at most in one page of a dataset: the app reads them all. */
-export const EXTRACTION_DATASET_RECORDS_PAGE_SIZE = 100
+/** How many records of a dataset the app shows in a page: a dataset may hold thousands. */
+export const EXTRACTION_DATASET_RECORDS_PAGE_SIZE = 50
 
 /** The type of the files a dataset is built from. */
 export const EXTRACTION_DATASET_FILE_MIME_TYPE = "text/csv" as const
@@ -108,13 +108,21 @@ export const extractionDatasetRecordOutputSchema = z.object({
 
 export type ExtractionDatasetRecordOutputDto = z.output<typeof extractionDatasetRecordOutputSchema>
 
-/** The page of a dataset's records to read: pages count from 0. */
+/**
+ * The page of a dataset's records to read: pages count from 0. The API narrows the records to
+ * those whose columns hold a text, and sorts them by a column.
+ */
 export const extractionDatasetRecordsQuerySchema = z.strictObject({
   page: z.coerce.number<string>().int().min(0),
   limit: z.coerce.number<string>().int().min(1).max(100),
+  /** A JSON object: the text each column must hold, by the column's id. */
+  columnFilters: z.string().optional(),
+  /** The id of the column the records are sorted by: the order of the file without it. */
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-/** A page of the records of a dataset, in the order of the file. */
+/** A page of the records of a dataset: `total` counts the records the filters keep. */
 export const extractionDatasetRecordsOutputSchema = z.object({
   records: z.array(extractionDatasetRecordOutputSchema),
   total: z.number(),
