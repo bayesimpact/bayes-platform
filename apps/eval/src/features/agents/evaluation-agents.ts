@@ -4,8 +4,6 @@ import type { MyCampaign } from "./my-campaigns"
 
 /** An agent the person can evaluate, with its project and organization. */
 export type EvaluationAgent = Pick<ProjectAgentOutputDto, "id" | "name" | "type"> & {
-  /** Whether the agent was published once: a review campaign runs the published version. */
-  isPublished: boolean
   project: EvaluationProject
 }
 
@@ -39,7 +37,6 @@ export function groupEvaluationAgents(
       id: agent.id,
       name: agent.name,
       type: agent.type,
-      isPublished: agent.currentRevision !== undefined,
       project,
     }))
     return agents.length > 0 ? [{ project, agents }] : []

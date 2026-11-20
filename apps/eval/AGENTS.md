@@ -76,7 +76,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   button or on it (`useSidebarPeek` in `hooks/`), as in Claude Desktop; a click pins it.
 - The workspace: `features/agents` reads `GET projects/mine`, `GET organizations/mine` and
   `GET me/review-campaigns` for both roles, keeps the projects the app opens, then reads each
-  one's `GET .../agents-with-drafts`, drafts included since evaluation runs them, under one query
+  one's `GET .../agents`, the agents with a version in production, since an evaluation and a
+  campaign run a saved version and never a draft, under one query
   (`evaluationWorkspaceQueryOptions`).
 - The app is the door to several features, and a person may hold one of them or several: the
   evaluations of a conversation agent or of an extraction agent (who evaluates the project), the

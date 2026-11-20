@@ -37,7 +37,6 @@ const workspaceOf = (
                 id,
                 name: "Document Reader",
                 type: "extraction" as const,
-                isPublished: true,
                 project,
               })),
             },
