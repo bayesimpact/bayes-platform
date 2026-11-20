@@ -3,7 +3,7 @@ import type {
   AgentSessionMessageDto,
   EmbedDisplayMode,
 } from "@caseai-connect/api-contracts"
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
 import type { SupportedLocale } from "../i18n"
 import { createEmbedI18n } from "../i18n"
@@ -113,6 +113,14 @@ function EmbedChatInner({
 
   const followUpIndex = followUpReplyIndex(messages)
 
+  // A new conversation wipes the one on screen for good: once the visitor has written something,
+  // the header button asks first.
+  const [isConfirmingNewConversation, setIsConfirmingNewConversation] = useState(false)
+  const hasVisitorWritten = messages.some((message) => message.role === "user")
+  const requestNewConversation = onNewConversation
+    ? () => (hasVisitorWritten ? setIsConfirmingNewConversation(true) : onNewConversation())
+    : undefined
+
   const handleSendMessage = (content: string) => {
     const trimmed = content.trim()
     if (!trimmed || isStreaming) return
@@ -127,7 +135,17 @@ function EmbedChatInner({
           logoUrl={theme?.logoUrl}
           onClose={onClose}
           collapsible={displayMode === "modal"}
-          onNewConversation={onNewConversation}
+          onNewConversation={requestNewConversation}
+        />
+      )}
+
+      {isConfirmingNewConversation && onNewConversation && (
+        <NewConversationConfirm
+          onCancel={() => setIsConfirmingNewConversation(false)}
+          onConfirm={() => {
+            setIsConfirmingNewConversation(false)
+            onNewConversation()
+          }}
         />
       )}
 
@@ -165,5 +183,58 @@ function EmbedChatInner({
         </ChatActions>
       </ChatFooter>
     </Chat>
+  )
+}
+
+function NewConversationConfirm({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  const { t } = useTranslation("chat")
+  const cancelRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    cancelRef.current?.focus()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onCancel()
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [onCancel])
+
+  return (
+    <div
+      role="alertdialog"
+      aria-labelledby="embed-new-conversation-title"
+      aria-describedby="embed-new-conversation-text"
+      className="embed-confirm shrink-0 border-gray-200 border-b bg-white px-5 py-4 shadow-sm"
+    >
+      <p id="embed-new-conversation-title" className="font-medium text-gray-900 text-sm">
+        {t("newConversation.title")}
+      </p>
+      <p id="embed-new-conversation-text" className="mt-1 text-gray-500 text-sm">
+        {t("newConversation.text")}
+      </p>
+      <div className="mt-3 flex justify-end gap-2">
+        <button
+          ref={cancelRef}
+          type="button"
+          onClick={onCancel}
+          className="rounded-full px-4 py-1.5 font-medium text-gray-700 text-sm transition hover:bg-gray-100"
+        >
+          {t("newConversation.cancel")}
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          className="rounded-full px-4 py-1.5 font-medium text-[var(--embed-on-primary)] text-sm transition hover:opacity-90"
+          style={{ backgroundColor: "var(--embed-primary)" }}
+        >
+          {t("newConversation.confirm")}
+        </button>
+      </div>
+    </div>
   )
 }

@@ -17,6 +17,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- (beta) Embedded chat: once the visitor has written something, the new conversation button asks before clearing the conversation, under the header (Cancel, or Clear and start over).
 - Agent editor: settings save to the draft automatically, and the editor shows the save status or why a save failed.
 - Agent editor: conversation and extraction agents open in the same full-page editor, with its own menu.
 - Agent version history: the full-screen history lists the changed fields, saves the draft as a version and restores a version.
