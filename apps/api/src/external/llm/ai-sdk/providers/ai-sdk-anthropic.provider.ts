@@ -52,12 +52,14 @@ export class AISDKAnthropicProvider extends AISDKLLMProviderBase<AgentProvider.A
     [AgentModel.ClaudeSonnet55]: claudeModelOptions(),
     [AgentModel.ClaudeHaiku55]: claudeModelOptions(),
     [AgentModel.ClaudeOpus5]: claudeModelOptions(),
+    [AgentModel.ClaudeOpus55]: claudeModelOptions(),
   }
-  /** All three are served on the "eu" multi-region. */
+  /** All of them are served on the "eu" multi-region. */
   protected readonly modelInfos: Record<AnthropicAgentModel, ModelInfos> = {
     [AgentModel.ClaudeSonnet55]: {},
     [AgentModel.ClaudeHaiku55]: {},
     [AgentModel.ClaudeOpus5]: {},
+    [AgentModel.ClaudeOpus55]: {},
   }
 
   private readonly vertexProject: string
