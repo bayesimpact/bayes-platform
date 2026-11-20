@@ -31,12 +31,15 @@ type ChartCardProps = {
 
 function formatDateTick(dateString: string): string {
   const date = new Date(dateString)
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  return date.toLocaleDateString(document.documentElement.lang || undefined, {
+    month: "short",
+    day: "numeric",
+  })
 }
 
 function formatTooltipLabel(labelValue: React.ReactNode): string {
   const safeDate = new Date(String(labelValue))
-  return safeDate.toLocaleDateString("en-US", {
+  return safeDate.toLocaleDateString(document.documentElement.lang || undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",

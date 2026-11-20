@@ -1,0 +1,69 @@
+{
+  "conversationReview": {
+    "menu": "Seguridad",
+    "pageTitle": "Revisión de seguridad",
+    "tabs": {
+      "sessionId": "ID de sesión",
+      "byCategory": "Por categoría"
+    },
+    "form": {
+      "label": "ID de sesión",
+      "placeholder": "p. ej., 3f2b8c1e-…",
+      "invalid": "Introduzca un ID de sesión válido."
+    },
+    "byCategory": {
+      "select": {
+        "placeholder": "Elegir una categoría",
+        "uncategorized": "Sin categoría"
+      },
+      "chooseCategory": "Elija una categoría para ver sus sesiones.",
+      "emptyTitle": "No hay sesiones en esta categoría",
+      "emptyDescription": "Ninguna sesión de este agente se ha etiquetado con esta categoría.",
+      "error": "No se pudo cargar la lista de sesiones.",
+      "table": {
+        "date": "Fecha",
+        "type": "Tipo",
+        "session": "Sesión"
+      },
+      "pagination": {
+        "count": "Página {{page}} de {{pages}} · {{total}} sesiones"
+      }
+    },
+    "notice": "Cada sesión que abra aquí queda registrada en el registro de actividad.",
+    "empty": "Pegue un ID de sesión o elija uno de la lista para leerla.",
+    "notFound": "Ninguna sesión de este agente tiene este ID de sesión.",
+    "session": {
+      "live": "En producción",
+      "playground": "Entorno de pruebas",
+      "review_campaign_tester": "Campaña de revisión",
+      "subSession": "Subsesión",
+      "purged": "Contenido eliminado por la política de conservación",
+      "startedAt": "Iniciada el {{date}}",
+      "noMessages": "Esta sesión no tiene mensajes.",
+      "externalVisitorId": "ID de visitante: {{id}}"
+    },
+    "roles": {
+      "user": "Usuario",
+      "assistant": "Agente",
+      "tool": "Herramienta"
+    },
+    "status": {
+      "streaming": "Aún se está escribiendo",
+      "aborted": "Interrumpido",
+      "error": "Fallido"
+    },
+    "tools": "Herramientas: {{names}}",
+    "kind": {
+      "public": "Sesión pública",
+      "extraction": "Extracción"
+    },
+    "channel": {
+      "embed": "Integración",
+      "app": "Aplicación"
+    },
+    "extraction": {
+      "document": "Documento: {{title}}",
+      "errorCode": "Código de error: {{code}}"
+    }
+  }
+}

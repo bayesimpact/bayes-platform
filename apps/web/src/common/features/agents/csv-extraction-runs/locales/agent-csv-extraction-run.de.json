@@ -1,0 +1,75 @@
+{
+  "agentCsvExtractionRun": {
+    "dialog": {
+      "title": "CSV-Extraktion ausführen",
+      "description": "Jeden Eintrag durch den Agenten verarbeiten lassen.",
+      "uploadStep": "CSV hochladen",
+      "columnsStep": "Spalten konfigurieren",
+      "scopeStep": "Ausführungseinstellungen",
+      "upload": "CSV-Datei hochladen",
+      "selectFile": "Datei auswählen",
+      "run": "Ausführen",
+      "cancel": "Abbrechen",
+      "back": "Zurück",
+      "next": "Weiter"
+    },
+    "columns": {
+      "title": "Spaltenrollen konfigurieren",
+      "description": "Wählen Sie die Rolle jeder Spalte Ihrer CSV-Datei aus.",
+      "roles": {
+        "input": "Eingabe",
+        "reference": "Referenz",
+        "ignore": "Ignorieren"
+      },
+      "selectAll": "Alle auswählen",
+      "selectedCount": "{{count}} ausgewählt",
+      "bulkApply": "Rolle auf Auswahl anwenden",
+      "columnHeader": "Spalte",
+      "roleHeader": "Rolle"
+    },
+    "results": {
+      "title": "Ergebnisse der CSV-Extraktion",
+      "summary": "Zusammenfassung",
+      "processing": "Einträge werden verarbeitet...",
+      "total": "Gesamt",
+      "processed": "Verarbeitet",
+      "errors": "Fehler",
+      "remaining_one": "{{count}} verbleibend",
+      "remaining_other": "{{count}} verbleibend",
+      "remaining_zero": "{{count}} verbleibend",
+      "duration": "Dauer: {{duration}}",
+      "cancel": "Abbrechen",
+      "retry": "Erneut versuchen",
+      "exportCsv": "CSV exportieren",
+      "running": "Läuft",
+      "success": "Erfolgreich",
+      "error": "Fehler",
+      "pending": "Ausstehend",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen",
+      "cancelled": "Abgebrochen",
+      "index": "#",
+      "status": "Status",
+      "output": "Ausgabe",
+      "errorDetails": "Fehlerdetails",
+      "noRecords": "Keine Einträge gefunden",
+      "processingDescription": "{{processed}} von {{total}} Einträgen verarbeitet."
+    },
+    "delete": {
+      "confirm": {
+        "title": "CSV-Extraktion löschen",
+        "description": "Diese CSV-Extraktion wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "submit": "Löschen"
+      }
+    },
+    "notifications": {
+      "started": "CSV-Extraktion gestartet",
+      "startError": "CSV-Extraktion konnte nicht gestartet werden",
+      "completed": "CSV-Extraktion erfolgreich abgeschlossen",
+      "failed": "CSV-Extraktion fehlgeschlagen",
+      "deleted": "Extraktion erfolgreich gelöscht",
+      "deleteError": "Extraktion konnte nicht gelöscht werden",
+      "cancelled": "Durchlauf abgebrochen"
+    }
+  }
+}

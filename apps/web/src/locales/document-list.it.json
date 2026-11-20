@@ -1,0 +1,17 @@
+{
+  "documentList": {
+    "props": {
+      "name": "Nome",
+      "createdAt": "Creato il"
+    },
+    "selected_one": "{{count}} selezionato",
+    "selected_other": "{{count}} selezionati",
+    "selected_many": "{{count}} selezionati",
+    "delete": {
+      "title_one": "Elimina documento",
+      "title_other": "Elimina {{count}} documenti",
+      "title_many": "Elimina {{count}} documenti",
+      "description": "Questa azione è irreversibile. I documenti selezionati verranno eliminati definitivamente."
+    }
+  }
+}
