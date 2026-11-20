@@ -637,6 +637,15 @@ msgstr "Changed fields:"
 msgid "Changes in this version"
 msgstr "Changes in this version"
 
+#. Opens a session of a tester with the agent, where they can still talk to it
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Chat"
+msgstr "Chat"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Chat in the session of {started}"
+msgstr "Chat in the session of {started}"
+
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 #: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "Check two runs or more to compare them."
@@ -1972,10 +1981,8 @@ msgstr "Only the first ones, to try"
 
 #. Opens a dataset from the list of datasets
 #. Opens a run from the list of runs
-#. Opens a session with the agent
 #: src/components/shared/DatasetRowActions.tsx
 #: src/components/shared/RunRowActions.tsx
-#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Open"
 msgstr "Open"
 
@@ -2015,10 +2022,6 @@ msgstr "Open the result of: {input}"
 #: src/components/shared/RunRowActions.tsx
 msgid "Open the run of {started}"
 msgstr "Open the run of {started}"
-
-#: src/features/campaign-test/components/TesterSessionsTable.tsx
-msgid "Open the session of {started}"
-msgstr "Open the session of {started}"
 
 #. A link to the trace of the agent's answer
 #. A link to the trace of the agent's answer
@@ -3458,14 +3461,20 @@ msgstr "Version {version}"
 msgid "Versions of {agentName}"
 msgstr "Versions of {agentName}"
 
+#. Opens a session of a tester that is over, only to read it
 #. The button that opens a session the reviewer already reviewed
 #: src/features/campaign-review/components/reviewer-session-columns.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "View"
 msgstr "View"
 
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "View session {id}"
 msgstr "View session {id}"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "View the session of {started}"
+msgstr "View the session of {started}"
 
 #. A record of a run the agent has not answered yet
 #. A record of a run the agent has not answered yet

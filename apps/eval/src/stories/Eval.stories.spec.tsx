@@ -339,6 +339,20 @@ describe("the stories of the app", () => {
     expect(within(row).getByText("4 / 5")).toBeInTheDocument()
   })
 
+  it("TesterCampaign opens a session to chat while its feedback is due, and to view it after", async () => {
+    await TesterCampaign.load()
+    render(<TesterCampaign />)
+
+    const chats = await screen.findAllByRole("link", { name: /^Chat in the session of/ })
+    const views = screen.getAllByRole("link", { name: /^View the session of/ })
+    expect(chats[0]).toHaveTextContent("Chat")
+    expect(views[0]).toHaveTextContent("View")
+    // Only a session whose feedback is due offers to give it.
+    expect(
+      screen.getAllByRole("button", { name: /^Give feedback on the session of/ }),
+    ).toHaveLength(chats.length)
+  })
+
   it("RunUnderWay asks before it cancels the run", async () => {
     const { RunUnderWay } = pageStories
     await RunUnderWay.load()

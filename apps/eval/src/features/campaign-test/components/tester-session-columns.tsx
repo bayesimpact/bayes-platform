@@ -22,13 +22,23 @@ const testerSessionColumnLabels = {
   toGive: msg`Feedback to give`,
   given: msg`Feedback given`,
   giveFeedback: msg`Give feedback`,
-  open: msg({ message: "Open", comment: "Opens a session with the agent" }),
+  chat: msg({
+    message: "Chat",
+    comment: "Opens a session of a tester with the agent, where they can still talk to it",
+  }),
+  view: msg({
+    message: "View",
+    comment: "Opens a session of a tester that is over, only to read it",
+  }),
 } satisfies Record<string, MessageDescriptor>
 
 /** What the rows' buttons are named, and what they do, by the session they act on. */
 type TesterSessionActions = {
   giveFeedbackLabel: (started: string) => string
-  openLabel: (started: string) => string
+  /** The name of the link to a session the tester can still talk in. */
+  chatLabel: (started: string) => string
+  /** The name of the link to a session that is over, which only reads. */
+  viewLabel: (started: string) => string
   deleteLabel: (started: string) => string
   onGiveFeedback: (session: TesterSessionOutputDto) => void
   onDelete: (session: TesterSessionOutputDto) => void
@@ -36,7 +46,8 @@ type TesterSessionActions = {
 
 /**
  * The columns of the tester's sessions: when each started, whether they gave their feedback, and
- * what they can still do with it. A session with feedback is over: it opens, and nothing else.
+ * what they can still do with it. A session that waits for its feedback opens on Chat; one with
+ * feedback is over: it opens on View, to read it, and nothing else.
  */
 export function testerSessionColumnsOf({
   campaign,
@@ -90,10 +101,12 @@ export function testerSessionColumnsOf({
             <Link
               to="/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId"
               params={{ ...campaign, sessionId: session.id }}
-              aria-label={actions.openLabel(started)}
+              aria-label={isPending ? actions.chatLabel(started) : actions.viewLabel(started)}
               className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >
-              {translate(testerSessionColumnLabels.open)}
+              {translate(
+                isPending ? testerSessionColumnLabels.chat : testerSessionColumnLabels.view,
+              )}
             </Link>
             {isPending ? (
               <Button

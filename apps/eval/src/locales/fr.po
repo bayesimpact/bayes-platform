@@ -637,6 +637,15 @@ msgstr "Champs modifiés :"
 msgid "Changes in this version"
 msgstr "Changements de cette version"
 
+#. Opens a session of a tester with the agent, where they can still talk to it
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Chat"
+msgstr "Discuter"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Chat in the session of {started}"
+msgstr "Discuter dans la session du {started}"
+
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 #: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "Check two runs or more to compare them."
@@ -1972,10 +1981,8 @@ msgstr "Seulement les premiers, pour essayer"
 
 #. Opens a dataset from the list of datasets
 #. Opens a run from the list of runs
-#. Opens a session with the agent
 #: src/components/shared/DatasetRowActions.tsx
 #: src/components/shared/RunRowActions.tsx
-#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Open"
 msgstr "Ouvrir"
 
@@ -2015,10 +2022,6 @@ msgstr "Ouvrir le résultat de : {input}"
 #: src/components/shared/RunRowActions.tsx
 msgid "Open the run of {started}"
 msgstr "Ouvrir l'exécution du {started}"
-
-#: src/features/campaign-test/components/TesterSessionsTable.tsx
-msgid "Open the session of {started}"
-msgstr "Ouvrir la session du {started}"
 
 #. A link to the trace of the agent's answer
 #. A link to the trace of the agent's answer
@@ -3458,14 +3461,20 @@ msgstr "Version {version}"
 msgid "Versions of {agentName}"
 msgstr "Versions de {agentName}"
 
+#. Opens a session of a tester that is over, only to read it
 #. The button that opens a session the reviewer already reviewed
 #: src/features/campaign-review/components/reviewer-session-columns.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "View"
 msgstr "Voir"
 
 #: src/features/campaign-review/components/ReviewerSessionsTable.tsx
 msgid "View session {id}"
 msgstr "Voir la session {id}"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "View the session of {started}"
+msgstr "Voir la session du {started}"
 
 #. A record of a run the agent has not answered yet
 #. A record of a run the agent has not answered yet
