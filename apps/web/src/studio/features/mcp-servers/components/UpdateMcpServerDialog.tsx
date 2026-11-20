@@ -20,12 +20,13 @@ export function UpdateMcpServerDialog({
   mcpServer: McpServerDisplay
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (mcpServerId: string, fields: UpdateMcpServerFields) => void
+  /** `onSuccess` runs once the server is saved: a refused save keeps the form and what was typed. */
+  onSubmit: (mcpServerId: string, fields: UpdateMcpServerFields, onSuccess: () => void) => void
 }) {
   const { t } = useTranslation()
 
   const handleSubmit = (values: McpServerFormValues) => {
-    onSubmit(mcpServer.id, {
+    const fields: UpdateMcpServerFields = {
       name: values.name,
       url: values.url,
       authMethod: values.authMethod,
@@ -33,8 +34,8 @@ export function UpdateMcpServerDialog({
       // never leaves the browser.
       apiKey: values.authMethod === "apiKey" && values.apiKey ? values.apiKey : undefined,
       headers: values.headers,
-    })
-    onOpenChange(false)
+    }
+    onSubmit(mcpServer.id, fields, () => onOpenChange(false))
   }
 
   return (

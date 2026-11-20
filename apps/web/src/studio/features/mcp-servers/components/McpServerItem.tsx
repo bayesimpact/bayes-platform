@@ -26,15 +26,15 @@ export function McpServerItem({
   mcpServer: McpServerDisplay
   connection: McpServerConnection
   onDelete: (id: string) => void
-  onUpdate: (id: string, fields: UpdateMcpServerFields) => void
+  onUpdate: (id: string, fields: UpdateMcpServerFields, onSuccess: () => void) => void
   /** Connects to the server again and refreshes its status and tools. */
   onInspect: (id: string) => void
   onAuthorize: (id: string) => void
 }) {
   const { t } = useTranslation()
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [isShowingTools, setIsShowingTools] = useState(false)
+  // A card opens one dialog at a time.
+  const [openDialog, setOpenDialog] = useState<"delete" | "edit" | "tools" | null>(null)
+  const closeDialog = () => setOpenDialog(null)
 
   const isChecking =
     connection.state === "checking" || (connection.state === "checked" && connection.isRefreshing)
@@ -67,7 +67,7 @@ export function McpServerItem({
                 size="icon-sm"
                 aria-label={t("actions:edit")}
                 title={t("actions:edit")}
-                onClick={() => setIsEditing(true)}
+                onClick={() => setOpenDialog("edit")}
               >
                 <PencilIcon className="size-3.5" />
               </Button>
@@ -76,7 +76,7 @@ export function McpServerItem({
                 size="icon-sm"
                 aria-label={t("actions:delete")}
                 title={t("actions:delete")}
-                onClick={() => setIsConfirmingDelete(true)}
+                onClick={() => setOpenDialog("delete")}
               >
                 <Trash2Icon className="size-3.5" />
               </Button>
@@ -99,7 +99,7 @@ export function McpServerItem({
                 variant="link"
                 size="sm"
                 className="px-0"
-                onClick={() => setIsShowingTools(true)}
+                onClick={() => setOpenDialog("tools")}
               >
                 {t("mcpServers:tools.count", { count: tools.length })}
               </Button>
@@ -127,28 +127,28 @@ export function McpServerItem({
         serverName={mcpServer.name}
         authStatus={mcpServer.authStatus}
         connection={connection}
-        open={isShowingTools}
-        onOpenChange={setIsShowingTools}
+        open={openDialog === "tools"}
+        onOpenChange={(open) => setOpenDialog(open ? "tools" : null)}
         onRefresh={() => onInspect(mcpServer.id)}
       />
 
       {!mcpServer.isBuiltIn && (
         <UpdateMcpServerDialog
           mcpServer={mcpServer}
-          open={isEditing}
-          onOpenChange={setIsEditing}
+          open={openDialog === "edit"}
+          onOpenChange={(open) => setOpenDialog(open ? "edit" : null)}
           onSubmit={onUpdate}
         />
       )}
 
       <ConfirmDialog
-        open={isConfirmingDelete}
+        open={openDialog === "delete"}
         title={t("mcpServers:delete.title")}
         description={t("mcpServers:delete.description", { name: mcpServer.name })}
-        onCancel={() => setIsConfirmingDelete(false)}
+        onCancel={closeDialog}
         onConfirm={() => {
           onDelete(mcpServer.id)
-          setIsConfirmingDelete(false)
+          closeDialog()
         }}
       />
     </>

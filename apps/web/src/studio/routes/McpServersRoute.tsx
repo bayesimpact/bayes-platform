@@ -48,12 +48,16 @@ function WithData() {
     navigate(StudioRoutes.project.build({ organizationId, projectId }))
   }
 
-  const handleCreate = (fields: CreateMcpServerFields) => {
-    dispatch(createMcpServer({ fields, onSuccess: () => {} }))
+  const handleCreate = (fields: CreateMcpServerFields, onSuccess: () => void) => {
+    dispatch(createMcpServer({ fields, onSuccess }))
   }
 
-  const handleUpdate = (mcpServerId: string, fields: UpdateMcpServerFields) => {
-    dispatch(updateMcpServer({ mcpServerId, fields, onSuccess: () => {} }))
+  const handleUpdate = (
+    mcpServerId: string,
+    fields: UpdateMcpServerFields,
+    onSuccess: () => void,
+  ) => {
+    dispatch(updateMcpServer({ mcpServerId, fields, onSuccess }))
   }
 
   const handleDelete = (mcpServerId: string) => {

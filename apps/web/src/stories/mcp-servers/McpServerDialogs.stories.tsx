@@ -6,8 +6,8 @@ import { CreateMcpServerDialog } from "@/studio/features/mcp-servers/components/
 import { McpServerToolsDialog } from "@/studio/features/mcp-servers/components/McpServerToolsDialog"
 import { UpdateMcpServerDialog } from "@/studio/features/mcp-servers/components/UpdateMcpServerDialog"
 import {
+  buildCheckedConnection,
   mcpServerFactory,
-  mcpServerInspectionFactory,
   mcpServerToolFactory,
 } from "@/studio/features/mcp-servers/mcp-servers.factory"
 
@@ -86,16 +86,12 @@ export const ToolsFew: Story = {
   render: () => (
     <McpServerToolsDialog
       {...toolsDialogArgs}
-      connection={{
-        state: "checked",
-        isRefreshing: false,
-        inspection: mcpServerInspectionFactory.build({
-          tools: [
-            ...mcpServerToolFactory.buildList(2),
-            { name: "tool_without_description", description: null },
-          ],
-        }),
-      }}
+      connection={buildCheckedConnection({
+        tools: [
+          ...mcpServerToolFactory.buildList(2),
+          { name: "tool_without_description", description: null },
+        ],
+      })}
     />
   ),
 }
@@ -105,15 +101,11 @@ export const ToolsMany: Story = {
   render: () => (
     <McpServerToolsDialog
       {...toolsDialogArgs}
-      connection={{
-        state: "checked",
-        isRefreshing: false,
-        inspection: mcpServerInspectionFactory.build({
-          tools: Array.from({ length: 24 }, (_, index) =>
-            mcpServerToolFactory.build({ name: `tool_number_${index + 1}` }),
-          ),
-        }),
-      }}
+      connection={buildCheckedConnection({
+        tools: Array.from({ length: 24 }, (_, index) =>
+          mcpServerToolFactory.build({ name: `tool_number_${index + 1}` }),
+        ),
+      })}
     />
   ),
 }
@@ -129,30 +121,19 @@ export const ToolsLongDescription: Story = {
   render: () => (
     <McpServerToolsDialog
       {...toolsDialogArgs}
-      connection={{
-        state: "checked",
-        isRefreshing: false,
-        inspection: mcpServerInspectionFactory.build({
-          tools: [
-            { name: "search_articles", description: LONG_DESCRIPTION },
-            { name: "get_article", description: "Returns one article by its reference." },
-          ],
-        }),
-      }}
+      connection={buildCheckedConnection({
+        tools: [
+          { name: "search_articles", description: LONG_DESCRIPTION },
+          { name: "get_article", description: "Returns one article by its reference." },
+        ],
+      })}
     />
   ),
 }
 
 export const ToolsNone: Story = {
   render: () => (
-    <McpServerToolsDialog
-      {...toolsDialogArgs}
-      connection={{
-        state: "checked",
-        isRefreshing: false,
-        inspection: mcpServerInspectionFactory.build({ tools: [] }),
-      }}
-    />
+    <McpServerToolsDialog {...toolsDialogArgs} connection={buildCheckedConnection({ tools: [] })} />
   ),
 }
 
@@ -165,11 +146,7 @@ export const ToolsConnectionFailed: Story = {
   render: () => (
     <McpServerToolsDialog
       {...toolsDialogArgs}
-      connection={{
-        state: "checked",
-        isRefreshing: false,
-        inspection: mcpServerInspectionFactory.build({ status: "failed" }),
-      }}
+      connection={buildCheckedConnection({ status: "failed" })}
     />
   ),
 }
@@ -179,11 +156,7 @@ export const ToolsAuthorizationExpired: Story = {
     <McpServerToolsDialog
       {...toolsDialogArgs}
       authStatus="oauthExpired"
-      connection={{
-        state: "checked",
-        isRefreshing: false,
-        inspection: mcpServerInspectionFactory.build({ status: "authorizationRequired" }),
-      }}
+      connection={buildCheckedConnection({ status: "authorizationRequired" })}
     />
   ),
 }

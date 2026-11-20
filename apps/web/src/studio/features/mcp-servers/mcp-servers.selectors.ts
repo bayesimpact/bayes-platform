@@ -6,7 +6,7 @@ import type { McpServerConnection } from "./mcp-servers.models"
 export const selectMcpServersData = (state: RootState) => state.mcpServers.data
 
 const selectInspections = (state: RootState) => state.mcpServers.inspections
-const selectInspectingIds = (state: RootState) => state.mcpServers.inspectingIds
+const selectInspectionRequestIds = (state: RootState) => state.mcpServers.inspectionRequestIds
 
 /**
  * The connection of every server that was inspected or is being inspected, by
@@ -14,14 +14,14 @@ const selectInspectingIds = (state: RootState) => state.mcpServers.inspectingIds
  * `connectionOf`.
  */
 export const selectMcpServerConnections = createSelector(
-  [selectInspections, selectInspectingIds],
-  (inspections, inspectingIds): Record<string, McpServerConnection> => {
+  [selectInspections, selectInspectionRequestIds],
+  (inspections, inspectionRequestIds): Record<string, McpServerConnection> => {
     const connections: Record<string, McpServerConnection> = {}
-    for (const mcpServerId of inspectingIds) {
+    for (const mcpServerId of Object.keys(inspectionRequestIds)) {
       connections[mcpServerId] = { state: "checking" }
     }
     for (const [mcpServerId, inspection] of Object.entries(inspections)) {
-      const isRefreshing = inspectingIds.includes(mcpServerId)
+      const isRefreshing = mcpServerId in inspectionRequestIds
       if (ADS.isFulfilled(inspection)) {
         connections[mcpServerId] = { state: "checked", inspection: inspection.value, isRefreshing }
       } else if (!isRefreshing) {

@@ -26,7 +26,8 @@ export function CreateMcpServerDialog({
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (fields: CreateMcpServerFields) => void
+  /** `onSuccess` runs once the server is saved: a refused save keeps the form and what was typed. */
+  onSubmit: (fields: CreateMcpServerFields, onSuccess: () => void) => void
 }) {
   const { t } = useTranslation()
 
@@ -37,7 +38,7 @@ export function CreateMcpServerDialog({
         value === null ? [] : [[name, value]],
       ),
     )
-    onSubmit({
+    const fields: CreateMcpServerFields = {
       name: values.name,
       url: values.url,
       authMethod: values.authMethod,
@@ -45,8 +46,8 @@ export function CreateMcpServerDialog({
       // a key typed then switched away from never leaves the browser.
       apiKey: values.authMethod === "apiKey" ? values.apiKey : undefined,
       headers: Object.keys(headers).length > 0 ? headers : undefined,
-    })
-    onOpenChange(false)
+    }
+    onSubmit(fields, () => onOpenChange(false))
   }
 
   return (

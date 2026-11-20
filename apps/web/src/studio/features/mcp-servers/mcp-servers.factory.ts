@@ -1,7 +1,12 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Project } from "@/common/features/projects/projects.models"
-import type { McpServer, McpServerInspection, McpServerTool } from "./mcp-servers.models"
+import type {
+  McpServer,
+  McpServerConnection,
+  McpServerInspection,
+  McpServerTool,
+} from "./mcp-servers.models"
 
 type McpServerTransientParams = {
   project: Project
@@ -90,3 +95,15 @@ export const mcpServerInspectionFactory = Factory.define<McpServerInspection>(({
     checkedAt: params.checkedAt ?? faker.date.recent().getTime(),
   }
 })
+
+/** The connection the studio shows once an inspection answered. */
+export function buildCheckedConnection(
+  inspection: Partial<McpServerInspection> = {},
+  { isRefreshing = false }: { isRefreshing?: boolean } = {},
+): McpServerConnection {
+  return {
+    state: "checked",
+    inspection: mcpServerInspectionFactory.build(inspection),
+    isRefreshing,
+  }
+}

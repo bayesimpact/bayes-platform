@@ -7,14 +7,19 @@ interface State {
   data: AsyncData<McpServer[]>
   /** Last inspection asked for each server, by server id. Never loaded with the list. */
   inspections: Record<string, AsyncData<McpServerInspection>>
-  /** Servers with an inspection in flight. A refresh keeps the previous result on screen. */
-  inspectingIds: string[]
+  /**
+   * The inspection in flight for each server, by server id: the id of the
+   * request that counts. A second inspection of a server replaces the first,
+   * whose late answer is then ignored: it describes a configuration that may
+   * have been edited since. A refresh keeps the previous result on screen.
+   */
+  inspectionRequestIds: Record<string, string>
 }
 
 const initialState: State = {
   data: defaultAsyncData,
   inspections: {},
-  inspectingIds: [],
+  inspectionRequestIds: {},
 }
 
 const slice = createSlice({
@@ -42,6 +47,9 @@ const slice = createSlice({
         for (const mcpServerId of Object.keys(state.inspections)) {
           if (!listedIds.has(mcpServerId)) delete state.inspections[mcpServerId]
         }
+        for (const mcpServerId of Object.keys(state.inspectionRequestIds)) {
+          if (!listedIds.has(mcpServerId)) delete state.inspectionRequestIds[mcpServerId]
+        }
       })
       .addCase(listMcpServers.rejected, (state, action) => {
         state.data.status = ADS.Error
@@ -52,26 +60,27 @@ const slice = createSlice({
         delete state.inspections[action.payload.id]
       })
       .addCase(inspectMcpServer.pending, (state, action) => {
-        const { mcpServerId } = action.meta.arg
-        if (!state.inspectingIds.includes(mcpServerId)) state.inspectingIds.push(mcpServerId)
+        state.inspectionRequestIds[action.meta.arg.mcpServerId] = action.meta.requestId
       })
       .addCase(inspectMcpServer.fulfilled, (state, action) => {
         const { mcpServerId } = action.meta.arg
+        if (state.inspectionRequestIds[mcpServerId] !== action.meta.requestId) return
         state.inspections[mcpServerId] = {
           status: ADS.Fulfilled,
           error: null,
           value: action.payload,
         }
-        state.inspectingIds = state.inspectingIds.filter((id) => id !== mcpServerId)
+        delete state.inspectionRequestIds[mcpServerId]
       })
       .addCase(inspectMcpServer.rejected, (state, action) => {
         const { mcpServerId } = action.meta.arg
+        if (state.inspectionRequestIds[mcpServerId] !== action.meta.requestId) return
         state.inspections[mcpServerId] = {
           status: ADS.Error,
           error: action.payload || "Failed to inspect the MCP server",
           value: null,
         }
-        state.inspectingIds = state.inspectingIds.filter((id) => id !== mcpServerId)
+        delete state.inspectionRequestIds[mcpServerId]
       })
   },
 })

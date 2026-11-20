@@ -14,7 +14,7 @@ import { Label } from "@caseai-connect/ui/shad/label"
 import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useId, useMemo } from "react"
-import { Controller, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { McpServerHeadersInput } from "./McpServerHeadersInput"
 import { buildMcpServerFormSchema, type McpServerFormValues } from "./mcp-server-form.schema"
@@ -175,20 +175,21 @@ export function McpServerForm({
             {t("mcpServers:fields.oauthAuthorizationLost")}
           </p>
         )}
-        <FormItem>
-          <FormLabel>{t("mcpServers:fields.headers")}</FormLabel>
-          <FormDescription>{t("mcpServers:fields.headersHint")}</FormDescription>
-          <Controller
-            control={form.control}
-            name="headers"
-            render={({ field }) => (
+        <FormField
+          control={form.control}
+          name="headers"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("mcpServers:fields.headers")}</FormLabel>
+              <FormDescription>{t("mcpServers:fields.headersHint")}</FormDescription>
               <McpServerHeadersInput
                 storedHeaderNames={defaults.storedHeaderNames}
                 onChange={field.onChange}
               />
-            )}
-          />
-        </FormItem>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="flex justify-end">
           <Button
             type="submit"

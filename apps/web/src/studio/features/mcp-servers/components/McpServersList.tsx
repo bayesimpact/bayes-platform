@@ -24,8 +24,8 @@ export function McpServersList({
   /** Connection of each inspected server, by server id. */
   connections: Record<string, McpServerConnection>
   onDelete: (id: string) => void
-  onCreate: (fields: CreateMcpServerFields) => void
-  onUpdate: (id: string, fields: UpdateMcpServerFields) => void
+  onCreate: (fields: CreateMcpServerFields, onSuccess: () => void) => void
+  onUpdate: (id: string, fields: UpdateMcpServerFields, onSuccess: () => void) => void
   onInspect: (id: string) => void
   onBack: () => void
   onAuthorize: (id: string) => void

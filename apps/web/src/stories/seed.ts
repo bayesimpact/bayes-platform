@@ -389,7 +389,9 @@ export const seed = {
               ads.fulfilled(inspection),
             ]),
           ),
-          inspectingIds,
+          inspectionRequestIds: Object.fromEntries(
+            inspectingIds.map((mcpServerId) => [mcpServerId, "story"]),
+          ),
         },
       }
     },
