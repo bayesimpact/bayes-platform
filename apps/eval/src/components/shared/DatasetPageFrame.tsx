@@ -1,0 +1,153 @@
+import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { Link, useNavigate } from "@tanstack/react-router"
+import { cn } from "cn"
+import { EllipsisIcon, PencilIcon, PlayIcon, Trash2Icon } from "lucide-react"
+import type { ReactNode } from "react"
+import { Button, buttonVariants } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { BackLink } from "./BackLink"
+import { PageContainer } from "./PageContainer"
+import { PageHeader } from "./PageHeader"
+import { TimeAgo } from "./TimeAgo"
+
+/** A tab of a dataset's page. */
+export type DatasetTab = "records" | "runs"
+
+export type DatasetPageFrameProps = {
+  agentParams: AgentParamsDto
+  dataset: { id: string; name: string; updatedAt: number }
+  /**
+   * The tab shown, of the records and the runs, or `null` for a dataset that has neither yet: the
+   * page then shows what sets it up, with no tab.
+   */
+  tab: DatasetTab | null
+  /**
+   * Whether the person starts evaluations, and why they cannot start one on this dataset now, if
+   * so: `null` hides the action.
+   */
+  run: { disabledReason: string | null } | null
+  /** Renames the dataset, for who may; none hides the action. */
+  onRename: (() => void) | null
+  /** Deletes the dataset, for who may; none hides the action. */
+  onDelete: (() => void) | null
+  /** The tab's content, then the page's dialogs. */
+  children: ReactNode
+}
+
+/**
+ * The frame of a dataset's page, for an agent of any type: the way back to the datasets, its name
+ * and when it last changed, the way to a new evaluation on it, what changes it, and its two tabs.
+ */
+export function DatasetPageFrame({
+  agentParams,
+  dataset,
+  tab,
+  run,
+  onRename,
+  onDelete,
+  children,
+}: DatasetPageFrameProps) {
+  const { t } = useLingui()
+  const navigate = useNavigate()
+  const datasetPage = {
+    to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
+    params: { ...agentParams, datasetId: dataset.id },
+  } as const
+  const runLabel = (
+    <>
+      <PlayIcon data-icon="inline-start" aria-hidden />
+      <Trans comment="Opens the page that starts an evaluation of the agent on a dataset">
+        Run evaluation
+      </Trans>
+    </>
+  )
+  return (
+    <PageContainer>
+      <PageHeader
+        back={
+          <BackLink
+            to="/o/$organizationId/p/$projectId/a/$agentId/evaluations"
+            params={agentParams}
+          >
+            <Trans>Evaluations</Trans>
+          </BackLink>
+        }
+        title={dataset.name}
+        description={
+          <Trans comment="Under the name of a dataset: what the page shows, and when it last changed">
+            Dataset · Updated <TimeAgo moment={dataset.updatedAt} />
+          </Trans>
+        }
+        actions={
+          <>
+            {run && run.disabledReason === null ? (
+              <Link
+                to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new"
+                params={datasetPage.params}
+                className={cn(buttonVariants())}
+              >
+                {runLabel}
+              </Link>
+            ) : null}
+            {run && run.disabledReason !== null ? (
+              <Button disabled title={run.disabledReason}>
+                {runLabel}
+              </Button>
+            ) : null}
+            {onRename || onDelete ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
+                >
+                  <EllipsisIcon aria-hidden />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {onRename ? (
+                    <DropdownMenuItem onClick={onRename}>
+                      <PencilIcon aria-hidden />
+                      <Trans comment="Renames a dataset">Rename</Trans>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {onDelete ? (
+                    <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                      <Trash2Icon aria-hidden />
+                      <Trans comment="Deletes a dataset">Delete</Trans>
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+          </>
+        }
+      />
+      {tab ? (
+        <Tabs
+          value={tab}
+          onValueChange={(value) =>
+            void navigate({
+              ...datasetPage,
+              search: { tab: value === "runs" ? "runs" : undefined },
+            })
+          }
+        >
+          <TabsList>
+            <TabsTrigger value="records">
+              <Trans comment="The tab with the records of a dataset">Records</Trans>
+            </TabsTrigger>
+            <TabsTrigger value="runs">
+              <Trans comment="The tab with the runs of a dataset">Runs</Trans>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      ) : null}
+      {children}
+    </PageContainer>
+  )
+}

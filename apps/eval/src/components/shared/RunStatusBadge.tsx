@@ -1,11 +1,10 @@
-import type { ConversationRunStatusDto } from "@caseai-connect/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { RUN_STATUS_LABELS } from "../run-status"
+import { RUN_STATUS_LABELS, type RunStatus } from "@/lib/run-status"
 
 export type RunStatusBadgeProps = {
-  status: ConversationRunStatusDto
+  status: RunStatus
 }
 
 const VARIANTS = {
@@ -14,10 +13,7 @@ const VARIANTS = {
   completed: "secondary",
   failed: "destructive",
   cancelled: "outline",
-} as const satisfies Record<
-  ConversationRunStatusDto,
-  "default" | "secondary" | "outline" | "destructive"
->
+} as const satisfies Record<RunStatus, "default" | "secondary" | "outline" | "destructive">
 
 /** Where a run stands: waiting, under way, over (in green), failed or stopped. */
 export function RunStatusBadge({ status }: RunStatusBadgeProps) {

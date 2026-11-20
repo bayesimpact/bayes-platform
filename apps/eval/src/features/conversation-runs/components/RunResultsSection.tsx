@@ -6,10 +6,9 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useMemo, useState } from "react"
 import { DataTable } from "@/components/shared/DataTable"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { ResultFilters } from "@/components/shared/ResultFilters"
 import {
   filterResults,
-  isResultFilter,
   RESULT_FILTER_LABELS,
   RESULT_FILTERS,
   type ResultFilter,
@@ -63,35 +62,15 @@ export function RunResultsSection({ status, results }: RunResultsSectionProps) {
         <h2 className="text-lg font-semibold">
           <Trans comment="The title of the records of a run">Results</Trans>
         </h2>
-        {filters.length > 1 ? (
-          <ToggleGroup
-            aria-label={t({
-              message: "Filter the results",
-              comment: "The label of the filters of the table of a run's results",
-            })}
-            variant="outline"
-            size="sm"
-            spacing={0}
-            value={[activeFilter]}
-            // A toggle group lets every item go: the filter stays when the person clicks it again.
-            onValueChange={(values) => {
-              const [next] = values
-              if (isResultFilter(next)) setFilter(next)
-            }}
-          >
-            {filters.map((candidate) => {
-              const filterName = i18n._(RESULT_FILTER_LABELS[candidate])
-              const count = i18n.number(filterResults(results, candidate).length)
-              return (
-                <ToggleGroupItem key={candidate} value={candidate}>
-                  <Trans comment="A filter of a run's results and how many it keeps, such as: Errors (1)">
-                    {filterName} ({count})
-                  </Trans>
-                </ToggleGroupItem>
-              )
-            })}
-          </ToggleGroup>
-        ) : null}
+        <ResultFilters
+          filters={filters.map((candidate) => ({
+            value: candidate,
+            label: i18n._(RESULT_FILTER_LABELS[candidate]),
+            count: filterResults(results, candidate).length,
+          }))}
+          value={activeFilter}
+          onChange={setFilter}
+        />
       </div>
       <DataTable
         table={table}

@@ -1,7 +1,7 @@
 import type { ConversationRunRecordOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Badge } from "@/components/ui/badge"
-import { scoreOf } from "../run-status"
+import { scoreOf } from "../score"
 
 export type RunRecordScoreProps = {
   record: ConversationRunRecordOutputDto

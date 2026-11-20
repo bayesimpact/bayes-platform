@@ -1,32 +1,27 @@
-import type { AgentParamsDto, ConversationDatasetOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/DataTable"
-import { conversationDatasetColumnsOf } from "./conversation-dataset-columns"
 import { DatasetRowActions } from "./DatasetRowActions"
+import { type DatasetSummary, datasetColumnsOf } from "./dataset-columns"
 
-export type ConversationDatasetsTableProps = {
+export type DatasetsTableProps = {
   agent: AgentParamsDto
-  datasets: ConversationDatasetOutputDto[]
+  datasets: DatasetSummary[]
   /** Renames a dataset, for who may; none hides the action. */
-  onRename: ((dataset: ConversationDatasetOutputDto) => void) | null
+  onRename: ((dataset: DatasetSummary) => void) | null
   /** Deletes a dataset, for who may; none hides the action. */
-  onDelete: ((dataset: ConversationDatasetOutputDto) => void) | null
+  onDelete: ((dataset: DatasetSummary) => void) | null
 }
 
-/** The conversation datasets of a project, the last changed first: a name opens its dataset. */
-export function ConversationDatasetsTable({
-  agent,
-  datasets,
-  onRename,
-  onDelete,
-}: ConversationDatasetsTableProps) {
+/** The datasets of a project, the last changed first: a name opens its dataset. */
+export function DatasetsTable({ agent, datasets, onRename, onDelete }: DatasetsTableProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { i18n } = useLingui()
   const table = useReactTable({
     data: datasets,
-    columns: conversationDatasetColumnsOf({
+    columns: datasetColumnsOf({
       agent,
       translate: (descriptor) => i18n._(descriptor),
       renderActions: (dataset) => (

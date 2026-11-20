@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ConversationDatasetOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -14,7 +14,8 @@ import {
 
 export type DatasetRowActionsProps = {
   agent: AgentParamsDto
-  dataset: ConversationDatasetOutputDto
+  /** The dataset of the row: its id, and its name, which names the actions. */
+  dataset: { id: string; name: string }
   /** Renames the dataset, for who may; none hides the action. */
   onRename: (() => void) | null
   /** Deletes the dataset, for who may; none hides the action. */

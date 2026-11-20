@@ -4,7 +4,7 @@ import {
   type ConversationDatasetOutputDto,
 } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -16,12 +16,10 @@ import { z } from "zod"
 import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { RunScopeField } from "@/components/shared/RunScopeField"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import type { EvaluationAgent } from "@/features/agents"
 import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
@@ -57,9 +55,6 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
   } as const
   const judgeModelId = useId()
   const judgeInstructionsId = useId()
-  const limitedCountId = useId()
-  const allRecordsId = useId()
-  const firstRecordsId = useId()
   const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   const { data: judge } = useSuspenseQuery(judgeModelsQueryOptions(agentParams))
   const startRun = useStartConversationRun(agentParams)
@@ -78,6 +73,7 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
     },
   })
   const scope = useWatch({ control: form.control, name: "scope" })
+  const limitedCount = useWatch({ control: form.control, name: "limitedCount" })
   const agentName = agent.name
   const datasetName = dataset.name
   const recordCount = dataset.recordCount
@@ -183,67 +179,16 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
             </Field>
           )}
         />
-        <Controller
-          control={form.control}
-          name="scope"
-          render={({ field }) => (
-            <Field>
-              <FieldLabel>
-                <Trans comment="How much of a dataset an evaluation asks">Records to ask</Trans>
-              </FieldLabel>
-              <RadioGroup
-                value={field.value}
-                onValueChange={(value) => field.onChange(value === "limited" ? "limited" : "all")}
-              >
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem id={allRecordsId} value="all" />
-                  <Label htmlFor={allRecordsId} className="font-normal">
-                    <Plural
-                      value={recordCount}
-                      one="The # record of the dataset"
-                      other="All # records of the dataset"
-                    />
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem id={firstRecordsId} value="limited" />
-                  <Label htmlFor={firstRecordsId} className="font-normal">
-                    <Trans>Only the first ones, to try</Trans>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </Field>
-          )}
+        <RunScopeField
+          recordCount={recordCount}
+          scope={scope}
+          onScopeChange={(next) => form.setValue("scope", next)}
+          limitedCount={limitedCount}
+          onLimitedCountChange={(count) =>
+            form.setValue("limitedCount", count, { shouldValidate: form.formState.isSubmitted })
+          }
+          isLimitedCountInvalid={form.formState.errors.limitedCount !== undefined}
         />
-        {scope === "limited" ? (
-          <Controller
-            control={form.control}
-            name="limitedCount"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={limitedCountId}>
-                  <Trans>How many records</Trans>
-                </FieldLabel>
-                <Input
-                  id={limitedCountId}
-                  type="number"
-                  min={1}
-                  max={recordCount}
-                  className="w-28"
-                  value={Number.isNaN(field.value) ? "" : field.value}
-                  onChange={(event) => field.onChange(event.target.valueAsNumber)}
-                  onBlur={field.onBlur}
-                  aria-invalid={fieldState.invalid}
-                />
-                {fieldState.invalid ? (
-                  <FieldError>
-                    <Trans>Give a number of records, 1 or more.</Trans>
-                  </FieldError>
-                ) : null}
-              </Field>
-            )}
-          />
-        ) : null}
         <div className="flex flex-wrap justify-end gap-2">
           <Link {...datasetPage} className={cn(buttonVariants({ variant: "outline" }))}>
             <Trans>Cancel</Trans>

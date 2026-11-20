@@ -6,7 +6,7 @@ import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
 import { TimeAgo } from "@/components/shared/TimeAgo"
 import { shortIdOf } from "@/lib/short-id"
-import { scoreOf } from "../run-status"
+import { scoreOf } from "../score"
 
 const columnHelper = createColumnHelper<ConversationRunOutputDto>()
 

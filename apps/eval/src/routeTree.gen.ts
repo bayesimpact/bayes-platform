@@ -25,6 +25,7 @@ import { Route as AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCam
 import { Route as AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestIndexRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/index'
 import { Route as AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestSurveyRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/survey'
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/index'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare'
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/index'
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report'
 import { Route as AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewSessionsSessionIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId'
@@ -151,6 +152,15 @@ const AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRou
         AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
     } as any,
   )
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRouteImport.update(
+    {
+      id: '/evaluations/$datasetId/compare',
+      path: '/evaluations/$datasetId/compare',
+      getParentRoute: () =>
+        AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
+    } as any,
+  )
 const AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute =
   AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRouteImport.update(
     {
@@ -221,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsIndexRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewIndexRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute
   '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewSessionsSessionIdRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestSessionsSessionIdRoute
@@ -243,6 +254,7 @@ export interface FileRoutesByTo {
   '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsIndexRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewIndexRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute
   '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewSessionsSessionIdRoute
   '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestSessionsSessionIdRoute
@@ -268,6 +280,7 @@ export interface FileRoutesById {
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsIndexRoute
   '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewIndexRoute
   '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestIndexRoute
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRoute
   '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewSessionsSessionIdRoute
   '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId': typeof AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestSessionsSessionIdRoute
@@ -293,6 +306,7 @@ export interface FileRouteTypes {
     | '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/'
+    | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare'
     | '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId'
@@ -315,6 +329,7 @@ export interface FileRouteTypes {
     | '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test'
+    | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare'
     | '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId'
     | '/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId'
@@ -339,6 +354,7 @@ export interface FileRouteTypes {
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/'
     | '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/'
     | '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare'
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/report'
     | '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId'
     | '/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId'
@@ -467,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRouteImport
       parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
     }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare'
+      path: '/evaluations/$datasetId/compare'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRouteImport
+      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
+    }
     '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/': {
       id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/'
       path: '/review-campaigns/$reviewCampaignId'
@@ -517,6 +540,7 @@ interface AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren {
   AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsNewRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsNewRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsIndexRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsIndexRoute
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute
@@ -534,6 +558,8 @@ const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren: Authenti
       AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsIndexRoute,
     AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsIndexRoute:
       AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsIndexRoute,
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute:
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdCompareRoute,
     AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRoute:
       AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdReportRoute,
     AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute:

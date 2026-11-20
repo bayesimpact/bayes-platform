@@ -29,11 +29,23 @@ msgstr "{0, plural, one {La ligne {tooLongList} est trop longue.} other {Les lig
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} répond aux enregistrements de {datasetName}, et un modèle juge note chaque réponse par rapport à la réponse attendue."
 
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
+msgid "{agentName} reads the records of {datasetName}, and each field it returns is compared with the value expected."
+msgstr "{agentName} lit les enregistrements de {datasetName}, et chaque champ renvoyé est comparé à la valeur attendue."
+
 #: src/features/conversation/components/Composer.tsx
 msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
 msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
 
-#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "{checkedCount, plural, one {# column selected} other {# columns selected}}"
+msgstr "{checkedCount, plural, one {# colonne sélectionnée} other {# colonnes sélectionnées}}"
+
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "{comparedCount, plural, one {Compare # run} other {Compare # runs}}"
+msgstr "{comparedCount, plural, one {Comparer # exécution} other {Comparer # exécutions}}"
+
+#: src/components/shared/DatasetNameDialog.tsx
 msgid "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Give the dataset a name of # character or more.} other {Give the dataset a name of # characters or more.}}"
 msgstr "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Donnez au jeu de données un nom d'au moins # caractère.} other {Donnez au jeu de données un nom d'au moins # caractères.}}"
 
@@ -58,7 +70,9 @@ msgid "{count} answers, {percent}"
 msgstr "{count} réponses, {percent}"
 
 #. Under the title of a run: the dataset it asked and the agent's version
+#. Under the title of a run: the dataset it asked and the agent's version
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
 msgid "{datasetName} · {agentName}, version {revision}"
 msgstr "{datasetName} · {agentName}, version {revision}"
 
@@ -71,13 +85,18 @@ msgid "{feedbackCount, plural, one {# session feedback} other {# session feedbac
 msgstr "{feedbackCount, plural, one {# retour de session} other {# retours de session}}"
 
 #. A filter of a run's results and how many it keeps, such as: Errors (1)
-#: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/components/shared/ResultFilters.tsx
 msgid "{filterName} ({count})"
 msgstr "{filterName} ({count})"
 
 #: src/features/campaigns/components/ActivateStep.tsx
 msgid "{finalCount, plural, one {# question} other {# questions}}"
 msgstr "{finalCount, plural, one {# question} other {# questions}}"
+
+#. Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "{matched} / {scored} fields"
+msgstr "{matched} / {scored} champs"
 
 #. The button of the person's menu, which shows their name
 #: src/features/account/components/UserMenu.tsx
@@ -101,11 +120,15 @@ msgstr "{projectName} · {organizationName}"
 msgid "{questionCount, plural, one {# question} other {# questions}}"
 msgstr "{questionCount, plural, one {# question} other {# questions}}"
 
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "{recordCount, plural, =0 {No record} one {# record} other {# records}}"
+msgstr "{recordCount, plural, =0 {Aucun enregistrement} one {# enregistrement} other {# enregistrements}}"
+
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 msgid "{recordCount, plural, one {Add # record} other {Add # records}}"
 msgstr "{recordCount, plural, one {Ajouter # enregistrement} other {Ajouter # enregistrements}}"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/components/shared/RunScopeField.tsx
 msgid "{recordCount, plural, one {The # record of the dataset} other {All # records of the dataset}}"
 msgstr "{recordCount, plural, one {L'unique enregistrement du jeu de données} other {Les # enregistrements du jeu de données}}"
 
@@ -133,7 +156,11 @@ msgstr "L'accès de {revokedEmail} n'a pas pu être retiré. Réessayez."
 msgid "{revokedEmail} was revoked."
 msgstr "L'accès de {revokedEmail} a été retiré."
 
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "{runCount, plural, =0 {No run of {datasetName} to compare} one {# run of {datasetName}} other {# runs of {datasetName}, side by side}}"
+msgstr "{runCount, plural, =0 {Aucune exécution de {datasetName} à comparer} one {# exécution de {datasetName}} other {# exécutions de {datasetName}, côte à côte}}"
+
+#: src/components/shared/RunsByStatus.tsx
 msgid "{runCount, plural, =0 {No run yet} one {# run} other {# runs}}"
 msgstr "{runCount, plural, =0 {Aucune exécution pour l'instant} one {# exécution} other {# exécutions}}"
 
@@ -145,12 +172,17 @@ msgstr "{sessionCount, plural, one {# question} other {# questions}}"
 msgid "{sessionCount, plural, one {# session} other {# sessions}}"
 msgstr "{sessionCount, plural, one {# session} other {# sessions}}"
 
+#. Under the name of a CSV file: its size, and when it was uploaded
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{size} · Uploaded <0/>"
+msgstr "{size} · Envoyé <0/>"
+
 #: src/components/shared/StarRatingInput.tsx
 msgid "{star, plural, one {# star} other {# stars}}"
 msgstr "{star, plural, one {# étoile} other {# étoiles}}"
 
 #. A sub-tab of a dataset's runs: a status and how many runs stand at it
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/RunsByStatus.tsx
 msgid "{statusName} ({count})"
 msgstr "{statusName} ({count})"
 
@@ -193,6 +225,10 @@ msgstr "<0>Commentaire :</0> {comment}"
 msgid "A dataset holds the questions an evaluation asks the agent."
 msgstr "Un jeu de données contient les questions qu'une évaluation pose à l'agent."
 
+#: src/features/extraction-datasets/components/ExtractionDatasetDialogs.tsx
+msgid "A dataset holds the rows an evaluation gives the agent. Its records come from a CSV file, which you choose next."
+msgstr "Un jeu de données contient les lignes qu'une évaluation donne à l'agent. Ses enregistrements viennent d'un fichier CSV, que vous choisissez ensuite."
+
 #: src/components/shared/NewReleaseBanner.tsx
 msgid "A new version of Evaluation is available"
 msgstr "Une nouvelle version d'Evaluation est disponible"
@@ -206,6 +242,7 @@ msgid "A new version of the app is available"
 msgstr "Une nouvelle version de l'application est disponible"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "A run evaluates a saved version, never the draft."
 msgstr "Une exécution évalue une version enregistrée, jamais le brouillon."
 
@@ -289,9 +326,12 @@ msgid "After each session"
 msgstr "Après chaque session"
 
 #. The agent a run asked
+#. The agent a run asked
+#. The tab of what a run used about its agent
 #. The tab of what a run used about its agent
 #. What an invitation gives access to
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Agent"
 msgstr "Agent"
@@ -301,6 +341,11 @@ msgstr "Agent"
 msgctxt "form"
 msgid "Agent"
 msgstr "Agent"
+
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Agent and fields"
+msgstr "Agent et champs"
 
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
@@ -321,8 +366,15 @@ msgstr "Version de l'agent"
 msgid "Agent's answer"
 msgstr "Réponse de l'agent"
 
+#. What the agent returned for a field
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "Agent's value"
+msgstr "Valeur de l'agent"
+
+#. The filter that shows every result of a run
 #. The filter that shows every result of a run
 #: src/features/conversation-runs/result-filters.ts
+#: src/features/extraction-runs/result-filters.ts
 msgid "All"
 msgstr "Tous"
 
@@ -362,6 +414,10 @@ msgstr "Y a-t-il quelque chose à savoir sur cette session ?"
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "As {role}"
 msgstr "En tant que {role}"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "As the file holds them, to tell what each column is."
+msgstr "Telles que le fichier les contient, pour savoir ce qu'est chaque colonne."
 
 #: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
 msgid "Ask this agent the questions of a dataset, and have a model grade its answers."
@@ -425,6 +481,15 @@ msgstr "Parcourez et comparez les versions enregistrées de l'agent, puis choisi
 msgid "Browse and compare the saved versions of the agent."
 msgstr "Parcourez et comparez les versions enregistrées de l'agent."
 
+#. Builds the records of a dataset from the chosen CSV file
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Build the dataset"
+msgstr "Construire le jeu de données"
+
+#: src/features/extraction-datasets/components/ExtractionDatasetPage.tsx
+msgid "Build the dataset from a CSV file first."
+msgstr "Construisez d'abord le jeu de données à partir d'un fichier CSV."
+
 #. Opens the dialog that adds several records to a dataset at once
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "Bulk add"
@@ -457,27 +522,28 @@ msgid "Can we switch plan later?, Yes, at any time, from the billing page."
 msgstr "Peut-on changer d'offre plus tard ?, Oui, à tout moment, depuis la page de facturation."
 
 #: src/components/shared/ConfirmDialog.tsx
+#: src/components/shared/DatasetNameDialog.tsx
 #: src/features/campaign-test/components/SessionFeedbackForm.tsx
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
-#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 #: src/features/conversation/components/FeedbackDialog.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "Cancel"
 msgstr "Annuler"
 
 #. Stops a run under way
 #. Stops a run under way
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "Cancel the run"
 msgstr "Annuler l'exécution"
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "Cancel this run?"
 msgstr "Annuler cette exécution ?"
 
 #. A run that a person stopped
-#: src/features/conversation-runs/run-status.ts
+#: src/lib/run-status.ts
 msgid "Cancelled"
 msgstr "Annulée"
 
@@ -493,19 +559,36 @@ msgstr "Champs modifiés :"
 msgid "Changes in this version"
 msgstr "Changements de cette version"
 
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "Check two runs or more to compare them."
+msgstr "Cochez deux exécutions ou plus pour les comparer."
+
 #: src/components/shared/RouteErrorState.tsx
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
 
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Choose a column…"
+msgstr "Choisir une colonne…"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Choose a CSV file"
+msgstr "Choisir un fichier CSV"
+
 #: src/features/campaigns/components/AgentVersionPicker.tsx
 msgid "Choose a version"
 msgstr "Choisir une version"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Choose another file"
+msgstr "Choisir un autre fichier"
 
 #: src/features/campaigns/components/AgentVersionField.tsx
 msgid "Choose the version the campaign runs on."
 msgstr "Choisissez la version sur laquelle tourne la campagne."
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "Choose the version the evaluation asks."
 msgstr "Choisissez la version que l'évaluation interroge."
 
@@ -532,14 +615,39 @@ msgstr "Clôturée"
 msgid "Closing ends the campaign for good: testers can no longer start sessions or give feedback, and reviewers can no longer submit reviews."
 msgstr "La clôture est définitive : les testeurs ne peuvent plus démarrer de session ni donner de retour, et les relecteurs ne peuvent plus soumettre de relecture."
 
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Column the field {field} is compared with"
+msgstr "Colonne à laquelle le champ {field} est comparé"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "Columns of {fileName}"
+msgstr "Colonnes de {fileName}"
+
 #: src/components/shared/RatedFeedbackForm.tsx
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 #: src/features/campaigns/components/FeedbackFormFields.tsx
 msgid "Comment"
 msgstr "Commentaire"
 
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#. The header of the column of the boxes that pick the runs to compare
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+msgid "Compare"
+msgstr "Comparer"
+
+#. Opens the comparison of the runs picked in the list
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "Compare runs"
+msgstr "Comparer des exécutions"
+
+#: src/features/extraction-runs/components/RunCompareCheckbox.tsx
+msgid "Compare the run of {started}"
+msgstr "Comparer l'exécution du {started}"
+
+#: src/components/shared/RunVersionButton.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Compare version {revision} with the others"
 msgstr "Comparer la version {revision} aux autres"
 
@@ -552,8 +660,17 @@ msgstr "Comparer avec"
 msgid "Compare with production"
 msgstr "Comparer avec la production"
 
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Compared with"
+msgstr "Comparé à"
+
+#. Under a field of an extraction run: the dataset's column it is compared with
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Compared with {columnName}"
+msgstr "Comparé à {columnName}"
+
 #. A run that is over
-#: src/features/conversation-runs/run-status.ts
+#: src/lib/run-status.ts
 msgid "Completed"
 msgstr "Terminée"
 
@@ -617,7 +734,11 @@ msgstr "Créez une campagne pour que des testeurs et des relecteurs évaluent ce
 msgid "Create a dataset, then add the questions to ask the agent."
 msgstr "Créez un jeu de données, puis ajoutez les questions à poser à l'agent."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/features/extraction-datasets/components/ExtractionDatasetsPage.tsx
+msgid "Create a dataset, then build its records from a CSV file."
+msgstr "Créez un jeu de données, puis construisez ses enregistrements à partir d'un fichier CSV."
+
+#: src/components/shared/DatasetDialogs.tsx
 msgid "Create dataset"
 msgstr "Créer le jeu de données"
 
@@ -630,6 +751,10 @@ msgstr "Créée le"
 #: src/components/shared/CampaignDescription.tsx
 msgid "Created <0/>"
 msgstr "Créée <0/>"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "CSV file to upload"
+msgstr "Fichier CSV à envoyer"
 
 #. The Control key of a keyboard
 #. The Control key of a keyboard
@@ -644,17 +769,17 @@ msgid "Current"
 msgstr "Actuel"
 
 #. Under the name of a dataset: what the page shows, and when it last changed
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+#: src/components/shared/DatasetPageFrame.tsx
 msgid "Dataset · Updated <0/>"
 msgstr "Jeu de données · Mis à jour <0/>"
 
 #. The header of the column of the names, in the list of datasets
-#: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
+#: src/components/shared/dataset-columns.tsx
 msgid "Dataset's name"
 msgstr "Nom du jeu de données"
 
 #. Above the datasets of a project, in the sidebar
-#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
+#: src/components/shared/DatasetSidebarLinks.tsx
 msgid "Datasets"
 msgstr "Jeux de données"
 
@@ -671,15 +796,17 @@ msgstr "Refuser l’invitation à {name}"
 #. Deletes a record of a dataset
 #. Deletes a run
 #. Deletes a run
+#: src/components/shared/DatasetDialogs.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/DatasetRowActions.tsx
+#: src/components/shared/DeleteRunDialog.tsx
+#: src/components/shared/RunPageHeader.tsx
+#: src/components/shared/RunRowActions.tsx
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 #: src/features/campaigns/components/PendingInvitations.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
-#: src/features/conversation-datasets/components/DatasetRowActions.tsx
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
 msgid "Delete"
 msgstr "Supprimer"
 
@@ -687,9 +814,14 @@ msgstr "Supprimer"
 msgid "Delete “{name}”?"
 msgstr "Supprimer « {name} » ?"
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
 msgid "Delete {deletedName}?"
 msgstr "Supprimer {deletedName} ?"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Delete the file {fileName}"
+msgstr "Supprimer le fichier {fileName}"
 
 #: src/features/campaigns/components/PendingInvitations.tsx
 msgid "Delete the invitation"
@@ -711,8 +843,7 @@ msgstr "Supprimer cette invitation ?"
 msgid "Delete this record?"
 msgstr "Supprimer cet enregistrement ?"
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/DeleteRunDialog.tsx
 msgid "Delete this run?"
 msgstr "Supprimer cette exécution ?"
 
@@ -747,7 +878,11 @@ msgstr "Source de réponse"
 msgid "Done"
 msgstr "Terminé"
 
+#. Opens the results of a run as a CSV file
+#. Opens the results of a run as a CSV file
 #: src/features/campaign-report/components/DownloadReportButton.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "Download CSV"
 msgstr "Télécharger le CSV"
 
@@ -760,7 +895,7 @@ msgstr "Brouillon"
 msgid "e.g. Penalize answers that are not in the expected language"
 msgstr "ex. Pénaliser les réponses qui ne sont pas dans la langue attendue"
 
-#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
+#: src/components/shared/DatasetNameDialog.tsx
 msgid "e.g. Pricing questions"
 msgstr "ex. Questions sur les tarifs"
 
@@ -771,6 +906,10 @@ msgstr "ex. Agent de support, revue de printemps"
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "e.g. Was the answer clear?"
 msgstr "ex. La réponse était-elle claire ?"
+
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Each field the agent returns is compared with a target column of the dataset, or only shown beside the results."
+msgstr "Chaque champ renvoyé par l'agent est comparé à une colonne cible du jeu de données, ou seulement affiché à côté des résultats."
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Each new sign-in ended at once, so the app stopped starting new ones."
@@ -829,16 +968,28 @@ msgid "Enter"
 msgstr "Entrée"
 
 #. A record of a run an error stopped
+#. A record of a run an error stopped
+#. The title of the error that stopped a record of a run
 #. The title of the error that stopped a record of a run
 #: src/features/conversation-runs/components/RunRecordScore.tsx
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
 msgid "Error"
 msgstr "Erreur"
 
 #. How many records of a run an error stopped
+#. How many records of a run an error stopped
+#. How many records of a run an error stopped
+#. How many records of a run an error stopped
+#. The filter of the results an error stopped
 #. The filter of the results an error stopped
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
 #: src/features/conversation-runs/result-filters.ts
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/result-filters.ts
 msgid "Errors"
 msgstr "Erreurs"
 
@@ -868,16 +1019,17 @@ msgstr "L'Évaluation n'a pas le droit d'utiliser votre micro. Autorisez-le dans
 msgid "Evaluation opens to the evaluators and the admins of a project, and to the testers and reviewers of a review campaign. Ask a project admin to give you access."
 msgstr "L'Évaluation est ouverte aux évaluateurs et aux administrateurs d'un projet, ainsi qu'aux testeurs et aux relecteurs d'une campagne d'évaluation. Demandez l'accès à un administrateur du projet."
 
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/DatasetsListPage.tsx
 #: src/routes/-components/AgentHubPage.tsx
 #: src/routes/-components/AgentSectionsNav.tsx
 msgid "Evaluations"
 msgstr "Évaluations"
 
-#: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/index.tsx
-msgid "Evaluations are not here yet"
-msgstr "Les évaluations ne sont pas encore ici"
+#. The value a field should have, with the name of its column
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "Expected ({columnName})"
+msgstr "Attendu ({columnName})"
 
 #. The answer an evaluation expects from the agent
 #. The answer an evaluation expects from the agent
@@ -889,6 +1041,10 @@ msgstr "Les évaluations ne sont pas encore ici"
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Expected output"
 msgstr "Réponse attendue"
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "Expected: {expected}"
+msgstr "Attendu : {expected}"
 
 #: src/lib/agent-type-labels.ts
 msgid "Extraction agent"
@@ -904,7 +1060,7 @@ msgid "Factual"
 msgstr "Factuelle"
 
 #. A run that an error stopped
-#: src/features/conversation-runs/run-status.ts
+#: src/lib/run-status.ts
 msgid "Failed"
 msgstr "En échec"
 
@@ -923,6 +1079,28 @@ msgstr "Retour donné"
 msgid "Feedback to give"
 msgstr "Retour à donner"
 
+#. The tab of the fields an extraction run reads
+#. The title of the fields of a record of an extraction run
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Fields"
+msgstr "Champs"
+
+#. The part of a run's form that pairs the agent's fields with the dataset's columns
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Fields to compare"
+msgstr "Champs à comparer"
+
+#. The header of the column of what the comparison measures
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Figure"
+msgstr "Chiffre"
+
+#. The title of the figures of the runs compared
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Figures"
+msgstr "Chiffres"
+
 #: src/features/campaign-test/components/SurveyCard.tsx
 msgid "Fill the final survey"
 msgstr "Remplir le questionnaire final"
@@ -932,7 +1110,7 @@ msgid "Filling in the form"
 msgstr "Remplissage du formulaire"
 
 #. The label of the filters of the table of a run's results
-#: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/components/shared/ResultFilters.tsx
 msgid "Filter the results"
 msgstr "Filtrer les résultats"
 
@@ -951,6 +1129,10 @@ msgstr "Questionnaire final"
 #: src/features/campaigns/components/CampaignSummary.tsx
 msgid "Final surveys"
 msgstr "Questionnaires finaux"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "First rows of {fileName}"
+msgstr "Premières lignes de {fileName}"
 
 #. Whether an agent suggests follow-up questions
 #: src/features/campaigns/agent-version-diff.ts
@@ -1007,13 +1189,17 @@ msgstr "Issue des questionnaires finaux des testeurs."
 msgid "General"
 msgstr "Général"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/components/shared/RunScopeField.tsx
 msgid "Give a number of records, 1 or more."
 msgstr "Donnez un nombre d'enregistrements, 1 ou plus."
 
 #: src/components/shared/RatedFeedbackForm.tsx
 msgid "Give a rating from 1 to 5 stars."
 msgstr "Donnez une note de 1 à 5 étoiles."
+
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
+msgid "Give each compared field a column, or only show it."
+msgstr "Donnez une colonne à chaque champ comparé, ou affichez-le seulement."
 
 #: src/features/campaign-test/components/tester-session-columns.tsx
 msgid "Give feedback"
@@ -1026,6 +1212,14 @@ msgstr "Donner mon retour sur la session du {started}"
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
 msgid "Give the campaign a name."
 msgstr "Donnez un nom à la campagne."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Give the selection a role…"
+msgstr "Donner un rôle à la sélection…"
+
+#: src/features/extraction-datasets/components/ExtractionDatasetsPage.tsx
+msgid "Give this agent the rows of a dataset, and compare what it extracts with the values expected."
+msgstr "Donnez à cet agent les lignes d'un jeu de données, et comparez ce qu'il extrait aux valeurs attendues."
 
 #. The thumbs-up button under a reply
 #: src/features/conversation/components/GoodReplyButton.tsx
@@ -1074,7 +1268,7 @@ msgstr "Accueil"
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/components/shared/RunScopeField.tsx
 msgid "How many records"
 msgstr "Nombre d'enregistrements"
 
@@ -1082,13 +1276,19 @@ msgstr "Nombre d'enregistrements"
 msgid "How satisfied are you with this agent overall?"
 msgstr "Dans l'ensemble, êtes-vous satisfait de cet agent ?"
 
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "How the run reads the field {field}"
+msgstr "Comment l'exécution lit le champ {field}"
+
 #: src/features/campaign-test/components/SessionFeedbackDialog.tsx
 #: src/features/campaign-test/components/SessionFeedbackPanel.tsx
 msgid "How was this session?"
 msgstr "Comment s'est passée cette session ?"
 
 #. The header of the column of the short ids of the runs
+#. The header of the column of the short ids of the runs
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
 msgid "ID"
 msgstr "ID"
 
@@ -1100,6 +1300,11 @@ msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-la dans un nouvel onglet."
 
+#. The role of a dataset's column that is left out
+#: src/lib/extraction-columns.ts
+msgid "Ignore"
+msgstr "Ignorer"
+
 #. An image in a reply, which names none
 #: src/components/shared/Markdown.tsx
 msgid "Image"
@@ -1110,6 +1315,7 @@ msgstr "Image"
 msgid "In production"
 msgstr "En production"
 
+#. The role of a dataset's column the agent reads
 #. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
@@ -1118,14 +1324,21 @@ msgstr "En production"
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/lib/extraction-columns.ts
 msgid "Input"
 msgstr "Entrée"
 
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Input: what the agent reads. Target: a value the agent must find. Reference: shown beside the results, and not compared. Ignore: left out."
+msgstr "Entrée : ce que l'agent lit. Cible : une valeur que l'agent doit trouver. Référence : affichée à côté des résultats, sans comparaison. Ignorer : laissée de côté."
+
 #. The instructions of an agent
+#. The instructions of the agent in a run
 #. The instructions of the agent in a run
 #. The instructions of the judge of a run
 #: src/features/campaigns/agent-version-diff.ts
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Instructions"
 msgstr "Instructions"
 
@@ -1165,7 +1378,7 @@ msgstr "Invitez des personnes à tester cet agent, et d'autres à relire leurs c
 msgid "Invited <0/>"
 msgstr "Invitation envoyée <0/>"
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
 msgid "Its records and its runs keep their place."
 msgstr "Ses enregistrements et ses exécutions restent en place."
 
@@ -1187,7 +1400,7 @@ msgid "just now"
 msgstr "à l'instant"
 
 #. Gives up cancelling a run under way
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "Keep it running"
 msgstr "Laisser tourner"
 
@@ -1206,12 +1419,12 @@ msgstr "Quitter sans enregistrer ?"
 
 #. The sidebar's link to the table of all an agent's review campaigns
 #. The sidebar's link to the table of all the datasets of an agent's project
+#: src/components/shared/DatasetsSidebarEntries.tsx
 #: src/features/campaigns/components/CampaignsSidebarEntries.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
 msgid "List all"
 msgstr "Tout afficher"
 
-#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
+#: src/components/shared/DatasetsSidebarEntries.tsx
 msgid "List all datasets"
 msgstr "Lister tous les jeux de données"
 
@@ -1223,6 +1436,31 @@ msgstr "Chargement de la carte interactive…"
 #: src/features/conversation-runs/result-filters.ts
 msgid "Low scores"
 msgstr "Scores faibles"
+
+#. A record of a run where every compared field has the value expected
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+msgid "Match"
+msgstr "Identique"
+
+#. The share of a run's records that match on every compared field
+#. The share of a run's records that match on every compared field
+#. The share of a run's records that match on every compared field
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Match rate"
+msgstr "Taux de réussite"
+
+#. How many records of a run match on every compared field
+#. How many records of a run match on every compared field
+#. How many records of a run match on every compared field, out of all of them
+#. The filter of the results where every scored field has the value expected
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/result-filters.ts
+msgid "Matches"
+msgstr "Identiques"
 
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "Mean final rating"
@@ -1255,11 +1493,27 @@ msgstr "Message à {agentName}"
 msgid "Messages"
 msgstr "Messages"
 
+#. A record of a run where a compared field differs from the value expected
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+msgid "Mismatch"
+msgstr "Différent"
+
+#. How many records of a run have a field that differs from the value expected
+#. How many records of a run have a field that differs from the value expected
+#. The filter of the results where a field differs from the value expected
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/result-filters.ts
+msgid "Mismatches"
+msgstr "Différents"
+
 #. The language model of an agent
+#. The model of the agent in a run
 #. The model of the agent in a run
 #. The model of the judge of a run
 #: src/features/campaigns/agent-version-diff.ts
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Model"
 msgstr "Modèle"
 
@@ -1268,13 +1522,13 @@ msgstr "Modèle"
 msgid "Model options"
 msgstr "Options du modèle"
 
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/RunPageHeader.tsx
 #: src/features/campaigns/components/CampaignStatusActions.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
 msgid "More actions"
 msgstr "Plus d’actions"
 
-#: src/features/conversation-datasets/components/DatasetRowActions.tsx
+#: src/components/shared/DatasetRowActions.tsx
 msgid "More actions on {name}"
 msgstr "Plus d'actions sur {name}"
 
@@ -1282,7 +1536,7 @@ msgstr "Plus d'actions sur {name}"
 msgid "More actions on the record"
 msgstr "Plus d'actions sur l'enregistrement"
 
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/RunRowActions.tsx
 msgid "More actions on the run of {started}"
 msgstr "Plus d'actions sur l'exécution du {started}"
 
@@ -1302,12 +1556,16 @@ msgstr "Ma relecture"
 #. The name of a review campaign
 #. The name of a review campaign
 #. The name of a review campaign
+#: src/components/shared/DatasetNameDialog.tsx
 #: src/features/campaigns/components/campaign-columns.tsx
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
 #: src/features/campaigns/components/CampaignSetupView.tsx
-#: src/features/conversation-datasets/components/DatasetNameDialog.tsx
 msgid "Name"
 msgstr "Nom"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Name of the column {originalName} in the dataset"
+msgstr "Nom de la colonne {originalName} dans le jeu de données"
 
 #: src/features/campaigns/components/NewCampaignPage.tsx
 msgid "Name the campaign, choose what testers and reviewers answer, then activate it and invite them."
@@ -1323,9 +1581,9 @@ msgstr "Jamais connecté"
 msgid "New campaign"
 msgstr "Nouvelle campagne"
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetsSidebarEntries.tsx
+#: src/components/shared/DatasetDialogs.tsx
+#: src/components/shared/DatasetsListPage.tsx
+#: src/components/shared/DatasetsSidebarEntries.tsx
 msgid "New dataset"
 msgstr "Nouveau jeu de données"
 
@@ -1358,11 +1616,11 @@ msgstr "Aucune réponse pour le moment."
 msgid "No answer."
 msgstr "Pas de réponse."
 
-#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+#: src/components/shared/DatasetsListPage.tsx
 msgid "No dataset yet"
 msgstr "Aucun jeu de données pour l'instant"
 
-#: src/features/conversation-datasets/components/ConversationDatasetsTable.tsx
+#: src/components/shared/DatasetsTable.tsx
 msgid "No dataset yet."
 msgstr "Aucun jeu de données pour l'instant."
 
@@ -1374,7 +1632,7 @@ msgstr "Pas de description"
 msgid "No differences"
 msgstr "Aucune différence"
 
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/RunsByStatus.tsx
 msgid "No evaluation ran on this dataset yet."
 msgstr "Aucune évaluation n'a encore été lancée sur ce jeu de données."
 
@@ -1390,6 +1648,10 @@ msgstr "Aucun passage à afficher."
 msgid "No question yet."
 msgstr "Aucune question pour le moment."
 
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "No record matches this search."
+msgstr "Aucun enregistrement ne correspond à cette recherche."
+
 #: src/features/campaigns/components/CampaignsEmptyState.tsx
 msgid "No review campaign yet"
 msgstr "Aucune campagne d'évaluation pour le moment"
@@ -1399,7 +1661,7 @@ msgid "No review campaign yet."
 msgstr "Aucune campagne d'évaluation pour le moment."
 
 #. Under a dataset in the sidebar, when no evaluation ran on it
-#: src/features/conversation-runs/components/ConversationRunLinks.tsx
+#: src/components/shared/RunSidebarLinks.tsx
 msgid "No run yet."
 msgstr "Aucune exécution pour l'instant."
 
@@ -1432,15 +1694,25 @@ msgid "Not answered"
 msgstr "Sans réponse"
 
 #. A record of a run stopped before the agent answered it
+#. A record of a run stopped before the agent answered it
+#. The filter of the results a cancelled run never asked
 #. The filter of the results a cancelled run never asked
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
 #: src/features/conversation-runs/result-filters.ts
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+#: src/features/extraction-runs/result-filters.ts
 msgid "Not asked"
 msgstr "Non posée"
 
 #: src/features/campaign-review/components/FormResultPanel.tsx
 msgid "Not collected"
 msgstr "Non collecté"
+
+#. Beside a field of a record that a run shows and does not compare
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Not compared"
+msgstr "Non comparé"
 
 #. A model with no thinking level set
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
@@ -1490,20 +1762,26 @@ msgstr "Une réponse par testeur qui a rempli le questionnaire final."
 msgid "Only one version"
 msgstr "Une seule version"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#. Under a field of an extraction run that is shown and not compared
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Only shown"
+msgstr "Seulement affiché"
+
+#: src/components/shared/RunScopeField.tsx
 msgid "Only the first ones, to try"
 msgstr "Seulement les premiers, pour essayer"
 
 #. Opens a dataset from the list of datasets
 #. Opens a run from the list of runs
 #. Opens a session with the agent
+#: src/components/shared/DatasetRowActions.tsx
+#: src/components/shared/RunRowActions.tsx
 #: src/features/campaign-test/components/tester-session-columns.tsx
-#: src/features/conversation-datasets/components/DatasetRowActions.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
 msgid "Open"
 msgstr "Ouvrir"
 
-#: src/features/conversation-datasets/components/DatasetRowActions.tsx
+#: src/components/shared/DatasetRowActions.tsx
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "Open {name}"
 msgstr "Ouvrir {name}"
@@ -1521,10 +1799,11 @@ msgid "Open on YouTube"
 msgstr "Ouvrir sur YouTube"
 
 #: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
 msgid "Open the result of: {input}"
 msgstr "Ouvrir le résultat de : {input}"
 
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/RunRowActions.tsx
 msgid "Open the run of {started}"
 msgstr "Ouvrir l'exécution du {started}"
 
@@ -1533,7 +1812,9 @@ msgid "Open the session of {started}"
 msgstr "Ouvrir la session du {started}"
 
 #. A link to the trace of the agent's answer
+#. A link to the trace of the agent's answer
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
 msgid "Open the trace"
 msgstr "Ouvrir la trace"
 
@@ -1644,25 +1925,48 @@ msgstr "Note (1 à 5)"
 msgid "Read a session, then give your own rating. The tester's opinion stays hidden until you do."
 msgstr "Lisez une session, puis donnez votre propre note. L'avis du testeur reste masqué jusque-là."
 
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "Reading the file…"
+msgstr "Lecture du fichier…"
+
 #: src/features/campaigns/components/ActivateStep.tsx
 msgid "Ready to open “{name}”?"
 msgstr "Ouvrir « {name} » ?"
 
+#. The header of the column of the records compared
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Record"
+msgstr "Enregistrement"
+
+#. The title of the records of the runs compared
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Record by record"
+msgstr "Enregistrement par enregistrement"
+
 #. How many records a dataset holds
+#. How many records a run asked
 #. The pasted lines that become the records of a dataset
 #. The tab with the records of a dataset
 #. The title of the records of a dataset
+#. The title of the records of a dataset
+#: src/components/shared/dataset-columns.tsx
+#: src/components/shared/DatasetPageFrame.tsx
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
-#: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Records"
 msgstr "Enregistrements"
 
 #. How much of a dataset an evaluation asks
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/components/shared/RunScopeField.tsx
 msgid "Records to ask"
 msgstr "Enregistrements à poser"
+
+#. The role of a dataset's column shown beside the results, and not compared
+#: src/lib/extraction-columns.ts
+msgid "Reference"
+msgstr "Référence"
 
 #: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
@@ -1704,13 +2008,13 @@ msgstr "Retirer cette annotation"
 
 #. Renames a dataset
 #. Renames a dataset
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
-#: src/features/conversation-datasets/components/DatasetRowActions.tsx
+#: src/components/shared/DatasetDialogs.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/DatasetRowActions.tsx
 msgid "Rename"
 msgstr "Renommer"
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
 msgid "Rename the dataset"
 msgstr "Renommer le jeu de données"
 
@@ -1743,17 +2047,23 @@ msgid "Resize the sidebar"
 msgstr "Redimensionner le panneau latéral"
 
 #. The title of the sheet that shows one result of a run
+#. The title of the sheet that shows one result of a run
+#. Where a record of an extraction run stands
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
 msgid "Result"
 msgstr "Résultat"
 
 #. The title of the records of a run
+#. The title of the records of a run
 #: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
 msgid "Results"
 msgstr "Résultats"
 
 #. Asks again the records of a run that failed
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Retry"
 msgstr "Réessayer"
@@ -1832,27 +2142,41 @@ msgstr "Retirer l'accès de {revokedEmail} ?"
 msgid "Role"
 msgstr "Rôle"
 
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Role of each column"
+msgstr "Rôle de chaque colonne"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Role of the column {originalName}"
+msgstr "Rôle de la colonne {originalName}"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Role of the selected columns"
+msgstr "Rôle des colonnes sélectionnées"
+
+#. Starts an evaluation
 #. Starts an evaluation
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "Run"
 msgstr "Lancer"
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "Run {runId}"
 msgstr "Exécution {runId}"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "Run an evaluation"
 msgstr "Lancer une évaluation"
 
 #. Opens the page that starts an evaluation of the agent on a dataset
-#. Opens the page that starts an evaluation of the agent on a dataset
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+#: src/components/shared/DatasetPageFrame.tsx
 msgid "Run evaluation"
 msgstr "Lancer une évaluation"
 
 #. The title of a run's page, by when it started
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "Run of {started}"
 msgstr "Exécution du {started}"
 
@@ -1865,16 +2189,18 @@ msgid "Run this agent on datasets of documents, and read what it extracted."
 msgstr "Lancez cet agent sur des jeux de données de documents, puis lisez ce qu'il a extrait."
 
 #. A run that asks the agent its records
-#: src/features/conversation-runs/run-status.ts
+#: src/lib/run-status.ts
 msgid "Running"
 msgstr "En cours"
 
 #. The link back from a run to the runs of its dataset
+#. The link back from a run to the runs of its dataset
 #. The tab with the runs of a dataset
 #. The title of the runs of a dataset
-#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/RunPageHeader.tsx
+#: src/components/shared/RunsByStatus.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Runs"
 msgstr "Exécutions"
 
@@ -1923,6 +2249,10 @@ msgstr "Cherchez un agent par son nom, son projet ou son organisation."
 msgid "Search an agent or a project…"
 msgstr "Cherchez un agent ou un projet…"
 
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "Search the records"
+msgstr "Rechercher dans les enregistrements"
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Searching the knowledge base"
 msgstr "Recherche dans la base de connaissances"
@@ -1934,6 +2264,14 @@ msgstr "Recherche dans les ressources"
 #: src/routes/-components/AgentSectionsNav.tsx
 msgid "Sections of {agentName}"
 msgstr "Sections de {agentName}"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Select all the columns"
+msgstr "Sélectionner toutes les colonnes"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Select the column {originalName}"
+msgstr "Sélectionner la colonne {originalName}"
 
 #: src/features/campaigns/components/AgentVersionCompare.tsx
 msgid "Select this version"
@@ -2080,6 +2418,7 @@ msgid "Start a session"
 msgstr "Démarrer une session"
 
 #. The header of the column of when a run started
+#. The header of the column of when a run started
 #. When a session started
 #. When a session started
 #. When a session started
@@ -2087,11 +2426,14 @@ msgstr "Démarrer une session"
 #: src/features/campaign-review/components/reviewer-session-columns.tsx
 #: src/features/campaign-test/components/tester-session-columns.tsx
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
 msgid "Started"
 msgstr "Démarrée le"
 
+#. A row of the comparison of runs: where each run stands
 #. Where a review campaign stands
 #: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Status"
 msgstr "Statut"
 
@@ -2136,6 +2478,11 @@ msgstr "Changer d'agent"
 #: src/features/agents/components/AgentSwitcher.tsx
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
+
+#. The role of a dataset's column that holds a value the agent must find
+#: src/lib/extraction-columns.ts
+msgid "Target"
+msgstr "Cible"
 
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
@@ -2247,37 +2594,46 @@ msgstr "La campagne a été supprimée."
 msgid "The changes to this step are not saved yet. They are lost if you leave."
 msgstr "Les changements de cette étape ne sont pas encore enregistrés. Ils sont perdus si vous quittez la page."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "The CSV file could not be opened. Try again."
+msgstr "Le fichier CSV n'a pas pu être ouvert. Réessayez."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "The dataset could not be built. Try again."
+msgstr "Le jeu de données n'a pas pu être construit. Réessayez."
+
+#: src/components/shared/DatasetDialogs.tsx
 msgid "The dataset could not be created. Try again."
 msgstr "Le jeu de données n'a pas pu être créé. Réessayez."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
 msgid "The dataset could not be deleted. Try again."
 msgstr "Le jeu de données n'a pas pu être supprimé. Réessayez."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
 msgid "The dataset could not be renamed. Try again."
 msgstr "Le jeu de données n'a pas pu être renommé. Réessayez."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "The dataset was built from the file."
+msgstr "Le jeu de données a été construit à partir du fichier."
+
+#: src/components/shared/DatasetDialogs.tsx
 msgid "The dataset was created."
 msgstr "Le jeu de données a été créé."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
 msgid "The dataset was deleted."
 msgstr "Le jeu de données a été supprimé."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
 msgid "The dataset was renamed."
 msgstr "Le jeu de données a été renommé."
 
-#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+#: src/components/shared/DatasetDialogs.tsx
 msgid "The dataset, its records and its runs are deleted for good."
 msgstr "Le jeu de données, ses enregistrements et ses exécutions sont supprimés définitivement."
-
-#: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/index.tsx
-msgid "The datasets and the runs of this agent will show on this page."
-msgstr "Les jeux de données et les exécutions de cet agent s'afficheront sur cette page."
 
 #: src/features/conversation/hooks/use-dictation.ts
 msgid "The dictation stopped. Try again."
@@ -2292,24 +2648,44 @@ msgid "The draft and its questions are deleted for good. An active or closed cam
 msgstr "Le brouillon et ses questions sont supprimés définitivement. Une campagne active ou clôturée ne peut pas être supprimée."
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "The evaluation asks this version"
 msgstr "L'évaluation interroge cette version"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "The evaluation could not start. Try again."
 msgstr "L'évaluation n'a pas pu démarrer. Réessayez."
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "The evaluation started."
 msgstr "L'évaluation a démarré."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The file could not be deleted. Try again."
+msgstr "Le fichier n'a pas pu être supprimé. Réessayez."
 
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "The file could not be opened. Try again."
 msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
 
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "The file could not be read. Choose another file, or try again."
+msgstr "Le fichier n'a pas pu être lu. Choisissez un autre fichier, ou réessayez."
+
 #: src/features/conversation/components/ReplyError.tsx
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
 msgid "The file could not be uploaded. Try again."
 msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The file is deleted for good. The datasets already built from it keep their records."
+msgstr "Le fichier est supprimé définitivement. Les jeux de données déjà construits avec lui gardent leurs enregistrements."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The file was deleted."
+msgstr "Le fichier a été supprimé."
 
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 msgid "The first comma of a line ends the input: the expected output keeps its own."
@@ -2363,6 +2739,10 @@ msgstr "Les personnes sont invitées. Envoyez-leur leur lien d'invitation."
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
 
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The project has no CSV file yet. Upload one to start."
+msgstr "Le projet n'a pas encore de fichier CSV. Envoyez-en un pour commencer."
+
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The record could not be added. Try again."
 msgstr "L'enregistrement n'a pas pu être ajouté. Réessayez."
@@ -2395,9 +2775,13 @@ msgstr "L'enregistrement a été modifié."
 msgid "The records could not be added. Try again."
 msgstr "Les enregistrements n'ont pas pu être ajoutés. Réessayez."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "The records not asked yet stay without an answer. The answers already graded are kept."
 msgstr "Les enregistrements pas encore posés restent sans réponse. Les réponses déjà notées sont conservées."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The records of the dataset come from the rows of a CSV file, whose first row names the columns. Choose a file of the project, or upload one."
+msgstr "Les enregistrements du jeu de données viennent des lignes d'un fichier CSV, dont la première ligne nomme les colonnes. Choisissez un fichier du projet, ou envoyez-en un."
 
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The records were added."
@@ -2415,39 +2799,38 @@ msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 msgid "The reviewers of this campaign can read everything exchanged in this session."
 msgstr "Les relecteurs de cette campagne peuvent lire tout ce qui est échangé dans cette session."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/DeleteRunDialog.tsx
 msgid "The run and its results are deleted for good."
 msgstr "L'exécution et ses résultats sont supprimés définitivement."
 
 #: src/features/conversation-runs/components/ConversationRunsSection.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "The run asked this version"
 msgstr "L'exécution a interrogé cette version"
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "The run could not be cancelled. Try again."
 msgstr "L'exécution n'a pas pu être annulée. Réessayez."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/DeleteRunDialog.tsx
 msgid "The run could not be deleted. Try again."
 msgstr "L'exécution n'a pas pu être supprimée. Réessayez."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "The run could not start again. Try again."
 msgstr "L'exécution n'a pas pu être relancée. Réessayez."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "The run started again."
 msgstr "L'exécution a été relancée."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "The run was cancelled."
 msgstr "L'exécution a été annulée."
 
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/ConversationRunsSection.tsx
+#: src/components/shared/DeleteRunDialog.tsx
 msgid "The run was deleted."
 msgstr "L'exécution a été supprimée."
 
@@ -2495,6 +2878,14 @@ msgstr "Les testeurs qui ont rempli le questionnaire final."
 msgid "These people already have access or an invitation."
 msgstr "Ces personnes ont déjà un accès ou une invitation."
 
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "These runs are gone, or are not runs of this dataset."
+msgstr "Ces exécutions n'existent plus, ou ne sont pas des exécutions de ce jeu de données."
+
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "These runs have no record yet."
+msgstr "Ces exécutions n'ont pas encore d'enregistrement."
+
 #: src/features/campaigns/components/AgentVersionCompare.tsx
 msgid "These two versions have the same settings."
 msgstr "Ces deux versions ont les mêmes paramètres."
@@ -2533,6 +2924,18 @@ msgstr "Cette campagne évalue l'agent {agentName}."
 msgid "This dataset has no record yet."
 msgstr "Ce jeu de données n'a pas encore d'enregistrement."
 
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "This dataset has no record yet. Who manages the datasets builds it from a CSV file."
+msgstr "Ce jeu de données n'a pas encore d'enregistrement. La personne qui gère les jeux de données le construit à partir d'un fichier CSV."
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "This dataset has no record."
+msgstr "Ce jeu de données n'a aucun enregistrement."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "This file has no column. Choose another file."
+msgstr "Ce fichier n'a aucune colonne. Choisissez un autre fichier."
+
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."
 msgstr "Ce fichier est vide."
@@ -2566,10 +2969,12 @@ msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 
 #: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
 msgid "This run failed before it asked a record."
 msgstr "Cette exécution a échoué avant de poser un enregistrement."
 
 #: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
 msgid "This run has no record yet."
 msgstr "Cette exécution n'a pas encore d'enregistrement."
 
@@ -2580,6 +2985,14 @@ msgstr "Cette session n'a aucun message."
 #: src/components/shared/SignInProblemPage.tsx
 msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 msgstr "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en a lancé une nouvelle, et cet onglet ne peut plus la terminer."
+
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "This version returns no field: it has no output schema."
+msgstr "Cette version ne renvoie aucun champ : elle n'a pas de schéma de sortie."
+
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "This version was archived: its settings no longer show."
+msgstr "Cette version a été archivée : ses réglages ne s'affichent plus."
 
 #: src/features/conversation/components/TaskChecksList.tsx
 msgid "Ticked: {text}"
@@ -2605,7 +3018,7 @@ msgid "To review"
 msgstr "À relire"
 
 #. How long a run took, such as: Took 2 min 5 sec
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/components/shared/RunPageHeader.tsx
 msgid "Took {took}"
 msgstr "Durée : {took}"
 
@@ -2646,9 +3059,27 @@ msgid "Untitled document"
 msgstr "Document sans titre"
 
 #. When a dataset last changed
-#: src/features/conversation-datasets/components/conversation-dataset-columns.tsx
+#: src/components/shared/dataset-columns.tsx
 msgid "Updated"
 msgstr "Modifiée le"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Upload a CSV file"
+msgstr "Envoyer un fichier CSV"
+
+#. The button that uploads a file, while a file uploads
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Uploading…"
+msgstr "Envoi…"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Use the file {fileName}"
+msgstr "Utiliser le fichier {fileName}"
+
+#. Takes a CSV file as the source of a dataset
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Use this file"
+msgstr "Utiliser ce fichier"
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Using a tool"
@@ -2659,16 +3090,24 @@ msgid "Verify your email"
 msgstr "Vérifiez votre email"
 
 #. The version of the agent a run asked
+#. The version of the agent a run asked
+#. The version of the agent a run evaluated
+#. The version of the agent a run evaluated
 #. The version of the agent a run evaluated
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Version"
 msgstr "Version"
 
 #. A saved version of an agent's settings, by its number
 #. A version of an agent, by its number
+#. A version of an agent, by its number
 #: src/features/campaigns/components/AgentVersionTitle.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Version {revision}"
 msgstr "Version {revision}"
 
@@ -2691,11 +3130,15 @@ msgid "View session {id}"
 msgstr "Voir la session {id}"
 
 #. A record of a run the agent has not answered yet
+#. A record of a run the agent has not answered yet
 #. A run that has not started yet
+#. The filter of the results the agent has not answered yet
 #. The filter of the results the agent has not answered yet
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
 #: src/features/conversation-runs/result-filters.ts
-#: src/features/conversation-runs/run-status.ts
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+#: src/features/extraction-runs/result-filters.ts
+#: src/lib/run-status.ts
 msgid "Waiting"
 msgstr "En attente"
 
@@ -2738,6 +3181,10 @@ msgstr "Ce que l'agent a reçu, ce qu'il devait répondre, et ce qu'il a répond
 msgid "What the agent noted"
 msgstr "Ce que l'agent a noté"
 
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "What the agent read, and each field it returned beside the value expected."
+msgstr "Ce que l'agent a lu, et chaque champ renvoyé à côté de la valeur attendue."
+
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "What the tester reported about what happened in this session."
 msgstr "Ce que le testeur a rapporté sur le déroulement de cette session."
@@ -2765,6 +3212,10 @@ msgstr "Quand un agent est créé dans l'un de vos projets, il apparaît ici."
 #: src/features/campaign-test/components/SurveyCard.tsx
 msgid "When you are done testing, share an overall rating of the agent. It is optional: your feedback on each session already counts. You can still start sessions afterwards."
 msgstr "Quand vous avez fini de tester, donnez une note d'ensemble à l'agent. C'est facultatif : vos retours sur chaque session comptent déjà. Vous pourrez encore démarrer des sessions ensuite."
+
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Where each record stands in each run, with how many of its compared fields match."
+msgstr "L'état de chaque enregistrement dans chaque exécution, avec le nombre de ses champs comparés qui sont identiques."
 
 #: src/components/shared/HighlightedCodeBlock.tsx
 msgid "Wrap long lines"

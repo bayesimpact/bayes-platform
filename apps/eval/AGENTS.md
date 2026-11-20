@@ -136,7 +136,7 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   there is nothing.
 - An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, whose
   `route.tsx` is the frame and `index.tsx` the hub, or the way to the agent's only section.
-  `evaluations/` holds its datasets and, later, its runs, for who evaluates the agent
+  `evaluations/` holds its datasets and their runs, for who evaluates the agent
   (`requireEvaluationAgent` in `features/agents`).
 - The evaluations of a conversation agent (`features/conversation-datasets`), on the API's
   `evaluation-conversation-datasets` routes (`EvalConversationDatasetsRoutes`): `evaluations/`
@@ -177,11 +177,39 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   record whole in a sheet (`RunRecordSheet`), its expected output and its answer rendered from
   Markdown. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
-  The form state an agent filled during a run and the comparison of runs are not here yet.
+  The form state an agent filled during a run and the comparison of conversation runs are not
+  here yet.
 - In the sidebar, of Evaluations and Campaigns, only the menu that holds
   the current page opens at first, and both on a page neither holds (`useOpenSidebarTopMenu` in
-  `src/routes/-components/`). An extraction agent's evaluations are not here yet: its
-  page says so, and its sidebar keeps a plain link.
+  `src/routes/-components/`).
+- What the evaluations of both types of agent share lives in `components/shared/` and `lib/`, and
+  each feature gives its own data, texts and calls: the list of datasets (`DatasetsListPage`,
+  `DatasetsTable`), the dialogs that create, rename and delete one (`DatasetDialogs`, which takes
+  the feature's mutations as `MutationLike`), the frame of a dataset's page (`DatasetPageFrame`),
+  the sidebar's entries (`DatasetsSidebarEntries`, `DatasetSidebarLinks`, `RunSidebarLinks`), the
+  runs in sub-tabs per status (`RunsByStatus`, `RunRowActions`, `RunVersionButton`,
+  `DeleteRunDialog`), the top of a run's page (`RunPageHeader`), the filters of its results
+  (`ResultFilters`), how many records a new run asks (`RunScopeField`), a run's statuses
+  (`lib/run-status.ts`) and the search params of the datasets' pages (`lib/dataset-search.ts`).
+  The routes under `evaluations/` are the same for both types: each picks its feature from
+  `agent.type`.
+- The evaluations of an extraction agent (`features/extraction-datasets`,
+  `features/extraction-runs`), on the API's `evaluation-extraction-datasets` and
+  `evaluation-extraction-runs` routes. A new dataset has no record: its page shows what builds
+  them (`ExtractionDatasetSetup`), a CSV file of the project to choose or to upload (presign, PUT
+  to the signed URL, confirm), then the name and the role of each of its columns: input, target,
+  reference or ignore (`lib/extraction-columns.ts`). A dataset with records shows them all, the
+  ignored columns left out, with a search and sortable headers, both in the browser. A new run
+  (`RunExtractionPage`) picks a saved version, pairs each field of the version's output schema
+  with a target column or only shows it (`key-mapping.ts`), and asks all the records or the first
+  ones. The Runs tab adds a box per run: two runs or more open in
+  `evaluations/$datasetId/compare?runs=`, their figures then each record side by side. The box is
+  the cell's own component (`RunCompareCheckbox`) on TanStack's row selection, so it is not
+  remounted, and keeps the focus, when the table renders again. A run's page shows its match rate,
+  its matches, mismatches and errors, then its results: one column per field, with a mark and the
+  value expected under a value that differs, filters, and a sheet with the whole record. Its side
+  panel has two tabs, Agent and Fields. A run that is over offers its results as a CSV file
+  (`useOpenRunCsv`). A run under way is read again every 3 seconds.
 - Review campaigns, for who manages them (`features/campaigns`), under an agent's
   `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search
   param: setup, participants, summary) and its `report`. The report is a tab too, at its own URL:
@@ -253,9 +281,11 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   with campaigns who evaluates it too (the main one), an owner who does not, a person who holds
   everything at once, a participant who only tests and reviews, and the edge cases.
   Its URLs come from `src/test/eval-urls.ts`.
-- The stories, in five folders of Storybook under `Evaluation`: `General`
+- The stories, in six folders of Storybook under `Evaluation`: `General`
   (`src/stories/Eval.stories.tsx`), `Conversation evaluations`
-  (`ConversationEvaluations.stories.tsx`), `Review campaigns` (`Campaigns.stories.tsx`), `Reviewer`
+  (`ConversationEvaluations.stories.tsx`), `Extraction evaluations`
+  (`ExtractionEvaluations.stories.tsx`, on `buildExtractionWorld`, with a spec of its own),
+  `Review campaigns` (`Campaigns.stories.tsx`), `Reviewer`
   (`Reviewer.stories.tsx`) and `Tester` (`Tester.stories.tsx`), with the meta of
   `src/stories/eval-meta.tsx`. `src/stories/Eval.stories.spec.tsx` renders every story in the
   tests.

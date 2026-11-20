@@ -6,25 +6,10 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
-import { EllipsisIcon, RotateCwIcon, Trash2Icon } from "lucide-react"
-import { useState } from "react"
-import { toast } from "sonner"
-import { BackLink } from "@/components/shared/BackLink"
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { PageContainer } from "@/components/shared/PageContainer"
-import { PageHeader } from "@/components/shared/PageHeader"
-import { SidePanelToggle } from "@/components/shared/SidePanelToggle"
+import { RunPageHeader } from "@/components/shared/RunPageHeader"
 import { SplitPage } from "@/components/shared/SplitPage"
 import { StatCard } from "@/components/shared/StatCard"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   type EvaluationAgent,
   flattenEvaluationAgents,
@@ -32,18 +17,16 @@ import {
   useEvaluationWorkspace,
 } from "@/features/agents"
 import { useSidePanel } from "@/hooks/use-side-panel"
-import { durationOf, fullDateTimeOf } from "@/lib/format-time"
-import { shortIdOf } from "@/lib/short-id"
+import { isRunActive } from "@/lib/run-status"
 import {
   useCancelConversationRun,
   useDeleteConversationRun,
   useRetryConversationRun,
 } from "../api/mutations"
 import { conversationRunQueryOptions, conversationRunRecordsQueryOptions } from "../api/queries"
-import { isRunActive, scoreOf } from "../run-status"
+import { scoreOf } from "../score"
 import { RunResultsSection } from "./RunResultsSection"
 import { RunSettingsPanel } from "./RunSettingsPanel"
-import { RunStatusBadge } from "./RunStatusBadge"
 
 export type ConversationRunPageProps = {
   agent: EvaluationAgent
@@ -62,8 +45,7 @@ export function ConversationRunPage({
   dataset,
   runParams,
 }: ConversationRunPageProps) {
-  const { t, i18n } = useLingui()
-  const navigate = useNavigate()
+  const { i18n } = useLingui()
   const { data: run } = useSuspenseQuery(conversationRunQueryOptions(runParams))
   const isActive = isRunActive(run.status)
   const { data: results } = useSuspenseQuery(
@@ -71,26 +53,16 @@ export function ConversationRunPage({
   )
   const { groups } = useEvaluationWorkspace()
   const panel = useSidePanel()
-  const [confirming, setConfirming] = useState<"cancel" | "delete" | null>(null)
   const cancelRun = useCancelConversationRun(runParams)
   const retryRun = useRetryConversationRun(runParams)
   const deleteRun = useDeleteConversationRun(runParams)
   const can = (permission: string) => hasProjectPermission(agent.project, permission)
   const canUpdate = can(EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION)
   const canDelete = can(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION)
-  const datasetRuns = {
-    to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
-    params: { ...agentParams, datasetId: dataset.id },
-    search: { tab: "runs" },
-  } as const
-  const started = fullDateTimeOf(run.createdAt, i18n.locale)
   const datasetName = dataset.name
   const runAgent = flattenEvaluationAgents(groups).find((candidate) => candidate.id === run.agentId)
   const agentName = runAgent?.name ?? "–"
   const revision = run.agentSettings.revision
-  const runId = shortIdOf(run.id)
-  // From its creation to its last change: a run that is over changes no more.
-  const took = durationOf(run.updatedAt - run.createdAt, i18n.locale)
   const summary = run.summary
   const hasErrors = (summary?.errors ?? 0) > 0
   const canRetry = canUpdate && (run.status === "failed" || (summary?.errors ?? 0) > 0) && !isActive
@@ -109,89 +81,23 @@ export function ConversationRunPage({
       }
     >
       <PageContainer>
-        <PageHeader
-          back={
-            <BackLink {...datasetRuns}>
-              <Trans comment="The link back from a run to the runs of its dataset">Runs</Trans>
-            </BackLink>
-          }
-          title={
-            <Trans comment="The title of a run's page, by when it started">Run of {started}</Trans>
-          }
-          eyebrow={
-            <Badge
-              variant="outline"
-              className="font-mono"
-              title={run.id}
-              aria-label={t`Run ${runId}`}
-            >
-              {runId}
-            </Badge>
-          }
-          badge={
-            <>
-              <RunStatusBadge status={run.status} />
-              {isActive ? null : (
-                <Badge variant="outline">
-                  <Trans comment="How long a run took, such as: Took 2 min 5 sec">
-                    Took {took}
-                  </Trans>
-                </Badge>
-              )}
-            </>
-          }
+        <RunPageHeader
+          agentParams={agentParams}
+          datasetId={dataset.id}
+          run={run}
           description={
             <Trans comment="Under the title of a run: the dataset it asked and the agent's version">
               {datasetName} · {agentName}, version {revision}
             </Trans>
           }
-          actions={
-            <>
-              <SidePanelToggle isOpen={panel.isOpen} onToggle={panel.toggle}>
-                <Trans>Agent and judge</Trans>
-              </SidePanelToggle>
-              {canUpdate && isActive ? (
-                <Button variant="outline" onClick={() => setConfirming("cancel")}>
-                  <Trans comment="Stops a run under way">Cancel the run</Trans>
-                </Button>
-              ) : null}
-              {canRetry || canDelete ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
-                  >
-                    <EllipsisIcon aria-hidden />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canRetry ? (
-                      <DropdownMenuItem
-                        disabled={retryRun.isPending}
-                        onClick={() =>
-                          retryRun.mutate(run.id, {
-                            onSuccess: () => toast.success(t`The run started again.`),
-                            onError: () =>
-                              toast.error(t`The run could not start again. Try again.`),
-                          })
-                        }
-                      >
-                        <RotateCwIcon aria-hidden />
-                        <Trans comment="Asks again the records of a run that failed">Retry</Trans>
-                      </DropdownMenuItem>
-                    ) : null}
-                    {canDelete ? (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => setConfirming("delete")}
-                      >
-                        <Trash2Icon aria-hidden />
-                        <Trans comment="Deletes a run">Delete</Trans>
-                      </DropdownMenuItem>
-                    ) : null}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
-            </>
-          }
+          panel={{
+            isOpen: panel.isOpen,
+            onToggle: panel.toggle,
+            label: <Trans>Agent and judge</Trans>,
+          }}
+          cancelRun={canUpdate ? cancelRun : null}
+          retryRun={canRetry ? retryRun : null}
+          deleteRun={canDelete ? deleteRun : null}
         />
         <div className="grid gap-3 sm:grid-cols-3">
           <StatCard
@@ -217,49 +123,6 @@ export function ConversationRunPage({
           />
         </div>
         <RunResultsSection status={run.status} results={results} />
-        <ConfirmDialog
-          isOpen={confirming === "cancel"}
-          onOpenChange={(isOpen) => setConfirming(isOpen ? "cancel" : null)}
-          title={<Trans>Cancel this run?</Trans>}
-          description={
-            <Trans>
-              The records not asked yet stay without an answer. The answers already graded are kept.
-            </Trans>
-          }
-          confirmLabel={<Trans comment="Stops a run under way">Cancel the run</Trans>}
-          dismissLabel={
-            <Trans comment="Gives up cancelling a run under way">Keep it running</Trans>
-          }
-          isDestructive
-          isPending={cancelRun.isPending}
-          onConfirm={() =>
-            cancelRun.mutate(run.id, {
-              onSuccess: () => {
-                toast.success(t`The run was cancelled.`)
-                setConfirming(null)
-              },
-              onError: () => toast.error(t`The run could not be cancelled. Try again.`),
-            })
-          }
-        />
-        <ConfirmDialog
-          isOpen={confirming === "delete"}
-          onOpenChange={(isOpen) => setConfirming(isOpen ? "delete" : null)}
-          title={<Trans>Delete this run?</Trans>}
-          description={<Trans>The run and its results are deleted for good.</Trans>}
-          confirmLabel={<Trans>Delete</Trans>}
-          isDestructive
-          isPending={deleteRun.isPending}
-          onConfirm={() =>
-            deleteRun.mutate(run.id, {
-              onSuccess: () => {
-                toast.success(t`The run was deleted.`)
-                void navigate(datasetRuns)
-              },
-              onError: () => toast.error(t`The run could not be deleted. Try again.`),
-            })
-          }
-        />
       </PageContainer>
     </SplitPage>
   )

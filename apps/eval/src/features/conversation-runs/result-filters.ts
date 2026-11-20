@@ -39,7 +39,3 @@ const PREDICATES = {
 /** The records a filter keeps. */
 export const filterResults = (records: ConversationRunRecordOutputDto[], filter: ResultFilter) =>
   records.filter(PREDICATES[filter])
-
-/** Whether a value names a filter, as a toggle group gives any string. */
-export const isResultFilter = (value: unknown): value is ResultFilter =>
-  RESULT_FILTERS.some((filter) => filter === value)

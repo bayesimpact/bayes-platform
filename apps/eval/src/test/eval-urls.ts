@@ -82,6 +82,36 @@ export function testerSessionUrlOf(world: EvalWorld, campaignName: string, index
   return `${campaignUrlOf(world, campaignName)}/test/sessions/${session.id}`
 }
 
+/** The URL of an extraction dataset of the world's first agent, by its name. */
+export function extractionDatasetUrlOf(world: EvalWorld, datasetName: string): string {
+  const { dataset } = required(
+    world.extractionDatasets.find((candidate) => candidate.dataset.name === datasetName),
+    `the dataset ${datasetName}`,
+  )
+  return `${evaluationsUrlOf(world)}/${dataset.id}`
+}
+
+/** The URL of the first extraction run of the world that stands at that status. */
+export function extractionRunUrlOf(
+  world: EvalWorld,
+  status: "running" | "completed" | "failed",
+): string {
+  const { run } = required(
+    world.extractionRuns.find((candidate) => candidate.run.status === status),
+    `a ${status} run`,
+  )
+  return `${evaluationsUrlOf(world)}/${run.evaluationExtractionDatasetId}/runs/${run.id}`
+}
+
+/** The URL of the comparison of the world's extraction runs that are over. */
+export function extractionCompareUrlOf(world: EvalWorld): string {
+  const runs = world.extractionRuns.filter((candidate) => candidate.run.status === "completed")
+  const [first] = runs
+  const datasetId = required(first, "a completed run").run.evaluationExtractionDatasetId
+  const ids = runs.map((candidate) => candidate.run.id).join(",")
+  return `${evaluationsUrlOf(world)}/${datasetId}/compare?runs=${ids}`
+}
+
 /** The router's path of a URL of the app: the URL without the base path. */
 export function routerPathOf(url: string): string {
   return url.replace(/^\/eval/, "")
