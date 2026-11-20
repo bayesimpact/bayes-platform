@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Desk: a hidden sidebar shows over the page while the pointer is on the button that shows it.
 - Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon.
 - (beta) Agent models: agents can run on Anthropic and OpenAI models.
+- (beta) MCP servers: the studio tests the connection to a server, lists its tools and edits its settings and headers.
 
 ### Changed
 

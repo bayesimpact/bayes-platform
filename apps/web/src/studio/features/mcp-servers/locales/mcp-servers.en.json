@@ -5,7 +5,8 @@
     "builtIn": "Built-in",
     "empty": "No MCP servers configured yet. Add one to give your agents access to external tools.",
     "actions": {
-      "newServer": "New Server"
+      "newServer": "New Server",
+      "testConnection": "Test the connection"
     },
     "create": {
       "title": "Add MCP Server",
@@ -25,7 +26,19 @@
       "authMethodNone": "None",
       "oauthHint": "You'll click Authorize on the server card once it's created.",
       "apiKey": "API Key",
-      "apiKeyPlaceholder": "Enter the server's API key"
+      "apiKeyPlaceholder": "Enter the server's API key",
+      "apiKeyRequired": "Enter the server's API key.",
+      "apiKeyStoredPlaceholder": "••••••••",
+      "apiKeyStoredHint": "Leave empty to keep the current key.",
+      "oauthAuthorizationLost": "The current authorization will be dropped. You will authorize again from the server card.",
+      "headers": "Headers",
+      "headersHint": "Sent on every call to this server, in addition to its authentication.",
+      "headerName": "Header name",
+      "headerNamePlaceholder": "X-Api-Version",
+      "headerValue": "Header value",
+      "headerValuePlaceholder": "Value",
+      "headerValueStoredPlaceholder": "Unchanged",
+      "addHeader": "Add a header"
     },
     "oauthCallback": {
       "errorTitle": "Authorization failed",
@@ -35,7 +48,8 @@
     },
     "oauth": {
       "authorize": "Authorize",
-      "connected": "Connected via OAuth"
+      "reauthorize": "Authorize again",
+      "expiredHint": "The authorization expired. Agents cannot use this server until someone authorizes it again."
     },
     "notifications": {
       "created": "MCP server created",
@@ -46,7 +60,42 @@
       "disabled": "MCP server disabled",
       "enableError": "Failed to enable MCP server",
       "disableError": "Failed to disable MCP server",
-      "authorizationError": "MCP server authorization failed"
+      "authorizationError": "MCP server authorization failed",
+      "updated": "MCP server updated",
+      "updateError": "MCP server update failed"
+    },
+    "update": {
+      "title": "Edit MCP Server",
+      "description": "The agents that use this server keep it."
+    },
+    "connection": {
+      "checking": "Checking…",
+      "connected": "Connected",
+      "failed": "Connection failed",
+      "authorizationRequired": "Authorization required",
+      "authorizationExpired": "Authorization expired",
+      "unavailable": "Not checked",
+      "errors": {
+        "unauthorized": "The server refused the credentials (401). Check the API key or the headers.",
+        "forbidden": "The server refused access (403). The credentials are valid but may not use this endpoint.",
+        "notFound": "No MCP server answers at this URL ({{status}}). Check the path.",
+        "httpError": "The server answered with an error ({{status}}).",
+        "unreachable": "The server cannot be reached. Check the address, and that the server is running.",
+        "timeout": "The server did not answer in time.",
+        "notMcp": "This URL answers, but not with the MCP protocol.",
+        "urlNotAllowed": "This URL is not allowed. Use a public https address.",
+        "unknown": "The connection failed."
+      }
+    },
+    "tools": {
+      "title": "Tools of {{name}}",
+      "description": "What this server provides to the agents it is enabled on.",
+      "count_one": "{{count}} tool",
+      "count_other": "{{count}} tools",
+      "empty": "This server answers, but exposes no tools.",
+      "view": "View tools",
+      "showMore": "Show more",
+      "showLess": "Show less"
     }
   }
 }

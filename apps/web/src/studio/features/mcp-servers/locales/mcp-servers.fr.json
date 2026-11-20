@@ -5,7 +5,8 @@
     "builtIn": "Intégré",
     "empty": "Aucun serveur MCP configuré. Ajoutez-en un pour donner à vos agents accès à des outils externes.",
     "actions": {
-      "newServer": "Nouveau serveur"
+      "newServer": "Nouveau serveur",
+      "testConnection": "Tester la connexion"
     },
     "create": {
       "title": "Ajouter un serveur MCP",
@@ -25,7 +26,19 @@
       "authMethodNone": "Aucune",
       "oauthHint": "Vous cliquerez sur Autoriser sur la carte du serveur une fois celui-ci créé.",
       "apiKey": "Clé API",
-      "apiKeyPlaceholder": "Saisir la clé API du serveur"
+      "apiKeyPlaceholder": "Saisir la clé API du serveur",
+      "apiKeyRequired": "Saisissez la clé API du serveur.",
+      "apiKeyStoredPlaceholder": "••••••••",
+      "apiKeyStoredHint": "Laissez vide pour conserver la clé actuelle.",
+      "oauthAuthorizationLost": "L'autorisation actuelle sera supprimée. Vous autoriserez à nouveau depuis la carte du serveur.",
+      "headers": "En-têtes",
+      "headersHint": "Envoyés à chaque appel à ce serveur, en plus de son authentification.",
+      "headerName": "Nom de l'en-tête",
+      "headerNamePlaceholder": "X-Api-Version",
+      "headerValue": "Valeur de l'en-tête",
+      "headerValuePlaceholder": "Valeur",
+      "headerValueStoredPlaceholder": "Inchangée",
+      "addHeader": "Ajouter un en-tête"
     },
     "oauthCallback": {
       "errorTitle": "Échec de l'autorisation",
@@ -35,7 +48,8 @@
     },
     "oauth": {
       "authorize": "Autoriser",
-      "connected": "Connecté via OAuth"
+      "reauthorize": "Autoriser à nouveau",
+      "expiredHint": "L'autorisation a expiré. Les agents ne peuvent plus utiliser ce serveur tant que personne ne l'autorise à nouveau."
     },
     "notifications": {
       "created": "Serveur MCP créé",
@@ -46,7 +60,42 @@
       "disabled": "Serveur MCP désactivé",
       "enableError": "L'activation du serveur MCP a échoué",
       "disableError": "La désactivation du serveur MCP a échoué",
-      "authorizationError": "L'autorisation du serveur MCP a échoué"
+      "authorizationError": "L'autorisation du serveur MCP a échoué",
+      "updated": "Serveur MCP mis à jour",
+      "updateError": "La mise à jour du serveur MCP a échoué"
+    },
+    "update": {
+      "title": "Modifier le serveur MCP",
+      "description": "Les agents qui utilisent ce serveur le conservent."
+    },
+    "connection": {
+      "checking": "Vérification…",
+      "connected": "Connecté",
+      "failed": "Connexion échouée",
+      "authorizationRequired": "Autorisation requise",
+      "authorizationExpired": "Autorisation expirée",
+      "unavailable": "Non vérifié",
+      "errors": {
+        "unauthorized": "Le serveur a refusé les identifiants (401). Vérifiez la clé API ou les en-têtes.",
+        "forbidden": "Le serveur a refusé l'accès (403). Les identifiants sont valides mais n'ont pas accès à ce point d'entrée.",
+        "notFound": "Aucun serveur MCP ne répond à cette URL ({{status}}). Vérifiez le chemin.",
+        "httpError": "Le serveur a répondu par une erreur ({{status}}).",
+        "unreachable": "Le serveur est injoignable. Vérifiez l'adresse, et que le serveur est démarré.",
+        "timeout": "Le serveur n'a pas répondu à temps.",
+        "notMcp": "Cette URL répond, mais pas avec le protocole MCP.",
+        "urlNotAllowed": "Cette URL n'est pas autorisée. Utilisez une adresse https publique.",
+        "unknown": "La connexion a échoué."
+      }
+    },
+    "tools": {
+      "title": "Outils de {{name}}",
+      "description": "Ce que ce serveur fournit aux agents sur lesquels il est activé.",
+      "count_one": "{{count}} outil",
+      "count_other": "{{count}} outils",
+      "empty": "Ce serveur répond, mais n'expose aucun outil.",
+      "view": "Voir les outils",
+      "showMore": "Voir plus",
+      "showLess": "Voir moins"
     }
   }
 }
