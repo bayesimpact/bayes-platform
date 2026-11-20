@@ -28,6 +28,26 @@ export const COLUMN_ROLE_LABELS = {
   ignore: msg({ message: "Ignore", comment: "The role of a dataset's column that is left out" }),
 } satisfies Record<ExtractionDatasetColumnRoleDto, MessageDescriptor>
 
+/** What each role of a column means to an evaluation, in a few words. */
+export const COLUMN_ROLE_DESCRIPTIONS = {
+  input: msg({
+    message: "What the agent reads",
+    comment: "What the Input role of a dataset's column means",
+  }),
+  target: msg({
+    message: "A value the agent must find",
+    comment: "What the Target role of a dataset's column means",
+  }),
+  reference: msg({
+    message: "Shown beside the results, and not compared",
+    comment: "What the Reference role of a dataset's column means",
+  }),
+  ignore: msg({
+    message: "Left out of the dataset",
+    comment: "What the Ignore role of a dataset's column means",
+  }),
+} satisfies Record<ExtractionDatasetColumnRoleDto, MessageDescriptor>
+
 /** The columns of a dataset, in the order of its file. */
 export const columnsOf = (
   dataset: Pick<ExtractionDatasetOutputDto, "schemaMapping">,

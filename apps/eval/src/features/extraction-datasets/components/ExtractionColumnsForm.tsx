@@ -7,7 +7,7 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { useId, useState } from "react"
+import { Fragment, useId, useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -17,7 +17,11 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { COLUMN_ROLE_LABELS, COLUMN_ROLES } from "@/lib/extraction-columns"
+import {
+  COLUMN_ROLE_DESCRIPTIONS,
+  COLUMN_ROLE_LABELS,
+  COLUMN_ROLES,
+} from "@/lib/extraction-columns"
 import { useSetUpExtractionDataset } from "../api/mutations"
 import { FilePreviewTable } from "./FilePreviewTable"
 
@@ -120,15 +124,16 @@ export function ExtractionColumnsForm({
       >
         <FilePreviewTable columns={fileColumns} />
       </SectionCard>
-      <SectionCard
-        title={<Trans>Role of each column</Trans>}
-        description={
-          <Trans>
-            Input: what the agent reads. Target: a value the agent must find. Reference: shown
-            beside the results, and not compared. Ignore: left out.
-          </Trans>
-        }
-      >
+      <SectionCard title={<Trans>Role of each column</Trans>}>
+        {/* A line per role: its name, then what it means. */}
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+          {COLUMN_ROLES.map((role) => (
+            <Fragment key={role}>
+              <dt className="font-medium">{i18n._(COLUMN_ROLE_LABELS[role])}</dt>
+              <dd className="text-muted-foreground">{i18n._(COLUMN_ROLE_DESCRIPTIONS[role])}</dd>
+            </Fragment>
+          ))}
+        </dl>
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2">
           <div className="flex items-center gap-2">
             <Checkbox

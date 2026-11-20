@@ -246,6 +246,11 @@ msgstr "A new version of the app is available"
 msgid "A run evaluates a saved version, never the draft."
 msgstr "A run evaluates a saved version, never the draft."
 
+#. What the Target role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "A value the agent must find"
+msgstr "A value the agent must find"
+
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Accept"
 msgstr "Accept"
@@ -1328,10 +1333,6 @@ msgstr "In production"
 msgid "Input"
 msgstr "Input"
 
-#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
-msgid "Input: what the agent reads. Target: a value the agent must find. Reference: shown beside the results, and not compared. Ignore: left out."
-msgstr "Input: what the agent reads. Target: a value the agent must find. Reference: shown beside the results, and not compared. Ignore: left out."
-
 #. The instructions of an agent
 #. The instructions of the agent in a run
 #. The instructions of the agent in a run
@@ -1416,6 +1417,11 @@ msgstr "Leave"
 #: src/features/campaigns/components/UnsavedChangesGuard.tsx
 msgid "Leave without saving?"
 msgstr "Leave without saving?"
+
+#. What the Ignore role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "Left out of the dataset"
+msgstr "Left out of the dataset"
 
 #. The sidebar's link to the table of all an agent's review campaigns
 #. The sidebar's link to the table of all the datasets of an agent's project
@@ -2387,6 +2393,11 @@ msgstr "Show the sidebar"
 msgid "Showing changes from version {olderRevision} to version {newerRevision}."
 msgstr "Showing changes from version {olderRevision} to version {newerRevision}."
 
+#. What the Reference role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "Shown beside the results, and not compared"
+msgstr "Shown beside the results, and not compared"
+
 #: src/components/shared/SignInProblemPage.tsx
 #: src/features/account/components/UserMenu.tsx
 #: src/features/agents/components/NoEvaluationAccessPage.tsx
@@ -3184,6 +3195,11 @@ msgstr "What the agent noted"
 #: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
 msgid "What the agent read, and each field it returned beside the value expected."
 msgstr "What the agent read, and each field it returned beside the value expected."
+
+#. What the Input role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "What the agent reads"
+msgstr "What the agent reads"
 
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "What the tester reported about what happened in this session."
