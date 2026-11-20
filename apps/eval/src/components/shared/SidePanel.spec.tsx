@@ -93,7 +93,7 @@ describe("SidePanel below a laptop's width", () => {
   })
 })
 
-describe("SidePanel stretched beside the page", () => {
+describe("SidePanel beside a page with little room", () => {
   /** Opens the panel docked beside a page of that width, and widens it by a step. */
   const stretchBeside = async (pageWidth: number) => {
     const matchMedia = mockMatchMedia(true)
@@ -105,6 +105,16 @@ describe("SidePanel stretched beside the page", () => {
     await userEvent.keyboard("{ArrowLeft}")
     matchMedia.mockRestore()
   }
+
+  it("folds the sidebar when it opens beside a page with little room", async () => {
+    const matchMedia = mockMatchMedia(true)
+    renderWithI18n(<PanelOpener />)
+    Object.defineProperty(screen.getByTestId("page"), "clientWidth", { value: 300 })
+
+    await userEvent.click(screen.getByRole("button", { name: "Memory" }))
+    expect(screen.getByRole("status", { name: "Sidebar" })).toHaveTextContent("folded")
+    matchMedia.mockRestore()
+  })
 
   it("folds the sidebar once the page has little room left", async () => {
     await stretchBeside(300)
