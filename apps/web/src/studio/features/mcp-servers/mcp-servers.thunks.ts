@@ -1,10 +1,11 @@
-import { isAllowedOauthEndpointUrl, type McpServerAuthMethod } from "@caseai-connect/api-contracts"
+import { isAllowedOauthEndpointUrl } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { getApiErrorMessage } from "@/common/utils/api-error"
 import { savePendingMcpOauthContext } from "./mcp-oauth-storage"
-import type { McpServer } from "./mcp-servers.models"
+import type { McpServer, McpServerInspection } from "./mcp-servers.models"
+import type { CreateMcpServerFields, UpdateMcpServerFields } from "./mcp-servers.spi"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg; rejectValue: string }
 
@@ -22,10 +23,7 @@ export const listMcpServers = createAsyncThunk<McpServer[], void, ThunkConfig>(
 
 export const createMcpServer = createAsyncThunk<
   McpServer,
-  {
-    fields: { name: string; url: string; authMethod?: McpServerAuthMethod; apiKey?: string }
-    onSuccess: () => void
-  },
+  { fields: CreateMcpServerFields; onSuccess: () => void },
   ThunkConfig
 >("mcpServers/create", async ({ fields }, { extra: { services }, getState, rejectWithValue }) => {
   try {
@@ -34,6 +32,44 @@ export const createMcpServer = createAsyncThunk<
     return rejectWithValue(getApiErrorMessage(error, ""))
   }
 })
+
+export const updateMcpServer = createAsyncThunk<
+  McpServer,
+  { mcpServerId: string; fields: UpdateMcpServerFields; onSuccess: () => void },
+  ThunkConfig
+>(
+  "mcpServers/update",
+  async ({ mcpServerId, fields }, { extra: { services }, getState, rejectWithValue }) => {
+    try {
+      return await services.mcpServers.updateOne(
+        { ...currentProjectScope(getState()), mcpServerId },
+        fields,
+      )
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
+  },
+)
+
+/**
+ * Asks the API to connect to the server now. A server that does not answer is a
+ * fulfilled inspection with a `failed` status: this only rejects when the
+ * platform itself could not run the check.
+ */
+export const inspectMcpServer = createAsyncThunk<
+  McpServerInspection,
+  { mcpServerId: string },
+  ThunkConfig
+>(
+  "mcpServers/inspect",
+  async ({ mcpServerId }, { extra: { services }, getState, rejectWithValue }) => {
+    try {
+      return await services.mcpServers.inspect({ ...currentProjectScope(getState()), mcpServerId })
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
+  },
+)
 
 export const deleteMcpServer = createAsyncThunk<
   void,

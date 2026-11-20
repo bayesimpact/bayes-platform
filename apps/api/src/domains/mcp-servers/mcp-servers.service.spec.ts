@@ -64,6 +64,20 @@ describe("McpServersService", () => {
     }
     const url = "https://mcp.example.com/mcp"
 
+    it("reports dropped tokens as expired once an authorization was completed", () => {
+      const authorized = { ...oauth, authorizedAt: Date.now() - 86_400_000 }
+      expect(service.getAuthStatus({ url, oauth: authorized })).toBe("oauthExpired")
+      const deadTokens = { accessToken: "at-1", expiresAt: Date.now() - 1000 }
+      expect(service.getAuthStatus({ url, oauth: { ...authorized, tokens: deadTokens } })).toBe(
+        "oauthExpired",
+      )
+    })
+
+    it("reports an authorization that was never completed as pending", () => {
+      expect(service.getAuthStatus({ url, authMethod: "oauth" })).toBe("oauthPending")
+      expect(service.getAuthStatus({ url, oauth })).toBe("oauthPending")
+    })
+
     it("reports a fresh access token as connected", () => {
       const tokens = { accessToken: "at-1", expiresAt: Date.now() + 3600_000 }
       expect(service.getAuthStatus({ url, oauth: { ...oauth, tokens } })).toBe("oauthConnected")

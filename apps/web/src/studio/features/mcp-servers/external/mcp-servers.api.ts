@@ -1,6 +1,6 @@
 import { type McpServerDto, McpServersRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { McpServer } from "../mcp-servers.models"
+import type { McpServer, McpServerInspection } from "../mcp-servers.models"
 import type { IMcpServersSpi } from "../mcp-servers.spi"
 
 export default {
@@ -18,6 +18,27 @@ export default {
       { payload } satisfies typeof McpServersRoutes.createOne.request,
     )
     return toMcpServer(response.data.data)
+  },
+  updateOne: async ({ organizationId, projectId, mcpServerId }, payload) => {
+    const axios = getAxiosInstance()
+    const response = await axios.patch<typeof McpServersRoutes.updateOne.response>(
+      McpServersRoutes.updateOne.getPath({ organizationId, projectId, mcpServerId }),
+      { payload } satisfies typeof McpServersRoutes.updateOne.request,
+    )
+    return toMcpServer(response.data.data)
+  },
+  inspect: async ({ organizationId, projectId, mcpServerId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof McpServersRoutes.inspect.response>(
+      McpServersRoutes.inspect.getPath({ organizationId, projectId, mcpServerId }),
+    )
+    const inspection = response.data.data
+    return {
+      status: inspection.status,
+      tools: inspection.tools,
+      error: inspection.error,
+      checkedAt: inspection.checkedAt,
+    } satisfies McpServerInspection
   },
   deleteOne: async ({ organizationId, projectId, mcpServerId }) => {
     const axios = getAxiosInstance()
@@ -65,7 +86,9 @@ const toMcpServer = (dto: McpServerDto): McpServer => ({
   url: dto.url,
   projectId: dto.projectId,
   isBuiltIn: dto.isBuiltIn,
+  authMethod: dto.authMethod,
   authStatus: dto.authStatus,
+  headerNames: dto.headerNames,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
 })
