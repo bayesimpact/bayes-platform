@@ -3,6 +3,7 @@ import { SearchIcon, XIcon } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ButtonGroup } from "@/components/ui/button-group"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 
@@ -34,7 +35,6 @@ export function ColumnFilters({ columns, filters, onFilter }: ColumnFiltersProps
   return (
     <search className="flex flex-col gap-2">
       <form
-        className="flex flex-wrap items-center gap-2"
         onSubmit={(event) => {
           event.preventDefault()
           if (text.trim() === "") return
@@ -42,37 +42,41 @@ export function ColumnFilters({ columns, filters, onFilter }: ColumnFiltersProps
           setText("")
         }}
       >
-        {/* The select fills its frame: the frame gives it its width. */}
-        <div className="w-full sm:w-48">
-          <NativeSelect
-            aria-label={t`Column to filter`}
-            value={column}
-            onChange={(event) => setColumn(event.target.value)}
-          >
-            {columns.map((candidate) => (
-              <NativeSelectOption key={candidate.id} value={candidate.id}>
-                {candidate.label}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
-        <InputGroup className="w-full sm:w-64">
-          <InputGroupAddon>
-            <SearchIcon aria-hidden />
-          </InputGroupAddon>
-          <InputGroupInput
-            type="search"
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder={t`Text the column holds`}
-            aria-label={t`Text the column holds`}
-          />
-        </InputGroup>
-        <Button type="submit" variant="outline">
-          <Trans comment="The button that adds a filter to a table: a column and the text it holds">
-            Filter
-          </Trans>
-        </Button>
+        {/* One control in three parts: the column, the text it must hold, and what applies it. */}
+        <ButtonGroup className="w-full sm:w-fit">
+          {/* The select fills its frame, which is the part of the group: it gives it its width. */}
+          <div data-slot="native-select-frame" className="w-32 shrink-0 sm:w-44">
+            <NativeSelect
+              aria-label={t`Column to filter`}
+              className="rounded-r-none"
+              value={column}
+              onChange={(event) => setColumn(event.target.value)}
+            >
+              {columns.map((candidate) => (
+                <NativeSelectOption key={candidate.id} value={candidate.id}>
+                  {candidate.label}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <InputGroup className="min-w-0 flex-1 sm:w-64 sm:flex-none">
+            <InputGroupAddon>
+              <SearchIcon aria-hidden />
+            </InputGroupAddon>
+            <InputGroupInput
+              type="search"
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              placeholder={t`Text the column holds`}
+              aria-label={t`Text the column holds`}
+            />
+          </InputGroup>
+          <Button type="submit" variant="outline">
+            <Trans comment="The button that adds a filter to a table: a column and the text it holds">
+              Filter
+            </Trans>
+          </Button>
+        </ButtonGroup>
       </form>
       {applied.length > 0 ? (
         <ul aria-label={t`Filters that apply`} className="flex flex-wrap items-center gap-1.5">
