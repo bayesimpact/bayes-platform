@@ -33,6 +33,11 @@ export type ReviewCampaignDto = {
   organizationId: string
   projectId: string
   agentId: string
+  /**
+   * The saved version of the agent's settings the whole campaign runs on: the testers' chat and
+   * the reviewers' view. Chosen by its managers while the campaign is a draft.
+   */
+  agentSettingsId: string
   name: string
   description: string | null
   status: ReviewCampaignStatus
@@ -68,6 +73,8 @@ export type ReviewCampaignDetailDto = ReviewCampaignDto & {
 
 export type CreateReviewCampaignRequestDto = {
   agentId: string
+  /** A saved version of the agent, never the draft. Defaults to the version in production. */
+  agentSettingsId?: string
   name: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestionDto[]
@@ -77,6 +84,11 @@ export type CreateReviewCampaignRequestDto = {
 
 export type UpdateReviewCampaignRequestDto = {
   agentId?: string
+  /**
+   * A saved version of the agent, never the draft. A new agent with no version given takes the
+   * one in production.
+   */
+  agentSettingsId?: string
   name?: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestionDto[]

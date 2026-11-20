@@ -124,6 +124,57 @@ describe("ReviewCampaigns - updateOne", () => {
     expect(persisted.agentSettingsId).toBe(otherAgentSettings.id)
   })
 
+  it("moves a draft campaign to another saved version of its agent", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
+    )
+    reviewCampaignId = campaign.id
+    const olderVersion = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent }).build({ revision: 7 }),
+    )
+
+    const response = await subject({ payload: { agentSettingsId: olderVersion.id } })
+    expectResponse(response, 200)
+    expect(response.body.data.agentSettingsId).toBe(olderVersion.id)
+  })
+
+  it("refuses to move a draft campaign to the agent's draft", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
+    )
+    reviewCampaignId = campaign.id
+    const draft = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .draft()
+        .transient({ organization, project, agent })
+        .build({ revision: 7 }),
+    )
+
+    expectResponse(await subject({ payload: { agentSettingsId: draft.id } }), 422)
+    const persisted = await repositories.reviewCampaignRepository.findOneOrFail({
+      where: { id: campaign.id },
+    })
+    expect(persisted.agentSettingsId).toBe(agentSettings.id)
+  })
+
+  it("refuses to change the version of an active campaign", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    reviewCampaignId = campaign.id
+    const olderVersion = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent }).build({ revision: 7 }),
+    )
+
+    expectResponse(await subject({ payload: { agentSettingsId: olderVersion.id } }), 409)
+  })
+
   it("rejects retargeting to an agent from another project", async () => {
     const { organization, project, agent, agentSettings } = await createContext()
     const campaign = await repositories.reviewCampaignRepository.save(

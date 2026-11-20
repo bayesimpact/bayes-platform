@@ -1,4 +1,6 @@
 import {
+  type AgentParamsDto,
+  EvalAgentsRoutes,
   EvalCampaignInvitationsRoutes,
   EvalReviewCampaignsRoutes,
   type ProjectParamsDto,
@@ -39,5 +41,20 @@ export const campaignInvitationsQueryOptions = (campaign: ReviewCampaignParamsDt
         signal,
       })
       return invitations.filter((invitation) => invitation.status === "pending")
+    },
+  })
+
+/**
+ * The saved versions of an agent's settings a campaign can run on, newest first: the draft, which
+ * changes under the testers, is not one of them.
+ */
+export const agentVersionsQueryOptions = (agent: AgentParamsDto) =>
+  queryOptions({
+    queryKey: campaignKeys.agentVersions(agent),
+    queryFn: async ({ signal }) => {
+      const versions = await apiRequest(EvalAgentsRoutes.getVersions, { params: agent, signal })
+      return versions
+        .filter((version) => !version.isDraft)
+        .sort((first, second) => second.revision - first.revision)
     },
   })

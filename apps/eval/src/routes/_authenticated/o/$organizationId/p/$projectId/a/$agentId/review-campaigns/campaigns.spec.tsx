@@ -8,7 +8,9 @@ import {
   campaignsUrlOf,
   routerPathOf,
 } from "@/test/eval-urls"
+import { agentVersionIdOf } from "@/test/factories/agents.factory"
 import {
+  buildArchivedVersionWorld,
   buildEvalWorld,
   buildNoCampaignWorld,
   buildSeveralProjectsWorld,
@@ -99,6 +101,56 @@ describe("a new campaign", () => {
       routerPathOf(campaignEditorUrlOf(world, "Autumn pilot")),
     )
     expect(router.state.location.search).toEqual({ step: "session" })
+  })
+
+  it("runs on the version in production unless the manager picks another saved one", async () => {
+    const world = buildNoCampaignWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignsUrlOf(world)}/new`)
+
+    expect(await screen.findByText("Version 3")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Choose a version" }))
+
+    // The history lists the saved versions, newest first: the draft is not one of them.
+    const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    const history = within(sheet)
+    expect(history.queryByRole("button", { name: /Version 5/ })).not.toBeInTheDocument()
+    expect(history.getByRole("button", { name: /Version 3.*Spring release/ })).toHaveAttribute(
+      "aria-current",
+      "true",
+    )
+    // The version in production is the campaign's already, and shows what it changed.
+    expect(history.getByRole("button", { name: "Selected" })).toBeDisabled()
+    expect(history.getByText("Showing changes from version 2 to version 3.")).toBeInTheDocument()
+    expect(history.getByRole("link", { name: "Greeting" })).toBeInTheDocument()
+
+    await userEvent.click(history.getByRole("button", { name: /Version 4.*Shorter answers/ }))
+    await userEvent.click(history.getByRole("button", { name: "Compare with production" }))
+    expect(
+      await history.findByText("Showing changes from version 3 to version 4."),
+    ).toBeInTheDocument()
+    await userEvent.click(history.getByRole("button", { name: "Select this version" }))
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
+    expect(screen.getByText("Shorter answers")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+    expect(await screen.findByRole("heading", { name: "After each session" })).toBeInTheDocument()
+    const [agent] = world.agents
+    if (!agent) throw new Error("The world has an agent")
+    expect(world.campaigns[0]?.agentSettingsId).toBe(agentVersionIdOf(agent, 4))
+  })
+
+  it("asks a draft whose version was archived to choose another one", async () => {
+    const world = buildArchivedVersionWorld()
+    server.use(...worldHandlers(world))
+    renderApp(campaignEditorUrlOf(world, "Onboarding answers"))
+
+    expect(await screen.findByText("No version chosen yet.")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+    expect(await screen.findByText("Choose the version the campaign runs on.")).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: "After each session" })).not.toBeInTheDocument()
   })
 
   it("asks for a name before it creates the campaign", async () => {
@@ -305,6 +357,24 @@ describe("a campaign's editor", () => {
 
     expect(await screen.findByText("Mean tester rating")).toBeInTheDocument()
     expect(page().getByText("Closed")).toBeInTheDocument()
+  })
+
+  it("names the version of the agent a campaign ran on, read-only", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignEditorUrlOf(world, "Spring review")}?tab=setup`)
+
+    expect(await screen.findByText("Version 2")).toBeInTheDocument()
+    expect(screen.getByText("Product catalog")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Choose a version" })).not.toBeInTheDocument()
+  })
+
+  it("says when a closed campaign ran on a version archived since", async () => {
+    const world = buildArchivedVersionWorld()
+    server.use(...worldHandlers(world))
+    renderApp(`${campaignEditorUrlOf(world, "Spring review")}?tab=setup`)
+
+    expect(await screen.findByText("An archived version")).toBeInTheDocument()
   })
 
   it("opens a closed campaign on its summary", async () => {

@@ -39,7 +39,12 @@ export function CampaignEditor({ agent, agentParams, campaignParams, tab }: Camp
       hasUnsavedChanges={false}
     >
       <TabsContent value="setup" className="pt-4">
-        <CampaignSetupView campaign={campaign} agentName={agent.name} agentType={agent.type} />
+        <CampaignSetupView
+          campaign={campaign}
+          agentName={agent.name}
+          agentType={agent.type}
+          agentParams={agentParams}
+        />
       </TabsContent>
       <TabsContent value="participants" className="pt-4">
         <ParticipantsPanel agent={agent} campaign={campaign} campaignParams={campaignParams} />

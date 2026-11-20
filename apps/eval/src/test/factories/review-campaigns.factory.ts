@@ -14,6 +14,7 @@ import {
   TOOL_NAMES,
   testerSessionOutputSchema,
 } from "@caseai-connect/eval-contracts"
+import { agentVersionIdOf, PRODUCTION_REVISION } from "./agents.factory"
 import { buildToolCall } from "./conversations.factory"
 
 const DAY = 24 * 60 * 60 * 1000
@@ -62,6 +63,7 @@ export function buildReviewCampaign(
     organizationId,
     projectId: agent.projectId,
     agentId: agent.id,
+    agentSettingsId: agentVersionIdOf(agent, PRODUCTION_REVISION),
     name: "Support assistant pilot",
     description: "Try the assistant on the questions customers ask most, then rate its answers.",
     status: "draft",

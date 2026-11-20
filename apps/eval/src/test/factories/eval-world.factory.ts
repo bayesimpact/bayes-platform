@@ -1,4 +1,5 @@
 import type {
+  AgentVersionOutputDto,
   CampaignInvitationOutputDto,
   CampaignReportOutputDto,
   ConversationMessageOutputDto,
@@ -22,7 +23,7 @@ import {
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
-import { buildProjectAgent } from "./agents.factory"
+import { agentVersionIdOf, buildProjectAgent } from "./agents.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
 import { buildInvitation } from "./invitations.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
@@ -59,6 +60,11 @@ export type EvalWorld = {
   organizations: MyOrganizationOutputDto[]
   projects: MyProjectOutputDto[]
   agents: ProjectAgentOutputDto[]
+  /**
+   * The versions of an agent's settings, by agent id, newest first: those of
+   * `buildAgentVersions` for an agent with none here.
+   */
+  agentVersions: Record<string, AgentVersionOutputDto[]>
   campaigns: ReviewCampaignDetailOutputDto[]
   /** The pending invitations of each campaign, by campaign id. */
   invitations: Record<string, CampaignInvitationOutputDto[]>
@@ -85,6 +91,7 @@ export type EvalWorld = {
 }
 
 const emptyCampaignData = {
+  agentVersions: {},
   campaigns: [],
   invitations: {},
   reports: {},
@@ -123,6 +130,8 @@ export function buildEvalWorld(): EvalWorld {
     name: "Spring review",
     description: "The review of the assistant before its spring release.",
     status: "closed",
+    // It reviewed the version before the one in production.
+    agentSettingsId: agentVersionIdOf(agent, 2),
     createdAt: daysAgo(40),
     updatedAt: daysAgo(12),
     memberships: [buildCampaignMembership("sam@example.org", ["tester"])],
@@ -145,6 +154,21 @@ export function buildEvalWorld(): EvalWorld {
       ],
     },
     reports: { [active.id]: buildCampaignReport(), [closed.id]: buildCampaignReport() },
+  }
+}
+
+/**
+ * The main case, whose closed campaign ran on a version archived since, and whose draft points at
+ * it too: the agent's history no longer lists it.
+ */
+export function buildArchivedVersionWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  const archivedId = crypto.randomUUID()
+  return {
+    ...world,
+    campaigns: world.campaigns.map((campaign) =>
+      campaign.status === "active" ? campaign : { ...campaign, agentSettingsId: archivedId },
+    ),
   }
 }
 
