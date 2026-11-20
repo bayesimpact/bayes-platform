@@ -7,11 +7,12 @@ import { PlayIcon } from "lucide-react"
 import { useId } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { AgentVersionPicker } from "@/components/shared/AgentVersionPicker"
 import { RunScopeField } from "@/components/shared/RunScopeField"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
 import type { EvaluationAgent } from "@/features/agents"
-import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import { columnsOfRole } from "@/lib/extraction-columns"
 import { useStartExtractionRun } from "../api/mutations"
 import { defaultKeyMappingOf } from "../key-mapping"
@@ -112,7 +113,7 @@ export function RunExtractionPanel({
           name="versionId"
           render={({ field, fieldState }) => (
             <AgentVersionPicker
-              agentParams={agentParams}
+              versions={versions}
               agentName={agentName}
               selectedId={field.value}
               onSelect={(versionId) => {

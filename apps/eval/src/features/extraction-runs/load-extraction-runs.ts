@@ -4,7 +4,7 @@ import type {
   ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
-import { agentVersionsQueryOptions } from "@/features/campaigns"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import { orNotFound } from "@/lib/not-found"
 import type { RunSearch } from "@/lib/run-search"
 import { loaderStaleTime } from "@/lib/start-query"

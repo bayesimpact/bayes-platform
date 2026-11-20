@@ -425,7 +425,7 @@ msgstr "Agent et juge"
 
 #. The saved version of the agent's settings a review campaign or an evaluation runs on
 #. The saved version of the agent's settings a review campaign runs on
-#: src/features/campaigns/components/AgentVersionPicker.tsx
+#: src/components/shared/AgentVersionPicker.tsx
 #: src/features/campaigns/components/CampaignSetupView.tsx
 msgid "Agent version"
 msgstr "Version de l'agent"
@@ -551,11 +551,11 @@ msgstr "Retour à l'accueil"
 msgid "Back to the app"
 msgstr "Retour à l'accueil"
 
-#: src/features/campaigns/components/AgentVersionsSheet.tsx
+#: src/components/shared/AgentVersionsSheet.tsx
 msgid "Browse and compare the saved versions of the agent, then choose one."
 msgstr "Parcourez et comparez les versions enregistrées de l'agent, puis choisissez-en une."
 
-#: src/features/campaigns/components/AgentVersionsSheet.tsx
+#: src/components/shared/AgentVersionsSheet.tsx
 msgid "Browse and compare the saved versions of the agent."
 msgstr "Parcourez et comparez les versions enregistrées de l'agent."
 
@@ -629,11 +629,11 @@ msgstr "Annulée"
 msgid "Captured form"
 msgstr "Formulaire collecté"
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Changed fields:"
 msgstr "Champs modifiés :"
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Changes in this version"
 msgstr "Changements de cette version"
 
@@ -664,7 +664,7 @@ msgstr "Choisir une colonne…"
 msgid "Choose a CSV file"
 msgstr "Choisir un fichier CSV"
 
-#: src/features/campaigns/components/AgentVersionPicker.tsx
+#: src/components/shared/AgentVersionPicker.tsx
 msgid "Choose a version"
 msgstr "Choisir une version"
 
@@ -745,11 +745,11 @@ msgid "Compare version {revision} with the others"
 msgstr "Comparer la version {revision} aux autres"
 
 #. The label of the choice of what a version is compared with
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Compare with"
 msgstr "Comparer avec"
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Compare with production"
 msgstr "Comparer avec la production"
 
@@ -975,7 +975,7 @@ msgid "Document search"
 msgstr "Recherche documentaire"
 
 #. Which documents of its project an agent searches
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Documents used"
 msgstr "Source de réponse"
 
@@ -1060,7 +1060,7 @@ msgid "Email addresses, separated by commas or new lines"
 msgstr "Adresses e-mail, séparées par des virgules ou des retours à la ligne"
 
 #. The model an agent searches its documents with
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Embedding model"
 msgstr "Modèle d'embedding"
 
@@ -1265,17 +1265,17 @@ msgid "First rows of {fileName}"
 msgstr "Premières lignes de {fileName}"
 
 #. Whether an agent suggests follow-up questions
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Follow-up suggestions"
 msgstr "Questions de relance"
 
 #. How many follow-up questions an agent suggests at most
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Follow-up suggestions at most"
 msgstr "Nombre maximum de questions de relance"
 
 #. How an agent writes its follow-up questions
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Follow-up suggestions instructions"
 msgstr "Instructions des questions de relance"
 
@@ -1284,12 +1284,12 @@ msgid "Forgetting what you asked"
 msgstr "Oubli de ce que vous avez demandé"
 
 #. The form an agent fills during a conversation
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Form"
 msgstr "Formulaire"
 
 #. Whether an agent fills a form during a conversation
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Form filling"
 msgstr "Remplissage de formulaire"
 
@@ -1372,7 +1372,7 @@ msgid "Graded"
 msgstr "Noté"
 
 #. The first message of an agent in a conversation
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Greeting"
 msgstr "Message d'accueil"
 
@@ -1454,7 +1454,7 @@ msgid "Image"
 msgstr "Image"
 
 #. The version of an agent its live channels run with
-#: src/features/campaigns/components/ProductionBadge.tsx
+#: src/components/shared/ProductionBadge.tsx
 msgid "In production"
 msgstr "En production"
 
@@ -1482,9 +1482,9 @@ msgstr "Entrée"
 #. The instructions of the agent in a run
 #. The instructions of the agent in a run
 #. The instructions of the judge of a run
-#: src/features/campaigns/agent-version-diff.ts
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/lib/agent-version-diff.ts
 msgid "Instructions"
 msgstr "Instructions"
 
@@ -1694,16 +1694,16 @@ msgstr "Différents"
 #. The model of the agent in a run
 #. The model of the agent's version a run evaluated
 #. The model of the judge of a run
-#: src/features/campaigns/agent-version-diff.ts
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/lib/agent-version-diff.ts
 msgid "Model"
 msgstr "Modèle"
 
 #. The options of an agent's model
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Model options"
 msgstr "Options du modèle"
 
@@ -1823,7 +1823,7 @@ msgstr "Aucun jeu de données pour l'instant."
 msgid "No description"
 msgstr "Pas de description"
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "No differences"
 msgstr "Aucune différence"
 
@@ -1890,7 +1890,7 @@ msgstr "Aucune session pour le moment : le tableau se remplit quand les testeurs
 msgid "No session yet."
 msgstr "Aucune session pour l'instant."
 
-#: src/features/campaigns/components/AgentVersionPicker.tsx
+#: src/components/shared/AgentVersionPicker.tsx
 msgid "No version chosen yet."
 msgstr "Aucune version choisie pour le moment."
 
@@ -1946,12 +1946,12 @@ msgid "Nothing to open for this agent"
 msgstr "Rien à ouvrir pour cet agent"
 
 #. A setting of an agent that is turned off, in a diff
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Off"
 msgstr "Désactivé"
 
 #. A setting of an agent that is turned on, in a diff
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "On"
 msgstr "Activé"
 
@@ -1976,7 +1976,7 @@ msgstr "Une réponse par session sur laquelle un testeur a donné son retour."
 msgid "One answer per tester who filled the final survey."
 msgstr "Une réponse par testeur qui a rempli le questionnaire final."
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Only one version"
 msgstr "Une seule version"
 
@@ -2125,7 +2125,7 @@ msgid "Previous page"
 msgstr "Page précédente"
 
 #. Whether an agent's calls to its model go first
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Priority calls"
 msgstr "Appels prioritaires"
 
@@ -2135,7 +2135,7 @@ msgid "Project"
 msgstr "Projet"
 
 #. The default values of the variables of an agent's instructions
-#: src/features/campaigns/agent-version-diff.ts
+#: src/lib/agent-version-diff.ts
 msgid "Prompt variables"
 msgstr "Variables de prompt"
 
@@ -2471,8 +2471,8 @@ msgstr "Enregistrez d'abord vos modifications."
 
 #. When a version of an agent was saved, such as: Saved 5 days ago
 #. When a version of an agent was saved, such as: Saved 5 days ago
-#: src/features/campaigns/components/AgentVersionList.tsx
-#: src/features/campaigns/components/AgentVersionPicker.tsx
+#: src/components/shared/AgentVersionList.tsx
+#: src/components/shared/AgentVersionPicker.tsx
 msgid "Saved <0/>"
 msgstr "Enregistrée <0/>"
 
@@ -2537,12 +2537,12 @@ msgstr "Sélectionner la colonne {originalName}"
 msgid "Select the file {fileName}"
 msgstr "Sélectionner le fichier {fileName}"
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Select this version"
 msgstr "Sélectionner cette version"
 
 #. The version a review campaign runs on already
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Selected"
 msgstr "Sélectionnée"
 
@@ -2647,7 +2647,7 @@ msgstr "Afficher plus"
 msgid "Show the sidebar"
 msgstr "Afficher la barre latérale"
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "Showing changes from version {olderRevision} to version {newerRevision}."
 msgstr "Changements de la version {olderRevision} à la version {newerRevision}."
 
@@ -3210,7 +3210,7 @@ msgstr "Ces exécutions n'existent plus, ou ne sont pas des exécutions de ce je
 msgid "These runs have no record yet."
 msgstr "Ces exécutions n'ont pas encore d'enregistrement."
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "These two versions have the same settings."
 msgstr "Ces deux versions ont les mêmes paramètres."
 
@@ -3223,7 +3223,7 @@ msgstr "Niveau de réflexion"
 msgid "Thinking…"
 msgstr "Réflexion…"
 
-#: src/features/campaigns/components/AgentVersionCompare.tsx
+#: src/components/shared/AgentVersionCompare.tsx
 msgid "This agent has a single saved version: there is nothing to compare."
 msgstr "Cet agent n'a qu'une version enregistrée : il n'y a rien à comparer."
 
@@ -3451,7 +3451,7 @@ msgstr "Version"
 #. A saved version of an agent's settings, by its number
 #. A version of an agent, by its number
 #. A version of an agent, by its number
-#: src/features/campaigns/components/AgentVersionTitle.tsx
+#: src/components/shared/AgentVersionTitle.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Version {revision}"
@@ -3467,7 +3467,7 @@ msgstr "Version {revision} · <0/>"
 msgid "Version {version}"
 msgstr "Version {version}"
 
-#: src/features/campaigns/components/AgentVersionsSheet.tsx
+#: src/components/shared/AgentVersionsSheet.tsx
 msgid "Versions of {agentName}"
 msgstr "Versions de {agentName}"
 

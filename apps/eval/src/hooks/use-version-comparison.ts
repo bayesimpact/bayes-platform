@@ -1,7 +1,7 @@
 import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useState } from "react"
-import { changedAgentVersionFields } from "../agent-version-diff"
+import { changedAgentVersionFields } from "@/lib/agent-version-diff"
 
 /** What a version is compared with: the version before it, or the one in production. */
 export type CompareMode = "previous" | "production"

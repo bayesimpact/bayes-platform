@@ -6,13 +6,13 @@ import { badgeVariants } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { useVersionComparison } from "@/hooks/use-version-comparison"
 import {
   AGENT_VERSION_DIFF_FILE_NAMES,
   AGENT_VERSION_DIFF_LABELS,
   type AgentVersionDiffKey,
   agentVersionFieldText,
-} from "../agent-version-diff"
-import { useVersionComparison } from "../hooks/use-version-comparison"
+} from "@/lib/agent-version-diff"
 import { AgentVersionTitle } from "./AgentVersionTitle"
 import { TextDiff } from "./TextDiff"
 

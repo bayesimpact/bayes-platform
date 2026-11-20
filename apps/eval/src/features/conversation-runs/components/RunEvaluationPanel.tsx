@@ -11,6 +11,7 @@ import { PlayIcon } from "lucide-react"
 import { useId } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { AgentVersionPicker } from "@/components/shared/AgentVersionPicker"
 import { RunScopeField } from "@/components/shared/RunScopeField"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
@@ -18,7 +19,7 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import type { EvaluationAgent } from "@/features/agents"
-import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import { useStartConversationRun } from "../api/mutations"
 import { judgeModelsQueryOptions } from "../api/queries"
 import { conversationRunFormSchema } from "../schemas"
@@ -125,7 +126,7 @@ export function RunEvaluationPanel({
           name="versionId"
           render={({ field, fieldState }) => (
             <AgentVersionPicker
-              agentParams={agentParams}
+              versions={versions}
               agentName={agentName}
               selectedId={field.value}
               onSelect={field.onChange}

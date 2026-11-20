@@ -1,17 +1,16 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
-import { useSuspenseQuery } from "@tanstack/react-query"
 import { HistoryIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"
-import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Button } from "@/components/ui/button"
 import { FieldDescription, FieldError, FieldLegend, FieldSet } from "@/components/ui/field"
-import { agentVersionsQueryOptions } from "../api/queries"
 import { AgentVersionsSheet } from "./AgentVersionsSheet"
 import { AgentVersionTitle } from "./AgentVersionTitle"
+import { TimeAgo } from "./TimeAgo"
 
 export type AgentVersionPickerProps = {
-  agentParams: AgentParamsDto
+  /** The saved versions of the agent, newest first. */
+  versions: AgentVersionOutputDto[]
   agentName: string
   /** The id of the version chosen, empty when none is. */
   selectedId: string
@@ -29,7 +28,7 @@ export type AgentVersionPickerProps = {
  * the version a review campaign runs on, or the one an evaluation asks. Never the draft.
  */
 export function AgentVersionPicker({
-  agentParams,
+  versions,
   agentName,
   selectedId,
   onSelect,
@@ -37,7 +36,6 @@ export function AgentVersionPicker({
   selectedNote,
   error,
 }: AgentVersionPickerProps) {
-  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   const [isOpen, setIsOpen] = useState(false)
   const selected = versions.find((version) => version.id === selectedId)
   const isInvalid = Boolean(error)

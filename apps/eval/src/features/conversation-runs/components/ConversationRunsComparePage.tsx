@@ -7,6 +7,7 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
 import { useState } from "react"
+import { AgentVersionsSheet } from "@/components/shared/AgentVersionsSheet"
 import { ComparedRunHead } from "@/components/shared/ComparedRunHead"
 import { CompareRunsPageFrame } from "@/components/shared/CompareRunsPageFrame"
 import { type RunFigure, RunFiguresTable } from "@/components/shared/RunFiguresTable"
@@ -21,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import {
   conversationRunRecordsQueryOptions,
   projectConversationRunsQueryOptions,

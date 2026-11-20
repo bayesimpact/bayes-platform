@@ -1,8 +1,10 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { type Control, Controller } from "react-hook-form"
+import { AgentVersionPicker } from "@/components/shared/AgentVersionPicker"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import type { CampaignFormValues } from "../schemas"
-import { AgentVersionPicker } from "./AgentVersionPicker"
 
 export type AgentVersionFieldProps = {
   control: Control<CampaignFormValues>
@@ -16,13 +18,14 @@ export type AgentVersionFieldProps = {
  * of the agent's versions.
  */
 export function AgentVersionField({ control, agentParams, agentName }: AgentVersionFieldProps) {
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   return (
     <Controller
       control={control}
       name="agentSettingsId"
       render={({ field, fieldState }) => (
         <AgentVersionPicker
-          agentParams={agentParams}
+          versions={versions}
           agentName={agentName}
           selectedId={field.value}
           onSelect={field.onChange}
