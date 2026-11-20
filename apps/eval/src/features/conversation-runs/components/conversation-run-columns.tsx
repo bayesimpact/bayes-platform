@@ -4,6 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
+import { Count } from "@/components/shared/Count"
 import { RunCompareAllCheckbox } from "@/components/shared/RunCompareAllCheckbox"
 import { RunCompareCheckbox } from "@/components/shared/RunCompareCheckbox"
 import { TimeAgo } from "@/components/shared/TimeAgo"
@@ -122,7 +123,12 @@ export function conversationRunColumnsOf({
       header: translate(runColumnLabels.graded),
       cell: (context) => {
         const summary = context.row.original.summary
-        return summary ? `${summary.graded} / ${summary.total}` : "–"
+        if (!summary) return "–"
+        return (
+          <>
+            <Count value={summary.graded} /> / <Count value={summary.total} />
+          </>
+        )
       },
       meta: { headerClassName: "text-right", cellClassName: "text-right tabular-nums" },
     }),

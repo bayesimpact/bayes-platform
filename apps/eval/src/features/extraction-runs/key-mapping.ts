@@ -2,7 +2,9 @@ import type {
   AgentVersionOutputDto,
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
+  ExtractionRunRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 /** The fields a version of an extraction agent returns: the properties of its output schema. */
 export function outputKeysOf(version: Pick<AgentVersionOutputDto, "outputJsonSchema">): string[] {
@@ -47,3 +49,12 @@ export function matchedFieldsOf(
     scored: scored.length,
   }
 }
+
+/**
+ * A field of a record of a run, by its key. An agent names its fields: a key such as
+ * `constructor` must index the record's own fields only.
+ */
+export const comparedFieldOf = (
+  comparison: ExtractionRunRecordOutputDto["comparison"],
+  key: string,
+) => (comparison && hasOwnKey(comparison, key) ? comparison[key] : undefined)

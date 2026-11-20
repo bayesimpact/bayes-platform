@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { EvaluationPageSkeleton } from "@/components/shared/EvaluationPageSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { requireEvaluationAgent } from "@/features/agents"
-import { CampaignsPageSkeleton } from "@/features/campaigns"
 import {
   ConversationDatasetsPage,
   loadConversationDatasets,
@@ -22,7 +22,7 @@ export const Route = createFileRoute(
     context.agent.type === "conversation"
       ? loadConversationDatasets(context.queryClient, params)
       : loadExtractionDatasets(context.queryClient, params),
-  pendingComponent: CampaignsPageSkeleton,
+  pendingComponent: () => <EvaluationPageSkeleton />,
   errorComponent: RouteErrorState,
   component: EvaluationsRoute,
 })

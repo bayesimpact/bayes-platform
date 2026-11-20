@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { canReadTracesQueryOptions } from "@/features/account"
+import { toHttpsUrl } from "@/lib/safe-url"
 import { FilledForm } from "./FilledForm"
 import { RunRecordScore } from "./RunRecordScore"
 import { RunRecordStatusBadge } from "./RunRecordStatusBadge"
@@ -40,6 +41,8 @@ function Block({ title, children }: { title: ReactNode; children: ReactNode }) {
 export function RunRecordSheet({ record, onClose }: RunRecordSheetProps) {
   // The trace of an answer is for the few who may read traces.
   const { data: canReadTraces } = useSuspenseQuery(canReadTracesQueryOptions())
+  // The link of a trace comes from the API: only an http(s) URL opens.
+  const traceUrl = record?.traceUrl ? toHttpsUrl(record.traceUrl, { allowHttp: true }) : null
   return (
     <Sheet
       open={record !== null}
@@ -67,8 +70,8 @@ export function RunRecordSheet({ record, onClose }: RunRecordSheetProps) {
               </span>
               <RunRecordScore record={record} />
               <RunRecordStatusBadge status={record.status} />
-              {record.traceUrl && canReadTraces ? (
-                <ExternalLink href={record.traceUrl} className="ml-auto inline-flex gap-1 text-sm">
+              {traceUrl && canReadTraces ? (
+                <ExternalLink href={traceUrl} className="ml-auto inline-flex gap-1 text-sm">
                   <Trans comment="A link to the trace of the agent's answer">Open the trace</Trans>
                 </ExternalLink>
               ) : null}

@@ -6,19 +6,18 @@ import {
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
-import { FileSpreadsheetIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { Trash2Icon, UploadIcon } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { fileSizeOf } from "@/lib/file-size"
 import { useDeleteExtractionFiles, useUploadExtractionFile } from "../api/mutations"
 import { extractionFilesQueryOptions } from "../api/queries"
 import { csvFileProblemOf } from "../csv-file"
-import { ExtractionFileDetails } from "./ExtractionFileDetails"
+import { ExtractionFileRow } from "./ExtractionFileRow"
 
 export type ExtractionFilesSectionProps = {
   project: ProjectParamsDto
@@ -170,42 +169,15 @@ export function ExtractionFilesSection({ project, onChoose }: ExtractionFilesSec
               ) : null}
             </div>
             <ul className="flex flex-col divide-y rounded-lg border">
-              {files.map((file) => {
-                const fileName = file.fileName
-                const size = fileSizeOf(file.size, i18n.locale)
-                return (
-                  <li key={file.id} className="flex flex-wrap items-center gap-3 p-3">
-                    <Checkbox
-                      checked={checkedIds.has(file.id)}
-                      onCheckedChange={() => toggle(file.id)}
-                      aria-label={t`Select the file ${fileName}`}
-                    />
-                    <FileSpreadsheetIcon
-                      aria-hidden
-                      className="size-5 shrink-0 text-muted-foreground"
-                    />
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate text-sm font-medium">{fileName}</span>
-                      <span className="text-xs text-muted-foreground">
-                        <Trans comment="Under the name of a CSV file: its size, and when it was uploaded">
-                          {size} · Uploaded <TimeAgo moment={file.createdAt} />
-                        </Trans>
-                      </span>
-                    </div>
-                    <ExtractionFileDetails file={file} />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      aria-label={t`Use the file ${fileName}`}
-                      onClick={() => onChoose(file)}
-                    >
-                      <Trans comment="Takes a CSV file as the source of a dataset">
-                        Use this file
-                      </Trans>
-                    </Button>
-                  </li>
-                )
-              })}
+              {files.map((file) => (
+                <ExtractionFileRow
+                  key={file.id}
+                  file={file}
+                  isChecked={checkedIds.has(file.id)}
+                  onToggle={() => toggle(file.id)}
+                  onChoose={() => onChoose(file)}
+                />
+              ))}
             </ul>
           </>
         )}

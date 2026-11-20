@@ -1,12 +1,13 @@
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 /** The names providers give the thinking level in a model's options. */
 const THINKING_LEVEL_KEYS = ["thinkingLevel", "reasoningEffort", "effort"]
 
 /** The value under `key` in the options of a model, at any depth. */
 function findOption(options: Record<string, unknown>, key: string): unknown {
-  if (key in options) return options[key]
+  if (hasOwnKey(options, key)) return options[key]
   for (const value of Object.values(options)) {
     if (typeof value !== "object" || value === null || Array.isArray(value)) continue
     // Safe: a non-null object that is not an array has string keys.
@@ -17,7 +18,7 @@ function findOption(options: Record<string, unknown>, key: string): unknown {
 }
 
 /** The thinking levels the models share, as the app says them. */
-const THINKING_LEVEL_LABELS: Record<string, MessageDescriptor> = {
+const THINKING_LEVEL_LABELS = {
   none: msg({
     message: "None",
     context: "thinking level",
@@ -31,7 +32,7 @@ const THINKING_LEVEL_LABELS: Record<string, MessageDescriptor> = {
 
 /** The name of a thinking level: none for a level the app does not know, which shows as it is. */
 export const thinkingLevelLabelOf = (level: string): MessageDescriptor | null =>
-  Object.hasOwn(THINKING_LEVEL_LABELS, level) ? (THINKING_LEVEL_LABELS[level] ?? null) : null
+  hasOwnKey(THINKING_LEVEL_LABELS, level) ? THINKING_LEVEL_LABELS[level] : null
 
 /** The temperature a version of an agent set for its model: `null` when it set none. */
 export function temperatureOf(providerOptions: Record<string, unknown>): number | null {

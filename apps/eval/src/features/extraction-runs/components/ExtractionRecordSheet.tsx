@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/sheet"
 import { canReadTracesQueryOptions } from "@/features/account"
 import { cellTextOf } from "@/lib/extraction-columns"
+import { toHttpsUrl } from "@/lib/safe-url"
+import { SUCCESS_TEXT_CLASSES } from "@/lib/success-classes"
+import { comparedFieldOf } from "../key-mapping"
 import { RecordStatusBadge } from "./RecordStatusBadge"
 
 export type ExtractionRecordSheetProps = {
@@ -45,6 +48,8 @@ export function ExtractionRecordSheet({
 }: ExtractionRecordSheetProps) {
   // The trace of an answer is for the few who may read traces.
   const { data: canReadTraces } = useSuspenseQuery(canReadTracesQueryOptions())
+  // The link of a trace comes from the API: only an http(s) URL opens.
+  const traceUrl = record?.traceUrl ? toHttpsUrl(record.traceUrl, { allowHttp: true }) : null
   return (
     <Sheet
       open={record !== null}
@@ -70,8 +75,8 @@ export function ExtractionRecordSheet({
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <RecordStatusBadge status={record.status} />
-              {record.traceUrl && canReadTraces ? (
-                <ExternalLink href={record.traceUrl} className="ml-auto inline-flex gap-1 text-sm">
+              {traceUrl && canReadTraces ? (
+                <ExternalLink href={traceUrl} className="ml-auto inline-flex gap-1 text-sm">
                   <Trans comment="A link to the trace of the agent's answer">Open the trace</Trans>
                 </ExternalLink>
               ) : null}
@@ -93,7 +98,7 @@ export function ExtractionRecordSheet({
                 </h3>
                 <ul className="flex flex-col divide-y rounded-lg border">
                   {keyMapping.map((entry) => {
-                    const field = record.comparison?.[entry.agentOutputKey]
+                    const field = comparedFieldOf(record.comparison, entry.agentOutputKey)
                     if (!field) return null
                     const isMatch = field.status === "match"
                     const Mark = isMatch ? CheckIcon : XIcon
@@ -106,7 +111,7 @@ export function ExtractionRecordSheet({
                               aria-hidden
                               className={cn(
                                 "size-4 shrink-0",
-                                isMatch ? "text-green-700 dark:text-green-400" : "text-destructive",
+                                isMatch ? SUCCESS_TEXT_CLASSES : "text-destructive",
                               )}
                             />
                           )}

@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
+import { Count } from "./Count"
 
 /**
  * The first column of a table of records: the number of each row, counted from `firstNumber`, the
@@ -11,7 +12,7 @@ export function rowNumberColumnOf<TData>(firstNumber = 1): ColumnDef<TData, unkn
     enableSorting: false,
     cell: (context) => (
       <span className="font-mono text-xs text-muted-foreground tabular-nums">
-        {firstNumber + context.row.index}
+        <Count value={firstNumber + context.row.index} />
       </span>
     ),
   }

@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
 import { TimeAgo } from "@/components/shared/TimeAgo"
+import { Count } from "./Count"
 
 /** What the list of datasets shows of a dataset, whatever the type of its agent. */
 export type DatasetSummary = {
@@ -53,6 +54,7 @@ export function datasetColumnsOf({
     }),
     columnHelper.accessor("recordCount", {
       header: translate(datasetColumnLabels.records),
+      cell: (context) => <Count value={context.getValue()} />,
       meta: { headerClassName: "text-right", cellClassName: "text-right tabular-nums" },
     }),
     columnHelper.accessor("updatedAt", {

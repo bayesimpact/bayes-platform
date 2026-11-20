@@ -2,6 +2,7 @@ import { useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { RUN_STATUS_LABELS, type RunStatus } from "@/lib/run-status"
+import { SUCCESS_BADGE_CLASSES } from "@/lib/success-classes"
 
 export type RunStatusBadgeProps = {
   status: RunStatus
@@ -22,11 +23,7 @@ export function RunStatusBadge({ status }: RunStatusBadgeProps) {
     <Badge
       variant={VARIANTS[status]}
       // A run that is over is green, the green of the version in production.
-      className={
-        status === "completed"
-          ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-          : undefined
-      }
+      className={status === "completed" ? SUCCESS_BADGE_CLASSES : undefined}
     >
       {status === "running" ? <LoaderCircleIcon aria-hidden className="animate-spin" /> : null}
       {i18n._(RUN_STATUS_LABELS[status])}

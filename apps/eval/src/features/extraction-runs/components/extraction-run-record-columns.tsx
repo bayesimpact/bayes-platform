@@ -13,6 +13,8 @@ import { rowNumberColumnOf } from "@/components/shared/row-number-column"
 import { Badge } from "@/components/ui/badge"
 import { CELL_TEXT_CLASSES } from "@/lib/cell-text"
 import { cellTextOf } from "@/lib/extraction-columns"
+import { SUCCESS_TEXT_CLASSES } from "@/lib/success-classes"
+import { comparedFieldOf } from "../key-mapping"
 import { RecordStatusBadge } from "./RecordStatusBadge"
 
 const columnHelper = createColumnHelper<ExtractionRunRecordOutputDto>()
@@ -133,7 +135,7 @@ export function extractionRunRecordColumnsOf({
     ...keyMapping.flatMap((entry) => {
       const field = entry.agentOutputKey
       const agentColumn = columnHelper.accessor(
-        (record) => cellTextOf(record.comparison?.[field]?.agentValue),
+        (record) => cellTextOf(comparedFieldOf(record.comparison, field)?.agentValue),
         {
           id: agentKeyOf(field),
           header: () =>
@@ -142,7 +144,7 @@ export function extractionRunRecordColumnsOf({
               translate(recordColumnLabels.agent),
             ),
           cell: (context) => {
-            const result = context.row.original.comparison?.[field]
+            const result = comparedFieldOf(context.row.original.comparison, field)
             if (!result) return <span className="text-muted-foreground">–</span>
             const value = context.getValue() || "–"
             if (result.status === "fyi") {
@@ -156,7 +158,7 @@ export function extractionRunRecordColumnsOf({
                   aria-hidden
                   className={cn(
                     "mt-0.5 size-4 shrink-0",
-                    isMatch ? "text-green-700 dark:text-green-400" : "text-destructive",
+                    isMatch ? SUCCESS_TEXT_CLASSES : "text-destructive",
                   )}
                 />
                 <span className="sr-only">
@@ -177,17 +179,20 @@ export function extractionRunRecordColumnsOf({
       )
       if (entry.mode === "fyi") return [agentColumn]
       return [
-        columnHelper.accessor((record) => cellTextOf(record.comparison?.[field]?.groundTruth), {
-          id: targetKeyOf(field),
-          header: () =>
-            headerOf(columnNameOf(entry.datasetColumnId), translate(recordColumnLabels.target)),
-          cell: (context) =>
-            context.row.original.comparison?.[field] ? (
-              <p className={CELL_TEXT_CLASSES}>{context.getValue() || "–"}</p>
-            ) : (
-              <span className="text-muted-foreground">–</span>
-            ),
-        }),
+        columnHelper.accessor(
+          (record) => cellTextOf(comparedFieldOf(record.comparison, field)?.groundTruth),
+          {
+            id: targetKeyOf(field),
+            header: () =>
+              headerOf(columnNameOf(entry.datasetColumnId), translate(recordColumnLabels.target)),
+            cell: (context) =>
+              comparedFieldOf(context.row.original.comparison, field) ? (
+                <p className={CELL_TEXT_CLASSES}>{context.getValue() || "–"}</p>
+              ) : (
+                <span className="text-muted-foreground">–</span>
+              ),
+          },
+        ),
         agentColumn,
       ]
     }),

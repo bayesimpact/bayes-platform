@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router"
+import { EvaluationPageSkeleton } from "@/components/shared/EvaluationPageSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { requireEvaluationAgent } from "@/features/agents"
-import { CampaignsPageSkeleton } from "@/features/campaigns"
 import {
   conversationDatasetOfProjectQueryOptions,
   loadConversationDatasets,
@@ -53,7 +53,7 @@ export const Route = createFileRoute(
           loadExtractionDatasets(context.queryClient, params),
           loadExtractionRuns(context.queryClient, params),
         ]),
-  pendingComponent: CampaignsPageSkeleton,
+  pendingComponent: () => <EvaluationPageSkeleton isWide />,
   errorComponent: RouteErrorState,
   component: CompareRunsRoute,
 })

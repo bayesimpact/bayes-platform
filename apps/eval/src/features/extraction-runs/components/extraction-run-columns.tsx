@@ -4,6 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
+import { Count } from "@/components/shared/Count"
 import { RunCompareAllCheckbox } from "@/components/shared/RunCompareAllCheckbox"
 import { RunCompareCheckbox } from "@/components/shared/RunCompareCheckbox"
 import { TimeAgo } from "@/components/shared/TimeAgo"
@@ -95,14 +96,19 @@ export function extractionRunColumnsOf({
       header: translate(runColumnLabels.matches),
       cell: (context) => {
         const summary = context.row.original.summary
-        return summary ? `${summary.perfectMatches} / ${summary.total}` : "–"
+        if (!summary) return "–"
+        return (
+          <>
+            <Count value={summary.perfectMatches} /> / <Count value={summary.total} />
+          </>
+        )
       },
       meta: { headerClassName: "text-right", cellClassName: "text-right tabular-nums" },
     }),
     columnHelper.accessor((run) => run.summary?.errors ?? null, {
       id: "errors",
       header: translate(runColumnLabels.errors),
-      cell: (context) => context.getValue() ?? "–",
+      cell: (context) => <Count value={context.getValue()} />,
       meta: { headerClassName: "text-right", cellClassName: "text-right tabular-nums" },
     }),
     columnHelper.display({

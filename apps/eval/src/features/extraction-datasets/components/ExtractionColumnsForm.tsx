@@ -25,6 +25,7 @@ import {
   COLUMN_ROLES,
 } from "@/lib/extraction-columns"
 import { useSetUpExtractionDataset } from "../api/mutations"
+import { ExtractionColumnRow } from "./ExtractionColumnRow"
 import { FilePreviewTable } from "./FilePreviewTable"
 
 /** The role of a column until the person says what it is: left out. */
@@ -197,56 +198,16 @@ export function ExtractionColumnsForm({
           </div>
         </div>
         <ul className="flex flex-col divide-y rounded-lg border">
-          {fields.map((field, index) => {
-            const originalName = field.originalName
-            return (
-              <li
-                key={field.id}
-                className="grid grid-cols-[auto_auto_1fr] items-center gap-3 p-3 sm:grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,1fr)_auto]"
-              >
-                <Checkbox
-                  checked={checked.has(index)}
-                  onCheckedChange={() => toggle(index)}
-                  aria-label={t`Select the column ${originalName}`}
-                />
-                <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                  {index + 1}
-                </span>
-                <span className="truncate text-sm font-medium" title={originalName}>
-                  {originalName}
-                </span>
-                <Controller
-                  control={form.control}
-                  name={`columns.${index}.finalName`}
-                  render={({ field: nameField }) => (
-                    <Input
-                      {...nameField}
-                      className="col-span-3 sm:col-span-1"
-                      placeholder={originalName}
-                      aria-label={t`Name of the column ${originalName} in the dataset`}
-                    />
-                  )}
-                />
-                <Controller
-                  control={form.control}
-                  name={`columns.${index}.role`}
-                  render={({ field: roleField }) => (
-                    <NativeSelect
-                      {...roleField}
-                      className="col-span-3 sm:col-span-1"
-                      aria-label={t`Role of the column ${originalName}`}
-                    >
-                      {COLUMN_ROLES.map((role) => (
-                        <NativeSelectOption key={role} value={role}>
-                          {i18n._(COLUMN_ROLE_LABELS[role])}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
-                  )}
-                />
-              </li>
-            )
-          })}
+          {fields.map((field, index) => (
+            <ExtractionColumnRow
+              key={field.id}
+              control={form.control}
+              index={index}
+              originalName={field.originalName}
+              isChecked={checked.has(index)}
+              onToggle={() => toggle(index)}
+            />
+          ))}
         </ul>
         {/* The way back at the far left, away from the button that builds the dataset. */}
         <div className="flex flex-wrap justify-between gap-2">

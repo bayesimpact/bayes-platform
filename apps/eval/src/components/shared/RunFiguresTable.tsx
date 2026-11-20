@@ -54,13 +54,14 @@ export function RunFiguresTable<TRun extends { id: string; createdAt: number }>(
                 </Trans>
               </TableHead>
               {runs.map((run) => (
-                <ComparedRunHead
-                  key={run.id}
-                  agentParams={agentParams}
-                  datasetId={datasetId}
-                  run={run}
-                  revision={revisionOf(run)}
-                />
+                <TableHead key={run.id} className="h-auto py-2 align-bottom">
+                  <ComparedRunHead
+                    agentParams={agentParams}
+                    datasetId={datasetId}
+                    run={run}
+                    revision={revisionOf(run)}
+                  />
+                </TableHead>
               ))}
             </TableRow>
           </TableHeader>

@@ -130,7 +130,7 @@ msgid "{invalidCount, plural, one {Line {invalidList} has no input or no expecte
 msgstr "{invalidCount, plural, one {La ligne {invalidList} n'a pas d'entrée ou pas de réponse attendue.} other {Les lignes {invalidList} n'ont pas d'entrée ou pas de réponse attendue.}}"
 
 #. Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
 msgid "{matched} / {scored} fields"
 msgstr "{matched} / {scored} champs"
 
@@ -230,7 +230,7 @@ msgid "{sessionCount, plural, one {# session} other {# sessions}}"
 msgstr "{sessionCount, plural, one {# session} other {# sessions}}"
 
 #. Under the name of a CSV file: its size, and when it was uploaded
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
 msgid "{size} · Uploaded <0/>"
 msgstr "{size} · Envoyé <0/>"
 
@@ -1153,7 +1153,7 @@ msgstr "Attendu ({columnName})"
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
-#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Expected output"
 msgstr "Réponse attendue"
@@ -1470,7 +1470,7 @@ msgstr "entrée"
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
-#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
 #: src/lib/extraction-columns.ts
 msgid "Input"
@@ -1589,8 +1589,8 @@ msgstr "Chargement de la carte interactive…"
 msgid "Loading the records…"
 msgstr "Chargement des enregistrements…"
 
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
 #: src/features/extraction-runs/components/ExtractionResultsSection.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Loading the results…"
 msgstr "Chargement des résultats…"
 
@@ -1748,7 +1748,7 @@ msgstr "Ma relecture"
 msgid "Name"
 msgstr "Nom"
 
-#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnRow.tsx
 msgid "Name of the column {originalName} in the dataset"
 msgstr "Nom de la colonne {originalName} dans le jeu de données"
 
@@ -2169,14 +2169,14 @@ msgstr "Ouvrir « {name} » ?"
 #. The header of the column of the records compared
 #. The title of the sheet that shows one record of a dataset
 #: src/features/extraction-datasets/components/ExtractionDatasetRecordSheet.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
 msgid "Record"
 msgstr "Enregistrement"
 
 #. The title of the records of the runs compared
 #. The title of the records of the runs compared
-#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
 msgid "Record by record"
 msgstr "Enregistrement par enregistrement"
 
@@ -2389,7 +2389,7 @@ msgstr "Rôle"
 msgid "Role of each column"
 msgstr "Rôle de chaque colonne"
 
-#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnRow.tsx
 msgid "Role of the column {originalName}"
 msgstr "Rôle de la colonne {originalName}"
 
@@ -2525,11 +2525,11 @@ msgstr "Sélectionner tous les fichiers"
 msgid "Select files to delete them together"
 msgstr "Sélectionnez des fichiers pour les supprimer ensemble"
 
-#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnRow.tsx
 msgid "Select the column {originalName}"
 msgstr "Sélectionner la colonne {originalName}"
 
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
 msgid "Select the file {fileName}"
 msgstr "Sélectionner le fichier {fileName}"
 
@@ -3099,8 +3099,8 @@ msgstr "La réponse s'est arrêtée avant la fin."
 msgid "The report could not be sent. Try again."
 msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
 #: src/features/extraction-runs/components/ExtractionResultsSection.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "The results could not load."
 msgstr "Les résultats n'ont pas pu se charger."
 
@@ -3143,7 +3143,7 @@ msgstr "L'exécution a été annulée."
 msgid "The run was deleted."
 msgstr "L'exécution a été supprimée."
 
-#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
 msgid "The score each run got on each record, the best one in green."
 msgstr "Le score de chaque exécution sur chaque enregistrement, le meilleur en vert."
 
@@ -3199,8 +3199,8 @@ msgstr "Ces personnes ont déjà un accès ou une invitation."
 msgid "These runs are gone, or are not runs of this dataset."
 msgstr "Ces exécutions n'existent plus, ou ne sont pas des exécutions de ce jeu de données."
 
-#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
 msgid "These runs have no record yet."
 msgstr "Ces exécutions n'ont pas encore d'enregistrement."
 
@@ -3410,12 +3410,12 @@ msgstr "Envoi de {fileName}…"
 msgid "Uploading…"
 msgstr "Envoi…"
 
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
 msgid "Use the file {fileName}"
 msgstr "Utiliser le fichier {fileName}"
 
 #. Takes a CSV file as the source of a dataset
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
 msgid "Use this file"
 msgstr "Utiliser ce fichier"
 
@@ -3571,7 +3571,7 @@ msgstr "Quand un agent est créé dans l'un de vos projets, il apparaît ici."
 msgid "When you are done testing, share an overall rating of the agent. It is optional: your feedback on each session already counts. You can still start sessions afterwards."
 msgstr "Quand vous avez fini de tester, donnez une note d'ensemble à l'agent. C'est facultatif : vos retours sur chaque session comptent déjà. Vous pourrez encore démarrer des sessions ensuite."
 
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
 msgid "Where each record stands in each run, with how many of its compared fields match."
 msgstr "L'état de chaque enregistrement dans chaque exécution, avec le nombre de ses champs comparés qui sont identiques."
 

@@ -4,6 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { SUCCESS_BADGE_CLASSES } from "@/lib/success-classes"
 
 export type RunRecordStatusBadgeProps = {
   status: ConversationRunRecordStatusDto
@@ -37,11 +38,7 @@ export function RunRecordStatusBadge({ status }: RunRecordStatusBadgeProps) {
     <Badge
       variant={VARIANTS[status]}
       // A graded record is green, the green of a run that is over.
-      className={
-        status === "graded"
-          ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-          : undefined
-      }
+      className={status === "graded" ? SUCCESS_BADGE_CLASSES : undefined}
     >
       {status === "running" ? <LoaderCircleIcon aria-hidden className="animate-spin" /> : null}
       {i18n._(LABELS[status])}

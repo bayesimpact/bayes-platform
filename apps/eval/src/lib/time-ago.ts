@@ -1,8 +1,9 @@
-import { formatDistanceStrict, type Locale } from "date-fns"
+import { formatDistanceStrict } from "date-fns"
 import { enUS, fr } from "date-fns/locale"
+import { hasOwnKey } from "./has-own-key"
 
 /** The date-fns locale of each language of the app; English for any other. */
-const DATE_FNS_LOCALES: Record<string, Locale> = { en: enUS, fr }
+const DATE_FNS_LOCALES = { en: enUS, fr }
 
 /**
  * How long ago a moment was, in the person's language: "5 minutes ago", "3 days ago", "il y a 2
@@ -12,6 +13,6 @@ const DATE_FNS_LOCALES: Record<string, Locale> = { en: enUS, fr }
 export function timeAgoOf(moment: number, now: number, locale: string): string {
   return formatDistanceStrict(Math.min(moment, now), now, {
     addSuffix: true,
-    locale: DATE_FNS_LOCALES[locale] ?? enUS,
+    locale: hasOwnKey(DATE_FNS_LOCALES, locale) ? DATE_FNS_LOCALES[locale] : enUS,
   })
 }

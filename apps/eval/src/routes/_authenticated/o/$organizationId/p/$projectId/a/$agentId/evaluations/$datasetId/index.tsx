@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { EvaluationPageSkeleton } from "@/components/shared/EvaluationPageSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { requireEvaluationAgent } from "@/features/agents"
-import { CampaignsPageSkeleton } from "@/features/campaigns"
 import { ConversationDatasetPage, loadConversationDataset } from "@/features/conversation-datasets"
 import { loadConversationRuns, loadJudgeModels } from "@/features/conversation-runs"
 import { ExtractionDatasetPage, loadExtractionDataset } from "@/features/extraction-datasets"
@@ -35,7 +35,7 @@ export const Route = createFileRoute(
           loadExtractionDataset(context.queryClient, params, deps.recordsSearch),
           loadExtractionRuns(context.queryClient, params),
         ]),
-  pendingComponent: CampaignsPageSkeleton,
+  pendingComponent: () => <EvaluationPageSkeleton isWide />,
   errorComponent: RouteErrorState,
   component: DatasetRoute,
 })

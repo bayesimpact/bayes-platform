@@ -1,39 +1,51 @@
-import {
-  type AgentParamsDto,
-  EXTRACTION_RUN_RECORDS_PAGE_SIZE,
-  type ExtractionDatasetOutputDto,
-  type ExtractionRunOutputDto,
-  type ExtractionRunRecordOutputDto,
+import type {
+  AgentParamsDto,
+  ExtractionDatasetOutputDto,
+  ExtractionRunOutputDto,
+  ExtractionRunRecordOutputDto,
+  ExtractionRunRecordsOutputDto,
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { useQueries, useSuspenseQuery } from "@tanstack/react-query"
+import { type UseQueryResult, useQueries, useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { AgentVersionsSheet } from "@/components/shared/AgentVersionsSheet"
-import { ComparedRunHead } from "@/components/shared/ComparedRunHead"
 import { CompareRunsPageFrame } from "@/components/shared/CompareRunsPageFrame"
+import { Count } from "@/components/shared/Count"
 import { type RunFigure, RunFiguresTable } from "@/components/shared/RunFiguresTable"
 import { RunStatusBadge } from "@/components/shared/RunStatusBadge"
 import { RunVersionButton } from "@/components/shared/RunVersionButton"
-import { TableLoadError } from "@/components/shared/TableLoadError"
-import { TableLoadingRows } from "@/components/shared/TableLoadingRows"
-import { TablePagination } from "@/components/shared/TablePagination"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { agentVersionsQueryOptions } from "@/features/agents"
-import { cellTextOf, columnsOfRole } from "@/lib/extraction-columns"
+import { columnsOfRole } from "@/lib/extraction-columns"
+import { SUCCESS_TEXT_CLASSES } from "@/lib/success-classes"
 import { extractionRunRecordsQueryOptions, projectExtractionRunsQueryOptions } from "../api/queries"
-import { matchedFieldsOf } from "../key-mapping"
+import { comparisonRowsOf } from "../comparison"
 import { extractionRunParamsOf } from "../load-extraction-runs"
 import { matchRateOf, percentOf } from "../match-rate"
+import { ExtractionComparisonRecords } from "./ExtractionComparisonRecords"
 import { inputKeyOf } from "./extraction-run-record-columns"
-import { RecordStatusBadge } from "./RecordStatusBadge"
+
+/** No record: the same list from one render to the next. */
+const NO_RECORD: ExtractionRunRecordOutputDto[] = []
+
+/**
+ * What the page reads of the records of the runs compared, in the order of the runs. A function
+ * of the module: the queries then give the same lists from one render to the next, while they
+ * hold the same records.
+ */
+const pagesOf = (results: UseQueryResult<ExtractionRunRecordsOutputDto>[]) => ({
+  records: results.map((result) => result.data?.records ?? NO_RECORD),
+  // The run that asked the most records has the most pages.
+  total: Math.max(0, ...results.map((result) => result.data?.total ?? 0)),
+  isLoading: results.some((result) => result.isPending),
+  hasFailed: results.some((result) => result.isError),
+  /** Reads again the records that could not load. */
+  retry: () => {
+    for (const result of results) {
+      if (result.isError) void result.refetch()
+    }
+  },
+})
 
 export type ExtractionRunsComparePageProps = {
   agentParams: AgentParamsDto
@@ -67,18 +79,23 @@ export function ExtractionRunsComparePage({
   // The version of a run whose history shows, to compare it with the others.
   const [shownRevision, setShownRevision] = useState<number | null>(null)
   const shownVersion = versions.find((version) => version.revision === shownRevision)
-  // The agent's runs of this dataset among those asked, in the order the person picked them.
-  const runs = runIds.flatMap((runId) => {
-    const run = projectRuns.find((candidate) => candidate.id === runId)
-    return run &&
-      run.evaluationExtractionDatasetId === dataset.id &&
-      run.agentId === agentParams.agentId
-      ? [run]
-      : []
-  })
+  // The agent's runs of this dataset among those asked, in the order the person picked them: the
+  // same list from one render to the next, as the table's rows come from it.
+  const runs = useMemo(
+    () =>
+      runIds.flatMap((runId) => {
+        const run = projectRuns.find((candidate) => candidate.id === runId)
+        return run &&
+          run.evaluationExtractionDatasetId === dataset.id &&
+          run.agentId === agentParams.agentId
+          ? [run]
+          : []
+      }),
+    [runIds, projectRuns, dataset.id, agentParams.agentId],
+  )
   const [firstInputColumn] = columnsOfRole(dataset, "input")
   // useQueries: another page keeps the rows shown until its own arrive, for each run.
-  const recordsByRun = useQueries({
+  const pages = useQueries({
     queries: runs.map((run) =>
       extractionRunRecordsQueryOptions(extractionRunParamsOf(agentParams, run.id), {
         page,
@@ -87,11 +104,16 @@ export function ExtractionRunsComparePage({
         sortBy: firstInputColumn ? inputKeyOf(firstInputColumn.id) : undefined,
       }),
     ),
+    combine: pagesOf,
   })
-  const isLoading = recordsByRun.some((records) => records.isPending)
-  const hasFailed = recordsByRun.some((records) => records.isError)
-  // The run that asked the most records has the most pages.
-  const recordTotal = Math.max(0, ...recordsByRun.map((records) => records.data?.total ?? 0))
+  const rows = useMemo(
+    () =>
+      comparisonRowsOf(
+        runs.map((run, index) => ({ runId: run.id, records: pages.records[index] ?? NO_RECORD })),
+        columnsOfRole(dataset, "input").map((column) => column.id),
+      ),
+    [runs, pages.records, dataset],
+  )
   const runCount = runs.length
   const rates = runs.flatMap((run) => matchRateOf(run.summary) ?? [])
   const bestRate = rates.length > 0 ? Math.max(...rates) : null
@@ -124,10 +146,7 @@ export function ExtractionRunsComparePage({
         if (rate === null) return "–"
         return (
           <span
-            className={cn(
-              "font-medium",
-              rate === bestRate && runCount > 1 && "text-green-700 dark:text-green-400",
-            )}
+            className={cn("font-medium", rate === bestRate && runCount > 1 && SUCCESS_TEXT_CLASSES)}
           >
             {percentOf(rate, i18n.locale)}
           </span>
@@ -139,7 +158,7 @@ export function ExtractionRunsComparePage({
       label: (
         <Trans comment="How many records of a run match on every compared field">Matches</Trans>
       ),
-      render: (run) => run.summary?.perfectMatches ?? "–",
+      render: (run) => <Count value={run.summary?.perfectMatches} />,
     },
     {
       key: "mismatches",
@@ -148,35 +167,19 @@ export function ExtractionRunsComparePage({
           Mismatches
         </Trans>
       ),
-      render: (run) => run.summary?.mismatches ?? "–",
+      render: (run) => <Count value={run.summary?.mismatches} />,
     },
     {
       key: "errors",
       label: <Trans comment="How many records of a run an error stopped">Errors</Trans>,
-      render: (run) => run.summary?.errors ?? "–",
+      render: (run) => <Count value={run.summary?.errors} />,
     },
     {
       key: "total",
       label: <Trans comment="How many records a run asked">Records</Trans>,
-      render: (run) => run.summary?.total ?? "–",
+      render: (run) => <Count value={run.summary?.total} />,
     },
   ]
-  const rows = comparisonRowsOf(
-    runs.map((run, index) => ({
-      runId: run.id,
-      records: recordsByRun[index]?.data?.records ?? [],
-    })),
-    columnsOfRole(dataset, "input").map((column) => column.id),
-  )
-  const runHeads = runs.map((run) => (
-    <ComparedRunHead
-      key={run.id}
-      agentParams={agentParams}
-      datasetId={dataset.id}
-      run={run}
-      revision={run.agentRevision}
-    />
-  ))
   return (
     <CompareRunsPageFrame agentParams={agentParams} dataset={dataset} runCount={runCount}>
       <RunFiguresTable
@@ -186,105 +189,18 @@ export function ExtractionRunsComparePage({
         figures={figures}
         revisionOf={(run) => run.agentRevision}
       />
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold">
-            <Trans comment="The title of the records of the runs compared">Record by record</Trans>
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            <Trans>
-              Where each record stands in each run, with how many of its compared fields match.
-            </Trans>
-          </p>
-        </div>
-        <div className="overflow-hidden rounded-lg border bg-background dark:bg-card">
-          <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="h-9 text-xs">#</TableHead>
-                <TableHead className="h-9 text-xs">
-                  <Trans comment="The header of the column of the records compared">Record</Trans>
-                </TableHead>
-                {runHeads}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow className="hover:bg-transparent">
-                  <TableCell
-                    colSpan={runCount + 2}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    {isLoading ? (
-                      <TableLoadingRows>
-                        <Trans>Loading the results…</Trans>
-                      </TableLoadingRows>
-                    ) : hasFailed ? (
-                      <TableLoadError
-                        onRetry={() => {
-                          for (const records of recordsByRun) {
-                            if (records.isError) void records.refetch()
-                          }
-                        }}
-                      >
-                        <Trans>The results could not load.</Trans>
-                      </TableLoadError>
-                    ) : (
-                      <Trans>These runs have no record yet.</Trans>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rows.map((row, index) => (
-                  <TableRow key={row.key}>
-                    <TableCell className="align-top font-mono text-xs text-muted-foreground tabular-nums">
-                      {page * EXTRACTION_RUN_RECORDS_PAGE_SIZE + index + 1}
-                    </TableCell>
-                    <TableCell className="align-top">
-                      <p
-                        title={row.label}
-                        className="line-clamp-2 max-w-96 min-w-40 whitespace-normal wrap-anywhere"
-                      >
-                        {row.label || "–"}
-                      </p>
-                    </TableCell>
-                    {runs.map((run) => {
-                      const record = row.byRunId[run.id]
-                      const fields = record ? matchedFieldsOf(record.comparison) : null
-                      const matched = fields?.matched ?? 0
-                      const scored = fields?.scored ?? 0
-                      return (
-                        <TableCell key={run.id} className="align-top">
-                          {record ? (
-                            <div className="flex flex-wrap items-center gap-2">
-                              <RecordStatusBadge status={record.status} />
-                              {scored > 0 ? (
-                                <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
-                                  <Trans comment="Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields">
-                                    {matched} / {scored} fields
-                                  </Trans>
-                                </span>
-                              ) : null}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">–</span>
-                          )}
-                        </TableCell>
-                      )
-                    })}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <TablePagination
-          page={page}
-          pageSize={EXTRACTION_RUN_RECORDS_PAGE_SIZE}
-          total={recordTotal}
-          onPageChange={onPageChange}
-        />
-      </section>
+      <ExtractionComparisonRecords
+        agentParams={agentParams}
+        datasetId={dataset.id}
+        runs={runs}
+        rows={rows}
+        page={page}
+        onPageChange={onPageChange}
+        recordTotal={pages.total}
+        isLoading={pages.isLoading}
+        hasFailed={pages.hasFailed}
+        onRetry={pages.retry}
+      />
       {shownVersion ? (
         <AgentVersionsSheet
           isOpen
@@ -300,38 +216,4 @@ export function ExtractionRunsComparePage({
       ) : null}
     </CompareRunsPageFrame>
   )
-}
-
-/** A record of the dataset, in the comparison: what names it, and its record in each run. */
-type ComparisonRow = {
-  key: string
-  label: string
-  byRunId: Record<string, ExtractionRunRecordOutputDto | undefined>
-}
-
-/**
- * The rows of the comparison: each record of the dataset one run or more asked, in the order the
- * first run that asked it holds it, named by what the agent read.
- */
-function comparisonRowsOf(
-  runs: { runId: string; records: ExtractionRunRecordOutputDto[] }[],
-  inputColumnIds: string[],
-): ComparisonRow[] {
-  const rows = new Map<string, ComparisonRow>()
-  for (const { runId, records } of runs) {
-    for (const record of records) {
-      const key = record.evaluationExtractionDatasetRecordId
-      const row = rows.get(key) ?? {
-        key,
-        label: inputColumnIds
-          .map((columnId) => cellTextOf(record.datasetRecordData?.[columnId]))
-          .filter(Boolean)
-          .join(" · "),
-        byRunId: {},
-      }
-      row.byRunId[runId] = record
-      rows.set(key, row)
-    }
-  }
-  return [...rows.values()]
 }
