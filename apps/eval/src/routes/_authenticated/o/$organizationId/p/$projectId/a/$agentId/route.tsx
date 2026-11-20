@@ -7,11 +7,14 @@ import { SidebarClosedOnly } from "@/components/shared/SidebarClosedOnly"
 import {
   AgentSidebarHeader,
   agentSearchSchema,
+  canEvaluate,
   findAgent,
   loadEvaluationWorkspace,
   rememberLastAgent,
 } from "@/features/agents"
 import { prefetchCampaigns } from "@/features/campaigns"
+import { prefetchConversationDatasets } from "@/features/conversation-datasets"
+import { prefetchExtractionDatasets } from "@/features/extraction-datasets"
 import { uuidParams } from "@/lib/not-found"
 import { AgentSectionsNav } from "@/routes/-components/AgentSectionsNav"
 import { AppSidebarFooter } from "@/routes/-components/AppSidebarFooter"
@@ -31,10 +34,18 @@ export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$proje
     if (!agent) throw notFound()
     return { agent }
   },
-  // The sidebar's campaigns must not block the page: their query starts here, unawaited.
+  // The sidebar's lists must not block the page: their queries start here, unawaited.
   loader: ({ context, params }) => {
     rememberLastAgent(context.agent.id)
     prefetchCampaigns(context.queryClient, context.agent, params)
+    // The sidebar's datasets too, for who evaluates the agent.
+    if (canEvaluate(context.agent)) {
+      if (context.agent.type === "conversation") {
+        prefetchConversationDatasets(context.queryClient, params)
+      } else {
+        prefetchExtractionDatasets(context.queryClient, params)
+      }
+    }
   },
   pendingComponent: AppShellSkeleton,
   errorComponent: RouteErrorState,

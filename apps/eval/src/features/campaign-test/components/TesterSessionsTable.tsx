@@ -32,7 +32,8 @@ export function TesterSessionsTable({
       translate: (descriptor) => i18n._(descriptor),
       actions: {
         giveFeedbackLabel: (started) => t`Give feedback on the session of ${started}`,
-        openLabel: (started) => t`Open the session of ${started}`,
+        chatLabel: (started) => t`Chat in the session of ${started}`,
+        viewLabel: (started) => t`View the session of ${started}`,
         deleteLabel: (started) => t`Delete the session of ${started}`,
         onGiveFeedback,
         onDelete,

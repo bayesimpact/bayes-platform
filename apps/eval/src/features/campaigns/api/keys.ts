@@ -1,8 +1,4 @@
-import type {
-  AgentParamsDto,
-  ProjectParamsDto,
-  ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+import type { ProjectParamsDto, ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
 
 export const campaignKeys = {
   all: ["campaigns"] as const,
@@ -12,6 +8,4 @@ export const campaignKeys = {
     [...campaignKeys.all, "detail", campaign.reviewCampaignId] as const,
   invitations: (campaign: ReviewCampaignParamsDto) =>
     [...campaignKeys.all, "invitations", campaign.reviewCampaignId] as const,
-  agentVersions: (agent: AgentParamsDto) =>
-    [...campaignKeys.all, "agent-versions", agent.agentId] as const,
 }

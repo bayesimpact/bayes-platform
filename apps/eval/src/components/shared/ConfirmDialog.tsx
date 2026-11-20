@@ -18,6 +18,8 @@ export type ConfirmDialogProps = {
   description: ReactNode
   /** The text of the button that confirms. */
   confirmLabel: ReactNode
+  /** The text of the button that gives up, when Cancel would read as the action itself. */
+  dismissLabel?: ReactNode
   /** Whether confirming removes something for good: the button then warns. */
   isDestructive?: boolean
   /** While the action runs, the button waits. */
@@ -32,6 +34,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  dismissLabel,
   isDestructive = false,
   isPending,
   onConfirm,
@@ -44,9 +47,7 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>
-            <Trans>Cancel</Trans>
-          </AlertDialogCancel>
+          <AlertDialogCancel>{dismissLabel ?? <Trans>Cancel</Trans>}</AlertDialogCancel>
           <Button
             variant={isDestructive ? "destructive" : "default"}
             disabled={isPending}

@@ -2,8 +2,8 @@ import type { CampaignReportSessionOutputDto } from "@caseai-connect/eval-contra
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 import { meanRatingOf } from "@/lib/format-rating"
-import { fullDateTimeOf } from "@/lib/format-time"
 import { shortIdOf } from "@/lib/short-id"
 
 const columnHelper = createColumnHelper<CampaignReportSessionOutputDto>()
@@ -36,9 +36,7 @@ export function reportSessionColumnsOf({
     }) as ColumnDef<CampaignReportSessionOutputDto, unknown>,
     columnHelper.accessor("startedAt", {
       header: translate(reportSessionColumnLabels.started),
-      cell: (context) => (
-        <span className="text-muted-foreground">{fullDateTimeOf(context.getValue(), locale)}</span>
-      ),
+      cell: (context) => <TimeAgo moment={context.getValue()} />,
     }) as ColumnDef<CampaignReportSessionOutputDto, unknown>,
     columnHelper.accessor("testerRating", {
       header: translate(reportSessionColumnLabels.tester),

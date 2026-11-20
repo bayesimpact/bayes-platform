@@ -1,0 +1,10 @@
+language js
+
+// React Hook Form's `watch` re-renders through a subscription the React Compiler cannot see: a
+// memoized component keeps the first value. `useWatch` is a hook, which the compiler follows.
+or {
+  `$form.watch($field)`,
+  `watch($field)`
+} as $call where {
+  register_diagnostic(span=$call, message="Read a form's value with `useWatch({ control, name })`: the React Compiler memoizes around `watch`, which then keeps the first value it returned.", severity="error")
+}

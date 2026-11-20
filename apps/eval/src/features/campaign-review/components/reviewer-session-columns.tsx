@@ -8,9 +8,9 @@ import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { cn } from "cn"
 import { CheckCircle2Icon, CircleDashedIcon } from "lucide-react"
+import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
-import { fullDateTimeOf } from "@/lib/format-time"
 import { shortIdOf } from "@/lib/short-id"
 
 const columnHelper = createColumnHelper<ReviewerSessionListItemOutputDto>()
@@ -40,12 +40,10 @@ const reviewerSessionColumnLabels = {
 /** The columns of the sessions to review; the last one opens the session. */
 export function reviewerSessionColumnsOf({
   campaign,
-  locale,
   translate,
   openLabel,
 }: {
   campaign: ReviewCampaignParamsDto
-  locale: string
   translate: (descriptor: MessageDescriptor) => string
   /** The name of the link that opens a session, by its short id. */
   openLabel: (session: ReviewerSessionListItemOutputDto) => string
@@ -65,9 +63,7 @@ export function reviewerSessionColumnsOf({
     }) as ColumnDef<ReviewerSessionListItemOutputDto, unknown>,
     columnHelper.accessor("startedAt", {
       header: translate(reviewerSessionColumnLabels.started),
-      cell: (context) => (
-        <span className="text-muted-foreground">{fullDateTimeOf(context.getValue(), locale)}</span>
-      ),
+      cell: (context) => <TimeAgo moment={context.getValue()} />,
     }) as ColumnDef<ReviewerSessionListItemOutputDto, unknown>,
     columnHelper.accessor("messageCount", {
       header: translate(reviewerSessionColumnLabels.messages),

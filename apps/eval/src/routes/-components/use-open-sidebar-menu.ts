@@ -28,3 +28,29 @@ export function useOpenSidebarMenu(): SidebarMenuName | null {
 /** Whether a menu opens at first: the one of the current page, or every one when none holds it. */
 export const isMenuOpenAtFirst = (menu: SidebarMenuName, openMenu: SidebarMenuName | null) =>
   openMenu === null || openMenu === menu
+
+/** A top menu of an agent's sidebar that folds: its evaluations, or everything about campaigns. */
+export type SidebarTopMenuName = "evaluations" | "campaigns"
+
+const EVALUATIONS_ROUTE = "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations"
+
+/**
+ * The top menu of the sidebar that holds the current page, which alone opens at first: on a page
+ * of Evaluations, Campaigns folds, and the other way round. On a page neither holds, such as an
+ * agent's hub, none: both open.
+ */
+export function useOpenSidebarTopMenu(): SidebarTopMenuName | null {
+  return useMatches({
+    select: (matches) => {
+      const isUnder = (route: string) => matches.some((match) => match.routeId.startsWith(route))
+      if (isUnder(EVALUATIONS_ROUTE)) return "evaluations"
+      return MENUS.some((menu) => isUnder(MENU_ROUTES[menu])) ? "campaigns" : null
+    },
+  })
+}
+
+/** Whether a top menu opens at first: the one of the current page, or both when none holds it. */
+export const isTopMenuOpenAtFirst = (
+  menu: SidebarTopMenuName,
+  openMenu: SidebarTopMenuName | null,
+) => openMenu === null || openMenu === menu

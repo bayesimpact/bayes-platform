@@ -1,4 +1,5 @@
 import {
+  type AgentParamsDto,
   EvalAgentsRoutes,
   EvalOrganizationsRoutes,
   EvalProjectsRoutes,
@@ -41,5 +42,20 @@ export const evaluationWorkspaceQueryOptions = () =>
         groups: groupEvaluationAgents(evaluationProjects, agentsOfProjects),
         myCampaigns: mergeMyCampaigns(asTester.reviewCampaigns, asReviewer.reviewCampaigns),
       }
+    },
+  })
+
+/**
+ * The saved versions of an agent's settings a campaign or an evaluation can run on, newest first: the draft, which
+ * changes under the testers, is not one of them.
+ */
+export const agentVersionsQueryOptions = (agent: AgentParamsDto) =>
+  queryOptions({
+    queryKey: evaluationAgentKeys.versions(agent),
+    queryFn: async ({ signal }) => {
+      const versions = await apiRequest(EvalAgentsRoutes.getVersions, { params: agent, signal })
+      return versions
+        .filter((version) => !version.isDraft)
+        .sort((first, second) => second.revision - first.revision)
     },
   })

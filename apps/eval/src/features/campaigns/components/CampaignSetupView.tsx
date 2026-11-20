@@ -6,11 +6,11 @@ import type {
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
+import { AgentVersionTitle } from "@/components/shared/AgentVersionTitle"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import { AGENT_TYPE_LABELS } from "@/lib/agent-type-labels"
-import { agentVersionsQueryOptions } from "../api/queries"
-import { AgentVersionTitle } from "./AgentVersionTitle"
 import { FeedbackFormFields } from "./FeedbackFormFields"
 
 export type CampaignSetupViewProps = {

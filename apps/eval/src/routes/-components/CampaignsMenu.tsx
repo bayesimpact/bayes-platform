@@ -5,6 +5,7 @@ import { SidebarCollapsibleMenu } from "@/components/shared/SidebarCollapsibleMe
 import type { EvaluationAgent } from "@/features/agents"
 import { CampaignsSidebarEntries } from "@/features/campaigns"
 import { ParticipantSidebarMenus } from "./ParticipantSidebarMenus"
+import { isTopMenuOpenAtFirst, useOpenSidebarTopMenu } from "./use-open-sidebar-menu"
 import { useParticipantCampaigns } from "./use-participant-campaigns"
 
 export type CampaignsMenuProps = {
@@ -15,14 +16,18 @@ export type CampaignsMenuProps = {
 
 /**
  * The Campaigns menu of the sidebar: the agent's campaigns for who manages them, then the
- * sub-menus of those the person reviews or tests. It shows when it holds something, and starts
- * open: every page of a campaign is in it.
+ * sub-menus of those the person reviews or tests. It shows when it holds something. It starts
+ * open, unless the page is one of the agent's evaluations.
  */
 export function CampaignsMenu({ agentId, managed }: CampaignsMenuProps) {
   const { tested, reviewed } = useParticipantCampaigns(agentId)
+  const openTopMenu = useOpenSidebarTopMenu()
   if (!managed && tested.length === 0 && reviewed.length === 0) return null
   return (
     <SidebarCollapsibleMenu
+      // Another section's page starts the menu afresh: it opens or folds as that page asks.
+      key={`campaigns-${openTopMenu}`}
+      isOpenAtFirst={isTopMenuOpenAtFirst("campaigns", openTopMenu)}
       Icon={MegaphoneIcon}
       label={
         <Trans comment="The sidebar's menu of the review campaigns an agent's managers run">

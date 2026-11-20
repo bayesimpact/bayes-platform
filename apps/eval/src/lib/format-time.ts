@@ -36,11 +36,6 @@ export function shortDateTimeOf(moment: number, locale: string): string {
   }).format(moment)
 }
 
-/** The date of a moment, in the person's language: "Oct 21, 2026". */
-export function fullDateOf(moment: number, locale: string): string {
-  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(moment)
-}
-
 /** How long something took, in the person's language: "14 sec", "2 min 5 sec", "1 hr 3 min". */
 export function durationOf(milliseconds: number, locale: string): string {
   const totalSeconds = Math.max(0, Math.round(milliseconds / 1000))

@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react"
  */
 export function useAbortOnUnmount(): () => AbortSignal {
   const controllerRef = useRef<AbortController | null>(null)
+  // Leaving is outside React: an effect aborts the last request when the component goes.
   useEffect(() => () => controllerRef.current?.abort(), [])
   return () => {
     controllerRef.current = new AbortController()

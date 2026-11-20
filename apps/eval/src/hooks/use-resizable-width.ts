@@ -8,6 +8,8 @@ type UseResizableWidthOptions = {
   maxWidth: number
   /** The edge the handle sits on: dragging it outwards widens the element. */
   edge: "left" | "right"
+  /** Called each time the person gives the element another width, while they drag too. */
+  onResize?: () => void
 }
 
 /** How far an arrow key moves the edge. */
@@ -45,6 +47,7 @@ export function useResizableWidth({
   minWidth,
   maxWidth,
   edge,
+  onResize,
 }: UseResizableWidthOptions) {
   const [width, setWidth] = useState(() =>
     clamp(readStoredWidth(storageKey) ?? defaultWidth, minWidth, maxWidth),
@@ -56,6 +59,7 @@ export function useResizableWidth({
     const clamped = clamp(next, minWidth, maxWidth)
     setWidth(clamped)
     storeWidth(storageKey, clamped)
+    onResize?.()
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
@@ -66,8 +70,10 @@ export function useResizableWidth({
     const startWidth = width
     setIsResizing(true)
     // Followed on the window, so a fast drag that leaves the thin edge still resizes.
-    const handleMove = (moveEvent: globalThis.PointerEvent) =>
+    const handleMove = (moveEvent: globalThis.PointerEvent) => {
       setWidth(clamp(startWidth + (moveEvent.clientX - startX) * outwards, minWidth, maxWidth))
+      onResize?.()
+    }
     const handleUp = (upEvent: globalThis.PointerEvent) => {
       window.removeEventListener("pointermove", handleMove)
       window.removeEventListener("pointerup", handleUp)

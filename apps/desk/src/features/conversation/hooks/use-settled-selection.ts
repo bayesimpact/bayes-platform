@@ -16,6 +16,7 @@ export type ReplyClick = { x: number; y: number }
 export function useSettledSelection(onSettle: (click: ReplyClick | null) => void) {
   const handleSettle = useEffectEvent((click: ReplyClick | null) => onSettle(click))
 
+  // The selection lives in the browser, outside React: an effect listens to it.
   useEffect(() => {
     let isMouseDown = false
     let timer: ReturnType<typeof setTimeout> | undefined

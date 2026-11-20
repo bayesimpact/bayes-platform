@@ -22,7 +22,6 @@ export function ReviewerSessionsTable({ campaign, sessions }: ReviewerSessionsTa
     data: sessions,
     columns: reviewerSessionColumnsOf({
       campaign,
-      locale: i18n.locale,
       translate: (descriptor) => i18n._(descriptor),
       openLabel: (session) => {
         const id = shortIdOf(session.sessionId)

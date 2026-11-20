@@ -46,6 +46,7 @@ export function useMcpApp(
   const handleFailed = useEffectEvent(() => onFailed())
   const readToolData = useEffectEvent(() => ({ input: app.toolInput, result: app.toolResult }))
 
+  // The app runs in a frame, outside React: an effect mounts it, and takes it down.
   useEffect(() => {
     const frame = frameRef.current
     if (!frame) return

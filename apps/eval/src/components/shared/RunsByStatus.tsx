@@ -1,0 +1,105 @@
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { useNavigate, useSearch } from "@tanstack/react-router"
+import { type ReactNode, useMemo } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RUN_STATUS_LABELS, RUN_STATUS_ORDER, type RunSummary } from "@/lib/run-status"
+
+/** The dataset's page, where the runs show: the sub-tab is one of its search params. */
+const DATASET_ROUTE_ID =
+  "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/"
+const DATASET_ROUTE_PATH = "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/"
+
+/** No run: a status always holds some, since the sub-tabs are those of the runs there are. */
+const NO_RUN: never[] = []
+
+export type RunsByStatusProps<TRun extends RunSummary> = {
+  /** The agent's runs of a dataset, the newest first. */
+  runs: TRun[]
+  /** What sits beside the title, such as the way to compare runs. */
+  actions?: ReactNode
+  /** The table of the runs that stand at one status. */
+  renderTable: (runs: TRun[]) => ReactNode
+}
+
+/**
+ * The runs of an agent on a dataset, in one sub-tab per status, the newest first in each: the
+ * feature gives the table of its own runs.
+ */
+export function RunsByStatus<TRun extends RunSummary>({
+  runs,
+  actions,
+  renderTable,
+}: RunsByStatusProps<TRun>) {
+  const { i18n } = useLingui()
+  const runCount = runs.length
+  // The statuses that hold runs, in the order of the sub-tabs.
+  const statuses = RUN_STATUS_ORDER.filter((status) => runs.some((run) => run.status === status))
+  // The runs of each status: the rows of a table, the same array from one render to the next
+  // while the runs are the same.
+  const runsByStatus = useMemo(
+    () =>
+      new Map(
+        RUN_STATUS_ORDER.map((status) => [status, runs.filter((run) => run.status === status)]),
+      ),
+    [runs],
+  )
+  const [firstStatus] = statuses
+  // The sub-tab the person chose, which the URL holds, stays while it holds runs: a run that
+  // ends, read again by itself, must not take them to another sub-tab.
+  const { status: chosenStatus } = useSearch({ from: DATASET_ROUTE_ID })
+  const navigate = useNavigate({ from: DATASET_ROUTE_PATH })
+  const shownStatus = chosenStatus && statuses.includes(chosenStatus) ? chosenStatus : firstStatus
+  return (
+    <>
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold">
+            <Trans comment="The title of the runs of a dataset">Runs</Trans>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            <Plural value={runCount} _0="No run yet" one="# run" other="# runs" />
+          </p>
+        </div>
+        {actions}
+      </div>
+      {runCount === 0 ? (
+        <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <Trans>No evaluation ran on this dataset yet.</Trans>
+        </p>
+      ) : null}
+      {shownStatus ? (
+        <Tabs
+          value={shownStatus}
+          onValueChange={(value) =>
+            void navigate({
+              search: (previous) => ({
+                ...previous,
+                status: RUN_STATUS_ORDER.find((status) => status === value),
+              }),
+              replace: true,
+            })
+          }
+        >
+          <TabsList variant="line" className="max-w-full overflow-x-auto">
+            {statuses.map((status) => {
+              const statusName = i18n._(RUN_STATUS_LABELS[status])
+              const count = i18n.number(runsByStatus.get(status)?.length ?? 0)
+              return (
+                <TabsTrigger key={status} value={status}>
+                  <Trans comment="A sub-tab of a dataset's runs: a status and how many runs stand at it">
+                    {statusName} ({count})
+                  </Trans>
+                </TabsTrigger>
+              )
+            })}
+          </TabsList>
+          {statuses.map((status) => (
+            <TabsContent key={status} value={status}>
+              {renderTable(runsByStatus.get(status) ?? NO_RUN)}
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : null}
+    </>
+  )
+}

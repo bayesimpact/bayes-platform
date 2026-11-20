@@ -118,8 +118,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   without `cn`, the variant's border loses to the base's `border-transparent`.
 - A page in two parts is a `SplitPage` (`components/shared/`): the page on the left, a `SidePanel`
   on the right, each scrolling alone, with a `SidePanelToggle` in the bar above the page.
-  `useSidePanel` shows the panel from the start where the window has room for it. Three pages use
-  it: a campaign's setup with the preview of its forms (the `preview` search param), a session
+  `useSidePanel` shows the panel from the start where the window has room for it. Four pages use
+  it: a run of an evaluation with what it used, a campaign's setup with the preview of its forms (the `preview` search param), a session
   with the reviewer's review, and a tester's conversation with the feedback that ends it
   (`ConversationView`'s `sidePanel`). The blocks of a panel are `PanelSection`s.
 - The command center that switches agent (`AgentCommandCenterProvider` in `features/agents`,
@@ -137,8 +137,115 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   there is nothing.
 - An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, whose
   `route.tsx` is the frame and `index.tsx` the hub, or the way to the agent's only section.
-  `evaluations/` holds the place of the datasets and the runs, empty for now, for who evaluates
-  the agent (`requireEvaluationAgent` in `features/agents`).
+  `evaluations/` holds its datasets and their runs, for who evaluates the agent
+  (`requireEvaluationAgent` in `features/agents`).
+- The evaluations of a conversation agent (`features/conversation-datasets`), on the API's
+  `evaluation-conversation-datasets` routes (`EvalConversationDatasetsRoutes`): `evaluations/`
+  lists the datasets of the agent's project, which every conversation agent of the project shares,
+  and `evaluations/$datasetId` shows one with all its records: the API pages them, 100 at most,
+  and the app reads every page (`conversationDatasetRecordsQueryOptions`). Creating, renaming and deleting a
+  dataset each check their own `evaluation.conversation.dataset.*` permission; a record is added,
+  changed and deleted with the update one, as the API does. A row's actions are Open grouped with
+  a « ⋯ » menu (`DatasetRowActions`); a record's and the dataset page's are a « ⋯ » menu alone.
+  Records are added one at a time (`RecordDialog`) or pasted, one per line, the input then the
+  expected output after the first comma (`BulkRecordsDialog`, `parseBulkRecords`). A record's
+  comment comes from the Studio's "Save as test case" and is only read here. In the sidebar,
+  Evaluations is then a menu that folds, as Campaigns: List all, New dataset, which opens the
+  list with its dialog (the `create` search param), then the datasets
+  (`ConversationDatasetsSidebarEntries`). A dataset's page has two tabs, Records and Runs (the
+  `tab` search param). The dataset whose page shows, or one of whose runs does, lists its runs
+  under it in the sidebar, grouped by where they stand (`ConversationRunLinks` in
+  `features/conversation-runs`).
+- The runs of a conversation dataset (`features/conversation-runs`), on the API's
+  `evaluation-conversation-runs` routes (`EvalConversationRunsRoutes`). Run evaluation, on a
+  dataset's page, opens a side panel of the dataset's page, which the `run` search param shows
+  (`RunEvaluationPanel`): the version of the agent, picked with the shared
+  `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
+  project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
+  instructions for the judge, and all the records or the first ones. It creates the run, starts it,
+  then opens its page. The Runs tab (`ConversationRunsSection`) lists the agent's runs of the dataset (a run
+  of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). Each run shows by its short id, which opens it, and how long ago it started, the
+  shared `RelativeTime`. A run's version opens the
+  history of the agent's versions on it, the shared `AgentVersionsSheet` without its choice, to
+  compare it with the others. A run's page, `evaluations/$datasetId/runs/$runId`
+  (`ConversationRunPage`), shows its figures and all its records, with what it used in a side panel of two tabs (`RunSettingsPanel`): Agent, with its
+  type, the version asked, which opens the history of its versions, its model, its thinking level
+  (`thinkingLevelOf`) and its instructions, and Judge, with its model and its instructions; its records are read as a dataset's, with
+  Cancel while it is under way, after a confirmation, and a « ⋯ » menu that holds Retry, after a
+  failure, and Delete. Its scores read out of 5, as the judge gives them (`scoreOf`). Filters above its results narrow them to
+  the errors, the low scores, the records that wait or were not asked (`result-filters.ts`): only
+  those that keep something show, and the `result` search param holds the one chosen. The table cuts each text after three lines; a row opens its
+  record whole in a sheet (`RunRecordSheet`), its expected output and its answer rendered from
+  Markdown. A run under way is read again
+  every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
+  The table also shows where each record stands and, once a record has one, the form the
+  agent filled (`FilledForm`). Two runs or more, picked by their boxes, compare side by side
+  (`ConversationRunsComparePage`): their figures, then the score of each record.
+- In the sidebar, of Evaluations and Campaigns, only the menu that holds
+  the current page opens at first, and both on a page neither holds (`useOpenSidebarTopMenu` in
+  `src/routes/-components/`).
+- What the evaluations of both types of agent share lives in `components/shared/` and `lib/`, and
+  each feature gives its own data, texts and calls: the list of datasets (`DatasetsListPage`,
+  `DatasetsTable`), the dialogs that create, rename and delete one (`DatasetDialogs`, which takes
+  the feature's mutations as `MutationLike`), the frame of a dataset's page (`DatasetPageFrame`),
+  the sidebar's entries (`DatasetsSidebarEntries`, `DatasetSidebarLinks`, `RunSidebarLinks`), the
+  runs of a dataset (`RunsSection`, which takes the feature's runs, its delete mutation and its
+  table; `RunsByStatus`, whose sub-tab the `status` search param holds; `RunRowActions`,
+  `RunVersionButton`, `DeleteRunDialog`), the top of a run's page (`RunPageHeader`), what a run
+  used about its agent in its side panel (`RunAgentFacts`, `RunFact`), the filters of its results
+  (`ResultFilters`), how many records a new run asks (`RunScopeField`, on `lib/run-scope.ts`), a
+  run's statuses (`lib/run-status.ts`), the search params of the datasets' pages
+  (`lib/dataset-search.ts`) and of a run's page (`lib/run-search.ts`), the roots of the runs'
+  query keys, which a dataset's deletion invalidates (`lib/run-query-keys.ts`), the skeleton of
+  the evaluation pages (`EvaluationPageSkeleton`), a number in a cell (`Count`) and the greens of
+  what goes well (`lib/success-classes.ts`).
+  The routes under `evaluations/` are the same for both types: each picks its feature from
+  `agent.type`.
+- `DataTable` calls the function of a cell or of a header, where `flexRender` would mount it as a
+  component: a table builds its columns at each render, with the handlers of its props, and what
+  a cell holds keeps its state all the same (a row's open menu while a run under way is read
+  again). A cell that needs a hook is a component the function returns.
+- A table of records the API pages keeps its page, its order and its search in the URL
+  (`lib/records-search.ts`: `recordsSearchSchema`, `recordsQueryOf`, which builds the API's
+  `columnFilters`, `sortBy` and `sortOrder`), reads its page with `useQuery` and
+  `keepPreviousData`, a page its route's loader starts unawaited, and shows `ColumnFilters` (a column and the text it must hold, applied on Enter
+  or the button, several columns at once, each filter with the way to take it away) and `TablePagination` around the `DataTable`. The route's component gives the search
+  and takes its changes. The records of an extraction dataset, the results of an extraction run
+  and the comparison of runs work that way, 50 rows a page. The records of a conversation dataset
+  and of a conversation run, written by hand and few, are still read whole.
+- What the former evaluation app (`apps/web/src/eval`) did is the reference for both types of
+  agent: its behaviours are kept unless the product owner asked otherwise. Kept on purpose from
+  it: the "N records remaining" badge and the progress text of a run under way
+  (`RunPageHeader`, `RunProgressNote`), a toast when a run a person watches ends
+  (`useRunEndToasts`, on the polled data), the trace of an answer for who holds `trace.read`
+  only (`canReadTracesQueryOptions`), the agent's temperature, document search and a link to the Studio
+  in a run's panel, the row numbers of the tables, the select-all box of the runs, and the
+  former URLs, `/o/$organizationId/p/$projectId/conversation/...` and `.../extraction/...`,
+  which redirect to the same page under an agent (`legacy-evaluations-redirect.ts`). A run's
+  page is the page of one agent: a run of another agent is not found there. Changed on purpose:
+  pages under one agent, a run started from a side panel of its dataset's page, polling in place of the status stream, and
+  a confirmation before a run is cancelled.
+- The evaluations of an extraction agent (`features/extraction-datasets`,
+  `features/extraction-runs`), on the API's `evaluation-extraction-datasets` and
+  `evaluation-extraction-runs` routes. A new dataset has no record: its page shows what builds
+  them (`ExtractionDatasetSetup`), a CSV file of the project to choose or to upload (presign, PUT
+  to the signed URL, confirm), then the dataset's name, and the name and the role of each of its columns: input, target,
+  reference or ignore (`lib/extraction-columns.ts`). A dataset with records shows them a page at a time, with
+  every column and its role, and a row opens its record whole in a sheet: the API pages, sorts and searches them, as a dataset may hold
+  thousands (`ExtractionRecordsSection`). A new run, in a side panel of the dataset's page
+  (`RunExtractionPanel`), picks a saved version, pairs each field of the version's output schema
+  with a target column or only shows it (`key-mapping.ts`), and asks all the records or the first
+  ones. The Runs tab adds a box per run: two runs or more open in
+  `evaluations/$datasetId/compare?runs=`, their figures then each record side by side. The box is
+  the cell's own component (`RunCompareCheckbox`) on TanStack's row selection, so it is not
+  remounted, and keeps the focus, when the table renders again. A run's page shows its match rate,
+  its matches, mismatches and errors, then its results: for each field the value expected, when
+  the field is compared, then what the agent returned with a mark, a column of the errors when
+  a record of the page has one, filters by status, and a sheet with the whole record.
+  Its results come a page at a time too, as the comparison's records do. Its side
+  panel has two tabs, Agent and Fields. A run that is over offers its results as a CSV file
+  (`useOpenRunCsv`), from a button beside the filters of its results, and from its row's menu in
+  the Runs tab. A run under way is read again every 3 seconds.
 - Review campaigns, for who manages them (`features/campaigns`), under an agent's
   `review-campaigns/`: the list, `new`, the editor `$reviewCampaignId` (its tab in the `tab` search
   param: setup, participants, summary) and its `report`. The report is a tab too, at its own URL:
@@ -165,8 +272,10 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   goes to production meanwhile. The Campaign step names it (`AgentVersionField`), the one in
   production by default, and opens the agent's history in a sheet (`AgentVersionsSheet`), as the
   Studio shows it: the saved versions, never the draft, each one's changes against the version
-  before it or the one in production (`agent-version-diff.ts`, drawn by `@pierre/diffs` in
-  `TextDiff`, the Studio's library), and a button that selects it. The versions come from
+  before it or the one in production (`lib/agent-version-diff.ts`, drawn by `@pierre/diffs` in
+  `TextDiff`, the Studio's library), and a button that selects it. The picker, the sheet and
+  their parts live in `components/shared/`, since a run picks and shows a version too; they take
+  the versions, which `agentVersionsQueryOptions` of `features/agents` reads from
   `GET .../agents/:agentId/settings` (`agent.settings.read`, which a campaign's managers hold).
   The General card of `CampaignSetupView` names the version of a campaign that no longer changes.
 - Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms
@@ -197,16 +306,25 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `components/shared/RatedFeedbackForm.tsx` (`lib/rated-feedback.ts`), for the tester's feedback
   and survey and the reviewer's review. The API checks the rating only: the form holds the
   required answers.
+- A date in a table or under a title reads as how long ago it was, with the full date and time
+  on hover: `TimeAgo` (`components/shared/`), which follows the clock by itself and words the time with
+  `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. The chat keeps the
+  Desk's `RelativeTime`, on `Intl`.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
-- The mocked API: `src/test/msw/handlers.ts` and `campaign-handlers.ts`, written with `mockRoute`
+- The mocked API: `src/test/msw/handlers.ts`, with one file of handlers per area beside it
+  (`campaign-handlers.ts`, `conversation-dataset-handlers.ts`, `conversation-run-handlers.ts`,
+  `extraction-dataset-handlers.ts`, `extraction-run-handlers.ts`), written with `mockRoute`
   and `mockStreamRoute` (`src/test/msw/mock-route.ts`) and fed by the factories of
   `src/test/factories/`, whose `eval-world.factory.ts` builds the worlds: the owner of a project
   with campaigns who evaluates it too (the main one), an owner who does not, a person who holds
   everything at once, a participant who only tests and reviews, and the edge cases.
   Its URLs come from `src/test/eval-urls.ts`.
-- The stories, in four folders of Storybook under `Evaluation`: `General`
-  (`src/stories/Eval.stories.tsx`), `Review campaigns` (`Campaigns.stories.tsx`), `Reviewer`
+- The stories, in six folders of Storybook under `Evaluation`: `General`
+  (`src/stories/Eval.stories.tsx`), `Conversation evaluations`
+  (`ConversationEvaluations.stories.tsx`), `Extraction evaluations`
+  (`ExtractionEvaluations.stories.tsx`, on `buildExtractionWorld`, with a spec of its own),
+  `Review campaigns` (`Campaigns.stories.tsx`), `Reviewer`
   (`Reviewer.stories.tsx`) and `Tester` (`Tester.stories.tsx`), with the meta of
   `src/stories/eval-meta.tsx`. `src/stories/Eval.stories.spec.tsx` renders every story in the
   tests.
