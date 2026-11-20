@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { resultCountsOf, resultFiltersOf } from "./result-filters"
+import { resultCountsOf, resultFiltersOf, shownResultFilterOf } from "./result-filters"
 
 const summary = { total: 10, perfectMatches: 4, mismatches: 2, errors: 1, running: 3 }
 
@@ -34,5 +34,16 @@ describe("resultCountsOf", () => {
 
   it("counts nothing before the run started", () => {
     expect(resultCountsOf({ status: "pending", summary: null }).all).toBe(0)
+  })
+})
+
+describe("shownResultFilterOf", () => {
+  it("shows the filter the URL names while the run holds results for it", () => {
+    expect(shownResultFilterOf({ status: "running", summary }, "errors")).toBe("errors")
+  })
+
+  it("shows every result for a filter that keeps nothing, and without a filter", () => {
+    expect(shownResultFilterOf({ status: "running", summary }, "notAsked")).toBe("all")
+    expect(shownResultFilterOf({ status: "running", summary }, undefined)).toBe("all")
   })
 })

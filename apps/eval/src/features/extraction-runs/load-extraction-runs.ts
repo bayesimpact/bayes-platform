@@ -7,7 +7,13 @@ import type { QueryClient } from "@tanstack/react-query"
 import { agentVersionsQueryOptions } from "@/features/campaigns"
 import { orNotFound } from "@/lib/not-found"
 import { loaderStaleTime } from "@/lib/start-query"
-import { extractionRunQueryOptions, projectExtractionRunsQueryOptions } from "./api/queries"
+import {
+  extractionRunQueryOptions,
+  extractionRunRecordsQueryOptions,
+  projectExtractionRunsQueryOptions,
+} from "./api/queries"
+import { type ExtractionResultFilter, resultFiltersOf, shownResultFilterOf } from "./result-filters"
+import type { ExtractionRunSearch } from "./schemas"
 
 /**
  * Loads what a dataset's page reads about runs: the project's runs, and the agent's saved
@@ -26,17 +32,28 @@ export async function loadExtractionRuns(queryClient: QueryClient, agent: AgentP
 }
 
 /**
- * Loads a run's page: the run. Its records load a page at a time, under the page. A run of
- * another dataset, or of another agent, is not found: the page shows one agent's runs.
+ * Loads a run's page: the run. The page of its results the URL names starts too, and blocks
+ * nothing: the table waits for it. A run of another dataset, or of another agent, is not found:
+ * the page shows one agent's runs.
  */
 export async function loadExtractionRun(
   queryClient: QueryClient,
   run: ExtractionRunParamsDto,
   { datasetId, agentId }: { datasetId: string; agentId: string },
+  { result, ...recordsSearch }: ExtractionRunSearch,
 ) {
+  const startResults = (filter: ExtractionResultFilter) =>
+    void queryClient.prefetchQuery({
+      ...extractionRunRecordsQueryOptions(run, recordsSearch, { filters: resultFiltersOf(filter) }),
+      staleTime: loaderStaleTime,
+    })
+  // With no filter in the URL, every result shows: their page starts with the run.
+  if (!result) startResults("all")
   const loaded = await orNotFound(() =>
     queryClient.query({ ...extractionRunQueryOptions(run), staleTime: loaderStaleTime }),
   )
+  // A filter shows only while the run holds results for it, which the run tells.
+  if (result) startResults(shownResultFilterOf(loaded, result))
   return loaded.evaluationExtractionDatasetId === datasetId && loaded.agentId === agentId
 }
 

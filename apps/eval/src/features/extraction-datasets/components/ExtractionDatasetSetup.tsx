@@ -69,8 +69,8 @@ function ChosenFileColumns({
   file,
   onChooseAnother,
 }: ChosenFileColumnsProps) {
-  // useQuery: the columns load after a click, under the page that already shows, which a
-  // suspended read would replace with the route's skeleton.
+  // useQuery: a conditional read, which starts once the person chose a file. The step shows its
+  // own loading and its own error, with the way to choose another file.
   const columns = useQuery(extractionFileColumnsQueryOptions(datasetParams, file.id))
   const fileName = file.fileName
   if (columns.data) {

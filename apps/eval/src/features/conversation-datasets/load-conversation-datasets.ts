@@ -8,6 +8,20 @@ import {
   projectConversationDatasetsQueryOptions,
 } from "./api/queries"
 
+/**
+ * Starts reading the conversation datasets of an agent's project for the sidebar, which must not
+ * hold the page back: nothing waits for it.
+ */
+export function prefetchConversationDatasets(
+  queryClient: QueryClient,
+  project: ProjectParamsDto,
+): void {
+  void queryClient.prefetchQuery({
+    ...projectConversationDatasetsQueryOptions(project),
+    staleTime: loaderStaleTime,
+  })
+}
+
 /** Loads the conversation datasets of a project, for the evaluations of one of its agents. */
 export async function loadConversationDatasets(
   queryClient: QueryClient,

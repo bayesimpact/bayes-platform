@@ -34,7 +34,9 @@ export const Route = createFileRoute(
   // Which results of an extraction run show: the API pages them.
   validateSearch: extractionRunSearchSchema,
   beforeLoad: ({ context }) => requireEvaluationAgent(context.agent),
-  loader: async ({ context, params }) => {
+  // The page of an extraction run's results, which its loader starts.
+  loaderDeps: ({ search }) => ({ search }),
+  loader: async ({ context, params, deps }) => {
     const isConversation = context.agent.type === "conversation"
     // The sidebar lists the dataset's runs, and the side panel opens the agent's versions.
     const [isOfDataset] = await Promise.all(
@@ -48,10 +50,12 @@ export const Route = createFileRoute(
             loadConversationRuns(context.queryClient, params),
           ]
         : [
-            loadExtractionRun(context.queryClient, extractionRunParamsOf(params, params.runId), {
-              datasetId: params.datasetId,
-              agentId: params.agentId,
-            }),
+            loadExtractionRun(
+              context.queryClient,
+              extractionRunParamsOf(params, params.runId),
+              { datasetId: params.datasetId, agentId: params.agentId },
+              deps.search,
+            ),
             loadExtractionDatasets(context.queryClient, params),
             loadExtractionRuns(context.queryClient, params),
           ],

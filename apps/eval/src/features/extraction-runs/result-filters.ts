@@ -47,6 +47,17 @@ const STATUSES = {
   notAsked: "cancelled",
 } satisfies Record<ExtractionResultFilter, ExtractionRunRecordStatusDto | null>
 
+/**
+ * The filter that shows, of the one the URL names: a filter that keeps nothing, or no longer as a
+ * run under way moves on, gives way to the one that shows every result.
+ */
+export function shownResultFilterOf(
+  run: Pick<ExtractionRunOutputDto, "status" | "summary">,
+  asked: ExtractionResultFilter | undefined,
+): ExtractionResultFilter {
+  return asked && asked !== "all" && resultCountsOf(run)[asked] > 0 ? asked : "all"
+}
+
 /** What a filter asks the API, beside the search: the status of the records it keeps. */
 export function resultFiltersOf(filter: ExtractionResultFilter): Record<string, string> {
   const status = STATUSES[filter]

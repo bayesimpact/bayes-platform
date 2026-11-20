@@ -3,7 +3,7 @@ import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { requireEvaluationAgent } from "@/features/agents"
 import { CampaignsPageSkeleton } from "@/features/campaigns"
 import { ConversationDatasetPage, loadConversationDataset } from "@/features/conversation-datasets"
-import { loadConversationRuns } from "@/features/conversation-runs"
+import { loadConversationRuns, loadJudgeModels } from "@/features/conversation-runs"
 import { ExtractionDatasetPage, loadExtractionDataset } from "@/features/extraction-datasets"
 import { loadExtractionRuns } from "@/features/extraction-runs"
 import { datasetSearchSchema } from "@/lib/dataset-search"
@@ -21,14 +21,18 @@ export const Route = createFileRoute(
   params: { parse: uuidParams("datasetId") },
   validateSearch: datasetSearchSchema,
   beforeLoad: ({ context }) => requireEvaluationAgent(context.agent),
-  loader: ({ context, params }) =>
+  // The page of an extraction dataset's records, which its loader starts.
+  loaderDeps: ({ search: { tab: _tab, run: _run, ...recordsSearch } }) => ({ recordsSearch }),
+  loader: ({ context, params, deps }) =>
     context.agent.type === "conversation"
       ? Promise.all([
           loadConversationDataset(context.queryClient, params),
           loadConversationRuns(context.queryClient, params),
+          // The form that starts a run picks its judge among the project's models.
+          loadJudgeModels(context.queryClient, params),
         ])
       : Promise.all([
-          loadExtractionDataset(context.queryClient, params),
+          loadExtractionDataset(context.queryClient, params, deps.recordsSearch),
           loadExtractionRuns(context.queryClient, params),
         ]),
   pendingComponent: CampaignsPageSkeleton,

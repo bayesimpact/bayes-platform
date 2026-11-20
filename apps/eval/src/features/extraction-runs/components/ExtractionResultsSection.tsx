@@ -26,6 +26,7 @@ import {
   EXTRACTION_RESULT_FILTERS,
   resultCountsOf,
   resultFiltersOf,
+  shownResultFilterOf,
 } from "../result-filters"
 import type { ExtractionRunSearch } from "../schemas"
 import { ExtractionRecordSheet } from "./ExtractionRecordSheet"
@@ -76,7 +77,7 @@ export function ExtractionResultsSection({
     (candidate) => candidate === "all" || counts[candidate] > 0,
   )
   // A filter that keeps nothing any more, as a run under way moves on, gives way to All.
-  const activeFilter = result && filters.includes(result) ? result : "all"
+  const activeFilter = shownResultFilterOf(run, result)
   // useQuery: another page, order, search or filter keeps the rows shown until its own arrive.
   const results = useQuery(
     extractionRunRecordsQueryOptions(runParams, recordsSearch, {

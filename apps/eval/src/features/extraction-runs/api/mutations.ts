@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { openInTab } from "@/lib/safe-url"
 import { extractionRunKeys } from "./keys"
+import { extractionRunQueryOptions } from "./queries"
 
 /** What starts a run: what creates it, and how many records it asks, `null` for all of them. */
 export type StartExtractionRunInput = ExtractionRunInputDto & { recordLimit: number | null }
@@ -23,6 +24,12 @@ export function useStartExtractionRun(project: ProjectParamsDto) {
         body: { recordLimit },
       })
     },
+    // The run the API answers: its page, which opens next, reads it from the cache.
+    onSuccess: (run) =>
+      queryClient.setQueryData(
+        extractionRunQueryOptions({ ...project, evaluationExtractionRunId: run.id }).queryKey,
+        run,
+      ),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: extractionRunKeys.ofProject(project) }),
   })
@@ -37,6 +44,12 @@ function useRunChange(
   return useMutation({
     mutationFn: (evaluationExtractionRunId: string) =>
       apiRequest(route, { params: { ...project, evaluationExtractionRunId } }),
+    // The run as the API answers it shows at once; its records and the list load again after.
+    onSuccess: (run, evaluationExtractionRunId) =>
+      queryClient.setQueryData(
+        extractionRunQueryOptions({ ...project, evaluationExtractionRunId }).queryKey,
+        run,
+      ),
     onSettled: (_run, _error, evaluationExtractionRunId) =>
       Promise.all([
         queryClient.invalidateQueries({

@@ -3,8 +3,27 @@ import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { isSetUp } from "@/lib/extraction-columns"
 import { orNotFound } from "@/lib/not-found"
+import type { RecordsSearch } from "@/lib/records-search"
 import { loaderStaleTime } from "@/lib/start-query"
-import { extractionFilesQueryOptions, projectExtractionDatasetsQueryOptions } from "./api/queries"
+import {
+  extractionDatasetRecordsQueryOptions,
+  extractionFilesQueryOptions,
+  projectExtractionDatasetsQueryOptions,
+} from "./api/queries"
+
+/**
+ * Starts reading the extraction datasets of an agent's project for the sidebar, which must not
+ * hold the page back: nothing waits for it.
+ */
+export function prefetchExtractionDatasets(
+  queryClient: QueryClient,
+  project: ProjectParamsDto,
+): void {
+  void queryClient.prefetchQuery({
+    ...projectExtractionDatasetsQueryOptions(project),
+    staleTime: loaderStaleTime,
+  })
+}
 
 /** Loads the extraction datasets of a project, for the evaluations of one of its agents. */
 export async function loadExtractionDatasets(queryClient: QueryClient, project: ProjectParamsDto) {
@@ -18,13 +37,19 @@ export async function loadExtractionDatasets(queryClient: QueryClient, project: 
 
 /**
  * Loads a dataset's page: the project's datasets, which hold its name and its columns, and the
- * project's files while it waits for one. Its records load a page at a time, under the page. A
- * dataset the project does not hold is not found.
+ * project's files while it waits for one. The page of its records the URL names starts with
+ * them and blocks nothing: the table waits for it. A dataset the project does not hold is not
+ * found.
  */
 export async function loadExtractionDataset(
   queryClient: QueryClient,
   dataset: ExtractionDatasetParamsDto,
+  recordsSearch: RecordsSearch,
 ) {
+  void queryClient.prefetchQuery({
+    ...extractionDatasetRecordsQueryOptions(dataset, recordsSearch),
+    staleTime: loaderStaleTime,
+  })
   const datasets = await orNotFound(() =>
     queryClient.query({
       ...projectExtractionDatasetsQueryOptions(dataset),

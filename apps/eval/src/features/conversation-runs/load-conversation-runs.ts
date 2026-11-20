@@ -15,8 +15,8 @@ import {
 } from "./api/queries"
 
 /**
- * Loads what a dataset's page reads about runs: the project's runs, and what a new run picks
- * from, the agent's saved versions and the project's models.
+ * Loads what every page of the runs reads: the project's runs, and the agent's saved versions,
+ * which a run's version opens.
  */
 export async function loadConversationRuns(queryClient: QueryClient, agent: AgentParamsDto) {
   await orNotFound(() =>
@@ -26,8 +26,14 @@ export async function loadConversationRuns(queryClient: QueryClient, agent: Agen
         staleTime: loaderStaleTime,
       }),
       queryClient.query({ ...agentVersionsQueryOptions(agent), staleTime: loaderStaleTime }),
-      queryClient.query({ ...judgeModelsQueryOptions(agent), staleTime: loaderStaleTime }),
     ]),
+  )
+}
+
+/** Loads the project's models that can judge a run, which the form of a new run picks from. */
+export async function loadJudgeModels(queryClient: QueryClient, project: ProjectParamsDto) {
+  await orNotFound(() =>
+    queryClient.query({ ...judgeModelsQueryOptions(project), staleTime: loaderStaleTime }),
   )
 }
 

@@ -6,6 +6,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { conversationRunKeys } from "./keys"
+import { conversationRunQueryOptions } from "./queries"
 
 /** What starts a run: what creates it, and how many records it asks, `null` for all of them. */
 export type StartConversationRunInput = ConversationRunInputDto & { recordLimit: number | null }
@@ -21,6 +22,12 @@ export function useStartConversationRun(project: ProjectParamsDto) {
         body: { recordLimit },
       })
     },
+    // The run the API answers: its page, which opens next, reads it from the cache.
+    onSuccess: (run) =>
+      queryClient.setQueryData(
+        conversationRunQueryOptions({ ...project, evaluationConversationRunId: run.id }).queryKey,
+        run,
+      ),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: conversationRunKeys.ofProject(project) }),
   })
@@ -35,6 +42,12 @@ function useRunChange(
   return useMutation({
     mutationFn: (evaluationConversationRunId: string) =>
       apiRequest(route, { params: { ...project, evaluationConversationRunId } }),
+    // The run as the API answers it shows at once; its records and the list load again after.
+    onSuccess: (run, evaluationConversationRunId) =>
+      queryClient.setQueryData(
+        conversationRunQueryOptions({ ...project, evaluationConversationRunId }).queryKey,
+        run,
+      ),
     onSettled: (_run, _error, evaluationConversationRunId) =>
       Promise.all([
         queryClient.invalidateQueries({
