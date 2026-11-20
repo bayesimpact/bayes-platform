@@ -114,6 +114,9 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
     "max-width: calc(100vw - 32px)",
     "height: 704px",
     "max-height: calc(100vh - 112px)",
+    // The visible height on phones, where 100vh runs under the browser bars. Browsers without dvh
+    // drop this line and keep the one above.
+    "max-height: calc(100dvh - 112px)",
     "border: none",
     "border-radius: 18px",
     "box-shadow: 0 16px 48px rgba(0,0,0,0.22)",
@@ -128,13 +131,27 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
   const { row } = makeFabRow(button, hint, isRight)
 
   let isOpen = false
+  let savedScroll: { html: string; body: string } | null = null
 
   // The window grows out of the button, as a messenger does, instead of popping in: the
-  // stylesheet animates its opacity and scale between the two states.
+  // stylesheet animates its opacity and scale between the two states. On a phone it takes the
+  // whole screen (see PHONE_QUERY), so the page behind stops scrolling while it is open.
   const setOpen = (open: boolean) => {
     isOpen = open
     iframe.classList.toggle("as-frame--open", open)
     setFabOpen(button, open)
+    if (open && !savedScroll && window.matchMedia(PHONE_QUERY).matches) {
+      savedScroll = {
+        html: document.documentElement.style.overflow,
+        body: document.body.style.overflow,
+      }
+      document.documentElement.style.overflow = "hidden"
+      document.body.style.overflow = "hidden"
+    } else if (!open && savedScroll) {
+      document.documentElement.style.overflow = savedScroll.html
+      document.body.style.overflow = savedScroll.body
+      savedScroll = null
+    }
   }
 
   button.addEventListener("click", () => setOpen(!isOpen))
@@ -537,6 +554,12 @@ function dotsIconSvg(size = 26) {
  * an `as-` prefix so the host's own styles cannot match them. Everything stops for visitors who
  * ask their system for reduced motion.
  */
+/**
+ * Screens where the floating window would leave a sliver of page around it: there the chat opens
+ * full screen, as messengers do on phones, and the button hides behind it.
+ */
+const PHONE_QUERY = "(max-width: 480px)"
+
 function injectLauncherStyles() {
   if (document.getElementById("agent-studio-embed-styles")) return
   const style = document.createElement("style")
@@ -561,6 +584,7 @@ function injectLauncherStyles() {
 @keyframes as-wave{0%,100%{transform:scale(1)}40%{transform:scale(1.3)}}
 .as-frame{opacity:0;transform:translateY(16px) scale(.94);visibility:hidden;pointer-events:none;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s linear .32s}
 .as-frame--open{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s}
+@media (max-width: 480px){.as-frame{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border-radius:0!important;box-shadow:none!important;transform-origin:bottom center!important}.as-frame--open+.as-row{display:none!important}}
 @media (prefers-reduced-motion: reduce){.as-fab,.as-dots,.as-dot,.as-chevron,.as-frame,.as-frame--open,.as-preview,.as-preview--on{transition:none!important;animation:none!important}.as-fab:hover{transform:none}}
 `
   document.head.appendChild(style)
