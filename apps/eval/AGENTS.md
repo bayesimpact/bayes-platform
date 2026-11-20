@@ -159,14 +159,14 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 - The runs of a conversation dataset (`features/conversation-runs`), on the API's
   `evaluation-conversation-runs` routes (`EvalConversationRunsRoutes`). Run evaluation, on a
   dataset's page, opens a side panel of the dataset's page, which the `run` search param shows
-  (`RunEvaluationPanel`): the version of the agent, picked with the campaigns'
+  (`RunEvaluationPanel`): the version of the agent, picked with the shared
   `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
   project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
   then opens its page. The Runs tab (`ConversationRunsSection`) lists the agent's runs of the dataset (a run
   of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). Each run shows by its short id, which opens it, and how long ago it started, the
   shared `RelativeTime`. A run's version opens the
-  history of the agent's versions on it, the campaigns' `AgentVersionsSheet` without its choice, to
+  history of the agent's versions on it, the shared `AgentVersionsSheet` without its choice, to
   compare it with the others. A run's page, `evaluations/$datasetId/runs/$runId`
   (`ConversationRunPage`), shows its figures and all its records, with what it used in a side panel of two tabs (`RunSettingsPanel`): Agent, with its
   type, the version asked, which opens the history of its versions, its model, its thinking level
@@ -174,7 +174,7 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   Cancel while it is under way, after a confirmation, and a « ⋯ » menu that holds Retry, after a
   failure, and Delete. Its scores read out of 5, as the judge gives them (`scoreOf`). Filters above its results narrow them to
   the errors, the low scores, the records that wait or were not asked (`result-filters.ts`): only
-  those that keep something show. The table cuts each text after three lines; a row opens its
+  those that keep something show, and the `result` search param holds the one chosen. The table cuts each text after three lines; a row opens its
   record whole in a sheet (`RunRecordSheet`), its expected output and its answer rendered from
   Markdown. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
@@ -189,16 +189,26 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `DatasetsTable`), the dialogs that create, rename and delete one (`DatasetDialogs`, which takes
   the feature's mutations as `MutationLike`), the frame of a dataset's page (`DatasetPageFrame`),
   the sidebar's entries (`DatasetsSidebarEntries`, `DatasetSidebarLinks`, `RunSidebarLinks`), the
-  runs in sub-tabs per status (`RunsByStatus`, `RunRowActions`, `RunVersionButton`,
-  `DeleteRunDialog`), the top of a run's page (`RunPageHeader`), the filters of its results
-  (`ResultFilters`), how many records a new run asks (`RunScopeField`), a run's statuses
-  (`lib/run-status.ts`) and the search params of the datasets' pages (`lib/dataset-search.ts`).
+  runs of a dataset (`RunsSection`, which takes the feature's runs, its delete mutation and its
+  table; `RunsByStatus`, whose sub-tab the `status` search param holds; `RunRowActions`,
+  `RunVersionButton`, `DeleteRunDialog`), the top of a run's page (`RunPageHeader`), what a run
+  used about its agent in its side panel (`RunAgentFacts`, `RunFact`), the filters of its results
+  (`ResultFilters`), how many records a new run asks (`RunScopeField`, on `lib/run-scope.ts`), a
+  run's statuses (`lib/run-status.ts`), the search params of the datasets' pages
+  (`lib/dataset-search.ts`) and of a run's page (`lib/run-search.ts`), the roots of the runs'
+  query keys, which a dataset's deletion invalidates (`lib/run-query-keys.ts`), the skeleton of
+  the evaluation pages (`EvaluationPageSkeleton`), a number in a cell (`Count`) and the greens of
+  what goes well (`lib/success-classes.ts`).
   The routes under `evaluations/` are the same for both types: each picks its feature from
   `agent.type`.
+- `DataTable` calls the function of a cell or of a header, where `flexRender` would mount it as a
+  component: a table builds its columns at each render, with the handlers of its props, and what
+  a cell holds keeps its state all the same (a row's open menu while a run under way is read
+  again). A cell that needs a hook is a component the function returns.
 - A table of records the API pages keeps its page, its order and its search in the URL
   (`lib/records-search.ts`: `recordsSearchSchema`, `recordsQueryOf`, which builds the API's
   `columnFilters`, `sortBy` and `sortOrder`), reads its page with `useQuery` and
-  `keepPreviousData`, and shows `ColumnFilters` (a column and the text it must hold, applied on Enter
+  `keepPreviousData`, a page its route's loader starts unawaited, and shows `ColumnFilters` (a column and the text it must hold, applied on Enter
   or the button, several columns at once, each filter with the way to take it away) and `TablePagination` around the `DataTable`. The route's component gives the search
   and takes its changes. The records of an extraction dataset, the results of an extraction run
   and the comparison of runs work that way, 50 rows a page. The records of a conversation dataset
@@ -208,7 +218,7 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   it: the "N records remaining" badge and the progress text of a run under way
   (`RunPageHeader`, `RunProgressNote`), a toast when a run a person watches ends
   (`useRunEndToasts`, on the polled data), the trace of an answer for who holds `trace.read`
-  only (`useCanReadTraces`), the agent's temperature, document search and a link to the Studio
+  only (`canReadTracesQueryOptions`), the agent's temperature, document search and a link to the Studio
   in a run's panel, the row numbers of the tables, the select-all box of the runs, and the
   former URLs, `/o/$organizationId/p/$projectId/conversation/...` and `.../extraction/...`,
   which redirect to the same page under an agent (`legacy-evaluations-redirect.ts`). A run's
@@ -262,8 +272,10 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   goes to production meanwhile. The Campaign step names it (`AgentVersionField`), the one in
   production by default, and opens the agent's history in a sheet (`AgentVersionsSheet`), as the
   Studio shows it: the saved versions, never the draft, each one's changes against the version
-  before it or the one in production (`agent-version-diff.ts`, drawn by `@pierre/diffs` in
-  `TextDiff`, the Studio's library), and a button that selects it. The versions come from
+  before it or the one in production (`lib/agent-version-diff.ts`, drawn by `@pierre/diffs` in
+  `TextDiff`, the Studio's library), and a button that selects it. The picker, the sheet and
+  their parts live in `components/shared/`, since a run picks and shows a version too; they take
+  the versions, which `agentVersionsQueryOptions` of `features/agents` reads from
   `GET .../agents/:agentId/settings` (`agent.settings.read`, which a campaign's managers hold).
   The General card of `CampaignSetupView` names the version of a campaign that no longer changes.
 - Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms

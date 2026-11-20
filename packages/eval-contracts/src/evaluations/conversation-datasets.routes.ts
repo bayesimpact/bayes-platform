@@ -1,4 +1,3 @@
-import { datasetNameInputSchema } from "./datasets.dto"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
@@ -12,6 +11,7 @@ import {
   conversationDatasetRecordsOutputSchema,
   conversationDatasetRecordsQuerySchema,
 } from "./conversation-datasets.dto"
+import { datasetNameInputSchema } from "./datasets.dto"
 
 const DATASETS_PATH = `${PROJECT_PATH}/evaluation-conversation-datasets`
 const DATASET_PATH = `${DATASETS_PATH}/:datasetId`
