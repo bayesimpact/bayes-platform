@@ -49,47 +49,39 @@ export function AgentVersionPicker({
         </Trans>
       </FieldLegend>
       <FieldDescription>{description}</FieldDescription>
-      {versions.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-          <Trans>
-            This agent has no saved version yet. Save its settings in the Studio, then come back.
-          </Trans>
-        </p>
-      ) : (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
-          {selected ? (
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <AgentVersionTitle version={selected} />
-              <span className="text-sm text-muted-foreground">
-                <Trans comment="When a version of an agent was saved, such as: Saved 5 days ago">
-                  Saved <TimeAgo moment={selected.updatedAt} />
-                </Trans>
-              </span>
-            </div>
-          ) : (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+        {selected ? (
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <AgentVersionTitle version={selected} />
             <span className="text-sm text-muted-foreground">
-              <Trans>No version chosen yet.</Trans>
+              <Trans comment="When a version of an agent was saved, such as: Saved 5 days ago">
+                Saved <TimeAgo moment={selected.updatedAt} />
+              </Trans>
             </span>
-          )}
-          <Button type="button" variant="outline" onClick={() => setIsOpen(true)}>
-            <HistoryIcon data-icon="inline-start" />
-            <Trans>Choose a version</Trans>
-          </Button>
-          <AgentVersionsSheet
-            isOpen={isOpen}
-            onOpenChange={setIsOpen}
-            agentName={agentName}
-            versions={versions}
-            selectedId={selectedId}
-            selectedNote={selectedNote}
-            onSelect={(versionId) => {
-              onSelect(versionId)
-              setIsOpen(false)
-            }}
-          />
-        </div>
-      )}
-      {isInvalid && versions.length > 0 ? <FieldError>{error}</FieldError> : null}
+          </div>
+        ) : (
+          <span className="text-sm text-muted-foreground">
+            <Trans>No version chosen yet.</Trans>
+          </span>
+        )}
+        <Button type="button" variant="outline" onClick={() => setIsOpen(true)}>
+          <HistoryIcon data-icon="inline-start" />
+          <Trans>Choose a version</Trans>
+        </Button>
+        <AgentVersionsSheet
+          isOpen={isOpen}
+          onOpenChange={setIsOpen}
+          agentName={agentName}
+          versions={versions}
+          selectedId={selectedId}
+          selectedNote={selectedNote}
+          onSelect={(versionId) => {
+            onSelect(versionId)
+            setIsOpen(false)
+          }}
+        />
+      </div>
+      {isInvalid ? <FieldError>{error}</FieldError> : null}
     </FieldSet>
   )
 }

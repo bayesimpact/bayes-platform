@@ -14,8 +14,8 @@ import { evaluationAgentKeys } from "./keys"
 /**
  * What the app holds for the person: the projects (`GET projects/mine`), the organizations
  * (`GET organizations/mine`) and the campaigns they test or review (`GET me/review-campaigns`,
- * once per role) in parallel, then the agents of every project the app opens, drafts included, in
- * parallel. One key holds them all.
+ * once per role) in parallel, then the agents of every project the app opens, those with a
+ * version in production, in parallel. One key holds them all.
  */
 export const evaluationWorkspaceQueryOptions = () =>
   queryOptions({

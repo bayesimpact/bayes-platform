@@ -13,7 +13,6 @@ import {
   buildArchivedVersionWorld,
   buildEvalWorld,
   buildNoCampaignWorld,
-  buildNoSavedVersionWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/eval-world.factory"
 import { worldHandlers } from "@/test/msw/handlers"
@@ -140,24 +139,6 @@ describe("a new campaign", () => {
     const [agent] = world.agents
     if (!agent) throw new Error("The world has an agent")
     expect(world.campaigns[0]?.agentSettingsId).toBe(agentVersionIdOf(agent, 4))
-  })
-
-  it("says when the agent has no saved version, and creates nothing", async () => {
-    const world = buildNoSavedVersionWorld()
-    server.use(...worldHandlers(world))
-    renderApp(`${campaignsUrlOf(world)}/new`)
-
-    expect(await screen.findByText(/This agent has no saved version yet/)).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Choose a version" })).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole("button", { name: "Next" }))
-
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Campaign" })).toHaveAttribute(
-        "aria-current",
-        "step",
-      ),
-    )
-    expect(world.campaigns).toEqual([])
   })
 
   it("asks a draft whose version was archived to choose another one", async () => {

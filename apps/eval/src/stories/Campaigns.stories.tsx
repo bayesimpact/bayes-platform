@@ -4,7 +4,6 @@ import { campaignEditorUrlOf, campaignsUrlOf } from "@/test/eval-urls"
 import {
   buildArchivedVersionWorld,
   buildNoCampaignWorld,
-  buildNoSavedVersionWorld,
   type EvalWorld,
 } from "@/test/factories/eval-world.factory"
 import { evaluation } from "@/test/msw/story-api"
@@ -51,14 +50,6 @@ export const ChooseAgentVersion: Story = {
     const canvas = within(canvasElement)
     await userEvent.click(await canvas.findByRole("button", { name: "Choose a version" }))
   },
-}
-
-/** A new campaign for an agent never saved: it has no version to run on yet. */
-export const NewCampaignWithNoSavedVersion: Story = {
-  parameters: evaluation({
-    world: buildNoSavedVersionWorld,
-    url: (world) => `${campaignsUrlOf(world)}/new`,
-  }),
 }
 
 /** A draft opens on the first step of its setup, which it can leave and come back to. */

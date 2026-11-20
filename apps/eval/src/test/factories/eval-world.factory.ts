@@ -36,12 +36,7 @@ import {
   STUDIO_UI_READ_PERMISSION,
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
-import {
-  agentVersionIdOf,
-  buildAgentVersion,
-  buildAgentVersions,
-  buildProjectAgent,
-} from "./agents.factory"
+import { agentVersionIdOf, buildAgentVersions, buildProjectAgent } from "./agents.factory"
 import {
   buildPricingDatasets,
   type ConversationDatasetRecord,
@@ -261,20 +256,6 @@ export function buildExtractionWorld(): EvalWorld {
       // Last, so the first run that is over stays one of the main dataset.
       ...(largeDataset ? [buildLargeRun(project.id, agent.id, largeDataset)] : []),
     ],
-  }
-}
-
-/**
- * The owner of a project whose agent was never saved, a copy of another one for instance: it has
- * a draft only, which no campaign runs on.
- */
-export function buildNoSavedVersionWorld(): EvalWorld {
-  const world = buildNoCampaignWorld()
-  return {
-    ...world,
-    agentVersions: Object.fromEntries(
-      world.agents.map((agent) => [agent.id, [buildAgentVersion(agent, 1, { isDraft: true })]]),
-    ),
   }
 }
 

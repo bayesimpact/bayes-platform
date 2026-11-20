@@ -3218,10 +3218,6 @@ msgstr "This agent has a single saved version: there is nothing to compare."
 msgid "This agent has no published version yet. Publish it, then create the campaign."
 msgstr "This agent has no published version yet. Publish it, then create the campaign."
 
-#: src/features/campaigns/components/AgentVersionPicker.tsx
-msgid "This agent has no saved version yet. Save its settings in the Studio, then come back."
-msgstr "This agent has no saved version yet. Save its settings in the Studio, then come back."
-
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "This campaign asks its testers no factual question."
 msgstr "This campaign asks its testers no factual question."
