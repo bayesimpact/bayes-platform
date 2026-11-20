@@ -2472,6 +2472,10 @@ msgstr "Saved <0/>"
 msgid "Score"
 msgstr "Score"
 
+#: src/components/shared/DataTable.tsx
+msgid "Scroll sideways to see every column."
+msgstr "Scroll sideways to see every column."
+
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"

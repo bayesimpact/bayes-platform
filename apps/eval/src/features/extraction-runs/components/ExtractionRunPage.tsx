@@ -90,7 +90,8 @@ export function ExtractionRunPage({
         ) : null
       }
     >
-      <PageContainer>
+      {/* The results have columns for each input and each field. */}
+      <PageContainer isWide>
         <RunPageHeader
           agentParams={agentParams}
           datasetId={dataset.id}

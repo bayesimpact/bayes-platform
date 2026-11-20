@@ -61,6 +61,8 @@ export function ExtractionDatasetPage({
       agentParams={agentParams}
       dataset={dataset}
       tab={hasRecords ? tab : null}
+      // The records have a column per column of the file.
+      isWide={hasRecords && tab === "records"}
       run={
         can(EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION)
           ? { disabledReason: hasRecords ? null : t`Build the dataset from a CSV file first.` }

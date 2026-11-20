@@ -2472,6 +2472,10 @@ msgstr "Enregistrée <0/>"
 msgid "Score"
 msgstr "Score"
 
+#: src/components/shared/DataTable.tsx
+msgid "Scroll sideways to see every column."
+msgstr "Faites défiler vers la droite pour voir toutes les colonnes."
+
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"

@@ -37,6 +37,8 @@ export type DatasetPageFrameProps = {
   onRename: (() => void) | null
   /** Deletes the dataset, for who may; none hides the action. */
   onDelete: (() => void) | null
+  /** Whether the page takes all the width there is, for a table with a column per data column. */
+  isWide?: boolean
   /** The tab's content, then the page's dialogs. */
   children: ReactNode
 }
@@ -52,6 +54,7 @@ export function DatasetPageFrame({
   run,
   onRename,
   onDelete,
+  isWide = false,
   children,
 }: DatasetPageFrameProps) {
   const { t } = useLingui()
@@ -69,7 +72,7 @@ export function DatasetPageFrame({
     </>
   )
   return (
-    <PageContainer>
+    <PageContainer isWide={isWide}>
       <PageHeader
         back={
           <BackLink

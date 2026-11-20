@@ -15,7 +15,8 @@ export type CompareRunsPageFrameProps = {
 }
 
 /**
- * The frame of the comparison of runs, for an agent of any type: the way back to the runs of the
+ * The frame of the comparison of runs, for an agent of any type, as wide as the window since it
+ * holds a column per run: the way back to the runs of the
  * dataset, how many runs compare, and a word when none of the runs asked is one of the dataset.
  */
 export function CompareRunsPageFrame({
@@ -26,7 +27,7 @@ export function CompareRunsPageFrame({
 }: CompareRunsPageFrameProps) {
   const datasetName = dataset.name
   return (
-    <PageContainer>
+    <PageContainer isWide>
       <PageHeader
         back={
           <BackLink
