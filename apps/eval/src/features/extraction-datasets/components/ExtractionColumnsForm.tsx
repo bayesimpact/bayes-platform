@@ -209,7 +209,8 @@ export function ExtractionColumnsForm({
             )
           })}
         </ul>
-        <div className="flex flex-wrap justify-end gap-2">
+        {/* The way back at the far left, away from the button that builds the dataset. */}
+        <div className="flex flex-wrap justify-between gap-2">
           <Button type="button" variant="outline" onClick={onChooseAnother}>
             <Trans>Choose another file</Trans>
           </Button>
