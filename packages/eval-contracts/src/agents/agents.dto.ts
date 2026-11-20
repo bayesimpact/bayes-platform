@@ -6,17 +6,16 @@ export const agentTypeSchema = z.enum(["conversation", "extraction"])
 export type AgentTypeDto = z.output<typeof agentTypeSchema>
 
 /**
- * An agent of a project, as `GET organizations/:organizationId/projects/:projectId/agents-with-drafts`
- * returns it: every agent the person can read, a draft never published included, since evaluation
- * runs drafts.
+ * An agent of a project, as `GET organizations/:organizationId/projects/:projectId/agents` returns
+ * it: every agent the person can read that has a version in production. The first version saved
+ * goes to production, so these are the agents with a saved version, which an evaluation or a
+ * review campaign can run.
  */
 export const projectAgentOutputSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   type: agentTypeSchema,
   projectId: z.uuid(),
-  /** Present once the agent was published: the app reads only whether it is there. */
-  currentRevision: z.object({}).optional(),
 })
 
 export type ProjectAgentOutputDto = z.output<typeof projectAgentOutputSchema>
