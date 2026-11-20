@@ -220,8 +220,6 @@ on other chart values.
 {{- if include "bayes-platform.pdfConverterEnabled" . }}
 - name: PDF_CONVERTER_URL
   value: {{ printf "http://%s:%d" (include "bayes-platform.componentName" (dict "root" . "component" "pdf-converter")) (int .Values.pdfConverter.port) | quote }}
-- name: PDF_CONVERTER_AUTH
-  value: none
 {{- end }}
 {{- end -}}
 

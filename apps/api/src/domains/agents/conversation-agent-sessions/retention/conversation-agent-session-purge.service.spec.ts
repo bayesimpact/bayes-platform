@@ -22,7 +22,6 @@ import {
 } from "@/domains/organizations/organization.factory"
 import { agentEmbedConfigFactory } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.factory"
 import { publicAgentSessionFactory } from "@/domains/public-chat/public-agent-sessions/public-agent-session.factory"
-import { GoogleIdTokenService } from "@/external/google-iam"
 import { ConversationAgentSessionPurgeService } from "./conversation-agent-session-purge.service"
 
 describe("ConversationAgentSessionPurgeService", () => {
@@ -42,7 +41,7 @@ describe("ConversationAgentSessionPurgeService", () => {
     service = new ConversationAgentSessionPurgeService(
       setup.dataSource,
       fileStorageFake,
-      new PdfPagesService(new PdfConverterClient(new GoogleIdTokenService())),
+      new PdfPagesService(new PdfConverterClient()),
       new ConversationFormsService(repositories.conversationFormRepository),
     )
   })

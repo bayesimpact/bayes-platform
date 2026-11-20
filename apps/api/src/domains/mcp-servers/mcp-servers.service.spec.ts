@@ -19,7 +19,6 @@ describe("McpServersService", () => {
   let service: McpServersService
   let setup: Awaited<ReturnType<typeof setupTransactionalTestDatabase>>
   let repositories: AllRepositories
-  let initialConverterAuth: string | undefined
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
@@ -28,20 +27,10 @@ describe("McpServersService", () => {
     await clearTestDatabase(setup.dataSource)
     repositories = setup.getAllRepositories()
     service = setup.module.get<McpServersService>(McpServersService)
-    initialConverterAuth = process.env.PDF_CONVERTER_AUTH
   })
 
   afterAll(async () => {
-    if (initialConverterAuth === undefined) {
-      delete process.env.PDF_CONVERTER_AUTH
-    } else {
-      process.env.PDF_CONVERTER_AUTH = initialConverterAuth
-    }
     await teardownTestDatabase(setup)
-  })
-
-  beforeEach(() => {
-    delete process.env.PDF_CONVERTER_AUTH
   })
 
   afterEach(async () => {
@@ -625,61 +614,7 @@ describe("McpServersService", () => {
       })
     })
 
-    describe("with Google IAM enabled", () => {
-      beforeEach(() => {
-        process.env.PDF_CONVERTER_AUTH = "google-iam"
-      })
-
-      it("should expose the IAM audience of the PDF export server", async () => {
-        const agent = await createAgent()
-        const server = await service.createPreset(
-          PDF_EXPORT_PRESET_SLUG,
-          PDF_EXPORT_BUILT_IN_NAME,
-          {
-            url: "https://pdf-converter.example.test/mcp",
-          },
-        )
-        await service.enableForAgent(agent.id, server.id)
-
-        const configs = await service.getEnabledServersForAgent(agent.id)
-
-        expect(configs).toEqual([
-          {
-            id: server.id,
-            url: "https://pdf-converter.example.test/mcp",
-            googleIamAudience: "https://pdf-converter.example.test",
-          },
-        ])
-      })
-
-      it("should not expose an IAM audience for a custom server", async () => {
-        const agent = await createAgent()
-        const server = await service.createMcpServer({
-          projectId: agent.projectId,
-          name: "Custom Server",
-          config: { url: "https://custom.example.com/mcp" },
-        })
-        await service.enableForAgent(agent.id, server.id)
-
-        const configs = await service.getEnabledServersForAgent(agent.id)
-
-        expect(configs).toEqual([{ id: server.id, url: "https://custom.example.com/mcp" }])
-      })
-
-      it("should not expose an IAM audience for a preset that is not built-in", async () => {
-        const agent = await createAgent()
-        const server = await service.createPreset(OTHER_PRESET_SLUG, "Other Preset", {
-          url: "https://other-preset.example.test/mcp",
-        })
-        await service.enableForAgent(agent.id, server.id)
-
-        const configs = await service.getEnabledServersForAgent(agent.id)
-
-        expect(configs).toEqual([{ id: server.id, url: "https://other-preset.example.test/mcp" }])
-      })
-    })
-
-    it("should omit the IAM audience when Google IAM is off", async () => {
+    it("should return the PDF export server with its stored config", async () => {
       const agent = await createAgent()
       const server = await service.createPreset(PDF_EXPORT_PRESET_SLUG, PDF_EXPORT_BUILT_IN_NAME, {
         url: "https://pdf-converter.example.test/mcp",
