@@ -38,6 +38,7 @@ export const reviewerSessionTranscriptMessageFactory =
     role: params.role ?? "user",
     content: params.content ?? faker.lorem.sentence(),
     createdAt: params.createdAt ?? faker.date.recent().getTime(),
+    toolCalls: params.toolCalls ?? [],
   }))
 
 type ReviewerSessionReviewTransientParams = {

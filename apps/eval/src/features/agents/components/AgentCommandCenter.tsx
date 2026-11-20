@@ -1,0 +1,243 @@
+import { type AgentTypeDto, agentTypeSchema } from "@caseai-connect/eval-contracts"
+import type { MessageDescriptor } from "@lingui/core"
+import { msg } from "@lingui/core/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { cn } from "cn"
+import { ArrowRightIcon } from "lucide-react"
+import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"
+import { CommandSearchInput } from "@/components/shared/CommandSearchInput"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "@/components/ui/command"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Kbd } from "@/components/ui/kbd"
+import type { CampaignAgent } from "../campaign-agents"
+import type { EvaluationAgent, EvaluationProjectAgents } from "../evaluation-agents"
+
+export type AgentCommandCenterProps = {
+  groups: EvaluationProjectAgents[]
+  /** The agents the person reaches only through the campaigns they test or review. */
+  campaignAgents: CampaignAgent[]
+  /** The agent whose pages show, which the list marks. */
+  currentAgentId: string | undefined
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
+  onSelect: (agent: EvaluationAgent) => void
+  onSelectCampaignAgent: (agent: CampaignAgent) => void
+}
+
+/**
+ * Whether an agent's names hold every word of the search, in any order: "billing reader" finds
+ * the Invoice Reader of the Billing project. A fuzzy match would also find names that only hold
+ * the letters, which reads as noise in a list of names.
+ */
+function matchesEveryWord(names: string[], search: string): number {
+  const text = names.join(" ").toLocaleLowerCase()
+  const words = search.toLocaleLowerCase().split(/\s+/).filter(Boolean)
+  return words.every((word) => text.includes(word)) ? 1 : 0
+}
+
+/**
+ * One section per type of agent, in the order of the contracts, each named once rather than on
+ * every line.
+ */
+const AGENT_TYPE_SECTIONS = {
+  conversation: msg`Conversation agents`,
+  extraction: msg`Extraction agents`,
+} satisfies Record<AgentTypeDto, MessageDescriptor>
+
+/**
+ * The command center that switches agent: every agent of the person, by project, then within
+ * a project by type, conversation agents first, then the agents of the person's campaigns, in a wide
+ * dialog near the top of the window, with a search on the names of the agents, projects and
+ * organizations. The arrows move in the list and Enter opens the agent.
+ */
+export function AgentCommandCenter({
+  groups,
+  campaignAgents,
+  currentAgentId,
+  isOpen,
+  onOpenChange,
+  onSelect,
+  onSelectCampaignAgent,
+}: AgentCommandCenterProps) {
+  const { t, i18n } = useLingui()
+  const hasSeveralProjects = groups.length > 1
+  const hasSeveralOrganizations =
+    new Set(groups.map((group) => group.project.organization.id)).size > 1
+  // One section per project and type: a search that leaves no agent of a type in a project hides
+  // that section alone, and the project's name stays on the other one.
+  const sections = groups.flatMap(({ project, agents }) =>
+    agentTypeSchema.options.flatMap((type) => {
+      const agentsOfType = agents.filter((agent) => agent.type === type)
+      if (agentsOfType.length === 0) return []
+      const projectName = project.name
+      const organizationName = project.organization.name
+      const place = hasSeveralOrganizations
+        ? t({
+            message: `${projectName} · ${organizationName}`,
+            comment:
+              "A project and its organization, above its agents in the list that switches agent",
+          })
+        : projectName
+      return [{ key: `${project.id}-${type}`, place, type, agents: agentsOfType }]
+    }),
+  )
+
+  return (
+    // The dialog of shadcn's `CommandDialog`, with its title inside: the generated one keeps its
+    // hidden title in the page while it is closed, a heading no page should carry.
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="top-16 translate-y-0 gap-0 overflow-hidden rounded-xl! p-0 sm:top-24 sm:max-w-3xl"
+      >
+        <DialogHeader className="sr-only">
+          <DialogTitle>
+            <Trans>Switch agent</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            <Trans>Search an agent by its name, its project or its organization.</Trans>
+          </DialogDescription>
+        </DialogHeader>
+        <Command
+          label={t`Search an agent`}
+          className="rounded-none! p-0"
+          // An item's value is the agent's id, which a search must not match: only its names do.
+          filter={(_agentId, search, names = []) => matchesEveryWord(names, search)}
+        >
+          <CommandSearchInput
+            placeholder={t`Search an agent or a project…`}
+            end={
+              <Kbd className="hidden sm:inline-flex">
+                {t({ message: "Esc", comment: "The Escape key of a keyboard" })}
+              </Kbd>
+            }
+          />
+          <CommandList className="max-h-96 p-2">
+            <CommandEmpty>
+              <Trans>No agent matches this search.</Trans>
+            </CommandEmpty>
+            {sections.map((section) => {
+              const place = section.place
+              const typeName = i18n._(AGENT_TYPE_SECTIONS[section.type])
+              return (
+                <CommandGroup
+                  key={section.key}
+                  heading={
+                    hasSeveralProjects ? (
+                      <Trans comment="A section of the list that switches agent: where its agents are, then their type">
+                        <span className="text-foreground">{place}</span> · {typeName}
+                      </Trans>
+                    ) : (
+                      typeName
+                    )
+                  }
+                  className="**:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:pt-3"
+                >
+                  {section.agents.map((agent) => (
+                    <AgentCommandItem
+                      key={agent.id}
+                      agent={agent}
+                      keywords={[agent.name, agent.project.name, agent.project.organization.name]}
+                      isCurrent={agent.id === currentAgentId}
+                      onSelect={() => onSelect(agent)}
+                    />
+                  ))}
+                </CommandGroup>
+              )
+            })}
+            {campaignAgents.length > 0 ? (
+              <CommandGroup
+                heading={
+                  <Trans comment="The section of the agents the person reaches through the campaigns they test or review">
+                    Your campaigns
+                  </Trans>
+                }
+                className="**:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:pt-3"
+              >
+                {campaignAgents.map((agent) => (
+                  <AgentCommandItem
+                    key={agent.id}
+                    agent={agent}
+                    keywords={[agent.name, agent.campaign.name]}
+                    isCurrent={agent.id === currentAgentId}
+                    onSelect={() => onSelectCampaignAgent(agent)}
+                  />
+                ))}
+              </CommandGroup>
+            ) : null}
+          </CommandList>
+          {/* The keys of the list, for who has a keyboard: a phone shows none. */}
+          <div className="hidden flex-wrap items-center gap-x-5 gap-y-1 border-t bg-muted/50 px-4 py-2.5 text-xs text-muted-foreground sm:flex">
+            <span className="flex items-center gap-1.5">
+              <Kbd>↑</Kbd>
+              <Kbd>↓</Kbd>
+              <Trans comment="What the arrow keys do in the list that switches agent">
+                to move
+              </Trans>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Kbd>↵</Kbd>
+              <Trans comment="What the Enter key does in the list that switches agent">
+                to open
+              </Trans>
+            </span>
+          </div>
+        </Command>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+type AgentCommandItemProps = {
+  agent: { id: string; name: string; type: AgentTypeDto }
+  /** The names a search matches: the agent's, and where it is. */
+  keywords: string[]
+  /** Whether the agent's pages show: it takes the color of the sidebar's active link. */
+  isCurrent: boolean
+  onSelect: () => void
+}
+
+/** An agent of the list, with the icon of its type and, for the current one, its mark. */
+function AgentCommandItem({ agent, keywords, isCurrent, onSelect }: AgentCommandItemProps) {
+  return (
+    <CommandItem
+      value={agent.id}
+      keywords={keywords}
+      onSelect={onSelect}
+      className={cn(
+        "gap-3 px-3 py-2.5",
+        isCurrent &&
+          "text-primary *:[svg]:text-primary data-selected:text-primary data-selected:*:[svg]:text-primary",
+      )}
+    >
+      <AgentTypeIcon type={agent.type} />
+      <span className="min-w-0 truncate font-medium">{agent.name}</span>
+      <CommandShortcut className="flex items-center gap-2 tracking-normal">
+        {isCurrent ? (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+            <Trans comment="Marks the agent whose pages show, in the list that switches agent">
+              Current
+            </Trans>
+          </span>
+        ) : null}
+        <ArrowRightIcon
+          aria-hidden
+          className="opacity-0 group-data-selected/command-item:opacity-100"
+        />
+      </CommandShortcut>
+    </CommandItem>
+  )
+}

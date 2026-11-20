@@ -1,0 +1,11 @@
+language js
+
+// TanStack Table v8 changes its table in place, which the React Compiler cannot memoize.
+`useReactTable($options)` as $call where {
+  $call <: within or {
+    `function $name($params) { $body }`,
+    `($params) => { $body }`
+  } as $function ,
+  $function <: not r"(?s).*\"use no memo\".*",
+  register_diagnostic(span=$call, message="TanStack Table v8 changes its table in place, which the React Compiler cannot memoize: open this component with the \"use no memo\" directive and a comment that says why.", severity="error")
+}

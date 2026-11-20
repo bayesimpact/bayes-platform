@@ -1,0 +1,2015 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-03 15:47+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "“{removedPrompt}” leaves this list, with its settings."
+msgstr "« {removedPrompt} » quitte cette liste, avec ses réglages."
+
+#: src/components/shared/ExternalLink.tsx
+msgid "(opens in a new tab)"
+msgstr "(s'ouvre dans un nouvel onglet)"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
+msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
+
+#: src/features/invitations/components/InvitationsButton.tsx
+msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
+msgstr "{count, plural, one {# invitation en attente} other {# invitations en attente}}"
+
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "{count, plural, one {# review} other {# reviews}}"
+msgstr "{count, plural, one {# relecture} other {# relectures}}"
+
+#: src/features/conversation/components/SourcesList.tsx
+msgid "{count, plural, one {Used # source} other {Used # sources}}"
+msgstr "{count, plural, one {# source utilisée} other {# sources utilisées}}"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "{count, plural, one {Used a tool} other {Used tools}}"
+msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}"
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "{count} answers, {percent}"
+msgstr "{count} réponses, {percent}"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "{deletedEmail} will no longer be able to accept it."
+msgstr "{deletedEmail} ne pourra plus l'accepter."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
+msgstr "{feedbackCount, plural, one {# retour de session} other {# retours de session}}"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "{finalCount, plural, one {# question} other {# questions}}"
+msgstr "{finalCount, plural, one {# question} other {# questions}}"
+
+#. The button of the person's menu, which shows their name
+#: src/features/account/components/UserMenu.tsx
+msgid "{name}, menu of {email}"
+msgstr "{name}, menu de {email}"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "{otherCount, plural, one {# other reviewer reviewed this session.} other {# other reviewers reviewed this session.}}"
+msgstr "{otherCount, plural, one {# autre relecteur a relu cette session.} other {# autres relecteurs ont relu cette session.}}"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "{pending, plural, one {# to review} other {# to review}}"
+msgstr "{pending, plural, one {# à relire} other {# à relire}}"
+
+#. A project and its organization, above its agents in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "{projectName} · {organizationName}"
+msgstr "{projectName} · {organizationName}"
+
+#: src/features/campaigns/components/FeedbackFormPreview.tsx
+msgid "{questionCount, plural, one {# question} other {# questions}}"
+msgstr "{questionCount, plural, one {# question} other {# questions}}"
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "{responseCount, plural, one {# answer} other {# answers}}"
+msgstr "{responseCount, plural, one {# réponse} other {# réponses}}"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "{reviewCount, plural, one {# review} other {# reviews}}"
+msgstr "{reviewCount, plural, one {# relecture} other {# relectures}}"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "{reviewerCount, plural, one {# question} other {# questions}}"
+msgstr "{reviewerCount, plural, one {# question} other {# questions}}"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "{reviewerCount, plural, one {# reviewer} other {# reviewers}}"
+msgstr "{reviewerCount, plural, one {# relecteur} other {# relecteurs}}"
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "{revokedEmail} could not be revoked. Try again."
+msgstr "L'accès de {revokedEmail} n'a pas pu être retiré. Réessayez."
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "{revokedEmail} was revoked."
+msgstr "L'accès de {revokedEmail} a été retiré."
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "{sessionCount, plural, one {# question} other {# questions}}"
+msgstr "{sessionCount, plural, one {# question} other {# questions}}"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "{sessionCount, plural, one {# session} other {# sessions}}"
+msgstr "{sessionCount, plural, one {# session} other {# sessions}}"
+
+#: src/components/shared/StarRatingInput.tsx
+msgid "{star, plural, one {# star} other {# stars}}"
+msgstr "{star, plural, one {# étoile} other {# étoiles}}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "{taskCount, plural, one {# changed task} other {# changed tasks}}"
+msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées}}"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "{testerCount, plural, one {# tester} other {# testers}}"
+msgstr "{testerCount, plural, one {# testeur} other {# testeurs}}"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "{total, plural, one {# session} other {# sessions}}"
+msgstr "{total, plural, one {# session} other {# sessions}}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "<0/> to send"
+msgstr "<0/> pour envoyer"
+
+#. A section of the list that switches agent: where its agents are, then their type
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "<0>{place}</0> · {typeName}"
+msgstr "<0>{place}</0> · {typeName}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "<0><1/><2/></0> for a new line"
+msgstr "<0><1/><2/></0> pour aller à la ligne"
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "A new version of Evaluation is available"
+msgstr "Une nouvelle version d'Evaluation est disponible"
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "A new version of Evaluation is available. Reload the page."
+msgstr "Une nouvelle version de l'Évaluation est disponible. Rechargez la page."
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "A new version of the app is available"
+msgstr "Une nouvelle version de l'application est disponible"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Accept"
+msgstr "Accepter"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Accept the invitation to {name}"
+msgstr "Accepter l’invitation à {name}"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Account already exists"
+msgstr "Compte déjà existant"
+
+#: src/components/shared/HeaderActionsMenu.tsx
+msgid "Actions of the page"
+msgstr "Actions de la page"
+
+#. Opens a review campaign to its testers and reviewers
+#. Opens a review campaign to its testers and reviewers
+#. Opens a review campaign to its testers and reviewers
+#. The setup step that opens a campaign
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Activate"
+msgstr "Activer"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Activate “{name}”?"
+msgstr "Activer « {name} » ?"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "Activate the campaign"
+msgstr "Activer la campagne"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Activate the campaign to invite testers and reviewers: they can accept an invitation only once it is active."
+msgstr "Activez la campagne pour inviter des testeurs et des relecteurs : ils ne peuvent accepter une invitation qu'une fois la campagne active."
+
+#. A review campaign open to its testers and reviewers
+#: src/lib/campaign-status.ts
+msgid "Active"
+msgstr "Active"
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "Add a question"
+msgstr "Ajouter une question"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "admin"
+msgstr "administrateur"
+
+#. The setup step with the questions a tester answers after each session
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "After each session"
+msgstr "Après chaque session"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Agent"
+msgstr "Agent"
+
+#. The agent that fills in a form, when it has no name
+#: src/features/conversation/components/FormsPanel.tsx
+msgctxt "form"
+msgid "Agent"
+msgstr "Agent"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
+msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne relie pas une nouvelle connexion à un compte existant."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
+msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
+
+#. Opens a note on the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Annotate"
+msgstr "Annoter"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Annotate and press Enter to keep it"
+msgstr "Annotez, puis appuyez sur Entrée pour garder la note"
+
+#: src/components/shared/QuestionField.tsx
+msgid "Answer this question."
+msgstr "Répondez à cette question."
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Anything we should know about this session?"
+msgstr "Y a-t-il quelque chose à savoir sur cette session ?"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "As {role}"
+msgstr "En tant que {role}"
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Asked each time a tester ends a session with the agent."
+msgstr "Posées chaque fois qu'un testeur termine une session avec l'agent."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Asked once, when a tester finishes taking part."
+msgstr "Posées une fois, quand un testeur termine sa participation."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Asked to a reviewer for each session they review."
+msgstr "Posées à un relecteur pour chaque session qu'il relit."
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Attach a file"
+msgstr "Joindre un fichier"
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "Attach a file of {maxSize} at most."
+msgstr "Joignez un fichier de {maxSize} au plus."
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "Attach a PDF, PNG or JPEG file."
+msgstr "Joignez un fichier PDF, PNG ou JPEG."
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "Attachment"
+msgstr "Pièce jointe"
+
+#. Goes to the step before, in a campaign's setup
+#. The link back to the campaign from one of its sessions
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+#: src/features/campaigns/components/SetupStepFooter.tsx
+msgid "Back"
+msgstr "Retour"
+
+#. Opens the platform's home, which lists the person's apps
+#: src/components/shared/AppLogo.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "Back to home"
+msgstr "Retour à l'accueil"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Back to the app"
+msgstr "Retour à l'accueil"
+
+#. The setup step with a campaign's name
+#: src/features/campaigns/setup-steps.ts
+msgid "Campaign"
+msgstr "Campagne"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Campaign for {agentName}, {today}"
+msgstr "Campagne pour {agentName}, {today}"
+
+#. The sidebar's menu of the review campaigns an agent's managers run
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+#: src/features/campaigns/components/CampaignsPage.tsx
+#: src/features/campaigns/components/NewCampaignPage.tsx
+#: src/routes/-components/AgentHubPage.tsx
+#: src/routes/-components/CampaignsMenu.tsx
+msgid "Campaigns"
+msgstr "Campagnes"
+
+#: src/components/shared/ConfirmDialog.tsx
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "Captured form"
+msgstr "Formulaire collecté"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Check your connection, then try again."
+msgstr "Vérifiez votre connexion, puis réessayez."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Close “{name}”?"
+msgstr "Clôturer « {name} » ?"
+
+#. Ends a review campaign
+#. Ends a review campaign
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Close the campaign"
+msgstr "Clôturer la campagne"
+
+#: src/components/shared/SidePanel.tsx
+msgid "Close the panel"
+msgstr "Fermer le panneau"
+
+#. A review campaign that is over
+#: src/lib/campaign-status.ts
+msgid "Closed"
+msgstr "Clôturée"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Closing ends the campaign for good: testers can no longer start sessions or give feedback, and reviewers can no longer submit reviews."
+msgstr "La clôture est définitive : les testeurs ne peuvent plus démarrer de session ni donner de retour, et les relecteurs ne peuvent plus soumettre de relecture."
+
+#: src/components/shared/RatedFeedbackForm.tsx
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+#: src/features/campaigns/components/FeedbackFormFields.tsx
+msgid "Comment"
+msgstr "Commentaire"
+
+#: src/features/conversation/components/FormsButton.tsx
+msgid "Completed form"
+msgstr "Formulaire complété"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Completing the form"
+msgstr "Finalisation du formulaire"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Contact your administrator."
+msgstr "Contactez votre administrateur."
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Conversation agents"
+msgstr "Agents de conversation"
+
+#: src/lib/agent-type-labels.ts
+msgid "Conversational agent"
+msgstr "Agent conversationnel"
+
+#. The copy button, once it copied its text
+#. The copy button, once it copied its text
+#: src/components/shared/CopyButton.tsx
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Copied"
+msgstr "Copié"
+
+#. Copies the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Copy"
+msgstr "Copier"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "Copy the code"
+msgstr "Copier le code"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Copy the invitation link"
+msgstr "Copier le lien d'invitation"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Copy the invitation link of {email}"
+msgstr "Copier le lien d'invitation de {email}"
+
+#: src/features/conversation/components/ChatMessageView.tsx
+msgid "Copy the message"
+msgstr "Copier le message"
+
+#: src/features/conversation/components/AssistantMessageView.tsx
+msgid "Copy the reply"
+msgstr "Copier la réponse"
+
+#: src/features/campaigns/components/CampaignsEmptyState.tsx
+msgid "Create a campaign so testers and reviewers can evaluate this agent."
+msgstr "Créez une campagne pour que des testeurs et des relecteurs évaluent cet agent."
+
+#. When a review campaign was created
+#: src/features/campaigns/components/campaign-columns.tsx
+msgid "Created"
+msgstr "Créée le"
+
+#. When a review campaign was created, such as: Created Nov 19, 2026
+#: src/components/shared/CampaignDescription.tsx
+msgid "Created {createdOn}"
+msgstr "Créée le {createdOn}"
+
+#. The Control key of a keyboard
+#. The Control key of a keyboard
+#: src/components/shared/ShortcutHint.tsx
+#: src/components/shared/SidebarToggle.tsx
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#. Marks the agent whose pages show, in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Current"
+msgstr "Actuel"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Decline"
+msgstr "Refuser"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Decline the invitation to {name}"
+msgstr "Refuser l’invitation à {name}"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete"
+msgstr "Supprimer"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Delete “{name}”?"
+msgstr "Supprimer « {name} » ?"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete the invitation"
+msgstr "Supprimer l'invitation"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete the invitation of {email}"
+msgstr "Supprimer l'invitation de {email}"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Delete the session of {started}"
+msgstr "Supprimer la session du {started}"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete this invitation?"
+msgstr "Supprimer cette invitation ?"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "Delete this session?"
+msgstr "Supprimer cette session ?"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Describe the problem in a few words, up to {maxLength} characters."
+msgstr "Décrivez le problème en quelques mots, {maxLength} caractères au plus."
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Description"
+msgstr "Description"
+
+#: src/features/conversation/components/DictationButton.tsx
+msgid "Dictate your message"
+msgstr "Dicter votre message"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Did the agent address your question?"
+msgstr "L'agent a-t-il répondu à votre question ?"
+
+#. Ends a campaign's setup
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Done"
+msgstr "Terminé"
+
+#: src/features/campaign-report/components/DownloadReportButton.tsx
+msgid "Download CSV"
+msgstr "Télécharger le CSV"
+
+#. A review campaign being prepared
+#: src/lib/campaign-status.ts
+msgid "Draft"
+msgstr "Brouillon"
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+msgid "e.g. Support agent, spring review"
+msgstr "ex. Agent de support, revue de printemps"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "e.g. Was the answer clear?"
+msgstr "ex. La réponse était-elle claire ?"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Each new sign-in ended at once, so the app stopped starting new ones."
+msgstr "Chaque nouvelle connexion s'est arrêtée aussitôt : l'application a cessé d'en lancer."
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Each person gets an invitation to accept. They must sign in with the address you write here."
+msgstr "Chaque personne reçoit une invitation à accepter. Elle doit se connecter avec l'adresse que vous écrivez ici."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "Each session's tester rating against its reviewers'. The spread is the highest reviewer rating minus the lowest: a high one means the reviewers disagree."
+msgstr "La note du testeur de chaque session, face à celles des relecteurs. L'écart est la plus haute note des relecteurs moins la plus basse : un écart élevé signale un désaccord entre relecteurs."
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Edit annotation {number}"
+msgstr "Modifier l'annotation {number}"
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "Edit my survey"
+msgstr "Modifier mon questionnaire"
+
+#. The email address of a participant
+#: src/features/campaigns/components/participant-columns.tsx
+msgid "Email"
+msgstr "E-mail"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Email address missing"
+msgstr "Adresse email manquante"
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "Email addresses, separated by commas or new lines"
+msgstr "Adresses e-mail, séparées par des virgules ou des retours à la ligne"
+
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+msgid "End the session and give feedback"
+msgstr "Terminer la session et donner mon retour"
+
+#. The keyboard key
+#: src/features/conversation/components/EnterKey.tsx
+msgid "Enter"
+msgstr "Entrée"
+
+#. The Escape key of a keyboard
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Esc"
+msgstr "Échap"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Evaluate the agent's answers and share your feedback."
+msgstr "Évaluez les réponses de l'agent et partagez votre retour."
+
+#. The name of the app, next to the logo
+#: src/components/shared/AppLogo.tsx
+msgid "Evaluation"
+msgstr "Évaluation"
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "Evaluation could not reach the agent. Check your connection."
+msgstr "L'Évaluation n'a pas pu joindre l'agent. Vérifiez votre connexion."
+
+#: src/features/conversation/hooks/use-dictation.ts
+msgid "Evaluation may not use your microphone. Allow it in your browser, then try again."
+msgstr "L'Évaluation n'a pas le droit d'utiliser votre micro. Autorisez-le dans votre navigateur, puis réessayez."
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "Evaluation opens to the evaluators and the admins of a project, and to the testers and reviewers of a review campaign. Ask a project admin to give you access."
+msgstr "L'Évaluation est ouverte aux évaluateurs et aux administrateurs d'un projet, ainsi qu'aux testeurs et aux relecteurs d'une campagne d'évaluation. Demandez l'accès à un administrateur du projet."
+
+#: src/routes/-components/AgentHubPage.tsx
+#: src/routes/-components/AgentSectionsNav.tsx
+msgid "Evaluations"
+msgstr "Évaluations"
+
+#: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/index.tsx
+msgid "Evaluations are not here yet"
+msgstr "Les évaluations ne sont pas encore ici"
+
+#: src/lib/agent-type-labels.ts
+msgid "Extraction agent"
+msgstr "Agent d'extraction"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Extraction agents"
+msgstr "Agents d'extraction"
+
+#. A question about what happened in a session, not an opinion
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Factual"
+msgstr "Factuelle"
+
+#. Whether the tester gave feedback on a session
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Feedback"
+msgstr "Retour"
+
+#: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "Feedback given"
+msgstr "Retour donné"
+
+#: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "Feedback to give"
+msgstr "Retour à donner"
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "Fill the final survey"
+msgstr "Remplir le questionnaire final"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Filling in the form"
+msgstr "Remplissage du formulaire"
+
+#. The setup step with the questions a tester answers once, at the end
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaign-test/components/SurveyCard.tsx
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Final survey"
+msgstr "Questionnaire final"
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "Final surveys"
+msgstr "Questionnaires finaux"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Forgetting what you asked"
+msgstr "Oubli de ce que vous avez demandé"
+
+#: src/features/conversation/components/FormsButton.tsx
+msgid "Form in progress"
+msgstr "Formulaire en cours"
+
+#. A question answered with a text
+#. A question answered with a text
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Free text"
+msgstr "Texte libre"
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "Free-text answers are not summarized here: read them in each session."
+msgstr "Les réponses en texte libre ne sont pas résumées ici : lisez-les dans chaque session."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "From the testers' final surveys."
+msgstr "Issue des questionnaires finaux des testeurs."
+
+#. The general settings of a review campaign
+#. The general settings of a review campaign
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "General"
+msgstr "Général"
+
+#: src/components/shared/RatedFeedbackForm.tsx
+msgid "Give a rating from 1 to 5 stars."
+msgstr "Donnez une note de 1 à 5 étoiles."
+
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Give feedback"
+msgstr "Donner mon retour"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Give feedback on the session of {started}"
+msgstr "Donner mon retour sur la session du {started}"
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+msgid "Give the campaign a name."
+msgstr "Donnez un nom à la campagne."
+
+#. The thumbs-up button under a reply
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Good reply"
+msgstr "Bonne réponse"
+
+#. Before the first message an agent says in a new session
+#: src/features/campaign-context/components/CampaignAgentCard.tsx
+msgid "Greeting message:"
+msgstr "Message d'accueil :"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Handing the conversation back"
+msgstr "Retour à l'agent précédent"
+
+#: src/features/campaigns/components/CampaignsPage.tsx
+msgid "Have testers try this agent, and reviewers read their sessions."
+msgstr "Faites essayer cet agent par des testeurs, et relire leurs sessions par des relecteurs."
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Help center"
+msgstr "Centre d'aide"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Hide the sidebar"
+msgstr "Masquer la barre latérale"
+
+#. Opens the platform's home, which lists the person's apps, outside this app
+#: src/features/account/components/UserMenu.tsx
+msgid "Home"
+msgstr "Accueil"
+
+#: src/features/conversation/components/ConversationView.tsx
+msgid "How can I help you today?"
+msgstr "Comment puis-je vous aider aujourd'hui ?"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "How satisfied are you with this agent overall?"
+msgstr "Dans l'ensemble, êtes-vous satisfait de cet agent ?"
+
+#: src/features/campaign-test/components/SessionFeedbackDialog.tsx
+#: src/features/campaign-test/components/SessionFeedbackPanel.tsx
+msgid "How was this session?"
+msgstr "Comment s'est passée cette session ?"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "If it keeps happening, contact your administrator with the message below."
+msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-dessous."
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
+msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-la dans un nouvel onglet."
+
+#. An image in a reply, which names none
+#: src/components/shared/Markdown.tsx
+msgid "Image"
+msgstr "Image"
+
+#: src/features/conversation/components/McpAppCard.tsx
+msgid "Interactive card"
+msgstr "Carte interactive"
+
+#: src/features/invitations/components/InvitationsButton.tsx
+msgid "Invitations"
+msgstr "Invitations"
+
+#. The setup step that invites testers and reviewers
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Invite"
+msgstr "Inviter"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Invite participants"
+msgstr "Inviter des participants"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Invite people to try this agent, and others to review their conversations."
+msgstr "Invitez des personnes à tester cet agent, et d'autres à relire leurs conversations."
+
+#. When a person was invited, such as: Invited 5 minutes ago
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Invited <0/>"
+msgstr "Invitation envoyée <0/>"
+
+#. Something that happened less than a minute ago
+#: src/components/shared/RelativeTime.tsx
+msgid "just now"
+msgstr "à l'instant"
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Language"
+msgstr "Langue"
+
+#. Leaves a page whose changes are not saved
+#: src/features/campaigns/components/UnsavedChangesGuard.tsx
+msgid "Leave"
+msgstr "Quitter"
+
+#: src/features/campaigns/components/UnsavedChangesGuard.tsx
+msgid "Leave without saving?"
+msgstr "Quitter sans enregistrer ?"
+
+#. The sidebar's link to the table of all an agent's review campaigns
+#: src/features/campaigns/components/CampaignsSidebarEntries.tsx
+msgid "List all"
+msgstr "Tout afficher"
+
+#: src/features/conversation/components/McpAppPlaceholder.tsx
+msgid "Loading the interactive card…"
+msgstr "Chargement de la carte interactive…"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "Mean final rating"
+msgstr "Note finale moyenne"
+
+#: src/features/campaign-report/components/report-session-columns.tsx
+msgid "Mean reviewer"
+msgstr "Moyenne des relecteurs"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "Mean reviewer rating"
+msgstr "Note moyenne des relecteurs"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "Mean tester rating"
+msgstr "Note moyenne des testeurs"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "member"
+msgstr "membre"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Message to {agentName}"
+msgstr "Message à {agentName}"
+
+#. How many messages a session holds
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Messages"
+msgstr "Messages"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "More actions"
+msgstr "Plus d’actions"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Move question {position} down"
+msgstr "Descendre la question {position}"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Move question {position} up"
+msgstr "Monter la question {position}"
+
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "My review"
+msgstr "Ma relecture"
+
+#. The name of a review campaign
+#. The name of a review campaign
+#. The name of a review campaign
+#: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Name"
+msgstr "Nom"
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "Name the campaign, choose what testers and reviewers answer, then activate it and invite them."
+msgstr "Nommez la campagne, choisissez ce que répondent les testeurs et les relecteurs, puis activez-la et invitez-les."
+
+#. A person who was invited and never came
+#: src/features/campaigns/components/participant-columns.tsx
+msgid "Never signed in"
+msgstr "Jamais connecté"
+
+#: src/features/campaigns/components/CampaignsPage.tsx
+#: src/features/campaigns/components/CampaignsSidebarEntries.tsx
+msgid "New campaign"
+msgstr "Nouvelle campagne"
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "New review campaign"
+msgstr "Nouvelle campagne d'évaluation"
+
+#. Goes to the step after, in a campaign's setup
+#: src/features/campaigns/components/SetupStepFooter.tsx
+msgid "Next"
+msgstr "Suivant"
+
+#. A field an agent filled in with false
+#. An answer to: Did the agent address your question?
+#: src/features/campaigns/campaign-defaults.ts
+#: src/lib/field-text.ts
+msgid "No"
+msgstr "Non"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "No agent matches this search."
+msgstr "Aucun agent ne correspond à cette recherche."
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "No answer yet."
+msgstr "Aucune réponse pour le moment."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "No description"
+msgstr "Pas de description"
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "No participant yet."
+msgstr "Aucun participant pour le moment."
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "No passage to show."
+msgstr "Aucun passage à afficher."
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "No question yet."
+msgstr "Aucune question pour le moment."
+
+#: src/features/campaigns/components/CampaignsEmptyState.tsx
+msgid "No review campaign yet"
+msgstr "Aucune campagne d'évaluation pour le moment"
+
+#: src/features/campaigns/components/CampaignsTable.tsx
+msgid "No review campaign yet."
+msgstr "Aucune campagne d'évaluation pour le moment."
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "No session to review yet."
+msgstr "Aucune session à relire pour l'instant."
+
+#: src/features/campaign-review/components/ReviewerSessionsTable.tsx
+msgid "No session yet: testers have not started any."
+msgstr "Aucune session pour le moment : les testeurs n'en ont pas encore démarré."
+
+#: src/features/campaign-report/components/ReportSessionsTable.tsx
+msgid "No session yet: the table fills as testers start sessions."
+msgstr "Aucune session pour le moment : le tableau se remplit quand les testeurs démarrent des sessions."
+
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "No session yet."
+msgstr "Aucune session pour l'instant."
+
+#: src/components/shared/AnswerList.tsx
+msgid "Not answered"
+msgstr "Sans réponse"
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "Not collected"
+msgstr "Non collecté"
+
+#: src/features/conversation/components/FormFields.tsx
+msgid "Nothing noted yet."
+msgstr "Rien de noté pour l'instant."
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Nothing to open for this agent"
+msgstr "Rien à ouvrir pour cet agent"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Once active, the campaign's questions can no longer change, and its testers and reviewers can see it. You can still invite more people."
+msgstr "Une fois la campagne active, ses questions ne peuvent plus changer, et ses testeurs et relecteurs la voient. Vous pouvez encore inviter d'autres personnes."
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "Once active, the questions can no longer change, and you can invite testers and reviewers."
+msgstr "Une fois la campagne active, les questions ne changent plus, et vous pouvez inviter des testeurs et des relecteurs."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "One answer per review, across all sessions."
+msgstr "Une réponse par relecture, toutes sessions confondues."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "One answer per session a tester gave feedback on."
+msgstr "Une réponse par session sur laquelle un testeur a donné son retour."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "One answer per tester who filled the final survey."
+msgstr "Une réponse par testeur qui a rempli le questionnaire final."
+
+#. Opens a session with the agent
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Open"
+msgstr "Ouvrir"
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "Open {name}"
+msgstr "Ouvrir {name}"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Open {title}"
+msgstr "Ouvrir {title}"
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "Open in a new tab"
+msgstr "Ouvrir dans un nouvel onglet"
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "Open on YouTube"
+msgstr "Ouvrir sur YouTube"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Open the session of {started}"
+msgstr "Ouvrir la session du {started}"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
+msgstr "Ouvrez l’email de vérification envoyé par votre fournisseur d’identité, en regardant aussi dans vos spams. Cliquez sur le lien qu’il contient, puis réessayez."
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Options, separated by commas"
+msgstr "Options, séparées par des virgules"
+
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "Other reviewers"
+msgstr "Autres relecteurs"
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "Overall rating"
+msgstr "Note globale"
+
+#. The sidebar's link to the first page of an agent, which lists its sections
+#: src/routes/-components/AgentSectionsNav.tsx
+msgid "Overview"
+msgstr "Vue d'ensemble"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "owner"
+msgstr "propriétaire"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Page not found"
+msgstr "Page introuvable"
+
+#. An answer to: Did the agent address your question?
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Partially"
+msgstr "En partie"
+
+#. How many people take part in a campaign
+#: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Participants"
+msgstr "Participants"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Pending invitations"
+msgstr "Invitations en attente"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "People invited to this campaign who have not answered yet."
+msgstr "Les personnes invitées à cette campagne qui n'ont pas encore répondu."
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Picking useful resources"
+msgstr "Sélection de ressources utiles"
+
+#. The button that shows the forms testers and reviewers will fill
+#. The panel that shows the forms of a campaign
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "Preview"
+msgstr "Aperçu"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Project"
+msgstr "Projet"
+
+#. The text of question number {position} of a campaign
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Question {position}"
+msgstr "Question {position}"
+
+#: src/components/shared/StarRating.tsx
+msgid "Rated {rating} out of {maxRating}"
+msgstr "Note : {rating} sur {maxRating}"
+
+#. A question answered with 1 to 5 stars
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "Rating"
+msgstr "Note"
+
+#. A question answered with 1 to 5 stars
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Rating (1–5)"
+msgstr "Note (1 à 5)"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "Read a session, then give your own rating. The tester's opinion stays hidden until you do."
+msgstr "Lisez une session, puis donnez votre propre note. L'avis du testeur reste masqué jusque-là."
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "Ready to open “{name}”?"
+msgstr "Ouvrir « {name} » ?"
+
+#: src/components/shared/NewReleaseBanner.tsx
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload"
+msgstr "Recharger"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload the page to keep going."
+msgstr "Rechargez la page pour continuer."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "Reloading the page clears what you have not sent or saved."
+msgstr "Recharger la page efface ce que vous n'avez pas envoyé ou enregistré."
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Remembering what matters"
+msgstr "Mémorisation de l'essentiel"
+
+#. Removes a question from a campaign's list
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "Remove"
+msgstr "Retirer"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Remove {fileName}"
+msgstr "Retirer {fileName}"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Remove question {position}"
+msgstr "Retirer la question {position}"
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "Remove question {removedPosition}?"
+msgstr "Retirer la question {removedPosition} ?"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Remove this annotation"
+msgstr "Retirer cette annotation"
+
+#. The tab with the full report of a campaign
+#. The tab with the full report of a campaign
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+msgid "Report"
+msgstr "Rapport"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Report a problem"
+msgstr "Signaler un problème"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Report a problem with this reply"
+msgstr "Signaler un problème avec cette réponse"
+
+#. A question that must be answered
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Required"
+msgstr "Obligatoire"
+
+#: src/components/shared/SidePanel.tsx
+msgid "Resize the panel"
+msgstr "Redimensionner le panneau"
+
+#: src/components/shared/AppShell.tsx
+msgid "Resize the sidebar"
+msgstr "Redimensionner le panneau latéral"
+
+#: src/features/conversation/components/ConversationView.tsx
+msgid "Retry"
+msgstr "Réessayer"
+
+#. The button that opens a session to review it
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Review"
+msgstr "Relire"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Review campaign"
+msgstr "Campagne de revue"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Review campaigns run on conversation agents. To evaluate this agent, ask an owner of its project for the evaluator role."
+msgstr "Les campagnes d'évaluation portent sur les agents de conversation. Pour évaluer cet agent, demandez le rôle d'évaluateur à un propriétaire de son projet."
+
+#: src/features/campaign-review/components/ReviewerSessionsTable.tsx
+msgid "Review session {id}"
+msgstr "Relire la session {id}"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "Reviewed"
+msgstr "Relue"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "reviewer"
+msgstr "relecteur"
+
+#. A person who reviews the testers' sessions
+#. The sidebar's menu of the campaigns where the person reviews an agent's sessions
+#: src/features/campaigns/components/CampaignRoleLabel.tsx
+#: src/routes/-components/ParticipantSidebarMenus.tsx
+msgid "Reviewer"
+msgstr "Relecteur"
+
+#. Names a reviewer by the start of their id
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "Reviewer <0>{reviewerId}</0>"
+msgstr "Relecteur <0>{reviewerId}</0>"
+
+#. The ratings the reviewers gave a session
+#: src/features/campaign-report/components/report-session-columns.tsx
+msgid "Reviewers"
+msgstr "Relecteurs"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Reviewers see the answer before they submit their own review. An opinion stays hidden until then."
+msgstr "Les relecteurs voient la réponse avant de soumettre leur propre relecture. Un avis reste masqué jusque-là."
+
+#. How many reviews a session got
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Reviews"
+msgstr "Relectures"
+
+#. Takes a participant out of a review campaign
+#. Takes a participant out of a review campaign
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "Revoke"
+msgstr "Retirer l'accès"
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "Revoke {email}"
+msgstr "Retirer l'accès de {email}"
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "Revoke {revokedEmail}?"
+msgstr "Retirer l'accès de {revokedEmail} ?"
+
+#. The role of a participant in a review campaign
+#. The role people get in a review campaign
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+#: src/features/campaigns/components/participant-columns.tsx
+msgid "Role"
+msgstr "Rôle"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Run this agent on datasets of conversations, and read how it answered."
+msgstr "Lancez cet agent sur des jeux de données de conversations, puis lisez ses réponses."
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Run this agent on datasets of documents, and read what it extracted."
+msgstr "Lancez cet agent sur des jeux de données de documents, puis lisez ce qu'il a extrait."
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Save changes"
+msgstr "Enregistrer les modifications"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Save your changes first."
+msgstr "Enregistrez d'abord vos modifications."
+
+#: src/features/conversation/components/ConversationView.tsx
+msgid "Scroll to the latest message"
+msgstr "Aller au dernier message"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent"
+msgstr "Rechercher un agent"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent by its name, its project or its organization."
+msgstr "Cherchez un agent par son nom, son projet ou son organisation."
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent or a project…"
+msgstr "Cherchez un agent ou un projet…"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Searching the knowledge base"
+msgstr "Recherche dans la base de connaissances"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Searching the resources"
+msgstr "Recherche dans les ressources"
+
+#: src/routes/-components/AgentSectionsNav.tsx
+msgid "Sections of {agentName}"
+msgstr "Sections de {agentName}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send"
+msgstr "Envoyer"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Send the report"
+msgstr "Envoyer le signalement"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {annotations}"
+msgstr "Envoyer avec {annotations}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {annotations} and {tasks}"
+msgstr "Envoyer avec {annotations} et {tasks}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {tasks}"
+msgstr "Envoyer avec {tasks}"
+
+#. A tester's session with the agent
+#. A tester's session with the agent
+#: src/features/campaign-report/components/report-session-columns.tsx
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Session"
+msgstr "Session"
+
+#. The title of a session's page, with the start of its id
+#: src/features/campaign-review/components/ReviewerSessionPage.tsx
+msgid "Session <0>{sessionId}</0>"
+msgstr "Session <0>{sessionId}</0>"
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "Session facts"
+msgstr "Faits de la session"
+
+#. The setup step with the questions a reviewer answers
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaign-review/components/ReviewerSessionPage.tsx
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Session review"
+msgstr "Relecture de la session"
+
+#. How many sessions testers started in a campaign
+#. How many sessions testers started in a campaign
+#. The report's tab with each session's ratings
+#. The tab with a campaign's sessions, its first page for its participants
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "Sessions"
+msgstr "Sessions"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "Sessions to review"
+msgstr "Sessions à relire"
+
+#. The tab with a campaign's name and questions
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+msgid "Setup"
+msgstr "Configuration"
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Share your overall experience, so the team can evaluate this agent."
+msgstr "Partagez votre expérience d'ensemble, pour aider l'équipe à évaluer cet agent."
+
+#. The keyboard key
+#: src/features/conversation/components/ShiftKey.tsx
+msgid "Shift"
+msgstr "Maj"
+
+#: src/features/conversation/components/CitedPassageBadges.tsx
+msgid "Show annotation {number} in its message"
+msgstr "Voir l'annotation {number} dans son message"
+
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply"
+msgstr "Voir dans la réponse"
+
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply: {passage}"
+msgstr "Voir dans la réponse : {passage}"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+#: src/features/conversation/components/UserMessageText.tsx
+msgid "Show less"
+msgstr "Afficher moins"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+#: src/features/conversation/components/UserMessageText.tsx
+msgid "Show more"
+msgstr "Afficher plus"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Show the sidebar"
+msgstr "Afficher la barre latérale"
+
+#: src/components/shared/SignInProblemPage.tsx
+#: src/features/account/components/UserMenu.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "Sign out"
+msgstr "Se déconnecter"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in expired"
+msgstr "Connexion expirée"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in failed"
+msgstr "Connexion impossible"
+
+#. A question answered by picking one option
+#. A question answered by picking one option
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Single choice"
+msgstr "Choix unique"
+
+#. The highest reviewer rating minus the lowest
+#: src/features/campaign-report/components/report-session-columns.tsx
+msgid "Spread"
+msgstr "Écart"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "Start a session"
+msgstr "Démarrer une session"
+
+#. When a session started
+#. When a session started
+#. When a session started
+#: src/features/campaign-report/components/report-session-columns.tsx
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Started"
+msgstr "Démarrée le"
+
+#. Where a review campaign stands
+#: src/features/campaigns/components/campaign-columns.tsx
+msgid "Status"
+msgstr "Statut"
+
+#: src/features/campaigns/components/SetupStepper.tsx
+msgid "Steps of the setup"
+msgstr "Étapes de la configuration"
+
+#: src/features/conversation/components/DictationButton.tsx
+msgid "Stop the dictation"
+msgstr "Arrêter la dictée"
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Submit feedback"
+msgstr "Envoyer mon retour"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Submit review"
+msgstr "Soumettre ma relecture"
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Submit survey"
+msgstr "Envoyer le questionnaire"
+
+#. The reviewer gave their review of a session
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Submitted"
+msgstr "Soumise"
+
+#: src/features/conversation/components/FollowUpQuestions.tsx
+msgid "Suggested questions"
+msgstr "Questions suggérées"
+
+#. The tab with the first figures of a closed campaign
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+msgid "Summary"
+msgstr "Synthèse"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Switch agent"
+msgstr "Changer d'agent"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Switch agent, current agent: {agentName}"
+msgstr "Changer d'agent, agent actuel : {agentName}"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "tester"
+msgstr "testeur"
+
+#. A person who tests the agent in a review campaign
+#. The rating the tester gave a session
+#. The sidebar's menu of the campaigns where the person tests an agent
+#: src/features/campaign-report/components/report-session-columns.tsx
+#: src/features/campaigns/components/CampaignRoleLabel.tsx
+#: src/routes/-components/ParticipantSidebarMenus.tsx
+msgid "Tester"
+msgstr "Testeur"
+
+#. Who started a session, by the start of their id, and when
+#: src/features/campaign-review/components/ReviewerSessionPage.tsx
+msgid "Tester {testerId}, started {started}"
+msgstr "Testeur {testerId}, démarrée le {started}"
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "Tester feedback"
+msgstr "Retour du testeur"
+
+#. The language of a code block that names none
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "text"
+msgstr "texte"
+
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Thank you for your feedback."
+msgstr "Merci pour votre retour."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Thank you. Your report was sent."
+msgstr "Merci, votre signalement a été envoyé."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The agent could not answer."
+msgstr "L'agent n'a pas pu répondre."
+
+#: src/features/conversation/components/Composer.tsx
+msgid "The agent is answering…"
+msgstr "L'agent répond…"
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "The agent's form has no field."
+msgstr "Le formulaire de l'agent n'a aucun champ."
+
+#: src/features/conversation/components/FormsPanel.tsx
+msgid "The answers the agent collected from the conversation, as it fills them in."
+msgstr "Les réponses que l'agent a recueillies dans la conversation, au fur et à mesure."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The app needs it to find your invitations. Contact your administrator."
+msgstr "L'application en a besoin pour trouver vos invitations. Contactez votre administrateur."
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "The campaign closed before you reviewed this session."
+msgstr "La campagne a été clôturée avant que vous ne relisiez cette session."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign could not be activated. Try again."
+msgstr "La campagne n'a pas pu être activée. Réessayez."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign could not be closed. Try again."
+msgstr "La campagne n'a pas pu être clôturée. Réessayez."
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "The campaign could not be created. Try again."
+msgstr "La campagne n'a pas pu être créée. Réessayez."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign could not be deleted. Try again."
+msgstr "La campagne n'a pas pu être supprimée. Réessayez."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "The campaign could not be saved. Try again."
+msgstr "La campagne n'a pas pu être enregistrée. Réessayez."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign is active. You can invite its participants."
+msgstr "La campagne est active. Vous pouvez inviter ses participants."
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "The campaign is closed: you can read the sessions and the reviews."
+msgstr "La campagne est clôturée : vous pouvez lire les sessions et les relectures."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign is closed."
+msgstr "La campagne est clôturée."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign was deleted."
+msgstr "La campagne a été supprimée."
+
+#: src/features/campaigns/components/UnsavedChangesGuard.tsx
+msgid "The changes to this step are not saved yet. They are lost if you leave."
+msgstr "Les changements de cette étape ne sont pas encore enregistrés. Ils sont perdus si vous quittez la page."
+
+#: src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/index.tsx
+msgid "The datasets and the runs of this agent will show on this page."
+msgstr "Les jeux de données et les exécutions de cet agent s'afficheront sur cette page."
+
+#: src/features/conversation/hooks/use-dictation.ts
+msgid "The dictation stopped. Try again."
+msgstr "La dictée s’est arrêtée. Réessayez."
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "The document could not be opened. Try again."
+msgstr "Le document n'a pas pu être ouvert. Réessayez."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
+msgstr "Le brouillon et ses questions sont supprimés définitivement. Une campagne active ou clôturée ne peut pas être supprimée."
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "The file could not be opened. Try again."
+msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The file could not be uploaded. Try again."
+msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
+
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "The forms testers and reviewers will fill, as the setup stands."
+msgstr "Les formulaires que les testeurs et les relecteurs rempliront, d'après le paramétrage actuel."
+
+#: src/features/invitations/api/mutations.ts
+msgid "The invitation could not be answered. Try again."
+msgstr "L’invitation n’a pas pu recevoir de réponse. Réessayez."
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "The invitation could not be deleted. Try again."
+msgstr "L'invitation n'a pas pu être supprimée. Réessayez."
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "The invitation link was copied."
+msgstr "Le lien d'invitation a été copié."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "The invitations were sent by email."
+msgstr "Les invitations ont été envoyées par e-mail."
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "The link could not be copied."
+msgstr "Le lien n'a pas pu être copié."
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The mean of the ratings testers gave their sessions."
+msgstr "La moyenne des notes que les testeurs ont données à leurs sessions."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "The people could not be invited. Try again."
+msgstr "Les personnes n'ont pas pu être invitées. Réessayez."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "The people were invited. Send them their invitation link."
+msgstr "Les personnes sont invitées. Envoyez-leur leur lien d'invitation."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "The people who run this agent read every report to improve it."
+msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The reply stopped before it finished."
+msgstr "La réponse s'est arrêtée avant la fin."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "The report could not be sent. Try again."
+msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
+
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+msgid "The reviewers of this campaign can read everything exchanged in this session."
+msgstr "Les relecteurs de cette campagne peuvent lire tout ce qui est échangé dans cette session."
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "The session and its messages are deleted for good."
+msgstr "La session et ses messages sont supprimés définitivement."
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "The session could not be deleted. Try again."
+msgstr "La session n'a pas pu être supprimée. Réessayez."
+
+#: src/features/campaign-test/hooks/use-open-new-session.ts
+msgid "The session could not start. Try again."
+msgstr "La session n'a pas pu démarrer. Réessayez."
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The sessions testers started."
+msgstr "Les sessions démarrées par les testeurs."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The sign-in keeps failing"
+msgstr "La connexion échoue à chaque fois"
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The summary shows once the campaign is closed."
+msgstr "La synthèse s'affiche une fois la campagne clôturée."
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "The tester gave no feedback on this session."
+msgstr "Le testeur n'a pas donné de retour sur cette session."
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "The tester left before the agent produced a final value."
+msgstr "Le testeur est parti avant que l'agent ne produise une valeur finale."
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "The tester's rating and comment stay hidden until you submit your own review, so your judgment stays independent."
+msgstr "La note et le commentaire du testeur restent masqués jusqu'à ce que vous soumettiez votre propre relecture, pour que votre jugement reste indépendant."
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The testers who filled the final survey."
+msgstr "Les testeurs qui ont rempli le questionnaire final."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "These people already have access or an invitation."
+msgstr "Ces personnes ont déjà un accès ou une invitation."
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Thinking…"
+msgstr "Réflexion…"
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "This agent has no published version yet. Publish it, then create the campaign."
+msgstr "Cet agent n'a pas encore de version publiée. Publiez-le, puis créez la campagne."
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "This campaign asks its testers no factual question."
+msgstr "Cette campagne ne pose aucune question factuelle à ses testeurs."
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "This campaign reviews the agent {agentName}."
+msgstr "Cette campagne évalue l'agent {agentName}."
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "This file is empty."
+msgstr "Ce fichier est vide."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "This form asks no question."
+msgstr "Ce formulaire ne pose aucune question."
+
+#: src/components/shared/SidebarSection.tsx
+msgid "This list could not load."
+msgstr "Cette liste n'a pas pu se charger."
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "This page could not load"
+msgstr "Cette page n’a pas pu se charger"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "This page does not exist, or you cannot open it."
+msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "This person loses this role in the campaign. What they already submitted stays."
+msgstr "Cette personne perd ce rôle dans la campagne. Ce qu'elle a déjà soumis est conservé."
+
+#: src/components/shared/QuestionField.tsx
+msgid "This question has no option yet."
+msgstr "Cette question n'a pas encore d'option."
+
+#: src/features/conversation/components/AssistantMessageView.tsx
+msgid "This reply was interrupted before it finished."
+msgstr "Cette réponse a été interrompue avant la fin."
+
+#: src/features/campaign-review/components/SessionTranscript.tsx
+msgid "This session has no message."
+msgstr "Cette session n'a aucun message."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
+msgstr "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en a lancé une nouvelle, et cet onglet ne peut plus la terminer."
+
+#: src/features/conversation/components/TaskChecksList.tsx
+msgid "Ticked: {text}"
+msgstr "Cochée : {text}"
+
+#. The reviewer did not review a session yet
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "To do"
+msgstr "À faire"
+
+#. What the arrow keys do in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to move"
+msgstr "pour se déplacer"
+
+#. What the Enter key does in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to open"
+msgstr "pour ouvrir"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "To review"
+msgstr "À relire"
+
+#: src/components/shared/RouteErrorState.tsx
+#: src/components/shared/SidebarSection.tsx
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again"
+msgstr "Réessayer"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again in a moment. If this page comes back, sign out, then sign in again."
+msgstr "Réessayez dans un instant. Si cette page revient, déconnectez-vous, puis reconnectez-vous."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again to sign in. If this page comes back, close the other tabs of the app."
+msgstr "Réessayez de vous connecter. Si cette page revient, fermez les autres onglets de l'application."
+
+#. The kind of agent a review campaign reviews
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Type"
+msgstr "Type"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Type of question {position}"
+msgstr "Type de la question {position}"
+
+#: src/features/conversation/components/TaskChecksList.tsx
+msgid "Unticked: {text}"
+msgstr "Décochée : {text}"
+
+#. A question whose text is still empty
+#: src/components/shared/QuestionField.tsx
+msgid "Untitled"
+msgstr "Sans titre"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Untitled document"
+msgstr "Document sans titre"
+
+#. When a review campaign last changed
+#: src/features/campaigns/components/campaign-columns.tsx
+msgid "Updated"
+msgstr "Modifiée le"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Using a tool"
+msgstr "Utilisation d'un outil"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Verify your email"
+msgstr "Vérifiez votre email"
+
+#. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
+#: src/features/account/components/UserMenu.tsx
+msgid "Version {version}"
+msgstr "Version {version}"
+
+#. The button that opens a session the reviewer already reviewed
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "View"
+msgstr "Voir"
+
+#: src/features/campaign-review/components/ReviewerSessionsTable.tsx
+msgid "View session {id}"
+msgstr "Voir la session {id}"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Was the agent's answer clear?"
+msgstr "La réponse de l'agent était-elle claire ?"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Were the agent's answers factually correct?"
+msgstr "Les réponses de l'agent étaient-elles exactes ?"
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "What a reviewer fills for each session."
+msgstr "Ce qu'un relecteur remplit pour chaque session."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "What a tester fills when they end a session."
+msgstr "Ce qu'un testeur remplit quand il termine une session."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "What a tester fills when they finish taking part."
+msgstr "Ce qu'un testeur remplit quand il termine sa participation."
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+msgid "What should testers and reviewers evaluate?"
+msgstr "Que doivent évaluer les testeurs et les relecteurs ?"
+
+#: src/features/conversation/components/FormsPanel.tsx
+msgid "What the agent noted"
+msgstr "Ce que l'agent a noté"
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "What the tester reported about what happened in this session."
+msgstr "Ce que le testeur a rapporté sur le déroulement de cette session."
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "What went well? What could be better?"
+msgstr "Qu'est-ce qui a bien fonctionné ? Que faut-il améliorer ?"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "What went wrong?"
+msgstr "Qu'est-ce qui n'allait pas ?"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "What worked, and what did not?"
+msgstr "Qu'est-ce qui a fonctionné, et qu'est-ce qui n'a pas fonctionné ?"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "What you can do with this agent."
+msgstr "Ce que vous pouvez faire avec cet agent."
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "When an agent is created in one of your projects, it appears here."
+msgstr "Quand un agent est créé dans l'un de vos projets, il apparaît ici."
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "When you are done testing, share an overall rating of the agent. It is optional: your feedback on each session already counts. You can still start sessions afterwards."
+msgstr "Quand vous avez fini de tester, donnez une note d'ensemble à l'agent. C'est facultatif : vos retours sur chaque session comptent déjà. Vous pourrez encore démarrer des sessions ensuite."
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "Wrap long lines"
+msgstr "Renvoyer les longues lignes à la ligne"
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "Write 1 to {maxEmails} valid email addresses."
+msgstr "Écrivez de 1 à {maxEmails} adresses e-mail valides."
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Write the question."
+msgstr "Écrivez la question."
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Write two options at least."
+msgstr "Écrivez au moins deux options."
+
+#. A field an agent filled in with true
+#. An answer to: Did the agent address your question?
+#: src/features/campaigns/campaign-defaults.ts
+#: src/lib/field-text.ts
+msgid "Yes"
+msgstr "Oui"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Yes, No, Not sure"
+msgstr "Oui, Non, Pas sûr"
+
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "You are the only reviewer of this session so far."
+msgstr "Vous êtes pour le moment le seul relecteur de cette session."
+
+#: src/features/invitations/api/mutations.ts
+msgid "You declined the invitation to {targetName}."
+msgstr "Vous avez refusé l’invitation à {targetName}."
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "You filled the survey. Thank you for your feedback."
+msgstr "Vous avez rempli le questionnaire. Merci pour votre retour."
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "You have no access to Evaluation yet"
+msgstr "Vous n'avez pas encore accès à l'Évaluation"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "You have not started a session yet. Your sessions show here, with the feedback you gave on each."
+msgstr "Vous n'avez pas encore démarré de session. Vos sessions s'affichent ici, avec le retour donné sur chacune."
+
+#: src/features/invitations/api/mutations.ts
+msgid "You joined {targetName}."
+msgstr "Vous avez rejoint {targetName}."
+
+#. The section of the agents the person reaches through the campaigns they test or review
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Your campaigns"
+msgstr "Vos campagnes"
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Your feedback could not be saved. Try again."
+msgstr "Votre retour n'a pas pu être enregistré. Réessayez."
+
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Your feedback could not be sent. Try again."
+msgstr "Votre retour n’a pas pu être envoyé. Réessayez."
+
+#: src/features/campaign-test/components/SessionFeedbackDialog.tsx
+#: src/features/campaign-test/components/SessionFeedbackPanel.tsx
+msgid "Your feedback ends the session and helps improve the agent. You cannot change it afterwards."
+msgstr "Votre retour termine la session et aide à améliorer l'agent. Vous ne pourrez plus le modifier ensuite."
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Your feedback was saved."
+msgstr "Votre retour a été enregistré."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider did not share your email address with the app."
+msgstr "Votre fournisseur d'identité n'a pas transmis votre adresse e-mail à l'application."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider refused the sign-in."
+msgstr "Votre fournisseur d’identité a refusé la connexion."
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Your note on this passage"
+msgstr "Votre note sur ce passage"
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "Your projects have no agent yet"
+msgstr "Vos projets n'ont pas encore d'agent"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "Your rating"
+msgstr "Votre note"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Your review"
+msgstr "Votre relecture"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Your review could not be saved. Try again."
+msgstr "Votre relecture n'a pas pu être enregistrée. Réessayez."
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Your review was saved."
+msgstr "Votre relecture a été enregistrée."
+
+#. Marks a session the reviewer started as a tester
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Your session"
+msgstr "Votre session"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "Your sessions"
+msgstr "Vos sessions"
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Your survey could not be saved. Try again."
+msgstr "Votre questionnaire n'a pas pu être enregistré. Réessayez."
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Your survey was saved."
+msgstr "Votre questionnaire a été enregistré."
