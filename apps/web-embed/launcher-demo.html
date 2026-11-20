@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Launcher demo</title>
+    <!-- A host page for the Launcher stories: it runs the real launcher (src/launcher/index.ts)
+         against the simulated chat of this app. The dev server serves it; builds leave it out. -->
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, sans-serif;
+        color: #52525b;
+        background: #fafafa radial-gradient(#d4d4d8 1px, transparent 1px) 0 0 / 24px 24px;
+      }
+      main {
+        max-width: 560px;
+        padding: 48px 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Host page</h1>
+      <p>The launcher below runs as it does on a client site, with the simulated chat.</p>
+    </main>
+    <script type="module">
+      import { mountLauncher } from "/src/launcher/index.ts"
+
+      const params = new URLSearchParams(window.location.search)
+      const displayMode = params.get("displayMode") === "drawer" ? "drawer" : "modal"
+      const chatParams = new URLSearchParams({ displayMode })
+      if (params.get("locale")) chatParams.set("locale", params.get("locale"))
+      if (params.get("greeting") !== "false") chatParams.set("demo", "greeting")
+
+      mountLauncher({
+        displayMode,
+        position: params.get("position") === "bottom-left" ? "bottom-left" : "bottom-right",
+        color: params.get("color") ?? "#000000",
+        hint: params.get("hint") ?? undefined,
+        iframeSrc: `/index.html?${chatParams}`,
+      })
+    </script>
+  </body>
+</html>

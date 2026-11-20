@@ -77,19 +77,29 @@ function init() {
   const linkTargetParam = linkTarget ? `&linkTarget=${linkTarget}` : ""
   const iframeSrc = `${base}/index.html?embedToken=${token}${localeParam}&displayMode=${displayMode}${linkTargetParam}`
 
-  if (displayMode === "drawer") {
-    injectDrawerWidget({ token, position, color, iframeSrc, hint })
-  } else {
-    injectModalWidget({ token, position, color, iframeSrc, hint })
-  }
+  mountLauncher({ position, color, iframeSrc, hint, displayMode })
 }
 
 interface WidgetOptions {
-  token: string
   position: "bottom-right" | "bottom-left"
   color: string
   iframeSrc: string
   hint?: string
+}
+
+/**
+ * Injects the button and the chat iframe into the current page. The script tag calls it with the
+ * options of its data attributes; the Storybook demo page (launcher-demo.html) calls it directly.
+ */
+export function mountLauncher({
+  displayMode,
+  ...options
+}: WidgetOptions & { displayMode: "modal" | "drawer" }) {
+  if (displayMode === "drawer") {
+    injectDrawerWidget(options)
+  } else {
+    injectModalWidget(options)
+  }
 }
 
 // ─── Modal (floating bubble) ───────────────────────────────────────────────
@@ -757,8 +767,11 @@ function injectLauncherStyles() {
   document.head.appendChild(style)
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init)
-} else {
-  init()
+// Only a classic <script> tag has a currentScript; an import of mountLauncher does not start it.
+if (_currentScript) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init)
+  } else {
+    init()
+  }
 }
