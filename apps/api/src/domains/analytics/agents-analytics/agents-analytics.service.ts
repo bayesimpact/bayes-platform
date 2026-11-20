@@ -11,6 +11,7 @@ import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import {
   getDayKeySql,
+  getExcludePlaygroundSql,
   getQualifiedColumnSql,
   getUtcDayKeys,
 } from "@/domains/analytics/shared/analytics-conversation-metrics.helpers"
@@ -185,6 +186,7 @@ export class AgentsAnalyticsService {
         startAt: new Date(startAt),
         endAt: new Date(endAt),
       })
+      .andWhere(getExcludePlaygroundSql(this.conversationAgentSessionAlias))
       .groupBy(dayExpr)
       .addGroupBy(sessionAgentIdCol)
       .addGroupBy(agentNameCol)
@@ -217,6 +219,7 @@ export class AgentsAnalyticsService {
         startAt: new Date(startAt),
         endAt: new Date(endAt),
       })
+      .andWhere(getExcludePlaygroundSql(this.conversationAgentSessionAlias))
       .andWhere(
         `NOT EXISTS (${this.conversationAgentSessionConnectRepository
           .newQueryBuilderWithConnectScope(connectScope)

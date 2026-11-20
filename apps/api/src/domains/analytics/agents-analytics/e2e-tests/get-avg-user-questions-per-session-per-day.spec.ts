@@ -76,12 +76,15 @@ describe("Agents Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
     agentId = agent.id
 
     const session1Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
     const session2Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 2 * 3600 * 1000), updatedAt: new Date() })
     const session3Day2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day2Start.getTime() + 3600 * 1000), updatedAt: new Date() })
 

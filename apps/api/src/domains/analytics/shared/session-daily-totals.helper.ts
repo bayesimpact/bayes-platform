@@ -4,6 +4,7 @@ import type { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import {
   getDayKeySql,
+  getExcludePlaygroundSql,
   getQualifiedColumnSql,
 } from "@/domains/analytics/shared/analytics-conversation-metrics.helpers"
 
@@ -36,9 +37,12 @@ async function getSessionDailyTotals<Session extends ConnectEntityBase>({
   agentId,
   startAt,
   endAt,
+  excludePlayground = false,
 }: DailyTotalsParams & {
   sessionConnectRepository: ConnectRepository<Session>
   sessionAlias: string
+  /** True for conversation sessions, the only ones with a playground type. */
+  excludePlayground?: boolean
 }): Promise<Map<string, SessionDailyTotals>> {
   const messageAlias = `${sessionAlias}Message`
   const dayExpr = getDayKeySql(sessionAlias, "created_at")
@@ -74,6 +78,9 @@ async function getSessionDailyTotals<Session extends ConnectEntityBase>({
   if (agentId) {
     queryBuilder.andWhere(`${sessionAgentIdCol} = :agentId`, { agentId })
   }
+  if (excludePlayground) {
+    queryBuilder.andWhere(getExcludePlaygroundSql(sessionAlias))
+  }
 
   const rows = await queryBuilder.getRawMany<{
     date: string
@@ -96,7 +103,7 @@ async function getSessionDailyTotals<Session extends ConnectEntityBase>({
 
 /**
  * Daily totals over both session sources: conversation sessions (studio and
- * app) and PUBLIC (embed) sessions. `agent_message.session_id` references
+ * app, playground left out) and PUBLIC (embed) sessions. `agent_message.session_id` references
  * either table, so the message join is the same for both.
  */
 export async function getAllSessionsDailyTotals<
@@ -118,6 +125,7 @@ export async function getAllSessionsDailyTotals<
     getSessionDailyTotals({
       sessionConnectRepository: conversationAgentSessionConnectRepository,
       sessionAlias: conversationAgentSessionAlias,
+      excludePlayground: true,
       ...params,
     }),
     getSessionDailyTotals({

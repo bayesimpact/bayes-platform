@@ -40,6 +40,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 
 - (beta) Interactive cards (MCP Apps): a tool call that failed no longer shows a card.
+- Analytics: conversation and session statistics no longer count the test conversations of the agent playground.
 
 ### Security
 
