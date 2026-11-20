@@ -20,7 +20,12 @@ describe("AISDKAnthropicProvider model metadata", () => {
 
   it("serves Claude Sonnet 5.5, Haiku 5.5 and Opus 5", () => {
     expect(CLAUDE_MODELS.sort()).toEqual(
-      [AgentModel.ClaudeSonnet55, AgentModel.ClaudeHaiku55, AgentModel.ClaudeOpus5].sort(),
+      [
+        AgentModel.ClaudeSonnet55,
+        AgentModel.ClaudeHaiku55,
+        AgentModel.ClaudeOpus5,
+        AgentModel.ClaudeOpus55,
+      ].sort(),
     )
   })
 

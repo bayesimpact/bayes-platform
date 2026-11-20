@@ -12,6 +12,7 @@ import { EmbedChat } from "./chat/EmbedChat"
 import type { PublicChatErrorKey } from "./hooks/usePublicChat"
 import { usePublicChat } from "./hooks/usePublicChat"
 import { createEmbedI18n, type SupportedLocale } from "./i18n"
+import { previewOf } from "./preview"
 import { DEFAULT_PRIMARY_COLOR } from "./theme"
 
 // ─── URL param helpers ─────────────────────────────────────────────────────
@@ -127,6 +128,22 @@ function LiveChat({
     send,
     reset,
   } = usePublicChat(embedToken)
+
+  // Tell the launcher what to show next to its button while the chat is closed: the agent's
+  // opening message, as long as the visitor has not written anything, and nothing afterwards.
+  // The greeting is public text, which is why any parent origin may read it.
+  const preview = previewOf(messages)
+  useEffect(() => {
+    if (status !== "ready") return
+    window.parent.postMessage(
+      {
+        type: "agent-studio:preview",
+        text: preview,
+        title: remoteConfig?.title ?? remoteConfig?.agentName ?? null,
+      },
+      "*",
+    )
+  }, [status, preview, remoteConfig?.title, remoteConfig?.agentName])
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {

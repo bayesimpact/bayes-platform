@@ -71,10 +71,10 @@ describe("agent model catalog (as the API sends it)", () => {
     expect(findAgentModelEntry(catalog, catalog.defaults.judge)?.deprecation).toBeNull()
   })
 
-  it("reports only the OpenAI models as served outside the EU", () => {
+  it("reports only gemini-4-carbon and the OpenAI models as served outside the EU", () => {
     expect(
       catalog.models.filter((entry) => entry.servedOutsideEu).map((entry) => entry.model),
-    ).toEqual([AgentModel.Gpt54, AgentModel.Gpt54Mini])
+    ).toEqual([AgentModel.Gemini4Carbon, AgentModel.Gpt54, AgentModel.Gpt54Mini])
   })
 })
 
@@ -158,6 +158,9 @@ describe("formatAgentModelLabel", () => {
       "gemini-3.6-flash",
       "gemini-3.7-flash",
       "gemini-3.8-flash",
+      "gemini-4-argon",
+      "gemini-4-carbon (non-EU)",
+      "gemini-4-hydrogen",
       "google/gemma-4-26b-A4B-it",
       "google/gemma-4-31B-it",
       "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
@@ -198,7 +201,7 @@ describe("formatAgentModelLabel", () => {
 })
 
 describe("buildAgentModelOptions", () => {
-  it("offers the vertex 3 models when the project has no flag", () => {
+  it("offers the vertex 3 and 4 models when the project has no flag", () => {
     expect(buildAgentModelOptions(catalog)).toEqual([
       AgentModel.Gemini31FlashLite,
       AgentModel.Gemini35FlashLite,
@@ -206,6 +209,9 @@ describe("buildAgentModelOptions", () => {
       AgentModel.Gemini36Flash,
       AgentModel.Gemini37Flash,
       AgentModel.Gemini38Flash,
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
     ])
   })
 
@@ -233,6 +239,7 @@ describe("buildAgentModelOptions", () => {
       AgentModel.ClaudeSonnet55,
       AgentModel.ClaudeHaiku55,
       AgentModel.ClaudeOpus5,
+      AgentModel.ClaudeOpus55,
     ],
     [AgentProvider.OpenAI, AgentModel.Gpt54, AgentModel.Gpt54Mini],
   ])("adds only the %s models once the API says they are available", (provider, ...models) => {
@@ -292,9 +299,17 @@ describe("describeModelOptionFields", () => {
   it.each([
     AgentModel.Gemini37Flash,
     AgentModel.Gemini38Flash,
+    AgentModel.Gemini4Argon,
+    AgentModel.Gemini4Hydrogen,
   ])("offers the thinking levels %s accepts, without minimal", (model) => {
     expect(fieldsOf(model)).toEqual({
       thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium", "high"] },
+    })
+  })
+
+  it("offers only low and medium for gemini-4-carbon, too slow on high", () => {
+    expect(fieldsOf(AgentModel.Gemini4Carbon)).toEqual({
+      thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium"] },
     })
   })
 
@@ -302,6 +317,7 @@ describe("describeModelOptionFields", () => {
     AgentModel.ClaudeSonnet55,
     AgentModel.ClaudeHaiku55,
     AgentModel.ClaudeOpus5,
+    AgentModel.ClaudeOpus55,
   ])("offers the effort of %s as its thinking level", (model) => {
     expect(fieldsOf(model)).toEqual({
       thinkingLevel: {
@@ -418,6 +434,14 @@ describe("isPriorityCallsAvailable", () => {
     expect(
       isPriorityCallsAvailable({ hasFeature: () => false, model: AgentModel.Gemini35Flash }),
     ).toBe(false)
+  })
+
+  it.each([
+    AgentModel.Gemini4Argon,
+    AgentModel.Gemini4Carbon,
+    AgentModel.Gemini4Hydrogen,
+  ])("is available for the Gemini 4 model %s when the project has the flag", (model) => {
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model })).toBe(true)
   })
 
   it.each([

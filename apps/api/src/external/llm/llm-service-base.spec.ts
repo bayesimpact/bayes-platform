@@ -13,6 +13,7 @@ const llmProviders: LlmProviders = {
   [AgentProvider._Mock]: providerNamed("mock"),
   [AgentProvider.Vertex]: providerNamed("vertex"),
   [AgentProvider.Vertex3]: providerNamed("vertex3"),
+  [AgentProvider.Vertex4]: providerNamed("vertex4"),
   [AgentProvider.Mistral]: providerNamed("mistral"),
   [AgentProvider.MedGemma]: providerNamed("medgemma"),
   [AgentProvider.Gemma]: providerNamed("gemma"),
@@ -39,6 +40,8 @@ describe("LlmServiceBase.getProviderForModel", () => {
     [AgentModel._Mock, "mock"],
     [AgentModel.Gemini25Flash, "vertex"],
     [AgentModel.Gemini35FlashLite, "vertex3"],
+    [AgentModel.Gemini4Argon, "vertex4"],
+    [AgentModel.Gemini4Carbon, "vertex4"],
     [AgentModel.MistralSmall32_24B, "mistral"],
     [AgentModel.MedGemma10_27B, "medgemma"],
     [AgentModel.Gemma4_26B, "gemma"],
@@ -95,6 +98,14 @@ describe("LlmServiceBase.buildLLMConfig", () => {
 
     it("asks for priority on a Vertex3 model when the agent and the feature allow it", () => {
       expect(new TestLlmService().build(priorityParams).serviceTier).toBe("priority")
+    })
+
+    it.each([
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
+    ])("asks for priority on the Gemini 4 model %s when the agent and the feature allow it", (model) => {
+      expect(new TestLlmService().build({ ...priorityParams, model }).serviceTier).toBe("priority")
     })
 
     it.each([
@@ -181,6 +192,12 @@ describe("LlmServiceBase.buildLLMConfig", () => {
       ["the model is a Claude one", { model: AgentModel.ClaudeSonnet55 }],
       ["the model is a Gemini 2.5 one", { model: AgentModel.Gemini25Flash }],
       ["the model is a vLLM one", { model: AgentModel.Gemma4_26B }],
+      ["Google refuses flex for the model (gemini-4-argon)", { model: AgentModel.Gemini4Argon }],
+      ["Google refuses flex for the model (gemini-4-carbon)", { model: AgentModel.Gemini4Carbon }],
+      [
+        "Google refuses flex for the model (gemini-4-hydrogen)",
+        { model: AgentModel.Gemini4Hydrogen },
+      ],
     ])("asks for no flex when %s", (_case, overrides) => {
       const config = new TestLlmService().build({ ...flexParams, ...overrides })
       expect(config.serviceTier).toBeUndefined()

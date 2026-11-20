@@ -92,7 +92,11 @@ export const defaultAgentModels: AgentModelsCatalog["defaults"] = {
   judge: AgentModel.Gemini35FlashLite,
 }
 
-const ALWAYS_AVAILABLE_PROVIDERS = [AgentProvider.Vertex, AgentProvider.Vertex3]
+const ALWAYS_AVAILABLE_PROVIDERS = [
+  AgentProvider.Vertex,
+  AgentProvider.Vertex3,
+  AgentProvider.Vertex4,
+]
 
 const JSON_SCHEMA_DRAFT = "https://json-schema.org/draft/2020-12/schema"
 const TEMPERATURE_SCHEMA = { type: "number", minimum: 0, maximum: 2 }
@@ -172,8 +176,8 @@ const openAIOptions = {
   defaultOptions: { providerOptions: { openai: { reasoningEffort: "low" } } },
 }
 
-/** The options of a Gemini 3.x model: a thinking level, and a temperature for the oldest ones. */
-function vertex3Options({
+/** The options of a Gemini 3.x or 4 model: a thinking level, and a temperature for the oldest ones. */
+function vertexOptions({
   temperature,
   levels,
   defaultLevel,
@@ -247,28 +251,28 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
   ...[
     {
       model: AgentModel.Gemini31FlashLite,
-      ...vertex3Options({ temperature: 1, levels: ALL_THINKING_LEVELS, defaultLevel: "minimal" }),
+      ...vertexOptions({ temperature: 1, levels: ALL_THINKING_LEVELS, defaultLevel: "minimal" }),
     },
     {
       model: AgentModel.Gemini35FlashLite,
-      ...vertex3Options({ levels: ALL_THINKING_LEVELS, defaultLevel: "minimal" }),
+      ...vertexOptions({ levels: ALL_THINKING_LEVELS, defaultLevel: "minimal" }),
     },
     {
       model: AgentModel.Gemini35Flash,
-      ...vertex3Options({ temperature: 1, levels: ALL_THINKING_LEVELS, defaultLevel: "medium" }),
+      ...vertexOptions({ temperature: 1, levels: ALL_THINKING_LEVELS, defaultLevel: "medium" }),
     },
     {
       model: AgentModel.Gemini36Flash,
-      ...vertex3Options({ levels: ALL_THINKING_LEVELS, defaultLevel: "medium" }),
+      ...vertexOptions({ levels: ALL_THINKING_LEVELS, defaultLevel: "medium" }),
     },
     // Minimal was removed from 3.7 and up.
     {
       model: AgentModel.Gemini37Flash,
-      ...vertex3Options({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
+      ...vertexOptions({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
     },
     {
       model: AgentModel.Gemini38Flash,
-      ...vertex3Options({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
+      ...vertexOptions({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
     },
   ].map((entry) => ({
     ...entry,
@@ -276,6 +280,24 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
     deprecation: null,
     servedOutsideEu: false,
   })),
+  ...[
+    {
+      model: AgentModel.Gemini4Argon,
+      servedOutsideEu: false,
+      ...vertexOptions({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
+    },
+    // Carbon only answers on Vertex AI's global endpoint, and too slowly on high.
+    {
+      model: AgentModel.Gemini4Carbon,
+      servedOutsideEu: true,
+      ...vertexOptions({ levels: ["low", "medium"], defaultLevel: "low" }),
+    },
+    {
+      model: AgentModel.Gemini4Hydrogen,
+      servedOutsideEu: false,
+      ...vertexOptions({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
+    },
+  ].map((entry) => ({ ...entry, provider: AgentProvider.Vertex4, deprecation: null })),
   {
     model: AgentModel.MedGemma10_27B,
     provider: AgentProvider.MedGemma,
@@ -324,7 +346,12 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
     servedOutsideEu: false,
     ...temperatureOnlyOptionsDefaultingTo(0.7),
   },
-  ...[AgentModel.ClaudeSonnet55, AgentModel.ClaudeHaiku55, AgentModel.ClaudeOpus5].map((model) => ({
+  ...[
+    AgentModel.ClaudeSonnet55,
+    AgentModel.ClaudeHaiku55,
+    AgentModel.ClaudeOpus5,
+    AgentModel.ClaudeOpus55,
+  ].map((model) => ({
     model,
     provider: AgentProvider.Anthropic,
     deprecation: null,

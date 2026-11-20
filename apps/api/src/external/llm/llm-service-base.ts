@@ -1,4 +1,8 @@
-import { AgentModelToAgentProvider, supportsServiceTiers } from "@caseai-connect/api-contracts"
+import {
+  AgentModelToAgentProvider,
+  supportsFlexTier,
+  supportsServiceTiers,
+} from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import type {
   BuildLLMConfigParams,
@@ -40,7 +44,7 @@ export abstract class LlmServiceBase {
       terminalToolNames,
       useExtendedTimeouts,
     }
-    if (params.isWorkerCall && llmFeatures?.flexWorkers && supportsServiceTiers(model)) {
+    if (params.isWorkerCall && llmFeatures?.flexWorkers && supportsFlexTier(model)) {
       return {
         ...base,
         serviceTier: "flex",
