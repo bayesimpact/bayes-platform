@@ -208,6 +208,8 @@ describe("the stories of the extraction evaluations", () => {
     expect(within(panel).getByRole("button", { name: "Run" })).toBeInTheDocument()
     // The dataset stays in view beside the form.
     expect(screen.getByText("8 records")).toBeInTheDocument()
+    // The button that opened the form is now gray, as the toggle of a side panel.
+    expect(screen.getByRole("link", { name: "Run evaluation" })).toHaveClass("bg-secondary")
 
     await userEvent.click(within(panel).getByRole("button", { name: "Cancel" }))
     await waitFor(() =>

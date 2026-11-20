@@ -116,9 +116,10 @@ export function DatasetPageFrame({
               {run && run.disabledReason === null ? (
                 <Link
                   {...datasetPage}
-                  // The form opens beside the page, which stays as it is.
-                  search={(previous) => ({ ...previous, run: true })}
-                  className={cn(buttonVariants())}
+                  // The form opens beside the page, which stays as it is. While it shows, the
+                  // button is gray, as the toggle of any side panel, and closes it.
+                  search={(previous) => ({ ...previous, run: runPanel ? undefined : true })}
+                  className={cn(buttonVariants({ variant: runPanel ? "secondary" : "default" }))}
                 >
                   {runLabel}
                 </Link>
