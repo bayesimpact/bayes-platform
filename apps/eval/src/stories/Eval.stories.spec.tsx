@@ -345,9 +345,9 @@ describe("the stories of the app", () => {
     render(<CompletedRun />)
 
     // The window of the tests is narrow: the panel starts closed.
-    const toggle = await screen.findByRole("button", { name: "What this run used" })
+    const toggle = await screen.findByRole("button", { name: "Agent and judge" })
     if (toggle.getAttribute("aria-pressed") !== "true") await userEvent.click(toggle)
-    const panel = await screen.findByRole("complementary", { name: "What this run used" })
+    const panel = await screen.findByRole("complementary", { name: "Agent and judge" })
     expect(within(panel).getByText("Conversational agent")).toBeInTheDocument()
     expect(within(panel).getByText("high")).toBeInTheDocument()
     expect(

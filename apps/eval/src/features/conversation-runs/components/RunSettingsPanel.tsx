@@ -56,7 +56,7 @@ export function RunSettingsPanel({
     <Trans comment="A version of an agent, by its number">Version {revision}</Trans>
   )
   return (
-    <SidePanel title={<Trans>What this run used</Trans>} onClose={onClose} takesFocus={takesFocus}>
+    <SidePanel title={<Trans>Agent and judge</Trans>} onClose={onClose} takesFocus={takesFocus}>
       <Tabs defaultValue="agent">
         <TabsList variant="line">
           <TabsTrigger value="agent">

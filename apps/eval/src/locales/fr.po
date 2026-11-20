@@ -302,6 +302,11 @@ msgctxt "form"
 msgid "Agent"
 msgstr "Agent"
 
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Agent and judge"
+msgstr "Agent et juge"
+
 #. The saved version of the agent's settings a review campaign runs on
 #. The saved version of the agent's settings a review campaign runs on
 #: src/features/campaigns/components/AgentVersionPicker.tsx
@@ -2736,11 +2741,6 @@ msgstr "Ce que l'agent a noté"
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "What the tester reported about what happened in this session."
 msgstr "Ce que le testeur a rapporté sur le déroulement de cette session."
-
-#: src/features/conversation-runs/components/ConversationRunPage.tsx
-#: src/features/conversation-runs/components/RunSettingsPanel.tsx
-msgid "What this run used"
-msgstr "Ce que cette exécution a utilisé"
 
 #: src/features/campaign-test/components/TesterSurveyPage.tsx
 msgid "What went well? What could be better?"

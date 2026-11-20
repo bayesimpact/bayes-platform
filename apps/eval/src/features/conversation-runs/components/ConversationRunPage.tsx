@@ -148,7 +148,7 @@ export function ConversationRunPage({
           actions={
             <>
               <SidePanelToggle isOpen={panel.isOpen} onToggle={panel.toggle}>
-                <Trans>What this run used</Trans>
+                <Trans>Agent and judge</Trans>
               </SidePanelToggle>
               {canUpdate && isActive ? (
                 <Button variant="outline" onClick={() => setConfirming("cancel")}>
