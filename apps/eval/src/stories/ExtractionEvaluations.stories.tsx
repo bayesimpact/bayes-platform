@@ -90,11 +90,11 @@ export const DatasetRuns: Story = {
   }),
 }
 
-/** The page that starts an evaluation: the agent's version, the fields to compare, how many records. */
+/** The side panel of a dataset's page that starts an evaluation: the agent's version, the fields to compare, how many records. */
 export const RunEvaluation: Story = {
   parameters: evaluation({
     world: buildExtractionWorld,
-    url: (world) => `${extractionDatasetUrlOf(world, "Support messages")}/runs/new`,
+    url: (world) => `${extractionDatasetUrlOf(world, "Support messages")}?run=true`,
   }),
 }
 

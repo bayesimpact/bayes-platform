@@ -33,7 +33,6 @@ import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsR
 import { Route as AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdReviewSessionsSessionIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review/sessions/$sessionId'
 import { Route as AuthenticatedOOrganizationIdPProjectIdReviewCampaignsReviewCampaignIdTestSessionsSessionIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test/sessions/$sessionId'
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId'
-import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -220,15 +219,6 @@ const AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunI
         AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
     } as any,
   )
-const AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute =
-  AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRouteImport.update(
-    {
-      id: '/evaluations/$datasetId/runs/new',
-      path: '/evaluations/$datasetId/runs/new',
-      getParentRoute: () =>
-        AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
-    } as any,
-  )
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -254,7 +244,6 @@ export interface FileRoutesByFullPath {
   '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute
   '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute
   '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRoute
-  '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute
 }
 export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
@@ -279,7 +268,6 @@ export interface FileRoutesByTo {
   '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute
   '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute
   '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRoute
-  '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -307,7 +295,6 @@ export interface FileRoutesById {
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRoute
-  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -335,7 +322,6 @@ export interface FileRouteTypes {
     | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/'
     | '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/'
     | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId'
-    | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth/callback'
@@ -360,7 +346,6 @@ export interface FileRouteTypes {
     | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId'
     | '/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId'
     | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId'
-    | '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new'
   id:
     | '__root__'
     | '/_authenticated'
@@ -387,7 +372,6 @@ export interface FileRouteTypes {
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/'
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/review-campaigns/$reviewCampaignId/'
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId'
-    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -565,13 +549,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRouteImport
       parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
     }
-    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new': {
-      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new'
-      path: '/evaluations/$datasetId/runs/new'
-      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new'
-      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRouteImport
-      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
-    }
   }
 }
 
@@ -585,7 +562,6 @@ interface AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren {
   AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdIndexRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRoute
-  AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute
 }
 
 const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren: AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren =
@@ -608,8 +584,6 @@ const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren: Authenti
       AuthenticatedOOrganizationIdPProjectIdAAgentIdReviewCampaignsReviewCampaignIdIndexRoute,
     AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRoute:
       AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsRunIdRoute,
-    AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute:
-      AuthenticatedOOrganizationIdPProjectIdAAgentIdEvaluationsDatasetIdRunsNewRoute,
   }
 
 const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteWithChildren =

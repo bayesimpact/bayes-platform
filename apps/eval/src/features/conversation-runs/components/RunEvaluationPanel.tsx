@@ -6,18 +6,15 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { Link, useNavigate } from "@tanstack/react-router"
-import { cn } from "cn"
+import { useNavigate } from "@tanstack/react-router"
 import { PlayIcon } from "lucide-react"
 import { useId } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { BackLink } from "@/components/shared/BackLink"
-import { PageContainer } from "@/components/shared/PageContainer"
-import { PageHeader } from "@/components/shared/PageHeader"
 import { isRunScopeValid, RunScopeField } from "@/components/shared/RunScopeField"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { SidePanel } from "@/components/shared/SidePanel"
+import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
@@ -38,24 +35,27 @@ const runFormSchema = z
   })
   .refine(isRunScopeValid, { path: ["limitedCount"] })
 
-export type RunEvaluationPageProps = {
+export type RunEvaluationPanelProps = {
   agent: EvaluationAgent
   agentParams: AgentParamsDto
   dataset: ConversationDatasetOutputDto
+  onClose: () => void
 }
 
 /**
- * The page that starts an evaluation of the agent over a dataset: a saved version of the agent
+ * The side panel of a dataset's page that starts an evaluation of the agent over it: a saved version of the agent
  * answers the dataset's records, and a judge model grades each answer. Once started, the run's
  * page opens.
  */
-export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluationPageProps) {
+export function RunEvaluationPanel({
+  agent,
+  agentParams,
+  dataset,
+  onClose,
+}: RunEvaluationPanelProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const datasetPage = {
-    to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
-    params: { ...agentParams, datasetId: dataset.id },
-  } as const
+  const formId = useId()
   const judgeModelId = useId()
   const judgeInstructionsId = useId()
   const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
@@ -80,7 +80,7 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
   const agentName = agent.name
   const datasetName = dataset.name
   const recordCount = dataset.recordCount
-  const canRun = versions.length > 0 && judge.models.length > 0
+  const canStart = versions.length > 0 && judge.models.length > 0
   const handleSubmit = form.handleSubmit((values) => {
     const version = versions.find((candidate) => candidate.id === values.versionId)
     if (!version) return
@@ -106,20 +106,32 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
     )
   })
   return (
-    <PageContainer>
-      <PageHeader
-        back={<BackLink {...datasetPage}>{datasetName}</BackLink>}
-        title={<Trans>Run an evaluation</Trans>}
-        description={
-          <Trans>
-            {agentName} answers the records of {datasetName}, and a judge model grades each answer
-            against the expected output.
-          </Trans>
-        }
-      />
+    <SidePanel
+      title={<Trans>Run an evaluation</Trans>}
+      description={
+        <Trans>
+          {agentName} answers the records of {datasetName}, and a judge model grades each answer
+          against the expected output.
+        </Trans>
+      }
+      onClose={onClose}
+      takesFocus
+      footer={
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="submit" form={formId} disabled={!canStart || startRun.isPending}>
+            <PlayIcon data-icon="inline-start" aria-hidden />
+            <Trans comment="Starts an evaluation">Run</Trans>
+          </Button>
+        </div>
+      }
+    >
       <form
+        id={formId}
         onSubmit={(event) => void handleSubmit(event)}
-        className="flex max-w-2xl flex-col gap-6 rounded-lg border bg-background p-4 md:p-6 dark:bg-card"
+        className="flex flex-col gap-6"
         noValidate
       >
         <Controller
@@ -204,16 +216,7 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
           }
           isLimitedCountInvalid={form.formState.errors.limitedCount !== undefined}
         />
-        <div className="flex flex-wrap justify-end gap-2">
-          <Link {...datasetPage} className={cn(buttonVariants({ variant: "outline" }))}>
-            <Trans>Cancel</Trans>
-          </Link>
-          <Button type="submit" disabled={!canRun || startRun.isPending}>
-            <PlayIcon data-icon="inline-start" aria-hidden />
-            <Trans comment="Starts an evaluation">Run</Trans>
-          </Button>
-        </div>
       </form>
-    </PageContainer>
+    </SidePanel>
   )
 }

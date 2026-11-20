@@ -13,7 +13,11 @@ import { useState } from "react"
 import type { DatasetAction } from "@/components/shared/DatasetDialogs"
 import { DatasetPageFrame, type DatasetTab } from "@/components/shared/DatasetPageFrame"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
-import { ExtractionRunsSection, useExtractionRunEndToasts } from "@/features/extraction-runs"
+import {
+  ExtractionRunsSection,
+  RunExtractionPanel,
+  useExtractionRunEndToasts,
+} from "@/features/extraction-runs"
 import { isSetUp } from "@/lib/extraction-columns"
 import type { RecordsSearch } from "@/lib/records-search"
 import { projectExtractionDatasetsQueryOptions } from "../api/queries"
@@ -27,6 +31,8 @@ export type ExtractionDatasetPageProps = {
   datasetParams: ExtractionDatasetParamsDto
   /** The tab shown: the dataset's records, or its runs. */
   tab: DatasetTab
+  /** Whether the side panel that starts an evaluation shows: the `run` search param. */
+  isStartingRun: boolean
   /** Which records show: the page, the order and the search, from the URL. */
   recordsSearch: RecordsSearch
   onRecordsSearchChange: (search: RecordsSearch) => void
@@ -42,6 +48,7 @@ export function ExtractionDatasetPage({
   agentParams,
   datasetParams,
   tab,
+  isStartingRun,
   recordsSearch,
   onRecordsSearchChange,
 }: ExtractionDatasetPageProps) {
@@ -56,6 +63,7 @@ export function ExtractionDatasetPage({
   const can = (permission: string) => hasProjectPermission(agent.project, permission)
   const canUpdate = can(EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION)
   const hasRecords = isSetUp(dataset)
+  const canRun = can(EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION) && hasRecords
   return (
     <DatasetPageFrame
       agentParams={agentParams}
@@ -67,6 +75,18 @@ export function ExtractionDatasetPage({
       run={
         can(EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION)
           ? { disabledReason: hasRecords ? null : t`Build the dataset from a CSV file first.` }
+          : null
+      }
+      runPanel={
+        isStartingRun && canRun
+          ? (onClose) => (
+              <RunExtractionPanel
+                agent={agent}
+                agentParams={agentParams}
+                dataset={dataset}
+                onClose={onClose}
+              />
+            )
           : null
       }
       onRename={canUpdate ? () => setAction({ kind: "rename", dataset }) : null}

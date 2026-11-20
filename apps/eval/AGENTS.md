@@ -157,8 +157,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `features/conversation-runs`).
 - The runs of a conversation dataset (`features/conversation-runs`), on the API's
   `evaluation-conversation-runs` routes (`EvalConversationRunsRoutes`). Run evaluation, on a
-  dataset's page, opens a page of its own, `evaluations/$datasetId/runs/new`
-  (`RunEvaluationPage`): the version of the agent, picked with the campaigns'
+  dataset's page, opens a side panel of the dataset's page, which the `run` search param shows
+  (`RunEvaluationPanel`)
+  (`RunEvaluationPanel`): the version of the agent, picked with the campaigns'
   `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
   project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
@@ -212,7 +213,7 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   former URLs, `/o/$organizationId/p/$projectId/conversation/...` and `.../extraction/...`,
   which redirect to the same page under an agent (`legacy-evaluations-redirect.ts`). A run's
   page is the page of one agent: a run of another agent is not found there. Changed on purpose:
-  pages under one agent, a run started from a page, polling in place of the status stream, and
+  pages under one agent, a run started from a side panel of its dataset's page, polling in place of the status stream, and
   a confirmation before a run is cancelled.
 - The evaluations of an extraction agent (`features/extraction-datasets`,
   `features/extraction-runs`), on the API's `evaluation-extraction-datasets` and
@@ -221,8 +222,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   to the signed URL, confirm), then the dataset's name, and the name and the role of each of its columns: input, target,
   reference or ignore (`lib/extraction-columns.ts`). A dataset with records shows them a page at a time, with
   every column and its role, and a row opens its record whole in a sheet: the API pages, sorts and searches them, as a dataset may hold
-  thousands (`ExtractionRecordsSection`). A new run
-  (`RunExtractionPage`) picks a saved version, pairs each field of the version's output schema
+  thousands (`ExtractionRecordsSection`). A new run, in a side panel of the dataset's page
+  (`RunExtractionPanel`), picks a saved version, pairs each field of the version's output schema
   with a target column or only shows it (`key-mapping.ts`), and asks all the records or the first
   ones. The Runs tab adds a box per run: two runs or more open in
   `evaluations/$datasetId/compare?runs=`, their figures then each record side by side. The box is

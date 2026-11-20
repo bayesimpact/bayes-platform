@@ -2,7 +2,7 @@ export { ExtractionRunLinks } from "./components/ExtractionRunLinks"
 export { ExtractionRunPage } from "./components/ExtractionRunPage"
 export { ExtractionRunsComparePage } from "./components/ExtractionRunsComparePage"
 export { ExtractionRunsSection } from "./components/ExtractionRunsSection"
-export { RunExtractionPage } from "./components/RunExtractionPage"
+export { RunExtractionPanel } from "./components/RunExtractionPanel"
 export { useExtractionRunEndToasts } from "./hooks/use-extraction-run-end-toasts"
 export {
   extractionRunParamsOf,

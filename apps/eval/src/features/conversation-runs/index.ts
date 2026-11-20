@@ -2,7 +2,7 @@ export { ConversationRunLinks } from "./components/ConversationRunLinks"
 export { ConversationRunPage } from "./components/ConversationRunPage"
 export { ConversationRunsComparePage } from "./components/ConversationRunsComparePage"
 export { ConversationRunsSection } from "./components/ConversationRunsSection"
-export { RunEvaluationPage } from "./components/RunEvaluationPage"
+export { RunEvaluationPanel } from "./components/RunEvaluationPanel"
 export { useConversationRunEndToasts } from "./hooks/use-conversation-run-end-toasts"
 export {
   loadConversationRun,

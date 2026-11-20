@@ -13,7 +13,11 @@ import { useState } from "react"
 import type { DatasetAction } from "@/components/shared/DatasetDialogs"
 import { DatasetPageFrame, type DatasetTab } from "@/components/shared/DatasetPageFrame"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
-import { ConversationRunsSection, useConversationRunEndToasts } from "@/features/conversation-runs"
+import {
+  ConversationRunsSection,
+  RunEvaluationPanel,
+  useConversationRunEndToasts,
+} from "@/features/conversation-runs"
 import { projectConversationDatasetsQueryOptions } from "../api/queries"
 import { ConversationDatasetDialogs } from "./ConversationDatasetDialogs"
 import { ConversationRecordsSection } from "./ConversationRecordsSection"
@@ -24,6 +28,8 @@ export type ConversationDatasetPageProps = {
   datasetParams: ConversationDatasetParamsDto
   /** The tab shown: the dataset's records, or its runs. */
   tab: DatasetTab
+  /** Whether the side panel that starts an evaluation shows: the `run` search param. */
+  isStartingRun: boolean
 }
 
 /**
@@ -35,6 +41,7 @@ export function ConversationDatasetPage({
   agentParams,
   datasetParams,
   tab,
+  isStartingRun,
 }: ConversationDatasetPageProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -48,6 +55,7 @@ export function ConversationDatasetPage({
   if (!dataset) return null
   const can = (permission: string) => hasProjectPermission(agent.project, permission)
   const canUpdate = can(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION)
+  const canRun = can(EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION) && dataset.recordCount > 0
   return (
     <DatasetPageFrame
       agentParams={agentParams}
@@ -56,6 +64,18 @@ export function ConversationDatasetPage({
       run={
         can(EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION)
           ? { disabledReason: dataset.recordCount === 0 ? t`Add a record first.` : null }
+          : null
+      }
+      runPanel={
+        isStartingRun && canRun
+          ? (onClose) => (
+              <RunEvaluationPanel
+                agent={agent}
+                agentParams={agentParams}
+                dataset={dataset}
+                onClose={onClose}
+              />
+            )
           : null
       }
       onRename={canUpdate ? () => setAction({ kind: "rename", dataset }) : null}

@@ -85,10 +85,10 @@ export const DatasetRuns: Story = {
   }),
 }
 
-/** The page that starts an evaluation: the agent's version, the judge and how many records. */
+/** The side panel of a dataset's page that starts an evaluation: the agent's version, the judge and how many records. */
 export const RunEvaluation: Story = {
   parameters: evaluation({
-    url: (world) => `${conversationDatasetUrlOf(world, "Pricing questions")}/runs/new`,
+    url: (world) => `${conversationDatasetUrlOf(world, "Pricing questions")}?run=true`,
   }),
 }
 

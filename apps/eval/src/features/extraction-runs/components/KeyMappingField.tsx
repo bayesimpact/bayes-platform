@@ -53,9 +53,10 @@ export function KeyMappingField({ mapping, onChange, targetColumns, error }: Key
             return (
               <li
                 key={field}
-                className="grid grid-cols-1 items-center gap-2 p-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
+                // The field's name, then how it reads and its column: the form sits in a side panel.
+                className="grid grid-cols-2 items-center gap-2 p-3"
               >
-                <span className="truncate font-mono text-sm" title={field}>
+                <span className="col-span-2 truncate font-mono text-sm" title={field}>
                   {field}
                 </span>
                 <NativeSelect

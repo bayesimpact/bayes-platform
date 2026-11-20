@@ -3,17 +3,15 @@ import { extractionRunKeyMappingEntrySchema } from "@caseai-connect/eval-contrac
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { Link, useNavigate } from "@tanstack/react-router"
-import { cn } from "cn"
+import { useNavigate } from "@tanstack/react-router"
 import { PlayIcon } from "lucide-react"
+import { useId } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { BackLink } from "@/components/shared/BackLink"
-import { PageContainer } from "@/components/shared/PageContainer"
-import { PageHeader } from "@/components/shared/PageHeader"
 import { isRunScopeValid, RunScopeField } from "@/components/shared/RunScopeField"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { SidePanel } from "@/components/shared/SidePanel"
+import { Button } from "@/components/ui/button"
 import type { EvaluationAgent } from "@/features/agents"
 import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
 import { columnsOfRole } from "@/lib/extraction-columns"
@@ -32,24 +30,27 @@ const runFormSchema = z
   })
   .refine(isRunScopeValid, { path: ["limitedCount"] })
 
-export type RunExtractionPageProps = {
+export type RunExtractionPanelProps = {
   agent: EvaluationAgent
   agentParams: AgentParamsDto
   dataset: ExtractionDatasetOutputDto
+  onClose: () => void
 }
 
 /**
- * The page that starts an evaluation of an extraction agent over a dataset: a saved version of
+ * The side panel of a dataset's page that starts an evaluation of an extraction agent over it: a saved version of
  * the agent reads each record, and each field it returns is compared with a target column. Once
  * started, the run's page opens.
  */
-export function RunExtractionPage({ agent, agentParams, dataset }: RunExtractionPageProps) {
+export function RunExtractionPanel({
+  agent,
+  agentParams,
+  dataset,
+  onClose,
+}: RunExtractionPanelProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const datasetPage = {
-    to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
-    params: { ...agentParams, datasetId: dataset.id },
-  } as const
+  const formId = useId()
   const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   const startRun = useStartExtractionRun(agentParams)
   const targetColumns = columnsOfRole(dataset, "target")
@@ -67,6 +68,7 @@ export function RunExtractionPage({ agent, agentParams, dataset }: RunExtraction
   const scope = useWatch({ control: form.control, name: "scope" })
   const limitedCount = useWatch({ control: form.control, name: "limitedCount" })
   const agentName = agent.name
+  const canStart = versions.length > 0
   const datasetName = dataset.name
   const handleSubmit = form.handleSubmit((values) => {
     const version = versions.find((candidate) => candidate.id === values.versionId)
@@ -92,20 +94,32 @@ export function RunExtractionPage({ agent, agentParams, dataset }: RunExtraction
     )
   })
   return (
-    <PageContainer>
-      <PageHeader
-        back={<BackLink {...datasetPage}>{datasetName}</BackLink>}
-        title={<Trans>Run an evaluation</Trans>}
-        description={
-          <Trans>
-            {agentName} reads the records of {datasetName}, and each field it returns is compared
-            with the value expected.
-          </Trans>
-        }
-      />
+    <SidePanel
+      title={<Trans>Run an evaluation</Trans>}
+      description={
+        <Trans>
+          {agentName} reads the records of {datasetName}, and each field it returns is compared with
+          the value expected.
+        </Trans>
+      }
+      onClose={onClose}
+      takesFocus
+      footer={
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="submit" form={formId} disabled={!canStart || startRun.isPending}>
+            <PlayIcon data-icon="inline-start" aria-hidden />
+            <Trans comment="Starts an evaluation">Run</Trans>
+          </Button>
+        </div>
+      }
+    >
       <form
+        id={formId}
         onSubmit={(event) => void handleSubmit(event)}
-        className="flex max-w-2xl flex-col gap-6 rounded-lg border bg-background p-4 md:p-6 dark:bg-card"
+        className="flex flex-col gap-6"
         noValidate
       >
         <Controller
@@ -163,16 +177,7 @@ export function RunExtractionPage({ agent, agentParams, dataset }: RunExtraction
           }
           isLimitedCountInvalid={form.formState.errors.limitedCount !== undefined}
         />
-        <div className="flex flex-wrap justify-end gap-2">
-          <Link {...datasetPage} className={cn(buttonVariants({ variant: "outline" }))}>
-            <Trans>Cancel</Trans>
-          </Link>
-          <Button type="submit" disabled={versions.length === 0 || startRun.isPending}>
-            <PlayIcon data-icon="inline-start" aria-hidden />
-            <Trans comment="Starts an evaluation">Run</Trans>
-          </Button>
-        </div>
       </form>
-    </PageContainer>
+    </SidePanel>
   )
 }

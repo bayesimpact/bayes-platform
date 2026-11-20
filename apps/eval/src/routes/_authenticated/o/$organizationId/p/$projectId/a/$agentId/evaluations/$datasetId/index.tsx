@@ -11,7 +11,8 @@ import { uuidParams } from "@/lib/not-found"
 import { NO_RECORDS_SEARCH } from "@/lib/records-search"
 
 /**
- * A dataset of the agent's project, of the agent's type: all its records, and its runs. An
+ * A dataset of the agent's project, of the agent's type: all its records, its runs, and the side
+ * panel that starts an evaluation on it. An
  * extraction dataset that waits for its file shows what builds its records.
  */
 export const Route = createFileRoute(
@@ -38,7 +39,7 @@ export const Route = createFileRoute(
 function DatasetRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
-  const { tab, ...recordsSearch } = Route.useSearch()
+  const { tab, run, ...recordsSearch } = Route.useSearch()
   const navigate = Route.useNavigate()
   if (agent.type === "conversation") {
     return (
@@ -47,6 +48,7 @@ function DatasetRoute() {
         agentParams={params}
         datasetParams={params}
         tab={tab ?? "records"}
+        isStartingRun={run === true}
       />
     )
   }
@@ -56,6 +58,7 @@ function DatasetRoute() {
       agentParams={params}
       datasetParams={params}
       tab={tab ?? "records"}
+      isStartingRun={run === true}
       recordsSearch={recordsSearch}
       // Another page, order or search replaces the one in the URL, and the tab stays.
       onRecordsSearchChange={(next) =>

@@ -25,11 +25,11 @@ msgstr "{0, plural, one {Line {invalidList} has no input or no expected output.}
 msgid "{0, plural, one {Line {tooLongList} is over {maxLength} characters.} other {Lines {tooLongList} are over {maxLength} characters.}}"
 msgstr "{0, plural, one {Line {tooLongList} is over {maxLength} characters.} other {Lines {tooLongList} are over {maxLength} characters.}}"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "{agentName} reads the records of {datasetName}, and each field it returns is compared with the value expected."
 msgstr "{agentName} reads the records of {datasetName}, and each field it returns is compared with the value expected."
 
@@ -140,15 +140,15 @@ msgstr "{foundCount, plural, =0 {No record passes the filters} one {# record pas
 msgid "{matched} / {scored} fields"
 msgstr "{matched} / {scored} fields"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "{name} (deprecated, non-EU)"
 msgstr "{name} (deprecated, non-EU)"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "{name} (deprecated)"
 msgstr "{name} (deprecated)"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "{name} (non-EU)"
 msgstr "{name} (non-EU)"
 
@@ -304,8 +304,8 @@ msgstr "A new version of Evaluation is available. Reload the page."
 msgid "A new version of the app is available"
 msgstr "A new version of the app is available"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "A run evaluates a saved version, never the draft."
 msgstr "A run evaluates a saved version, never the draft."
 
@@ -606,9 +606,9 @@ msgstr "Can we switch plan later?, Yes, at any time, from the billing page."
 #: src/features/campaign-test/components/SessionFeedbackForm.tsx
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 #: src/features/conversation/components/FeedbackDialog.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -669,8 +669,8 @@ msgstr "Choose another file"
 msgid "Choose the version the campaign runs on."
 msgstr "Choose the version the campaign runs on."
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "Choose the version the evaluation asks."
 msgstr "Choose the version the evaluation asks."
 
@@ -988,7 +988,7 @@ msgstr "Download CSV"
 msgid "Draft"
 msgstr "Draft"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "e.g. Penalize answers that are not in the expected language"
 msgstr "e.g. Penalize answers that are not in the expected language"
 
@@ -1318,7 +1318,7 @@ msgstr "Give a number of records, 1 or more."
 msgid "Give a rating from 1 to 5 stars."
 msgstr "Give a rating from 1 to 5 stars."
 
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "Give each compared field a column, or only show it."
 msgstr "Give each compared field a column, or only show it."
 
@@ -1482,7 +1482,7 @@ msgstr "Instructions"
 msgid "Instructions for the judge"
 msgstr "Instructions for the judge"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "Instructions for the judge (optional)"
 msgstr "Instructions for the judge (optional)"
 
@@ -1527,7 +1527,7 @@ msgstr "Judge"
 #. The model that grades the answers of an evaluation
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "Judge model"
 msgstr "Judge model"
 
@@ -2395,8 +2395,8 @@ msgstr "Rows {first}–{last} of {count}"
 
 #. Starts an evaluation
 #. Starts an evaluation
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "Run"
 msgstr "Run"
 
@@ -2404,8 +2404,8 @@ msgstr "Run"
 msgid "Run {runId}"
 msgstr "Run {runId}"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "Run an evaluation"
 msgstr "Run an evaluation"
 
@@ -2935,13 +2935,13 @@ msgstr "The documents of its tags"
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation asks this version"
 msgstr "The evaluation asks this version"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation could not start. Try again."
 msgstr "The evaluation could not start. Try again."
 
@@ -2953,8 +2953,8 @@ msgstr "The evaluation run failed."
 msgid "The evaluation run is complete."
 msgstr "The evaluation run is complete."
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation started."
 msgstr "The evaluation started."
 
@@ -3014,7 +3014,7 @@ msgstr "The mean of the ratings testers gave their sessions."
 msgid "The message a person would send to the agent."
 msgstr "The message a person would send to the agent."
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "The model that compares each answer with the expected output."
 msgstr "The model that compares each answer with the expected output."
 
@@ -3296,7 +3296,7 @@ msgstr "This session has no message."
 msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 msgstr "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 
-#: src/features/extraction-runs/components/RunExtractionPage.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "This version has no output schema: it returns no field to compare."
 msgstr "This version has no output schema: it returns no field to compare."
 
@@ -3532,7 +3532,7 @@ msgstr "What the agent read, and each field it returned beside the value expecte
 msgid "What the agent reads"
 msgstr "What the agent reads"
 
-#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "What the judge is told, on top of the expected output."
 msgstr "What the judge is told, on top of the expected output."
 

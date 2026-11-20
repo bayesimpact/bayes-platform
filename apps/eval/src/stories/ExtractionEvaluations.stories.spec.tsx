@@ -198,6 +198,25 @@ describe("the stories of the extraction evaluations", () => {
     expect(await screen.findByText(/The project has no CSV file yet/)).toBeInTheDocument()
   })
 
+  it("Dataset opens the form that starts a run beside its records, and closes it", async () => {
+    const { Dataset } = pageStories
+    await Dataset.load()
+    render(<Dataset />)
+
+    await userEvent.click(await screen.findByRole("link", { name: "Run evaluation" }))
+    const panel = await screen.findByRole("complementary", { name: "Run an evaluation" })
+    expect(within(panel).getByRole("button", { name: "Run" })).toBeInTheDocument()
+    // The dataset stays in view beside the form.
+    expect(screen.getByText("8 records")).toBeInTheDocument()
+
+    await userEvent.click(within(panel).getByRole("button", { name: "Cancel" }))
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("complementary", { name: "Run an evaluation" }),
+      ).not.toBeInTheDocument(),
+    )
+  })
+
   it("RunEvaluation pairs the agent's fields with the target columns, then opens the run", async () => {
     await RunEvaluation.load()
     render(<RunEvaluation />)

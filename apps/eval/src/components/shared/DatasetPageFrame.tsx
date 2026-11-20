@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BackLink } from "./BackLink"
 import { PageContainer } from "./PageContainer"
 import { PageHeader } from "./PageHeader"
+import { SplitPage } from "./SplitPage"
 import { TimeAgo } from "./TimeAgo"
 
 /** A tab of a dataset's page. */
@@ -39,13 +40,19 @@ export type DatasetPageFrameProps = {
   onDelete: (() => void) | null
   /** Whether the page takes all the width there is, for a table with a column per data column. */
   isWide?: boolean
+  /**
+   * The side panel that starts an evaluation on the dataset, which the `run` search param
+   * shows: the feature gives the form, and takes what closes the panel.
+   */
+  runPanel?: ((onClose: () => void) => ReactNode) | null
   /** The tab's content, then the page's dialogs. */
   children: ReactNode
 }
 
 /**
  * The frame of a dataset's page, for an agent of any type: the way back to the datasets, its name
- * and when it last changed, the way to a new evaluation on it, what changes it, and its two tabs.
+ * and when it last changed, the way to a new evaluation on it, which opens in a side panel, what
+ * changes it, and its two tabs.
  */
 export function DatasetPageFrame({
   agentParams,
@@ -55,11 +62,14 @@ export function DatasetPageFrame({
   onRename,
   onDelete,
   isWide = false,
+  runPanel = null,
   children,
 }: DatasetPageFrameProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
+  // The frame shows on the dataset's own route: its search params are that route's.
   const datasetPage = {
+    from: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/",
     to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
     params: { ...agentParams, datasetId: dataset.id },
   } as const
@@ -72,85 +82,104 @@ export function DatasetPageFrame({
     </>
   )
   return (
-    <PageContainer isWide={isWide}>
-      <PageHeader
-        back={
-          <BackLink
-            to="/o/$organizationId/p/$projectId/a/$agentId/evaluations"
-            params={agentParams}
-          >
-            <Trans>Evaluations</Trans>
-          </BackLink>
-        }
-        title={dataset.name}
-        description={
-          <Trans comment="Under the name of a dataset: what the page shows, and when it last changed">
-            Dataset · Updated <TimeAgo moment={dataset.updatedAt} />
-          </Trans>
-        }
-        actions={
-          <>
-            {run && run.disabledReason === null ? (
-              <Link
-                to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/new"
-                params={datasetPage.params}
-                className={cn(buttonVariants())}
-              >
-                {runLabel}
-              </Link>
-            ) : null}
-            {run && run.disabledReason !== null ? (
-              <Button disabled title={run.disabledReason}>
-                {runLabel}
-              </Button>
-            ) : null}
-            {onRename || onDelete ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
-                >
-                  <EllipsisIcon aria-hidden />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {onRename ? (
-                    <DropdownMenuItem onClick={onRename}>
-                      <PencilIcon aria-hidden />
-                      <Trans comment="Renames a dataset">Rename</Trans>
-                    </DropdownMenuItem>
-                  ) : null}
-                  {onDelete ? (
-                    <DropdownMenuItem variant="destructive" onClick={onDelete}>
-                      <Trash2Icon aria-hidden />
-                      <Trans comment="Deletes a dataset">Delete</Trans>
-                    </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
-          </>
-        }
-      />
-      {tab ? (
-        <Tabs
-          value={tab}
-          onValueChange={(value) =>
-            void navigate({
-              ...datasetPage,
-              search: { tab: value === "runs" ? "runs" : undefined },
-            })
+    <SplitPage
+      panel={
+        runPanel
+          ? runPanel(
+              () =>
+                void navigate({
+                  ...datasetPage,
+                  search: (previous) => ({ ...previous, run: undefined }),
+                }),
+            )
+          : null
+      }
+    >
+      <PageContainer isWide={isWide}>
+        <PageHeader
+          back={
+            <BackLink
+              to="/o/$organizationId/p/$projectId/a/$agentId/evaluations"
+              params={agentParams}
+            >
+              <Trans>Evaluations</Trans>
+            </BackLink>
           }
-        >
-          <TabsList>
-            <TabsTrigger value="records">
-              <Trans comment="The tab with the records of a dataset">Records</Trans>
-            </TabsTrigger>
-            <TabsTrigger value="runs">
-              <Trans comment="The tab with the runs of a dataset">Runs</Trans>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      ) : null}
-      {children}
-    </PageContainer>
+          title={dataset.name}
+          description={
+            <Trans comment="Under the name of a dataset: what the page shows, and when it last changed">
+              Dataset · Updated <TimeAgo moment={dataset.updatedAt} />
+            </Trans>
+          }
+          actions={
+            <>
+              {run && run.disabledReason === null ? (
+                <Link
+                  {...datasetPage}
+                  // The form opens beside the page, which stays as it is.
+                  search={(previous) => ({ ...previous, run: true })}
+                  className={cn(buttonVariants())}
+                >
+                  {runLabel}
+                </Link>
+              ) : null}
+              {run && run.disabledReason !== null ? (
+                <Button disabled title={run.disabledReason}>
+                  {runLabel}
+                </Button>
+              ) : null}
+              {onRename || onDelete ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={<Button variant="outline" size="icon" aria-label={t`More actions`} />}
+                  >
+                    <EllipsisIcon aria-hidden />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {onRename ? (
+                      <DropdownMenuItem onClick={onRename}>
+                        <PencilIcon aria-hidden />
+                        <Trans comment="Renames a dataset">Rename</Trans>
+                      </DropdownMenuItem>
+                    ) : null}
+                    {onDelete ? (
+                      <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                        <Trash2Icon aria-hidden />
+                        <Trans comment="Deletes a dataset">Delete</Trans>
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+            </>
+          }
+        />
+        {tab ? (
+          <Tabs
+            value={tab}
+            onValueChange={(value) =>
+              void navigate({
+                ...datasetPage,
+                // Another tab starts its table afresh; the panel that starts a run stays.
+                search: (previous) => ({
+                  tab: value === "runs" ? "runs" : undefined,
+                  run: previous.run,
+                }),
+              })
+            }
+          >
+            <TabsList>
+              <TabsTrigger value="records">
+                <Trans comment="The tab with the records of a dataset">Records</Trans>
+              </TabsTrigger>
+              <TabsTrigger value="runs">
+                <Trans comment="The tab with the runs of a dataset">Runs</Trans>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        ) : null}
+        {children}
+      </PageContainer>
+    </SplitPage>
   )
 }
