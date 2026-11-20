@@ -15,16 +15,6 @@ msgstr "« {removedPrompt} » quitte cette liste, avec ses réglages."
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 
-#. placeholder {0}: invalidLines.length
-#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
-msgid "{0, plural, one {Line {invalidList} has no input or no expected output.} other {Lines {invalidList} have no input or no expected output.}}"
-msgstr "{0, plural, one {La ligne {invalidList} n'a pas d'entrée ou pas de réponse attendue.} other {Les lignes {invalidList} n'ont pas d'entrée ou pas de réponse attendue.}}"
-
-#. placeholder {0}: tooLongLines.length
-#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
-msgid "{0, plural, one {Line {tooLongList} is over {maxLength} characters.} other {Lines {tooLongList} are over {maxLength} characters.}}"
-msgstr "{0, plural, one {La ligne {tooLongList} dépasse {maxLength} caractères.} other {Les lignes {tooLongList} dépassent {maxLength} caractères.}}"
-
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} répond aux enregistrements de {datasetName}, et un modèle juge note chaque réponse par rapport à la réponse attendue."
@@ -134,6 +124,10 @@ msgstr "{finalCount, plural, one {# question} other {# questions}}"
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
 msgid "{foundCount, plural, =0 {No record passes the filters} one {# record passes the filters} other {# records pass the filters}}"
 msgstr "{foundCount, plural, =0 {Aucun enregistrement ne passe les filtres} one {# enregistrement passe les filtres} other {# enregistrements passent les filtres}}"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{invalidCount, plural, one {Line {invalidList} has no input or no expected output.} other {Lines {invalidList} have no input or no expected output.}}"
+msgstr "{invalidCount, plural, one {La ligne {invalidList} n'a pas d'entrée ou pas de réponse attendue.} other {Les lignes {invalidList} n'ont pas d'entrée ou pas de réponse attendue.}}"
 
 #. Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
@@ -257,6 +251,10 @@ msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées
 #: src/features/campaigns/components/ParticipantsPanel.tsx
 msgid "{testerCount, plural, one {# tester} other {# testers}}"
 msgstr "{testerCount, plural, one {# testeur} other {# testeurs}}"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{tooLongCount, plural, one {Line {tooLongList} is over {maxLength} characters.} other {Lines {tooLongList} are over {maxLength} characters.}}"
+msgstr "{tooLongCount, plural, one {La ligne {tooLongList} dépasse {maxLength} caractères.} other {Les lignes {tooLongList} dépassent {maxLength} caractères.}}"
 
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "{total, plural, =0 {No record yet} one {# record} other {# records}}"

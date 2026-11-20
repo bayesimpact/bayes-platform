@@ -35,6 +35,8 @@ export function BulkRecordsDialog({ isPending, onSubmit, onClose }: BulkRecordsD
   const listOf = (lines: number[]) => lineList.format(lines.map(String))
   const invalidList = listOf(invalidLines)
   const tooLongList = listOf(tooLongLines)
+  const invalidCount = invalidLines.length
+  const tooLongCount = tooLongLines.length
   const maxLength = i18n.number(CONVERSATION_DATASET_RECORD_MAX_LENGTH)
   const hasProblem = invalidLines.length > 0 || tooLongLines.length > 0
   const recordCount = records.length
@@ -86,7 +88,7 @@ export function BulkRecordsDialog({ isPending, onSubmit, onClose }: BulkRecordsD
             {invalidLines.length > 0 ? (
               <FieldError>
                 <Plural
-                  value={invalidLines.length}
+                  value={invalidCount}
                   one={`Line ${invalidList} has no input or no expected output.`}
                   other={`Lines ${invalidList} have no input or no expected output.`}
                 />
@@ -95,7 +97,7 @@ export function BulkRecordsDialog({ isPending, onSubmit, onClose }: BulkRecordsD
             {tooLongLines.length > 0 ? (
               <FieldError>
                 <Plural
-                  value={tooLongLines.length}
+                  value={tooLongCount}
                   one={`Line ${tooLongList} is over ${maxLength} characters.`}
                   other={`Lines ${tooLongList} are over ${maxLength} characters.`}
                 />
