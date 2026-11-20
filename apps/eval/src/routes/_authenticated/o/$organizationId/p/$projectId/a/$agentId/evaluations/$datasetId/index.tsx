@@ -6,7 +6,7 @@ import { ConversationDatasetPage, loadConversationDataset } from "@/features/con
 import { loadConversationRuns, loadJudgeModels } from "@/features/conversation-runs"
 import { ExtractionDatasetPage, loadExtractionDataset } from "@/features/extraction-datasets"
 import { loadExtractionRuns } from "@/features/extraction-runs"
-import { datasetSearchSchema } from "@/lib/dataset-search"
+import { datasetSearchSchema, recordsSearchOfDataset } from "@/lib/dataset-search"
 import { uuidParams } from "@/lib/not-found"
 import { NO_RECORDS_SEARCH } from "@/lib/records-search"
 
@@ -22,7 +22,7 @@ export const Route = createFileRoute(
   validateSearch: datasetSearchSchema,
   beforeLoad: ({ context }) => requireEvaluationAgent(context.agent),
   // The page of an extraction dataset's records, which its loader starts.
-  loaderDeps: ({ search: { tab: _tab, run: _run, ...recordsSearch } }) => ({ recordsSearch }),
+  loaderDeps: ({ search }) => ({ recordsSearch: recordsSearchOfDataset(search) }),
   loader: ({ context, params, deps }) =>
     context.agent.type === "conversation"
       ? Promise.all([
@@ -43,7 +43,8 @@ export const Route = createFileRoute(
 function DatasetRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
-  const { tab, run, ...recordsSearch } = Route.useSearch()
+  const search = Route.useSearch()
+  const { tab, run } = search
   const navigate = Route.useNavigate()
   if (agent.type === "conversation") {
     return (
@@ -63,7 +64,7 @@ function DatasetRoute() {
       datasetParams={params}
       tab={tab ?? "records"}
       isStartingRun={run === true}
-      recordsSearch={recordsSearch}
+      recordsSearch={recordsSearchOfDataset(search)}
       // Another page, order or search replaces the one in the URL, and the tab stays.
       onRecordsSearchChange={(next) =>
         void navigate({

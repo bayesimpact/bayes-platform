@@ -19,6 +19,7 @@ import { TablePagination } from "@/components/shared/TablePagination"
 import { Button } from "@/components/ui/button"
 import { cellTextOf, columnsOf, columnsOfRole } from "@/lib/extraction-columns"
 import { hasFilters, searchWithFilter, searchWithSort, sortingOf } from "@/lib/records-search"
+import type { RunSearch } from "@/lib/run-search"
 import { isRunActive } from "@/lib/run-status"
 import { extractionRunRecordsQueryOptions } from "../api/queries"
 import {
@@ -28,7 +29,6 @@ import {
   resultFiltersOf,
   shownResultFilterOf,
 } from "../result-filters"
-import type { ExtractionRunSearch } from "../schemas"
 import { ExtractionRecordSheet } from "./ExtractionRecordSheet"
 import {
   agentKeyOf,
@@ -44,8 +44,8 @@ export type ExtractionResultsSectionProps = {
   /** The dataset the run asked: its columns name the values of each record. */
   dataset: ExtractionDatasetOutputDto
   /** Which results show: the page, the order, the search and the filter, from the URL. */
-  search: ExtractionRunSearch
-  onSearchChange: (search: ExtractionRunSearch) => void
+  search: RunSearch
+  onSearchChange: (search: RunSearch) => void
   /** Opens the results as a CSV file, once the run has one; none hides the button. */
   onDownloadCsv: (() => void) | null
 }

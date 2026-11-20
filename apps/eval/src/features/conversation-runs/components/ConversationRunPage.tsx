@@ -21,6 +21,7 @@ import {
   useRetryConversationRun,
 } from "../api/mutations"
 import { conversationRunQueryOptions, conversationRunRecordsQueryOptions } from "../api/queries"
+import type { ResultFilter } from "../result-filters"
 import { scoreOf } from "../score"
 import { RunResultsSection } from "./RunResultsSection"
 import { RunSettingsPanel } from "./RunSettingsPanel"
@@ -31,6 +32,9 @@ export type ConversationRunPageProps = {
   /** The dataset the run asked, and its name, for the way back. */
   dataset: { id: string; name: string }
   runParams: ConversationRunParamsDto
+  /** The filter of the results the URL names. */
+  resultFilter: string | undefined
+  onResultFilterChange: (filter: ResultFilter) => void
 }
 
 /**
@@ -41,6 +45,8 @@ export function ConversationRunPage({
   agentParams,
   dataset,
   runParams,
+  resultFilter,
+  onResultFilterChange,
 }: ConversationRunPageProps) {
   const { i18n } = useLingui()
   const { data: run } = useSuspenseQuery(conversationRunQueryOptions(runParams))
@@ -122,7 +128,12 @@ export function ConversationRunPage({
             }
           />
         </div>
-        <RunResultsSection run={run} results={results} />
+        <RunResultsSection
+          run={run}
+          results={results}
+          filter={resultFilter}
+          onFilterChange={onResultFilterChange}
+        />
       </PageContainer>
     </SplitPage>
   )

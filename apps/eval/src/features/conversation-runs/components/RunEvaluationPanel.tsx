@@ -9,7 +9,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { PlayIcon } from "lucide-react"
 import { useId } from "react"
-import { Controller, useForm, useWatch } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { RunScopeField } from "@/components/shared/RunScopeField"
 import { SidePanel } from "@/components/shared/SidePanel"
@@ -63,8 +63,6 @@ export function RunEvaluationPanel({
       limitedCount: 1,
     },
   })
-  const scope = useWatch({ control: form.control, name: "scope" })
-  const limitedCount = useWatch({ control: form.control, name: "limitedCount" })
   const agentName = agent.name
   const datasetName = dataset.name
   const recordCount = dataset.recordCount
@@ -194,15 +192,25 @@ export function RunEvaluationPanel({
             </Field>
           )}
         />
-        <RunScopeField
-          recordCount={recordCount}
-          scope={scope}
-          onScopeChange={(next) => form.setValue("scope", next)}
-          limitedCount={limitedCount}
-          onLimitedCountChange={(count) =>
-            form.setValue("limitedCount", count, { shouldValidate: form.formState.isSubmitted })
-          }
-          isLimitedCountInvalid={form.formState.errors.limitedCount !== undefined}
+        <Controller
+          control={form.control}
+          name="scope"
+          render={({ field: scopeField }) => (
+            <Controller
+              control={form.control}
+              name="limitedCount"
+              render={({ field: countField, fieldState }) => (
+                <RunScopeField
+                  recordCount={recordCount}
+                  scope={scopeField.value}
+                  onScopeChange={scopeField.onChange}
+                  limitedCount={countField.value}
+                  onLimitedCountChange={countField.onChange}
+                  isLimitedCountInvalid={fieldState.invalid}
+                />
+              )}
+            />
+          )}
         />
       </form>
     </SidePanel>

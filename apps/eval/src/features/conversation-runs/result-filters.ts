@@ -36,6 +36,19 @@ const PREDICATES = {
   notAsked: (record) => record.status === "cancelled",
 } satisfies Record<ResultFilter, (record: ConversationRunRecordOutputDto) => boolean>
 
+/**
+ * The filter that shows, of the one the URL names: a name the app does not know, or a filter that
+ * keeps nothing, or no longer as a run under way moves on, gives way to the one that shows every
+ * result.
+ */
+export function shownResultFilterOf(
+  records: ConversationRunRecordOutputDto[],
+  asked: string | undefined,
+): ResultFilter {
+  const filter = RESULT_FILTERS.find((candidate) => candidate === asked)
+  return filter && filterResults(records, filter).length > 0 ? filter : "all"
+}
+
 /** The records a filter keeps. */
 export const filterResults = (records: ConversationRunRecordOutputDto[], filter: ResultFilter) =>
   records.filter(PREDICATES[filter])

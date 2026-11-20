@@ -215,11 +215,17 @@ export function ExtractionColumnsForm({
                 <span className="truncate text-sm font-medium" title={originalName}>
                   {originalName}
                 </span>
-                <Input
-                  {...form.register(`columns.${index}.finalName`)}
-                  className="col-span-3 sm:col-span-1"
-                  placeholder={originalName}
-                  aria-label={t`Name of the column ${originalName} in the dataset`}
+                <Controller
+                  control={form.control}
+                  name={`columns.${index}.finalName`}
+                  render={({ field: nameField }) => (
+                    <Input
+                      {...nameField}
+                      className="col-span-3 sm:col-span-1"
+                      placeholder={originalName}
+                      aria-label={t`Name of the column ${originalName} in the dataset`}
+                    />
+                  )}
                 />
                 <Controller
                   control={form.control}

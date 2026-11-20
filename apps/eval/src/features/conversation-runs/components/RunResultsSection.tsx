@@ -14,6 +14,7 @@ import {
   RESULT_FILTER_LABELS,
   RESULT_FILTERS,
   type ResultFilter,
+  shownResultFilterOf,
 } from "../result-filters"
 import { conversationRunRecordColumnsOf } from "./conversation-run-record-columns"
 import { RunRecordSheet } from "./RunRecordSheet"
@@ -22,24 +23,31 @@ export type RunResultsSectionProps = {
   /** The run: where it stands and its figures word an empty table. */
   run: ConversationRunOutputDto
   results: ConversationRunRecordOutputDto[]
+  /** The filter the URL names, which narrows the results. */
+  filter: string | undefined
+  onFilterChange: (filter: ResultFilter) => void
 }
 
 /**
  * The results of a run: its records, each cut to a few lines, with filters that narrow them to
  * the errors, the low scores or what waits. A row opens its record whole, in a sheet.
  */
-export function RunResultsSection({ run, results }: RunResultsSectionProps) {
+export function RunResultsSection({
+  run,
+  results,
+  filter,
+  onFilterChange,
+}: RunResultsSectionProps) {
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { t, i18n } = useLingui()
-  const [filter, setFilter] = useState<ResultFilter>("all")
   const [openRecordId, setOpenRecordId] = useState<string | null>(null)
   // The filters that keep something: a run with no error offers no Errors filter.
   const filters = RESULT_FILTERS.filter(
     (candidate) => candidate === "all" || filterResults(results, candidate).length > 0,
   )
   // A filter that keeps nothing any more, as a run under way moves on, gives way to All.
-  const activeFilter = filters.includes(filter) ? filter : "all"
+  const activeFilter = shownResultFilterOf(results, filter)
   // The same list from one render to the next: the table reads a new list as new data, and one
   // made at each render sends it into a loop of renders.
   const shown = useMemo(() => filterResults(results, activeFilter), [results, activeFilter])
@@ -79,7 +87,7 @@ export function RunResultsSection({ run, results }: RunResultsSectionProps) {
             count: filterResults(results, candidate).length,
           }))}
           value={activeFilter}
-          onChange={setFilter}
+          onChange={onFilterChange}
         />
       </div>
       <DataTable

@@ -10,4 +10,3 @@ export {
   loadExtractionRunAgentId,
   loadExtractionRuns,
 } from "./load-extraction-runs"
-export { extractionRunSearchSchema } from "./schemas"

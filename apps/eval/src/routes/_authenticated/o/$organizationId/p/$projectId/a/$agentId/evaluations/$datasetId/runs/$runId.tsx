@@ -20,19 +20,19 @@ import {
 import {
   ExtractionRunPage,
   extractionRunParamsOf,
-  extractionRunSearchSchema,
   loadExtractionRun,
   loadExtractionRuns,
 } from "@/features/extraction-runs"
 import { uuidParams } from "@/lib/not-found"
+import { runSearchSchema } from "@/lib/run-search"
 
 /** A run of an evaluation of the agent on a dataset: its figures and its records. */
 export const Route = createFileRoute(
   "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId",
 )({
   params: { parse: uuidParams("datasetId", "runId") },
-  // Which results of an extraction run show: the API pages them.
-  validateSearch: extractionRunSearchSchema,
+  // Which results show: the filter of both types of agent, and the page of an extraction run.
+  validateSearch: runSearchSchema,
   beforeLoad: ({ context }) => requireEvaluationAgent(context.agent),
   // The page of an extraction run's results, which its loader starts.
   loaderDeps: ({ search }) => ({ search }),
@@ -75,6 +75,8 @@ function RunRoute() {
 function ConversationRunRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
+  const { result } = Route.useSearch()
+  const navigate = Route.useNavigate()
   const { data: datasetName } = useSuspenseQuery(
     conversationDatasetNameQueryOptions(params, params.datasetId),
   )
@@ -84,6 +86,14 @@ function ConversationRunRoute() {
       agentParams={params}
       dataset={{ id: params.datasetId, name: datasetName }}
       runParams={runParamsOf(params, params.runId)}
+      resultFilter={result}
+      // Another filter replaces the one in the URL.
+      onResultFilterChange={(next) =>
+        void navigate({
+          search: (previous) => ({ ...previous, result: next === "all" ? undefined : next }),
+          replace: true,
+        })
+      }
     />
   )
 }

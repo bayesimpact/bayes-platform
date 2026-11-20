@@ -1,6 +1,6 @@
 import {
-  CONVERSATION_DATASET_RECORD_MAX_LENGTH,
   type ConversationDatasetRecordInputDto,
+  conversationDatasetRecordInputSchema,
 } from "@caseai-connect/eval-contracts"
 
 /** What pasted lines hold: the records to add, and the lines that make none, by their number. */
@@ -24,15 +24,14 @@ export function parseBulkRecords(text: string): ParsedBulkRecords {
     const commaAt = line.indexOf(",")
     const input = commaAt === -1 ? "" : line.slice(0, commaAt).trim()
     const expectedOutput = commaAt === -1 ? "" : line.slice(commaAt + 1).trim()
-    if (input === "" || expectedOutput === "") {
-      parsed.invalidLines.push(lineNumber)
-    } else if (
-      input.length > CONVERSATION_DATASET_RECORD_MAX_LENGTH ||
-      expectedOutput.length > CONVERSATION_DATASET_RECORD_MAX_LENGTH
-    ) {
+    // The rules of a record are those of the route that adds it.
+    const record = conversationDatasetRecordInputSchema.safeParse({ input, expectedOutput })
+    if (record.success) {
+      parsed.records.push(record.data)
+    } else if (record.error.issues.some((issue) => issue.code === "too_big")) {
       parsed.tooLongLines.push(lineNumber)
     } else {
-      parsed.records.push({ input, expectedOutput })
+      parsed.invalidLines.push(lineNumber)
     }
   })
   return parsed

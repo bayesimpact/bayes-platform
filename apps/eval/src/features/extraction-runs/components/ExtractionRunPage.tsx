@@ -16,6 +16,7 @@ import { StatCard } from "@/components/shared/StatCard"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { useRunEndToasts } from "@/hooks/use-run-end-toasts"
 import { useSidePanel } from "@/hooks/use-side-panel"
+import type { RunSearch } from "@/lib/run-search"
 import { isRunActive } from "@/lib/run-status"
 import { openBlankTab } from "@/lib/safe-url"
 import {
@@ -26,7 +27,6 @@ import {
 } from "../api/mutations"
 import { extractionRunQueryOptions } from "../api/queries"
 import { matchRateOf, percentOf } from "../match-rate"
-import type { ExtractionRunSearch } from "../schemas"
 import { ExtractionResultsSection } from "./ExtractionResultsSection"
 import { ExtractionRunPanel } from "./ExtractionRunPanel"
 
@@ -37,8 +37,8 @@ export type ExtractionRunPageProps = {
   dataset: ExtractionDatasetOutputDto
   runParams: ExtractionRunParamsDto
   /** Which results show: the page, the order, the search and the filter, from the URL. */
-  search: ExtractionRunSearch
-  onSearchChange: (search: ExtractionRunSearch) => void
+  search: RunSearch
+  onSearchChange: (search: RunSearch) => void
 }
 
 /**

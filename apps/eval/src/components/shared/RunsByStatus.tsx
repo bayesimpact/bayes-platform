@@ -1,12 +1,13 @@
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { type ReactNode, useMemo, useState } from "react"
+import { useNavigate, useSearch } from "@tanstack/react-router"
+import { type ReactNode, useMemo } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  RUN_STATUS_LABELS,
-  RUN_STATUS_ORDER,
-  type RunStatus,
-  type RunSummary,
-} from "@/lib/run-status"
+import { RUN_STATUS_LABELS, RUN_STATUS_ORDER, type RunSummary } from "@/lib/run-status"
+
+/** The dataset's page, where the runs show: the sub-tab is one of its search params. */
+const DATASET_ROUTE_ID =
+  "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/"
+const DATASET_ROUTE_PATH = "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/"
 
 /** No run: a status always holds some, since the sub-tabs are those of the runs there are. */
 const NO_RUN: never[] = []
@@ -43,9 +44,10 @@ export function RunsByStatus<TRun extends RunSummary>({
     [runs],
   )
   const [firstStatus] = statuses
-  // The sub-tab the person chose stays, while it holds runs: a run that ends, read again by
-  // itself, must not take them to another sub-tab.
-  const [chosenStatus, setChosenStatus] = useState<RunStatus | null>(null)
+  // The sub-tab the person chose, which the URL holds, stays while it holds runs: a run that
+  // ends, read again by itself, must not take them to another sub-tab.
+  const { status: chosenStatus } = useSearch({ from: DATASET_ROUTE_ID })
+  const navigate = useNavigate({ from: DATASET_ROUTE_PATH })
   const shownStatus = chosenStatus && statuses.includes(chosenStatus) ? chosenStatus : firstStatus
   return (
     <>
@@ -69,7 +71,13 @@ export function RunsByStatus<TRun extends RunSummary>({
         <Tabs
           value={shownStatus}
           onValueChange={(value) =>
-            setChosenStatus(RUN_STATUS_ORDER.find((status) => status === value) ?? null)
+            void navigate({
+              search: (previous) => ({
+                ...previous,
+                status: RUN_STATUS_ORDER.find((status) => status === value),
+              }),
+              replace: true,
+            })
           }
         >
           <TabsList variant="line" className="max-w-full overflow-x-auto">

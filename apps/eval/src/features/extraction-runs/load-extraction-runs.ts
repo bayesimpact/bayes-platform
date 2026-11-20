@@ -6,6 +6,7 @@ import type {
 import type { QueryClient } from "@tanstack/react-query"
 import { agentVersionsQueryOptions } from "@/features/campaigns"
 import { orNotFound } from "@/lib/not-found"
+import type { RunSearch } from "@/lib/run-search"
 import { loaderStaleTime } from "@/lib/start-query"
 import {
   extractionRunQueryOptions,
@@ -13,7 +14,6 @@ import {
   projectExtractionRunsQueryOptions,
 } from "./api/queries"
 import { type ExtractionResultFilter, resultFiltersOf, shownResultFilterOf } from "./result-filters"
-import type { ExtractionRunSearch } from "./schemas"
 
 /**
  * Loads what a dataset's page reads about runs: the project's runs, and the agent's saved
@@ -40,7 +40,7 @@ export async function loadExtractionRun(
   queryClient: QueryClient,
   run: ExtractionRunParamsDto,
   { datasetId, agentId }: { datasetId: string; agentId: string },
-  { result, ...recordsSearch }: ExtractionRunSearch,
+  { result, ...recordsSearch }: RunSearch,
 ) {
   const startResults = (filter: ExtractionResultFilter) =>
     void queryClient.prefetchQuery({

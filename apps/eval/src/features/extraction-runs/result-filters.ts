@@ -48,14 +48,16 @@ const STATUSES = {
 } satisfies Record<ExtractionResultFilter, ExtractionRunRecordStatusDto | null>
 
 /**
- * The filter that shows, of the one the URL names: a filter that keeps nothing, or no longer as a
- * run under way moves on, gives way to the one that shows every result.
+ * The filter that shows, of the one the URL names: a name the app does not know, or a filter that
+ * keeps nothing, or no longer as a run under way moves on, gives way to the one that shows every
+ * result.
  */
 export function shownResultFilterOf(
   run: Pick<ExtractionRunOutputDto, "status" | "summary">,
-  asked: ExtractionResultFilter | undefined,
+  asked: string | undefined,
 ): ExtractionResultFilter {
-  return asked && asked !== "all" && resultCountsOf(run)[asked] > 0 ? asked : "all"
+  const filter = EXTRACTION_RESULT_FILTERS.find((candidate) => candidate === asked)
+  return filter && resultCountsOf(run)[filter] > 0 ? filter : "all"
 }
 
 /** What a filter asks the API, beside the search: the status of the records it keeps. */
