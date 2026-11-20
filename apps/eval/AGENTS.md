@@ -177,8 +177,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   record whole in a sheet (`RunRecordSheet`), its expected output and its answer rendered from
   Markdown. A run under way is read again
   every 3 seconds (`refetchInterval` in `api/queries.ts`), not through the API's status stream.
-  The form state an agent filled during a run and the comparison of conversation runs are not
-  here yet.
+  The table also shows where each record stands and, once a record has one, the form the
+  agent filled (`FilledForm`). Two runs or more, picked by their boxes, compare side by side
+  (`ConversationRunsComparePage`): their figures, then the score of each record.
 - In the sidebar, of Evaluations and Campaigns, only the menu that holds
   the current page opens at first, and both on a page neither holds (`useOpenSidebarTopMenu` in
   `src/routes/-components/`).
@@ -196,18 +197,30 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 - A table of records the API pages keeps its page, its order and its search in the URL
   (`lib/records-search.ts`: `recordsSearchSchema`, `recordsQueryOf`, which builds the API's
   `columnFilters`, `sortBy` and `sortOrder`), reads its page with `useQuery` and
-  `keepPreviousData`, and shows `ColumnSearch` (a column and a text, applied on Enter or the
-  button) and `TablePagination` around the `DataTable`. The route's component gives the search
+  `keepPreviousData`, and shows `ColumnFilters` (a column and the text it must hold, applied on Enter
+  or the button, several columns at once, each filter with the way to take it away) and `TablePagination` around the `DataTable`. The route's component gives the search
   and takes its changes. The records of an extraction dataset, the results of an extraction run
   and the comparison of runs work that way, 50 rows a page. The records of a conversation dataset
   and of a conversation run, written by hand and few, are still read whole.
+- What the former evaluation app (`apps/web/src/eval`) did is the reference for both types of
+  agent: its behaviours are kept unless the product owner asked otherwise. Kept on purpose from
+  it: the "N records remaining" badge and the progress text of a run under way
+  (`RunPageHeader`, `RunProgressNote`), a toast when a run a person watches ends
+  (`useRunEndToasts`, on the polled data), the trace of an answer for who holds `trace.read`
+  only (`useCanReadTraces`), the agent's temperature, document search and a link to the Studio
+  in a run's panel, the row numbers of the tables, the select-all box of the runs, and the
+  former URLs, `/o/$organizationId/p/$projectId/conversation/...` and `.../extraction/...`,
+  which redirect to the same page under an agent (`legacy-evaluations-redirect.ts`). A run's
+  page is the page of one agent: a run of another agent is not found there. Changed on purpose:
+  pages under one agent, a run started from a page, polling in place of the status stream, and
+  a confirmation before a run is cancelled.
 - The evaluations of an extraction agent (`features/extraction-datasets`,
   `features/extraction-runs`), on the API's `evaluation-extraction-datasets` and
   `evaluation-extraction-runs` routes. A new dataset has no record: its page shows what builds
   them (`ExtractionDatasetSetup`), a CSV file of the project to choose or to upload (presign, PUT
-  to the signed URL, confirm), then the name and the role of each of its columns: input, target,
-  reference or ignore (`lib/extraction-columns.ts`). A dataset with records shows them a page at a time, the
-  ignored columns left out: the API pages, sorts and searches them, as a dataset may hold
+  to the signed URL, confirm), then the dataset's name, and the name and the role of each of its columns: input, target,
+  reference or ignore (`lib/extraction-columns.ts`). A dataset with records shows them a page at a time, with
+  every column and its role, and a row opens its record whole in a sheet: the API pages, sorts and searches them, as a dataset may hold
   thousands (`ExtractionRecordsSection`). A new run
   (`RunExtractionPage`) picks a saved version, pairs each field of the version's output schema
   with a target column or only shows it (`key-mapping.ts`), and asks all the records or the first
@@ -215,8 +228,9 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   `evaluations/$datasetId/compare?runs=`, their figures then each record side by side. The box is
   the cell's own component (`RunCompareCheckbox`) on TanStack's row selection, so it is not
   remounted, and keeps the focus, when the table renders again. A run's page shows its match rate,
-  its matches, mismatches and errors, then its results: one column per field, with a mark and the
-  value expected under a value that differs, filters by status, and a sheet with the whole record.
+  its matches, mismatches and errors, then its results: for each field the value expected, when
+  the field is compared, then what the agent returned with a mark, a column of the errors when
+  a record of the page has one, filters by status, and a sheet with the whole record.
   Its results come a page at a time too, as the comparison's records do. Its side
   panel has two tabs, Agent and Fields. A run that is over offers its results as a CSV file
   (`useOpenRunCsv`), from a button beside the filters of its results, and from its row's menu in

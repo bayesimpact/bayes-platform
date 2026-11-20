@@ -10,7 +10,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { useCanReadTraces } from "@/features/account"
+import { FilledForm } from "./FilledForm"
 import { RunRecordScore } from "./RunRecordScore"
+import { RunRecordStatusBadge } from "./RunRecordStatusBadge"
 
 export type RunRecordSheetProps = {
   /** The record to read, or `null` while the sheet is closed. */
@@ -34,6 +37,8 @@ function Block({ title, children }: { title: ReactNode; children: ReactNode }) {
  * that stopped it and the trace of the answer.
  */
 export function RunRecordSheet({ record, onClose }: RunRecordSheetProps) {
+  // The trace of an answer is for the few who may read traces.
+  const canReadTraces = useCanReadTraces()
   return (
     <Sheet
       open={record !== null}
@@ -60,7 +65,8 @@ export function RunRecordSheet({ record, onClose }: RunRecordSheetProps) {
                 <Trans comment="The score the judge gave an answer">Score</Trans>
               </span>
               <RunRecordScore record={record} />
-              {record.traceUrl ? (
+              <RunRecordStatusBadge status={record.status} />
+              {record.traceUrl && canReadTraces ? (
                 <ExternalLink href={record.traceUrl} className="ml-auto inline-flex gap-1 text-sm">
                   <Trans comment="A link to the trace of the agent's answer">Open the trace</Trans>
                 </ExternalLink>
@@ -89,6 +95,17 @@ export function RunRecordSheet({ record, onClose }: RunRecordSheetProps) {
                 </p>
               )}
             </Block>
+            {record.formState === null ? null : (
+              <Block
+                title={
+                  <Trans comment="The fields the agent filled while it answered a record of a run">
+                    Filled form
+                  </Trans>
+                }
+              >
+                <FilledForm formState={record.formState} />
+              </Block>
+            )}
             {record.status === "error" ? (
               <section className="flex flex-col gap-2">
                 <h3 className="text-sm font-semibold text-destructive">

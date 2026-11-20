@@ -58,6 +58,7 @@ export function conversationRunHandlers(world: EvalWorld) {
         },
         dataset.records.map((record) =>
           buildConversationRunRecord({
+            evaluationConversationDatasetRecordId: record.id,
             status: "running",
             input: record.input,
             expectedOutput: record.expectedOutput,

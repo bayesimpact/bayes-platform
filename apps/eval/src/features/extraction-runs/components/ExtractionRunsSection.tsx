@@ -4,22 +4,21 @@ import type {
   ExtractionDatasetParamsDto,
   ExtractionRunOutputDto,
 } from "@caseai-connect/eval-contracts"
-import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { Link } from "@tanstack/react-router"
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
-import { cn } from "cn"
-import { DownloadIcon, GitCompareArrowsIcon } from "lucide-react"
+import { DownloadIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { CompareRunsButton } from "@/components/shared/CompareRunsButton"
 import { DataTable } from "@/components/shared/DataTable"
 import { DeleteRunDialog } from "@/components/shared/DeleteRunDialog"
 import { RunRowActions } from "@/components/shared/RunRowActions"
 import { RunsByStatus } from "@/components/shared/RunsByStatus"
 import { RunVersionButton } from "@/components/shared/RunVersionButton"
-import { Button, buttonVariants } from "@/components/ui/button"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
+import { pickedAfterSelection, rowSelectionOf } from "@/lib/run-selection"
 import { openBlankTab } from "@/lib/safe-url"
 import { useDeleteExtractionRun, useOpenRunCsv } from "../api/mutations"
 import { projectExtractionRunsQueryOptions } from "../api/queries"
@@ -65,34 +64,17 @@ export function ExtractionRunsSection({
     dialog?.kind === "version"
       ? versions.find((version) => version.revision === dialog.revision)
       : undefined
-  const compareLabel = (
-    <>
-      <GitCompareArrowsIcon data-icon="inline-start" aria-hidden />
-      {comparedCount === 0 ? (
-        <Trans comment="Opens the comparison of the runs picked in the list">Compare runs</Trans>
-      ) : (
-        <Plural value={comparedCount} one="Compare # run" other="Compare # runs" />
-      )}
-    </>
-  )
   return (
     <section className="flex flex-col gap-3">
       <RunsByStatus
         runs={runs}
         actions={
-          runs.length < 2 ? null : comparedCount >= 2 ? (
-            <Link
-              to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/compare"
-              params={{ ...agentParams, datasetId: dataset.datasetId }}
-              search={{ runs: compared.join(",") }}
-              className={cn(buttonVariants({ variant: "outline" }))}
-            >
-              {compareLabel}
-            </Link>
-          ) : (
-            <Button variant="outline" disabled>
-              {compareLabel}
-            </Button>
+          runs.length < 2 ? null : (
+            <CompareRunsButton
+              agentParams={agentParams}
+              datasetId={dataset.datasetId}
+              comparedIds={compared}
+            />
           )
         }
         renderTable={(runsOfStatus) => (
@@ -165,7 +147,7 @@ function RunsTable({
   "use no memo"
   const { t, i18n } = useLingui()
   const openCsv = useOpenRunCsv(agentParams)
-  const rowSelection = Object.fromEntries(pickedIds.map((runId) => [runId, true]))
+  const rowSelection = rowSelectionOf(pickedIds)
   const table = useReactTable({
     data: runs,
     columns: extractionRunColumnsOf({
@@ -205,18 +187,14 @@ function RunsTable({
       },
     }),
     state: { rowSelection },
-    onRowSelectionChange: (updater) => {
-      const next = typeof updater === "function" ? updater(rowSelection) : updater
-      const isPicked = (runId: string) => next[runId] === true
-      // The runs of the other sub-tabs keep their place: this table only knows its own.
-      const kept = pickedIds.filter(
-        (runId) => isPicked(runId) || !runs.some((run) => run.id === runId),
-      )
-      const added = runs.flatMap((run) =>
-        isPicked(run.id) && !pickedIds.includes(run.id) ? [run.id] : [],
-      )
-      onPickedChange([...kept, ...added])
-    },
+    onRowSelectionChange: (updater) =>
+      onPickedChange(
+        pickedAfterSelection(
+          pickedIds,
+          runs.map((run) => run.id),
+          typeof updater === "function" ? updater(rowSelection) : updater,
+        ),
+      ),
     getRowId: (run) => run.id,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

@@ -94,7 +94,8 @@ export function DatasetNameDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" disabled={isPending}>
+            {/* A name left as it was has nothing to save. */}
+            <Button type="submit" disabled={isPending || !form.formState.isDirty}>
               {submitLabel}
             </Button>
           </DialogFooter>

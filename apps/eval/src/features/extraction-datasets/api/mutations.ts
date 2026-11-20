@@ -95,12 +95,21 @@ export function useUploadExtractionFile(project: ProjectParamsDto) {
   })
 }
 
-/** Deletes a CSV file of a project. A dataset already built from it keeps its records. */
-export function useDeleteExtractionFile(project: ProjectParamsDto) {
+/**
+ * Deletes CSV files of a project, all at once. A dataset already built from one of them keeps
+ * its records.
+ */
+export function useDeleteExtractionFiles(project: ProjectParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (documentId: string) =>
-      apiRequest(EvalExtractionDatasetsRoutes.deleteFile, { params: { ...project, documentId } }),
+    mutationFn: (documentIds: string[]) =>
+      Promise.all(
+        documentIds.map((documentId) =>
+          apiRequest(EvalExtractionDatasetsRoutes.deleteFile, {
+            params: { ...project, documentId },
+          }),
+        ),
+      ),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: extractionDatasetKeys.files(project) }),
   })

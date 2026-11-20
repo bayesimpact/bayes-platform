@@ -1,14 +1,32 @@
 import {
   EvalExtractionRunsRoutes,
   EXTRACTION_RUN_RECORDS_PAGE_SIZE,
+  type ExtractionRunOutputDto,
   type ExtractionRunParamsDto,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
 import { keepPreviousData, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { type RecordsSearch, recordsQueryOf } from "@/lib/records-search"
-import { ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS, isRunActive } from "@/lib/run-status"
+import {
+  ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS,
+  isRunActive,
+  type RunStatus,
+} from "@/lib/run-status"
 import { extractionRunKeys } from "./keys"
+
+/** How long after a run completed the API may still be writing its CSV file, in milliseconds. */
+const CSV_EXPORT_WAIT_IN_MILLISECONDS = 60_000
+
+/**
+ * Whether a run still changes on its own: it is under way, or it just completed and its results
+ * as a CSV file, which the API writes after it marks the run as completed, are not there yet.
+ */
+const isRunChanging = (run: ExtractionRunOutputDto) =>
+  isRunActive(run.status) ||
+  (run.status === "completed" &&
+    run.csvExportDocumentId === null &&
+    Date.now() - run.updatedAt < CSV_EXPORT_WAIT_IN_MILLISECONDS)
 
 /**
  * The extraction runs of a project, the newest first. While one of them is under way, the list
@@ -22,18 +40,24 @@ export const projectExtractionRunsQueryOptions = (project: ProjectParamsDto) =>
       return runs.sort((first, second) => second.createdAt - first.createdAt)
     },
     refetchInterval: (query) =>
-      query.state.data?.some((run) => isRunActive(run.status))
-        ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS
-        : false,
+      query.state.data?.some(isRunChanging) ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS : false,
   })
 
 /** A run, read again every few seconds while it is under way. */
 export const extractionRunQueryOptions = (run: ExtractionRunParamsDto) =>
   queryOptions({
     queryKey: extractionRunKeys.detail(run),
-    queryFn: ({ signal }) => apiRequest(EvalExtractionRunsRoutes.getOne, { params: run, signal }),
+    queryFn: async ({ signal, client }) => {
+      const read = await apiRequest(EvalExtractionRunsRoutes.getOne, { params: run, signal })
+      // The run just ended: its records are read one last time, with their last values.
+      const before = client.getQueryData<{ status: RunStatus }>(extractionRunKeys.detail(run))
+      if (before && isRunActive(before.status) && !isRunActive(read.status)) {
+        void client.invalidateQueries({ queryKey: extractionRunKeys.records(run) })
+      }
+      return read
+    },
     refetchInterval: (query) =>
-      query.state.data && isRunActive(query.state.data.status)
+      query.state.data && isRunChanging(query.state.data)
         ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS
         : false,
   })

@@ -8,11 +8,14 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { type ReactNode, useState } from "react"
 import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"
+import { ExternalLink } from "@/components/shared/ExternalLink"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
 import { AGENT_TYPE_LABELS } from "@/lib/agent-type-labels"
+import { DOCUMENT_SEARCH_LABELS } from "@/lib/document-search-labels"
+import { studioAgentPathOf } from "@/lib/studio-path"
 
 export type ExtractionRunPanelProps = {
   run: ExtractionRunOutputDto
@@ -21,6 +24,8 @@ export type ExtractionRunPanelProps = {
   /** The agent the run asked: its name and its type. */
   agent: { name: string; type: AgentTypeDto }
   agentParams: AgentParamsDto
+  /** Whether the person opens the Studio of the project, where the agent is set up. */
+  canOpenStudio: boolean
   onClose: () => void
   takesFocus: boolean
 }
@@ -46,6 +51,7 @@ export function ExtractionRunPanel({
   dataset,
   agent,
   agentParams,
+  canOpenStudio,
   onClose,
   takesFocus,
 }: ExtractionRunPanelProps) {
@@ -104,6 +110,15 @@ export function ExtractionRunPanel({
                 </Fact>
                 <Fact
                   label={
+                    <Trans comment="Which documents the agent searched in a run">
+                      Document search
+                    </Trans>
+                  }
+                >
+                  {i18n._(DOCUMENT_SEARCH_LABELS[version.documentsRagMode])}
+                </Fact>
+                <Fact
+                  label={
                     <Trans comment="The instructions of the agent in a run">Instructions</Trans>
                   }
                 >
@@ -111,12 +126,30 @@ export function ExtractionRunPanel({
                     {version.instructions}
                   </p>
                 </Fact>
+                <Fact
+                  label={
+                    <Trans comment="The schema of what an extraction agent returns">
+                      Output schema
+                    </Trans>
+                  }
+                >
+                  <pre className="max-h-64 overflow-auto rounded-md border bg-muted/40 p-2 font-mono text-xs whitespace-pre-wrap wrap-anywhere">
+                    {JSON.stringify(version.outputJsonSchema ?? {}, null, 2)}
+                  </pre>
+                </Fact>
               </>
             ) : (
               <p className="text-muted-foreground">
                 <Trans>This version was archived: its settings no longer show.</Trans>
               </p>
             )}
+            {canOpenStudio ? (
+              <ExternalLink href={studioAgentPathOf(agentParams)} className="inline-flex gap-1">
+                <Trans comment="A link to the page of the agent in the Studio, where it is set up">
+                  Open in Studio
+                </Trans>
+              </ExternalLink>
+            ) : null}
           </dl>
         </TabsContent>
         <TabsContent value="fields" className="pt-2">

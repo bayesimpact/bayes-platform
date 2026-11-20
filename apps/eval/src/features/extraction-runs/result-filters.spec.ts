@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 import { resultCountsOf, resultFiltersOf } from "./result-filters"
 
+const summary = { total: 10, perfectMatches: 4, mismatches: 2, errors: 1, running: 3 }
+
 describe("resultFiltersOf", () => {
   it("asks the API the status of the records a filter keeps", () => {
     expect(resultFiltersOf("mismatches")).toEqual({ status: "mismatch" })
@@ -13,19 +15,24 @@ describe("resultFiltersOf", () => {
 })
 
 describe("resultCountsOf", () => {
-  it("counts what each filter keeps, from the figures of the run", () => {
-    const summary = { total: 10, perfectMatches: 4, mismatches: 2, errors: 1, running: 0 }
-    expect(resultCountsOf(summary)).toEqual({
+  it("counts the records that wait while the run goes on", () => {
+    expect(resultCountsOf({ status: "running", summary })).toEqual({
       all: 10,
       mismatches: 2,
       errors: 1,
+      waiting: 3,
+      notAsked: 0,
+    })
+  })
+
+  it("counts them as not asked once the run was cancelled: its figures are not counted again", () => {
+    expect(resultCountsOf({ status: "cancelled", summary })).toMatchObject({
       waiting: 0,
-      // What is left once the others are counted: a cancelled run never asked them.
       notAsked: 3,
     })
   })
 
   it("counts nothing before the run started", () => {
-    expect(resultCountsOf(null).all).toBe(0)
+    expect(resultCountsOf({ status: "pending", summary: null }).all).toBe(0)
   })
 })

@@ -5,17 +5,14 @@ import {
   type ExtractionRunOutputDto,
   type ExtractionRunRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
-import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { useQueries, useSuspenseQuery } from "@tanstack/react-query"
-import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
-import type { ReactNode } from "react"
-import { BackLink } from "@/components/shared/BackLink"
-import { PageContainer } from "@/components/shared/PageContainer"
-import { PageHeader } from "@/components/shared/PageHeader"
+import { ComparedRunHead } from "@/components/shared/ComparedRunHead"
+import { CompareRunsPageFrame } from "@/components/shared/CompareRunsPageFrame"
+import { type RunFigure, RunFiguresTable } from "@/components/shared/RunFiguresTable"
 import { RunStatusBadge } from "@/components/shared/RunStatusBadge"
 import { TablePagination } from "@/components/shared/TablePagination"
-import { TimeAgo } from "@/components/shared/TimeAgo"
 import {
   Table,
   TableBody,
@@ -25,11 +22,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cellTextOf, columnsOfRole } from "@/lib/extraction-columns"
-import { shortIdOf } from "@/lib/short-id"
 import { extractionRunRecordsQueryOptions, projectExtractionRunsQueryOptions } from "../api/queries"
 import { matchedFieldsOf } from "../key-mapping"
 import { extractionRunParamsOf } from "../load-extraction-runs"
 import { matchRateOf, percentOf } from "../match-rate"
+import { inputKeyOf } from "./extraction-run-record-columns"
 import { RecordStatusBadge } from "./RecordStatusBadge"
 
 export type ExtractionRunsComparePageProps = {
@@ -62,29 +59,25 @@ export function ExtractionRunsComparePage({
     const run = projectRuns.find((candidate) => candidate.id === runId)
     return run && run.evaluationExtractionDatasetId === dataset.id ? [run] : []
   })
+  const [firstInputColumn] = columnsOfRole(dataset, "input")
   // useQueries: another page keeps the rows shown until its own arrive, for each run.
   const recordsByRun = useQueries({
     queries: runs.map((run) =>
-      extractionRunRecordsQueryOptions(extractionRunParamsOf(agentParams, run.id), { page }),
+      extractionRunRecordsQueryOptions(extractionRunParamsOf(agentParams, run.id), {
+        page,
+        // The same order for every run, whatever the order it stored its records in: the first
+        // column the agent reads. Runs that asked the same records then share their pages.
+        sortBy: firstInputColumn ? inputKeyOf(firstInputColumn.id) : undefined,
+      }),
     ),
   })
   const isLoading = recordsByRun.some((records) => records.isPending)
   // The run that asked the most records has the most pages.
   const recordTotal = Math.max(0, ...recordsByRun.map((records) => records.data?.total ?? 0))
-  const datasetRuns = {
-    to: "/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId",
-    params: { ...agentParams, datasetId: dataset.id },
-    search: { tab: "runs" },
-  } as const
-  const datasetName = dataset.name
   const runCount = runs.length
   const rates = runs.flatMap((run) => matchRateOf(run.summary) ?? [])
   const bestRate = rates.length > 0 ? Math.max(...rates) : null
-  const metrics: {
-    key: string
-    label: ReactNode
-    render: (run: ExtractionRunOutputDto) => ReactNode
-  }[] = [
+  const figures: RunFigure<ExtractionRunOutputDto>[] = [
     {
       key: "status",
       label: <Trans comment="A row of the comparison of runs: where each run stands">Status</Trans>,
@@ -152,164 +145,111 @@ export function ExtractionRunsComparePage({
     columnsOfRole(dataset, "input").map((column) => column.id),
   )
   const runHeads = runs.map((run) => (
-    <TableHead key={run.id} className="h-auto py-2 align-bottom">
-      <div className="flex flex-col gap-0.5">
-        <Link
-          to="/o/$organizationId/p/$projectId/a/$agentId/evaluations/$datasetId/runs/$runId"
-          params={{ ...agentParams, datasetId: dataset.id, runId: run.id }}
-          title={run.id}
-          className="font-mono text-xs font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          {shortIdOf(run.id)}
-        </Link>
-        <span className="text-xs font-normal">
-          <TimeAgo moment={run.createdAt} />
-        </span>
-      </div>
-    </TableHead>
+    <ComparedRunHead
+      key={run.id}
+      agentParams={agentParams}
+      datasetId={dataset.id}
+      run={run}
+      revision={run.agentRevision}
+    />
   ))
   return (
-    <PageContainer>
-      <PageHeader
-        back={
-          <BackLink {...datasetRuns}>
-            <Trans comment="The link back from a run to the runs of its dataset">Runs</Trans>
-          </BackLink>
-        }
-        title={<Trans>Compare runs</Trans>}
-        description={
-          <Plural
-            value={runCount}
-            _0={`No run of ${datasetName} to compare`}
-            one={`# run of ${datasetName}`}
-            other={`# runs of ${datasetName}, side by side`}
-          />
-        }
+    <CompareRunsPageFrame agentParams={agentParams} dataset={dataset} runCount={runCount}>
+      <RunFiguresTable
+        agentParams={agentParams}
+        datasetId={dataset.id}
+        runs={runs}
+        figures={figures}
+        revisionOf={(run) => run.agentRevision}
       />
-      {runCount === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          <Trans>These runs are gone, or are not runs of this dataset.</Trans>
-        </p>
-      ) : (
-        <>
-          <section className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">
-              <Trans comment="The title of the figures of the runs compared">Figures</Trans>
-            </h2>
-            <div className="overflow-hidden rounded-lg border bg-background dark:bg-card">
-              <Table>
-                <TableHeader className="bg-muted/40">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 text-xs">
-                      <Trans comment="The header of the column of what the comparison measures">
-                        Figure
-                      </Trans>
-                    </TableHead>
-                    {runHeads}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {metrics.map((metric) => (
-                    <TableRow key={metric.key}>
-                      <TableCell className="text-muted-foreground">{metric.label}</TableCell>
-                      {runs.map((run) => (
-                        <TableCell key={run.id} className="tabular-nums">
-                          {metric.render(run)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </section>
-          <section className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-lg font-semibold">
-                <Trans comment="The title of the records of the runs compared">
-                  Record by record
-                </Trans>
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                <Trans>
-                  Where each record stands in each run, with how many of its compared fields match.
-                </Trans>
-              </p>
-            </div>
-            <div className="overflow-hidden rounded-lg border bg-background dark:bg-card">
-              <Table>
-                <TableHeader className="bg-muted/40">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-9 text-xs">
-                      <Trans comment="The header of the column of the records compared">
-                        Record
-                      </Trans>
-                    </TableHead>
-                    {runHeads}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.length === 0 ? (
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell
-                        colSpan={runCount + 1}
-                        className="h-24 text-center text-muted-foreground"
+      <section className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold">
+            <Trans comment="The title of the records of the runs compared">Record by record</Trans>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            <Trans>
+              Where each record stands in each run, with how many of its compared fields match.
+            </Trans>
+          </p>
+        </div>
+        <div className="overflow-hidden rounded-lg border bg-background dark:bg-card">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="h-9 text-xs">#</TableHead>
+                <TableHead className="h-9 text-xs">
+                  <Trans comment="The header of the column of the records compared">Record</Trans>
+                </TableHead>
+                {runHeads}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell
+                    colSpan={runCount + 2}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    {isLoading ? (
+                      <Trans>Loading the results…</Trans>
+                    ) : (
+                      <Trans>These runs have no record yet.</Trans>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rows.map((row, index) => (
+                  <TableRow key={row.key}>
+                    <TableCell className="align-top font-mono text-xs text-muted-foreground tabular-nums">
+                      {page * EXTRACTION_RUN_RECORDS_PAGE_SIZE + index + 1}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <p
+                        title={row.label}
+                        className="line-clamp-2 max-w-96 min-w-40 whitespace-normal wrap-anywhere"
                       >
-                        {isLoading ? (
-                          <Trans>Loading the results…</Trans>
-                        ) : (
-                          <Trans>These runs have no record yet.</Trans>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    rows.map((row) => (
-                      <TableRow key={row.key}>
-                        <TableCell className="align-top">
-                          <p className="line-clamp-2 max-w-96 min-w-40 whitespace-normal wrap-anywhere">
-                            {row.label || "–"}
-                          </p>
+                        {row.label || "–"}
+                      </p>
+                    </TableCell>
+                    {runs.map((run) => {
+                      const record = row.byRunId[run.id]
+                      const fields = record ? matchedFieldsOf(record.comparison) : null
+                      const matched = fields?.matched ?? 0
+                      const scored = fields?.scored ?? 0
+                      return (
+                        <TableCell key={run.id} className="align-top">
+                          {record ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <RecordStatusBadge status={record.status} />
+                              {scored > 0 ? (
+                                <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+                                  <Trans comment="Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields">
+                                    {matched} / {scored} fields
+                                  </Trans>
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">–</span>
+                          )}
                         </TableCell>
-                        {runs.map((run) => {
-                          const record = row.byRunId[run.id]
-                          const fields = record ? matchedFieldsOf(record.comparison) : null
-                          const matched = fields?.matched ?? 0
-                          const scored = fields?.scored ?? 0
-                          return (
-                            <TableCell key={run.id} className="align-top">
-                              {record ? (
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <RecordStatusBadge status={record.status} />
-                                  {scored > 0 ? (
-                                    <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
-                                      <Trans comment="Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields">
-                                        {matched} / {scored} fields
-                                      </Trans>
-                                    </span>
-                                  ) : null}
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground">–</span>
-                              )}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              page={page}
-              pageSize={EXTRACTION_RUN_RECORDS_PAGE_SIZE}
-              total={recordTotal}
-              onPageChange={onPageChange}
-            />
-          </section>
-        </>
-      )}
-    </PageContainer>
+                      )
+                    })}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <TablePagination
+          page={page}
+          pageSize={EXTRACTION_RUN_RECORDS_PAGE_SIZE}
+          total={recordTotal}
+          onPageChange={onPageChange}
+        />
+      </section>
+    </CompareRunsPageFrame>
   )
 }
 

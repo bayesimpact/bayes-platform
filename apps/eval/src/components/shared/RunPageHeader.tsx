@@ -1,7 +1,13 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
-import { EllipsisIcon, RotateCwIcon, Trash2Icon } from "lucide-react"
+import {
+  CircleAlertIcon,
+  EllipsisIcon,
+  LoaderCircleIcon,
+  RotateCwIcon,
+  Trash2Icon,
+} from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -27,6 +33,8 @@ export type RunPageHeaderProps = {
   agentParams: AgentParamsDto
   datasetId: string
   run: RunSummary
+  /** How many records of the run still wait for their answer: none hides the badge. */
+  remainingCount: number
   /** Under the title: the dataset the run asked, the agent and its version. */
   description: ReactNode
   /** The side panel of the page: whether it shows, and the name of what it holds. */
@@ -48,6 +56,7 @@ export function RunPageHeader({
   agentParams,
   datasetId,
   run,
+  remainingCount,
   description,
   panel,
   cancelRun,
@@ -96,6 +105,21 @@ export function RunPageHeader({
                 <Trans comment="How long a run took, such as: Took 2 min 5 sec">Took {took}</Trans>
               </Badge>
             )}
+            {remainingCount > 0 ? (
+              // While the run goes on, they wait their turn; once it is over, they were left out.
+              <Badge variant="outline">
+                {isActive ? (
+                  <LoaderCircleIcon aria-hidden className="animate-spin" />
+                ) : (
+                  <CircleAlertIcon aria-hidden />
+                )}
+                <Plural
+                  value={remainingCount}
+                  one="# record remaining"
+                  other="# records remaining"
+                />
+              </Badge>
+            ) : null}
           </>
         }
         description={description}

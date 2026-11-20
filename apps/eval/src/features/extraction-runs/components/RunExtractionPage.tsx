@@ -12,7 +12,7 @@ import { z } from "zod"
 import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { RunScopeField } from "@/components/shared/RunScopeField"
+import { isRunScopeValid, RunScopeField } from "@/components/shared/RunScopeField"
 import { Button, buttonVariants } from "@/components/ui/button"
 import type { EvaluationAgent } from "@/features/agents"
 import { AgentVersionPicker, agentVersionsQueryOptions } from "@/features/campaigns"
@@ -22,12 +22,15 @@ import { defaultKeyMappingOf, isKeyMappingComplete } from "../key-mapping"
 import { KeyMappingField } from "./KeyMappingField"
 
 /** What the page asks: the version to evaluate, how its fields read, and how many records. */
-const runFormSchema = z.object({
-  versionId: z.uuid(),
-  keyMapping: z.array(extractionRunKeyMappingEntrySchema).refine(isKeyMappingComplete),
-  scope: z.enum(["all", "limited"]),
-  limitedCount: z.number().int().min(1),
-})
+const runFormSchema = z
+  .object({
+    versionId: z.uuid(),
+    keyMapping: z.array(extractionRunKeyMappingEntrySchema).refine(isKeyMappingComplete),
+    scope: z.enum(["all", "limited"]),
+    // `NaN` while its field is empty: it only counts for an evaluation of the first records.
+    limitedCount: z.number(),
+  })
+  .refine(isRunScopeValid, { path: ["limitedCount"] })
 
 export type RunExtractionPageProps = {
   agent: EvaluationAgent
@@ -58,7 +61,7 @@ export function RunExtractionPage({ agent, agentParams, dataset }: RunExtraction
       versionId: defaultVersion?.id ?? "",
       keyMapping: defaultVersion ? defaultKeyMappingOf(defaultVersion, targetColumns) : [],
       scope: "all" as const,
-      limitedCount: Math.min(10, dataset.recordCount),
+      limitedCount: 1,
     },
   })
   const scope = useWatch({ control: form.control, name: "scope" })
@@ -141,9 +144,11 @@ export function RunExtractionPage({ agent, agentParams, dataset }: RunExtraction
               onChange={field.onChange}
               targetColumns={targetColumns}
               error={
-                fieldState.invalid ? (
+                !fieldState.invalid ? undefined : field.value.length === 0 ? (
+                  <Trans>This version has no output schema: it returns no field to compare.</Trans>
+                ) : (
                   <Trans>Give each compared field a column, or only show it.</Trans>
-                ) : undefined
+                )
               }
             />
           )}

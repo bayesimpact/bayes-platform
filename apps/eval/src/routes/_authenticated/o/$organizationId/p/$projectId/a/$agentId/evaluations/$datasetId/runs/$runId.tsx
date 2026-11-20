@@ -42,6 +42,7 @@ export const Route = createFileRoute(
         ? [
             loadConversationRun(context.queryClient, runParamsOf(params, params.runId), {
               datasetId: params.datasetId,
+              agentId: params.agentId,
             }),
             loadConversationDatasets(context.queryClient, params),
             loadConversationRuns(context.queryClient, params),
@@ -49,6 +50,7 @@ export const Route = createFileRoute(
         : [
             loadExtractionRun(context.queryClient, extractionRunParamsOf(params, params.runId), {
               datasetId: params.datasetId,
+              agentId: params.agentId,
             }),
             loadExtractionDatasets(context.queryClient, params),
             loadExtractionRuns(context.queryClient, params),

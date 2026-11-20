@@ -4,19 +4,16 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
+import { RunCompareAllCheckbox } from "@/components/shared/RunCompareAllCheckbox"
+import { RunCompareCheckbox } from "@/components/shared/RunCompareCheckbox"
 import { TimeAgo } from "@/components/shared/TimeAgo"
 import { shortIdOf } from "@/lib/short-id"
 import { matchRateOf, percentOf } from "../match-rate"
-import { RunCompareCheckbox } from "./RunCompareCheckbox"
 
 const columnHelper = createColumnHelper<ExtractionRunOutputDto>()
 
 /** The texts of the headers, which the table translates. */
 const runColumnLabels = {
-  select: msg({
-    message: "Compare",
-    comment: "The header of the column of the boxes that pick the runs to compare",
-  }),
   id: msg({ message: "ID", comment: "The header of the column of the short ids of the runs" }),
   started: msg({ message: "Started", comment: "The header of the column of when a run started" }),
   version: msg({ message: "Version", comment: "The version of the agent a run evaluated" }),
@@ -51,8 +48,8 @@ export function extractionRunColumnsOf({
   return [
     columnHelper.display({
       id: "select",
-      header: () => <span className="sr-only">{translate(runColumnLabels.select)}</span>,
-      // The component itself, so the box stays the same one from one render to the next.
+      // The components themselves, so a box stays the same one from one render to the next.
+      header: RunCompareAllCheckbox,
       cell: RunCompareCheckbox,
     }),
     columnHelper.accessor((run) => shortIdOf(run.id), {

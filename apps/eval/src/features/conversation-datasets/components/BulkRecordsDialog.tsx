@@ -1,4 +1,5 @@
 import type { ConversationDatasetRecordInputDto } from "@caseai-connect/eval-contracts"
+import { CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useId, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -34,6 +35,7 @@ export function BulkRecordsDialog({ isPending, onSubmit, onClose }: BulkRecordsD
   const listOf = (lines: number[]) => lineList.format(lines.map(String))
   const invalidList = listOf(invalidLines)
   const tooLongList = listOf(tooLongLines)
+  const maxLength = i18n.number(CONVERSATION_DATASET_RECORD_MAX_LENGTH)
   const hasProblem = invalidLines.length > 0 || tooLongLines.length > 0
   const recordCount = records.length
   return (
@@ -49,7 +51,10 @@ export function BulkRecordsDialog({ isPending, onSubmit, onClose }: BulkRecordsD
             <Trans>Bulk add records</Trans>
           </DialogTitle>
           <DialogDescription>
-            <Trans>Paste one record per line: the input, a comma, then the expected output.</Trans>
+            <Trans>
+              Paste one record per line: the input, a comma, then the expected output. Rows copied
+              from a spreadsheet work too.
+            </Trans>
           </DialogDescription>
         </DialogHeader>
         <form
@@ -91,8 +96,8 @@ export function BulkRecordsDialog({ isPending, onSubmit, onClose }: BulkRecordsD
               <FieldError>
                 <Plural
                   value={tooLongLines.length}
-                  one={`Line ${tooLongList} is too long.`}
-                  other={`Lines ${tooLongList} are too long.`}
+                  one={`Line ${tooLongList} is over ${maxLength} characters.`}
+                  other={`Lines ${tooLongList} are over ${maxLength} characters.`}
                 />
               </FieldError>
             ) : null}

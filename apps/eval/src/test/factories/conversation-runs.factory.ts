@@ -20,9 +20,15 @@ export type ConversationRunRecord = {
 export function buildAgentModels(): AgentModelsOutputDto {
   return agentModelsOutputSchema.parse({
     models: [
-      { model: "model-large", isAvailable: true },
-      { model: "model-small", isAvailable: true },
-      { model: "model-legacy", isAvailable: false },
+      { model: "model-large", isAvailable: true, deprecation: null, servedOutsideEu: false },
+      { model: "model-small", isAvailable: true, deprecation: null, servedOutsideEu: true },
+      {
+        model: "model-old",
+        isAvailable: true,
+        deprecation: { deprecatedOn: "2027-01-31" },
+        servedOutsideEu: false,
+      },
+      { model: "model-legacy", isAvailable: false, deprecation: null, servedOutsideEu: false },
     ],
     defaults: { judge: "model-large" },
   })
@@ -34,10 +40,12 @@ export function buildConversationRunRecord(
 ): ConversationRunRecordOutputDto {
   return conversationRunRecordOutputSchema.parse({
     id: crypto.randomUUID(),
+    evaluationConversationDatasetRecordId: crypto.randomUUID(),
     status: "graded",
     input: "Which plan should a team of five pick?",
     expectedOutput: "The Pro plan: it includes five seats and shared workspaces.",
     output: "A team of five fits the Pro plan, which comes with five seats.",
+    formState: null,
     score: 5,
     errorDetails: null,
     traceUrl: null,
@@ -73,6 +81,7 @@ export function buildConversationRun(
       model: "model-large",
       revision: 2,
       providerOptions: { google: { thinkingConfig: { thinkingLevel: "low" } } },
+      documentsRagMode: "all",
     },
     status: "completed",
     judgeModel: "model-large",
@@ -87,7 +96,8 @@ export function buildConversationRun(
 }
 
 /**
- * The runs of the main dataset by the main agent: one over, one under way and one that failed.
+ * The runs of the main dataset by the main agent: one under way, two over, on two versions, and
+ * one that failed.
  * Each takes its records from the dataset's.
  */
 export function buildPricingRuns(
@@ -99,6 +109,7 @@ export function buildPricingRuns(
   const answered = (score: number, index: number) => {
     const source = dataset.records[index]
     return buildConversationRunRecord({
+      evaluationConversationDatasetRecordId: source?.id,
       input: source?.input,
       expectedOutput: source?.expectedOutput,
       output: source?.expectedOutput,
@@ -106,8 +117,13 @@ export function buildPricingRuns(
     })
   }
   const completed = [5, 5, 3, 5, 0, 5, 5, 4, 5, 5, 5].map(answered)
+  // The agent filled a form while it answered the first record, and none of it for the second.
+  const [first, second] = completed
+  if (first) first.formState = { plan: "Pro", seats: 5 }
+  if (second) second.formState = {}
   completed.push(
     buildConversationRunRecord({
+      evaluationConversationDatasetRecordId: dataset.records[11]?.id,
       status: "error",
       input: dataset.records[11]?.input,
       expectedOutput: dataset.records[11]?.expectedOutput,
@@ -120,6 +136,7 @@ export function buildPricingRuns(
     ...[5, 5, 3].map(answered),
     ...dataset.records.slice(3, 6).map((source) =>
       buildConversationRunRecord({
+        evaluationConversationDatasetRecordId: source.id,
         status: "running",
         input: source.input,
         expectedOutput: source.expectedOutput,
@@ -143,10 +160,20 @@ export function buildPricingRuns(
           instructions: "You answer questions about plans and billing, in a few sentences.",
           model: "model-large",
           revision: 3,
-          providerOptions: { google: { thinkingConfig: { thinkingLevel: "high" } } },
+          providerOptions: {
+            temperature: 0.2,
+            google: { thinkingConfig: { thinkingLevel: "high" } },
+          },
+          documentsRagMode: "tags",
         },
       },
       completed,
+    ),
+    // An earlier run that is over, on the version before: the comparison sets it beside the other.
+    buildConversationRun(
+      projectId,
+      { ...ids, createdAt: daysAgo(2), updatedAt: daysAgo(2) + 98_000 },
+      [4, 5, 2, 5, 1, 3, 5, 4, 2, 5, 5, 4].map(answered),
     ),
     buildConversationRun(
       projectId,

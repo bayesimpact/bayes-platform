@@ -4,6 +4,8 @@ import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
+import { RunCompareAllCheckbox } from "@/components/shared/RunCompareAllCheckbox"
+import { RunCompareCheckbox } from "@/components/shared/RunCompareCheckbox"
 import { TimeAgo } from "@/components/shared/TimeAgo"
 import { shortIdOf } from "@/lib/short-id"
 import { scoreOf } from "../score"
@@ -15,6 +17,7 @@ const runColumnLabels = {
   id: msg({ message: "ID", comment: "The header of the column of the short ids of the runs" }),
   started: msg({ message: "Started", comment: "The header of the column of when a run started" }),
   version: msg({ message: "Version", comment: "The version of the agent a run evaluated" }),
+  model: msg({ message: "Model", comment: "The model of the agent's version a run evaluated" }),
   judge: msg({ message: "Judge model", comment: "The model that graded a run" }),
   judgeInstructions: msg({
     message: "Instructions for the judge",
@@ -42,6 +45,12 @@ export function conversationRunColumnsOf({
 }): ColumnDef<ConversationRunOutputDto, unknown>[] {
   // Safe: each helper call types its own value, and the list holds them as columns of any value.
   return [
+    columnHelper.display({
+      id: "select",
+      // The components themselves, so a box stays the same one from one render to the next.
+      header: RunCompareAllCheckbox,
+      cell: RunCompareCheckbox,
+    }),
     columnHelper.accessor((run) => shortIdOf(run.id), {
       id: "id",
       header: translate(runColumnLabels.id),
@@ -71,6 +80,11 @@ export function conversationRunColumnsOf({
       header: translate(runColumnLabels.version),
       cell: (context) => renderVersion(context.row.original),
       meta: { headerClassName: "text-right", cellClassName: "text-right tabular-nums" },
+    }),
+    columnHelper.accessor((run) => run.agentSettings.model, {
+      id: "model",
+      header: translate(runColumnLabels.model),
+      cell: (context) => <span className="font-mono text-xs">{context.getValue()}</span>,
     }),
     columnHelper.accessor("judgeModel", {
       header: translate(runColumnLabels.judge),

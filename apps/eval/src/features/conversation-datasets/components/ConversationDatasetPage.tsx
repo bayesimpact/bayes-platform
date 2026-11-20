@@ -13,7 +13,7 @@ import { useState } from "react"
 import type { DatasetAction } from "@/components/shared/DatasetDialogs"
 import { DatasetPageFrame, type DatasetTab } from "@/components/shared/DatasetPageFrame"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
-import { ConversationRunsSection } from "@/features/conversation-runs"
+import { ConversationRunsSection, useConversationRunEndToasts } from "@/features/conversation-runs"
 import { projectConversationDatasetsQueryOptions } from "../api/queries"
 import { ConversationDatasetDialogs } from "./ConversationDatasetDialogs"
 import { ConversationRecordsSection } from "./ConversationRecordsSection"
@@ -42,6 +42,7 @@ export function ConversationDatasetPage({
     projectConversationDatasetsQueryOptions(datasetParams),
   )
   const [action, setAction] = useState<DatasetAction | null>(null)
+  useConversationRunEndToasts(datasetParams)
   const dataset = datasets.find((candidate) => candidate.id === datasetParams.datasetId)
   // The loader found the dataset: it is missing only while its deletion leaves the page.
   if (!dataset) return null

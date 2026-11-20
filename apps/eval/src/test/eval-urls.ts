@@ -82,6 +82,15 @@ export function testerSessionUrlOf(world: EvalWorld, campaignName: string, index
   return `${campaignUrlOf(world, campaignName)}/test/sessions/${session.id}`
 }
 
+/** The URL of the comparison of the conversation runs that are over. */
+export function conversationCompareUrlOf(world: EvalWorld): string {
+  const runs = world.conversationRuns.filter((candidate) => candidate.run.status === "completed")
+  const [first] = runs
+  const datasetId = required(first, "a completed run").run.evaluationConversationDatasetId
+  const ids = runs.map((candidate) => candidate.run.id).join(",")
+  return `${evaluationsUrlOf(world)}/${datasetId}/compare?runs=${ids}`
+}
+
 /** The URL of an extraction dataset of the world's first agent, by its name. */
 export function extractionDatasetUrlOf(world: EvalWorld, datasetName: string): string {
   const { dataset } = required(

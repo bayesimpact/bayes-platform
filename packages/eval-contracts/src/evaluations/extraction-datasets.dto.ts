@@ -16,6 +16,9 @@ export const EXTRACTION_DATASET_RECORDS_PAGE_SIZE = 50
 /** The type of the files a dataset is built from. */
 export const EXTRACTION_DATASET_FILE_MIME_TYPE = "text/csv" as const
 
+/** The largest file a person uploads, in bytes: 40 MB. */
+export const EXTRACTION_DATASET_FILE_MAX_SIZE = 40 * 1024 * 1024
+
 /** The params of the routes under one extraction dataset. */
 export const extractionDatasetParamsSchema = projectParamsSchema.extend({
   datasetId: z.uuid(),
@@ -38,7 +41,9 @@ export const extractionDatasetFileOutputSchema = z.object({
   id: z.uuid(),
   fileName: z.string(),
   size: z.number(),
+  mimeType: z.string(),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export type ExtractionDatasetFileOutputDto = z.output<typeof extractionDatasetFileOutputSchema>
@@ -59,7 +64,8 @@ export const extractionDatasetFilePresignOutputSchema = z.object({
 export const extractionDatasetFileColumnOutputSchema = z.object({
   id: z.string(),
   name: z.string(),
-  values: z.array(z.string()),
+  /** A row shorter than the header gives no value for its last columns. */
+  values: z.array(z.string().nullable()),
 })
 
 export type ExtractionDatasetFileColumnOutputDto = z.output<

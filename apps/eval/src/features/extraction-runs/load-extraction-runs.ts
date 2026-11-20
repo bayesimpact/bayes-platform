@@ -27,17 +27,34 @@ export async function loadExtractionRuns(queryClient: QueryClient, agent: AgentP
 
 /**
  * Loads a run's page: the run. Its records load a page at a time, under the page. A run of
- * another dataset is not found.
+ * another dataset, or of another agent, is not found: the page shows one agent's runs.
  */
 export async function loadExtractionRun(
   queryClient: QueryClient,
   run: ExtractionRunParamsDto,
-  { datasetId }: { datasetId: string },
+  { datasetId, agentId }: { datasetId: string; agentId: string },
 ) {
   const loaded = await orNotFound(() =>
     queryClient.query({ ...extractionRunQueryOptions(run), staleTime: loaderStaleTime }),
   )
-  return loaded.evaluationExtractionDatasetId === datasetId
+  return loaded.evaluationExtractionDatasetId === datasetId && loaded.agentId === agentId
+}
+
+/** The agent a run asked, for a URL that names the run and not its agent: none for a run that is gone. */
+export async function loadExtractionRunAgentId(
+  queryClient: QueryClient,
+  project: ProjectParamsDto,
+  runId: string,
+): Promise<string | null> {
+  try {
+    const run = await queryClient.query({
+      ...extractionRunQueryOptions(extractionRunParamsOf(project, runId)),
+      staleTime: loaderStaleTime,
+    })
+    return run.agentId
+  } catch {
+    return null
+  }
 }
 
 /** The params of a project's routes, from an agent's: a run belongs to the project. */

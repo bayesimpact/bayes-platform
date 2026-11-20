@@ -9,13 +9,14 @@ import { useQuery } from "@tanstack/react-query"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { DownloadIcon } from "lucide-react"
 import { useState } from "react"
-import { ColumnSearch } from "@/components/shared/ColumnSearch"
+import { ColumnFilters } from "@/components/shared/ColumnFilters"
 import { DataTable } from "@/components/shared/DataTable"
 import { ResultFilters } from "@/components/shared/ResultFilters"
+import { RunProgressNote } from "@/components/shared/RunProgressNote"
 import { TablePagination } from "@/components/shared/TablePagination"
 import { Button } from "@/components/ui/button"
 import { cellTextOf, columnsOf, columnsOfRole } from "@/lib/extraction-columns"
-import { searchWithSort, sortingOf } from "@/lib/records-search"
+import { hasFilters, searchWithFilter, searchWithSort, sortingOf } from "@/lib/records-search"
 import { isRunActive } from "@/lib/run-status"
 import { extractionRunRecordsQueryOptions } from "../api/queries"
 import {
@@ -28,6 +29,7 @@ import type { ExtractionRunSearch } from "../schemas"
 import { ExtractionRecordSheet } from "./ExtractionRecordSheet"
 import {
   agentKeyOf,
+  ERROR_DETAILS_KEY,
   extractionRunRecordColumnsOf,
   inputKeyOf,
   targetKeyOf,
@@ -65,7 +67,8 @@ export function ExtractionResultsSection({
   const { t, i18n } = useLingui()
   const [openRecordId, setOpenRecordId] = useState<string | null>(null)
   const { result, ...recordsSearch } = search
-  const counts = resultCountsOf(run.summary)
+  const page = recordsSearch.page ?? 0
+  const counts = resultCountsOf(run)
   // The filters that keep something: a run with no error offers no Errors filter.
   const filters = EXTRACTION_RESULT_FILTERS.filter(
     (candidate) => candidate === "all" || counts[candidate] > 0,
@@ -83,15 +86,18 @@ export function ExtractionResultsSection({
   // From the page shown, so the open record follows a run under way as it gets its values.
   const openRecord = records.find((record) => record.id === openRecordId) ?? null
   const inputColumns = columnsOfRole(dataset, "input")
+  const columnNameOf = (columnId: string) => dataset.schemaMapping[columnId]?.finalName ?? columnId
   const [firstInput] = inputColumns
   const sorting = sortingOf(recordsSearch)
   const table = useReactTable({
     data: records,
     columns: extractionRunRecordColumnsOf({
       translate: (descriptor) => i18n._(descriptor),
+      firstRowNumber: page * EXTRACTION_RUN_RECORDS_PAGE_SIZE + 1,
       inputColumns,
       keyMapping: run.keyMapping,
-      expectedLabel: (expected) => t`Expected: ${expected}`,
+      columnNameOf,
+      hasErrorDetails: records.some((record) => record.errorDetails),
       openLabel: (record) => {
         const input = firstInput ? cellTextOf(record.datasetRecordData?.[firstInput.id]) : ""
         return t`Open the result of: ${input}`
@@ -126,6 +132,7 @@ export function ExtractionResultsSection({
         ? [{ id: targetKeyOf(field), label: t`${field}, value expected` }]
         : []
     }),
+    { id: ERROR_DETAILS_KEY, label: t`Error details` },
   ]
   return (
     <section className="flex flex-col gap-3">
@@ -157,17 +164,11 @@ export function ExtractionResultsSection({
           ) : null}
         </div>
       </div>
-      <ColumnSearch
+      <ColumnFilters
         columns={searchColumns}
-        value={{ column: recordsSearch.searchIn, text: recordsSearch.search ?? "" }}
-        onSearch={({ column, text }) =>
-          onSearchChange({
-            ...recordsSearch,
-            page: undefined,
-            searchIn: text ? column : undefined,
-            search: text || undefined,
-            result,
-          })
+        filters={recordsSearch.filters ?? {}}
+        onFilter={(column, text) =>
+          onSearchChange({ ...searchWithFilter(recordsSearch, column, text), result })
         }
       />
       <DataTable
@@ -180,8 +181,10 @@ export function ExtractionResultsSection({
             <Trans>Loading the results…</Trans>
           ) : results.isError ? (
             <Trans>The results could not load. Try again.</Trans>
-          ) : recordsSearch.search ? (
-            <Trans>No result matches this search.</Trans>
+          ) : hasFilters(recordsSearch) ? (
+            <Trans>No result passes these filters.</Trans>
+          ) : isRunActive(run.status) ? (
+            <RunProgressNote summary={run.summary} />
           ) : run.status === "failed" ? (
             <Trans>This run failed before it asked a record.</Trans>
           ) : (
@@ -190,7 +193,7 @@ export function ExtractionResultsSection({
         }
       />
       <TablePagination
-        page={recordsSearch.page ?? 0}
+        page={page}
         pageSize={EXTRACTION_RUN_RECORDS_PAGE_SIZE}
         total={results.data?.total ?? 0}
         onPageChange={(page) => onSearchChange({ ...search, page })}
@@ -201,7 +204,7 @@ export function ExtractionResultsSection({
           (column) => column.role === "input" || column.role === "reference",
         )}
         keyMapping={run.keyMapping}
-        columnNameOf={(columnId) => dataset.schemaMapping[columnId]?.finalName ?? columnId}
+        columnNameOf={columnNameOf}
         onClose={() => setOpenRecordId(null)}
       />
     </section>

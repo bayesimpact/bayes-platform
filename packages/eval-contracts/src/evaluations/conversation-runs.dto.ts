@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { documentsRagModeSchema } from "../agents/agents.dto"
 import { projectParamsSchema } from "../common/params.dto"
 
 /** The permissions of a project's conversation runs, which only its evaluators hold. */
@@ -57,6 +58,8 @@ export const conversationRunOutputSchema = z.object({
     revision: z.number(),
     /** The options of the model, as the version set them: its thinking level, its temperature. */
     providerOptions: z.record(z.string(), z.unknown()),
+    /** Which of the project's documents the version searches: all, none, or those of its tags. */
+    documentsRagMode: documentsRagModeSchema,
   }),
   status: conversationRunStatusSchema,
   judgeModel: z.string(),
@@ -77,10 +80,17 @@ export type ConversationRunRecordStatusDto = z.output<typeof conversationRunReco
 /** A record of a run: what the agent got, what it should answer, what it answered, and its score. */
 export const conversationRunRecordOutputSchema = z.object({
   id: z.uuid(),
+  /** The record of the dataset it asks: none once that record was deleted. */
+  evaluationConversationDatasetRecordId: z.uuid().nullable(),
   status: conversationRunRecordStatusSchema,
   input: z.string(),
   expectedOutput: z.string(),
   output: z.string().nullable(),
+  /**
+   * The fields the agent filled while it answered: none filled is `{}`, and an agent that
+   * collects no form gives `null`.
+   */
+  formState: z.record(z.string(), z.unknown()).nullable(),
   /** A whole number from 0 to `CONVERSATION_RUN_MAX_SCORE`, once graded. */
   score: z.number().nullable(),
   errorDetails: z.string().nullable(),

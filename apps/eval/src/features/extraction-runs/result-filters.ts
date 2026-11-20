@@ -4,6 +4,7 @@ import type {
 } from "@caseai-connect/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
+import { isRunActive } from "@/lib/run-status"
 
 /**
  * What the table of a run's results can be narrowed to: the API keeps the records whose status
@@ -53,19 +54,23 @@ export function resultFiltersOf(filter: ExtractionResultFilter): Record<string, 
 }
 
 /**
- * How many records each filter keeps, from the figures of the run: those it never asked are what
- * is left once the others are counted.
+ * How many records each filter keeps, from the figures of the run. A record waits only while the
+ * run goes on: once a run is over, the records its figures still count as waiting were left out,
+ * as the figures of a cancelled run are not counted again.
  */
-export function resultCountsOf(
-  summary: ExtractionRunOutputDto["summary"],
-): Record<ExtractionResultFilter, number> {
+export function resultCountsOf({
+  status,
+  summary,
+}: Pick<ExtractionRunOutputDto, "status" | "summary">): Record<ExtractionResultFilter, number> {
   if (!summary) return { all: 0, mismatches: 0, errors: 0, waiting: 0, notAsked: 0 }
   const { total, perfectMatches, mismatches, errors, running } = summary
+  const isActive = isRunActive(status)
+  const leftOut = Math.max(0, total - perfectMatches - mismatches - errors - running)
   return {
     all: total,
     mismatches,
     errors,
-    waiting: running,
-    notAsked: Math.max(0, total - perfectMatches - mismatches - errors - running),
+    waiting: isActive ? running : 0,
+    notAsked: isActive ? leftOut : leftOut + running,
   }
 }

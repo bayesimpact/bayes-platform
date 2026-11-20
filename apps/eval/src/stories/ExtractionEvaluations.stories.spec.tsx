@@ -27,10 +27,10 @@ const PAGES = {
   },
   Dataset: {
     Story: pageStories.Dataset,
-    // Its records, with the columns it keeps: the one it ignores is left out.
+    // Its records, with every column of the dataset and its role, the ignored one too.
     loaded: async () => {
       await screen.findByText("8 records")
-      expect(screen.queryByRole("columnheader", { name: /internal_note/ })).not.toBeInTheDocument()
+      await screen.findByRole("columnheader", { name: /internal_note/ })
       return screen.findByText("Search fails on accented words")
     },
   },
@@ -122,8 +122,8 @@ describe("the stories of the extraction evaluations", () => {
     // Built, the dataset shows its records, with the columns that have a role.
     await userEvent.click(screen.getByRole("button", { name: "Build the dataset" }))
     expect(await screen.findByText("8 records")).toBeInTheDocument()
-    expect(screen.getByRole("columnheader", { name: /category/ })).toBeInTheDocument()
-    expect(screen.queryByRole("columnheader", { name: /source/ })).not.toBeInTheDocument()
+    expect(screen.getByRole("columnheader", { name: /category.*Target/ })).toBeInTheDocument()
+    expect(screen.getByRole("columnheader", { name: /source.*Ignore/ })).toBeInTheDocument()
   })
 
   it("LargeDataset pages, searches and sorts its records through the API", async () => {
@@ -138,16 +138,29 @@ describe("the stories of the extraction evaluations", () => {
     expect(await screen.findByText("Rows 51–100 of 120")).toBeInTheDocument()
     expect(screen.getByText(/^#51 /)).toBeInTheDocument()
 
-    // A search looks for a text in one column, in the whole dataset, and goes back to page one.
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "Column to search in" }),
-      "title",
-    )
-    await userEvent.type(screen.getByRole("searchbox", { name: "Text to look for" }), "invoice")
-    await userEvent.click(screen.getByRole("button", { name: "Search" }))
-    expect(await screen.findByText("15 records hold this text")).toBeInTheDocument()
+    // A filter looks for a text in one column, in the whole dataset, and goes back to page one.
+    const column = screen.getByRole("combobox", { name: "Column to filter" })
+    const text = screen.getByRole("searchbox", { name: "Text the column holds" })
+    await userEvent.selectOptions(column, "title")
+    await userEvent.type(text, "invoice")
+    await userEvent.click(screen.getByRole("button", { name: "Filter" }))
+    expect(await screen.findByText("15 records pass the filters")).toBeInTheDocument()
     expect(screen.getByText(/^#6 /)).toBeInTheDocument()
     expect(screen.queryByText(/^#51 /)).not.toBeInTheDocument()
+
+    // A second filter, on another column, adds to the first; each one goes away on its own.
+    await userEvent.selectOptions(column, "source")
+    await userEvent.type(text, "chat")
+    await userEvent.click(screen.getByRole("button", { name: "Filter" }))
+    expect(await screen.findByText("No record passes the filters")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Remove the filter on source" }))
+    expect(await screen.findByText("15 records pass the filters")).toBeInTheDocument()
+
+    // A row opens its record whole, with each of its values.
+    await userEvent.click(screen.getByRole("button", { name: "Open the record of row 1" }))
+    const sheet = await screen.findByRole("dialog", { name: "Record" })
+    expect(within(sheet).getByText("Invoice with a company address")).toBeInTheDocument()
+    await userEvent.keyboard("{Escape}")
 
     // A header sorts by its column: the API gives the order.
     await userEvent.click(screen.getByRole("button", { name: /^message/ }))
@@ -157,6 +170,32 @@ describe("the stories of the extraction evaluations", () => {
         "ascending",
       ),
     )
+  })
+
+  it("ChooseFile refuses a file that is not a CSV, uploads one that is, and deletes files together", async () => {
+    const { ChooseFile } = pageStories
+    await ChooseFile.load()
+    render(<ChooseFile />)
+
+    const input = await screen.findByLabelText("CSV file to upload")
+    await userEvent.upload(input, new File(["x"], "notes.pdf", { type: "application/pdf" }), {
+      applyAccept: false,
+    })
+    expect(await screen.findByText("notes.pdf is not a CSV file.")).toBeInTheDocument()
+
+    await userEvent.upload(input, new File(["a,b\n1,2"], "new-rows.csv", { type: "text/csv" }))
+    expect(await screen.findByText("new-rows.csv was uploaded.")).toBeInTheDocument()
+    // The person stays on the list, where the new file shows.
+    expect(
+      await screen.findByRole("button", { name: "Use the file new-rows.csv" }),
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select all the files" }))
+    expect(screen.getByText("3 files selected")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Delete" }))
+    const dialog = await screen.findByRole("alertdialog", { name: "Delete 3 files?" })
+    await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }))
+    expect(await screen.findByText(/The project has no CSV file yet/)).toBeInTheDocument()
   })
 
   it("RunEvaluation pairs the agent's fields with the target columns, then opens the run", async () => {
@@ -216,8 +255,9 @@ describe("the stories of the extraction evaluations", () => {
     await waitFor(() =>
       expect(screen.queryByText("Charged twice for the Pro plan")).not.toBeInTheDocument(),
     )
-    // Under a value that differs, the value expected.
-    expect(screen.getByText("Expected: Product")).toBeInTheDocument()
+    // Beside what the agent returned, the value expected, in a column of its own.
+    expect(screen.getByRole("columnheader", { name: /category.*target/ })).toBeInTheDocument()
+    expect(screen.getByRole("columnheader", { name: /category.*agent/ })).toBeInTheDocument()
 
     await userEvent.click(
       screen.getByRole("button", { name: /^Open the result of: The export button/ }),
@@ -237,6 +277,11 @@ describe("the stories of the extraction evaluations", () => {
     if (toggle.getAttribute("aria-pressed") !== "true") await userEvent.click(toggle)
     const panel = await screen.findByRole("complementary", { name: "Agent and fields" })
     expect(within(panel).getByText("Document Reader")).toBeInTheDocument()
+
+    // The agent's settings: which documents it searches, and what it returns.
+    expect(within(panel).getByText("All the documents")).toBeInTheDocument()
+    expect(within(panel).getByText("Output schema")).toBeInTheDocument()
+    expect(within(panel).getByRole("link", { name: /Open in Studio/ })).toBeInTheDocument()
 
     await userEvent.click(within(panel).getByRole("tab", { name: "Fields" }))
     expect(await within(panel).findByText("Compared with category")).toBeInTheDocument()

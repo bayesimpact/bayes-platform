@@ -1,7 +1,12 @@
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import type { ReactNode } from "react"
+import { type ReactNode, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RUN_STATUS_LABELS, RUN_STATUS_ORDER, type RunSummary } from "@/lib/run-status"
+import {
+  RUN_STATUS_LABELS,
+  RUN_STATUS_ORDER,
+  type RunStatus,
+  type RunSummary,
+} from "@/lib/run-status"
 
 export type RunsByStatusProps<TRun extends RunSummary> = {
   /** The agent's runs of a dataset, the newest first. */
@@ -26,6 +31,10 @@ export function RunsByStatus<TRun extends RunSummary>({
   // The statuses that hold runs, in the order of the sub-tabs.
   const statuses = RUN_STATUS_ORDER.filter((status) => runs.some((run) => run.status === status))
   const [firstStatus] = statuses
+  // The sub-tab the person chose stays, while it holds runs: a run that ends, read again by
+  // itself, must not take them to another sub-tab.
+  const [chosenStatus, setChosenStatus] = useState<RunStatus | null>(null)
+  const shownStatus = chosenStatus && statuses.includes(chosenStatus) ? chosenStatus : firstStatus
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-2">
@@ -44,10 +53,13 @@ export function RunsByStatus<TRun extends RunSummary>({
           <Trans>No evaluation ran on this dataset yet.</Trans>
         </p>
       ) : null}
-      {firstStatus ? (
-        // Its statuses as keys: a status that gains its first run, or loses its last one, starts
-        // the sub-tabs afresh on one that holds runs.
-        <Tabs key={statuses.join()} defaultValue={firstStatus}>
+      {shownStatus ? (
+        <Tabs
+          value={shownStatus}
+          onValueChange={(value) =>
+            setChosenStatus(RUN_STATUS_ORDER.find((status) => status === value) ?? null)
+          }
+        >
           <TabsList variant="line" className="max-w-full overflow-x-auto">
             {statuses.map((status) => {
               const statusName = i18n._(RUN_STATUS_LABELS[status])

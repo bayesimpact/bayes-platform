@@ -16,7 +16,7 @@ import { z } from "zod"
 import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { RunScopeField } from "@/components/shared/RunScopeField"
+import { isRunScopeValid, RunScopeField } from "@/components/shared/RunScopeField"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
@@ -27,13 +27,16 @@ import { useStartConversationRun } from "../api/mutations"
 import { judgeModelsQueryOptions } from "../api/queries"
 
 /** What the dialog asks: the version to evaluate, the judge, and how much of the dataset to ask. */
-const runFormSchema = z.object({
-  versionId: z.uuid(),
-  judgeModel: z.string().min(1),
-  judgeInstructions: z.string().max(CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH),
-  scope: z.enum(["all", "limited"]),
-  limitedCount: z.number().int().min(1),
-})
+const runFormSchema = z
+  .object({
+    versionId: z.uuid(),
+    judgeModel: z.string().min(1),
+    judgeInstructions: z.string().max(CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH),
+    scope: z.enum(["all", "limited"]),
+    // `NaN` while its field is empty: it only counts for an evaluation of the first records.
+    limitedCount: z.number(),
+  })
+  .refine(isRunScopeValid, { path: ["limitedCount"] })
 
 export type RunEvaluationPageProps = {
   agent: EvaluationAgent
@@ -64,12 +67,12 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
     resolver: zodResolver(runFormSchema),
     defaultValues: {
       versionId: defaultVersion?.id ?? "",
-      judgeModel: judge.models.includes(judge.defaultModel)
+      judgeModel: judge.models.some((model) => model.model === judge.defaultModel)
         ? judge.defaultModel
-        : (judge.models[0] ?? ""),
+        : (judge.models[0]?.model ?? ""),
       judgeInstructions: "",
       scope: "all" as const,
-      limitedCount: Math.min(10, dataset.recordCount),
+      limitedCount: 1,
     },
   })
   const scope = useWatch({ control: form.control, name: "scope" })
@@ -149,11 +152,20 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
                 </Trans>
               </FieldLabel>
               <NativeSelect id={judgeModelId} {...field}>
-                {judge.models.map((model) => (
-                  <NativeSelectOption key={model} value={model}>
-                    {model}
-                  </NativeSelectOption>
-                ))}
+                {judge.models.map((model) => {
+                  const name = model.model
+                  return (
+                    <NativeSelectOption key={name} value={name}>
+                      {model.deprecation && model.servedOutsideEu
+                        ? t`${name} (deprecated, non-EU)`
+                        : model.deprecation
+                          ? t`${name} (deprecated)`
+                          : model.servedOutsideEu
+                            ? t`${name} (non-EU)`
+                            : name}
+                    </NativeSelectOption>
+                  )
+                })}
               </NativeSelect>
               <FieldDescription>
                 <Trans>The model that compares each answer with the expected output.</Trans>
@@ -176,6 +188,9 @@ export function RunEvaluationPage({ agent, agentParams, dataset }: RunEvaluation
                 placeholder={t`e.g. Penalize answers that are not in the expected language`}
                 aria-invalid={fieldState.invalid}
               />
+              <FieldDescription>
+                <Trans>What the judge is told, on top of the expected output.</Trans>
+              </FieldDescription>
             </Field>
           )}
         />

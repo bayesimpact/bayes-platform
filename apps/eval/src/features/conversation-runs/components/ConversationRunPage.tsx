@@ -3,6 +3,7 @@ import {
   type ConversationRunParamsDto,
   EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+  STUDIO_UI_READ_PERMISSION,
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -10,12 +11,8 @@ import { PageContainer } from "@/components/shared/PageContainer"
 import { RunPageHeader } from "@/components/shared/RunPageHeader"
 import { SplitPage } from "@/components/shared/SplitPage"
 import { StatCard } from "@/components/shared/StatCard"
-import {
-  type EvaluationAgent,
-  flattenEvaluationAgents,
-  hasProjectPermission,
-  useEvaluationWorkspace,
-} from "@/features/agents"
+import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
+import { useRunEndToasts } from "@/hooks/use-run-end-toasts"
 import { useSidePanel } from "@/hooks/use-side-panel"
 import { isRunActive } from "@/lib/run-status"
 import {
@@ -51,8 +48,9 @@ export function ConversationRunPage({
   const { data: results } = useSuspenseQuery(
     conversationRunRecordsQueryOptions(runParams, { isActive }),
   )
-  const { groups } = useEvaluationWorkspace()
   const panel = useSidePanel()
+  // The run itself: the loader found it among the agent's.
+  useRunEndToasts([run])
   const cancelRun = useCancelConversationRun(runParams)
   const retryRun = useRetryConversationRun(runParams)
   const deleteRun = useDeleteConversationRun(runParams)
@@ -60,8 +58,7 @@ export function ConversationRunPage({
   const canUpdate = can(EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION)
   const canDelete = can(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION)
   const datasetName = dataset.name
-  const runAgent = flattenEvaluationAgents(groups).find((candidate) => candidate.id === run.agentId)
-  const agentName = runAgent?.name ?? "–"
+  const agentName = agent.name
   const revision = run.agentSettings.revision
   const summary = run.summary
   const hasErrors = (summary?.errors ?? 0) > 0
@@ -72,7 +69,8 @@ export function ConversationRunPage({
         panel.isOpen ? (
           <RunSettingsPanel
             run={run}
-            agent={{ name: agentName, type: runAgent?.type ?? agent.type }}
+            agent={agent}
+            canOpenStudio={can(STUDIO_UI_READ_PERMISSION)}
             agentParams={agentParams}
             onClose={panel.close}
             takesFocus={panel.takesFocus}
@@ -85,6 +83,7 @@ export function ConversationRunPage({
           agentParams={agentParams}
           datasetId={dataset.id}
           run={run}
+          remainingCount={summary?.running ?? 0}
           description={
             <Trans comment="Under the title of a run: the dataset it asked and the agent's version">
               {datasetName} · {agentName}, version {revision}
@@ -122,7 +121,7 @@ export function ConversationRunPage({
             }
           />
         </div>
-        <RunResultsSection status={run.status} results={results} />
+        <RunResultsSection run={run} results={results} />
       </PageContainer>
     </SplitPage>
   )

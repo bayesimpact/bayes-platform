@@ -8,8 +8,8 @@ import { msg } from "@lingui/core/macro"
 
 /** The roles a column can take, in the order the app offers them. */
 export const COLUMN_ROLES = [
-  "input",
   "target",
+  "input",
   "reference",
   "ignore",
 ] as const satisfies ExtractionDatasetColumnRoleDto[]

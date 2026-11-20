@@ -1,9 +1,11 @@
 import {
+  CONVERSATION_DATASET_NAME_MIN_LENGTH,
   type ExtractionDatasetColumnRoleDto,
   type ExtractionDatasetFileColumnOutputDto,
   type ExtractionDatasetOutputDto,
   type ExtractionDatasetParamsDto,
   extractionDatasetColumnRoleSchema,
+  extractionDatasetNameInputSchema,
 } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
@@ -14,6 +16,7 @@ import { z } from "zod"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
@@ -27,6 +30,7 @@ import { FilePreviewTable } from "./FilePreviewTable"
 
 /** What the form holds: each column of the file, the name it takes and its role. */
 const columnsFormSchema = z.object({
+  name: extractionDatasetNameInputSchema.shape.name,
   columns: z.array(
     z.object({
       id: z.string(),
@@ -60,10 +64,12 @@ export function ExtractionColumnsForm({
 }: ExtractionColumnsFormProps) {
   const { t, i18n } = useLingui()
   const selectAllId = useId()
+  const nameId = useId()
   const setUp = useSetUpExtractionDataset(datasetParams)
   const form = useForm({
     resolver: zodResolver(columnsFormSchema),
     defaultValues: {
+      name: dataset.name,
       columns: fileColumns.map((column, index) => ({
         id: column.id,
         index,
@@ -89,7 +95,7 @@ export function ExtractionColumnsForm({
     setUp.mutate(
       {
         documentId: file.id,
-        name: dataset.name,
+        name: values.name,
         columns: values.columns.map((column) => ({
           ...column,
           // A name left empty keeps the file's.
@@ -118,6 +124,34 @@ export function ExtractionColumnsForm({
   }
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-4" noValidate>
+      <SectionCard title={<Trans>Name of the dataset</Trans>}>
+        <Controller
+          control={form.control}
+          name="name"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={nameId}>
+                <Trans comment="The name of a dataset">Name</Trans>
+              </FieldLabel>
+              <Input
+                {...field}
+                id={nameId}
+                className="max-w-md"
+                aria-invalid={fieldState.invalid}
+              />
+              {fieldState.invalid ? (
+                <FieldError>
+                  <Plural
+                    value={CONVERSATION_DATASET_NAME_MIN_LENGTH}
+                    one="Give the dataset a name of # character or more."
+                    other="Give the dataset a name of # characters or more."
+                  />
+                </FieldError>
+              ) : null}
+            </Field>
+          )}
+        />
+      </SectionCard>
       <SectionCard
         title={<Trans>First rows of {fileName}</Trans>}
         description={<Trans>As the file holds them, to tell what each column is.</Trans>}
@@ -180,19 +214,22 @@ export function ExtractionColumnsForm({
             return (
               <li
                 key={field.id}
-                className="grid grid-cols-[auto_1fr] items-center gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                className="grid grid-cols-[auto_auto_1fr] items-center gap-3 p-3 sm:grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,1fr)_auto]"
               >
                 <Checkbox
                   checked={checked.has(index)}
                   onCheckedChange={() => toggle(index)}
                   aria-label={t`Select the column ${originalName}`}
                 />
+                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                  {index + 1}
+                </span>
                 <span className="truncate text-sm font-medium" title={originalName}>
                   {originalName}
                 </span>
                 <Input
                   {...form.register(`columns.${index}.finalName`)}
-                  className="col-span-2 sm:col-span-1"
+                  className="col-span-3 sm:col-span-1"
                   placeholder={originalName}
                   aria-label={t`Name of the column ${originalName} in the dataset`}
                 />
@@ -202,7 +239,7 @@ export function ExtractionColumnsForm({
                   render={({ field: roleField }) => (
                     <NativeSelect
                       {...roleField}
-                      className="col-span-2 sm:col-span-1"
+                      className="col-span-3 sm:col-span-1"
                       aria-label={t`Role of the column ${originalName}`}
                     >
                       {COLUMN_ROLES.map((role) => (

@@ -65,10 +65,14 @@ const PAGES = {
     Story: pageStories.DatasetRuns,
     // Its runs, each by its short id and how long ago it started.
     loaded: async () => {
-      await screen.findByText("3 runs")
+      await screen.findByText("4 runs")
       await screen.findByRole("columnheader", { name: "ID" })
       return screen.findByText("1 minute ago")
     },
+  },
+  CompareRuns: {
+    Story: pageStories.CompareRuns,
+    loaded: () => screen.findByRole("heading", { name: "Record by record" }),
   },
   CompletedRun: {
     Story: pageStories.CompletedRun,
@@ -301,12 +305,33 @@ describe("the stories of the app", () => {
     const runs = within(dataset)
       .getAllByRole("link")
       .filter((link) => link.getAttribute("href")?.includes("/runs/"))
-    expect(runs).toHaveLength(3)
+    expect(runs).toHaveLength(4)
     // The run whose page shows is the marked one, not its dataset.
     expect(runs.filter((run) => run.getAttribute("aria-current") === "page")).toHaveLength(1)
     expect(screen.getByRole("link", { name: "Pricing questions" })).not.toHaveAttribute(
       "aria-current",
     )
+  })
+
+  it("DatasetRuns compares the runs a person checks, score by score", async () => {
+    const { DatasetRuns } = pageStories
+    await DatasetRuns.load()
+    render(<DatasetRuns />)
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Completed (2)" }))
+    expect(screen.getByRole("button", { name: "Compare runs" })).toBeDisabled()
+    const boxes = await screen.findAllByRole("checkbox", { name: /^Compare the run of/ })
+    for (const box of boxes) await userEvent.click(box)
+
+    await userEvent.click(await screen.findByRole("link", { name: "Compare 2 runs" }))
+    expect(await screen.findByRole("heading", { name: "Compare runs" })).toBeInTheDocument()
+    // One run gave its judge instructions: the figures say so, and name each judge's model.
+    expect(screen.getByRole("cell", { name: "Instructions for the judge" })).toBeInTheDocument()
+    expect(screen.getByRole("cell", { name: "Judge model" })).toBeInTheDocument()
+    // The record one run failed on has a score in the other run only.
+    const row = (await screen.findByText("Do unused seats get refunded?")).closest("tr")
+    if (!row) throw new Error("The comparison has no row for the record")
+    expect(within(row).getByText("4 / 5")).toBeInTheDocument()
   })
 
   it("RunUnderWay asks before it cancels the run", async () => {
@@ -339,6 +364,19 @@ describe("the stories of the app", () => {
     ).not.toBeInTheDocument()
   })
 
+  it("CompletedRun shows the form the agent filled, and where each record stands", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    expect(await screen.findByRole("columnheader", { name: "Filled form" })).toBeInTheDocument()
+    expect(screen.getByText("No fields filled")).toBeInTheDocument()
+    expect(screen.getByText(/"plan": "Pro"/)).toBeInTheDocument()
+    // Each record says where it stands: eleven were graded, one failed.
+    expect(screen.getByText("12 records")).toBeInTheDocument()
+    expect(screen.getAllByText("Graded").length).toBeGreaterThan(10)
+  })
+
   it("CompletedRun says what the run used, in two tabs of its side panel", async () => {
     const { CompletedRun } = pageStories
     await CompletedRun.load()
@@ -349,7 +387,11 @@ describe("the stories of the app", () => {
     if (toggle.getAttribute("aria-pressed") !== "true") await userEvent.click(toggle)
     const panel = await screen.findByRole("complementary", { name: "Agent and judge" })
     expect(within(panel).getByText("Conversational agent")).toBeInTheDocument()
-    expect(within(panel).getByText("high")).toBeInTheDocument()
+    // What the version set for its model, and which documents it searched.
+    expect(within(panel).getByText("High")).toBeInTheDocument()
+    expect(within(panel).getByText("0.2")).toBeInTheDocument()
+    expect(within(panel).getByText("The documents of its tags")).toBeInTheDocument()
+    expect(within(panel).getByRole("link", { name: /Open in Studio/ })).toBeInTheDocument()
     expect(
       within(panel).getByRole("button", { name: "Compare version 3 with the others" }),
     ).toBeInTheDocument()

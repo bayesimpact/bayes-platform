@@ -14,6 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { useCanReadTraces } from "@/features/account"
 import { cellTextOf } from "@/lib/extraction-columns"
 import { RecordStatusBadge } from "./RecordStatusBadge"
 
@@ -41,6 +42,8 @@ export function ExtractionRecordSheet({
   columnNameOf,
   onClose,
 }: ExtractionRecordSheetProps) {
+  // The trace of an answer is for the few who may read traces.
+  const canReadTraces = useCanReadTraces()
   return (
     <Sheet
       open={record !== null}
@@ -66,7 +69,7 @@ export function ExtractionRecordSheet({
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <RecordStatusBadge status={record.status} />
-              {record.traceUrl ? (
+              {record.traceUrl && canReadTraces ? (
                 <ExternalLink href={record.traceUrl} className="ml-auto inline-flex gap-1 text-sm">
                   <Trans comment="A link to the trace of the agent's answer">Open the trace</Trans>
                 </ExternalLink>
@@ -150,7 +153,7 @@ export function ExtractionRecordSheet({
                 </ul>
               </section>
             ) : null}
-            {record.status === "error" ? (
+            {record.errorDetails ? (
               <section className="flex flex-col gap-2">
                 <h3 className="text-sm font-semibold text-destructive">
                   <Trans comment="The title of the error that stopped a record of a run">

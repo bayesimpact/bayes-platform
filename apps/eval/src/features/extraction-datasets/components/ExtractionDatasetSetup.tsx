@@ -6,6 +6,7 @@ import { Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { SectionCard } from "@/components/shared/SectionCard"
+import { Button } from "@/components/ui/button"
 import { extractionFileColumnsQueryOptions } from "../api/queries"
 import { ExtractionColumnsForm } from "./ExtractionColumnsForm"
 import { ExtractionFilesSection } from "./ExtractionFilesSection"
@@ -36,7 +37,14 @@ export function ExtractionDatasetSetup({
       </p>
     )
   }
-  if (!file) return <ExtractionFilesSection project={datasetParams} onChoose={setFile} />
+  if (!file) {
+    return (
+      <ExtractionFilesSection
+        project={datasetParams}
+        onChoose={(chosen) => setFile({ id: chosen.id, fileName: chosen.fileName })}
+      />
+    )
+  }
   return (
     <ChosenFileColumns
       dataset={dataset}
@@ -87,6 +95,16 @@ function ChosenFileColumns({
           <Trans>Reading the file…</Trans>
         )}
       </p>
+      {columns.isError ? (
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={onChooseAnother}>
+            <Trans>Choose another file</Trans>
+          </Button>
+          <Button variant="outline" onClick={() => void columns.refetch()}>
+            <Trans comment="Reads again a file whose columns could not be read">Try again</Trans>
+          </Button>
+        </div>
+      ) : null}
     </SectionCard>
   )
 }

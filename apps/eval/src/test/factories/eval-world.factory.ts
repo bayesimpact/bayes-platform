@@ -33,6 +33,7 @@ import {
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  STUDIO_UI_READ_PERMISSION,
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
 import {
@@ -70,6 +71,7 @@ import {
 /** What a project's owner or admin holds for its review campaigns, beside evaluating its agents. */
 const MANAGER_PERMISSIONS = [
   "project.read",
+  STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,

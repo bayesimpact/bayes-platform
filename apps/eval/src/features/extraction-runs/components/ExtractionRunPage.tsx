@@ -4,6 +4,7 @@ import {
   EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
   type ExtractionDatasetOutputDto,
   type ExtractionRunParamsDto,
+  STUDIO_UI_READ_PERMISSION,
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -13,6 +14,7 @@ import { RunPageHeader } from "@/components/shared/RunPageHeader"
 import { SplitPage } from "@/components/shared/SplitPage"
 import { StatCard } from "@/components/shared/StatCard"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
+import { useRunEndToasts } from "@/hooks/use-run-end-toasts"
 import { useSidePanel } from "@/hooks/use-side-panel"
 import { isRunActive } from "@/lib/run-status"
 import { openBlankTab } from "@/lib/safe-url"
@@ -56,6 +58,8 @@ export function ExtractionRunPage({
   const { data: run } = useSuspenseQuery(extractionRunQueryOptions(runParams))
   const isActive = isRunActive(run.status)
   const panel = useSidePanel()
+  // The run itself: the loader found it among the agent's.
+  useRunEndToasts([run])
   const cancelRun = useCancelExtractionRun(runParams)
   const retryRun = useRetryExtractionRun(runParams)
   const deleteRun = useDeleteExtractionRun(runParams)
@@ -79,6 +83,7 @@ export function ExtractionRunPage({
             dataset={dataset}
             agent={agent}
             agentParams={agentParams}
+            canOpenStudio={can(STUDIO_UI_READ_PERMISSION)}
             onClose={panel.close}
             takesFocus={panel.takesFocus}
           />
@@ -90,6 +95,7 @@ export function ExtractionRunPage({
           agentParams={agentParams}
           datasetId={dataset.id}
           run={run}
+          remainingCount={summary?.running ?? 0}
           description={
             <Trans comment="Under the title of a run: the dataset it asked and the agent's version">
               {datasetName} · {agentName}, version {revision}

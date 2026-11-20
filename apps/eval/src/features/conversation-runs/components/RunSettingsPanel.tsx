@@ -7,18 +7,23 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { type ReactNode, useState } from "react"
 import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"
+import { ExternalLink } from "@/components/shared/ExternalLink"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AgentVersionsSheet, agentVersionsQueryOptions } from "@/features/campaigns"
 import { AGENT_TYPE_LABELS } from "@/lib/agent-type-labels"
-import { thinkingLevelOf } from "../thinking-level"
+import { DOCUMENT_SEARCH_LABELS } from "@/lib/document-search-labels"
+import { studioAgentPathOf } from "@/lib/studio-path"
+import { temperatureOf, thinkingLevelLabelOf, thinkingLevelOf } from "../thinking-level"
 
 export type RunSettingsPanelProps = {
   run: ConversationRunOutputDto
   /** The agent the run asked: its name and its type. */
   agent: { name: string; type: AgentTypeDto }
   agentParams: AgentParamsDto
+  /** Whether the person opens the Studio of the project, where the agent is set up. */
+  canOpenStudio: boolean
   onClose: () => void
   takesFocus: boolean
 }
@@ -42,6 +47,7 @@ export function RunSettingsPanel({
   run,
   agent,
   agentParams,
+  canOpenStudio,
   onClose,
   takesFocus,
 }: RunSettingsPanelProps) {
@@ -52,6 +58,8 @@ export function RunSettingsPanel({
   // An archived version is not in the history: its number shows alone.
   const version = versions.find((candidate) => candidate.revision === revision)
   const thinkingLevel = thinkingLevelOf(run.agentSettings.providerOptions)
+  const thinkingLevelLabel = thinkingLevel ? thinkingLevelLabelOf(thinkingLevel) : null
+  const temperature = temperatureOf(run.agentSettings.providerOptions)
   const versionName = (
     <Trans comment="A version of an agent, by its number">Version {revision}</Trans>
   )
@@ -103,12 +111,33 @@ export function RunSettingsPanel({
               }
             >
               {thinkingLevel ? (
-                <span className="font-mono text-xs">{thinkingLevel}</span>
+                // A level the app does not know shows as the provider names it.
+                thinkingLevelLabel ? (
+                  i18n._(thinkingLevelLabel)
+                ) : (
+                  <span className="font-mono text-xs">{thinkingLevel}</span>
+                )
               ) : (
                 <span className="text-muted-foreground">
                   <Trans comment="A model with no thinking level set">Not set</Trans>
                 </span>
               )}
+            </Fact>
+            {temperature === null ? null : (
+              <Fact
+                label={
+                  <Trans comment="The temperature of the agent's model in a run">Temperature</Trans>
+                }
+              >
+                <span className="tabular-nums">{i18n.number(temperature)}</span>
+              </Fact>
+            )}
+            <Fact
+              label={
+                <Trans comment="Which documents the agent searched in a run">Document search</Trans>
+              }
+            >
+              {i18n._(DOCUMENT_SEARCH_LABELS[run.agentSettings.documentsRagMode])}
             </Fact>
             <Fact
               label={<Trans comment="The instructions of the agent in a run">Instructions</Trans>}
@@ -117,6 +146,13 @@ export function RunSettingsPanel({
                 {run.agentSettings.instructions}
               </p>
             </Fact>
+            {canOpenStudio ? (
+              <ExternalLink href={studioAgentPathOf(agentParams)} className="inline-flex gap-1">
+                <Trans comment="A link to the page of the agent in the Studio, where it is set up">
+                  Open in Studio
+                </Trans>
+              </ExternalLink>
+            ) : null}
           </dl>
         </TabsContent>
         <TabsContent value="judge" className="pt-2">

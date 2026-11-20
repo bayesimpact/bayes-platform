@@ -22,8 +22,8 @@ msgstr "{0, plural, one {Line {invalidList} has no input or no expected output.}
 
 #. placeholder {0}: tooLongLines.length
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
-msgid "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongList} are too long.}}"
-msgstr "{0, plural, one {Line {tooLongList} is too long.} other {Lines {tooLongList} are too long.}}"
+msgid "{0, plural, one {Line {tooLongList} is over {maxLength} characters.} other {Lines {tooLongList} are over {maxLength} characters.}}"
+msgstr "{0, plural, one {Line {tooLongList} is over {maxLength} characters.} other {Lines {tooLongList} are over {maxLength} characters.}}"
 
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
@@ -41,11 +41,25 @@ msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
 msgid "{checkedCount, plural, one {# column selected} other {# columns selected}}"
 msgstr "{checkedCount, plural, one {# column selected} other {# columns selected}}"
 
-#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{checkedCount, plural, one {# file selected} other {# files selected}}"
+msgstr "{checkedCount, plural, one {# file selected} other {# files selected}}"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{checkedCount, plural, one {Delete # file?} other {Delete # files?}}"
+msgstr "{checkedCount, plural, one {Delete # file?} other {Delete # files?}}"
+
+#. A filter of a table: a column and the text it must hold
+#: src/components/shared/ColumnFilters.tsx
+msgid "{columnName}: {filterText}"
+msgstr "{columnName}: {filterText}"
+
+#: src/components/shared/CompareRunsButton.tsx
 msgid "{comparedCount, plural, one {Compare # run} other {Compare # runs}}"
 msgstr "{comparedCount, plural, one {Compare # run} other {Compare # runs}}"
 
 #: src/components/shared/DatasetNameDialog.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
 msgid "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Give the dataset a name of # character or more.} other {Give the dataset a name of # characters or more.}}"
 msgstr "{CONVERSATION_DATASET_NAME_MIN_LENGTH, plural, one {Give the dataset a name of # character or more.} other {Give the dataset a name of # characters or more.}}"
 
@@ -92,6 +106,22 @@ msgstr "{field}, agent's value"
 msgid "{field}, value expected"
 msgstr "{field}, value expected"
 
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} could not be uploaded. Try again."
+msgstr "{fileName} could not be uploaded. Try again."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} is not a CSV file."
+msgstr "{fileName} is not a CSV file."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} is over {maxSize}."
+msgstr "{fileName} is over {maxSize}."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} was uploaded."
+msgstr "{fileName} was uploaded."
+
 #. A filter of a run's results and how many it keeps, such as: Errors (1)
 #: src/components/shared/ResultFilters.tsx
 msgid "{filterName} ({count})"
@@ -102,13 +132,25 @@ msgid "{finalCount, plural, one {# question} other {# questions}}"
 msgstr "{finalCount, plural, one {# question} other {# questions}}"
 
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
-msgid "{foundCount, plural, =0 {No record holds this text} one {# record holds this text} other {# records hold this text}}"
-msgstr "{foundCount, plural, =0 {No record holds this text} one {# record holds this text} other {# records hold this text}}"
+msgid "{foundCount, plural, =0 {No record passes the filters} one {# record passes the filters} other {# records pass the filters}}"
+msgstr "{foundCount, plural, =0 {No record passes the filters} one {# record passes the filters} other {# records pass the filters}}"
 
 #. Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "{matched} / {scored} fields"
 msgstr "{matched} / {scored} fields"
+
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+msgid "{name} (deprecated, non-EU)"
+msgstr "{name} (deprecated, non-EU)"
+
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+msgid "{name} (deprecated)"
+msgstr "{name} (deprecated)"
+
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+msgid "{name} (non-EU)"
+msgstr "{name} (non-EU)"
 
 #. The button of the person's menu, which shows their name
 #: src/features/account/components/UserMenu.tsx
@@ -123,6 +165,10 @@ msgstr "{otherCount, plural, one {# other reviewer reviewed this session.} other
 msgid "{pending, plural, one {# to review} other {# to review}}"
 msgstr "{pending, plural, one {# to review} other {# to review}}"
 
+#: src/components/shared/RunProgressNote.tsx
+msgid "{processed} of {total} records processed. This may take a few minutes."
+msgstr "{processed} of {total} records processed. This may take a few minutes."
+
 #. A project and its organization, above its agents in the list that switches agent
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "{projectName} · {organizationName}"
@@ -132,6 +178,7 @@ msgstr "{projectName} · {organizationName}"
 msgid "{questionCount, plural, one {# question} other {# questions}}"
 msgstr "{questionCount, plural, one {# question} other {# questions}}"
 
+#: src/features/conversation-runs/components/RunResultsSection.tsx
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
 msgid "{recordCount, plural, =0 {No record} one {# record} other {# records}}"
 msgstr "{recordCount, plural, =0 {No record} one {# record} other {# records}}"
@@ -143,6 +190,10 @@ msgstr "{recordCount, plural, one {Add # record} other {Add # records}}"
 #: src/components/shared/RunScopeField.tsx
 msgid "{recordCount, plural, one {The # record of the dataset} other {All # records of the dataset}}"
 msgstr "{recordCount, plural, one {The # record of the dataset} other {All # records of the dataset}}"
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "{remainingCount, plural, one {# record remaining} other {# records remaining}}"
+msgstr "{remainingCount, plural, one {# record remaining} other {# records remaining}}"
 
 #: src/features/campaign-report/components/QuestionDistribution.tsx
 msgid "{responseCount, plural, one {# answer} other {# answers}}"
@@ -168,7 +219,7 @@ msgstr "{revokedEmail} could not be revoked. Try again."
 msgid "{revokedEmail} was revoked."
 msgstr "{revokedEmail} was revoked."
 
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/components/shared/CompareRunsPageFrame.tsx
 msgid "{runCount, plural, =0 {No run of {datasetName} to compare} one {# run of {datasetName}} other {# runs of {datasetName}, side by side}}"
 msgstr "{runCount, plural, =0 {No run of {datasetName} to compare} one {# run of {datasetName}} other {# runs of {datasetName}, side by side}}"
 
@@ -342,6 +393,11 @@ msgstr "admin"
 msgid "After each session"
 msgstr "After each session"
 
+#. The badge of a column that holds what the agent returned, in lower case
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+msgid "agent"
+msgstr "agent"
+
 #. The agent a run asked
 #. The agent a run asked
 #. The tab of what a run used about its agent
@@ -394,6 +450,11 @@ msgstr "Agent's value"
 #: src/features/extraction-runs/result-filters.ts
 msgid "All"
 msgstr "All"
+
+#. An agent searches every document
+#: src/lib/document-search-labels.ts
+msgid "All the documents"
+msgstr "All the documents"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
@@ -469,7 +530,9 @@ msgid "Attachment"
 msgstr "Attachment"
 
 #. The average score of a run
+#. The average score of a run
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 msgid "Average score"
 msgstr "Average score"
 
@@ -576,6 +639,7 @@ msgstr "Changed fields:"
 msgid "Changes in this version"
 msgstr "Changes in this version"
 
+#: src/features/conversation-runs/components/ConversationRunsSection.tsx
 #: src/features/extraction-runs/components/ExtractionRunsSection.tsx
 msgid "Check two runs or more to compare them."
 msgstr "Check two runs or more to compare them."
@@ -597,6 +661,7 @@ msgid "Choose a version"
 msgstr "Choose a version"
 
 #: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
 msgid "Choose another file"
 msgstr "Choose another file"
 
@@ -636,9 +701,9 @@ msgstr "Closing ends the campaign for good: testers can no longer start sessions
 msgid "Column the field {field} is compared with"
 msgstr "Column the field {field} is compared with"
 
-#: src/components/shared/ColumnSearch.tsx
-msgid "Column to search in"
-msgstr "Column to search in"
+#: src/components/shared/ColumnFilters.tsx
+msgid "Column to filter"
+msgstr "Column to filter"
 
 #: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
 #: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
@@ -651,18 +716,17 @@ msgstr "Columns of {fileName}"
 msgid "Comment"
 msgstr "Comment"
 
-#. The header of the column of the boxes that pick the runs to compare
-#: src/features/extraction-runs/components/extraction-run-columns.tsx
-msgid "Compare"
-msgstr "Compare"
+#: src/components/shared/RunCompareAllCheckbox.tsx
+msgid "Compare all the runs of the table"
+msgstr "Compare all the runs of the table"
 
 #. Opens the comparison of the runs picked in the list
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
-#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+#: src/components/shared/CompareRunsButton.tsx
+#: src/components/shared/CompareRunsPageFrame.tsx
 msgid "Compare runs"
 msgstr "Compare runs"
 
-#: src/features/extraction-runs/components/RunCompareCheckbox.tsx
+#: src/components/shared/RunCompareCheckbox.tsx
 msgid "Compare the run of {started}"
 msgstr "Compare the run of {started}"
 
@@ -817,6 +881,7 @@ msgstr "Decline the invitation to {name}"
 #. Deletes a record of a dataset
 #. Deletes a run
 #. Deletes a run
+#. Deletes the files checked in a list
 #: src/components/shared/DatasetDialogs.tsx
 #: src/components/shared/DatasetPageFrame.tsx
 #: src/components/shared/DatasetRowActions.tsx
@@ -836,13 +901,8 @@ msgid "Delete “{name}”?"
 msgstr "Delete “{name}”?"
 
 #: src/components/shared/DatasetDialogs.tsx
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
 msgid "Delete {deletedName}?"
 msgstr "Delete {deletedName}?"
-
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
-msgid "Delete the file {fileName}"
-msgstr "Delete the file {fileName}"
 
 #: src/features/campaigns/components/PendingInvitations.tsx
 msgid "Delete the invitation"
@@ -881,6 +941,15 @@ msgstr "Describe the problem in a few words, up to {maxLength} characters."
 msgid "Description"
 msgstr "Description"
 
+#. Lets go of the files checked in a list
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Deselect"
+msgstr "Deselect"
+
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Details of {fileName}"
+msgstr "Details of {fileName}"
+
 #: src/features/conversation/components/DictationButton.tsx
 msgid "Dictate your message"
 msgstr "Dictate your message"
@@ -888,6 +957,13 @@ msgstr "Dictate your message"
 #: src/features/campaigns/campaign-defaults.ts
 msgid "Did the agent address your question?"
 msgstr "Did the agent address your question?"
+
+#. Which documents the agent searched in a run
+#. Which documents the agent searched in a run
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Document search"
+msgstr "Document search"
 
 #. Which documents of its project an agent searches
 #: src/features/campaigns/agent-version-diff.ts
@@ -990,15 +1066,24 @@ msgstr "Enter"
 
 #. A record of a run an error stopped
 #. A record of a run an error stopped
+#. A record of a run an error stopped
 #. The title of the error that stopped a record of a run
 #. The title of the error that stopped a record of a run
 #: src/features/conversation-runs/components/RunRecordScore.tsx
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
 #: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
 #: src/features/extraction-runs/components/RecordStatusBadge.tsx
 msgid "Error"
 msgstr "Error"
 
+#. The header of the column of the errors that stopped records of a run
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "Error details"
+msgstr "Error details"
+
+#. How many records of a run an error stopped
 #. How many records of a run an error stopped
 #. How many records of a run an error stopped
 #. How many records of a run an error stopped
@@ -1006,6 +1091,7 @@ msgstr "Error"
 #. The filter of the results an error stopped
 #. The filter of the results an error stopped
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/result-filters.ts
 #: src/features/extraction-runs/components/extraction-run-columns.tsx
 #: src/features/extraction-runs/components/ExtractionRunPage.tsx
@@ -1056,16 +1142,14 @@ msgstr "Expected ({columnName})"
 #. The answer an evaluation expects from the agent
 #. The answer an evaluation expects from the agent
 #. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
 msgid "Expected output"
 msgstr "Expected output"
-
-#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
-msgid "Expected: {expected}"
-msgstr "Expected: {expected}"
 
 #: src/lib/agent-type-labels.ts
 msgid "Extraction agent"
@@ -1113,12 +1197,12 @@ msgid "Fields to compare"
 msgstr "Fields to compare"
 
 #. The header of the column of what the comparison measures
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/components/shared/RunFiguresTable.tsx
 msgid "Figure"
 msgstr "Figure"
 
 #. The title of the figures of the runs compared
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/components/shared/RunFiguresTable.tsx
 msgid "Figures"
 msgstr "Figures"
 
@@ -1126,14 +1210,30 @@ msgstr "Figures"
 msgid "Fill the final survey"
 msgstr "Fill the final survey"
 
+#. The fields the agent filled while it answered a record of a run
+#. The fields the agent filled while it answered a record of a run
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "Filled form"
+msgstr "Filled form"
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Filling in the form"
 msgstr "Filling in the form"
+
+#. The button that adds a filter to a table: a column and the text it holds
+#: src/components/shared/ColumnFilters.tsx
+msgid "Filter"
+msgstr "Filter"
 
 #. The label of the filters of the table of a run's results
 #: src/components/shared/ResultFilters.tsx
 msgid "Filter the results"
 msgstr "Filter the results"
+
+#: src/components/shared/ColumnFilters.tsx
+msgid "Filters that apply"
+msgstr "Filters that apply"
 
 #. The setup step with the questions a tester answers once, at the end
 #: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
@@ -1247,10 +1347,14 @@ msgstr "Give this agent the rows of a dataset, and compare what it extracts with
 msgid "Good reply"
 msgstr "Good reply"
 
+#. A record of a run the judge graded
 #. How many records of a run are graded
+#. How many records of a run the judge graded
 #. How many records of a run the judge graded
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
 #: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
 msgid "Graded"
 msgstr "Graded"
 
@@ -1279,6 +1383,11 @@ msgstr "Help center"
 #: src/components/shared/SidebarToggle.tsx
 msgid "Hide the sidebar"
 msgstr "Hide the sidebar"
+
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "High"
+msgstr "High"
 
 #. Opens the platform's home, which lists the person's apps, outside this app
 #: src/features/account/components/UserMenu.tsx
@@ -1336,7 +1445,13 @@ msgstr "Image"
 msgid "In production"
 msgstr "In production"
 
+#. The badge of a column the agent read, in lower case
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+msgid "input"
+msgstr "input"
+
 #. The role of a dataset's column the agent reads
+#. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
 #. What an evaluation sends to the agent
@@ -1344,6 +1459,7 @@ msgstr "In production"
 #: src/features/conversation-datasets/components/conversation-record-columns.tsx
 #: src/features/conversation-datasets/components/RecordDialog.tsx
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/RunRecordSheet.tsx
 #: src/lib/extraction-columns.ts
 msgid "Input"
@@ -1359,8 +1475,10 @@ msgstr "Input"
 msgid "Instructions"
 msgstr "Instructions"
 
+#. A row of the comparison of runs: what each run told its judge
 #. The header of the column of the instructions a run gave its judge
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 msgid "Instructions for the judge"
 msgstr "Instructions for the judge"
 
@@ -1405,8 +1523,10 @@ msgid "Judge"
 msgstr "Judge"
 
 #. The model that graded a run
+#. The model that graded a run
 #. The model that grades the answers of an evaluation
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 msgid "Judge model"
 msgstr "Judge model"
@@ -1463,12 +1583,19 @@ msgstr "Loading the records…"
 msgid "Loading the results…"
 msgstr "Loading the results…"
 
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "Low"
+msgstr "Low"
+
 #. The filter of the results the judge graded 2 out of 5 or less
 #: src/features/conversation-runs/result-filters.ts
 msgid "Low scores"
 msgstr "Low scores"
 
+#. A field of a record that has the value expected
 #. A record of a run where every compared field has the value expected
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
 #: src/features/extraction-runs/components/RecordStatusBadge.tsx
 msgid "Match"
 msgstr "Match"
@@ -1508,6 +1635,11 @@ msgstr "Mean reviewer rating"
 msgid "Mean tester rating"
 msgstr "Mean tester rating"
 
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "Medium"
+msgstr "Medium"
+
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "member"
@@ -1522,7 +1654,14 @@ msgstr "Message to {agentName}"
 msgid "Messages"
 msgstr "Messages"
 
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "Minimal"
+msgstr "Minimal"
+
+#. A field of a record that differs from the value expected
 #. A record of a run where a compared field differs from the value expected
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
 #: src/features/extraction-runs/components/RecordStatusBadge.tsx
 msgid "Mismatch"
 msgstr "Mismatch"
@@ -1539,8 +1678,12 @@ msgstr "Mismatches"
 #. The language model of an agent
 #. The model of the agent in a run
 #. The model of the agent in a run
+#. The model of the agent in a run
+#. The model of the agent's version a run evaluated
 #. The model of the judge of a run
 #: src/features/campaigns/agent-version-diff.ts
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Model"
@@ -1582,6 +1725,7 @@ msgid "My review"
 msgstr "My review"
 
 #. The name of a dataset
+#. The name of a dataset
 #. The name of a review campaign
 #. The name of a review campaign
 #. The name of a review campaign
@@ -1589,12 +1733,17 @@ msgstr "My review"
 #: src/features/campaigns/components/campaign-columns.tsx
 #: src/features/campaigns/components/CampaignGeneralFields.tsx
 #: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
 msgid "Name"
 msgstr "Name"
 
 #: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
 msgid "Name of the column {originalName} in the dataset"
 msgstr "Name of the column {originalName} in the dataset"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Name of the dataset"
+msgstr "Name of the dataset"
 
 #: src/features/campaigns/components/NewCampaignPage.tsx
 msgid "Name the campaign, choose what testers and reviewers answer, then activate it and invite them."
@@ -1665,9 +1814,19 @@ msgstr "No description"
 msgid "No differences"
 msgstr "No differences"
 
+#. An agent searches no document
+#: src/lib/document-search-labels.ts
+msgid "No document"
+msgstr "No document"
+
 #: src/components/shared/RunsByStatus.tsx
 msgid "No evaluation ran on this dataset yet."
 msgstr "No evaluation ran on this dataset yet."
+
+#. A record of a run whose agent filled no field of its form
+#: src/features/conversation-runs/components/FilledForm.tsx
+msgid "No fields filled"
+msgstr "No fields filled"
 
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "No participant yet."
@@ -1682,12 +1841,12 @@ msgid "No question yet."
 msgstr "No question yet."
 
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
-msgid "No record matches this search."
-msgstr "No record matches this search."
+msgid "No record passes these filters."
+msgstr "No record passes these filters."
 
 #: src/features/extraction-runs/components/ExtractionResultsSection.tsx
-msgid "No result matches this search."
-msgstr "No result matches this search."
+msgid "No result passes these filters."
+msgstr "No result passes these filters."
 
 #: src/features/campaigns/components/CampaignsEmptyState.tsx
 msgid "No review campaign yet"
@@ -1722,7 +1881,9 @@ msgstr "No session yet."
 msgid "No version chosen yet."
 msgstr "No version chosen yet."
 
+#. A thinking level of a model: it does not think
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/conversation-runs/thinking-level.ts
 msgid "None"
 msgstr "None"
 
@@ -1732,9 +1893,11 @@ msgstr "Not answered"
 
 #. A record of a run stopped before the agent answered it
 #. A record of a run stopped before the agent answered it
+#. A record of a run stopped before the agent answered it
 #. The filter of the results a cancelled run never asked
 #. The filter of the results a cancelled run never asked
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
 #: src/features/conversation-runs/result-filters.ts
 #: src/features/extraction-runs/components/RecordStatusBadge.tsx
 #: src/features/extraction-runs/result-filters.ts
@@ -1831,9 +1994,20 @@ msgstr "Open {title}"
 msgid "Open in a new tab"
 msgstr "Open in a new tab"
 
+#. A link to the page of the agent in the Studio, where it is set up
+#. A link to the page of the agent in the Studio, where it is set up
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Open in Studio"
+msgstr "Open in Studio"
+
 #: src/features/conversation/components/ResourcePanel.tsx
 msgid "Open on YouTube"
 msgstr "Open on YouTube"
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "Open the record of row {rowNumber}"
+msgstr "Open the record of row {rowNumber}"
 
 #: src/features/conversation-runs/components/RunResultsSection.tsx
 #: src/features/extraction-runs/components/ExtractionResultsSection.tsx
@@ -1866,6 +2040,11 @@ msgstr "Options, separated by commas"
 #: src/features/campaign-review/components/OtherReviews.tsx
 msgid "Other reviewers"
 msgstr "Other reviewers"
+
+#. The schema of what an extraction agent returns
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Output schema"
+msgstr "Output schema"
 
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 #: src/features/campaign-test/components/SessionFeedbackForm.tsx
@@ -1906,8 +2085,8 @@ msgid "Participants"
 msgstr "Participants"
 
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
-msgid "Paste one record per line: the input, a comma, then the expected output."
-msgstr "Paste one record per line: the input, a comma, then the expected output."
+msgid "Paste one record per line: the input, a comma, then the expected output. Rows copied from a spreadsheet work too."
+msgstr "Paste one record per line: the input, a comma, then the expected output. Rows copied from a spreadsheet work too."
 
 #: src/features/campaigns/components/ParticipantsPanel.tsx
 msgid "Pending invitations"
@@ -1979,16 +2158,21 @@ msgid "Ready to open “{name}”?"
 msgstr "Ready to open “{name}”?"
 
 #. The header of the column of the records compared
+#. The title of the sheet that shows one record of a dataset
+#: src/features/extraction-datasets/components/ExtractionDatasetRecordSheet.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Record"
 msgstr "Record"
 
 #. The title of the records of the runs compared
+#. The title of the records of the runs compared
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Record by record"
 msgstr "Record by record"
 
 #. How many records a dataset holds
+#. How many records a run asked
 #. How many records a run asked
 #. The pasted lines that become the records of a dataset
 #. The tab with the records of a dataset
@@ -1998,6 +2182,7 @@ msgstr "Record by record"
 #: src/components/shared/DatasetPageFrame.tsx
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Records"
@@ -2046,6 +2231,10 @@ msgstr "Remove question {position}"
 #: src/features/campaigns/components/QuestionListEditor.tsx
 msgid "Remove question {removedPosition}?"
 msgstr "Remove question {removedPosition}?"
+
+#: src/components/shared/ColumnFilters.tsx
+msgid "Remove the filter on {columnName}"
+msgstr "Remove the filter on {columnName}"
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx
 msgid "Remove this annotation"
@@ -2247,10 +2436,10 @@ msgstr "Running"
 #. The link back from a run to the runs of its dataset
 #. The tab with the runs of a dataset
 #. The title of the runs of a dataset
+#: src/components/shared/CompareRunsPageFrame.tsx
 #: src/components/shared/DatasetPageFrame.tsx
 #: src/components/shared/RunPageHeader.tsx
 #: src/components/shared/RunsByStatus.tsx
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Runs"
 msgstr "Runs"
 
@@ -2287,11 +2476,6 @@ msgstr "Score"
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
-#. The button that applies the search of a table
-#: src/components/shared/ColumnSearch.tsx
-msgid "Search"
-msgstr "Search"
-
 #: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Search an agent"
 msgstr "Search an agent"
@@ -2320,9 +2504,21 @@ msgstr "Sections of {agentName}"
 msgid "Select all the columns"
 msgstr "Select all the columns"
 
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Select all the files"
+msgstr "Select all the files"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Select files to delete them together"
+msgstr "Select files to delete them together"
+
 #: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
 msgid "Select the column {originalName}"
 msgstr "Select the column {originalName}"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Select the file {fileName}"
+msgstr "Select the file {fileName}"
 
 #: src/features/campaigns/components/AgentVersionCompare.tsx
 msgid "Select this version"
@@ -2464,6 +2660,15 @@ msgstr "Sign-in failed"
 msgid "Single choice"
 msgstr "Single choice"
 
+#. The size of a file
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Size"
+msgstr "Size"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Some files could not be deleted. Try again."
+msgstr "Some files could not be deleted. Try again."
+
 #. The highest reviewer rating minus the lowest
 #: src/features/campaign-report/components/report-session-columns.tsx
 msgid "Spread"
@@ -2487,8 +2692,12 @@ msgid "Started"
 msgstr "Started"
 
 #. A row of the comparison of runs: where each run stands
+#. A row of the comparison of runs: where each run stands
+#. Where a record of a run stands
 #. Where a review campaign stands
 #: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "Status"
 msgstr "Status"
@@ -2535,10 +2744,20 @@ msgstr "Switch agent"
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
 
+#. The badge of a column that holds the value expected, in lower case
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+msgid "target"
+msgstr "target"
+
 #. The role of a dataset's column that holds a value the agent must find
 #: src/lib/extraction-columns.ts
 msgid "Target"
 msgstr "Target"
+
+#. The temperature of the agent's model in a run
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Temperature"
+msgstr "Temperature"
 
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
@@ -2572,9 +2791,9 @@ msgstr "Testers chat with this version and reviewers read it, for the whole camp
 msgid "text"
 msgstr "text"
 
-#: src/components/shared/ColumnSearch.tsx
-msgid "Text to look for"
-msgstr "Text to look for"
+#: src/components/shared/ColumnFilters.tsx
+msgid "Text the column holds"
+msgstr "Text the column holds"
 
 #: src/features/conversation/components/GoodReplyButton.tsx
 msgid "Thank you for your feedback."
@@ -2703,6 +2922,11 @@ msgstr "The dictation stopped. Try again."
 msgid "The document could not be opened. Try again."
 msgstr "The document could not be opened. Try again."
 
+#. An agent searches the documents that carry its tags
+#: src/lib/document-search-labels.ts
+msgid "The documents of its tags"
+msgstr "The documents of its tags"
+
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
 msgstr "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
@@ -2717,14 +2941,18 @@ msgstr "The evaluation asks this version"
 msgid "The evaluation could not start. Try again."
 msgstr "The evaluation could not start. Try again."
 
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run failed."
+msgstr "The evaluation run failed."
+
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run is complete."
+msgstr "The evaluation run is complete."
+
 #: src/features/conversation-runs/components/RunEvaluationPage.tsx
 #: src/features/extraction-runs/components/RunExtractionPage.tsx
 msgid "The evaluation started."
 msgstr "The evaluation started."
-
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
-msgid "The file could not be deleted. Try again."
-msgstr "The file could not be deleted. Try again."
 
 #: src/features/conversation/components/AttachmentChip.tsx
 msgid "The file could not be opened. Try again."
@@ -2735,17 +2963,16 @@ msgid "The file could not be read. Choose another file, or try again."
 msgstr "The file could not be read. Choose another file, or try again."
 
 #: src/features/conversation/components/ReplyError.tsx
-#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
 
 #: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
-msgid "The file is deleted for good. The datasets already built from it keep their records."
-msgstr "The file is deleted for good. The datasets already built from it keep their records."
+msgid "The files are deleted for good. The datasets already built from them keep their records."
+msgstr "The files are deleted for good. The datasets already built from them keep their records."
 
 #: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
-msgid "The file was deleted."
-msgstr "The file was deleted."
+msgid "The files were deleted."
+msgstr "The files were deleted."
 
 #: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
 msgid "The first comma of a line ends the input: the expected output keeps its own."
@@ -2800,8 +3027,8 @@ msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
 
 #: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
-msgid "The project has no CSV file yet. Upload one to start."
-msgstr "The project has no CSV file yet. Upload one to start."
+msgid "The project has no CSV file yet. Upload one, or drop it here, to start."
+msgstr "The project has no CSV file yet. Upload one, or drop it here, to start."
 
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The record could not be added. Try again."
@@ -2844,8 +3071,8 @@ msgid "The records not asked yet stay without an answer. The answers already gra
 msgstr "The records not asked yet stay without an answer. The answers already graded are kept."
 
 #: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
-msgid "The records of the dataset come from the rows of a CSV file, whose first row names the columns. Choose a file of the project, or upload one."
-msgstr "The records of the dataset come from the rows of a CSV file, whose first row names the columns. Choose a file of the project, or upload one."
+msgid "The records of the dataset come from the rows of a CSV file, whose first row names the columns. Choose a file of the project, or upload one, of {maxSize} at most."
+msgstr "The records of the dataset come from the rows of a CSV file, whose first row names the columns. Choose a file of the project, or upload one, of {maxSize} at most."
 
 #: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
 msgid "The records were added."
@@ -2902,6 +3129,10 @@ msgstr "The run was cancelled."
 msgid "The run was deleted."
 msgstr "The run was deleted."
 
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+msgid "The score each run got on each record, the best one in green."
+msgstr "The score each run got on each record, the best one in green."
+
 #: src/features/campaign-test/components/TesterCampaignPage.tsx
 msgid "The session and its messages are deleted for good."
 msgstr "The session and its messages are deleted for good."
@@ -2942,14 +3173,19 @@ msgstr "The tester's rating and comment stay hidden until you submit your own re
 msgid "The testers who filled the final survey."
 msgstr "The testers who filled the final survey."
 
+#: src/features/extraction-datasets/components/ExtractionDatasetRecordSheet.tsx
+msgid "The value of each column of the dataset, for this row of its file."
+msgstr "The value of each column of the dataset, for this row of its file."
+
 #: src/features/campaigns/components/InviteParticipantsForm.tsx
 msgid "These people already have access or an invitation."
 msgstr "These people already have access or an invitation."
 
-#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/components/shared/CompareRunsPageFrame.tsx
 msgid "These runs are gone, or are not runs of this dataset."
 msgstr "These runs are gone, or are not runs of this dataset."
 
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
 msgid "These runs have no record yet."
 msgstr "These runs have no record yet."
@@ -3054,6 +3290,10 @@ msgstr "This session has no message."
 msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 msgstr "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 
+#: src/features/extraction-runs/components/RunExtractionPage.tsx
+msgid "This version has no output schema: it returns no field to compare."
+msgstr "This version has no output schema: it returns no field to compare."
+
 #: src/features/extraction-runs/components/KeyMappingField.tsx
 msgid "This version returns no field: it has no output schema."
 msgstr "This version returns no field: it has no output schema."
@@ -3090,9 +3330,11 @@ msgstr "To review"
 msgid "Took {took}"
 msgstr "Took {took}"
 
+#. Reads again a file whose columns could not be read
 #: src/components/shared/RouteErrorState.tsx
 #: src/components/shared/SidebarSection.tsx
 #: src/components/shared/SignInProblemPage.tsx
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
 msgid "Try again"
 msgstr "Try again"
 
@@ -3105,7 +3347,9 @@ msgid "Try again to sign in. If this page comes back, close the other tabs of th
 msgstr "Try again to sign in. If this page comes back, close the other tabs of the app."
 
 #. The kind of agent a review campaign reviews
+#. The media type of a file, such as text/csv
 #: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
 msgid "Type"
 msgstr "Type"
 
@@ -3127,13 +3371,28 @@ msgid "Untitled document"
 msgstr "Untitled document"
 
 #. When a dataset last changed
+#. When a file last changed
 #: src/components/shared/dataset-columns.tsx
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
 msgid "Updated"
 msgstr "Updated"
 
 #: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
 msgid "Upload a CSV file"
 msgstr "Upload a CSV file"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Upload one file at a time."
+msgstr "Upload one file at a time."
+
+#. When a file was uploaded
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Uploaded"
+msgstr "Uploaded"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Uploading {fileName}…"
+msgstr "Uploading {fileName}…"
 
 #. The button that uploads a file, while a file uploads
 #: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
@@ -3162,7 +3421,9 @@ msgstr "Verify your email"
 #. The version of the agent a run evaluated
 #. The version of the agent a run evaluated
 #. The version of the agent a run evaluated
+#. The version of the agent a run evaluated
 #: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
 #: src/features/conversation-runs/components/RunSettingsPanel.tsx
 #: src/features/extraction-runs/components/extraction-run-columns.tsx
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
@@ -3178,6 +3439,11 @@ msgstr "Version"
 #: src/features/extraction-runs/components/ExtractionRunPanel.tsx
 msgid "Version {revision}"
 msgstr "Version {revision}"
+
+#. Under a run's id in a comparison: its agent's version, and how long ago it started
+#: src/components/shared/ComparedRunHead.tsx
+msgid "Version {revision} · <0/>"
+msgstr "Version {revision} · <0/>"
 
 #. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
 #: src/features/account/components/UserMenu.tsx
@@ -3199,10 +3465,12 @@ msgstr "View session {id}"
 
 #. A record of a run the agent has not answered yet
 #. A record of a run the agent has not answered yet
+#. A record of a run the agent has not answered yet
 #. A run that has not started yet
 #. The filter of the results the agent has not answered yet
 #. The filter of the results the agent has not answered yet
 #: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
 #: src/features/conversation-runs/result-filters.ts
 #: src/features/extraction-runs/components/RecordStatusBadge.tsx
 #: src/features/extraction-runs/result-filters.ts
@@ -3257,6 +3525,10 @@ msgstr "What the agent read, and each field it returned beside the value expecte
 #: src/lib/extraction-columns.ts
 msgid "What the agent reads"
 msgstr "What the agent reads"
+
+#: src/features/conversation-runs/components/RunEvaluationPage.tsx
+msgid "What the judge is told, on top of the expected output."
+msgstr "What the judge is told, on top of the expected output."
 
 #: src/features/campaign-review/components/TesterFeedbackPanel.tsx
 msgid "What the tester reported about what happened in this session."

@@ -4,6 +4,7 @@ import { msg } from "@lingui/core/macro"
 import { Trans } from "@lingui/react/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
+import { rowNumberColumnOf } from "@/components/shared/row-number-column"
 
 const columnHelper = createColumnHelper<ConversationDatasetRecordOutputDto>()
 
@@ -32,6 +33,7 @@ export function conversationRecordColumnsOf({
 }): ColumnDef<ConversationDatasetRecordOutputDto, unknown>[] {
   // Safe: each helper call types its own value, and the list holds them as columns of any value.
   const columns = [
+    rowNumberColumnOf<ConversationDatasetRecordOutputDto>(),
     columnHelper.accessor("input", {
       header: translate(recordColumnLabels.input),
       enableSorting: false,

@@ -1,3 +1,6 @@
+import type { MessageDescriptor } from "@lingui/core"
+import { msg } from "@lingui/core/macro"
+
 /** The names providers give the thinking level in a model's options. */
 const THINKING_LEVEL_KEYS = ["thinkingLevel", "reasoningEffort", "effort"]
 
@@ -11,6 +14,25 @@ function findOption(options: Record<string, unknown>, key: string): unknown {
     if (found !== undefined) return found
   }
   return undefined
+}
+
+/** The thinking levels the models share, as the app says them. */
+const THINKING_LEVEL_LABELS: Record<string, MessageDescriptor> = {
+  none: msg({ message: "None", comment: "A thinking level of a model: it does not think" }),
+  minimal: msg({ message: "Minimal", comment: "A thinking level of a model" }),
+  low: msg({ message: "Low", comment: "A thinking level of a model" }),
+  medium: msg({ message: "Medium", comment: "A thinking level of a model" }),
+  high: msg({ message: "High", comment: "A thinking level of a model" }),
+}
+
+/** The name of a thinking level: none for a level the app does not know, which shows as it is. */
+export const thinkingLevelLabelOf = (level: string): MessageDescriptor | null =>
+  Object.hasOwn(THINKING_LEVEL_LABELS, level) ? (THINKING_LEVEL_LABELS[level] ?? null) : null
+
+/** The temperature a version of an agent set for its model: `null` when it set none. */
+export function temperatureOf(providerOptions: Record<string, unknown>): number | null {
+  const value = findOption(providerOptions, "temperature")
+  return typeof value === "number" ? value : null
 }
 
 /**

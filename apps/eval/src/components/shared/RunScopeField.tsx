@@ -8,6 +8,18 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 /** How much of a dataset an evaluation asks: all its records, or the first ones only. */
 type RunScope = "all" | "limited"
 
+/**
+ * Whether a form's scope can start an evaluation: the count only matters, and must be a whole
+ * number of records, when the evaluation asks the first ones.
+ */
+export const isRunScopeValid = ({
+  scope,
+  limitedCount,
+}: {
+  scope: RunScope
+  limitedCount: number
+}) => scope === "all" || (Number.isInteger(limitedCount) && limitedCount >= 1)
+
 export type RunScopeFieldProps = {
   /** How many records the dataset holds. */
   recordCount: number
@@ -75,7 +87,10 @@ export function RunScopeField({
             max={recordCount}
             className="w-28"
             value={Number.isNaN(limitedCount) ? "" : limitedCount}
-            onChange={(event) => onLimitedCountChange(event.target.valueAsNumber)}
+            // No more than the dataset holds: a higher number would ask them all anyway.
+            onChange={(event) =>
+              onLimitedCountChange(Math.min(event.target.valueAsNumber, Math.max(1, recordCount)))
+            }
             aria-invalid={isLimitedCountInvalid}
           />
           {isLimitedCountInvalid ? (

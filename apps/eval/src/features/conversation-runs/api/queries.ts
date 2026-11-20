@@ -8,7 +8,11 @@ import {
 } from "@caseai-connect/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS, isRunActive } from "@/lib/run-status"
+import {
+  ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS,
+  isRunActive,
+  type RunStatus,
+} from "@/lib/run-status"
 import { conversationRunKeys } from "./keys"
 
 /**
@@ -32,7 +36,15 @@ export const projectConversationRunsQueryOptions = (project: ProjectParamsDto) =
 export const conversationRunQueryOptions = (run: ConversationRunParamsDto) =>
   queryOptions({
     queryKey: conversationRunKeys.detail(run),
-    queryFn: ({ signal }) => apiRequest(EvalConversationRunsRoutes.getOne, { params: run, signal }),
+    queryFn: async ({ signal, client }) => {
+      const read = await apiRequest(EvalConversationRunsRoutes.getOne, { params: run, signal })
+      // The run just ended: its records are read one last time, with their last answers.
+      const before = client.getQueryData<{ status: RunStatus }>(conversationRunKeys.detail(run))
+      if (before && isRunActive(before.status) && !isRunActive(read.status)) {
+        void client.invalidateQueries({ queryKey: conversationRunKeys.records(run) })
+      }
+      return read
+    },
     refetchInterval: (query) =>
       query.state.data && isRunActive(query.state.data.status)
         ? ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS
@@ -76,7 +88,8 @@ export const judgeModelsQueryOptions = (project: ProjectParamsDto) =>
         signal,
       })
       return {
-        models: models.filter((model) => model.isAvailable).map((model) => model.model),
+        // What the project can use, with what a person should know before they pick one.
+        models: models.filter((model) => model.isAvailable),
         defaultModel: defaults.judge,
       }
     },

@@ -101,7 +101,9 @@ export function buildExtractionFile(
     id: crypto.randomUUID(),
     fileName: "support-messages.csv",
     size: 48_200,
+    mimeType: "text/csv",
     createdAt: daysAgo(6),
+    updatedAt: daysAgo(6),
     ...overrides,
   })
   return { projectId, file, ...content }

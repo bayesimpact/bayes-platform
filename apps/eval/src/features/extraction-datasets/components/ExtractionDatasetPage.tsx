@@ -13,7 +13,7 @@ import { useState } from "react"
 import type { DatasetAction } from "@/components/shared/DatasetDialogs"
 import { DatasetPageFrame, type DatasetTab } from "@/components/shared/DatasetPageFrame"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
-import { ExtractionRunsSection } from "@/features/extraction-runs"
+import { ExtractionRunsSection, useExtractionRunEndToasts } from "@/features/extraction-runs"
 import { isSetUp } from "@/lib/extraction-columns"
 import type { RecordsSearch } from "@/lib/records-search"
 import { projectExtractionDatasetsQueryOptions } from "../api/queries"
@@ -49,6 +49,7 @@ export function ExtractionDatasetPage({
   const navigate = useNavigate()
   const { data: datasets } = useSuspenseQuery(projectExtractionDatasetsQueryOptions(datasetParams))
   const [action, setAction] = useState<DatasetAction | null>(null)
+  useExtractionRunEndToasts(datasetParams)
   const dataset = datasets.find((candidate) => candidate.id === datasetParams.datasetId)
   // The loader found the dataset: it is missing only while its deletion leaves the page.
   if (!dataset) return null
