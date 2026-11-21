@@ -101,6 +101,7 @@ function AgentVersionsBrowser({
         version={shown}
         previous={versions[index + 1]}
         production={versions.find((version) => version.isProduction)}
+        hasOtherVersions={versions.length > 1}
         isSelected={shown.id === selectedId}
         onSelect={onSelect ? () => onSelect(shown.id) : null}
       />

@@ -8,6 +8,7 @@ import {
   type UpdateReviewCampaignInputDto,
 } from "@caseai-connect/eval-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { refreshCampaignInWorkspace } from "@/features/agents"
 import { apiRequest } from "@/lib/api-client"
 import { campaignKeys } from "./keys"
 import { campaignQueryOptions } from "./queries"
@@ -40,6 +41,7 @@ export function useUpdateCampaign(campaign: ReviewCampaignParamsDto) {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: campaignKeys.detail(campaign) }),
         queryClient.invalidateQueries({ queryKey: campaignKeys.ofProject(campaign) }),
+        refreshCampaignInWorkspace(queryClient, campaign.reviewCampaignId),
       ]),
   })
 }
@@ -89,10 +91,12 @@ export function useRevokeMembership(campaign: ReviewCampaignParamsDto) {
       apiRequest(EvalReviewCampaignsRoutes.revokeMembership, {
         params: { ...campaign, membershipId },
       }),
+    // The role may be the person's own, which their campaign menus show.
     onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: campaignKeys.detail(campaign) }),
         queryClient.invalidateQueries({ queryKey: campaignKeys.ofProject(campaign) }),
+        refreshCampaignInWorkspace(queryClient, campaign.reviewCampaignId),
       ]),
   })
 }

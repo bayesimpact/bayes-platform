@@ -21,6 +21,8 @@ export type AgentVersionPickerProps = {
   selectedNote: ReactNode
   /** What the field says when no version is chosen and one is needed. */
   error?: ReactNode
+  /** Whether the version can no longer change: the history does not open. */
+  isLocked?: boolean
 }
 
 /**
@@ -35,6 +37,7 @@ export function AgentVersionPicker({
   description,
   selectedNote,
   error,
+  isLocked = false,
 }: AgentVersionPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const selected = versions.find((version) => version.id === selectedId)
@@ -62,7 +65,7 @@ export function AgentVersionPicker({
             <Trans>No version chosen yet.</Trans>
           </span>
         )}
-        <Button type="button" variant="outline" onClick={() => setIsOpen(true)}>
+        <Button type="button" variant="outline" onClick={() => setIsOpen(true)} disabled={isLocked}>
           <HistoryIcon data-icon="inline-start" />
           <Trans>Choose a version</Trans>
         </Button>

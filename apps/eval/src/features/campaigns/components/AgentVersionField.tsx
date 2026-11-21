@@ -10,6 +10,8 @@ export type AgentVersionFieldProps = {
   control: Control<CampaignFormValues>
   agentParams: AgentParamsDto
   agentName: string
+  /** Whether the version can no longer change, as the campaign's other fields. */
+  isLocked: boolean
 }
 
 /**
@@ -17,7 +19,12 @@ export type AgentVersionFieldProps = {
  * reviewers read it, whatever goes to production meanwhile. The manager picks it in the history
  * of the agent's versions.
  */
-export function AgentVersionField({ control, agentParams, agentName }: AgentVersionFieldProps) {
+export function AgentVersionField({
+  control,
+  agentParams,
+  agentName,
+  isLocked,
+}: AgentVersionFieldProps) {
   const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   return (
     <Controller
@@ -29,6 +36,7 @@ export function AgentVersionField({ control, agentParams, agentName }: AgentVers
           agentName={agentName}
           selectedId={field.value}
           onSelect={field.onChange}
+          isLocked={isLocked}
           description={
             <Trans>
               Testers chat with this version and reviewers read it, for the whole campaign.

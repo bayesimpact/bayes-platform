@@ -3,6 +3,7 @@ import { userEvent, within } from "storybook/test"
 import { campaignEditorUrlOf, campaignsUrlOf } from "@/test/eval-urls"
 import {
   buildArchivedVersionWorld,
+  buildFirstVersionInProductionWorld,
   buildNoCampaignWorld,
   type EvalWorld,
 } from "@/test/factories/eval-world.factory"
@@ -46,6 +47,21 @@ export const NewCampaign: Story = {
  */
 export const ChooseAgentVersion: Story = {
   parameters: evaluation({ url: (world) => `${campaignsUrlOf(world)}/new` }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: "Choose a version" }))
+  },
+}
+
+/**
+ * The history of an agent whose first saved version is still in production: the campaign runs on
+ * it by default, and nothing came before it to compare with.
+ */
+export const ChooseFirstVersionInProduction: Story = {
+  parameters: evaluation({
+    world: buildFirstVersionInProductionWorld,
+    url: (world) => `${campaignsUrlOf(world)}/new`,
+  }),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await userEvent.click(await canvas.findByRole("button", { name: "Choose a version" }))

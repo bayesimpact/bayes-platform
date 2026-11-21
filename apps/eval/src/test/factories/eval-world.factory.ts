@@ -291,6 +291,24 @@ export function buildArchivedVersionWorld(): EvalWorld {
 }
 
 /**
+ * The main case, whose agents keep their first saved version in production: saving a version
+ * does not move production, so the newer ones were never put there.
+ */
+export function buildFirstVersionInProductionWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  const agentVersions = Object.fromEntries(
+    world.agents.map((agent) => [
+      agent.id,
+      buildAgentVersions(agent).map((version) => ({
+        ...version,
+        isProduction: version.revision === 1,
+      })),
+    ]),
+  )
+  return { ...world, agentVersions }
+}
+
+/**
  * An owner of a project who is not its evaluator, as owners and admins are by default: the agent
  * opens its review campaigns, and nothing else.
  */
@@ -580,6 +598,32 @@ export function buildSeveralCampaignAgentsWorld(): EvalWorld {
   const [organization] = world.organizations
   if (!project || !organization) throw new Error("The participant world has a project")
   const writer = buildProjectAgent(project, { name: "Writing Helper" })
+  const writingPilot = buildReviewCampaign(writer, organization.id, {
+    name: "Writing pilot",
+    description: "Try the helper on the letters you write every week.",
+    status: "active",
+  })
+  return {
+    ...world,
+    agents: [...world.agents, writer],
+    campaigns: [...world.campaigns, writingPilot],
+    myCampaignRoles: { ...world.myCampaignRoles, [writingPilot.id]: ["tester"] },
+    testerSessions: { ...world.testerSessions, [writingPilot.id]: [] },
+    testerSurveys: { ...world.testerSurveys, [writingPilot.id]: null },
+  }
+}
+
+/**
+ * The owner of the main world's project, who also tests a campaign on an agent of a project they
+ * hold no role in: the command center lists both agents, the second under Your campaigns.
+ */
+export function buildProjectAndCampaignAgentWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  const [organization] = world.organizations
+  if (!organization) throw new Error("The main world has an organization")
+  // Not among the person's projects: its agent is theirs through the campaign alone.
+  const otherProject = buildMyProject(organization, { permissions: ["project.read"] })
+  const writer = buildProjectAgent(otherProject, { name: "Writing Helper" })
   const writingPilot = buildReviewCampaign(writer, organization.id, {
     name: "Writing pilot",
     description: "Try the helper on the letters you write every week.",

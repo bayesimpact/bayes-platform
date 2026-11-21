@@ -7,6 +7,7 @@ import { SidebarClosedOnly } from "@/components/shared/SidebarClosedOnly"
 import { SidebarMenu } from "@/components/ui/sidebar"
 import {
   AgentSidebarHeader,
+  agentSearchSchema,
   findAgent,
   loadEvaluationWorkspace,
   useEvaluationWorkspace,
@@ -33,6 +34,8 @@ export const Route = createFileRoute(
   "/_authenticated/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId",
 )({
   params: { parse: uuidParams("organizationId", "projectId", "reviewCampaignId") },
+  // The home opens a campaign with the command center when the person has several agents.
+  validateSearch: agentSearchSchema,
   beforeLoad: async ({ context, params }) => {
     const { myCampaigns } = await loadEvaluationWorkspace(context.queryClient)
     const campaign = myCampaigns.find((candidate) => candidate.id === params.reviewCampaignId)
