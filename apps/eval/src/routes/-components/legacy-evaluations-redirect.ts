@@ -7,13 +7,15 @@ import {
   loadEvaluationWorkspace,
   readLastAgentId,
 } from "@/features/agents"
+import { runIdsOf } from "@/lib/compare-runs-search"
 
 /**
  * Sends a URL of the former evaluation app, which named a project and not an agent, to the same
  * page under an agent of the project: `conversation` or `extraction`, then a dataset, then one
  * of its runs or their comparison. The Studio's links and people's bookmarks still use them. A
- * run opens under the agent it asked; any other page under the agent the person opened last, when
- * it is one of that type, else the first of them.
+ * run opens under the agent it asked, and a comparison under the agent its first run asked, as it
+ * shows that agent's runs only; any other page under the agent the person opened last, when it
+ * is one of that type, else the first of them.
  */
 export async function redirectFromLegacyEvaluationsUrl({
   queryClient,
@@ -42,7 +44,11 @@ export async function redirectFromLegacyEvaluationsUrl({
       agent.project.organization.id === project.organizationId,
   )
   const [datasetId, section, runId] = path.split("/").filter(Boolean)
-  const runAgentId = section === "runs" && runId ? await loadRunAgentId(runId) : null
+  // The run that decides the agent: the run of the page, or the first one of a comparison.
+  const [firstComparedRunId] = runIdsOf(runs)
+  const shownRunId =
+    section === "runs" ? runId : section === "compare" ? firstComparedRunId : undefined
+  const runAgentId = shownRunId ? await loadRunAgentId(shownRunId) : null
   const agent =
     agents.find((candidate) => candidate.id === runAgentId) ??
     agents.find((candidate) => candidate.id === readLastAgentId()) ??
