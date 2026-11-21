@@ -9,7 +9,6 @@ import {
   describeModelOptionFields,
   findAgentModelEntry,
   findModelOptionValue,
-  findThinkingLevelValue,
   formatAgentModelLabel,
   isPriorityCallsAvailable,
   readModelOption,
@@ -403,21 +402,6 @@ describe("findModelOptionValue", () => {
   it("finds nothing in options that lack it, or in no options at all", () => {
     expect(findModelOptionValue({ temperature: 0 }, "thinkingLevel")).toBeUndefined()
     expect(findModelOptionValue(null, "temperature")).toBeUndefined()
-  })
-})
-
-describe("findThinkingLevelValue", () => {
-  it.each([
-    ["Gemini 3.x", { vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } } }],
-    ["OpenAI", { openai: { reasoningEffort: "low" } }],
-    ["Claude", { anthropic: { effort: "low" } }],
-  ])("finds the thinking level of a %s model", (_provider, providerOptions) => {
-    expect(findThinkingLevelValue({ providerOptions })).toBe("low")
-  })
-
-  it("finds nothing for a model without a thinking level", () => {
-    expect(findThinkingLevelValue({ temperature: 0 })).toBeUndefined()
-    expect(findThinkingLevelValue(null)).toBeUndefined()
   })
 })
 

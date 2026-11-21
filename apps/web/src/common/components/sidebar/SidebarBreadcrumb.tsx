@@ -11,7 +11,6 @@ import { BreadcrumbProjectMembership } from "@/common/components/breadcrumb/Brea
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { useBreakpoint } from "@/common/hooks/use-breakpoint"
 import type { StudioRoutes } from "@/studio/routes/helpers"
-import { BreadcrumbReviewCampaigns } from "../breadcrumb/BreadcrumbReviewCampaigns"
 
 export function SidebarBreadcrumb({
   organization,
@@ -37,8 +36,6 @@ export function SidebarBreadcrumb({
         <BreadcrumbDocuments />
 
         <BreadcrumbExternalSources />
-
-        <BreadcrumbReviewCampaigns />
 
         <BreadcrumbProjectAnalytics />
 

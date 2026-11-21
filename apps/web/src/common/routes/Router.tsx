@@ -6,7 +6,6 @@ import { McpOauthCallbackRoute } from "@/common/routes/McpOauthCallbackRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { OAuthAuthorizeRoute } from "@/common/routes/OAuthAuthorizeRoute"
 import { APP_BASE_PATH } from "@/config/runtime-config"
-import { evalRoutes } from "@/eval/routes/EvalRoutes"
 import { reviewerRoutes } from "@/reviewer/routes/ReviewerRoutes"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 import { testerRoutes } from "@/tester/routes/TesterRoutes"
@@ -38,7 +37,6 @@ const router = () =>
           mcpOauthCallbackRoute,
           oauthAuthorizeRoute,
           studioRoutes,
-          evalRoutes,
           backofficeRoutes,
           testerRoutes,
           reviewerRoutes,

@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react"
 import { useLocation } from "react-router-dom"
-import { EvalRoutes } from "@/eval/routes/helpers"
 import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { TesterRoutes } from "@/tester/routes/helpers"
@@ -31,9 +30,7 @@ function getPathPieces(pathname: string) {
 }
 
 const appNames = new Set(
-  [StudioRoutes, EvalRoutes, TesterRoutes, ReviewerRoutes].map((routes) =>
-    routes.home.path.slice(1),
-  ),
+  [StudioRoutes, TesterRoutes, ReviewerRoutes].map((routes) => routes.home.path.slice(1)),
 )
 function getRoutePieces(routeName: string) {
   let result = routeName

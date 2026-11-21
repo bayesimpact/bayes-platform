@@ -11,10 +11,6 @@ import oauthConsent from "@/common/features/oauth-consent/external/oauth-consent
 import oauthGrants from "@/common/features/oauth-grants/external/oauth-grants.api"
 import organizations from "@/common/features/organizations/external/organizations.api"
 import projects from "@/common/features/projects/external/projects.api"
-import evaluationConversationDatasets from "@/eval/features/evaluation-conversation-datasets/external/evaluation-conversation-datasets.api"
-import evaluationConversationRuns from "@/eval/features/evaluation-conversation-runs/external/evaluation-conversation-runs.api"
-import evaluationExtractionDatasets from "@/eval/features/evaluation-extraction-datasets/external/evaluation-extraction-datasets.api"
-import evaluationExtractionRuns from "@/eval/features/evaluation-extraction-runs/external/evaluation-extraction-runs.api"
 import reviewCampaignsReviewer from "@/reviewer/features/review-campaigns/external/reviewer.api"
 import agentEmbedConfigs from "@/studio/features/agent-embed-configs/external/agent-embed-configs.api"
 import agentMemberships from "@/studio/features/agent-memberships/external/agent-memberships.api"
@@ -28,12 +24,12 @@ import conversationReview from "@/studio/features/conversation-review/external/c
 import documentSources from "@/studio/features/document-sources/external/document-sources.api"
 import documentTags from "@/studio/features/document-tags/external/document-tags.api"
 import documents from "@/studio/features/documents/external/documents.api"
+import evaluationConversationDatasets from "@/studio/features/evaluation-conversation-datasets/external/evaluation-conversation-datasets.api"
 import invitations from "@/studio/features/invitations/external/invitations.api"
 import mcpServers from "@/studio/features/mcp-servers/external/mcp-servers.api"
 import projectEmbeddingModels from "@/studio/features/project-embedding-models/external/project-embedding-models.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
 import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
-import reviewCampaigns from "@/studio/features/review-campaigns/external/review-campaigns.api"
 import reviewCampaignsReports from "@/studio/features/review-campaigns/reports/external/reports.api"
 import testCases from "@/studio/features/test-cases/external/test-cases.api"
 import reviewCampaignsTester from "@/tester/features/review-campaigns/external/tester.api"
@@ -56,9 +52,6 @@ export const services = {
   documents,
   documentTags,
   evaluationConversationDatasets,
-  evaluationConversationRuns,
-  evaluationExtractionDatasets,
-  evaluationExtractionRuns,
   extractionAgentSessions,
   mcpServers,
   appCatalog,
@@ -73,7 +66,6 @@ export const services = {
   projectMemberships,
   projects,
   resourceLibraries,
-  reviewCampaigns,
   reviewCampaignsReports,
   reviewCampaignsReviewer,
   reviewCampaignsTester,

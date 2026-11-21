@@ -13,6 +13,12 @@
       "back": "Back",
       "next": "Next"
     },
+    "scope": {
+      "title": "Records to run",
+      "all": "Run entire dataset ({{count}} records)",
+      "allUnknown": "Run entire dataset",
+      "limited": "Run a subset of records"
+    },
     "columns": {
       "title": "Configure column roles",
       "description": "Select the role for each column in your CSV file.",

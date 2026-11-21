@@ -20,7 +20,7 @@ export function RunScopeSelector({
 
   return (
     <div className="flex flex-col gap-2 p-4 border rounded-md">
-      <Label className="text-lg">{t("evaluationExtractionRun:scope.title")}</Label>
+      <Label className="text-lg">{t("agentCsvExtractionRun:scope.title")}</Label>
       <RadioGroup
         value={runScope}
         onValueChange={(value) => onRunScopeChange(value as "all" | "limited")}
@@ -30,14 +30,14 @@ export function RunScopeSelector({
           <RadioGroupItem value="all" id="scope-all" />
           <Label htmlFor="scope-all" className="cursor-pointer font-normal">
             {recordCount != null
-              ? t("evaluationExtractionRun:scope.all", { count: recordCount })
-              : t("evaluationExtractionRun:scope.allUnknown")}
+              ? t("agentCsvExtractionRun:scope.all", { count: recordCount })
+              : t("agentCsvExtractionRun:scope.allUnknown")}
           </Label>
         </div>
         <div className="flex items-center gap-2">
           <RadioGroupItem value="limited" id="scope-limited" />
           <Label htmlFor="scope-limited" className="cursor-pointer font-normal">
-            {t("evaluationExtractionRun:scope.limited")}
+            {t("agentCsvExtractionRun:scope.limited")}
           </Label>
           {runScope === "limited" && (
             <Input
