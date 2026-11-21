@@ -46,19 +46,45 @@ describe("comparisonRowsOf", () => {
     expect(rows[1]?.byRunId["first-record"]).toBeUndefined()
   })
 
-  it("matches by place the records whose dataset record was deleted", () => {
+  it("matches the records whose dataset record was deleted by what they asked", () => {
+    const asked = { input: "How do I reset my password?", expectedOutput: "From the sign-in page." }
     const rows = comparisonRowsOf([
       {
         runId: "first-run",
-        records: [buildConversationRunRecord({ evaluationConversationDatasetRecordId: null })],
+        records: [
+          buildConversationRunRecord({ evaluationConversationDatasetRecordId: null, ...asked }),
+        ],
       },
       {
         runId: "second-run",
-        records: [buildConversationRunRecord({ evaluationConversationDatasetRecordId: null })],
+        records: [
+          buildConversationRunRecord({
+            evaluationConversationDatasetRecordId: null,
+            input: "Can I change my plan?",
+            expectedOutput: "Yes, from the billing page.",
+          }),
+          buildConversationRunRecord({ evaluationConversationDatasetRecordId: null, ...asked }),
+        ],
       },
     ])
 
-    expect(rows).toHaveLength(1)
+    expect(rows).toHaveLength(2)
+    expect(rows[0]?.input).toBe(asked.input)
     expect(Object.keys(rows[0]?.byRunId ?? {})).toEqual(["first-run", "second-run"])
+    expect(Object.keys(rows[1]?.byRunId ?? {})).toEqual(["second-run"])
+  })
+
+  it("keeps apart the deleted records a run asked twice", () => {
+    const asked = { input: "How do I reset my password?", expectedOutput: "From the sign-in page." }
+    const deletedRecord = () =>
+      buildConversationRunRecord({ evaluationConversationDatasetRecordId: null, ...asked })
+    const rows = comparisonRowsOf([
+      { runId: "first-run", records: [deletedRecord(), deletedRecord()] },
+      { runId: "second-run", records: [deletedRecord()] },
+    ])
+
+    expect(rows).toHaveLength(2)
+    expect(Object.keys(rows[0]?.byRunId ?? {})).toEqual(["first-run", "second-run"])
+    expect(Object.keys(rows[1]?.byRunId ?? {})).toEqual(["first-run"])
   })
 })
