@@ -11,16 +11,26 @@ import { conversationRunQueryOptions } from "./queries"
 /** What starts a run: what creates it, and how many records it asks, `null` for all of them. */
 export type StartConversationRunInput = ConversationRunInputDto & { recordLimit: number | null }
 
-/** Creates a run, then starts it: the API does each in its own call. */
+/**
+ * Creates a run, then starts it: the API does each in its own call. A run that could not start
+ * is deleted, so it does not wait for ever among the runs, and another try makes no second one.
+ */
 export function useStartConversationRun(project: ProjectParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ recordLimit, ...body }: StartConversationRunInput) => {
       const run = await apiRequest(EvalConversationRunsRoutes.createOne, { params: project, body })
-      return apiRequest(EvalConversationRunsRoutes.executeOne, {
-        params: { ...project, evaluationConversationRunId: run.id },
-        body: { recordLimit },
-      })
+      const params = { ...project, evaluationConversationRunId: run.id }
+      try {
+        return await apiRequest(EvalConversationRunsRoutes.executeOne, {
+          params,
+          body: { recordLimit },
+        })
+      } catch (error) {
+        // The start's error is the one the person sees; a run the deletion leaves shows as waiting.
+        await apiRequest(EvalConversationRunsRoutes.deleteOne, { params }).catch(() => undefined)
+        throw error
+      }
     },
     // The run the API answers: its page, which opens next, reads it from the cache.
     onSuccess: (run) =>

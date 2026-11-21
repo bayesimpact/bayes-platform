@@ -13,16 +13,26 @@ import { extractionRunQueryOptions } from "./queries"
 /** What starts a run: what creates it, and how many records it asks, `null` for all of them. */
 export type StartExtractionRunInput = ExtractionRunInputDto & { recordLimit: number | null }
 
-/** Creates a run, then starts it: the API does each in its own call. */
+/**
+ * Creates a run, then starts it: the API does each in its own call. A run that could not start
+ * is deleted, so it does not wait for ever among the runs, and another try makes no second one.
+ */
 export function useStartExtractionRun(project: ProjectParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ recordLimit, ...body }: StartExtractionRunInput) => {
       const run = await apiRequest(EvalExtractionRunsRoutes.createOne, { params: project, body })
-      return apiRequest(EvalExtractionRunsRoutes.executeOne, {
-        params: { ...project, evaluationExtractionRunId: run.id },
-        body: { recordLimit },
-      })
+      const params = { ...project, evaluationExtractionRunId: run.id }
+      try {
+        return await apiRequest(EvalExtractionRunsRoutes.executeOne, {
+          params,
+          body: { recordLimit },
+        })
+      } catch (error) {
+        // The start's error is the one the person sees; a run the deletion leaves shows as waiting.
+        await apiRequest(EvalExtractionRunsRoutes.deleteOne, { params }).catch(() => undefined)
+        throw error
+      }
     },
     // The run the API answers: its page, which opens next, reads it from the cache.
     onSuccess: (run) =>
