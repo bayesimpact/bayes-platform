@@ -57,35 +57,91 @@ export const conversationRunQueryOptions = (run: ConversationRunParamsDto) => {
   })
 }
 
+/** A page of the records of a run, counted from 0. */
+const readRecordsPage = (run: ConversationRunParamsDto, page: number, signal: AbortSignal) =>
+  apiRequest(EvalConversationRunsRoutes.getRecords, {
+    params: run,
+    query: { page, limit: CONVERSATION_RUN_RECORDS_PAGE_SIZE },
+    signal,
+  })
+
+/** Every record of a run: the first page says how many there are, and the others come at once. */
+async function readAllRecords(
+  run: ConversationRunParamsDto,
+  signal: AbortSignal,
+): Promise<ConversationRunRecordOutputDto[]> {
+  const first = await readRecordsPage(run, 0, signal)
+  const pageCount = Math.ceil(first.total / CONVERSATION_RUN_RECORDS_PAGE_SIZE)
+  const others = await Promise.all(
+    Array.from({ length: Math.max(0, pageCount - 1) }, (_unused, index) =>
+      readRecordsPage(run, index + 1, signal),
+    ),
+  )
+  return [first, ...others].flatMap((answer) => answer.records)
+}
+
 /**
- * All the records of a run. The API pages them: the app reads every page, one after the other.
- * `isActive` reads them again every few seconds, as the records of a run under way get their
- * answers and their scores.
+ * The records of a run read before, with the pages that held a record still waiting read again:
+ * the others no longer change. None when nothing waits, or when the records moved meanwhile,
+ * which every record then reads again.
+ */
+async function readWaitingRecords(
+  run: ConversationRunParamsDto,
+  previous: ConversationRunRecordOutputDto[],
+  signal: AbortSignal,
+): Promise<ConversationRunRecordOutputDto[] | null> {
+  const pages = [
+    ...new Set(
+      previous.flatMap((record, index) =>
+        record.status === "running" ? [Math.floor(index / CONVERSATION_RUN_RECORDS_PAGE_SIZE)] : [],
+      ),
+    ),
+  ]
+  if (pages.length === 0) return null
+  const answers = await Promise.all(
+    pages.map(async (page) => ({ page, answer: await readRecordsPage(run, page, signal) })),
+  )
+  const records = [...previous]
+  for (const { page, answer } of answers) {
+    const start = page * CONVERSATION_RUN_RECORDS_PAGE_SIZE
+    const isSamePlace = answer.records.every(
+      (record, index) => previous[start + index]?.id === record.id,
+    )
+    if (answer.total !== previous.length || !isSamePlace) return null
+    records.splice(start, answer.records.length, ...answer.records)
+  }
+  return records
+}
+
+/**
+ * All the records of a run. The API pages them: the app reads every page. `isActive` reads them
+ * again every few seconds, as the records of a run under way get their answers and their scores:
+ * only the pages that hold a record still waiting, as the others no longer change.
  */
 export const conversationRunRecordsQueryOptions = (
   run: ConversationRunParamsDto,
   { isActive }: { isActive: boolean } = { isActive: false },
-) =>
-  queryOptions({
+) => {
+  // The plain read: its key carries the records' type, for the read of the cache below.
+  const plain = queryOptions({
     queryKey: conversationRunKeys.records(run),
-    queryFn: async ({ signal }) => {
-      const records: ConversationRunRecordOutputDto[] = []
-      for (let page = 0; ; page += 1) {
-        const answer = await apiRequest(EvalConversationRunsRoutes.getRecords, {
-          params: run,
-          query: { page, limit: CONVERSATION_RUN_RECORDS_PAGE_SIZE },
-          signal,
-        })
-        records.push(...answer.records)
-        // An empty page ends the reading too, should the total change meanwhile.
-        if (records.length >= answer.total || answer.records.length === 0) return records
-      }
+    queryFn: ({ signal }) => readAllRecords(run, signal),
+  })
+  return queryOptions({
+    queryKey: plain.queryKey,
+    queryFn: async ({ signal, client }) => {
+      const previous = client.getQueryData(plain.queryKey)
+      return (
+        (previous && (await readWaitingRecords(run, previous, signal))) ??
+        readAllRecords(run, signal)
+      )
     },
     refetchInterval: pollWhile<ConversationRunRecordOutputDto[]>(
       () => isActive,
       ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS,
     ),
   })
+}
 
 /** The models of a project that can judge a run, and the one a new run starts with. */
 export const judgeModelsQueryOptions = (project: ProjectParamsDto) =>
