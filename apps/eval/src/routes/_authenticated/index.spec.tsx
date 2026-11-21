@@ -15,6 +15,8 @@ import {
   buildEveryAccessWorld,
   buildNoAgentWorld,
   buildPendingInvitationsWorld,
+  buildProjectAndCampaignAgentWorld,
+  buildSeveralCampaignAgentsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/eval-world.factory"
 import { worldHandlers } from "@/test/msw/handlers"
@@ -142,6 +144,24 @@ describe("the app's home", () => {
 
     expect(await within(dialog).findByText("No agent matches this search.")).toBeInTheDocument()
     expect(within(dialog).queryByRole("option")).not.toBeInTheDocument()
+  })
+
+  it("opens the command center over the only project agent when a campaign brings another", async () => {
+    const world = buildProjectAndCampaignAgentWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp("/eval/")
+
+    const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
+    expect(router.state.location.pathname).toBe(routerPathOf(agentUrlOf(world)))
+    expect(within(dialog).getByRole("option", { name: /Writing Helper/ })).toBeInTheDocument()
+  })
+
+  it("opens the command center over the first campaign of a person who tests on several agents", async () => {
+    server.use(...worldHandlers(buildSeveralCampaignAgentsWorld()))
+    renderApp("/eval/")
+
+    const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
+    expect(within(dialog).getByRole("option", { name: /Writing Helper/ })).toBeInTheDocument()
   })
 
   it("gives no command center to a person with a single agent", async () => {

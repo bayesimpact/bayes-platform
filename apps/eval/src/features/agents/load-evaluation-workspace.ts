@@ -12,3 +12,17 @@ export function loadEvaluationWorkspace(queryClient: QueryClient): Promise<Evalu
 export function refreshEvaluationWorkspace(queryClient: QueryClient): Promise<void> {
   return queryClient.invalidateQueries({ queryKey: evaluationWorkspaceQueryOptions().queryKey })
 }
+
+/**
+ * Loads what the person holds again after a manager changed a campaign they take part in: its
+ * name, its status, its deletion or one of their roles, which their campaign menus show. A
+ * campaign they take no part in, such as a draft, leaves the workspace as it is.
+ */
+export async function refreshCampaignInWorkspace(
+  queryClient: QueryClient,
+  reviewCampaignId: string,
+): Promise<void> {
+  const workspace = queryClient.getQueryData(evaluationWorkspaceQueryOptions().queryKey)
+  if (!workspace?.myCampaigns.some((campaign) => campaign.id === reviewCampaignId)) return
+  await refreshEvaluationWorkspace(queryClient)
+}

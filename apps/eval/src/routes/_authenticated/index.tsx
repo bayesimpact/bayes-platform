@@ -11,6 +11,7 @@ import {
   loadEvaluationWorkspace,
   NoAgentState,
   readLastAgentId,
+  switchableAgentCountOf,
 } from "@/features/agents"
 import { AppSidebarFooter } from "@/routes/-components/AppSidebarFooter"
 
@@ -22,24 +23,26 @@ import { AppSidebarFooter } from "@/routes/-components/AppSidebarFooter"
  */
 export const Route = createFileRoute("/_authenticated/")({
   loader: async ({ context }) => {
-    const { groups, myCampaigns } = await loadEvaluationWorkspace(context.queryClient)
-    const agents = flattenEvaluationAgents(groups)
-    const agent = chooseDefaultAgent(agents, readLastAgentId())
+    const workspace = await loadEvaluationWorkspace(context.queryClient)
+    const agent = chooseDefaultAgent(flattenEvaluationAgents(workspace.groups), readLastAgentId())
+    // The command center counts the agents of the person's campaigns too: so does the home.
+    const search = switchableAgentCountOf(workspace) > 1 ? { switchAgent: true } : {}
     if (agent) {
       throw redirect({
         to: "/o/$organizationId/p/$projectId/a/$agentId",
         params: agentPathParams(agent),
-        search: agents.length > 1 ? { switchAgent: true } : {},
+        search,
         replace: true,
       })
     }
-    const campaign = myCampaigns[0]
+    const campaign = workspace.myCampaigns[0]
     if (campaign) {
       throw redirect({
         to: campaign.roles.includes("tester")
           ? "/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/test"
           : "/o/$organizationId/p/$projectId/review-campaigns/$reviewCampaignId/review",
         params: campaignPathParams(campaign),
+        search,
         replace: true,
       })
     }
