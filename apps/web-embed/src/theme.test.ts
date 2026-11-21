@@ -6,6 +6,7 @@ describe("themeColors", () => {
     expect(themeColors("#000000")).toEqual({
       primary: "#000000",
       onPrimary: "#ffffff",
+      onMark: "#ffffff",
       accent: "#000000",
       onAccent: "#ffffff",
     })
@@ -20,6 +21,12 @@ describe("themeColors", () => {
     const c = themeColors("#2563eb")
     expect(c.onPrimary).toBe("#ffffff")
     expect(c.accent).toBe("#2563eb")
+  })
+  it("keeps the launcher's dots white on the Bayes orange, ink on a pale colour", () => {
+    const orange = themeColors("#f18c6e")
+    expect(orange.onPrimary).toBe(INK)
+    expect(orange.onMark).toBe("#ffffff")
+    expect(themeColors("#F2EFE9").onMark).toBe(INK)
   })
   it("reads three-digit hex and rgb()", () => {
     expect(themeColors("#fff").onPrimary).toBe(INK)

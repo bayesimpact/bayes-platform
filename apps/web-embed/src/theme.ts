@@ -6,6 +6,9 @@ export const DEFAULT_PRIMARY_COLOR = "#000000"
 /** Text on a light primary colour (a beige or white header). */
 export const INK = "#1b1f24"
 const WHITE = "#ffffff"
+/** Below this contrast with white, the launcher's dots turn ink. The Bayes orange (#f18c6e) is
+ *  2.4, a beige (#F2EFE9) 1.1. */
+const MARK_MIN_CONTRAST = 2
 
 function rgb(color: string): [number, number, number] | null {
   const hex = color.trim().replace(/^#/, "")
@@ -36,17 +39,21 @@ function contrast(a: number, b: number): number {
 /** The colours derived from a primary colour, so that a light one (a beige header) stays
  *  readable: `onPrimary` is the text on it, `accent` the colour of what must stand out on the
  *  white chat (the send button, the suggested questions), which falls back to ink when the
- *  primary is too pale, and `onAccent` the text on that. An unparsable colour keeps white text. */
+ *  primary is too pale, and `onAccent` the text on that, and
+ *  `onMark` the launcher's dots, which stay white on any colour short of a pale one. An unparsable colour keeps white text. */
 export function themeColors(primary: string = DEFAULT_PRIMARY_COLOR) {
   const parsed = rgb(primary)
-  if (!parsed) return { primary, onPrimary: WHITE, accent: primary, onAccent: WHITE }
+  if (!parsed) return { primary, onPrimary: WHITE, onMark: WHITE, accent: primary, onAccent: WHITE }
   const l = luminance(parsed)
   const white = luminance([255, 255, 255])
   const ink = luminance(rgb(INK) as [number, number, number])
   const onPrimary = contrast(l, ink) > contrast(l, white) ? INK : WHITE
   const accent = contrast(l, white) < 3 ? INK : primary
   const onAccent = accent === INK ? WHITE : onPrimary
-  return { primary, onPrimary, accent, onAccent }
+  // The dot-grid mark on the launcher is the logo, not text: white dots on a coloured disc, as on
+  // the Bayes orange, unless the colour is so pale that white would vanish (a beige, a white).
+  const onMark = contrast(l, white) >= MARK_MIN_CONTRAST ? WHITE : INK
+  return { primary, onPrimary, onMark, accent, onAccent }
 }
 
 /** The CSS custom properties the chat components read. */
