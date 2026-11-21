@@ -16,6 +16,8 @@ export type AgentVersionFieldProps = {
   control: Control<CampaignFormValues>
   agentParams: AgentParamsDto
   agentName: string
+  /** Whether the version can no longer change, as the campaign's other fields. */
+  isLocked: boolean
 }
 
 /**
@@ -23,7 +25,12 @@ export type AgentVersionFieldProps = {
  * reviewers read it, whatever goes to production meanwhile. The manager picks it in the history
  * of the agent's versions.
  */
-export function AgentVersionField({ control, agentParams, agentName }: AgentVersionFieldProps) {
+export function AgentVersionField({
+  control,
+  agentParams,
+  agentName,
+  isLocked,
+}: AgentVersionFieldProps) {
   const { i18n } = useLingui()
   const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   const [isOpen, setIsOpen] = useState(false)
@@ -59,7 +66,12 @@ export function AgentVersionField({ control, agentParams, agentName }: AgentVers
                   <Trans>No version chosen yet.</Trans>
                 </span>
               )}
-              <Button type="button" variant="outline" onClick={() => setIsOpen(true)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(true)}
+                disabled={isLocked}
+              >
                 <HistoryIcon data-icon="inline-start" />
                 <Trans>Choose a version</Trans>
               </Button>
