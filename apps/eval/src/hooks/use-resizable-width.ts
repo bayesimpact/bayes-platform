@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type PointerEvent, useState } from "react"
+import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react"
 
 type UseResizableWidthOptions = {
   /** Where the width is kept on this device, so it survives a reload. */
@@ -8,8 +8,8 @@ type UseResizableWidthOptions = {
   maxWidth: number
   /** The edge the handle sits on: dragging it outwards widens the element. */
   edge: "left" | "right"
-  /** Called each time the person gives the element another width, while they drag too. */
-  onResize?: () => void
+  /** Called with the width the element is about to take, each time it takes another one. */
+  onResize?: (nextWidth: number) => void
 }
 
 /** How far an arrow key moves the edge. */
@@ -55,33 +55,56 @@ export function useResizableWidth({
   const [isResizing, setIsResizing] = useState(false)
   const outwards = edge === "right" ? 1 : -1
 
+  /** Ends the drag under way, if any: the window no longer follows the pointer. */
+  const stopDragRef = useRef<(() => void) | null>(null)
+  // The drag follows the pointer on the window, outside React: an element that leaves the page
+  // mid-drag stops following it.
+  useEffect(() => () => stopDragRef.current?.(), [])
+
   const resizeTo = (next: number) => {
     const clamped = clamp(next, minWidth, maxWidth)
+    onResize?.(clamped)
     setWidth(clamped)
     storeWidth(storageKey, clamped)
-    onResize?.()
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return
     // No text selection while dragging.
     event.preventDefault()
+    stopDragRef.current?.()
     const startX = event.clientX
     const startWidth = width
+    const widthAt = (clientX: number) => startWidth + (clientX - startX) * outwards
+    /** The width the drag reached, which a cancelled drag keeps. */
+    let reachedWidth = startWidth
     setIsResizing(true)
     // Followed on the window, so a fast drag that leaves the thin edge still resizes.
     const handleMove = (moveEvent: globalThis.PointerEvent) => {
-      setWidth(clamp(startWidth + (moveEvent.clientX - startX) * outwards, minWidth, maxWidth))
-      onResize?.()
+      reachedWidth = clamp(widthAt(moveEvent.clientX), minWidth, maxWidth)
+      onResize?.(reachedWidth)
+      setWidth(reachedWidth)
     }
-    const handleUp = (upEvent: globalThis.PointerEvent) => {
+    const stopDrag = () => {
       window.removeEventListener("pointermove", handleMove)
       window.removeEventListener("pointerup", handleUp)
+      window.removeEventListener("pointercancel", handleCancel)
+      stopDragRef.current = null
       setIsResizing(false)
-      resizeTo(startWidth + (upEvent.clientX - startX) * outwards)
+    }
+    const handleUp = (upEvent: globalThis.PointerEvent) => {
+      stopDrag()
+      resizeTo(widthAt(upEvent.clientX))
+    }
+    // A drag the browser takes back, for a scroll or a gesture, keeps the width it reached.
+    const handleCancel = () => {
+      stopDrag()
+      resizeTo(reachedWidth)
     }
     window.addEventListener("pointermove", handleMove)
     window.addEventListener("pointerup", handleUp)
+    window.addEventListener("pointercancel", handleCancel)
+    stopDragRef.current = stopDrag
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {

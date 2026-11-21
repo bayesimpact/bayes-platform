@@ -54,12 +54,16 @@ export function SidePanel({
   const sidebar = useSidebar()
   // A panel that leaves the page beside it little room folds the sidebar, which gives the page
   // its width back. The person opens the sidebar again when they want it.
-  const makeRoomForPage = () => {
-    const page = panelRef.current?.previousElementSibling
-    if (!isDocked || !sidebar.open || !(page instanceof HTMLElement)) return
-    if (page.clientWidth < MIN_PAGE_WIDTH_IN_PIXELS) sidebar.setOpen(false)
+  const makeRoomForPage = (nextPanelWidth?: number) => {
+    const panel = panelRef.current
+    const page = panel?.previousElementSibling
+    if (!panel || !isDocked || !sidebar.open || !(page instanceof HTMLElement)) return
+    // The page loses what the panel is about to gain, before the layout shows it.
+    const panelGrowth =
+      nextPanelWidth === undefined ? 0 : nextPanelWidth - panel.getBoundingClientRect().width
+    if (page.clientWidth - panelGrowth < MIN_PAGE_WIDTH_IN_PIXELS) sidebar.setOpen(false)
   }
-  const makeRoomOnOpen = useEffectEvent(makeRoomForPage)
+  const makeRoomOnOpen = useEffectEvent(() => makeRoomForPage())
   // The layout is outside React: the page is measured once the panel shows beside it, as a panel
   // opens at the width the person gave it last, which may be a wide one.
   useEffect(() => {
