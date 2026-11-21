@@ -690,6 +690,10 @@ msgstr "Final survey"
 msgid "Final surveys"
 msgstr "Final surveys"
 
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "First version"
+msgstr "First version"
+
 #. Whether an agent suggests follow-up questions
 #: src/features/campaigns/agent-version-diff.ts
 msgid "Follow-up suggestions"
@@ -1878,6 +1882,10 @@ msgstr "This file is empty."
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "This form asks no question."
 msgstr "This form asks no question."
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "This is the first saved version of the agent: there is nothing before it to compare with."
+msgstr "This is the first saved version of the agent: there is nothing before it to compare with."
 
 #: src/components/shared/SidebarSection.tsx
 msgid "This list could not load."

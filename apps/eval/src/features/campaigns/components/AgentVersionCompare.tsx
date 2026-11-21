@@ -24,6 +24,8 @@ export type AgentVersionCompareProps = {
   /** The saved version before it, none for the first one. */
   previous: AgentVersionOutputDto | undefined
   production: AgentVersionOutputDto | undefined
+  /** Whether the agent has other saved versions than this one. */
+  hasOtherVersions: boolean
   /** Whether the campaign runs on this version already. */
   isSelected: boolean
   onSelect: () => void
@@ -37,6 +39,7 @@ export function AgentVersionCompare({
   version,
   previous,
   production,
+  hasOtherVersions,
   isSelected,
   onSelect,
 }: AgentVersionCompareProps) {
@@ -120,14 +123,34 @@ export function AgentVersionCompare({
       ) : null}
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-6">
         {!older ? (
+          // The first saved version, in production, has nothing to compare with, whether the
+          // agent has other versions or not.
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>
-                <Trans>Only one version</Trans>
-              </EmptyTitle>
-              <EmptyDescription>
-                <Trans>This agent has a single saved version: there is nothing to compare.</Trans>
-              </EmptyDescription>
+              {hasOtherVersions ? (
+                <>
+                  <EmptyTitle>
+                    <Trans>First version</Trans>
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    <Trans>
+                      This is the first saved version of the agent: there is nothing before it to
+                      compare with.
+                    </Trans>
+                  </EmptyDescription>
+                </>
+              ) : (
+                <>
+                  <EmptyTitle>
+                    <Trans>Only one version</Trans>
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    <Trans>
+                      This agent has a single saved version: there is nothing to compare.
+                    </Trans>
+                  </EmptyDescription>
+                </>
+              )}
             </EmptyHeader>
           </Empty>
         ) : changedFields.length === 0 ? (

@@ -28,8 +28,13 @@ const {
   PageFailsAfterNewRelease,
   ...generalPages
 } = composeStories(generalStories)
-const { RemoveQuestion, LeaveWithUnsavedChanges, ChooseAgentVersion, ...campaignPages } =
-  composeStories(campaignStories)
+const {
+  RemoveQuestion,
+  LeaveWithUnsavedChanges,
+  ChooseAgentVersion,
+  ChooseFirstVersionInProduction,
+  ...campaignPages
+} = composeStories(campaignStories)
 // The reviewer and the tester both have a story named after their campaign.
 const { ClosedCampaign: ReviewerClosedCampaign, ...reviewerPages } = composeStories(reviewerStories)
 const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStories)
@@ -287,6 +292,16 @@ describe("the stories of the app", () => {
     expect(
       await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" }),
     ).toBeInTheDocument()
+  })
+
+  it("ChooseFirstVersionInProduction names the first of several versions", async () => {
+    await ChooseFirstVersionInProduction.load()
+    const { container } = render(<ChooseFirstVersionInProduction />)
+    await act(() => ChooseFirstVersionInProduction.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    expect(await within(dialog).findByText("First version")).toBeInTheDocument()
+    expect(within(dialog).queryByText("Only one version")).not.toBeInTheDocument()
   })
 
   it("LeaveWithUnsavedChanges asks before the changes are lost", async () => {

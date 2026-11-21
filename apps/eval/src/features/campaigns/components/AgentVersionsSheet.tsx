@@ -85,6 +85,7 @@ function AgentVersionsBrowser({ versions, selectedId, onSelect }: AgentVersionsB
         version={shown}
         previous={versions[index + 1]}
         production={versions.find((version) => version.isProduction)}
+        hasOtherVersions={versions.length > 1}
         isSelected={shown.id === selectedId}
         onSelect={() => onSelect(shown.id)}
       />

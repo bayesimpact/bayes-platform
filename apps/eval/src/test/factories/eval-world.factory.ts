@@ -23,7 +23,7 @@ import {
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
-import { agentVersionIdOf, buildProjectAgent } from "./agents.factory"
+import { agentVersionIdOf, buildAgentVersions, buildProjectAgent } from "./agents.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
 import { buildInvitation } from "./invitations.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
@@ -170,6 +170,24 @@ export function buildArchivedVersionWorld(): EvalWorld {
       campaign.status === "active" ? campaign : { ...campaign, agentSettingsId: archivedId },
     ),
   }
+}
+
+/**
+ * The main case, whose agents keep their first saved version in production: saving a version
+ * does not move production, so the newer ones were never put there.
+ */
+export function buildFirstVersionInProductionWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  const agentVersions = Object.fromEntries(
+    world.agents.map((agent) => [
+      agent.id,
+      buildAgentVersions(agent).map((version) => ({
+        ...version,
+        isProduction: version.revision === 1,
+      })),
+    ]),
+  )
+  return { ...world, agentVersions }
 }
 
 /**
