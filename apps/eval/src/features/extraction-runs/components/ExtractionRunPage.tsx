@@ -59,7 +59,7 @@ export function ExtractionRunPage({
   const isActive = isRunActive(run.status)
   const panel = useSidePanel()
   // The run itself: the loader found it among the agent's.
-  useRunEndToasts([run])
+  useRunEndToasts([{ id: run.id, status: run.status, datasetName: dataset.name }])
   const cancelRun = useCancelExtractionRun(runParams)
   const retryRun = useRetryExtractionRun(runParams)
   const deleteRun = useDeleteExtractionRun(runParams)

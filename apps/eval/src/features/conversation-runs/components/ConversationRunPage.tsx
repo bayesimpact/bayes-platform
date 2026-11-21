@@ -56,7 +56,7 @@ export function ConversationRunPage({
   )
   const panel = useSidePanel()
   // The run itself: the loader found it among the agent's.
-  useRunEndToasts([run])
+  useRunEndToasts([{ id: run.id, status: run.status, datasetName: dataset.name }])
   const cancelRun = useCancelConversationRun(runParams)
   const retryRun = useRetryConversationRun(runParams)
   const deleteRun = useDeleteConversationRun(runParams)

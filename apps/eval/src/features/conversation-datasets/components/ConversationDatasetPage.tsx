@@ -49,7 +49,7 @@ export function ConversationDatasetPage({
     projectConversationDatasetsQueryOptions(datasetParams),
   )
   const [action, setAction] = useState<DatasetAction | null>(null)
-  useConversationRunEndToasts(datasetParams)
+  useConversationRunEndToasts(agentParams, datasets)
   const dataset = datasets.find((candidate) => candidate.id === datasetParams.datasetId)
   // The loader found the dataset: it is missing only while its deletion leaves the page.
   if (!dataset) return null

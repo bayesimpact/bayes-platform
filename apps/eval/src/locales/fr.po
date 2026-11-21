@@ -2961,6 +2961,14 @@ msgstr "L'exécution de l'évaluation a échoué."
 msgid "The evaluation run is complete."
 msgstr "L'exécution de l'évaluation est terminée."
 
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run on {datasetName} failed."
+msgstr "L'exécution de l'évaluation sur {datasetName} a échoué."
+
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run on {datasetName} is complete."
+msgstr "L'exécution de l'évaluation sur {datasetName} est terminée."
+
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 #: src/features/extraction-runs/components/RunExtractionPanel.tsx
 msgid "The evaluation started."

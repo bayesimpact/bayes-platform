@@ -3,11 +3,9 @@ import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { describe, expect, it } from "vitest"
 import { Toaster } from "@/components/ui/sonner"
-import type { RunStatus } from "@/lib/run-status"
+import type { WatchedRun } from "@/lib/watched-runs"
 import { renderWithI18n } from "@/test/render-with-i18n"
 import { useRunEndToasts } from "./use-run-end-toasts"
-
-type WatchedRun = { id: string; status: RunStatus }
 
 /** A page that watches runs, with the place the toasts show in, and what reads the runs again. */
 function RunsWatched({ before, after }: { before: WatchedRun[]; after: WatchedRun[] }) {
@@ -32,16 +30,36 @@ async function readTwice(before: WatchedRun[], after: WatchedRun[]) {
 describe("useRunEndToasts", () => {
   it("says when a run under way completes", async () => {
     const id = crypto.randomUUID()
-    await readTwice([{ id, status: "running" }], [{ id, status: "completed" }])
+    await readTwice(
+      [{ id, status: "running", datasetName: "Support questions" }],
+      [{ id, status: "completed", datasetName: "Support questions" }],
+    )
+
+    expect(
+      await screen.findByText("The evaluation run on Support questions is complete."),
+    ).toBeInTheDocument()
+  })
+
+  it("says when a run of a dataset it cannot name completes", async () => {
+    const id = crypto.randomUUID()
+    await readTwice(
+      [{ id, status: "running", datasetName: null }],
+      [{ id, status: "completed", datasetName: null }],
+    )
 
     expect(await screen.findByText("The evaluation run is complete.")).toBeInTheDocument()
   })
 
   it("says when a run under way fails", async () => {
     const id = crypto.randomUUID()
-    await readTwice([{ id, status: "pending" }], [{ id, status: "failed" }])
+    await readTwice(
+      [{ id, status: "pending", datasetName: "Support questions" }],
+      [{ id, status: "failed", datasetName: "Support questions" }],
+    )
 
-    expect(await screen.findByText("The evaluation run failed.")).toBeInTheDocument()
+    expect(
+      await screen.findByText("The evaluation run on Support questions failed."),
+    ).toBeInTheDocument()
   })
 
   it("says nothing for a run that was over when the page opened, or that a person cancelled", async () => {
@@ -49,12 +67,12 @@ describe("useRunEndToasts", () => {
     const cancelled = crypto.randomUUID()
     await readTwice(
       [
-        { id: over, status: "completed" },
-        { id: cancelled, status: "running" },
+        { id: over, status: "completed", datasetName: null },
+        { id: cancelled, status: "running", datasetName: null },
       ],
       [
-        { id: over, status: "completed" },
-        { id: cancelled, status: "cancelled" },
+        { id: over, status: "completed", datasetName: null },
+        { id: cancelled, status: "cancelled", datasetName: null },
       ],
     )
 

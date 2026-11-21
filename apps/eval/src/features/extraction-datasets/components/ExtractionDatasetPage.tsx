@@ -56,7 +56,7 @@ export function ExtractionDatasetPage({
   const navigate = useNavigate()
   const { data: datasets } = useSuspenseQuery(projectExtractionDatasetsQueryOptions(datasetParams))
   const [action, setAction] = useState<DatasetAction | null>(null)
-  useExtractionRunEndToasts(datasetParams)
+  useExtractionRunEndToasts(agentParams, datasets)
   const dataset = datasets.find((candidate) => candidate.id === datasetParams.datasetId)
   // The loader found the dataset: it is missing only while its deletion leaves the page.
   if (!dataset) return null
