@@ -114,6 +114,8 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
     "max-width: calc(100vw - 32px)",
     "height: 704px",
     "max-height: calc(100vh - 112px)",
+    // The visible height on phones, where 100vh also counts the space under the browser's bars.
+    "max-height: calc(100dvh - 112px)",
     "border: none",
     "border-radius: 18px",
     "box-shadow: 0 16px 48px rgba(0,0,0,0.22)",
@@ -121,6 +123,7 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
     `transform-origin: ${isRight ? "bottom right" : "bottom left"}`,
   ].join(";")
   iframe.className = "as-frame"
+  setFrameShown(iframe, false)
   iframe.setAttribute("allow", "microphone; clipboard-write")
   iframe.setAttribute("title", "Chat")
 
@@ -128,14 +131,52 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
   const { row } = makeFabRow(button, hint, isRight)
 
   let isOpen = false
+  const desktopContainer = container.style.cssText
+  const desktopFrame = iframe.style.cssText
+  const sheet = phoneSheet(container)
 
-  // The window grows out of the button, as a messenger does, instead of popping in: the
-  // stylesheet animates its opacity and scale between the two states.
+  // On a phone the chat takes the whole screen, as a messenger's does there: a 400 px window
+  // left the page scrolling behind it and the keyboard pushing it around. The header's chevron
+  // closes it, so the button hides meanwhile.
+  let wasFull = false
+  let restore = 0
+  const layout = () => {
+    const full = isOpen && isPhone()
+    window.clearTimeout(restore)
+    if (wasFull && !full && !isOpen) {
+      // Fade the full-screen chat out where it is, then put the window back for next time.
+      setFrameShown(iframe, false)
+      sheet.set(false)
+      wasFull = false
+      restore = window.setTimeout(layout, 320)
+      return
+    }
+    wasFull = full
+    container.style.cssText = desktopContainer
+    iframe.style.cssText = desktopFrame
+    if (full) {
+      container.style.cssText += PHONE_CONTAINER
+      iframe.style.cssText += PHONE_FRAME
+      row.style.display = "none"
+    } else {
+      row.style.display = "flex"
+    }
+    setFrameShown(iframe, isOpen)
+    sheet.set(full)
+  }
+
+  // The window grows out of the button, as a messenger does, instead of popping in. Its state
+  // lives in inline styles, so a host page whose CSP blocks the stylesheet still gets a chat that
+  // opens and closes; the stylesheet only animates between the two states.
   const setOpen = (open: boolean) => {
     isOpen = open
     iframe.classList.toggle("as-frame--open", open)
     setFabOpen(button, open)
+    layout()
   }
+  window.addEventListener("resize", () => {
+    if (isOpen) layout()
+  })
 
   button.addEventListener("click", () => setOpen(!isOpen))
 
@@ -143,7 +184,7 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
     if (event.data?.type === "agent-studio:close") setOpen(false)
   })
 
-  attachPreview({ row, button, iframe, isRight, color, onOpen: () => setOpen(true) })
+  attachPreview({ row, button, iframe, isRight, color, hint, onOpen: () => setOpen(true) })
 
   container.appendChild(iframe)
   container.appendChild(row)
@@ -209,6 +250,7 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
   let isOpen = false
   let savedBodyOverflow = ""
   let savedBodyPaddingRight = ""
+  const sheet = phoneSheet(overlay)
 
   const open = () => {
     iframe.style.transform = "translateX(0)"
@@ -226,6 +268,9 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`
     }
+    // iOS ignores overflow: hidden on the body, and its keyboard shrinks only the visible part
+    // of the screen: on a phone the panel pins the page and follows that visible part.
+    sheet.set(isPhone())
     isOpen = true
   }
 
@@ -234,6 +279,7 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
     row.style.opacity = "1"
     button.style.pointerEvents = "auto"
     setFabOpen(button, false)
+    sheet.set(false)
     document.body.style.overflow = savedBodyOverflow
     document.body.style.paddingRight = savedBodyPaddingRight
     isOpen = false
@@ -244,7 +290,7 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
     else open()
   })
 
-  attachPreview({ row, button, iframe, isRight, color, onOpen: open })
+  attachPreview({ row, button, iframe, isRight, color, hint, onOpen: open })
 
   window.addEventListener("message", (event) => {
     if (event.data?.type === "agent-studio:close") close()
@@ -256,6 +302,89 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
 }
 
 // ─── Shared helpers ────────────────────────────────────────────────────────
+
+/** A phone, or a window as narrow as one: the chat then takes the whole screen. */
+const PHONE_QUERY = "(max-width: 640px)"
+function isPhone() {
+  return window.matchMedia?.(PHONE_QUERY).matches ?? window.innerWidth <= 640
+}
+
+const PHONE_CONTAINER = [
+  ";top: 0",
+  "left: 0",
+  "right: 0",
+  "bottom: auto",
+  "height: 100%",
+  "gap: 0",
+  "padding: env(safe-area-inset-top, 0) 0 0",
+  "background: white",
+].join(";")
+
+const PHONE_FRAME = [
+  ";width: 100%",
+  "max-width: none",
+  "height: 100%",
+  "max-height: none",
+  "border-radius: 0",
+  "box-shadow: none",
+].join(";")
+
+/** Shows or hides the chat window with inline styles, which a CSP cannot block. */
+function setFrameShown(iframe: HTMLIFrameElement, shown: boolean) {
+  iframe.style.opacity = shown ? "1" : "0"
+  iframe.style.visibility = shown ? "visible" : "hidden"
+  iframe.style.pointerEvents = shown ? "auto" : "none"
+  iframe.style.transform = shown ? "none" : "translateY(16px) scale(.94)"
+}
+
+/**
+ * While the chat fills a phone's screen: the host page stays still behind it (iOS scrolls a body
+ * with overflow: hidden, so the body is pinned where it was and put back on close), and the chat
+ * sizes itself to the part of the screen the keyboard leaves visible, which is what the browser's
+ * visualViewport reports. Without it the input slid under the keyboard and the page moved
+ * under the visitor's thumb while they typed.
+ */
+function phoneSheet(box: HTMLElement) {
+  let active = false
+  let scrollY = 0
+  let saved = ""
+  let savedBox = ""
+  const follow = () => {
+    const vv = window.visualViewport
+    if (!active || !vv) return
+    box.style.top = `${vv.offsetTop}px`
+    box.style.height = `${vv.height}px`
+  }
+  return {
+    set(on: boolean) {
+      if (on === active) {
+        follow()
+        return
+      }
+      active = on
+      const body = document.body
+      if (on) {
+        scrollY = window.scrollY
+        saved = body.style.cssText
+        savedBox = box.style.cssText
+        body.style.position = "fixed"
+        body.style.top = `-${scrollY}px`
+        body.style.left = "0"
+        body.style.right = "0"
+        body.style.overflow = "hidden"
+        window.visualViewport?.addEventListener("resize", follow)
+        window.visualViewport?.addEventListener("scroll", follow)
+        follow()
+      } else {
+        window.visualViewport?.removeEventListener("resize", follow)
+        window.visualViewport?.removeEventListener("scroll", follow)
+        body.style.cssText = saved
+        box.style.cssText = savedBox
+        window.scrollTo(0, scrollY)
+      }
+    },
+  }
+}
 
 /**
  * Lets the host page start a new conversation. The widget keeps the session
@@ -269,14 +398,13 @@ function exposeResetSession(iframe: HTMLIFrameElement, iframeSrc: string) {
 }
 
 /**
- * Wraps the FAB button (and an optional hint bubble) in a flex row.
- * When hint is provided the bubble auto-shows for 5 s on page load
- * and reappears whenever the button is hovered.
+ * The row at the bottom corner: the button, and the toast to its inner side. The row lets clicks
+ * through to the host page except on the button and the toast themselves.
  */
 function makeFabRow(
   button: HTMLButtonElement,
-  hint: string | undefined,
-  isRight: boolean,
+  _hint: string | undefined,
+  _isRight: boolean,
 ): { row: HTMLDivElement } {
   const row = document.createElement("div")
   row.className = "as-row"
@@ -285,79 +413,29 @@ function makeFabRow(
     "display: flex",
     "align-items: center",
     "gap: 10px",
-    // The hint is decorative and hidden with opacity, so it would otherwise
-    // keep swallowing clicks on the host page. Re-enable on the FAB only.
     "pointer-events: none",
   ].join(";")
-
-  if (hint) {
-    const bubble = document.createElement("div")
-    bubble.className = "as-hint"
-    bubble.textContent = hint
-    bubble.style.cssText = [
-      "background: white",
-      "color: #374151",
-      "font-size: 13px",
-      "line-height: 1.4",
-      "font-family: sans-serif",
-      "padding: 8px 14px",
-      "border-radius: 10px",
-      "box-shadow: 0 2px 16px rgba(0,0,0,0.14)",
-      "white-space: nowrap",
-      "opacity: 0",
-      "transition: opacity 0.25s ease",
-      "pointer-events: none",
-      "user-select: none",
-    ].join(";")
-
-    // Hint sits to the left of the button when on the right edge, and vice-versa.
-    if (isRight) {
-      row.appendChild(bubble)
-      row.appendChild(button)
-    } else {
-      row.appendChild(button)
-      row.appendChild(bubble)
-    }
-
-    let autoHideTimer: ReturnType<typeof setTimeout> | null = null
-
-    const showHint = () => {
-      bubble.style.opacity = "1"
-    }
-    const hideHint = () => {
-      bubble.style.opacity = "0"
-    }
-
-    // Auto-show for 5 seconds on page load.
-    showHint()
-    autoHideTimer = setTimeout(hideHint, 5000)
-
-    button.addEventListener("mouseenter", () => {
-      if (autoHideTimer) {
-        clearTimeout(autoHideTimer)
-        autoHideTimer = null
-      }
-      showHint()
-    })
-    button.addEventListener("mouseleave", hideHint)
-
-    // Allow the host page (e.g. the Studio app) to update the hint text
-    // in-place when the user's locale changes, without restarting the launcher.
-    window.__agentStudioSetHint = (text: string) => {
-      bubble.textContent = text
-    }
-  } else {
-    row.appendChild(button)
-  }
-
+  row.appendChild(button)
   return { row }
 }
 
+/** How long the toast waits after the page loads, and how long it stays, before leaving. */
+const TOAST_DELAY_MS = 3000
+const TOAST_DURATION_MS = 8000
+
 /**
- * The card above the button while the chat is closed, as a messenger shows its greeting: the
- * chat frame sends the agent's opening message once it has loaded (`agent-studio:preview`), and
- * the card shows it until the visitor opens the chat, writes, or dismisses it. A dismissal lasts
- * for the browser tab, and storage that throws only means the card comes back.
+ * The one message the launcher shows next to its button while the chat is closed, as messengers
+ * do: a pill of the button's height and colour, with the start of a message, a cross, and a click
+ * that opens the chat.
+ *
+ * - On the first load in a tab, a few seconds after the page settles, it shows the agent's
+ *   greeting (`agent-studio:preview`), or the `data-hint` text when the agent has none, then
+ *   leaves by itself.
+ * - When a reply ends while the chat is closed (`agent-studio:reply`), it shows the start of that
+ *   reply and the button gets a badge, which stays until the chat opens.
+ *
+ * The cross dismisses that message for the browser tab. Storage that throws only means a message
+ * may come back.
  */
 function attachPreview({
   row,
@@ -365,6 +443,7 @@ function attachPreview({
   iframe,
   isRight,
   color,
+  hint,
   onOpen,
 }: {
   row: HTMLDivElement
@@ -372,108 +451,190 @@ function attachPreview({
   iframe: HTMLIFrameElement
   isRight: boolean
   color: string
+  hint?: string
   onOpen: () => void
 }) {
-  const dismissKey = "agent-studio:preview-dismissed"
-  const isDismissed = () => {
+  const { onPrimary } = themeColors(color)
+  const read = (store: Storage | undefined, key: string) => {
     try {
-      return sessionStorage.getItem(dismissKey) === "1"
+      return store?.getItem(key) ?? null
     } catch {
-      return false
+      return null
     }
   }
+  const write = (store: Storage | undefined, key: string, value: string) => {
+    try {
+      store?.setItem(key, value)
+    } catch {}
+  }
+  const session = (() => {
+    try {
+      return window.sessionStorage
+    } catch {
+      return undefined
+    }
+  })()
 
-  const card = document.createElement("div")
-  card.className = "as-preview"
-  card.setAttribute("role", "button")
-  card.setAttribute("tabindex", "0")
-  card.style.cssText = [
-    "position: absolute",
-    "bottom: calc(100% + 14px)",
-    isRight ? "right: 0" : "left: 0",
-    "width: 300px",
-    "max-width: calc(100vw - 48px)",
+  const toast = document.createElement("div")
+  toast.className = "as-toast"
+  toast.setAttribute("role", "button")
+  toast.setAttribute("tabindex", "0")
+  toast.style.cssText = [
+    "height: 60px",
     "box-sizing: border-box",
-    "background: white",
-    "color: #1b1f24",
-    "border-radius: 16px",
-    "padding: 14px 16px",
-    "box-shadow: 0 10px 34px rgba(0,0,0,0.16)",
-    "font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif",
-    "cursor: pointer",
-    `transform-origin: ${isRight ? "bottom right" : "bottom left"}`,
-  ].join(";")
-
-  const head = document.createElement("div")
-  head.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:6px"
-  const avatar = document.createElement("span")
-  avatar.style.cssText = [
-    "width: 24px",
-    "height: 24px",
-    "border-radius: 50%",
-    "flex: none",
-    "display: inline-flex",
+    "max-width: min(300px, calc(100vw - 120px))",
+    "display: flex",
     "align-items: center",
-    "justify-content: center",
+    "gap: 6px",
+    `padding: ${isRight ? "0 8px 0 18px" : "0 18px 0 8px"}`,
+    "border-radius: 30px",
     `background: ${color}`,
-    `color: ${themeColors(color).onPrimary}`,
+    `color: ${onPrimary}`,
+    "box-shadow: 0 6px 20px rgba(0,0,0,0.22)",
+    "font: 13px/1.35 system-ui, -apple-system, 'Segoe UI', sans-serif",
+    "cursor: pointer",
+    `order: ${isRight ? -1 : 1}`,
+    `transform-origin: ${isRight ? "right center" : "left center"}`,
+    // Hidden by its inline style, so it stays hidden where the page blocks the stylesheet.
+    "visibility: hidden",
+    "pointer-events: none",
   ].join(";")
-  avatar.innerHTML = dotsIconSvg(14)
-  const title = document.createElement("span")
-  title.style.cssText =
-    "font-weight:600;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+  const text = document.createElement("span")
+  text.style.cssText =
+    "flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"
   const dismiss = document.createElement("button")
+  dismiss.type = "button"
   dismiss.setAttribute("aria-label", "Dismiss")
   dismiss.innerHTML = "&times;"
-  dismiss.style.cssText =
-    "border:none;background:none;color:#6b7280;font-size:18px;line-height:1;cursor:pointer;padding:0 2px"
-  head.append(avatar, title, dismiss)
+  dismiss.style.cssText = [
+    "flex: none",
+    "width: 28px",
+    "height: 28px",
+    "border-radius: 50%",
+    "border: none",
+    "background: transparent",
+    "color: inherit",
+    "opacity: 0.75",
+    "font-size: 20px",
+    "line-height: 1",
+    "cursor: pointer",
+    "padding: 0",
+  ].join(";")
+  if (isRight) toast.append(text, dismiss)
+  else toast.append(dismiss, text)
+  row.appendChild(toast)
 
-  const text = document.createElement("div")
-  text.style.cssText =
-    "display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden"
-  card.append(head, text)
-  row.appendChild(card)
+  const badge = document.createElement("span")
+  badge.className = "as-badge"
+  badge.setAttribute("aria-hidden", "true")
+  badge.textContent = "1"
+  badge.style.cssText = [
+    "position: absolute",
+    "top: -2px",
+    "right: -2px",
+    "min-width: 20px",
+    "height: 20px",
+    "padding: 0 6px",
+    "box-sizing: border-box",
+    "border-radius: 10px",
+    "background: #e5484d",
+    "color: #fff",
+    "font: 600 12px/20px system-ui, sans-serif",
+    "text-align: center",
+    "box-shadow: 0 0 0 2px #fff",
+    "display: none",
+  ].join(";")
+  button.style.position = "relative"
+  button.appendChild(badge)
 
-  let message: string | null = null
-  const render = () => {
-    const show = Boolean(message) && !isDismissed() && !button.classList.contains("as-fab--open")
-    card.classList.toggle("as-preview--on", show)
-    row.classList.toggle("as-row--preview", show)
+  const isOpen = () => button.classList.contains("as-fab--open")
+  let current: { key: string; text: string } | null = null
+  let hideTimer: number | undefined
+
+  const setToastOn = (on: boolean) => {
+    toast.classList.toggle("as-toast--on", on)
+    toast.style.visibility = on ? "visible" : "hidden"
+    toast.style.pointerEvents = on ? "auto" : "none"
+  }
+  const setBadgeOn = (on: boolean) => {
+    badge.classList.toggle("as-badge--on", on)
+    badge.style.display = on ? "" : "none"
+  }
+  const hide = () => {
+    window.clearTimeout(hideTimer)
+    setToastOn(false)
+  }
+  const show = (key: string, message: string, delay: number) => {
+    if (read(session, `agent-studio:dismissed:${key}`)) return
+    // Plain text only: the message may carry Markdown the toast does not render.
+    const plain = message
+      .replace(/[*_`#>]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+    if (!plain) return
+    current = { key, text: plain }
+    window.setTimeout(() => {
+      if (current?.key !== key || isOpen()) return
+      text.textContent = plain
+      toast.setAttribute("aria-label", plain)
+      setToastOn(true)
+      window.clearTimeout(hideTimer)
+      hideTimer = window.setTimeout(hide, TOAST_DURATION_MS)
+    }, delay)
   }
 
+  // The greeting, once per tab, a few seconds after the page loads.
+  let greeting: string | null = hint ?? null
+  window.__agentStudioSetHint = (value: string) => {
+    if (!greeting || greeting === hint) greeting = value
+  }
+  const greetOnce = () => {
+    if (read(session, "agent-studio:greeted")) return
+    write(session, "agent-studio:greeted", "1")
+    if (greeting) show("greeting", greeting, 0)
+  }
+  const greetTimer = window.setTimeout(greetOnce, TOAST_DELAY_MS)
+
+  // Replies: a badge until the chat opens, for a reply that ended while it was closed.
+  const markSeen = () => setBadgeOn(false)
+
   window.addEventListener("message", (event) => {
-    if (event.source !== iframe.contentWindow || event.data?.type !== "agent-studio:preview") return
-    const raw = typeof event.data.text === "string" ? event.data.text : null
-    // Plain text only: the greeting may carry Markdown the card does not render.
-    message = raw
-      ? raw
-          .replace(/[*_`#>]/g, "")
-          .replace(/\s+/g, " ")
-          .trim()
-      : null
-    text.textContent = message ?? ""
-    title.textContent = typeof event.data.title === "string" ? event.data.title : ""
-    title.style.display = title.textContent ? "" : "none"
-    // Let the page settle before the card slides in.
-    window.setTimeout(render, 1200)
+    if (event.source !== iframe.contentWindow) return
+    const data = event.data
+    if (data?.type === "agent-studio:preview") {
+      if (typeof data.text === "string" && data.text.trim()) greeting = data.text
+      return
+    }
+    if (data?.type !== "agent-studio:reply" || typeof data.id !== "string") return
+    // A reply restored with the conversation is not news, nor one the visitor watched arrive.
+    if (data.isNew !== true || isOpen()) return
+    window.clearTimeout(greetTimer)
+    setBadgeOn(true)
+    show(`reply:${data.id}`, typeof data.text === "string" ? data.text : "", 0)
   })
 
-  card.addEventListener("click", (event) => {
+  toast.addEventListener("click", (event) => {
     if (event.target === dismiss) return
     onOpen()
   })
-  card.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") onOpen()
+  toast.addEventListener("keydown", (event) => {
+    if (event.target === dismiss) return
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      onOpen()
+    }
   })
   dismiss.addEventListener("click", (event) => {
     event.stopPropagation()
-    try {
-      sessionStorage.setItem(dismissKey, "1")
-    } catch {}
-    render()
+    if (current) write(session, `agent-studio:dismissed:${current.key}`, "1")
+    hide()
   })
-  new MutationObserver(render).observe(button, { attributes: true, attributeFilter: ["class"] })
+  new MutationObserver(() => {
+    if (isOpen()) {
+      hide()
+      markSeen()
+    }
+  }).observe(button, { attributes: true, attributeFilter: ["class"] })
 }
 
 function makeFabButton(color: string): HTMLButtonElement {
@@ -487,7 +648,7 @@ function makeFabButton(color: string): HTMLButtonElement {
     "height: 60px",
     "border-radius: 50%",
     `background: ${color}`,
-    `color: ${themeColors(color).onPrimary}`,
+    `color: ${themeColors(color).onMark}`,
     "border: none",
     "cursor: pointer",
     "display: flex",
@@ -498,6 +659,7 @@ function makeFabButton(color: string): HTMLButtonElement {
     "pointer-events: auto",
   ].join(";")
   button.innerHTML = `<span class="as-ico">${dotsIconSvg()}${chevronDownSvg()}</span>`
+  setFabOpen(button, false)
   // One wave across the dots shortly after load, to say the button is alive without nagging.
   window.setTimeout(() => button.classList.add("as-fab--greet"), 800)
   window.setTimeout(() => button.classList.remove("as-fab--greet"), 2400)
@@ -505,6 +667,11 @@ function makeFabButton(color: string): HTMLButtonElement {
 }
 
 function setFabOpen(button: HTMLButtonElement, open: boolean) {
+  // Inline too, so the button shows one icon even where the stylesheet is blocked.
+  const dots = button.querySelector<SVGElement>(".as-dots")
+  const chevron = button.querySelector<SVGElement>(".as-chevron")
+  if (dots) dots.style.opacity = open ? "0" : "1"
+  if (chevron) chevron.style.opacity = open ? "1" : "0"
   button.classList.toggle("as-fab--open", open)
   button.setAttribute("aria-expanded", String(open))
   button.setAttribute("aria-label", open ? "Close chat" : "Open chat")
@@ -553,15 +720,17 @@ function injectLauncherStyles() {
 .as-fab--open .as-chevron{opacity:1;transform:none}
 .as-dot{transform-box:fill-box;transform-origin:center;transition:opacity .18s ease,transform .3s cubic-bezier(.16,1,.3,1)}
 .as-fab--open .as-dots{transform:scale(.3) rotate(90deg);opacity:0}
-.as-row:has(.as-fab--open) .as-hint,.as-row--preview .as-hint{opacity:0!important}
-.as-preview{opacity:0;transform:translateY(10px) scale(.96);visibility:hidden;pointer-events:none;transition:opacity .22s ease,transform .36s cubic-bezier(.16,1,.3,1),visibility 0s linear .36s}
-.as-preview--on{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .22s ease,transform .36s cubic-bezier(.16,1,.3,1),visibility 0s}
-.as-preview--on:hover{box-shadow:0 14px 40px rgba(0,0,0,.2)}
+.as-toast{opacity:0;transform:scale(.92);visibility:hidden;pointer-events:none;transition:opacity .22s ease,transform .36s cubic-bezier(.16,1,.3,1),visibility 0s linear .36s}
+.as-toast--on{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .22s ease,transform .36s cubic-bezier(.16,1,.3,1),visibility 0s}
+.as-toast:focus-visible{outline:3px solid rgba(0,0,0,.35);outline-offset:3px}
+.as-toast button:hover{opacity:1!important}
+.as-badge--on{animation:as-pop .3s cubic-bezier(.16,1,.3,1)}
+@keyframes as-pop{from{opacity:0;transform:scale(.4)}}
 .as-fab:not(.as-fab--open):hover .as-dot,.as-fab--greet:not(.as-fab--open) .as-dot{animation:as-wave .9s cubic-bezier(.45,0,.55,1) calc(var(--as-i) * 80ms) 1}
 @keyframes as-wave{0%,100%{transform:scale(1)}40%{transform:scale(1.3)}}
 .as-frame{opacity:0;transform:translateY(16px) scale(.94);visibility:hidden;pointer-events:none;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s linear .32s}
 .as-frame--open{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s}
-@media (prefers-reduced-motion: reduce){.as-fab,.as-dots,.as-dot,.as-chevron,.as-frame,.as-frame--open,.as-preview,.as-preview--on{transition:none!important;animation:none!important}.as-fab:hover{transform:none}}
+@media (prefers-reduced-motion: reduce){.as-fab,.as-dots,.as-dot,.as-chevron,.as-frame,.as-frame--open,.as-toast,.as-toast--on,.as-badge{transition:none!important;animation:none!important}.as-fab:hover{transform:none}}
 `
   document.head.appendChild(style)
 }

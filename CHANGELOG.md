@@ -18,6 +18,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- (beta) Embedded chat on phones: the chat opens full screen and follows the part of the screen the keyboard leaves visible, the page behind stays still (iOS included) and comes back where it was, the floating window fits the visible screen height, the message box uses 16 px text on touch screens so iOS no longer zooms in on it, and an answer no longer scrolls the host page as it streams, and closes with a cross.
+- (beta) Embedded chat: the launcher opens and closes on pages whose security policy blocks injected styles, and its dots stay white on a coloured button such as the Bayes orange.
+- (beta) Embedded chat: one toast next to the launcher replaces the hint and the greeting card. It shows the greeting a few seconds after the first load, or the start of a reply that ended while the chat was closed, with a badge on the button until the chat opens, and leaves by itself.
+- (beta) Embedded chat: the visitor can write while a reply is coming. What they send waits, greyed, and goes out when the reply is over.
+- (beta) Embedded chat: a reply stays marked as in progress until its cards arrive, and the conversation scrolls down as cards load.
 - (beta) Embedded chat: once the visitor has written something, the new conversation button asks before clearing the conversation, under the header (Cancel, or Clear and start over).
 - Agent editor: settings save to the draft automatically, and the editor shows the save status or why a save failed.
 - Agent editor: conversation and extraction agents open in the same full-page editor, with its own menu.

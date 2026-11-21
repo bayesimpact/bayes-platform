@@ -17,7 +17,8 @@
       "copyAriaLabel": "Copier dans le presse-papiers",
       "followUpQuestions": "Questions suggérées",
       "sources_one": "{{count}} source",
-      "sources_other": "{{count}} sources"
+      "sources_other": "{{count}} sources",
+      "queued": "Envoyé à la fin de la réponse"
     },
     "status": {
       "connecting": "Connexion en cours…",

@@ -211,6 +211,24 @@ export const NewConversationNoConfirm: Story = {
   },
 }
 
+export const QueuedMessage: Story = {
+  name: "Streaming — message written during the reply waits",
+  args: {
+    locale: "fr",
+    messages: [
+      ...shortConversation,
+      { id: "user-q", role: "user", content: "What's the return policy?", status: "completed" },
+      buildStreamingMessage("Returns are free within 30 days"),
+    ],
+    isStreaming: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.type(canvas.getByRole("textbox"), "And for sale items?{Enter}")
+    await expect(canvas.getByText("Envoyé à la fin de la réponse")).toBeInTheDocument()
+  },
+}
+
 export const NoCloseButton: Story = {
   args: {
     messages: shortConversation,

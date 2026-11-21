@@ -93,6 +93,10 @@ export function ChatMessage({
               >
                 {isStreaming && message.content.trim().length === 0 && <ThinkingIndicator />}
                 {isError ? <ErrorIndicator /> : <MarkdownWrapper content={bubbleContent} />}
+                {isStreaming && message.content.trim().length > 0 && (
+                  // The text may be done while the reply still runs (cards, sources): say so.
+                  <DotGridLoader className="mt-2 size-4" />
+                )}
                 {isCopyable && <CopyButton content={bubbleContent} />}
               </div>
 
