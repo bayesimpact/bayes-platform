@@ -452,3 +452,29 @@ export function buildSeveralCampaignAgentsWorld(): EvalWorld {
     testerSurveys: { ...world.testerSurveys, [writingPilot.id]: null },
   }
 }
+
+/**
+ * The owner of the main world's project, who also tests a campaign on an agent of a project they
+ * hold no role in: the command center lists both agents, the second under Your campaigns.
+ */
+export function buildProjectAndCampaignAgentWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  const [organization] = world.organizations
+  if (!organization) throw new Error("The main world has an organization")
+  // Not among the person's projects: its agent is theirs through the campaign alone.
+  const otherProject = buildMyProject(organization, { permissions: ["project.read"] })
+  const writer = buildProjectAgent(otherProject, { name: "Writing Helper" })
+  const writingPilot = buildReviewCampaign(writer, organization.id, {
+    name: "Writing pilot",
+    description: "Try the helper on the letters you write every week.",
+    status: "active",
+  })
+  return {
+    ...world,
+    agents: [...world.agents, writer],
+    campaigns: [...world.campaigns, writingPilot],
+    myCampaignRoles: { ...world.myCampaignRoles, [writingPilot.id]: ["tester"] },
+    testerSessions: { ...world.testerSessions, [writingPilot.id]: [] },
+    testerSurveys: { ...world.testerSurveys, [writingPilot.id]: null },
+  }
+}

@@ -4,9 +4,9 @@ import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import {
   agentPathParams,
   findProjectDefaultAgent,
-  flattenEvaluationAgents,
   loadEvaluationWorkspace,
   readLastAgentId,
+  switchableAgentCountOf,
 } from "@/features/agents"
 
 /**
@@ -16,13 +16,13 @@ import {
  */
 export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$projectId/")({
   loader: async ({ context, params }) => {
-    const { groups } = await loadEvaluationWorkspace(context.queryClient)
-    const agent = findProjectDefaultAgent(groups, params, readLastAgentId())
+    const workspace = await loadEvaluationWorkspace(context.queryClient)
+    const agent = findProjectDefaultAgent(workspace.groups, params, readLastAgentId())
     if (!agent) throw notFound()
     throw redirect({
       to: "/o/$organizationId/p/$projectId/a/$agentId",
       params: agentPathParams(agent),
-      search: flattenEvaluationAgents(groups).length > 1 ? { switchAgent: true } : {},
+      search: switchableAgentCountOf(workspace) > 1 ? { switchAgent: true } : {},
       replace: true,
     })
   },

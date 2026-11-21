@@ -10,6 +10,7 @@ import {
 } from "@/test/eval-urls"
 import {
   buildEvalWorld,
+  buildEveryAccessWorld,
   buildNoCampaignWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/eval-world.factory"
@@ -305,6 +306,22 @@ describe("a campaign's editor", () => {
 
     expect(await screen.findByText("Mean tester rating")).toBeInTheDocument()
     expect(page().getByText("Closed")).toBeInTheDocument()
+  })
+
+  it("takes a campaign the manager tests out of their Tester menu once they close it", async () => {
+    const world = buildEveryAccessWorld()
+    server.use(...worldHandlers(world))
+    renderApp(campaignEditorUrlOf(world, "Support assistant pilot"))
+    expect(await screen.findByRole("button", { name: "Tester" })).toBeInTheDocument()
+
+    await userEvent.click(await screen.findByRole("button", { name: "Close the campaign" }))
+    const dialog = await screen.findByRole("alertdialog")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Close the campaign" }))
+
+    // A tester's campaign leaves their list once closed, and the menu goes with its last one.
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Tester" })).not.toBeInTheDocument(),
+    )
   })
 
   it("opens a closed campaign on its summary", async () => {
