@@ -274,7 +274,7 @@ function SimulatedChat({
 function ChatLoadingShell({ theme, hideHeader }: { theme: EmbedChatTheme; hideHeader: boolean }) {
   const { t } = useTranslation("chat")
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white pointer-coarse:rounded-none">
       {!hideHeader && (
         <div
           className="chat-header flex h-16 shrink-0 items-center gap-3 px-5"
@@ -302,7 +302,7 @@ function ChatErrorShell({
 }) {
   const { t } = useTranslation("chat")
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white pointer-coarse:rounded-none">
       {!hideHeader && (
         <div
           className="chat-header flex h-16 shrink-0 items-center gap-3 px-5"

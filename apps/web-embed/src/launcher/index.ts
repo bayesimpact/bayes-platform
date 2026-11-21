@@ -114,8 +114,7 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
     "max-width: calc(100vw - 32px)",
     "height: 704px",
     "max-height: calc(100vh - 112px)",
-    // The visible height on phones, where 100vh runs under the browser bars. Browsers without dvh
-    // drop this line and keep the one above.
+    // The visible height on phones, where 100vh also counts the space under the browser's bars.
     "max-height: calc(100dvh - 112px)",
     "border: none",
     "border-radius: 18px",
@@ -124,6 +123,7 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
     `transform-origin: ${isRight ? "bottom right" : "bottom left"}`,
   ].join(";")
   iframe.className = "as-frame"
+  setFrameShown(iframe, false)
   iframe.setAttribute("allow", "microphone; clipboard-write")
   iframe.setAttribute("title", "Chat")
 
@@ -131,28 +131,52 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
   const { row } = makeFabRow(button, hint, isRight)
 
   let isOpen = false
-  let savedScroll: { html: string; body: string } | null = null
+  const desktopContainer = container.style.cssText
+  const desktopFrame = iframe.style.cssText
+  const sheet = phoneSheet(container)
 
-  // The window grows out of the button, as a messenger does, instead of popping in: the
-  // stylesheet animates its opacity and scale between the two states. On a phone it takes the
-  // whole screen (see PHONE_QUERY), so the page behind stops scrolling while it is open.
+  // On a phone the chat takes the whole screen, as a messenger's does there: a 400 px window
+  // left the page scrolling behind it and the keyboard pushing it around. The header's chevron
+  // closes it, so the button hides meanwhile.
+  let wasFull = false
+  let restore = 0
+  const layout = () => {
+    const full = isOpen && isPhone()
+    window.clearTimeout(restore)
+    if (wasFull && !full && !isOpen) {
+      // Fade the full-screen chat out where it is, then put the window back for next time.
+      setFrameShown(iframe, false)
+      sheet.set(false)
+      wasFull = false
+      restore = window.setTimeout(layout, 320)
+      return
+    }
+    wasFull = full
+    container.style.cssText = desktopContainer
+    iframe.style.cssText = desktopFrame
+    if (full) {
+      container.style.cssText += PHONE_CONTAINER
+      iframe.style.cssText += PHONE_FRAME
+      row.style.display = "none"
+    } else {
+      row.style.display = "flex"
+    }
+    setFrameShown(iframe, isOpen)
+    sheet.set(full)
+  }
+
+  // The window grows out of the button, as a messenger does, instead of popping in. Its state
+  // lives in inline styles, so a host page whose CSP blocks the stylesheet still gets a chat that
+  // opens and closes; the stylesheet only animates between the two states.
   const setOpen = (open: boolean) => {
     isOpen = open
     iframe.classList.toggle("as-frame--open", open)
     setFabOpen(button, open)
-    if (open && !savedScroll && window.matchMedia(PHONE_QUERY).matches) {
-      savedScroll = {
-        html: document.documentElement.style.overflow,
-        body: document.body.style.overflow,
-      }
-      document.documentElement.style.overflow = "hidden"
-      document.body.style.overflow = "hidden"
-    } else if (!open && savedScroll) {
-      document.documentElement.style.overflow = savedScroll.html
-      document.body.style.overflow = savedScroll.body
-      savedScroll = null
-    }
+    layout()
   }
+  window.addEventListener("resize", () => {
+    if (isOpen) layout()
+  })
 
   button.addEventListener("click", () => setOpen(!isOpen))
 
@@ -226,6 +250,7 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
   let isOpen = false
   let savedBodyOverflow = ""
   let savedBodyPaddingRight = ""
+  const sheet = phoneSheet(overlay)
 
   const open = () => {
     iframe.style.transform = "translateX(0)"
@@ -243,6 +268,9 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`
     }
+    // iOS ignores overflow: hidden on the body, and its keyboard shrinks only the visible part
+    // of the screen: on a phone the panel pins the page and follows that visible part.
+    sheet.set(isPhone())
     isOpen = true
   }
 
@@ -251,6 +279,7 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
     row.style.opacity = "1"
     button.style.pointerEvents = "auto"
     setFabOpen(button, false)
+    sheet.set(false)
     document.body.style.overflow = savedBodyOverflow
     document.body.style.paddingRight = savedBodyPaddingRight
     isOpen = false
@@ -273,6 +302,89 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
 }
 
 // ─── Shared helpers ────────────────────────────────────────────────────────
+
+/** A phone, or a window as narrow as one: the chat then takes the whole screen. */
+const PHONE_QUERY = "(max-width: 640px)"
+function isPhone() {
+  return window.matchMedia?.(PHONE_QUERY).matches ?? window.innerWidth <= 640
+}
+
+const PHONE_CONTAINER = [
+  ";top: 0",
+  "left: 0",
+  "right: 0",
+  "bottom: auto",
+  "height: 100%",
+  "gap: 0",
+  "padding: env(safe-area-inset-top, 0) 0 0",
+  "background: white",
+].join(";")
+
+const PHONE_FRAME = [
+  ";width: 100%",
+  "max-width: none",
+  "height: 100%",
+  "max-height: none",
+  "border-radius: 0",
+  "box-shadow: none",
+].join(";")
+
+/** Shows or hides the chat window with inline styles, which a CSP cannot block. */
+function setFrameShown(iframe: HTMLIFrameElement, shown: boolean) {
+  iframe.style.opacity = shown ? "1" : "0"
+  iframe.style.visibility = shown ? "visible" : "hidden"
+  iframe.style.pointerEvents = shown ? "auto" : "none"
+  iframe.style.transform = shown ? "none" : "translateY(16px) scale(.94)"
+}
+
+/**
+ * While the chat fills a phone's screen: the host page stays still behind it (iOS scrolls a body
+ * with overflow: hidden, so the body is pinned where it was and put back on close), and the chat
+ * sizes itself to the part of the screen the keyboard leaves visible, which is what the browser's
+ * visualViewport reports. Without it the input slid under the keyboard and the page moved
+ * under the visitor's thumb while they typed.
+ */
+function phoneSheet(box: HTMLElement) {
+  let active = false
+  let scrollY = 0
+  let saved = ""
+  let savedBox = ""
+  const follow = () => {
+    const vv = window.visualViewport
+    if (!active || !vv) return
+    box.style.top = `${vv.offsetTop}px`
+    box.style.height = `${vv.height}px`
+  }
+  return {
+    set(on: boolean) {
+      if (on === active) {
+        follow()
+        return
+      }
+      active = on
+      const body = document.body
+      if (on) {
+        scrollY = window.scrollY
+        saved = body.style.cssText
+        savedBox = box.style.cssText
+        body.style.position = "fixed"
+        body.style.top = `-${scrollY}px`
+        body.style.left = "0"
+        body.style.right = "0"
+        body.style.overflow = "hidden"
+        window.visualViewport?.addEventListener("resize", follow)
+        window.visualViewport?.addEventListener("scroll", follow)
+        follow()
+      } else {
+        window.visualViewport?.removeEventListener("resize", follow)
+        window.visualViewport?.removeEventListener("scroll", follow)
+        body.style.cssText = saved
+        box.style.cssText = savedBox
+        window.scrollTo(0, scrollY)
+      }
+    },
+  }
+}
 
 /**
  * Lets the host page start a new conversation. The widget keeps the session
@@ -419,6 +531,8 @@ function attachPreview({
     "font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif",
     "cursor: pointer",
     `transform-origin: ${isRight ? "bottom right" : "bottom left"}`,
+    "visibility: hidden",
+    "pointer-events: none",
   ].join(";")
 
   const head = document.createElement("div")
@@ -433,7 +547,7 @@ function attachPreview({
     "align-items: center",
     "justify-content: center",
     `background: ${color}`,
-    `color: ${themeColors(color).onPrimary}`,
+    `color: ${themeColors(color).onMark}`,
   ].join(";")
   avatar.innerHTML = dotsIconSvg(14)
   const title = document.createElement("span")
@@ -457,6 +571,8 @@ function attachPreview({
     const show = Boolean(message) && !isDismissed() && !button.classList.contains("as-fab--open")
     card.classList.toggle("as-preview--on", show)
     row.classList.toggle("as-row--preview", show)
+    card.style.visibility = show ? "visible" : "hidden"
+    card.style.pointerEvents = show ? "auto" : "none"
   }
 
   window.addEventListener("message", (event) => {
@@ -504,7 +620,7 @@ function makeFabButton(color: string): HTMLButtonElement {
     "height: 60px",
     "border-radius: 50%",
     `background: ${color}`,
-    `color: ${themeColors(color).onPrimary}`,
+    `color: ${themeColors(color).onMark}`,
     "border: none",
     "cursor: pointer",
     "display: flex",
@@ -515,6 +631,7 @@ function makeFabButton(color: string): HTMLButtonElement {
     "pointer-events: auto",
   ].join(";")
   button.innerHTML = `<span class="as-ico">${dotsIconSvg()}${chevronDownSvg()}</span>`
+  setFabOpen(button, false)
   // One wave across the dots shortly after load, to say the button is alive without nagging.
   window.setTimeout(() => button.classList.add("as-fab--greet"), 800)
   window.setTimeout(() => button.classList.remove("as-fab--greet"), 2400)
@@ -522,6 +639,11 @@ function makeFabButton(color: string): HTMLButtonElement {
 }
 
 function setFabOpen(button: HTMLButtonElement, open: boolean) {
+  // Inline too, so the button shows one icon even where the stylesheet is blocked.
+  const dots = button.querySelector<SVGElement>(".as-dots")
+  const chevron = button.querySelector<SVGElement>(".as-chevron")
+  if (dots) dots.style.opacity = open ? "0" : "1"
+  if (chevron) chevron.style.opacity = open ? "1" : "0"
   button.classList.toggle("as-fab--open", open)
   button.setAttribute("aria-expanded", String(open))
   button.setAttribute("aria-label", open ? "Close chat" : "Open chat")
@@ -554,12 +676,6 @@ function dotsIconSvg(size = 26) {
  * an `as-` prefix so the host's own styles cannot match them. Everything stops for visitors who
  * ask their system for reduced motion.
  */
-/**
- * Screens where the floating window would leave a sliver of page around it: there the chat opens
- * full screen, as messengers do on phones, and the button hides behind it.
- */
-const PHONE_QUERY = "(max-width: 480px)"
-
 function injectLauncherStyles() {
   if (document.getElementById("agent-studio-embed-styles")) return
   const style = document.createElement("style")
@@ -584,7 +700,6 @@ function injectLauncherStyles() {
 @keyframes as-wave{0%,100%{transform:scale(1)}40%{transform:scale(1.3)}}
 .as-frame{opacity:0;transform:translateY(16px) scale(.94);visibility:hidden;pointer-events:none;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s linear .32s}
 .as-frame--open{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .2s ease,transform .32s cubic-bezier(.16,1,.3,1),visibility 0s}
-@media (max-width: 480px){.as-frame{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border-radius:0!important;box-shadow:none!important;transform-origin:bottom center!important}.as-frame--open+.as-row{display:none!important}}
 @media (prefers-reduced-motion: reduce){.as-fab,.as-dots,.as-dot,.as-chevron,.as-frame,.as-frame--open,.as-preview,.as-preview--on{transition:none!important;animation:none!important}.as-fab:hover{transform:none}}
 `
   document.head.appendChild(style)
