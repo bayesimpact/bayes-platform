@@ -15,6 +15,7 @@ import {
   saveAgentMembership,
 } from "@/domains/agents/memberships/agent-membership.factory"
 import type { AgentRoleKey } from "@/domains/agents/memberships/agent-membership.types"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -165,6 +166,23 @@ describe("Desk memories - Auth", () => {
 
   it("does not allow project members without access to the agent", async () => {
     await seedContext({ projectRole: "project_member", agentMembership: "none" })
+    await expectAll(403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+  })
+
+  // As on the live route: an organization role grants no `agent.read`.
+  it("forbids an organization admin who holds no project role", async () => {
+    const { organization } = await seedContext({
+      projectRole: "project_owner",
+      agentMembership: "agent_owner",
+    })
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: { authSubject: organizationAdminAuthSubject },
+      membership: { roleKeys: ["org_admin"] },
+    })
+    authSubject = organizationAdminAuthSubject
     await expectAll(403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 

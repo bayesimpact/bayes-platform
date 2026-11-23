@@ -179,6 +179,30 @@ describe("Desk conversations - Auth", () => {
     agentSessionId = agentSession.id
   }
 
+  /**
+   * Switches the caller to another owner of the same project, and leaves the path on the first
+   * person's live conversation.
+   */
+  const switchToAnotherProjectOwner = async ({
+    organization,
+    project,
+  }: Awaited<ReturnType<typeof createContextForRole>>) => {
+    const otherAuthSubject = `oidc|${randomUUID()}`
+    const { user } = await addUserToOrganization({
+      repositories,
+      organization,
+      user: { authSubject: otherAuthSubject, email: mockOidcEmailForSub(otherAuthSubject) },
+      membership: { roleKeys: ["org_member"] },
+    })
+    await addUserToProject({
+      repositories,
+      project,
+      user,
+      membership: { roleKeys: ["project_owner"] },
+    })
+    authSubject = otherAuthSubject
+  }
+
   const agentParams = () => ({ organizationId, projectId, agentId })
   const conversationParams = () => ({ ...agentParams(), agentSessionId })
 
@@ -317,6 +341,12 @@ describe("Desk conversations - Auth", () => {
       await createContextForRole("project_owner", "playground")
       expectResponse(await subject(), 404)
     })
+
+    it("answers 404 for someone else's live conversation, even to a project owner", async () => {
+      const context = await createContextForRole("project_owner")
+      await switchToAnotherProjectOwner(context)
+      expectResponse(await subject(), 404)
+    })
   })
 
   describe("streamReply, on a conversation", () => {
@@ -324,6 +354,15 @@ describe("Desk conversations - Auth", () => {
       await createContextForRole("project_owner")
       agentSessionId = randomUUID()
       expectResponse(await streamReply(), 404)
+    })
+
+    it("answers 404 for someone else's live conversation, even to a project owner", async () => {
+      const context = await createContextForRole("project_owner")
+      await switchToAnotherProjectOwner(context)
+      const messageCountBefore = await countSessionMessages()
+
+      expectResponse(await streamReply(), 404)
+      expect(await countSessionMessages()).toBe(messageCountBefore)
     })
 
     // As on the live route, the handler's own check answers 200 with an SSE error frame: only the

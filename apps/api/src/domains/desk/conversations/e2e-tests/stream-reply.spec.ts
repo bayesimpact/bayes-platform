@@ -11,6 +11,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { agentMessageAttachmentDocumentFactory } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -107,6 +108,30 @@ describe("Desk conversations - streamReply", () => {
       ["user", "Hello"],
       ["assistant", "Hello, I'm the stream default mock value!"],
     ])
+  })
+
+  it("attaches the uploaded document to the message the person typed", async () => {
+    const { organization, project } = await createContext()
+    const attachmentDocument = await repositories.agentMessageAttachmentDocumentRepository.save(
+      agentMessageAttachmentDocumentFactory.transient({ organization, project }).build(),
+    )
+
+    const response = await subject({
+      payload: { content: "Hello", attachmentDocumentId: attachmentDocument.id },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.text).not.toContain("event: error")
+    const messages = await repositories.agentMessageRepository.find({
+      where: { sessionId: agentSessionId, role: In(["user", "assistant"]) },
+      order: { createdAt: "ASC" },
+    })
+    expect(messages.map((message) => [message.role, message.attachmentDocumentId ?? null])).toEqual(
+      [
+        ["user", attachmentDocument.id],
+        ["assistant", null],
+      ],
+    )
   })
 
   it("answers with the version in production even when a draft exists", async () => {

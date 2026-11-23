@@ -94,7 +94,11 @@ export class DeskConversationMessagesController {
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
-  /** The schema checks the file name, the MIME type and the size before any URL is signed. */
+  /**
+   * The schema checks the MIME type, the size and that the file name is not empty before any URL
+   * is signed. A file name with no extension, a blank one included, gets its 422 from
+   * `extractFileExtension`, as on the live route.
+   */
   @SchemaRoute(DeskConversationsRoutes.presignAttachment, {
     permission: { key: AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, on: "agent" },
     context: [...CONVERSATION_CONTEXT],

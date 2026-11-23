@@ -177,6 +177,15 @@ describe("Desk conversations - presignAttachment and getAttachmentUrl", () => {
     expect(await countAttachmentDocuments()).toBe(0)
   })
 
+  // The schema only refuses an empty name. A blank one passes it, and the handler answers 422, as
+  // the live route does, since the name holds no extension.
+  it("answers 422 for a blank file name without signing a URL", async () => {
+    await createContext()
+
+    expectResponse(await subject({ fileName: "   ", mimeType: "application/pdf", size: 1234 }), 422)
+    expect(await countAttachmentDocuments()).toBe(0)
+  })
+
   it("returns a temporary URL for the attachment of a message of the conversation", async () => {
     const context = await createContext()
     const { organization, project } = context
