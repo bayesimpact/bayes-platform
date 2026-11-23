@@ -379,7 +379,8 @@ the same permission on the same resource. ADR 0031, section 2.13, lists what wai
 - A handler serves a route of the contracts package through `@SchemaRoute`
   (`apps/api/src/common/schema-route/`). Its input guard parses the params, the query and the body
   with the route's schemas before any context resolver runs, and its interceptor parses the
-  response with the route's response schema. `apps/api/CLAUDE.md` says how to write one.
+  response with the route's response schema. `apps/api/CLAUDE.md` says how to write one, and
+  [`docs/schema-routes.md`](../schema-routes.md) explains how it works.
 - A new or changed endpoint is contract first: its schemas and its route in the contracts package,
   then its handler with `@SchemaRoute` and its e2e specs in `apps/api`.
 - The Desk's home reads `desk/me`, `desk/projects/mine` and `desk/organizations/mine`. It filters on

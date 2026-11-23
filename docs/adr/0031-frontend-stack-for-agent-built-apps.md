@@ -593,7 +593,8 @@ one exception: a resource card of a reply links to a library file at
 a route outside `desk/` and outside the contracts. The context
 resolvers come from `ResourceContextModule` in `apps/api/src/common/context/`, so the Desk module
 registers no entity of another domain. `apps/api/src/common/schema-route/` holds `@SchemaRoute`,
-its input guard and its response interceptor. The input guard parses the params, query and body
+its input guard and its response interceptor, and [`docs/schema-routes.md`](../schema-routes.md)
+is their guide. The input guard parses the params, query and body
 with the route's schemas before any resolver runs, and answers 400 with the issues. The interceptor
 parses each response with the route's schema, strips unknown keys, and answers 500 on a mismatch.
 The API requires the CommonJS build of the contracts (`dist`) at runtime, and Jest maps the package

@@ -49,6 +49,8 @@ function isStreamRoute(route: AnySchemaRoute | AnyStreamRoute): route is AnyStre
  * `ResourceContextGuard` and `CheckPermissionGuard` when the options ask for them), the required
  * contexts, the permission, the tracked activity and the response interceptor. A stream route
  * answers 200 with server-sent events, records no activity and has no response interceptor.
+ *
+ * `docs/schema-routes.md` explains the order of the guards, the options and how to write a handler.
  */
 export function SchemaRoute(
   route: AnySchemaRoute | AnyStreamRoute,
