@@ -44,6 +44,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Desk: a pen or touch resize of the sidebar or a side panel stops when the browser cancels the gesture.
 - (beta) Interactive cards (MCP Apps): a tool call that failed no longer shows a card.
 
 ### Security
