@@ -1,4 +1,5 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
+import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Empty,
   EmptyDescription,
@@ -16,17 +17,25 @@ import {
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
 import { Switch } from "@caseai-connect/ui/shad/switch"
-import { ExternalLinkIcon, ServerIcon } from "lucide-react"
+import { ExternalLinkIcon, ServerIcon, WrenchIcon } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useCurrentId } from "@/common/hooks/use-value"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { McpServerConnectionBadge } from "@/studio/features/mcp-servers/components/McpServerConnectionStatus"
+import { McpServerToolsDialog } from "@/studio/features/mcp-servers/components/McpServerToolsDialog"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
+import {
+  connectionOf,
+  selectMcpServerConnections,
+} from "@/studio/features/mcp-servers/mcp-servers.selectors"
 import {
   disableMcpServerForAgent,
   enableMcpServerForAgent,
+  inspectMcpServer,
 } from "@/studio/features/mcp-servers/mcp-servers.thunks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { LiveSettingNotice } from "../LiveSettingNotice"
@@ -52,6 +61,19 @@ export function McpServersTab({
   const organizationId = useCurrentId(selectCurrentOrganizationId)
   const projectId = useCurrentId(selectCurrentProjectId)
   const managerPath = StudioRoutes.mcpServers.build({ organizationId, projectId })
+
+  const connections = useAppSelector(selectMcpServerConnections)
+  const [inspectedServerId, setInspectedServerId] = useState<string | null>(null)
+  const inspectedServer = mcpServers.find((server) => server.id === inspectedServerId)
+
+  // The tools are only asked for when someone wants to see them: opening an
+  // agent must not connect to every server of the project.
+  const handleViewTools = (mcpServerId: string) => {
+    setInspectedServerId(mcpServerId)
+    if (connectionOf(connections, mcpServerId).state === "unknown") {
+      dispatch(inspectMcpServer({ mcpServerId }))
+    }
+  }
 
   const enabledServerIds = new Set(
     agentMcpServers.filter((server) => server.enabled).map((server) => server.id),
@@ -104,6 +126,10 @@ export function McpServersTab({
               <ItemTitle className="gap-2">
                 {server.name}
                 {server.isBuiltIn && <Badge variant="secondary">{t("mcpServers:builtIn")}</Badge>}
+                <McpServerConnectionBadge
+                  connection={connectionOf(connections, server.id)}
+                  authStatus={server.authStatus}
+                />
               </ItemTitle>
               {server.isBuiltIn && (
                 <ItemDescription>
@@ -111,6 +137,9 @@ export function McpServersTab({
                 </ItemDescription>
               )}
             </ItemContent>
+            <Button variant="ghost" size="sm" onClick={() => handleViewTools(server.id)}>
+              <WrenchIcon className="size-3.5" /> {t("mcpServers:tools.view")}
+            </Button>
             <Switch
               checked={enabledServerIds.has(server.id)}
               onCheckedChange={(checked) => handleToggle(server.id, checked)}
@@ -118,6 +147,18 @@ export function McpServersTab({
           </Item>
         ))}
       </ItemGroup>
+      {inspectedServer && (
+        <McpServerToolsDialog
+          serverName={inspectedServer.name}
+          authStatus={inspectedServer.authStatus}
+          connection={connectionOf(connections, inspectedServer.id)}
+          open
+          onOpenChange={(open) => {
+            if (!open) setInspectedServerId(null)
+          }}
+          onRefresh={() => dispatch(inspectMcpServer({ mcpServerId: inspectedServer.id }))}
+        />
+      )}
     </FieldGroup>
   )
 }

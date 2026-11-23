@@ -55,7 +55,10 @@ import type { Document } from "@/studio/features/documents/documents.models"
 import type { EvaluationConversationDataset } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { InviteeAccessByEmail } from "@/studio/features/invitations/invitations.spi"
-import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
+import type {
+  McpServer,
+  McpServerInspection,
+} from "@/studio/features/mcp-servers/mcp-servers.models"
 import type { ProjectEmbeddingModel } from "@/studio/features/project-embedding-models/project-embedding-models.models"
 import type {
   AssignableRoles,
@@ -332,6 +335,29 @@ export const seed = {
 
     mcpServers(mcpServers: McpServer[]): StoryPreloadedState {
       return { mcpServers: { data: ads.fulfilled(mcpServers) } }
+    },
+
+    /** The last inspection of each server, by server id, and the servers being inspected. */
+    mcpServerInspections({
+      inspections = {},
+      inspectingIds = [],
+    }: {
+      inspections?: Record<string, McpServerInspection>
+      inspectingIds?: string[]
+    }): StoryPreloadedState {
+      return {
+        mcpServers: {
+          inspections: Object.fromEntries(
+            Object.entries(inspections).map(([mcpServerId, inspection]) => [
+              mcpServerId,
+              ads.fulfilled(inspection),
+            ]),
+          ),
+          inspectionRequestIds: Object.fromEntries(
+            inspectingIds.map((mcpServerId) => [mcpServerId, "story"]),
+          ),
+        },
+      }
     },
 
     projectEmbeddingModels(projectEmbeddingModels: ProjectEmbeddingModel[]): StoryPreloadedState {

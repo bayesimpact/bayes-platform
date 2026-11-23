@@ -575,4 +575,113 @@ describe("McpServers - auth and scoping", () => {
       expectResponse(await subject(), 404)
     })
   })
+
+  describe("updateOne", () => {
+    const subject = () =>
+      request({
+        route: McpServersRoutes.updateOne,
+        pathParams: pathParams(),
+        token: accessToken ?? undefined,
+        request: { payload: { name: "Renamed Server" } },
+      })
+
+    const storedName = async () =>
+      (await repositories.mcpServerRepository.findOneOrFail({ where: { id: mcpServerId } })).name
+
+    it("requires an authentication token", async () => {
+      await createContextForRole("project_owner")
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("project_owner")
+      authSubject = mockForeignAuthSubject()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to update", async (role) => {
+      await createContextForRole(role)
+      await giveServerDecryptableConfig()
+
+      expectResponse(await subject(), 200)
+      expect(await storedName()).toBe("Renamed Server")
+    })
+
+    it("forbids a simple project member from updating", async () => {
+      await createContextForRole("project_member")
+      await giveServerDecryptableConfig()
+
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expect(await storedName()).toBe("Scoped Server")
+    })
+
+    it("forbids an organization admin without a project role from updating", async () => {
+      const { organization } = await createContextForRole("project_owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("returns 404 for a server of another project", async () => {
+      const { organization } = await createContextForRole("project_owner")
+      const { foreignServer } = await createServerInOtherProject(organization)
+      mcpServerId = foreignServer.id
+
+      expectResponse(await subject(), 404)
+      expect(await storedName()).toBe("Foreign Server")
+    })
+  })
+
+  describe("inspect", () => {
+    const subject = () =>
+      request({
+        route: McpServersRoutes.inspect,
+        pathParams: pathParams(),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      await createContextForRole("project_owner")
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("project_owner")
+      authSubject = mockForeignAuthSubject()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])("allows a %s to inspect", async (role) => {
+      await createContextForRole(role)
+      // An OAuth server with no token: the answer needs no call to the server.
+      await giveServerDecryptableConfig()
+
+      const response = await subject()
+
+      expectResponse(response, 200)
+      expect(response.body.data.status).toBe("authorizationRequired")
+    })
+
+    it("forbids an organization admin without a project role from inspecting", async () => {
+      const { organization } = await createContextForRole("project_owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("returns 404 for a server of another project", async () => {
+      const { organization } = await createContextForRole("project_owner")
+      const { foreignServer } = await createServerInOtherProject(organization)
+      mcpServerId = foreignServer.id
+
+      expectResponse(await subject(), 404)
+    })
+  })
 })

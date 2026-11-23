@@ -5,7 +5,8 @@
     "builtIn": "Integriert",
     "empty": "Noch keine MCP-Server konfiguriert. Fügen Sie einen hinzu, um Ihren Agenten Zugriff auf externe Tools zu geben.",
     "actions": {
-      "newServer": "Neuer Server"
+      "newServer": "Neuer Server",
+      "testConnection": "Verbindung testen"
     },
     "create": {
       "title": "MCP-Server hinzufügen",
@@ -25,7 +26,19 @@
       "authMethodNone": "Keine",
       "oauthHint": "Nach dem Erstellen klicken Sie auf der Serverkarte auf „Autorisieren“.",
       "apiKey": "API-Schlüssel",
-      "apiKeyPlaceholder": "API-Schlüssel des Servers eingeben"
+      "apiKeyPlaceholder": "API-Schlüssel des Servers eingeben",
+      "apiKeyRequired": "Geben Sie den API-Schlüssel des Servers ein.",
+      "apiKeyStoredPlaceholder": "••••••••",
+      "apiKeyStoredHint": "Leer lassen, um den aktuellen Schlüssel zu behalten.",
+      "oauthAuthorizationLost": "Die aktuelle Autorisierung wird entfernt. Sie autorisieren erneut über die Serverkarte.",
+      "headers": "Header",
+      "headersHint": "Werden bei jedem Aufruf dieses Servers gesendet, zusätzlich zur Authentifizierung.",
+      "headerName": "Header-Name",
+      "headerNamePlaceholder": "X-Api-Version",
+      "headerValue": "Header-Wert",
+      "headerValuePlaceholder": "Wert",
+      "headerValueStoredPlaceholder": "Unverändert",
+      "addHeader": "Header hinzufügen"
     },
     "oauthCallback": {
       "errorTitle": "Autorisierung fehlgeschlagen",
@@ -35,7 +48,8 @@
     },
     "oauth": {
       "authorize": "Autorisieren",
-      "connected": "Über OAuth verbunden"
+      "reauthorize": "Erneut autorisieren",
+      "expiredHint": "Die Autorisierung ist abgelaufen. Agenten können diesen Server erst wieder nutzen, wenn ihn jemand erneut autorisiert."
     },
     "notifications": {
       "created": "MCP-Server erstellt",
@@ -46,7 +60,42 @@
       "disabled": "MCP-Server deaktiviert",
       "enableError": "MCP-Server konnte nicht aktiviert werden",
       "disableError": "MCP-Server konnte nicht deaktiviert werden",
-      "authorizationError": "Autorisierung des MCP-Servers fehlgeschlagen"
+      "authorizationError": "Autorisierung des MCP-Servers fehlgeschlagen",
+      "updated": "MCP-Server aktualisiert",
+      "updateError": "MCP-Server konnte nicht aktualisiert werden"
+    },
+    "update": {
+      "title": "MCP-Server bearbeiten",
+      "description": "Die Agenten, die diesen Server nutzen, behalten ihn."
+    },
+    "connection": {
+      "checking": "Wird geprüft…",
+      "connected": "Verbunden",
+      "failed": "Verbindung fehlgeschlagen",
+      "authorizationRequired": "Autorisierung erforderlich",
+      "authorizationExpired": "Autorisierung abgelaufen",
+      "unavailable": "Nicht geprüft",
+      "errors": {
+        "unauthorized": "Der Server hat die Zugangsdaten abgelehnt (401). Prüfen Sie den API-Schlüssel oder die Header.",
+        "forbidden": "Der Server hat den Zugriff verweigert (403). Die Zugangsdaten sind gültig, dürfen diesen Endpunkt aber nicht nutzen.",
+        "notFound": "Unter dieser URL antwortet kein MCP-Server ({{status}}). Prüfen Sie den Pfad.",
+        "httpError": "Der Server hat mit einem Fehler geantwortet ({{status}}).",
+        "unreachable": "Der Server ist nicht erreichbar. Prüfen Sie die Adresse und ob der Server läuft.",
+        "timeout": "Der Server hat nicht rechtzeitig geantwortet.",
+        "notMcp": "Diese URL antwortet, aber nicht mit dem MCP-Protokoll.",
+        "urlNotAllowed": "Diese URL ist nicht erlaubt. Verwenden Sie eine öffentliche https-Adresse.",
+        "unknown": "Die Verbindung ist fehlgeschlagen."
+      }
+    },
+    "tools": {
+      "title": "Tools von {{name}}",
+      "description": "Was dieser Server den Agenten bereitstellt, für die er aktiviert ist.",
+      "count_one": "{{count}} Tool",
+      "count_other": "{{count}} Tools",
+      "empty": "Dieser Server antwortet, stellt aber keine Tools bereit.",
+      "view": "Tools anzeigen",
+      "showMore": "Mehr anzeigen",
+      "showLess": "Weniger anzeigen"
     }
   }
 }

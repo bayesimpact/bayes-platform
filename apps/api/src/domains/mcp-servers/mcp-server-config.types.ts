@@ -59,5 +59,11 @@ export type McpServerOauthState = {
   resource: string
   scope?: string
   tokens?: McpServerOauthTokens
+  /**
+   * Epoch ms of the last completed authorization. Kept when the tokens are
+   * dropped, which is how an expired authorization is told from one that was
+   * never given. Absent on servers authorized before this field existed.
+   */
+  authorizedAt?: number
   pendingAuth?: McpServerOauthPendingAuth
 }

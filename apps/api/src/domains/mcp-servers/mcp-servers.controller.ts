@@ -1,11 +1,24 @@
 import {
   completeMcpServerOauthSchema,
   createMcpServerSchema,
+  type McpServerAuthMethod,
   type McpServerAuthStatus,
   type McpServerDto,
   McpServersRoutes,
+  updateMcpServerSchema,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Delete, Get, Post, Req, UseGuards, UsePipes } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+  UsePipes,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithMcpServer,
@@ -63,9 +76,7 @@ export class McpServersController {
       name: payload.name,
       config,
     })
-    return {
-      data: toMcpServerDto(mcpServer, config, this.mcpServersService.getAuthStatus(config)),
-    }
+    return { data: this.toDto(mcpServer, config) }
   }
 
   @Get(McpServersRoutes.getAll.path)
@@ -75,11 +86,35 @@ export class McpServersController {
   ): Promise<typeof McpServersRoutes.getAll.response> {
     const mcpServers = await this.mcpServersService.listMcpServers(request.project.id)
     return {
-      data: mcpServers.map((server) => {
-        const config = this.mcpServersService.getConfig(server)
-        return toMcpServerDto(server, config, this.mcpServersService.getAuthStatus(config))
-      }),
+      data: mcpServers.map((server) =>
+        this.toDto(server, this.mcpServersService.getConfig(server)),
+      ),
     }
+  }
+
+  @Patch(McpServersRoutes.updateOne.path)
+  // Built-in servers cannot be edited: the service refuses them.
+  @CheckPermission(PROJECT_MCP_SERVER_UPDATE_PERMISSION, "project")
+  @AddContext("mcpServer")
+  @UsePipes(new ZodValidationPipe(updateMcpServerSchema))
+  async updateOne(
+    @Req() request: EndpointRequestWithMcpServer,
+    @Body() { payload }: typeof McpServersRoutes.updateOne.request,
+  ): Promise<typeof McpServersRoutes.updateOne.response> {
+    const updated = await this.mcpServersService.updateMcpServer(request.mcpServer.id, payload)
+    return { data: this.toDto(updated, this.mcpServersService.getConfig(updated)) }
+  }
+
+  // Read permission: the call changes nothing, and whoever picks servers for an
+  // agent needs to see what each one provides.
+  @Post(McpServersRoutes.inspect.path)
+  @HttpCode(200)
+  @CheckPermission(PROJECT_MCP_SERVER_READ_PERMISSION, "project")
+  @AddContext("mcpServer")
+  async inspect(
+    @Req() request: EndpointRequestWithMcpServer,
+  ): Promise<typeof McpServersRoutes.inspect.response> {
+    return { data: await this.mcpServersService.inspectMcpServer(request.mcpServer) }
   }
 
   @Delete(McpServersRoutes.deleteOne.path)
@@ -141,15 +176,21 @@ export class McpServersController {
       code: payload.code,
       state: payload.state,
     })
-    const config = this.mcpServersService.getConfig(updated)
-    return { data: toMcpServerDto(updated, config, this.mcpServersService.getAuthStatus(config)) }
+    return { data: this.toDto(updated, this.mcpServersService.getConfig(updated)) }
+  }
+
+  private toDto(mcpServer: McpServer, config: McpServerConfig): McpServerDto {
+    return toMcpServerDto(mcpServer, config, {
+      authMethod: this.mcpServersService.getAuthMethod(config),
+      authStatus: this.mcpServersService.getAuthStatus(config),
+    })
   }
 }
 
 function toMcpServerDto(
   entity: McpServer,
   config: McpServerConfig,
-  authStatus: McpServerAuthStatus,
+  { authMethod, authStatus }: { authMethod: McpServerAuthMethod; authStatus: McpServerAuthStatus },
 ): McpServerDto {
   // A built-in server's url goes out to every project on purpose: the endpoint
   // is IAM-protected, so knowing it grants nothing, and the UI hides it anyway.
@@ -159,7 +200,9 @@ function toMcpServerDto(
     url: config.url,
     projectId: entity.projectId,
     isBuiltIn: isBuiltInMcpServer(entity),
+    authMethod,
     authStatus,
+    headerNames: Object.keys(config.headers ?? {}).sort(),
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),
   }

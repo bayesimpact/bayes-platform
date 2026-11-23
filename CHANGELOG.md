@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon.
 - (beta) Agent models: agents can run on Anthropic and OpenAI models.
 - (beta) Evaluation app: a new version of the app runs and compares the evaluations of conversation and extraction agents.
+- (beta) MCP servers: the studio tests the connection to a server, lists its tools and edits its settings and headers.
 
 ### Changed
 

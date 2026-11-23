@@ -162,7 +162,10 @@ export class McpOauthService {
     })
 
     const { pendingAuth: _discarded, ...oauthRest } = config.oauth
-    await this.saveConfig(mcpServer.id, { ...config, oauth: { ...oauthRest, tokens } })
+    await this.saveConfig(mcpServer.id, {
+      ...config,
+      oauth: { ...oauthRest, tokens, authorizedAt: Date.now() },
+    })
     return this.mcpServerRepository.findOneByOrFail({ id: mcpServer.id })
   }
 
