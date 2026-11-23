@@ -64,6 +64,14 @@ In a worktree with an environment, never start `dev` or Storybook on the host: t
 `storybook-eval` services of `infra/worktree/docker-compose.yaml` run them, at `<WT_ORIGIN>/eval/`
 and `http://<name>-eval-storybook.connect.localhost:8800`.
 
+## In production
+
+The `app-runtime` image builds the app (the `eval-build` stage of `apps/api/Dockerfile`) and the
+API serves it at `/eval`, ahead of `apps/web` (`EVAL_APP_DIST_DIR`, `registerWebApp` in
+`apps/api/src/common/web-app`), with the same injected configuration as `apps/web` and the
+install's theme mounted over `dist/theme` (`web.evalDistDir` in the Helm chart). Each install
+registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity provider.
+
 ## Where things are
 
 - The frame: the Desk's, without the sessions. `AppShell`
