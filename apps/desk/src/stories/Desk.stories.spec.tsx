@@ -31,12 +31,8 @@ const {
   ...generalPages
 } = composeStories(generalStories)
 const { ReplyFails, PassageSelected, ...conversationPages } = composeStories(conversationStories)
-const {
-  DocumentDetails,
-  CsvRunStopConfirmation,
-  CsvSetupOfFileWithoutColumns,
-  ...extractionPages
-} = composeStories(extractionStories)
+const { DocumentDetails, CsvRunStopConfirmation, ...extractionPages } =
+  composeStories(extractionStories)
 /** The stories of a page, from the three folders of Storybook. */
 const pageStories = {
   ...generalPages,
@@ -125,6 +121,10 @@ const PAGES = {
       const [firstColumn] = screen.getAllByText("No values in the first rows")
       return firstColumn
     },
+  },
+  CsvSetupOfFileWithoutColumns: {
+    Story: pageStories.CsvSetupOfFileWithoutColumns,
+    loaded: () => screen.findByText("This file has no columns"),
   },
   CsvRun: {
     Story: pageStories.CsvRun,

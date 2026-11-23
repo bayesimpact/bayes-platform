@@ -120,6 +120,10 @@ msgstr "<0><1/><2/></0> for a new line"
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 
+#: src/features/extraction/components/CsvFileWithoutColumns.tsx
+msgid "A CSV file needs a first line that names its columns. Add one, then upload the file again."
+msgstr "A CSV file needs a first line that names its columns. Add one, then upload the file again."
+
 #: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the Desk is available"
@@ -241,6 +245,10 @@ msgstr "Check your connection, then try again."
 #: src/features/extraction/components/FileDropZone.tsx
 msgid "Choose a file"
 msgstr "Choose a file"
+
+#: src/features/extraction/components/CsvFileWithoutColumns.tsx
+msgid "Choose another file"
+msgstr "Choose another file"
 
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Choose at least one column for the agent to read."
@@ -1318,6 +1326,10 @@ msgstr "The sign-in keeps failing"
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Thinking…"
 msgstr "Thinking…"
+
+#: src/features/extraction/components/CsvFileWithoutColumns.tsx
+msgid "This file has no columns"
+msgstr "This file has no columns"
 
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."

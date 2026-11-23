@@ -17,6 +17,7 @@ import {
   toColumnSchema,
 } from "../csv-setup"
 import { ColumnRoleRow } from "./ColumnRoleRow"
+import { CsvFileWithoutColumns } from "./CsvFileWithoutColumns"
 import { CsvRowScope } from "./CsvRowScope"
 import { FileKindIcon } from "./FileKindIcon"
 
@@ -41,6 +42,7 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
   }))
   const startExtraction = useStartCsvExtraction(agent)
   const fileName = documents.find((document) => document.id === documentId)?.fileName ?? t`CSV file`
+  if (columns.length === 0) return <CsvFileWithoutColumns agent={agent} fileName={fileName} />
   const canStart = readsAColumn(setup.roles) && !startExtraction.isPending
   const rowCount = setup.scope.kind === "first" ? setup.scope.count : 0
 
