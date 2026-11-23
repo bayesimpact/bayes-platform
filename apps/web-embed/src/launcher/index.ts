@@ -354,6 +354,9 @@ function phoneSheet(box: HTMLElement) {
     if (!active || !vv) return
     box.style.top = `${vv.offsetTop}px`
     box.style.height = `${vv.height}px`
+    // iOS counts the bar above its keyboard out of the visible part, yet shows the page through
+    // it: a white surround hides the host page there, without changing the size of the chat.
+    box.style.boxShadow = "0 0 0 100vmax white"
   }
   return {
     set(on: boolean) {
