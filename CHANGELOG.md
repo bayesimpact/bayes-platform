@@ -9,6 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.11.3] - 2026-11-23
+
+### Added
+
 - Public chat API 1.6: integrations can show each source next to the sentence it supports.
 - Studio languages: the studio is now available in German, Italian, Spanish and Polish, chosen from Edit profile.
 - Agent version in production: managers choose which saved version the app, the embed and the public API run.
