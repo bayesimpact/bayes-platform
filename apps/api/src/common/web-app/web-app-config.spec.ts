@@ -1,7 +1,12 @@
 import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { buildWebAppRuntimeConfig, getDeskAppSettings, getWebAppSettings } from "./web-app-config"
+import {
+  buildWebAppRuntimeConfig,
+  getDeskAppSettings,
+  getEvalAppSettings,
+  getWebAppSettings,
+} from "./web-app-config"
 
 describe("getWebAppSettings", () => {
   it("is disabled when WEB_APP_DIST_DIR is unset", () => {
@@ -33,6 +38,19 @@ describe("getDeskAppSettings", () => {
       indexHtmlPath: join(distDir, "index.html"),
     })
     expect(getDeskAppSettings({ WEB_APP_DIST_DIR: distDir })).toBeNull()
+  })
+})
+
+describe("getEvalAppSettings", () => {
+  it("points to the Evaluation app's index.html when EVAL_APP_DIST_DIR holds its build", () => {
+    const distDir = mkdtempSync(join(tmpdir(), "eval-app-"))
+    expect(getEvalAppSettings({ EVAL_APP_DIST_DIR: distDir })).toBeNull()
+    writeFileSync(join(distDir, "index.html"), "<html></html>")
+    expect(getEvalAppSettings({ EVAL_APP_DIST_DIR: distDir })).toEqual({
+      distDir,
+      indexHtmlPath: join(distDir, "index.html"),
+    })
+    expect(getEvalAppSettings({ DESK_APP_DIST_DIR: distDir })).toBeNull()
   })
 })
 
