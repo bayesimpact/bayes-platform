@@ -66,6 +66,7 @@ Run them from the repository root.
 | `npm run storybook -w @caseai-connect/desk` | Storybook on port 6009: the whole Desk on the MSW handlers, with no API and no sign-in, one story per state of its world |
 | `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
+| `npm run check:desk-parity -w @caseai-connect/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
 | `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and `fr.po`, without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
 | `npm run preview -w @caseai-connect/desk` | Serves that build on port 5178 at `/app/` |
@@ -130,6 +131,14 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
+- Evaluation (`apps/eval`) holds a copy of the chat: `src/features/conversation/`, and `Markdown`,
+  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no code, so
+  a change to one of these files goes to the copy too, in the same PR.
+  `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
+  difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
+  of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
+  one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a
+  snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts` and `extraction-handlers.ts`, written with
