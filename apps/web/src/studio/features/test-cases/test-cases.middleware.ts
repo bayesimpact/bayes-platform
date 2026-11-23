@@ -1,7 +1,7 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import { evaluationConversationDatasetsActions } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
+import { evaluationConversationDatasetsActions } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
 import { saveTestCase } from "./test-cases.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()

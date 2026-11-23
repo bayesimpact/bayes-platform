@@ -129,6 +129,14 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expectResponse(response, 200)
     expect(response.body.data.reviewCampaigns).toHaveLength(1)
     expect(response.body.data.reviewCampaigns[0]?.id).toBe(reviewCampaignId)
+    // The campaign names its agent, which the person may hold through no project.
+    const agent = await repositories.agentRepository.findOneByOrFail({
+      id: response.body.data.reviewCampaigns[0]?.agentId,
+    })
+    expect(response.body.data.reviewCampaigns[0]?.agent).toEqual({
+      name: agent.name,
+      type: agent.type,
+    })
   })
 
   it("getMyReviewCampaigns filters by role=reviewer when the caller is only a reviewer", async () => {
@@ -273,6 +281,43 @@ describe("ReviewCampaigns - Tester happy path", () => {
     })
     expect(session?.campaignId).toBe(reviewCampaignId)
     expect(session?.type).toBe("review_campaign_tester")
+  })
+
+  it("the tester runs the version the campaign chose, not the one in production", async () => {
+    const { organization, project, agent, campaign } = await seedActiveCampaignWithTester(
+      "conversation",
+      { greetingMessage: "Hello from production" },
+    )
+    const campaignVersion = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .transient({ organization, project, agent })
+        .build({ revision: 7, greetingMessage: "Hello from the campaign's version" }),
+    )
+    await repositories.reviewCampaignRepository.update(
+      { id: campaign.id },
+      { agentSettingsId: campaignVersion.id },
+    )
+
+    const context = await request({
+      route: ReviewCampaignsRoutes.getTesterContext,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+    })
+    expectResponse(context, 200)
+    expect(context.body.data.agent.greetingMessage).toBe("Hello from the campaign's version")
+
+    const started = await request({
+      route: ReviewCampaignsRoutes.startTesterSession,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+      request: { payload: {} },
+    })
+    expectResponse(started, 201)
+    const greeting = await repositories.agentMessageRepository.findOneOrFail({
+      where: { sessionId: started.body.data.id, role: "assistant" },
+    })
+    expect(greeting.agentSettingsId).toBe(campaignVersion.id)
+    expect(greeting.content).toBe("Hello from the campaign's version")
   })
 
   it("a tester's campaign conversations stay out of their App conversation list", async () => {

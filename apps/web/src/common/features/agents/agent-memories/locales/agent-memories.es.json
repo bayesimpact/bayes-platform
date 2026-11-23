@@ -1,0 +1,27 @@
+{
+  "agentMemories": {
+    "card": {
+      "saved": "Guardado en la memoria",
+      "proposalTitle": "¿Recordar esto para la próxima vez?",
+      "proposalDescription": "El agente propone guardar este dato para sus próximas conversaciones.",
+      "save": "Sí, recordarlo",
+      "reject": "No, no guardarlo",
+      "rewordLabel": "O reformúlelo",
+      "rewordPlaceholder": "Escriba el dato tal como quiere que se recuerde",
+      "submit": "Confirmar",
+      "skip": "Más tarde",
+      "answeredSaved": "Recordado",
+      "answeredRejected": "No guardado"
+    },
+    "panel": {
+      "button": "Memoria",
+      "title": "Lo que recuerda el agente",
+      "description": "Datos que este agente guarda sobre usted entre conversaciones. Solo usted puede verlos.",
+      "playgroundDescription": "La memoria del entorno de pruebas es independiente de lo que el agente recuerda en las conversaciones en producción.",
+      "empty": "El agente aún no recuerda nada sobre usted.",
+      "pending": "Esperando su respuesta",
+      "clearAll": "Olvidarlo todo",
+      "clearAllConfirm": "¿Olvidar todo lo que el agente recuerda sobre usted?"
+    }
+  }
+}

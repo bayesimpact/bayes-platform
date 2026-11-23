@@ -68,6 +68,7 @@ export function useCitedPassages(messages: ChatMessage[], layer: HTMLElement | n
     setFound(passages)
   })
 
+  // The messages' DOM is outside React: an effect observes it, and finds the passages again.
   useEffect(() => {
     if (!layer) return
     let frame = requestAnimationFrame(() => findPassages(layer))

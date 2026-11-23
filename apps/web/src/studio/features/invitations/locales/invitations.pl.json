@@ -1,0 +1,73 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Oczekujące zaproszenia",
+      "description": "Te osoby uzyskają dostęp po zaakceptowaniu zaproszenia w aplikacji.",
+      "signInHint": "Wyślij każdej osobie jej link z zaproszeniem. Musi się zalogować lub zarejestrować przy użyciu dokładnie tego adresu e-mail, który podano w zaproszeniu, inaczej go nie zobaczy."
+    },
+    "pendingItem": {
+      "description": "Zaproszono {{invitedAt}}",
+      "revoke": "Usuń zaproszenie",
+      "copyLink": "Skopiuj link z zaproszeniem",
+      "linkCopied": "Skopiowano link z zaproszeniem",
+      "removeAgent": "Usuń tego agenta z zaproszenia"
+    },
+    "deleteDialog": {
+      "title": "Usunąć zaproszenie?",
+      "description": "Osoba {{email}} nie będzie już mogła zaakceptować tego zaproszenia."
+    },
+    "inviteDialog": {
+      "title": "Zaproś osoby do {{workspaceName}}",
+      "description": "Wybierz, co otrzymają. Każda osoba dostaje jedno zaproszenie i akceptuje je raz.",
+      "emailsLabel": "Adresy e-mail",
+      "emailsPlaceholder": "imie@example.org, ktos@example.org",
+      "emailsRequired": "Dodaj co najmniej jeden adres e-mail.",
+      "invalidEmail": "„{{email}}” nie jest prawidłowym adresem e-mail.",
+      "removeEmail": "Usuń {{email}}",
+      "workspaceRoleLabel": "Rola w przestrzeni roboczej",
+      "roleDescriptions": {
+        "project_admin": "Zarządza przestrzenią roboczą, jej członkami i wszystkimi agentami.",
+        "project_member": "Korzysta tylko z wybranych dla niego agentów."
+      },
+      "agentsLabel": "Dostęp do agentów",
+      "noAgents": "Ta przestrzeń robocza nie ma jeszcze agentów.",
+      "noMatch": "Brak wyników.",
+      "inviteCount_one": "Zaproś {{count}} osobę",
+      "inviteCount_few": "Zaproś {{count}} osoby",
+      "inviteCount_many": "Zaproś {{count}} osób"
+    },
+    "confirmation": {
+      "title": "Potwierdź zaproszenie do {{workspaceName}}",
+      "invitedGet_one": "Ta osoba otrzyma zaproszenie. Po jego zaakceptowaniu będzie mieć:",
+      "invitedGet_few": "Te {{count}} osoby otrzymają zaproszenie. Po jego zaakceptowaniu będą mieć:",
+      "invitedGet_many": "Tych {{count}} osób otrzyma zaproszenie. Po jego zaakceptowaniu będą mieć:",
+      "role": "Rola",
+      "workspaceRole": "Rola w przestrzeni roboczej",
+      "agents": "Dostęp do agentów",
+      "everyAgent": "Wszyscy agenci",
+      "noAgent": "Brak agentów",
+      "addedTo": "Dodano do: {{agents}}",
+      "directTitle_one": "{{count}} osoba od razu otrzymuje dostęp",
+      "directTitle_few": "{{count}} osoby od razu otrzymują dostęp",
+      "directTitle_many": "{{count}} osób od razu otrzymuje dostęp",
+      "directHint": "Ta osoba jest już w przestrzeni roboczej, więc nie ma zaproszenia do zaakceptowania.",
+      "unchangedTitle_one": "{{count}} osoba zachowuje obecny dostęp",
+      "unchangedTitle_few": "{{count}} osoby zachowują obecny dostęp",
+      "unchangedTitle_many": "{{count}} osób zachowuje obecny dostęp",
+      "unchangedHint": "Zaproszenie niczego dla tej osoby nie zmienia.",
+      "promoteHint": "{{access}}. Nadaj wyższą rolę na stronie członka.",
+      "updatedTitle_one": "{{count}} oczekujące zaproszenie daje większy dostęp",
+      "updatedTitle_few": "{{count}} oczekujące zaproszenia dają większy dostęp",
+      "updatedTitle_many": "{{count}} oczekujących zaproszeń daje większy dostęp",
+      "updatedHint": "Już zaproszono: zaproszenie zostanie uzupełnione i wysłane ponownie.",
+      "alsoGives": "Daje też dostęp do: {{agents}}",
+      "alreadyInvited": "Już zaproszono: {{access}}",
+      "accessOnAgents": "{{role}}, agenci: {{agents}}",
+      "accessOnNoAgent": "{{role}}, bez agentów"
+    },
+    "removeAgentDialog": {
+      "title": "Usunąć tego agenta z zaproszenia?",
+      "description": "{{email}} nie otrzyma już dostępu do {{agentName}}. Reszta zaproszenia pozostaje bez zmian."
+    }
+  }
+}

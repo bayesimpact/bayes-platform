@@ -1,0 +1,132 @@
+{
+  "document": {
+    "document": "Dokument",
+    "documents": "Dokumenty",
+    "sources": "Źródła",
+    "uploading": "Przesyłanie dokumentów... {{processed}} z {{total}}",
+    "props": {
+      "createdAt": "Utworzono",
+      "updatedAt": "Zaktualizowano",
+      "deletedAt": "Usunięto",
+      "title": "Tytuł",
+      "content": "Treść",
+      "fileName": "Nazwa pliku",
+      "language": "Język",
+      "mimeType": "Typ MIME",
+      "embeddingStatus": "Status indeksowania",
+      "embeddingError": "Błąd indeksowania",
+      "embeddingStatuses": {
+        "pending": "Oczekuje",
+        "queued": "W kolejce",
+        "processing": "Przetwarzanie",
+        "completed": "Gotowy",
+        "failed": "Błąd"
+      },
+      "size": "Rozmiar",
+      "storageRelativePath": "Ścieżka względna w magazynie",
+      "tags": "Tagi"
+    },
+    "update": {
+      "title": "Edytuj: {{documentTitle}}",
+      "titleRequired": "Tytuł jest wymagany"
+    },
+    "delete": {
+      "title": "Usuń: {{documentTitle}}",
+      "description": "Czy na pewno chcesz usunąć ten dokument? Tej operacji nie można cofnąć."
+    },
+    "reprocess": {
+      "cta": "Przetwórz ponownie"
+    },
+    "bulk": {
+      "selected_one": "Zaznaczono: {{count}}",
+      "selected_few": "Zaznaczono: {{count}}",
+      "selected_many": "Zaznaczono: {{count}}",
+      "selected_other": "Zaznaczono: {{count}}",
+      "delete": {
+        "title_one": "Usuń {{count}} dokument",
+        "title_few": "Usuń {{count}} dokumenty",
+        "title_many": "Usuń {{count}} dokumentów",
+        "title_other": "Usuń {{count}} dokumentu",
+        "description": "Czy na pewno chcesz usunąć zaznaczone dokumenty? Tej operacji nie można cofnąć."
+      },
+      "addTag": {
+        "title_one": "Dodaj tagi do {{count}} dokumentu",
+        "title_few": "Dodaj tagi do {{count}} dokumentów",
+        "title_many": "Dodaj tagi do {{count}} dokumentów",
+        "title_other": "Dodaj tagi do {{count}} dokumentu",
+        "description": "Wybierz tagi, które zostaną dodane do każdego zaznaczonego dokumentu.",
+        "confirm": "Zastosuj"
+      },
+      "removeTag": {
+        "cta": "Usuń tag",
+        "title_one": "Usuń tagi z {{count}} dokumentu",
+        "title_few": "Usuń tagi z {{count}} dokumentów",
+        "title_many": "Usuń tagi z {{count}} dokumentów",
+        "title_other": "Usuń tagi z {{count}} dokumentu",
+        "description": "Wybierz tagi do usunięcia z każdego zaznaczonego dokumentu.",
+        "empty": "Zaznaczone dokumenty nie mają tagów.",
+        "confirm": "Usuń"
+      }
+    },
+    "download": "Pobierz",
+    "publicTag": {
+      "disclaimer": {
+        "title": "Udostępnić dokument publicznie?",
+        "description": "Ten dokument będzie widoczny i możliwy do pobrania dla wszystkich użytkowników czatu tego projektu. Aby cofnąć dostęp, w każdej chwili usuń tag.",
+        "confirm": "Udostępnij publicznie"
+      }
+    },
+    "list": {
+      "description": "Rozszerz wiedzę i możliwości agentów, dodając dokumenty.",
+      "empty": {
+        "title": "Brak dokumentów",
+        "description": "Prześlij pierwszy dokument, aby zacząć."
+      }
+    },
+    "filter": {
+      "all": "Wszystkie",
+      "uploaded": "Dokumenty"
+    },
+    "upload": {
+      "tagDialog": {
+        "title": "Tagi przesyłanych plików",
+        "description": "Opcjonalnie: wybierz tagi dla wszystkich przesyłanych plików.",
+        "fileCountSentence_one": "Za chwilę prześlesz jeden plik.",
+        "fileCountSentence_few": "Za chwilę prześlesz {{count}} pliki.",
+        "fileCountSentence_many": "Za chwilę prześlesz {{count}} plików.",
+        "fileCountSentence_other": "Za chwilę prześlesz {{count}} pliku.",
+        "nameLabel": "Nazwa (opcjonalnie)",
+        "confirm": "Prześlij"
+      }
+    },
+    "notifications": {
+      "uploadFailedCount_one": "Nie udało się przesłać {{count}} dokumentu",
+      "uploadFailedCount_few": "Nie udało się przesłać {{count}} dokumentów",
+      "uploadFailedCount_many": "Nie udało się przesłać {{count}} dokumentów",
+      "uploadFailedCount_other": "Nie udało się przesłać {{count}} dokumentu",
+      "uploading": "Przesyłanie pliku {{fileName}}...",
+      "uploaded": "Przesłano plik {{fileName}}",
+      "uploadError": "Nie udało się przesłać pliku {{fileName}}",
+      "uploadErrorWithReason": "Błąd podczas przesyłania pliku „{{fileName}}”",
+      "updated": "Zaktualizowano dokument",
+      "updateError": "Nie udało się zaktualizować dokumentu",
+      "deleted": "Usunięto dokument",
+      "deleteError": "Nie udało się usunąć dokumentu",
+      "bulkDeleted_one": "Usunięto {{count}} dokument",
+      "bulkDeleted_few": "Usunięto {{count}} dokumenty",
+      "bulkDeleted_many": "Usunięto {{count}} dokumentów",
+      "bulkDeleted_other": "Usunięto {{count}} dokumentu",
+      "bulkDeleteError": "Nie udało się usunąć dokumentów",
+      "tagsAdded_one": "Dodano tagi do {{count}} dokumentu",
+      "tagsAdded_few": "Dodano tagi do {{count}} dokumentów",
+      "tagsAdded_many": "Dodano tagi do {{count}} dokumentów",
+      "tagsAdded_other": "Dodano tagi do {{count}} dokumentu",
+      "tagsAddError": "Nie udało się dodać tagów do dokumentów",
+      "tagsRemoved_one": "Usunięto tagi z {{count}} dokumentu",
+      "tagsRemoved_few": "Usunięto tagi z {{count}} dokumentów",
+      "tagsRemoved_many": "Usunięto tagi z {{count}} dokumentów",
+      "tagsRemoved_other": "Usunięto tagi z {{count}} dokumentu",
+      "tagsRemoveError": "Nie udało się usunąć tagów z dokumentów"
+    }
+  }
+}

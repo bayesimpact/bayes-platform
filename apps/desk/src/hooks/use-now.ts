@@ -10,6 +10,7 @@ export const RELATIVE_TIME_INTERVAL_IN_MILLISECONDS = 60 * 1000
  */
 export function useNow(intervalInMilliseconds: number, isTicking: boolean): number {
   const [now, setNow] = useState(() => Date.now())
+  // Time is outside React: an effect follows a timer of the browser.
   useEffect(() => {
     if (!isTicking) return
     setNow(Date.now())

@@ -12,6 +12,7 @@ export function useInertPageBehind(
   isCovering: boolean,
   boundarySelector: string,
 ): void {
+  // The DOM is outside React: an effect sets `inert` on it, and takes it away.
   useEffect(() => {
     const element = elementRef.current
     const boundary = element?.closest(boundarySelector)

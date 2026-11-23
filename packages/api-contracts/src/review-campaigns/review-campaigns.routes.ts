@@ -1,3 +1,4 @@
+import type { AgentSessionMcpAppHtmlDto } from "../agents/shared/agent-session-messages/agent-session-messages.dto"
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type { AddMemberRoleRequestDto } from "../project-membership/project-membership.dto"
@@ -138,6 +139,11 @@ export const ReviewCampaignsRoutes = {
   getReviewerSession: defineRoute<ResponseData<GetReviewerSessionResponseDto>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/review-campaigns/:reviewCampaignId/agent-sessions/:sessionId/reviewer-view",
+  }),
+  /** The current HTML of the MCP Apps the session's replies show, as the tester's chat reads it. */
+  getReviewerSessionMcpAppHtml: defineRoute<ResponseData<AgentSessionMcpAppHtmlDto[]>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/review-campaigns/:reviewCampaignId/agent-sessions/:sessionId/reviewer-view/mcp-app-html",
   }),
   submitReviewerSessionReview: defineRoute<
     ResponseData<ReviewerSessionReviewDto>,

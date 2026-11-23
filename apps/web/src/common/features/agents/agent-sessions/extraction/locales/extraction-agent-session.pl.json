@@ -1,0 +1,63 @@
+{
+  "extractionAgentSession": {
+    "create": {
+      "button": "Nowa ekstrakcja",
+      "title": "Nowa ekstrakcja",
+      "description": "Wybierz dokument, aby uruchomić ekstrakcję.",
+      "processingMessage": "Przetwarzanie... To może chwilę potrwać..."
+    },
+    "list": {
+      "title": "Ekstrakcje"
+    },
+    "result": {
+      "view": {
+        "button": "Pokaż JSON",
+        "title": "Wynik ekstrakcji",
+        "error": "Wynik ekstrakcji jest niedostępny."
+      },
+      "download": {
+        "button": "Pobierz JSON"
+      },
+      "duration": "Czas trwania: {{duration}}"
+    },
+    "document": {
+      "props": {
+        "name": "Nazwa",
+        "createdAt": "Utworzono"
+      },
+      "empty": {
+        "title": "Brak dokumentów",
+        "description": "Prześlij plik PDF lub obraz, aby zacząć."
+      }
+    },
+    "lastExtraction": {
+      "info": "To Twoja ostatnia sesja ekstrakcji. Znajdziesz ją później w historii."
+    },
+    "playground": {
+      "title": "Playground",
+      "description": "Przetestuj agenta z różnymi danymi wejściowymi i ustawieniami"
+    },
+    "history": {
+      "button": "Historia",
+      "title": "Historia",
+      "description": "Wyświetl historię sesji agenta"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Usuń ekstrakcję",
+        "description": "Ta ekstrakcja zostanie trwale usunięta. Tej operacji nie można cofnąć.",
+        "submit": "Usuń"
+      }
+    },
+    "notifications": {
+      "completed": "Zakończono ekstrakcję",
+      "failed": "Ekstrakcja nie powiodła się",
+      "uploading": "Przesyłanie pliku {{fileName}}...",
+      "executionFailed": "Wykonanie ekstrakcji nie powiodło się",
+      "documentsDeleted": "Usunięto dokumenty",
+      "documentsDeleteError": "Nie udało się usunąć dokumentów",
+      "deleted": "Usunięto ekstrakcję",
+      "deleteError": "Nie udało się usunąć ekstrakcji"
+    }
+  }
+}

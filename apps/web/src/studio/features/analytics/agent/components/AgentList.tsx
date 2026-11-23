@@ -13,7 +13,6 @@ import { AnalyticsButton } from "@/studio/features/agents/components/AnalyticsBu
 import { DocumentsButton } from "@/studio/features/agents/components/DocumentsButton"
 import { MembersButton } from "@/studio/features/agents/components/MembersButton"
 import { ProjectDeletor } from "@/studio/features/projects/components/ProjectDeletor"
-import { ReviewCampaignsButton } from "@/studio/features/review-campaigns/components/ReviewCampaignsButton"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function AgentList() {
@@ -59,7 +58,6 @@ export function AgentList() {
         <AgentCreatorButton project={project} />
         <DocumentsButton />
         <MembersButton />
-        <ReviewCampaignsButton />
         <AnalyticsButton />
       </GridContent>
     </Grid>

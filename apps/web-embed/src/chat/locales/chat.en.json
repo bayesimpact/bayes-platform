@@ -25,6 +25,12 @@
       "errorSessionFailed": "Unable to start a chat session. Please try again.",
       "errorUnknown": "Unable to connect.",
       "sessionExpired": "Your previous conversation has expired."
+    },
+    "newConversation": {
+      "title": "Start a new conversation?",
+      "text": "This one will be cleared from this window, and you won't be able to get it back.",
+      "cancel": "Cancel",
+      "confirm": "Clear and start over"
     }
   }
 }

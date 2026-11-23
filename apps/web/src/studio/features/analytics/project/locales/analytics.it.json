@@ -1,0 +1,32 @@
+{
+  "analytics": {
+    "analytics": "Analisi",
+    "list": {
+      "title": "Analisi",
+      "description": "Visualizza le analisi del tuo progetto, tra cui conversazioni, media delle domande per sessione e altro."
+    },
+    "agentFilter": {
+      "placeholder": "Filtra per agente",
+      "allAgents": "Tutti gli agenti"
+    },
+    "dateRangePlaceholder": "Intervallo di date",
+    "conversationsChart": {
+      "title": "Conversazioni al giorno",
+      "description": "Numero di sessioni conversazionali avviate ogni giorno",
+      "metricLabel": "Conversazioni totali"
+    },
+    "avgQuestionsChart": {
+      "title": "Media domande utente per sessione",
+      "description": "Media giornaliera dei messaggi utente per sessione",
+      "metricLabel": "Al giorno"
+    },
+    "emptySessions": {
+      "note_one": "{{emptyCount}} sessione aperta senza domande non è conteggiata ({{share}} di {{sessionCount}} sessioni).",
+      "note_other": "{{emptyCount}} sessioni aperte senza domande non sono conteggiate ({{share}} di {{sessionCount}} sessioni).",
+      "warning": {
+        "title": "La maggior parte delle sessioni non contiene domande",
+        "description": "{{emptyCount}} sessioni su {{sessionCount}} ({{share}}) sono state aperte senza un messaggio dell'utente. Non sono conteggiate come conversazioni. Succede spesso quando un'integrazione crea la sessione al caricamento della pagina, invece che al primo messaggio."
+      }
+    }
+  }
+}

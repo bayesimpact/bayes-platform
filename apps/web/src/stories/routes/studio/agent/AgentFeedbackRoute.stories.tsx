@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
-import { evaluationConversationDatasetFactory } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -12,6 +11,7 @@ import {
 import { mergeSeeds, seed } from "@/stories/seed"
 import { buildMockTestCasesService } from "@/stories/test-cases/mock-service"
 import { agentMessageFeedbackFactory } from "@/studio/features/agent-message-feedback/agent-message-feedback.factory"
+import { evaluationConversationDatasetFactory } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -79,7 +79,7 @@ export const Default: Story = {
         services: { testCases: buildMockTestCasesService() },
         state: mergeSeeds(
           baseSeeds,
-          seed.eval.conversationDatasets(datasets),
+          seed.studio.conversationDatasets(datasets),
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
           seed.conversationAgentSessions({ [currentAgent.id]: [] }),
           seed.studio.agentHistory({

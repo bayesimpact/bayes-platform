@@ -1,0 +1,68 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Invitaciones pendientes",
+      "description": "Estas personas obtendrán acceso cuando acepten la invitación en la aplicación.",
+      "signInHint": "Envíe a cada persona su enlace de invitación. Debe iniciar sesión, o registrarse, con la misma dirección de correo electrónico que aparece en su invitación; de lo contrario, no la verá."
+    },
+    "pendingItem": {
+      "description": "Invitación enviada {{invitedAt}}",
+      "revoke": "Eliminar invitación",
+      "copyLink": "Copiar enlace de invitación",
+      "linkCopied": "Enlace de invitación copiado",
+      "removeAgent": "Quitar este agente de la invitación"
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar la invitación?",
+      "description": "{{email}} ya no podrá aceptar esta invitación."
+    },
+    "inviteDialog": {
+      "title": "Invitar a personas a {{workspaceName}}",
+      "description": "Elija lo que reciben. Cada persona recibe una invitación y la acepta una sola vez.",
+      "emailsLabel": "Correos electrónicos",
+      "emailsPlaceholder": "nombre@ejemplo.org, otro@ejemplo.org",
+      "emailsRequired": "Añada al menos un correo electrónico.",
+      "invalidEmail": "\"{{email}}\" no es un correo electrónico válido.",
+      "removeEmail": "Quitar {{email}}",
+      "workspaceRoleLabel": "Rol en el espacio de trabajo",
+      "roleDescriptions": {
+        "project_admin": "Gestiona el espacio de trabajo, sus miembros y todos los agentes.",
+        "project_member": "Usa solo los agentes elegidos para esta persona."
+      },
+      "agentsLabel": "Acceso a los agentes",
+      "noAgents": "Este espacio de trabajo aún no tiene ningún agente.",
+      "noMatch": "Sin resultados.",
+      "inviteCount_one": "Invitar a {{count}} persona",
+      "inviteCount_other": "Invitar a {{count}} personas"
+    },
+    "confirmation": {
+      "title": "Confirmar la invitación a {{workspaceName}}",
+      "invitedGet_one": "Esta persona recibirá una invitación. Cuando la acepte, tendrá:",
+      "invitedGet_other": "Estas {{count}} personas recibirán una invitación. Cuando la acepten, tendrán:",
+      "role": "Rol",
+      "workspaceRole": "Rol en el espacio de trabajo",
+      "agents": "Acceso a los agentes",
+      "everyAgent": "Todos los agentes",
+      "noAgent": "Ningún agente",
+      "addedTo": "Añadido a {{agents}}",
+      "directTitle_one": "{{count}} persona obtiene acceso de inmediato",
+      "directTitle_other": "{{count}} personas obtienen acceso de inmediato",
+      "directHint": "Ya está en el espacio de trabajo, así que no hay ninguna invitación que aceptar.",
+      "unchangedTitle_one": "{{count}} persona conserva su acceso tal como está",
+      "unchangedTitle_other": "{{count}} personas conservan su acceso tal como está",
+      "unchangedHint": "La invitación no cambia nada para estas personas.",
+      "promoteHint": "{{access}}. Promuévala desde su página de miembro.",
+      "updatedTitle_one": "{{count}} invitación pendiente da más acceso",
+      "updatedTitle_other": "{{count}} invitaciones pendientes dan más acceso",
+      "updatedHint": "Ya invitadas: su invitación se completa y se les vuelve a enviar.",
+      "alsoGives": "También da {{agents}}",
+      "alreadyInvited": "Ya invitada: {{access}}",
+      "accessOnAgents": "{{role}}, en {{agents}}",
+      "accessOnNoAgent": "{{role}}, en ningún agente"
+    },
+    "removeAgentDialog": {
+      "title": "¿Quitar este agente de la invitación?",
+      "description": "{{email}} ya no tendrá acceso a {{agentName}}. El resto de la invitación se mantiene."
+    }
+  }
+}

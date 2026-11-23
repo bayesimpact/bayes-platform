@@ -128,8 +128,9 @@ or editing the boundaries' configuration.
   sync server data or to pass data up to a parent: compute it, let TanStack Query hold it, or call
   the parent's callback where the data arrives. An effect subscribes to something outside React
   (a DOM event, the router, a timer); a callback it reads goes through `useEffectEvent`, never a
-  ref written during render. The `no-effect-setting-state` plugin catches an effect that only sets
-  a state. Docs: [You might not need an
+  ref written during render. A comment on the line just above each `useEffect` says what it syncs
+  with, which the `effect-justified` plugin requires. The `no-effect-setting-state` plugin catches
+  an effect that only sets a state. Docs: [You might not need an
   effect](https://react.dev/learn/you-might-not-need-an-effect.md),
   [`useEffectEvent`](https://react.dev/reference/react/useEffectEvent.md).
 - **React Compiler.** A component or hook the compiler gives up on fails the dev server, Storybook
@@ -221,7 +222,9 @@ or editing the boundaries' configuration.
   errors before the form is sent; a failure from the API becomes a toast. The form submits one
   way, `form.handleSubmit((values) => mutation.mutate(values, { onSuccess, onError }))`, never
   `mutateAsync`, which React Hook Form rethrows as an unhandled rejection. The submit button is
-  disabled while `isPending`, and a submitted form confirms its outcome with a toast. A limit the
+  disabled while `isPending`, and a submitted form confirms its outcome with a toast. A form's
+  value is read with `useWatch`, never `form.watch`, which the React Compiler memoizes around and
+  the `no-form-watch` plugin forbids. A limit the
   text names (a size, a length) comes from the contracts and reads through `Intl`. Docs: [shadcn's
   forms](https://ui.shadcn.com/docs/forms/react-hook-form.md),
   [`useWatch`](https://react-hook-form.com/docs/usewatch.md).
@@ -231,7 +234,10 @@ or editing the boundaries' configuration.
   and filtering. A small list loaded whole sorts and filters on the client. Every table has an
   empty state and a skeleton. TanStack Table v8 changes its table in place, which the React
   Compiler cannot memoize: a component that calls `useReactTable` opens with the `"use no memo"`
-  directive and a comment that says why, which the `table-without-memo` plugin checks. Docs:
+  directive and a comment that says why, which the `table-without-memo` plugin checks. The `data`
+  it gets is the same array from one render to the next, a name bound to the query's data or a
+  `useMemo`: an array made in the options loops the table, which the `table-data-stable` plugin
+  catches. Docs:
   [pagination](https://tanstack.com/table/v8/docs/guide/pagination.md),
   [sorting](https://tanstack.com/table/v8/docs/guide/sorting.md).
 - State, in order of preference: a derived value, `useState`, the URL, TanStack Query. Server data
@@ -275,7 +281,8 @@ or editing the boundaries' configuration.
   `useLingui()` in attributes and toasts, `<Plural>` and `plural` for counts, `msg` for text
   defined outside a component. Variables and inline components go inside the message
   (`<Trans>Delete {title}?</Trans>`). Name a variable before you put it in a message, so the
-  catalog says `{count}` rather than `{0}`. Docs: [macros](https://lingui.dev/ref/macro.md),
+  catalog says `{count}` rather than `{0}`, which the `lingui-named-placeholders` plugin checks in
+  `<Trans>` and in the `value` of a `<Plural>`. Docs: [macros](https://lingui.dev/ref/macro.md),
   [`useLingui`](https://lingui.dev/ref/react.md).
 - The same English with two meanings gets a `context`, and a `comment` tells the translator what a
   short text refers to. Zod messages shown in forms go through Lingui too.

@@ -175,6 +175,36 @@ describe("ReviewCampaigns - Reviewer auth", () => {
     })
   })
 
+  describe("getReviewerSessionMcpAppHtml", () => {
+    const subject = async () =>
+      request({
+        route: ReviewCampaignsRoutes.getReviewerSessionMcpAppHtml,
+        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId, sessionId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("forbids non-members (403)", async () => {
+      await seedReviewableSession({ callerRoleKey: null })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids tester-only members (no reviewer role) (403)", async () => {
+      await seedReviewableSession({ callerRoleKey: "review_campaign_tester" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids reviewers on draft campaigns (403)", async () => {
+      await seedReviewableSession({ campaignStatus: "draft" })
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("draft"))
+    })
+    it("allows reviewers on closed campaigns (200)", async () => {
+      await seedReviewableSession({ campaignStatus: "closed" })
+      expectResponse(await subject(), 200)
+    })
+  })
+
   describe("submitReviewerSessionReview", () => {
     const subject = async () =>
       request({
@@ -295,6 +325,19 @@ describe("ReviewCampaigns - Reviewer auth", () => {
 
       expectResponse(response, 200)
       expect(response.body.data.sessionId).toBe(sessionId)
+    })
+
+    it("reads the HTML of the session's MCP Apps, none here", async () => {
+      await seedAsCampaignOnlyReviewer()
+
+      const response = await request({
+        route: ReviewCampaignsRoutes.getReviewerSessionMcpAppHtml,
+        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId, sessionId }),
+        token: accessToken ?? undefined,
+      })
+
+      expectResponse(response, 200)
+      expect(response.body.data).toEqual([])
     })
   })
 })

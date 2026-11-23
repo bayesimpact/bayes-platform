@@ -3,7 +3,7 @@ import { selectCurrentProjectId } from "@/common/features/projects/projects.sele
 import { useAbility } from "@/common/hooks/use-ability"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { selectConversationDatasetsData } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.selectors"
+import { selectConversationDatasetsData } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.selectors"
 import type { TestCaseSource } from "../test-cases.models"
 import {
   anonymizeTestCaseText,

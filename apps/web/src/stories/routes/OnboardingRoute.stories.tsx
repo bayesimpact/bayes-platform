@@ -53,7 +53,7 @@ function buildData(args: StoryArgs) {
       .transient({ organization, role: projectMembershipRole })
       .build({ id: project.id, name: project.name, featureFlags: project.featureFlags })
     if (project.id !== firstProject?.id) return myProject
-    // A review campaign on the first project opens its tester or reviewer app.
+    // A review campaign on the first project opens the Evaluation app, for a tester or a reviewer.
     return {
       ...myProject,
       permissions: [

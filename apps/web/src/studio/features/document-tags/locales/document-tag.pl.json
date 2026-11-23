@@ -1,0 +1,50 @@
+{
+  "documentTag": {
+    "documentTag": "Tag",
+    "documentTags": "Tagi",
+    "props": {
+      "name": "Nazwa",
+      "description": "Opis",
+      "parentTag": "Tag nadrzędny",
+      "tags": "Tagi",
+      "placeholders": {
+        "name": "Nazwa tagu",
+        "description": "Opis (opcjonalnie)"
+      },
+      "validation": {
+        "nameRequired": "Nazwa jest wymagana",
+        "reservedName": "„public-documents” to zarezerwowana nazwa tagu"
+      }
+    },
+    "sheet": {
+      "button": "Tagi",
+      "title": "Tagi",
+      "empty": "Brak tagów"
+    },
+    "create": {
+      "button": "Utwórz tag",
+      "title": "Utwórz tag"
+    },
+    "edit": {
+      "title": "Edytuj: {{tagName}}"
+    },
+    "delete": {
+      "title": "Usunąć {{tagName}}?",
+      "description": "Tej operacji nie można cofnąć."
+    },
+    "publicDescription": "Gdy dokument z tym tagiem pojawi się jako źródło w rozmowie na czacie, użytkownik może go pobrać.",
+    "parentNone": "Brak",
+    "searchPlaceholder": "Szukaj tagów...",
+    "noTagsFound": "Nie znaleziono tagów",
+    "untagged": "Bez tagu",
+    "addTag": "Dodaj tag",
+    "notifications": {
+      "deleted": "Usunięto tag dokumentów",
+      "deleteError": "Nie udało się usunąć tagu dokumentów",
+      "created": "Utworzono tag dokumentów",
+      "createError": "Nie udało się utworzyć tagu dokumentów",
+      "updated": "Zaktualizowano tag dokumentów",
+      "updateError": "Nie udało się zaktualizować tagu dokumentów"
+    }
+  }
+}

@@ -28,7 +28,8 @@ const Routes = AgentSessionMessagesRoutes.review_campaign_tester
 /**
  * Sends a message to a tester's conversation in a review campaign and streams the reply. Checked
  * with the tester's session key on the campaign of the session, which must be active. Another
- * campaign of the same project gives no access to this session.
+ * campaign of the same project gives no access to this session. The reply runs on the version of
+ * the agent's settings the campaign chose, not the one in production.
  */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent", "agentSession", "agentSessionReviewCampaign")
@@ -44,6 +45,6 @@ export class ReviewCampaignTesterStreamingController extends StreamingController
     @Body() body: typeof Routes.stream.request,
   ): Observable<MessageEvent> {
     assertReviewCampaignIsActive(request.reviewCampaign)
-    return this.handleStream(request, body)
+    return this.handleStream(request, body, request.reviewCampaign.agentSettingsId)
   }
 }
