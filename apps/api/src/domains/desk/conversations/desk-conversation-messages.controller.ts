@@ -96,7 +96,7 @@ export class DeskConversationMessagesController {
 
   /**
    * The schema checks the MIME type, the size and that the file name is not empty before any URL
-   * is signed. A file name with no extension, a blank one included, gets its 422 from
+   * is signed. A blank file name, or one ending in a dot, gets its 422 from
    * `extractFileExtension`, as on the live route.
    */
   @SchemaRoute(DeskConversationsRoutes.presignAttachment, {
