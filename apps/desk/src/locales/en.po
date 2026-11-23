@@ -227,6 +227,7 @@ msgstr "Before you start"
 #: src/features/conversation/components/FeedbackDialog.tsx
 #: src/features/extraction/components/CsvSetup.tsx
 #: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/extraction/components/StopCsvRunButton.tsx
 #: src/features/history/components/DeleteEntryDialog.tsx
 #: src/features/memory/components/MemoryPanel.tsx
 #: src/features/memory/components/MemoryRewordForm.tsx
@@ -1041,13 +1042,17 @@ msgid "Status"
 msgstr "Status"
 
 #. Stops a run in progress
-#: src/features/extraction/components/CsvRunActions.tsx
+#: src/features/extraction/components/StopCsvRunButton.tsx
 msgid "Stop"
 msgstr "Stop"
 
 #: src/features/conversation/components/DictationButton.tsx
 msgid "Stop the dictation"
 msgstr "Stop the dictation"
+
+#: src/features/extraction/components/StopCsvRunButton.tsx
+msgid "Stop this extraction?"
+msgstr "Stop this extraction?"
 
 #. A run the person stopped
 #: src/lib/run-state.ts
@@ -1284,11 +1289,15 @@ msgstr "The report could not be sent. Try again."
 msgid "The results file could not be opened."
 msgstr "The results file could not be opened."
 
+#: src/features/extraction/components/StopCsvRunButton.tsx
+msgid "The rows already done stay in the results file. The other rows will not be extracted."
+msgstr "The rows already done stay in the results file. The other rows will not be extracted."
+
 #: src/features/extraction/components/CsvRecordsError.tsx
 msgid "The rows could not load. Check your connection, then try again."
 msgstr "The rows could not load. Check your connection, then try again."
 
-#: src/features/extraction/components/CsvRunActions.tsx
+#: src/features/extraction/components/StopCsvRunButton.tsx
 msgid "The run could not be stopped. Try again."
 msgstr "The run could not be stopped. Try again."
 

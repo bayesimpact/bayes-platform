@@ -11,6 +11,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- CSV extraction: the Desk asks for confirmation before it stops a run.
+
 ### Fixed
 
 ### Security

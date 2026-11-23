@@ -3,7 +3,7 @@ import type {
   CsvExtractionRunDetailOutputDto,
 } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { CircleStopIcon, DownloadIcon, EllipsisIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
+import { DownloadIcon, EllipsisIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { HeaderActions } from "@/components/shared/HeaderActions"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ import {
   useRetryCsvExtraction,
 } from "../api/mutations"
 import { isCsvRunLive } from "../api/queries"
+import { StopCsvRunButton } from "./StopCsvRunButton"
 
 export type CsvRunActionsProps = {
   agent: AgentParamsDto
@@ -28,8 +29,9 @@ export type CsvRunActionsProps = {
 }
 
 /**
- * The actions of a CSV run, in the bar above the page: stopping it while it runs, trying again
- * once it failed, downloading its results file once there is one, and deleting it.
+ * The actions of a CSV run, in the bar above the page: stopping it while it runs, after a
+ * confirmation, trying again once it failed, downloading its results file once there is one, and
+ * deleting it.
  */
 export function CsvRunActions({ agent, run, onDelete }: CsvRunActionsProps) {
   const { t } = useLingui()
@@ -47,22 +49,15 @@ export function CsvRunActions({ agent, run, onDelete }: CsvRunActionsProps) {
   return (
     <HeaderActions>
       {isLive ? (
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={cancel.isPending}
-          onClick={() =>
+        <StopCsvRunButton
+          isStopping={cancel.isPending}
+          hasFailed={cancel.isError}
+          onConfirm={() =>
             cancel.mutate(run.id, {
               onSuccess: () => toast.success(t`The run stopped. The rows done stay.`),
-              onError: () => toast.error(t`The run could not be stopped. Try again.`),
             })
           }
-        >
-          <CircleStopIcon aria-hidden />
-          <span className="max-sm:sr-only">
-            <Trans comment="Stops a run in progress">Stop</Trans>
-          </span>
-        </Button>
+        />
       ) : null}
       {run.status === "failed" ? (
         <Button

@@ -422,6 +422,32 @@ export function buildExtractionAgentWorld(): DeskWorld {
   return world
 }
 
+/** The rows a CSV run did before the page of `buildCsvRunInProgressWorld` opens. */
+const ROWS_DONE_IN_PROGRESS = 9
+
+/** A single extraction agent whose run of `articles.csv` still goes on: nine rows of 24 are done. */
+export function buildCsvRunInProgressWorld(): DeskWorld {
+  const world = buildExtractionAgentWorld()
+  for (const run of Object.values(world.csvExtractionRuns).flat()) {
+    const records = world.csvRecords[run.id] ?? []
+    for (const record of records) {
+      if (record.rowIndex < ROWS_DONE_IN_PROGRESS) continue
+      record.status = "running"
+      record.agentRawOutput = null
+    }
+    const errors = records.filter((record) => record.status === "error").length
+    run.status = "running"
+    run.csvExportDocumentId = null
+    run.summary = {
+      total: records.length,
+      processed: ROWS_DONE_IN_PROGRESS,
+      errors,
+      running: records.length - ROWS_DONE_IN_PROGRESS,
+    }
+  }
+  return world
+}
+
 /**
  * The main case, where the person answered the first reply with notes on passages they quoted
  * from it, which their message shows as chips, and the agent replied.
