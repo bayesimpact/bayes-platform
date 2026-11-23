@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common"
 import { ResourceContextModule } from "@/common/context/resource-context.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { AgentCsvExtractionRunsModule } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module"
 import { ExtractionAgentSessionsModule } from "@/domains/agents/extraction-agent-sessions/extraction-agent-sessions.module"
 import { AgentMemoriesStoreModule } from "@/domains/agents/memories/agent-memories-store.module"
 import { AgentMessageFeedbackModule } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
@@ -20,6 +21,7 @@ import { DeskAgentsController } from "./agents/desk-agents.controller"
 import { DeskConversationMessagesController } from "./conversations/desk-conversation-messages.controller"
 import { DeskConversationReplyController } from "./conversations/desk-conversation-reply.controller"
 import { DeskConversationsController } from "./conversations/desk-conversations.controller"
+import { DeskCsvExtractionsController } from "./csv-extractions/desk-csv-extractions.controller"
 import { DeskDocumentsController } from "./documents/desk-documents.controller"
 import { DeskExtractionsController } from "./extractions/desk-extractions.controller"
 import { DeskInvitationsController } from "./invitations/desk-invitations.controller"
@@ -49,6 +51,7 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     AgentMemoriesStoreModule,
     ExtractionAgentSessionsModule,
     DocumentsModule,
+    AgentCsvExtractionRunsModule,
   ],
   controllers: [
     DeskAccountController,
@@ -62,6 +65,7 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     DeskDocumentsController,
     DeskMemoriesController,
     DeskExtractionsController,
+    DeskCsvExtractionsController,
   ],
 })
 export class DeskModule {}

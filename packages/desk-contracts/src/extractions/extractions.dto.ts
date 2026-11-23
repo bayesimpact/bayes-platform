@@ -196,18 +196,23 @@ export const csvExtractionRecordOutputSchema = z.object({
 
 export type CsvExtractionRecordOutputDto = z.output<typeof csvExtractionRecordOutputSchema>
 
-const pageNumberSchema = z.codec(z.string(), z.number().int().min(0), {
-  decode: (text) => Number(text),
-  encode: (value) => String(value),
-})
+/** A whole number of the query, sent as text. */
+const queryNumberSchema = (numberSchema: z.ZodNumber) =>
+  z.codec(z.string(), numberSchema, {
+    decode: (text) => Number(text),
+    encode: (value) => String(value),
+  })
+
+/** The largest page of rows the API sends. */
+const CSV_EXTRACTION_RECORDS_MAX_LIMIT = 100
 
 /**
  * A page of the rows. The API sorts by `rowIndex`, `status`, `input_<column id>` or
  * `agent_<field>`, and by row otherwise.
  */
 export const csvExtractionRecordsQuerySchema = z.strictObject({
-  page: pageNumberSchema,
-  limit: pageNumberSchema,
+  page: queryNumberSchema(z.number().int().min(0)),
+  limit: queryNumberSchema(z.number().int().min(0).max(CSV_EXTRACTION_RECORDS_MAX_LIMIT)),
   sortBy: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })

@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { AGENT_PATH, agentParamsSchema, LEGACY_AGENT_PATH } from "../common/params.dto"
+import { AGENT_PATH, agentParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { csvExtractionRunDetailOutputSchema } from "../extractions/extractions.dto"
 import { conversationSessionOutputSchema, extractionRunOutputSchema } from "./agent-sessions.dto"
@@ -20,7 +20,7 @@ export const DeskAgentSessionsRoutes = {
   }),
   getCsvExtractionRuns: defineSchemaRoute({
     method: "get",
-    path: `${LEGACY_AGENT_PATH}/csv-extraction-runs/live`,
+    path: `${AGENT_PATH}/csv-extraction-runs/live`,
     params: agentParamsSchema,
     response: z.array(csvExtractionRunDetailOutputSchema),
   }),
