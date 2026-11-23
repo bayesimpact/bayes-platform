@@ -59,9 +59,11 @@ export function toExtractionDocumentDto(
 ): ExtractionDocumentOutputDto {
   return {
     id: document.id,
-    fileName: document.fileName,
+    // The column is nullable, though the entity types it as set.
+    fileName: document.fileName ?? undefined,
     mimeType: document.mimeType,
-    size: document.size,
+    // The column is nullable, though the entity types it as set.
+    size: document.size ?? undefined,
     language: document.language === "fr" ? "fr" : "en",
     content: document.content ?? null,
     createdAt: document.createdAt.getTime(),

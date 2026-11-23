@@ -169,6 +169,28 @@ describe("Desk extractions - getMyDocuments", () => {
     expect(titlesOf(response)).toEqual(["newer.pdf", "older.pdf"])
   })
 
+  it("leaves out the file name and the size of a document that has none", async () => {
+    const { user, organization, project } = await createContext()
+    const document = await repositories.documentRepository.save(
+      documentFactory
+        .transient({ organization, project })
+        .build({ sourceType: "extraction", userId: user.id }),
+    )
+    // The columns are nullable, while the entity types them as set: raw SQL stores the nulls.
+    await repositories.documentRepository.update(document.id, {
+      fileName: () => "NULL",
+      size: () => "NULL",
+    })
+
+    const response = await subject()
+
+    expectSchemaResponse(DeskExtractionsRoutes.getMyDocuments, response, 201)
+    expect(response.body.data).toHaveLength(1)
+    expect(response.body.data[0]?.id).toBe(document.id)
+    expect(response.body.data[0]).not.toHaveProperty("fileName")
+    expect(response.body.data[0]).not.toHaveProperty("size")
+  })
+
   it("answers an empty list when the caller has no document", async () => {
     await createContext()
 
