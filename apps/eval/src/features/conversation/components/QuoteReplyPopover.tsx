@@ -58,6 +58,7 @@ export function QuoteReplyPopover({
   useEffect(() => {
     showQuoteHighlights(highlighted.map((annotation) => annotation.range))
   }, [highlighted])
+  // The same highlights, in the browser, go when the box leaves the page.
   useEffect(() => clearQuoteHighlights, [])
 
   // Leaving a note keeps it: closing the box, opening another or pressing Enter all save it.

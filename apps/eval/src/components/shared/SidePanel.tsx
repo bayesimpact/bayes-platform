@@ -1,11 +1,15 @@
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
-import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef } from "react"
+import { type KeyboardEvent, type ReactNode, useEffect, useEffectEvent, useId, useRef } from "react"
 import { Button } from "@/components/ui/button"
+import { useSidebar } from "@/components/ui/sidebar"
 import { useInertPageBehind } from "@/hooks/use-inert-page-behind"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { ResizeHandle } from "./ResizeHandle"
+
+/** Under this width, the page beside a panel is too narrow to read: the sidebar gives way. */
+const MIN_PAGE_WIDTH_IN_PIXELS = 480
 
 export type SidePanelProps = {
   title: ReactNode
@@ -28,7 +32,9 @@ export type SidePanelProps = {
  * little room for both, it covers the page, which turns inert behind it as behind a dialog.
  *
  * Opening it moves the focus to its title, so the keyboard and screen readers land in it; Escape
- * closes it from anywhere inside, and the focus goes back to what opened it.
+ * closes it from anywhere inside, and the focus goes back to what opened it. The person resizes
+ * it by its left edge. Opened or stretched so wide that the page has little room left, it folds
+ * the sidebar.
  */
 export function SidePanel({
   title,
@@ -45,12 +51,32 @@ export function SidePanel({
   // Tailwind's `lg`, from which the panel docks beside the page.
   const isDocked = useMediaQuery("(min-width: 64rem)")
   useInertPageBehind(panelRef, !isDocked, '[data-slot="sidebar-wrapper"]')
+  const sidebar = useSidebar()
+  // A panel that leaves the page beside it little room folds the sidebar, which gives the page
+  // its width back. The person opens the sidebar again when they want it.
+  const makeRoomForPage = (nextPanelWidth?: number) => {
+    const panel = panelRef.current
+    const page = panel?.previousElementSibling
+    if (!panel || !isDocked || !sidebar.open || !(page instanceof HTMLElement)) return
+    // The page loses what the panel is about to gain, before the layout shows it.
+    const panelGrowth =
+      nextPanelWidth === undefined ? 0 : nextPanelWidth - panel.getBoundingClientRect().width
+    if (page.clientWidth - panelGrowth < MIN_PAGE_WIDTH_IN_PIXELS) sidebar.setOpen(false)
+  }
+  const makeRoomOnOpen = useEffectEvent(() => makeRoomForPage())
+  // The layout is outside React: the page is measured once the panel shows beside it, as a panel
+  // opens at the width the person gave it last, which may be a wide one.
+  useEffect(() => {
+    if (isDocked) makeRoomOnOpen()
+  }, [isDocked])
   const panelWidth = useResizableWidth({
     storageKey: "eval.sidePanelWidth",
     defaultWidth: 384,
     minWidth: 320,
     maxWidth: 720,
     edge: "left",
+    // Stretched, the panel may leave the page too little room too.
+    onResize: makeRoomForPage,
   })
   // What had the focus before the panel opened, kept across a re-run of the effect.
   const openerRef = useRef<Element | null>(null)

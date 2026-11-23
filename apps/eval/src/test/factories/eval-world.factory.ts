@@ -13,6 +13,18 @@ import type {
   TesterSurveyOutputDto,
 } from "@caseai-connect/eval-contracts"
 import {
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
@@ -21,10 +33,22 @@ import {
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  STUDIO_UI_READ_PERMISSION,
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
 import { agentVersionIdOf, buildAgentVersions, buildProjectAgent } from "./agents.factory"
+import {
+  buildPricingDatasets,
+  type ConversationDatasetRecord,
+} from "./conversation-datasets.factory"
+import { buildPricingRuns, type ConversationRunRecord } from "./conversation-runs.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
+import {
+  buildSupportDatasets,
+  type ExtractionDatasetEntry,
+  type ExtractionFileEntry,
+} from "./extraction-datasets.factory"
+import { buildLargeRun, buildSupportRuns, type ExtractionRunEntry } from "./extraction-runs.factory"
 import { buildInvitation } from "./invitations.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
 import {
@@ -42,6 +66,7 @@ import {
 /** What a project's owner or admin holds for its review campaigns, beside evaluating its agents. */
 const MANAGER_PERMISSIONS = [
   "project.read",
+  STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
@@ -50,6 +75,18 @@ const MANAGER_PERMISSIONS = [
   PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
 ]
 
 /**
@@ -66,6 +103,16 @@ export type EvalWorld = {
    */
   agentVersions: Record<string, AgentVersionOutputDto[]>
   campaigns: ReviewCampaignDetailOutputDto[]
+  /** The conversation datasets of the projects, each with its records. */
+  conversationDatasets: ConversationDatasetRecord[]
+  /** The conversation runs of the projects, each with its records, newest first. */
+  conversationRuns: ConversationRunRecord[]
+  /** The CSV files of the projects, which extraction datasets are built from. */
+  extractionFiles: ExtractionFileEntry[]
+  /** The extraction datasets of the projects, each with its records. */
+  extractionDatasets: ExtractionDatasetEntry[]
+  /** The extraction runs of the projects, each with its records, newest first. */
+  extractionRuns: ExtractionRunEntry[]
   /** The pending invitations of each campaign, by campaign id. */
   invitations: Record<string, CampaignInvitationOutputDto[]>
   /** The report of each campaign, by campaign id: an empty one when none is set. */
@@ -93,6 +140,11 @@ export type EvalWorld = {
 const emptyCampaignData = {
   agentVersions: {},
   campaigns: [],
+  conversationDatasets: [],
+  conversationRuns: [],
+  extractionFiles: [],
+  extractionDatasets: [],
+  extractionRuns: [],
   invitations: {},
   reports: {},
   myCampaignRoles: {},
@@ -137,6 +189,8 @@ export function buildEvalWorld(): EvalWorld {
     memberships: [buildCampaignMembership("sam@example.org", ["tester"])],
     aggregates: { meanTesterRating: 4.25, surveyCount: 3, sessionCount: 12 },
   })
+  const conversationDatasets = buildPricingDatasets(project.id)
+  const [pricingDataset] = conversationDatasets
   return {
     ...emptyCampaignData,
     organizations: [organization],
@@ -154,7 +208,71 @@ export function buildEvalWorld(): EvalWorld {
       ],
     },
     reports: { [active.id]: buildCampaignReport(), [closed.id]: buildCampaignReport() },
+    // Last, so the ids of what comes before stay the ones the stories and the tests know.
+    conversationDatasets,
+    conversationRuns: pricingDataset ? buildPricingRuns(project.id, agent.id, pricingDataset) : [],
   }
+}
+
+/** What the extraction agent of the stories returns: two fields to find, and a summary. */
+const SUPPORT_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    title: { type: "string", title: "Title" },
+    category: { type: "string", title: "Category" },
+    summary: { type: "string", title: "Summary" },
+  },
+}
+
+/**
+ * The evaluator of a project whose one agent extracts fields: its project holds two CSV files, a
+ * dataset built from one of them with its runs, a dataset that waits for its file, and a large
+ * dataset with a run, whose records fill several pages.
+ */
+export function buildExtractionWorld(): EvalWorld {
+  const organization = buildMyOrganization()
+  const project = buildMyProject(organization, { permissions: MANAGER_PERMISSIONS })
+  const agent = buildProjectAgent(project, { name: "Document Reader", type: "extraction" })
+  const { files, datasets } = buildSupportDatasets(project.id)
+  const [supportDataset] = datasets
+  const largeDataset = datasets.find((candidate) => candidate.dataset.name === "All messages")
+  return {
+    ...emptyCampaignData,
+    organizations: [organization],
+    projects: [project],
+    agents: [agent],
+    agentVersions: {
+      [agent.id]: buildAgentVersions(agent).map((version) => ({
+        ...version,
+        instructions: "Read the customer's message. Give it a short title and a category.",
+        greetingMessage: undefined,
+        outputJsonSchema: SUPPORT_OUTPUT_SCHEMA,
+      })),
+    },
+    extractionFiles: files,
+    extractionDatasets: datasets,
+    extractionRuns: [
+      ...(supportDataset ? buildSupportRuns(project.id, agent.id, supportDataset) : []),
+      // Last, so the first run that is over stays one of the main dataset.
+      ...(largeDataset ? [buildLargeRun(project.id, agent.id, largeDataset)] : []),
+    ],
+  }
+}
+
+/**
+ * The main case, whose run under way a person stopped: the records it had not asked yet stand as
+ * not asked. Its figures stay as they were, as the API does not count them again.
+ */
+export function buildCancelledRunWorld(): EvalWorld {
+  const world = buildEvalWorld()
+  for (const entry of world.conversationRuns) {
+    if (entry.run.status !== "running") continue
+    entry.run.status = "cancelled"
+    for (const record of entry.records) {
+      if (record.status === "running") record.status = "cancelled"
+    }
+  }
+  return world
 }
 
 /**

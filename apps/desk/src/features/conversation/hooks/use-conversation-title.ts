@@ -10,6 +10,7 @@ import { conversationsQueryOptions } from "@/features/history"
  */
 export function useConversationTitle(conversation: ConversationParamsDto): string {
   const { t } = useLingui()
+  // useQuery: the list only names the conversation, which must not hold it back.
   const { data: title } = useQuery({
     ...conversationsQueryOptions(conversation),
     select: (conversations) =>

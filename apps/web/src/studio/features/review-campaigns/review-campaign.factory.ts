@@ -70,6 +70,7 @@ export const reviewCampaignFactory = ReviewCampaignFactory.define(({ params, tra
     organizationId: project.organizationId,
     projectId: project.id,
     agentId: params.agentId ?? agent?.id ?? faker.string.uuid(),
+    agentSettingsId: params.agentSettingsId ?? faker.string.uuid(),
     name: params.name ?? faker.commerce.productName(),
     description: params.description ?? faker.lorem.sentence(),
     status: params.status ?? "draft",

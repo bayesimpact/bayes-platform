@@ -7,6 +7,7 @@ export function buildMe(overrides: Partial<MeOutputDto["user"]> = {}): MeOutputD
       id: crypto.randomUUID(),
       name: "Alex Example",
       email: "alex@example.org",
+      globalPermissions: [],
       ...overrides,
     },
   })
