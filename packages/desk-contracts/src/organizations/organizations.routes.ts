@@ -5,7 +5,7 @@ import { myOrganizationOutputSchema } from "./organizations.dto"
 export const DeskOrganizationsRoutes = {
   getAllMine: defineSchemaRoute({
     method: "get",
-    path: "organizations/mine",
+    path: "desk/organizations/mine",
     response: z.array(myOrganizationOutputSchema),
   }),
 }

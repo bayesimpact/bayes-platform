@@ -6,7 +6,7 @@ export const DESK_UI_READ_PERMISSION = "desk.ui.read" as const
 /** The feature of a project that shows the sources a reply relied on, under the reply. */
 export const SOURCES_TOOL_FEATURE_FLAG = "sources-tool" as const
 
-/** A project the signed-in person can read, as `GET projects/mine` returns it. */
+/** A project the signed-in person can read, as `GET desk/projects/mine` returns it. */
 export const myProjectOutputSchema = z.object({
   id: z.uuid(),
   name: z.string(),

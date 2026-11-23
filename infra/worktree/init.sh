@@ -26,7 +26,8 @@ exec setpriv --reuid="$WT_UID" --regid="$WT_GID" --clear-groups -- sh -eu -c '
     npm ci --no-audit --no-fund
     echo "$wanted" > "$stamp"
   fi
-  # The API requires the compiled contracts; the web app loads the embed launcher script.
+  # The API requires the compiled contracts (API and Desk); the web app loads the embed launcher script.
   npm run build -w packages/api-contracts
+  npm run build -w packages/desk-contracts
   npm run build:launcher -w apps/web-embed
 '

@@ -287,10 +287,17 @@ services:
 
   contracts:
     <<: *node
-    working_dir: ${WT_PATH}/packages/api-contracts
+    working_dir: ${WT_PATH}
     environment: *node-env
     depends_on: *after-init
-    command: ["npm", "run", "dev", "--", "--preserveWatchOutput"]
+    command:
+      - npx
+      - tsc
+      - -b
+      - --watch
+      - --preserveWatchOutput
+      - packages/api-contracts
+      - packages/desk-contracts/tsconfig.build.json
     labels:
       <<: *labels
       dev.worktree.service: contracts

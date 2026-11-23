@@ -7,7 +7,7 @@ import {
   SOURCES_TOOL_FEATURE_FLAG,
 } from "@caseai-connect/desk-contracts"
 
-/** An organization of `GET organizations/mine`, checked against the contract. */
+/** An organization of `GET desk/organizations/mine`, checked against the contract. */
 export function buildMyOrganization(
   overrides: Partial<MyOrganizationOutputDto> = {},
 ): MyOrganizationOutputDto {
@@ -18,7 +18,7 @@ export function buildMyOrganization(
   })
 }
 
-/** A project of `GET projects/mine`, which opens the Desk unless `permissions` says otherwise. */
+/** A project of `GET desk/projects/mine`, which opens the Desk unless `permissions` says otherwise. */
 export function buildMyProject(
   organization: MyOrganizationOutputDto,
   overrides: Partial<MyProjectOutputDto> = {},

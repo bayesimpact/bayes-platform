@@ -333,8 +333,10 @@ No other package is shared on these grounds. A second one needs its own decision
   memoize.
 * A 400 from a Desk endpoint carries the Zod issues (section 2.13), and the mutation maps them onto
   the fields with `setError`. Other failures become a toast. In phase 1, the existing endpoints
-  answer a 400 with one message string, and every API failure becomes a toast. The submit button is
-  disabled while the form submits, and a submitted form confirms its outcome with a toast.
+  answered a 400 with one message string, and every API failure became a toast. Since 2026-11-23
+  the Desk endpoints answer a 400 with the issues, and the Desk still turns every API failure into a
+  toast. The submit button is disabled while the form submits, and a submitted form confirms its
+  outcome with a toast.
 * Every data table goes through one `DataTable` in `components/shared/`. Column definitions sit in
   `features/<feature>/components/<entity>-columns.tsx`, typed on the row type. A server-paginated
   table uses TanStack Table's manual pagination, sorting and filtering. Its state lives in
@@ -529,17 +531,18 @@ params every area extends), each with an `{area}.dto.ts` that
 holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
 CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
 object per area. It depends on Zod alone and imports nothing from `packages/api-contracts`. The
-Desk resolves it as source through its `exports`. Once Desk endpoints exist (section 2.13), the API
-requires its CommonJS build at runtime and maps it to its source in Jest, as it does for
-`api-contracts`; in phase 1 the API does not import it.
+Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
+and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
+import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
 
 * A route is declared with `defineSchemaRoute`, a helper of the package. It takes the method, the
-  path and the schemas of the params, query, body and response, plus the event schema of a stream,
-  and infers the request and response types from them. It returns the shape of `defineRoute`
-  (`path`, `getPath`, `method`, phantom `request` and `response`) plus a `schemas` property, so the
-  API's controllers and its e2e requester use Desk routes like any other; building a typed path is
-  the client's job. A part the route does not read must be empty, and an absent body counts as
-  empty, so nothing unchecked comes in.
+  path and the schemas of the params, query, body and response, and infers the request and
+  response types from them. A stream route is declared with `defineStreamRoute`, which takes an
+  `event` schema in place of the response. `defineSchemaRoute` returns `path`, `getPath` and
+  `method`, as `defineRoute` does, plus a `schemas` property, with no phantom
+  `request` and `response`. The API's handlers take the route through `@SchemaRoute`, and its e2e
+  specs through `testSchemaRequester`; building a typed path is the client's job. A part the route
+  does not read must be empty, and an absent body counts as empty, so nothing unchecked comes in.
 * Schemas are named by role, after the kit's `xxxInput`, `xxxOutput` and `xxxQuery`, with the
   `Schema` suffix of the existing contracts (`createConversationInputSchema`,
   `conversationOutputSchema`), and their types take the `Dto` suffix. Types derive from schemas
@@ -576,7 +579,41 @@ filtering on the client what they return for every app, and a missing endpoint i
 other routes and controllers of `apps/api`, with `ZodValidationPipe` on its body.
 `packages/desk-contracts` describes the routes the Desk calls and the fields it reads, the Desk
 checks every response against it, and the API does not import it. `docs/frontend/conventions.md`
-holds the rules of this phase.
+holds the rules of this phase. The note of 2026-11-23 below supersedes this one.
+
+**The Desk on its own API (Alexis, 2026-11-23).** The first step of this section gives the Desk
+endpoints of its own, as faithful copies. Every route of `packages/desk-contracts` (42 routes, one
+of them the reply stream) starts with `desk/` and has a handler in `apps/api/src/domains/desk/`, in
+`DeskModule`. Its folders follow the areas of the contracts, with two exceptions: the
+`agent-sessions` routes live by agent type in `conversations/`, `extractions/` and
+`csv-extractions/`, and `csv-extractions/` serves the CSV routes of `extractions`. A folder may
+hold several controllers: `conversations/` has three. The Desk calls only these endpoints, with
+one exception: a resource card of a reply links to a library file at
+`organizations/.../resource-libraries/.../resources/.../file` (`apps/desk/src/lib/safe-url.ts`),
+a route outside `desk/` and outside the contracts. The context
+resolvers come from `ResourceContextModule` in `apps/api/src/common/context/`, so the Desk module
+registers no entity of another domain. `apps/api/src/common/schema-route/` holds `@SchemaRoute`,
+its input guard and its response interceptor, and [`docs/schema-routes.md`](../schema-routes.md)
+is their guide. The input guard parses the params, query and body
+with the route's schemas before any resolver runs, and answers 400 with the issues. The interceptor
+parses each response with the route's schema, strips unknown keys, and answers 500 on a mismatch.
+The API requires the CommonJS build of the contracts (`dist`) at runtime, and Jest maps the package
+to its source. Each Desk endpoint copies the endpoint the Desk called before, with the session type
+fixed to `live`: the same method, params, body and response, the same permission on the same
+resource, and the same status codes and tracked activities. Two things change: every schema refusal
+answers 400, and a response holds only the fields the contract declares. The rest of this section
+stays the target, and these parts wait for later changes:
+
+* the Desk access guard and `@DeskRoute` (`desk.ui.read` on the project, `agent.read` on the agent
+  with a 404);
+* the agent list built from `PermissionService.listResourceIds` and a repository method;
+* reads in GET, paths without `live`, and `desk/me` as a home that filters projects and
+  invitations;
+* the check of stream events on the server, and the typed `error` event;
+* the source document read through the caller's own run, and feedback through the caller's own
+  conversation;
+* the removal of the routes that only the Desk called;
+* a Desk route for the file of a library resource, which the Desk still links outside `desk/`.
 
 * The Desk is the first app with endpoints of its own, and the next apps follow the same pattern: a
   contracts package, a path prefix and an API module named after the app, and an access guard on the
@@ -606,8 +643,9 @@ holds the rules of this phase.
   its issue paths and answered with a 500. On a stream the headers are already sent, so it parses
   each event with the event schema instead, and a mismatch is logged and ends the stream with one
   typed `error` event.
-* `@SchemaRoute(route, { permission, activity })` applies the guard chain (`JwtAuthGuard`,
-  `UserGuard`, the input guard, `ResourceContextGuard`, `CheckPermissionGuard`), the interceptor,
+* `@SchemaRoute(route, { permission, context, activity, status })` applies the guard chain
+  (`JwtAuthGuard`, `UserGuard`, the input guard, then `ResourceContextGuard` for the resources
+  `context` names and `CheckPermissionGuard` for a scoped `permission`), the interceptor,
   the HTTP method and the status code to each handler, so e2e tests, which do not run `main.ts`,
   exercise them. `permission` is required, so no route skips its check by omission. `activity`
   records what `@TrackActivity` records on the `live` routes, except on streams, where the
@@ -620,7 +658,7 @@ holds the rules of this phase.
   optional: a malformed JSON body (400) and an oversized one (413) carry neither. The kit's RFC
   9457 format is not adopted, so the API keeps one error shape.
 * Authorization follows ADR 0019. With `@CheckPermission`, each route checks the key and resource
-  that the matching route checks today: the session, extraction and CSV keys on the project
+  that the matching route checks today: the session, extraction and CSV keys on the agent
   (`agent.conversation.session.create`, `csv_extraction_run.read` and so on), and `agent.read` on
   the agent for memories and the form schema. The `live` routes are the session and run routes that
   today's Desk calls, such as `conversation-agent-sessions/live` and `memories/live`. The Desk
@@ -660,8 +698,8 @@ holds the rules of this phase.
   before them, and the confirm call after an extraction document's upload, are Desk endpoints like
   the others. An attachment URL is read through the caller's own conversation, where today's route
   finds the attachment anywhere in the project.
-* The Desk domain has an `auth.spec.ts` covering every Desk route, and one functional e2e spec per
-  action, as `apps/api/CLAUDE.md` requires. The auth spec covers project owners, admins and members
+* Each folder of the Desk domain has an `auth.spec.ts` covering its routes, and one functional e2e
+  spec per action, as `apps/api/CLAUDE.md` requires. The auth spec covers project owners, admins and members
   with and without a membership on the agent, campaign testers and reviewers, and organization
   roles with no project role. The default factories give the member an agent membership, so the
   cases without one are built explicitly.

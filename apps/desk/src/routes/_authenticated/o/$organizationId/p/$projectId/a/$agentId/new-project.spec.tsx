@@ -1,23 +1,15 @@
+import { DeskAgentsRoutes, DeskInvitationsRoutes } from "@caseai-connect/desk-contracts"
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { delay, HttpResponse, http } from "msw"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { delay } from "msw"
+import { describe, expect, it } from "vitest"
 import { buildProjectAgent } from "@/test/factories/agents.factory"
 import { buildDeskWorld } from "@/test/factories/desk-world.factory"
 import { buildMyProject } from "@/test/factories/projects.factory"
 import { worldHandlers } from "@/test/msw/handlers"
+import { mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
-
-vi.mock("@/lib/auth/session", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/auth/session")>()),
-  hasSession: async () => true,
-  getAccessToken: async () => "test-token",
-}))
-
-beforeEach(() => {
-  window.localStorage.clear()
-})
 
 describe("an invitation to a project the person was not in", () => {
   it("adds its agent to the switcher, with the page kept on screen", async () => {
@@ -28,15 +20,19 @@ describe("an invitation to a project the person was not in", () => {
     const researcher = buildProjectAgent(research, { name: "Research Assistant" })
     server.use(
       // The first handler that matches answers: accepting opens a project of its own.
-      http.post("*/api/me/invitations/:invitationId/accept", () => {
+      mockRoute(DeskInvitationsRoutes.acceptOne, () => {
         world.invitations = []
         world.projects.push(research)
-        return HttpResponse.json({ data: { success: true } }, { status: 201 })
+        return { success: true }
       }),
-      // Its agents come after the projects, as they would from a real API.
-      http.get(`*/api/organizations/:organizationId/projects/${research.id}/agents`, async () => {
+      // Its agents come after the projects, as they would from a real API. The other projects
+      // answer as the world says.
+      mockRoute(DeskAgentsRoutes.getAllOfProject, async ({ params }) => {
+        if (params.projectId !== research.id) {
+          return world.agents.filter((agent) => agent.projectId === params.projectId)
+        }
         await delay(100)
-        return HttpResponse.json({ data: [researcher] })
+        return [researcher]
       }),
       ...worldHandlers(world),
     )
@@ -53,12 +49,16 @@ describe("an invitation to a project the person was not in", () => {
     const dialog = await screen.findByRole("dialog")
     await userEvent.click(within(dialog).getByRole("button", { name: /^Accept the invitation/ }))
 
-    expect(
-      await screen.findByRole("button", {
-        name: "Switch agent, current agent: Helpful Assistant",
-      }),
-    ).toBeInTheDocument()
+    const switcher = await screen.findByRole("button", {
+      name: "Switch agent, current agent: Helpful Assistant",
+    })
     observer.disconnect()
     expect(wasPageHidden).toBe(false)
+    // The agent comes from the new project, not from the invitation's own agent.
+    await userEvent.click(switcher)
+    const switcherDialog = await screen.findByRole("dialog", { name: "Switch agent" })
+    expect(
+      await within(switcherDialog).findByRole("option", { name: "Research Assistant" }),
+    ).toBeInTheDocument()
   })
 })
