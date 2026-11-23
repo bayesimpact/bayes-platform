@@ -9,18 +9,18 @@ import {
 export const DeskInvitationsRoutes = {
   getMine: defineSchemaRoute({
     method: "get",
-    path: "me/invitations",
+    path: "desk/me/invitations",
     response: myInvitationsOutputSchema,
   }),
   acceptOne: defineSchemaRoute({
     method: "post",
-    path: "me/invitations/:invitationId/accept",
+    path: "desk/me/invitations/:invitationId/accept",
     params: invitationParamsSchema,
     response: invitationAnswerOutputSchema,
   }),
   declineOne: defineSchemaRoute({
     method: "post",
-    path: "me/invitations/:invitationId/decline",
+    path: "desk/me/invitations/:invitationId/decline",
     params: invitationParamsSchema,
     response: invitationAnswerOutputSchema,
   }),

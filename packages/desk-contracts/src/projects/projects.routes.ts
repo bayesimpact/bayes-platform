@@ -5,7 +5,7 @@ import { myProjectOutputSchema } from "./projects.dto"
 export const DeskProjectsRoutes = {
   getAllMine: defineSchemaRoute({
     method: "get",
-    path: "projects/mine",
+    path: "desk/projects/mine",
     response: z.array(myProjectOutputSchema),
   }),
 }

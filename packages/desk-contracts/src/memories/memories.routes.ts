@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { AGENT_PATH, agentParamsSchema } from "../common/params.dto"
+import { agentParamsSchema, LEGACY_AGENT_PATH } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import {
   memoryOutputSchema,
@@ -7,7 +7,7 @@ import {
   resolveMemoryProposalsInputSchema,
 } from "./memories.dto"
 
-const memoriesPath = `${AGENT_PATH}/memories/live`
+const memoriesPath = `${LEGACY_AGENT_PATH}/memories/live`
 
 /**
  * The facts an agent remembers about the signed-in person. The routes check `agent.read`: a

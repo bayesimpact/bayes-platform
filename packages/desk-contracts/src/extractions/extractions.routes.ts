@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { AGENT_PATH, agentParamsSchema } from "../common/params.dto"
+import { agentParamsSchema, LEGACY_AGENT_PATH } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { temporaryUrlOutputSchema } from "../documents/documents.dto"
 import {
@@ -22,7 +22,7 @@ import {
   presignExtractionDocumentOutputSchema,
 } from "./extractions.dto"
 
-const runsPath = `${AGENT_PATH}/extraction-agent-sessions/live`
+const runsPath = `${LEGACY_AGENT_PATH}/extraction-agent-sessions/live`
 
 /**
  * The extractions of one document by an extraction agent, and the documents the person uploads
@@ -76,7 +76,7 @@ export const DeskExtractionsRoutes = {
   }),
 }
 
-const csvRunsPath = `${AGENT_PATH}/csv-extraction-runs/live`
+const csvRunsPath = `${LEGACY_AGENT_PATH}/csv-extraction-runs/live`
 
 /** The extractions of every row of a CSV file, which the person uploads as a document. */
 export const DeskCsvExtractionsRoutes = {

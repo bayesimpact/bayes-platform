@@ -10,18 +10,18 @@ import {
 export const DeskAccountRoutes = {
   getMe: defineSchemaRoute({
     method: "get",
-    path: "me",
+    path: "desk/me",
     response: meOutputSchema,
   }),
   patchMe: defineSchemaRoute({
     method: "patch",
-    path: "me",
+    path: "desk/me",
     body: updateMeInputSchema,
     response: updateMeOutputSchema,
   }),
   acceptTerms: defineSchemaRoute({
     method: "post",
-    path: "me/terms-acceptances",
+    path: "desk/me/terms-acceptances",
     body: acceptTermsInputSchema,
     response: acceptTermsOutputSchema,
   }),
