@@ -121,6 +121,12 @@ export type CreatePublicSessionResponseDto = {
  */
 export type PublicChatStreamRequestDto = {
   content: string
+  /**
+   * `inline` keeps the citation markers (`[c1]`, `[c1, c3]`) in the streamed text and in
+   * `end.fullContent`; each chunk of the `sources` tool call carries the matching `alias`.
+   * Omitted: markers are removed, as before. The stored message never holds markers.
+   */
+  citations?: "inline"
 }
 
 /** One server-sent event of the stream route, JSON-encoded in a `data:` line. */

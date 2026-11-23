@@ -4,12 +4,12 @@ highlight: Journal
 description: Chaque version de l'API de chat publique, avec la date, les changements et les étapes de migration quand un changement est cassant.
 category: developers
 order: 3
-updated: 2026-11-06
-apiVersion: "1.5"
+updated: 2026-11-17
+apiVersion: "1.6"
 ---
 
 Cette page liste chaque version de l'API de chat publique. La version courante est la
-**1.5**. Les versions mineures ajoutent des éléments et gardent les clients existants
+**1.6**. Les versions mineures ajoutent des éléments et gardent les clients existants
 fonctionnels. Les versions majeures peuvent casser des clients et viennent avec une période
 de dépréciation. Voir la
 [politique de versions et de dépréciation](/fr/public-chat-api-versioning).
@@ -34,6 +34,22 @@ de dépréciation. Voir la
   ### Migration
   - ... (obligatoire pour une version majeure)
 */}
+
+## 1.6 (2026-11-17)
+
+### Ajouté
+
+- `payload.citations: "inline"` sur [l'envoi d'un message](/fr/public-chat-api#envoyer-un-message-et-recevoir-la-réponse-en-flux) :
+  le texte du flux garde les renvois aux sources (`[c1]`, `[c1, c3]`), pour qu'un client
+  affiche chaque source à côté de la phrase qu'elle appuie. Voir
+  [citations dans le texte](/fr/public-chat-api#citations-dans-le-texte).
+- `alias` sur chaque passage de l'appel d'outil `sources` : le renvoi de ce passage dans une
+  réponse avec citations dans le texte.
+
+### Migration
+
+- Aucune. Sans `citations`, le flux ne change pas, et un client qui ignore `alias` continue de
+  fonctionner.
 
 ## 1.5 (2026-11-16)
 
