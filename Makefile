@@ -28,6 +28,7 @@ API_PATHS := \
 	apps/api/requirements-torch.txt \
 	apps/api/requirements-docling.txt \
 	packages/api-contracts \
+	packages/desk-contracts \
 	package.json \
 	package-lock.json \
 	turbo.json

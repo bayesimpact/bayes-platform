@@ -17,14 +17,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
-# Scope install to API + api-contracts so packages/ui's runtime deps (vite, tailwind, radix, react)
+# Scope install to API + api-contracts + desk-contracts so packages/ui's runtime deps (vite, tailwind, radix, react)
 # never enter node_modules/. Frontend workspaces are left on disk but their deps aren't installed.
 RUN npm ci \
     --workspace=@caseai-connect/api \
     --workspace=@caseai-connect/api-contracts \
+    --workspace=@caseai-connect/desk-contracts \
     --include-workspace-root
 
 #
@@ -40,12 +42,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
 RUN npm ci --omit=dev \
     --workspace=@caseai-connect/api \
     --workspace=@caseai-connect/api-contracts \
+    --workspace=@caseai-connect/desk-contracts \
     --include-workspace-root
 
 # `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
@@ -69,6 +73,7 @@ COPY ./packages ./packages
 # Generate the production build. The build script compiles src/ to dist/ with SWC (.swcrc).
 RUN cd apps/api && npm run build
 RUN cd packages/api-contracts && npm run build
+RUN cd packages/desk-contracts && npm run build
 
 #
 # 🌐 Web front build (only used by the app-runtime target)
@@ -184,6 +189,7 @@ ENV NODE_ENV=production
 COPY --from=api-prod-deps /app/node_modules node_modules
 COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
+COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:
@@ -306,6 +312,7 @@ ENV NODE_ENV=production
 COPY --from=api-prod-deps /app/node_modules node_modules
 COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
+COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:
