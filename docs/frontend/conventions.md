@@ -343,9 +343,8 @@ it (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes
 
 - A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`.
   It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its `schemas`, with no
-  phantom `request` and `response`. It refuses at compile time a `params`
-  schema whose keys differ from the path's `:name` segments, and adds the `{ payload }` and
-  `{ data }` envelopes.
+  phantom `request` and `response`. It refuses at compile time a `params` schema whose keys
+  differ from the path's `:name` segments, and adds the `{ payload }` and `{ data }` envelopes.
 - A response schema declares the fields the app reads, and only those: `z.object` strips the
   others, so the app never depends on a field it does not declare. On an endpoint of the app's own,
   the API strips them too, before the response leaves. A response the schema rejects raises a
@@ -360,7 +359,9 @@ it (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes
   `z.strictObject`. A field that may have no value is `.nullable()`.
 - Query values travel as strings: numbers use `z.coerce.number<string>()`, flags `z.stringbool()`,
   a sort key is a `z.enum`, and nested filters travel as one JSON parameter through a `z.codec`.
-  The client builds the query string with `z.encode`. Docs: [codecs](https://zod.dev/codecs).
+  The client builds the query string with `z.encode`. When the API checks the query with the
+  schema, a number goes through a `z.codec` that refuses an empty text, which `z.coerce` reads as
+  0 (`csvExtractionRecordsQuerySchema`). Docs: [codecs](https://zod.dev/codecs).
 - Lists keep the API's offset pagination (`items`, `total`, `page`, `limit`, a 0-based page and a
   limit of 100 at most).
 
@@ -372,9 +373,8 @@ library file). They live in a module of `apps/api` named after the app
 (`apps/api/src/domains/desk/`), with a folder per area of the contracts. The Desk splits its
 `agent-sessions` routes by agent type, into `conversations/`, `extractions/` and
 `csv-extractions/`, the folder of the CSV routes of `extractions`. A folder may hold several
-controllers. Each handler of the
-Desk copies the logic of the endpoint the Desk called before, with the same permission on the same
-resource. ADR 0031, section 2.13, lists what waits.
+controllers. Each handler of the Desk copies the logic of the endpoint the Desk called before, with
+the same permission on the same resource. ADR 0031, section 2.13, lists what waits.
 
 - A handler serves a route of the contracts package through `@SchemaRoute`
   (`apps/api/src/common/schema-route/`). Its input guard parses the params, the query and the body

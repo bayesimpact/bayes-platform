@@ -24,8 +24,9 @@ holds what is specific to the Desk.
   each one copies the endpoint the Desk called before, with the same permission on the same
   resource. A new or changed endpoint is contract first (`docs/frontend/conventions.md`,
   Endpoints). The sidebar reads `desk/me`, then `desk/projects/mine`, `desk/organizations/mine`
-  and the agents of each project that grants `desk.ui.read`, as apps/web does, under one query (`deskAgentsQueryOptions` in
-  `features/agents`), and the person's invitations every minute. It keeps the agents whose
+  and the agents of each project that grants `desk.ui.read`, as apps/web does, under one query
+  (`deskAgentsQueryOptions` in `features/agents`), and the person's invitations every minute. It
+  keeps the agents whose
   `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API
   also lists the agents a project evaluator only reads.
 - MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`

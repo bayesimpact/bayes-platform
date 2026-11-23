@@ -14,7 +14,7 @@ type MockParams<TRoute extends MockedRoute> = z.output<TRoute["schemas"]["params
 /** The query of the route, decoded by its schema: a page is a number, a JSON parameter an object. */
 type MockQuery<TRoute extends MockedRoute> = z.output<TRoute["schemas"]["query"]>
 
-/** The `payload` of the body, as the API's validation pipe outputs it, or `undefined` without one. */
+/** The `payload` of the body, as the API's input guard outputs it, or `undefined` without one. */
 type MockPayload<TRoute extends MockedRoute> =
   z.output<TRoute["schemas"]["body"]> extends { payload: infer TPayload } ? TPayload : undefined
 
@@ -78,8 +78,24 @@ function parseQuery<TSchema extends z.ZodObject>(
   return schema.safeParse(Object.fromEntries(new URL(request.url).searchParams))
 }
 
-/** A request the contract refuses, as the API's validation pipe answers it: a 400. */
-const invalidRequest = (error: z.ZodError) => apiError(400, z.prettifyError(error))
+/** A request the contract refuses, as the API's input guard answers it: a 400 with the issues. */
+const invalidRequest = (part: "params" | "query" | "body", error: z.ZodError) =>
+  HttpResponse.json(
+    {
+      statusCode: 400,
+      message: "Invalid request",
+      error: "Bad Request",
+      issues: error.issues.map((issue) => ({
+        path: [
+          part,
+          ...issue.path.map((segment) => (typeof segment === "symbol" ? String(segment) : segment)),
+        ],
+        code: issue.code,
+        message: issue.message,
+      })),
+    },
+    { status: 400 },
+  )
 
 /** The body, decoded by the route's schema: `{ payload }` when the route reads one, `{}` otherwise. */
 async function parseBody<TRoute extends MockedRoute>(
@@ -100,7 +116,7 @@ function payloadOf<TRoute extends MockedRoute>(body: { payload?: unknown }): Moc
 /**
  * An MSW handler for a route of the contracts: its method and path come from the route, its
  * params, query and body are decoded by the route's schemas (a 400 when they refuse them, as the
- * API's validation pipe does), and the `data` the resolver returns is parsed by the response
+ * API's input guard does), and the `data` the resolver returns is parsed by the response
  * schema, so a mock cannot drift from the contract. A POST answers 201, as Nest does by default.
  */
 export function mockRoute<TRoute extends AnySchemaRoute>(
@@ -114,11 +130,11 @@ export function mockRoute<TRoute extends AnySchemaRoute>(
     pathOf(route),
     async ({ params, request }) => {
       const parsedParams = parseParams<TRoute["schemas"]["params"]>(route.schemas.params, params)
-      if (!parsedParams.success) return invalidRequest(parsedParams.error)
+      if (!parsedParams.success) return invalidRequest("params", parsedParams.error)
       const parsedQuery = parseQuery<TRoute["schemas"]["query"]>(route.schemas.query, request)
-      if (!parsedQuery.success) return invalidRequest(parsedQuery.error)
+      if (!parsedQuery.success) return invalidRequest("query", parsedQuery.error)
       const body = await parseBody(route, request)
-      if (!body.success) return invalidRequest(body.error)
+      if (!body.success) return invalidRequest("body", body.error)
 
       const answer = await resolver({
         params: parsedParams.data,
@@ -191,11 +207,11 @@ export function mockStreamRoute<TRoute extends AnyStreamRoute>(
     pathOf(route),
     async ({ params, request }) => {
       const parsedParams = parseParams<TRoute["schemas"]["params"]>(route.schemas.params, params)
-      if (!parsedParams.success) return invalidRequest(parsedParams.error)
+      if (!parsedParams.success) return invalidRequest("params", parsedParams.error)
       const parsedQuery = parseQuery<TRoute["schemas"]["query"]>(route.schemas.query, request)
-      if (!parsedQuery.success) return invalidRequest(parsedQuery.error)
+      if (!parsedQuery.success) return invalidRequest("query", parsedQuery.error)
       const body = await parseBody(route, request)
-      if (!body.success) return invalidRequest(body.error)
+      if (!body.success) return invalidRequest("body", body.error)
       const answer = await resolver({
         params: parsedParams.data,
         query: parsedQuery.data,

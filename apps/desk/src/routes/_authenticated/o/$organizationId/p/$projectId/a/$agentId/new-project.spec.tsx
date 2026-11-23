@@ -2,7 +2,7 @@ import { DeskAgentsRoutes, DeskInvitationsRoutes } from "@caseai-connect/desk-co
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { delay } from "msw"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 import { buildProjectAgent } from "@/test/factories/agents.factory"
 import { buildDeskWorld } from "@/test/factories/desk-world.factory"
 import { buildMyProject } from "@/test/factories/projects.factory"
@@ -10,16 +10,6 @@ import { worldHandlers } from "@/test/msw/handlers"
 import { mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
-
-vi.mock("@/lib/auth/session", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/auth/session")>()),
-  hasSession: async () => true,
-  getAccessToken: async () => "test-token",
-}))
-
-beforeEach(() => {
-  window.localStorage.clear()
-})
 
 describe("an invitation to a project the person was not in", () => {
   it("adds its agent to the switcher, with the page kept on screen", async () => {

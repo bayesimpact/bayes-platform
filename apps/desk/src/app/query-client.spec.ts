@@ -25,7 +25,7 @@ describe("createQueryClient", () => {
 
   it("never retries a 4xx, a broken contract, an ended session or a refused sign-in", () => {
     expect(shouldRetry(0, new ApiError(404, null))).toBe(false)
-    expect(shouldRetry(0, new ContractMismatchError("GET /projects/mine"))).toBe(false)
+    expect(shouldRetry(0, new ContractMismatchError("GET /desk/projects/mine"))).toBe(false)
     expect(shouldRetry(0, new AuthenticationRequiredError("gone"))).toBe(false)
     expect(shouldRetry(0, new SignInRefusedError("emailRequired"))).toBe(false)
     expect(shouldRetry(0, new SignInLoopError())).toBe(false)
