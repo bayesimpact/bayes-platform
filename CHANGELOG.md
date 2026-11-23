@@ -9,7 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- Public chat API 1.6: `citations: "inline"` keeps the source markers in the streamed answer, and each cited passage carries its `alias`, so an integration can show sources next to the sentences.
+- Public chat API 1.6: integrations can show each source next to the sentence it supports.
 - Agent version in production: managers choose which saved version the app, the embed and the public API run.
 - Agent instructions: an advanced mode shows the instructions as a diff with the last saved version and edits them there.
 

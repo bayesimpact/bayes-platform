@@ -331,6 +331,16 @@ not each event alone. The persisted reply never holds the markers, with or witho
 option. Any other value of `citations` ends the stream with the error
 `Invalid citations mode`.
 
+Read the markers with a tolerant pattern. The model can write them in upper case, with
+spaces, or with `;` between aliases (`[C1]`, `[ c1 ; c3 ]`). Compare aliases without case.
+Ignore a marker that has no matching `alias`: the model can cite a passage it did not
+receive.
+
+When the agent hands the conversation over to another agent, one reply holds the texts of
+several turns. Each turn numbers its passages from `c1` again and is stored as its own
+message, with its own `sources` entry. In that case the same marker can point to two
+different passages, and the stream does not tell which turn a marker belongs to.
+
 ### Send a message in the URL (deprecated)
 
 ```

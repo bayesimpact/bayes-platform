@@ -339,6 +339,16 @@ reçu jusque-là, pas chaque événement seul. La réponse enregistrée ne conti
 renvois, avec ou sans cette option. Toute autre valeur de `citations` termine le flux avec
 l'erreur `Invalid citations mode`.
 
+Lisez les renvois avec un motif tolérant. Le modèle peut les écrire en majuscules, avec des
+espaces, ou avec `;` entre les alias (`[C1]`, `[ c1 ; c3 ]`). Comparez les alias sans tenir
+compte de la casse. Ignorez un renvoi sans `alias` correspondant : le modèle peut citer un
+passage qu'il n'a pas reçu.
+
+Quand l'agent passe la conversation à un autre agent, une réponse contient les textes de
+plusieurs tours. Chaque tour numérote ses passages à partir de `c1` et est enregistré comme
+un message à part, avec sa propre entrée `sources`. Dans ce cas, un même renvoi peut désigner
+deux passages différents, et le flux ne dit pas à quel tour appartient un renvoi.
+
 ### Envoyer un message dans l'URL (déprécié)
 
 ```
