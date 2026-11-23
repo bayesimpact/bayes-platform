@@ -1,4 +1,4 @@
-import { DeskMemoriesRoutes } from "@caseai-connect/desk-contracts"
+import { DeskMemoriesRoutes, type MemoryOutputDto } from "@caseai-connect/desk-contracts"
 import { Controller, HttpStatus, Req } from "@nestjs/common"
 import type { EndpointRequestWithAgent } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
@@ -89,12 +89,7 @@ function ownerOf(request: EndpointRequestWithAgent): MemoryOwner {
   return { agentId: request.agent.id, userId: request.user.id, sessionType: "live" }
 }
 
-function toMemoryDto(memory: Memory): {
-  id: string
-  content: string
-  status: Memory["status"]
-  createdAt: number
-} {
+function toMemoryDto(memory: Memory): MemoryOutputDto {
   return {
     id: memory.id,
     content: memory.content,
