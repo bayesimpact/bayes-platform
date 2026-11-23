@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 - CSV extraction: the Desk asks for confirmation before it stops a run.
+- (beta) Embedded chat: while the agent thinks or a card loads, the loader draws the star of the logo link by link, and its label has a sliding sheen.
 
 ### Fixed
 
