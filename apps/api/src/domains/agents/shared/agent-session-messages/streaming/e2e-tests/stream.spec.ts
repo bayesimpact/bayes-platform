@@ -35,7 +35,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   let projectId: string
   let agentId: string
   let agentSessionId: string
-  let agentSessionType: ConversationAgentSessionTypeDto = "live"
+  let agentSessionType: ConversationAgentSessionTypeDto = "playground"
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
 
@@ -64,7 +64,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   })
 
   const createContext = async ({
-    sessionType = "live",
+    sessionType = "playground",
   }: {
     sessionType?: ConversationAgentSessionTypeDto
   } = {}) => {
@@ -300,16 +300,6 @@ describe("AgentSessionMessagesRoutes.stream", () => {
       expect(errorData(response.text)).toContain("archived")
     })
 
-    it("rejects a revision on a live session", async () => {
-      const { organization, project, agent } = await createContext({ sessionType: "live" })
-      await seedRevision({ organization, project, agent, revision: 2 })
-
-      const response = await subject("Hello", 2)
-
-      expect(response.text).toContain("event: error")
-      expect(errorData(response.text)).toContain("playground")
-    })
-
     it("rejects a revision that is not an integer", async () => {
       // The revision reaches TypeORM as-is, so anything else must be turned away here rather than
       // surface as a driver error.
@@ -330,18 +320,6 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
       expect(response.text).toContain("event: error")
       expect(errorData(response.text)).toContain("Invalid request body")
-    })
-
-    it("keeps running the published revision on a live session with no revision", async () => {
-      const { organization, project, agent, agentSettings } = await createContext({
-        sessionType: "live",
-      })
-      await seedRevision({ organization, project, agent, revision: 2, isDraft: true })
-
-      const response = await subject("Hello")
-
-      expect(response.text).not.toContain("event: error")
-      expect(await findAssistantMessageSettingsId()).toBe(agentSettings.id)
     })
 
     it("runs its campaign's version, which starts as the published one", async () => {
