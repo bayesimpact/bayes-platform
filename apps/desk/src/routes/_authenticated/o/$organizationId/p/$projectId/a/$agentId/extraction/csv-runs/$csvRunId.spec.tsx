@@ -6,7 +6,7 @@ import { describe, expect, it, onTestFinished, vi } from "vitest"
 import { agentOf, extractionUrlsOf } from "@/test/desk-urls"
 import { buildExtractionAgentWorld, type DeskWorld } from "@/test/factories/desk-world.factory"
 import { worldHandlers } from "@/test/msw/handlers"
-import { mockRoute } from "@/test/msw/mock-route"
+import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 import { required } from "@/test/required"
@@ -124,16 +124,76 @@ describe("an extraction of a CSV file", () => {
     )
   })
 
-  it("stops while it runs, and keeps the rows done", async () => {
+  it("asks before it stops, then stops and keeps the rows done", async () => {
     const world = serveExtractionWorld()
-    restartRun(world)
+    const run = restartRun(world)
     renderApp(extractionUrlsOf(world).csvRunUrl("articles.csv"))
 
     await userEvent.click(await screen.findByRole("button", { name: "Stop" }))
 
+    // The click only asks: the run goes on until the person confirms.
+    const dialog = await screen.findByRole("alertdialog", { name: "Stop this extraction?" })
+    expect(
+      within(dialog).getByText(
+        "The rows already done stay in the results file. The other rows will not be extracted.",
+      ),
+    ).toBeInTheDocument()
+    expect(run.status).toBe("running")
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Stop" }))
+
     expect(await screen.findByText("The run stopped. The rows done stay.")).toBeInTheDocument()
+    expect(run.status).toBe("cancelled")
     expect(await screen.findByRole("button", { name: "Download the results" })).toBeInTheDocument()
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Stop" })).not.toBeInTheDocument()
+  })
+
+  it("goes on when the person cancels the confirmation of its stop", async () => {
+    const world = serveExtractionWorld()
+    const run = restartRun(world)
+    renderApp(extractionUrlsOf(world).csvRunUrl("articles.csv"))
+
+    await userEvent.click(await screen.findByRole("button", { name: "Stop" }))
+    const dialog = await screen.findByRole("alertdialog")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }))
+
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument())
+    expect(run.status).toBe("running")
+    expect(screen.queryByText("The run stopped. The rows done stay.")).not.toBeInTheDocument()
+
+    // The Escape key cancels too, and the focus goes back to the button.
+    await userEvent.click(screen.getByRole("button", { name: "Stop" }))
+    await screen.findByRole("alertdialog")
+    await userEvent.keyboard("{Escape}")
+
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument())
+    expect(run.status).toBe("running")
+    await waitFor(() => expect(screen.getByRole("button", { name: "Stop" })).toHaveFocus())
+  })
+
+  it("keeps the confirmation open, with the reason, when it could not stop", async () => {
+    const world = serveExtractionWorld()
+    restartRun(world)
+    server.use(
+      mockRoute(DeskCsvExtractionsRoutes.cancelOne, async () => {
+        await delay(100)
+        return apiError(500)
+      }),
+    )
+    renderApp(extractionUrlsOf(world).csvRunUrl("articles.csv"))
+
+    await userEvent.click(await screen.findByRole("button", { name: "Stop" }))
+    const dialog = await screen.findByRole("alertdialog")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Stop" }))
+
+    // While the request is on its way, a second click cannot send another.
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Stop" })).toBeDisabled())
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+      "The run could not be stopped. Try again.",
+    )
+    expect(within(dialog).getByRole("button", { name: "Stop" })).toBeEnabled()
   })
 
   it("tries again the rows that failed, once it failed", async () => {

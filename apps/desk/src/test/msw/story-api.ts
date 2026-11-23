@@ -11,9 +11,9 @@ export type DeskStoryParameters = {
   world?: () => DeskWorld
   /**
    * Handlers that win over the world's, such as a failure or an answer that never comes, built on
-   * each load so the story starts afresh.
+   * each load so the story starts afresh. They get the world, to answer from it in their own way.
    */
-  handlers?: () => RequestHandler[]
+  handlers?: (world: DeskWorld) => RequestHandler[]
   /** The page the story opens: the home by default. */
   url?: (world: DeskWorld) => string
 }
@@ -56,6 +56,6 @@ export function serveStoryWorld(parameters: DeskStoryParameters = {}): string {
   appUpdate.reset()
   installStableIds()
   const world = (parameters.world ?? buildDeskWorld)()
-  storyHandlers = [...(parameters.handlers?.() ?? []), ...deskHandlers(world)]
+  storyHandlers = [...(parameters.handlers?.(world) ?? []), ...deskHandlers(world)]
   return parameters.url?.(world) ?? "/app/"
 }
