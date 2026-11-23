@@ -31,8 +31,12 @@ const {
   ...generalPages
 } = composeStories(generalStories)
 const { ReplyFails, PassageSelected, ...conversationPages } = composeStories(conversationStories)
-const { DocumentDetails, CsvRunStopConfirmation, ...extractionPages } =
-  composeStories(extractionStories)
+const {
+  DocumentDetails,
+  CsvRunStopConfirmation,
+  CsvSetupOfFileWithoutColumns,
+  ...extractionPages
+} = composeStories(extractionStories)
 /** The stories of a page, from the three folders of Storybook. */
 const pageStories = {
   ...generalPages,
@@ -113,6 +117,14 @@ const PAGES = {
   CsvSetup: {
     Story: pageStories.CsvSetup,
     loaded: () => screen.findByRole("heading", { name: "articles.csv" }),
+  },
+  CsvSetupOfHeaderOnlyFile: {
+    Story: pageStories.CsvSetupOfHeaderOnlyFile,
+    loaded: async () => {
+      await screen.findByRole("heading", { name: "header-only.csv" })
+      const [firstColumn] = screen.getAllByText("No values in the first rows")
+      return firstColumn
+    },
   },
   CsvRun: {
     Story: pageStories.CsvRun,

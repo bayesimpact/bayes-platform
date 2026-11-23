@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { extractionUrlsOf } from "@/test/desk-urls"
 import {
+  buildCsvFilesWithoutRowsWorld,
   buildCsvRunInProgressWorld,
   buildExtractionAgentWorld,
   type DeskWorld,
@@ -89,6 +90,22 @@ export const CsvSetup: Story = {
   parameters: desk({
     world: buildExtractionAgentWorld,
     url: (world) => extractionUrlsOf(world).csvSetupUrl("articles.csv"),
+  }),
+}
+
+/** A CSV file with a header line and no data row: its columns show, with no first values. */
+export const CsvSetupOfHeaderOnlyFile: Story = {
+  parameters: desk({
+    world: buildCsvFilesWithoutRowsWorld,
+    url: (world) => extractionUrlsOf(world).csvSetupUrl("header-only.csv"),
+  }),
+}
+
+/** A CSV file with no header line has no column to set up, which the API refuses with a 422. */
+export const CsvSetupOfFileWithoutColumns: Story = {
+  parameters: desk({
+    world: buildCsvFilesWithoutRowsWorld,
+    url: (world) => extractionUrlsOf(world).csvSetupUrl("empty.csv"),
   }),
 }
 
