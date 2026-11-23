@@ -94,7 +94,7 @@ export function CsvRunActions({ agent, run, onDelete }: CsvRunActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem variant="destructive" onClick={onDelete}>
             <Trash2Icon aria-hidden />
-            <Trans>Delete the extraction</Trans>
+            <Trans>Delete</Trans>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

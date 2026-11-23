@@ -453,7 +453,7 @@ describe("a conversation", () => {
     const { router } = renderApp(conversationUrlOf(world))
 
     await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
-    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete the conversation" }))
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }))
     const dialog = await screen.findByRole("alertdialog")
     expect(within(dialog).getByText(/"Compare the plans" and its messages/)).toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }))
@@ -671,7 +671,7 @@ describe("a conversation", () => {
     const { router } = renderApp(conversationUrlOf(world))
 
     await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
-    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete the conversation" }))
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }))
     await userEvent.click(
       within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Delete" }),
     )
