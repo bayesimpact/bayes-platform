@@ -199,21 +199,6 @@ describe("sendMessage", () => {
     })
   })
 
-  it.each([
-    ["live", true],
-    ["playground", false],
-  ] as const)("streams a %s session through its own route, whatever the interface", async (type, isStudio) => {
-    // The API turns a session away on the other type's stream route, so the session decides.
-    mockedIsStudioInterface.mockReturnValue(isStudio)
-    const dispatch = vi.fn()
-
-    const agentSession = { id: agentSessionId, type, agentId } as ConversationAgentSession
-
-    await sendMessage({ content: "Hello", agentSession })(dispatch, () => buildState(), extra)
-
-    expect(mockedStreamChatResponse).toHaveBeenCalledWith(expect.objectContaining({ type }))
-  })
-
   it("fails the turn when the attachment upload is refused", async () => {
     // The upload ran before the stream's error handling, so a refused one used to fail silently.
     mockedIsStudioInterface.mockReturnValue(false)
@@ -277,9 +262,9 @@ describe("listMessages", () => {
     return getAll.mock.calls[0]?.[0]
   }
 
-  it("reads an App conversation on the live routes", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
+  it("reads a conversation on the playground routes", async () => {
+    mockedIsStudioInterface.mockReturnValue(true)
 
-    expect(await listWith()).toMatchObject({ payload: { type: "live" } })
+    expect(await listWith()).toMatchObject({ payload: { type: "playground" } })
   })
 })

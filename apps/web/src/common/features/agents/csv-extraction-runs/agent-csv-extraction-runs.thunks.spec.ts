@@ -113,24 +113,15 @@ describe("uploadCsvFile", () => {
 })
 
 describe("createAndExecute", () => {
-  it("creates a playground run in Studio", async () => {
-    // Each surface calls its own route set, so the Desk app never lists Studio experiments and
-    // vice versa.
+  it("creates a playground run", async () => {
+    // The Desk creates its live runs through its own endpoints, so what is left here is the
+    // playground: a Studio experiment never shows up in the Desk.
     mockedIsStudioInterface.mockReturnValue(true)
 
     await run(buildState())
 
     expect(createOne).toHaveBeenCalledWith(expect.objectContaining({ type: "playground" }))
     expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ type: "playground" }))
-  })
-
-  it("creates a live run outside Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
-
-    await run(buildState())
-
-    expect(createOne).toHaveBeenCalledWith(expect.objectContaining({ type: "live" }))
-    expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ type: "live" }))
   })
 
   it("carries the chosen revision in Studio", async () => {
