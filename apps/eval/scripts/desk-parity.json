@@ -5,7 +5,7 @@
   "features/conversation/api/stream-reply.ts": "9e7d8b974045a859",
   "features/conversation/chat-messages.ts": "649639c6d179c2ab",
   "features/conversation/components/AssistantMessageView.tsx": "085624ae1576514b",
-  "features/conversation/components/ConversationMenu.tsx": "ba5b7ebc9a0e57ae",
+  "features/conversation/components/ConversationMenu.tsx": "128c5a4134b44d7b",
   "features/conversation/components/ConversationTitle.tsx": "fcb55301100576ce",
   "features/conversation/components/ConversationView.tsx": "3c100a793724ca7a",
   "features/conversation/components/McpAppCard.tsx": "7bf381295a43a1f6",
