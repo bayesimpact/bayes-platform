@@ -132,6 +132,20 @@ describe("Desk extractions - presignDocument and confirmDocument", () => {
       expect(await repositories.documentRepository.count()).toBe(0)
     })
 
+    // The contract lists `image/jpg`, which the document service does not know: live answers 422.
+    it("answers 422 for image/jpg, as the document service refuses it", async () => {
+      await createContext()
+      const response = await subject({
+        file: { fileName: "photo.jpg", mimeType: "image/jpg", size: 10 },
+      })
+      expectResponse(
+        response,
+        422,
+        "Invalid file type: image/jpg. Allowed types: PDF, Microsoft Office (Word, Excel, PowerPoint), images (PNG, JPEG, TIFF, BMP, WebP), CSV, plain text, or Markdown.",
+      )
+      expect(await repositories.documentRepository.count()).toBe(0)
+    })
+
     it("answers 400 for a file that is too large", async () => {
       await createContext()
       const response = await subject({

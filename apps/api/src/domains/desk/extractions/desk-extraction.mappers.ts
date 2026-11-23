@@ -4,6 +4,7 @@ import type {
   ExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
 } from "@caseai-connect/desk-contracts"
+import { UnprocessableEntityException } from "@nestjs/common"
 import type { ExtractionAgentSessionsService } from "@/domains/agents/extraction-agent-sessions/extraction-agent-sessions.service"
 import type { DocumentsService } from "@/domains/documents/documents.service"
 
@@ -74,6 +75,11 @@ export function toExtractionDocumentDto(
  */
 export function toMimeType(value: string): MimeTypes {
   const mimeType = Object.values(MimeTypes).find((candidate) => candidate === value)
-  if (!mimeType) throw new Error(`The MIME type ${value} is not one the API knows`)
+  // The contract lists `image/jpg`, which the enum lacks: the document service refuses it with 422.
+  if (!mimeType) {
+    throw new UnprocessableEntityException(
+      `Invalid file type: ${value}. Allowed types: PDF, Microsoft Office (Word, Excel, PowerPoint), images (PNG, JPEG, TIFF, BMP, WebP), CSV, plain text, or Markdown.`,
+    )
+  }
   return mimeType
 }
