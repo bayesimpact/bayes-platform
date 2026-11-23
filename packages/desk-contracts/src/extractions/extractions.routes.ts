@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { agentParamsSchema, LEGACY_AGENT_PATH } from "../common/params.dto"
+import { AGENT_PATH, agentParamsSchema, LEGACY_AGENT_PATH } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { temporaryUrlOutputSchema } from "../documents/documents.dto"
 import {
@@ -22,7 +22,7 @@ import {
   presignExtractionDocumentOutputSchema,
 } from "./extractions.dto"
 
-const runsPath = `${LEGACY_AGENT_PATH}/extraction-agent-sessions/live`
+const runsPath = `${AGENT_PATH}/extraction-agent-sessions/live`
 
 /**
  * The extractions of one document by an extraction agent, and the documents the person uploads

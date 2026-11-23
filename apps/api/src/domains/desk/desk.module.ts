@@ -2,10 +2,12 @@ import { Module } from "@nestjs/common"
 import { ResourceContextModule } from "@/common/context/resource-context.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { ExtractionAgentSessionsModule } from "@/domains/agents/extraction-agent-sessions/extraction-agent-sessions.module"
 import { AgentMemoriesStoreModule } from "@/domains/agents/memories/agent-memories-store.module"
 import { AgentMessageFeedbackModule } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
 import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AuthModule } from "@/domains/auth/auth.module"
+import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
@@ -19,6 +21,7 @@ import { DeskConversationMessagesController } from "./conversations/desk-convers
 import { DeskConversationReplyController } from "./conversations/desk-conversation-reply.controller"
 import { DeskConversationsController } from "./conversations/desk-conversations.controller"
 import { DeskDocumentsController } from "./documents/desk-documents.controller"
+import { DeskExtractionsController } from "./extractions/desk-extractions.controller"
 import { DeskInvitationsController } from "./invitations/desk-invitations.controller"
 import { DeskMemoriesController } from "./memories/desk-memories.controller"
 import { DeskOrganizationsController } from "./organizations/desk-organizations.controller"
@@ -44,6 +47,8 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     AgentMessageFeedbackModule,
     StorageModule,
     AgentMemoriesStoreModule,
+    ExtractionAgentSessionsModule,
+    DocumentsModule,
   ],
   controllers: [
     DeskAccountController,
@@ -56,6 +61,7 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     DeskConversationReplyController,
     DeskDocumentsController,
     DeskMemoriesController,
+    DeskExtractionsController,
   ],
 })
 export class DeskModule {}

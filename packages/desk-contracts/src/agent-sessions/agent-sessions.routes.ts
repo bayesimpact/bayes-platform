@@ -14,7 +14,7 @@ export const DeskAgentSessionsRoutes = {
   }),
   getExtractionRuns: defineSchemaRoute({
     method: "post",
-    path: `${LEGACY_AGENT_PATH}/extraction-agent-sessions/live`,
+    path: `${AGENT_PATH}/extraction-agent-sessions/live`,
     params: agentParamsSchema,
     response: z.array(extractionRunOutputSchema),
   }),
