@@ -1,7 +1,11 @@
 import { Module } from "@nestjs/common"
 import { ResourceContextModule } from "@/common/context/resource-context.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
+import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { AgentMessageFeedbackModule } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
+import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AuthModule } from "@/domains/auth/auth.module"
+import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ProjectsModule } from "@/domains/projects/projects.module"
@@ -10,6 +14,9 @@ import { TermsComplianceModule } from "@/domains/terms-compliance/terms-complian
 import { UsersModule } from "@/domains/users/users.module"
 import { DeskAccountController } from "./account/desk-account.controller"
 import { DeskAgentsController } from "./agents/desk-agents.controller"
+import { DeskConversationMessagesController } from "./conversations/desk-conversation-messages.controller"
+import { DeskConversationReplyController } from "./conversations/desk-conversation-reply.controller"
+import { DeskConversationsController } from "./conversations/desk-conversations.controller"
 import { DeskInvitationsController } from "./invitations/desk-invitations.controller"
 import { DeskOrganizationsController } from "./organizations/desk-organizations.controller"
 import { DeskProjectsController } from "./projects/desk-projects.controller"
@@ -29,6 +36,10 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     OrganizationsModule,
     ProjectsModule,
     AgentsModule,
+    ConversationAgentSessionsModule,
+    StreamingModule,
+    AgentMessageFeedbackModule,
+    StorageModule,
   ],
   controllers: [
     DeskAccountController,
@@ -36,6 +47,9 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     DeskOrganizationsController,
     DeskProjectsController,
     DeskAgentsController,
+    DeskConversationsController,
+    DeskConversationMessagesController,
+    DeskConversationReplyController,
   ],
 })
 export class DeskModule {}

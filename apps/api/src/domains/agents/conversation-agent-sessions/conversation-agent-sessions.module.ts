@@ -6,6 +6,7 @@ import { PdfPagesModule } from "@/domains/documents/pdf-pages/pdf-pages.module"
 import { McpServersModule } from "@/domains/mcp-servers/mcp-servers.module"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { McpModule } from "@/external/mcp"
+import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import {
   moduleFeatures,
   moduleImports,
@@ -57,6 +58,11 @@ import { ConversationReviewService } from "./review/conversation-review.service"
     PlaygroundConversationAgentSessionsController,
     ReviewCampaignTesterAgentMessagesController,
   ],
-  exports: [ConversationAgentSessionsService, McpAppHtmlService],
+  exports: [
+    AgentMessageAttachmentDocumentsService,
+    BaseAgentSessionsService,
+    ConversationAgentSessionsService,
+    McpAppHtmlService,
+  ],
 })
 export class ConversationAgentSessionsModule {}

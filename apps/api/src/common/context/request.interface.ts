@@ -84,6 +84,13 @@ export interface EndpointRequestWithAgentSession<
   agentSession: T
 }
 
+/**
+ * A request with a conversation session (the `agentSession` context on a conversation agent), for
+ * code that may not import the session entity.
+ */
+export type EndpointRequestWithConversationAgentSession =
+  EndpointRequestWithAgentSession<ConversationAgentSession>
+
 /** A tester's session with its review campaign (the `agentSessionReviewCampaign` context). */
 export interface EndpointRequestWithAgentSessionReviewCampaign<
   T extends ConversationAgentSession | ExtractionAgentSession,

@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { agentParamsSchema, LEGACY_AGENT_PATH, LEGACY_PROJECT_PATH } from "../common/params.dto"
+import { AGENT_PATH, agentParamsSchema, PROJECT_PATH } from "../common/params.dto"
 import { defineSchemaRoute, defineStreamRoute } from "../define-schema-route"
 import { temporaryUrlOutputSchema } from "../documents/documents.dto"
 import {
@@ -16,15 +16,15 @@ import {
   replyStreamEventSchema,
 } from "./conversations.dto"
 
-const conversationPath = `${LEGACY_AGENT_PATH}/conversation-agent-sessions/live/:agentSessionId`
-const sessionPath = `${LEGACY_AGENT_PATH}/agent-sessions/live/:agentSessionId`
+const conversationPath = `${AGENT_PATH}/conversation-agent-sessions/live/:agentSessionId`
+const sessionPath = `${AGENT_PATH}/agent-sessions/live/:agentSessionId`
 const messagesPath = `${sessionPath}/messages`
 
 /** A person's live conversations with a conversation agent. */
 export const DeskConversationsRoutes = {
   createOne: defineSchemaRoute({
     method: "post",
-    path: `${LEGACY_AGENT_PATH}/conversation-agent-sessions/live/create`,
+    path: `${AGENT_PATH}/conversation-agent-sessions/live/create`,
     params: agentParamsSchema,
     body: z.strictObject({}),
     response: createdConversationOutputSchema,
@@ -68,7 +68,7 @@ export const DeskConversationsRoutes = {
   /** Gives a thumbs-up to one of the agent's replies, or reports a problem with it. */
   createMessageFeedback: defineSchemaRoute({
     method: "post",
-    path: `${LEGACY_PROJECT_PATH}/agent-messages/:agentMessageId/feedbacks`,
+    path: `${PROJECT_PATH}/agent-messages/:agentMessageId/feedbacks`,
     params: messageParamsSchema,
     body: messageFeedbackInputSchema,
     response: z.object({ success: z.boolean() }),

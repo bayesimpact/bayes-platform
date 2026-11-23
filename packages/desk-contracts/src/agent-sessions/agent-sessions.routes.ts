@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { agentParamsSchema, LEGACY_AGENT_PATH } from "../common/params.dto"
+import { AGENT_PATH, agentParamsSchema, LEGACY_AGENT_PATH } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { csvExtractionRunDetailOutputSchema } from "../extractions/extractions.dto"
 import { conversationSessionOutputSchema, extractionRunOutputSchema } from "./agent-sessions.dto"
@@ -8,7 +8,7 @@ import { conversationSessionOutputSchema, extractionRunOutputSchema } from "./ag
 export const DeskAgentSessionsRoutes = {
   getConversations: defineSchemaRoute({
     method: "post",
-    path: `${LEGACY_AGENT_PATH}/conversation-agent-sessions/live`,
+    path: `${AGENT_PATH}/conversation-agent-sessions/live`,
     params: agentParamsSchema,
     response: z.array(conversationSessionOutputSchema),
   }),
