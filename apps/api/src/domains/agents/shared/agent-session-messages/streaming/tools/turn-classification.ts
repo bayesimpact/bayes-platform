@@ -155,7 +155,7 @@ type ResolvedSource = {
   documentId: string
   documentTitle?: string
   documentSourceType?: string
-  chunks: { chunkId: string; partialContent: string }[]
+  chunks: { chunkId: string; alias: string; partialContent: string }[]
 }
 
 /**
@@ -186,6 +186,7 @@ export function resolveSources({
     }
     source.chunks.push({
       chunkId: chunk.chunkId,
+      alias: chunkAlias.trim().toLowerCase(),
       partialContent:
         chunk.content.length > MAX_PARTIAL_CONTENT_LENGTH
           ? `${chunk.content.slice(0, MAX_PARTIAL_CONTENT_LENGTH)}…`

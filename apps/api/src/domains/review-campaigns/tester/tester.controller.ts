@@ -233,6 +233,8 @@ function toMyCampaignDto(
     createdAt: campaign.createdAt.getTime(),
     organizationId: campaign.organizationId,
     projectId: campaign.projectId,
+    // The relation is loaded with the person's campaigns; a deleted agent leaves it empty.
+    agent: campaign.agent ? { name: campaign.agent.name, type: campaign.agent.type } : null,
   }
 }
 

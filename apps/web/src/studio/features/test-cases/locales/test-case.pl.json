@@ -42,6 +42,7 @@
       "recordCount_other": "{{count}} rekordu",
       "newDataset": "Nowy zbiór danych",
       "newDatasetName": "Nazwa nowego zbioru danych",
+      "newDatasetNamePlaceholder": "Wpisz nazwę zbioru danych",
       "newDatasetSuffix": "{{name}} (nowy)",
       "nameTooShort": "Nazwa zbioru danych musi mieć co najmniej {{count}} zn."
     },

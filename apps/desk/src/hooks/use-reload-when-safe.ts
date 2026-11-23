@@ -22,6 +22,7 @@ export function useReloadWhenSafe(): void {
     return () => window.removeEventListener("vite:preloadError", handlePreloadError)
   }, [])
 
+  // The reload is the browser's, outside React: an effect asks for it once it is safe.
   useEffect(() => {
     if (!isNewReleaseOut) return
     // The router already wrote the new URL, which the reload loads. A request that changes data,

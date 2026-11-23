@@ -59,6 +59,10 @@ import { PlaygroundAgentCsvExtractionRunsController } from "./playground-agent-c
     ResourceContextGuard,
   ],
   controllers: [LiveAgentCsvExtractionRunsController, PlaygroundAgentCsvExtractionRunsController],
-  exports: [AgentCsvExtractionRunsService],
+  exports: [
+    AgentCsvExtractionRunsService,
+    AgentCsvExtractionRunCsvExportService,
+    AgentCsvExtractionRunStatusNotifierService,
+  ],
 })
 export class AgentCsvExtractionRunsModule {}

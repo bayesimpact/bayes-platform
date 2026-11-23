@@ -53,8 +53,6 @@
     "upload": "Carica",
     "initialize": "Inizializza",
     "view": "Visualizza",
-    "goToTester": "Prova",
-    "goToReviewer": "Revisione",
     "pagination": "{{from}}-{{to}} di {{total}}",
     "fileInvalidType": "{{fileName}} ha un tipo di file non valido: {{fileType}}",
     "fileTooMany": "Puoi caricare al massimo {{maxFiles}} file.",

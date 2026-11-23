@@ -84,6 +84,7 @@ export class PublicChatService {
     publicSession: PublicAgentSession,
     userContent: string,
     notifyClient: (event: Extract<StreamEvent, { type: "notify_client" }>) => void,
+    options: { inlineCitations?: boolean } = {},
   ): AsyncGenerator<StreamEvent, void, unknown> {
     const agent = await this.agentRepository.findOne({
       where: { id: publicSession.agentId },
@@ -129,6 +130,7 @@ export class PublicChatService {
           handoff: active.handoff,
           userContent: turnContent,
           persistUserMessage,
+          inlineCitations: options.inlineCitations,
           notifyClient,
           // Public sessions persist their title, categories and active agent
           // on public_agent_session; their forms live in conversation_form

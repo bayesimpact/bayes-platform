@@ -34,22 +34,6 @@ export async function loadLocales(): Promise<Record<SupportedLanguage, LanguageR
       eager: true,
     },
   )
-  const evalFeatureLocales = import.meta.glob(
-    "../eval/features/**/locales/*.{en,fr,de,it,es,pl}.json",
-    {
-      eager: true,
-    },
-  )
-  const testerFeatureLocales = import.meta.glob(
-    "../tester/features/**/locales/*.{en,fr,de,it,es,pl}.json",
-    {
-      eager: true,
-    },
-  )
-  const reviewerFeatureLocales = import.meta.glob(
-    "../reviewer/features/**/locales/*.{en,fr,de,it,es,pl}.json",
-    { eager: true },
-  )
   const backofficeFeatureLocales = import.meta.glob(
     "../backoffice/features/**/locales/*.{en,fr,de,it,es,pl}.json",
     { eager: true },
@@ -60,9 +44,6 @@ export async function loadLocales(): Promise<Record<SupportedLanguage, LanguageR
     ...commonFeatureLocales,
     ...deskFeatureLocales,
     ...studioFeatureLocales,
-    ...evalFeatureLocales,
-    ...testerFeatureLocales,
-    ...reviewerFeatureLocales,
     ...backofficeFeatureLocales,
     ...globalLocales,
   }

@@ -17,14 +17,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
-# Scope install to API + api-contracts so packages/ui's runtime deps (vite, tailwind, radix, react)
+# Scope install to API + api-contracts + desk-contracts so packages/ui's runtime deps (vite, tailwind, radix, react)
 # never enter node_modules/. Frontend workspaces are left on disk but their deps aren't installed.
 RUN npm ci \
     --workspace=@caseai-connect/api \
     --workspace=@caseai-connect/api-contracts \
+    --workspace=@caseai-connect/desk-contracts \
     --include-workspace-root
 
 #
@@ -40,12 +42,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
 RUN npm ci --omit=dev \
     --workspace=@caseai-connect/api \
     --workspace=@caseai-connect/api-contracts \
+    --workspace=@caseai-connect/desk-contracts \
     --include-workspace-root
 
 # `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
@@ -69,6 +73,7 @@ COPY ./packages ./packages
 # Generate the production build. The build script compiles src/ to dist/ with SWC (.swcrc).
 RUN cd apps/api && npm run build
 RUN cd packages/api-contracts && npm run build
+RUN cd packages/desk-contracts && npm run build
 
 #
 # 🌐 Web front build (only used by the app-runtime target)
@@ -131,6 +136,36 @@ COPY packages/typescript-config ./packages/typescript-config
 RUN cd apps/desk && npm run build
 
 #
+# 📊 Evaluation app build (only used by the app-runtime target)
+#
+# Builds apps/eval for its `/eval/` base (vite.config.ts): the API serves the
+# result at /eval, ahead of the web front. As for the Desk, no VITE_* value is
+# baked in: the app reads the configuration the API injects into its
+# index.html. Only the app, its contracts and the MCP App host are installed.
+#
+FROM node:24.21.0-trixie-slim AS eval-build
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY apps/eval/package.json ./apps/eval/
+COPY packages/eval-contracts/package.json ./packages/eval-contracts/
+COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+
+RUN npm ci \
+    --workspace=@caseai-connect/eval \
+    --workspace=@caseai-connect/eval-contracts \
+    --workspace=@caseai-connect/mcp-app-host \
+    --include-workspace-root
+
+COPY apps/eval ./apps/eval
+COPY packages/eval-contracts ./packages/eval-contracts
+COPY packages/mcp-app-host ./packages/mcp-app-host
+COPY packages/typescript-config ./packages/typescript-config
+
+RUN cd apps/eval && npm run build
+
+#
 # 🚀 Runtime Base (shared)
 #
 FROM node:24.21.0-trixie-slim AS runtime-base
@@ -154,6 +189,7 @@ ENV NODE_ENV=production
 COPY --from=api-prod-deps /app/node_modules node_modules
 COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
+COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:
@@ -169,11 +205,12 @@ FROM runtime-base AS api-runtime
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
 
 #
-# 🚀 App Runtime: API + web front + Desk in one image
+# 🚀 App Runtime: API + web front + Desk + Evaluation app in one image
 #
-# Same process as api-runtime, plus the built web front served at / and the
-# built Desk at /app. The API keeps /api and /public. WEB_APP_DIST_DIR and
-# DESK_APP_DIST_DIR switch the serving on; the API image stays API-only.
+# Same process as api-runtime, plus the built web front served at /, the built
+# Desk at /app and the built Evaluation app at /eval. The API keeps /api and
+# /public. WEB_APP_DIST_DIR, DESK_APP_DIST_DIR and EVAL_APP_DIST_DIR switch the
+# serving on; the API image stays API-only.
 #
 FROM api-runtime AS app-runtime
 
@@ -181,6 +218,8 @@ COPY --from=web-build /app/apps/web/dist /app/apps/web/dist
 ENV WEB_APP_DIST_DIR=/app/apps/web/dist
 COPY --from=desk-build /app/apps/desk/dist /app/apps/desk/dist
 ENV DESK_APP_DIST_DIR=/app/apps/desk/dist
+COPY --from=eval-build /app/apps/eval/dist /app/apps/eval/dist
+ENV EVAL_APP_DIST_DIR=/app/apps/eval/dist
 
 #
 # 🚀 CPU Workers Runtime (no Docling)
@@ -273,6 +312,7 @@ ENV NODE_ENV=production
 COPY --from=api-prod-deps /app/node_modules node_modules
 COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
+COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:

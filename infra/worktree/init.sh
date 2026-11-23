@@ -12,6 +12,7 @@ chown "$WT_UID:$WT_GID" /npm-cache /go-cache \
   node_modules \
   apps/api/node_modules \
   apps/desk/node_modules \
+  apps/eval/node_modules \
   apps/help/node_modules \
   apps/web/node_modules \
   apps/web-embed/node_modules \
@@ -25,7 +26,8 @@ exec setpriv --reuid="$WT_UID" --regid="$WT_GID" --clear-groups -- sh -eu -c '
     npm ci --no-audit --no-fund
     echo "$wanted" > "$stamp"
   fi
-  # The API requires the compiled contracts; the web app loads the embed launcher script.
+  # The API requires the compiled contracts (API and Desk); the web app loads the embed launcher script.
   npm run build -w packages/api-contracts
+  npm run build -w packages/desk-contracts
   npm run build:launcher -w apps/web-embed
 '

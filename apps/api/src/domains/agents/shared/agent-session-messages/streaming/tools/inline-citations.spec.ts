@@ -1,4 +1,8 @@
-import { createInlineCitationExtractor, stripInlineCitations } from "./inline-citations"
+import {
+  createCitationStreamSplitter,
+  createInlineCitationExtractor,
+  stripInlineCitations,
+} from "./inline-citations"
 
 describe("stripInlineCitations", () => {
   it("removes the markers and the blank before them, and records the aliases", () => {
@@ -63,5 +67,31 @@ describe("createInlineCitationExtractor (streaming)", () => {
     const { text, citedAliases } = collect(["Open [c1", ""])
     expect(text).toBe("Open [c1")
     expect(citedAliases).toEqual([])
+  })
+})
+
+describe("createCitationStreamSplitter", () => {
+  const deltas = ["Leave is 27 days [c", "1]. Part-time", " pro rata [c1, c3]."]
+  const run = (inlineCitations: boolean) => {
+    const splitter = createCitationStreamSplitter({
+      citations: createInlineCitationExtractor(),
+      inlineCitations,
+    })
+    const sent = deltas.map((delta) => splitter.feed(delta)).join("") + splitter.flush()
+    return { sent, splitter }
+  }
+
+  it("sends and stores the text without markers by default", () => {
+    const { sent, splitter } = run(false)
+    expect(sent).toBe("Leave is 27 days. Part-time pro rata.")
+    expect(splitter.streamedText()).toBe(sent)
+    expect(splitter.storedText()).toBe("Leave is 27 days. Part-time pro rata.")
+  })
+
+  it("sends the raw markers in inline mode and still stores the text without them", () => {
+    const { sent, splitter } = run(true)
+    expect(sent).toBe("Leave is 27 days [c1]. Part-time pro rata [c1, c3].")
+    expect(splitter.streamedText()).toBe(sent)
+    expect(splitter.storedText()).toBe("Leave is 27 days. Part-time pro rata.")
   })
 })

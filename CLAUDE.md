@@ -11,7 +11,7 @@ This is a Turborepo monorepo with the following structure:
 - `apps/desk` - The Desk, rebuilt on the frontend stack of ADR 0031 (Vite, TanStack Router and Query, shadcn on Base UI, Lingui), runs on port 5177 at `/app/`; see `apps/desk/AGENTS.md`
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
-- `packages/@caseai-connect/desk-contracts` - The Desk's view of the API: the routes it calls and the Zod schemas of their responses, which `apps/desk` checks at runtime
+- `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -52,7 +52,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - See `apps/api/CLAUDE.md` for detailed API rules
 
 ### Desk Application
-- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. In its first phase it reads the API's existing endpoints and changes nothing in `apps/api`
+- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `desk/` (one exception, a library file link, is named in `apps/desk/AGENTS.md`), which `apps/api/src/domains/desk/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/desk/AGENTS.md`
 - Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
 

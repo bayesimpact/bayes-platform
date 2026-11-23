@@ -28,6 +28,7 @@ API_PATHS := \
 	apps/api/requirements-torch.txt \
 	apps/api/requirements-docling.txt \
 	packages/api-contracts \
+	packages/desk-contracts \
 	package.json \
 	package-lock.json \
 	turbo.json
@@ -232,11 +233,15 @@ docker-smoke-down:
 WEB_EMBED_BUCKET ?= eu-connect-agent-embed
 # The API the hosted widget calls, baked into the build. Unset, the SPA falls back to localhost.
 VITE_API_URL ?= https://api.platform.bayes.org
+# The origin that serves the sandbox of MCP App cards, baked into the build too. It goes with the
+# bucket: for another platform, set both. Empty, a card runs in a frame the widget writes itself.
+VITE_MCP_APP_SANDBOX_ORIGIN ?= https://{label}.platform.bayes-usercontent.org
 
 deploy-web-embed:
 	@case "$(VITE_API_URL)" in https://*) ;; *) echo "✗ VITE_API_URL must be the production API (https://api.platform.bayes.org): the build bakes it in, and without it the widget calls localhost" >&2; exit 1 ;; esac
-	@echo "→ Building web-embed SPA against $(VITE_API_URL)..."
-	cd apps/web-embed && VITE_API_URL=$(VITE_API_URL) npm run build
+	@case "$(VITE_MCP_APP_SANDBOX_ORIGIN)" in https://*) ;; *) echo "✗ VITE_MCP_APP_SANDBOX_ORIGIN must be the sandbox origin of the platform (https://{label}.platform.bayes-usercontent.org): without it the widget runs MCP App cards in a frame it writes itself, not on an origin of their own" >&2; exit 1 ;; esac
+	@echo "→ Building web-embed SPA against $(VITE_API_URL), MCP App cards on $(VITE_MCP_APP_SANDBOX_ORIGIN)..."
+	cd apps/web-embed && VITE_API_URL=$(VITE_API_URL) VITE_MCP_APP_SANDBOX_ORIGIN='$(VITE_MCP_APP_SANDBOX_ORIGIN)' npm run build
 	@echo "→ Building launcher..."
 	cd apps/web-embed && npm run build:launcher
 	@echo "→ Uploading hashed assets (1 year cache)..."

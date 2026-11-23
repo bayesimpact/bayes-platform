@@ -227,6 +227,7 @@ msgstr "Avant de commencer"
 #: src/features/conversation/components/FeedbackDialog.tsx
 #: src/features/extraction/components/CsvSetup.tsx
 #: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/extraction/components/StopCsvRunButton.tsx
 #: src/features/history/components/DeleteEntryDialog.tsx
 #: src/features/memory/components/MemoryPanel.tsx
 #: src/features/memory/components/MemoryRewordForm.tsx
@@ -334,7 +335,10 @@ msgstr "Refuser"
 msgid "Decline the invitation to {name}"
 msgstr "Refuser l’invitation à {name}"
 
+#: src/features/conversation/components/ConversationMenu.tsx
+#: src/features/extraction/components/CsvRunActions.tsx
 #: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/extraction/components/ExtractionRunActions.tsx
 #: src/features/history/components/DeleteEntryDialog.tsx
 #: src/features/history/components/HistoryEntryActions.tsx
 msgid "Delete"
@@ -343,15 +347,6 @@ msgstr "Supprimer"
 #: src/features/extraction/components/DocumentRow.tsx
 msgid "Delete {name}"
 msgstr "Supprimer {name}"
-
-#: src/features/conversation/components/ConversationMenu.tsx
-msgid "Delete the conversation"
-msgstr "Supprimer la conversation"
-
-#: src/features/extraction/components/CsvRunActions.tsx
-#: src/features/extraction/components/ExtractionRunActions.tsx
-msgid "Delete the extraction"
-msgstr "Supprimer l’extraction"
 
 #: src/features/history/components/DeleteEntryDialog.tsx
 msgid "Delete this conversation?"
@@ -1041,13 +1036,17 @@ msgid "Status"
 msgstr "Statut"
 
 #. Stops a run in progress
-#: src/features/extraction/components/CsvRunActions.tsx
+#: src/features/extraction/components/StopCsvRunButton.tsx
 msgid "Stop"
 msgstr "Arrêter"
 
 #: src/features/conversation/components/DictationButton.tsx
 msgid "Stop the dictation"
 msgstr "Arrêter la dictée"
+
+#: src/features/extraction/components/StopCsvRunButton.tsx
+msgid "Stop this extraction?"
+msgstr "Arrêter cette extraction ?"
 
 #. A run the person stopped
 #: src/lib/run-state.ts
@@ -1284,11 +1283,15 @@ msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 msgid "The results file could not be opened."
 msgstr "Le fichier des résultats n’a pas pu être ouvert."
 
+#: src/features/extraction/components/StopCsvRunButton.tsx
+msgid "The rows already done stay in the results file. The other rows will not be extracted."
+msgstr "Les lignes déjà traitées restent dans le fichier des résultats. Les autres lignes ne seront pas traitées."
+
 #: src/features/extraction/components/CsvRecordsError.tsx
 msgid "The rows could not load. Check your connection, then try again."
 msgstr "Les lignes n’ont pas pu se charger. Vérifiez votre connexion, puis réessayez."
 
-#: src/features/extraction/components/CsvRunActions.tsx
+#: src/features/extraction/components/StopCsvRunButton.tsx
 msgid "The run could not be stopped. Try again."
 msgstr "L’extraction n’a pas pu être arrêtée. Réessayez."
 

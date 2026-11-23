@@ -223,7 +223,11 @@ export class ReviewCampaignMembershipRepository {
           .filter((resourceId): resourceId is string => resourceId !== null),
       ),
     ]
-    const campaigns = await this.campaignRepo().find({ where: { id: In(campaignIds) } })
+    // The agent comes along: the person's list of campaigns names it.
+    const campaigns = await this.campaignRepo().find({
+      where: { id: In(campaignIds) },
+      relations: { agent: true },
+    })
     const campaignById = new Map(campaigns.map((campaign) => [campaign.id, campaign]))
 
     return memberships.flatMap((membership) => {

@@ -23,6 +23,7 @@ import { recoverAbortedStreams, throttleHeartbeat } from "../stream-recovery"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentLlmRequestService } from "./agent-llm-request.service"
 import type { AgentSessionScope, PublicStreamingSessionProxy } from "./streaming-session.types"
+import { createCitationStreamSplitter } from "./tools/inline-citations"
 import type { SessionStateTarget } from "./tools/session-state-target"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
 
@@ -191,6 +192,7 @@ export class StreamingLlmService extends LlmServiceBase {
     promptVariableDefaults,
     handoff,
     persistUserMessage = true,
+    inlineCitations = false,
   }: {
     connectScope: RequiredConnectScope
     publicSessionId: string
@@ -202,6 +204,8 @@ export class StreamingLlmService extends LlmServiceBase {
     handoff?: AgentSessionScope["handoff"]
     /** False for a handoff's next turn: `userContent` is a trigger, not stored (see handoff-turn-loop.ts). */
     persistUserMessage?: boolean
+    /** Public API `citations: "inline"`: stream the citation markers, store the text without them. */
+    inlineCitations?: boolean
     /**
      * Public persistence target (PublicAgentSessionsService), provided by
      * the public-chat domain — agents must not import it (domain cycle).
@@ -266,7 +270,6 @@ export class StreamingLlmService extends LlmServiceBase {
       variableDefaults: promptVariableDefaults,
     }
 
-    let fullContent = ""
     let mcpClose: (() => Promise<void>) | undefined
     const onProgress = this.progressHeartbeat({ connectScope, assistantMessageId })
 
@@ -298,18 +301,22 @@ export class StreamingLlmService extends LlmServiceBase {
       const chunks = this.getProviderForModel(llmRequest.config.model).streamChatResponse(
         llmRequest,
       )
+      // Inline mode streams the raw text, markers included; the stored text stays stripped.
+      const splitter = createCitationStreamSplitter({
+        citations: llmRequest.citations,
+        inlineCitations,
+      })
       for await (const rawChunk of chunks) {
-        const chunk = llmRequest.citations.feed(rawChunk)
+        const chunk = splitter.feed(rawChunk)
         onProgress()
         if (chunk === "") continue
-        fullContent += chunk
         yield this.sseEvent({ type: "chunk", content: chunk, messageId: assistantMessageId })
       }
-      const tail = llmRequest.citations.flush()
+      const tail = splitter.flush()
       if (tail !== "") {
-        fullContent += tail
         yield this.sseEvent({ type: "chunk", content: tail, messageId: assistantMessageId })
       }
+      const fullContent = splitter.storedText()
 
       await this.updateMessageStatusWithIds({
         id: assistantMessageId,
@@ -320,7 +327,11 @@ export class StreamingLlmService extends LlmServiceBase {
 
       await llmRequest.classifyTurn({ answerText: fullContent })
 
-      yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
+      yield this.sseEvent({
+        type: "end",
+        messageId: assistantMessageId,
+        fullContent: splitter.streamedText(),
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
 

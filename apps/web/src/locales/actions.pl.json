@@ -53,8 +53,6 @@
     "upload": "Prześlij",
     "initialize": "Zainicjuj",
     "view": "Wyświetl",
-    "goToTester": "Testowanie",
-    "goToReviewer": "Recenzja",
     "pagination": "{{from}}–{{to}} z {{total}}",
     "fileInvalidType": "{{fileName}} ma nieprawidłowy typ pliku: {{fileType}}",
     "fileTooMany": "Maksymalna liczba plików do przesłania: {{maxFiles}}.",

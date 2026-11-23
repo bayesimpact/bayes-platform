@@ -13,6 +13,12 @@
       "back": "Wstecz",
       "next": "Dalej"
     },
+    "scope": {
+      "title": "Rekordy do uruchomienia",
+      "all": "Uruchom na całym zbiorze danych (rekordy: {{count}})",
+      "allUnknown": "Uruchom na całym zbiorze danych",
+      "limited": "Uruchom na podzbiorze rekordów"
+    },
     "columns": {
       "title": "Skonfiguruj role kolumn",
       "description": "Wybierz rolę dla każdej kolumny pliku CSV.",

@@ -3,6 +3,8 @@ const { readSwcOptions } = require("./scripts/swc-options.cjs")
 
 // Resolve path to api-contracts package
 const apiContractsPath = resolve(__dirname, "../../packages/api-contracts/src")
+// Resolve path to desk-contracts package
+const deskContractsPath = resolve(__dirname, "../../packages/desk-contracts/src")
 
 const nestConfig = {
   collectCoverage: false,
@@ -47,6 +49,8 @@ const nestConfig = {
     "^@/(.*)$": "<rootDir>/$1",
     "^@caseai-connect/api-contracts$": `${apiContractsPath}/index.ts`,
     "^@caseai-connect/api-contracts/(.*)$": `${apiContractsPath}/$1`,
+    "^@caseai-connect/desk-contracts$": `${deskContractsPath}/index.ts`,
+    "^@caseai-connect/desk-contracts/(.*)$": `${deskContractsPath}/$1`,
   },
   setupFilesAfterEnv: ["<rootDir>/../jest.setup.ts"],
 }

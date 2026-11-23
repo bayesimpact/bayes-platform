@@ -11,6 +11,11 @@
  *   "modal"  (default) — floating bubble above the FAB button
  *   "drawer"           — full-height side panel sliding in from the edge
  *
+ * data-link-target:
+ *   "blank"  (default) — links in the chat open in a new tab from the iframe
+ *   "parent"           — the chat sends each link to this script, which opens it
+ *                        from the host page (see ../open-link.ts)
+ *
  * data-hint:
  *   Optional short text shown next to the FAB for 5 seconds on page load
  *   and again whenever the user hovers the button.
@@ -19,6 +24,7 @@
  *   Starts a new conversation in the widget, for example when the visitor
  *   logs out of the host site.
  */
+import { OPEN_LINK_MESSAGE } from "../open-link"
 import { DEFAULT_PRIMARY_COLOR, themeColors } from "../theme"
 
 declare global {
@@ -52,6 +58,7 @@ function init() {
     | "modal"
     | "drawer"
   const hint = _currentScript?.getAttribute("data-hint") ?? undefined
+  const linkTarget = _currentScript?.getAttribute("data-link-target") === "parent" ? "parent" : null
 
   if (!token) {
     console.warn("[AgentStudio] data-token attribute is required.")
@@ -67,7 +74,8 @@ function init() {
   const scriptSrc = _currentScript?.src ?? ""
   const base = scriptSrc.slice(0, scriptSrc.lastIndexOf("/"))
   const localeParam = locale ? `&locale=${encodeURIComponent(locale)}` : ""
-  const iframeSrc = `${base}/index.html?embedToken=${token}${localeParam}&displayMode=${displayMode}`
+  const linkTargetParam = linkTarget ? `&linkTarget=${linkTarget}` : ""
+  const iframeSrc = `${base}/index.html?embedToken=${token}${localeParam}&displayMode=${displayMode}${linkTargetParam}`
 
   if (displayMode === "drawer") {
     injectDrawerWidget({ token, position, color, iframeSrc, hint })
@@ -190,6 +198,7 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
   container.appendChild(row)
   document.body.appendChild(container)
   exposeResetSession(iframe, iframeSrc)
+  openLinksFromChat(iframe)
 }
 
 // ─── Drawer (full-height side panel) ──────────────────────────────────────
@@ -299,6 +308,7 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
   document.body.appendChild(overlay)
   document.body.appendChild(row)
   exposeResetSession(iframe, iframeSrc)
+  openLinksFromChat(iframe)
 }
 
 // ─── Shared helpers ────────────────────────────────────────────────────────
@@ -387,6 +397,15 @@ function phoneSheet(box: HTMLElement) {
       }
     },
   }
+}
+
+/** Opens the links the chat sends with data-link-target="parent", only web addresses. */
+function openLinksFromChat(iframe: HTMLIFrameElement) {
+  window.addEventListener("message", (event) => {
+    if (event.source !== iframe.contentWindow || event.data?.type !== OPEN_LINK_MESSAGE) return
+    const url = typeof event.data.url === "string" ? event.data.url : ""
+    if (/^https?:\/\//.test(url)) window.open(url, "_blank", "noopener,noreferrer")
+  })
 }
 
 /**

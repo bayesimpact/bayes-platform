@@ -11,7 +11,7 @@ import { deskAgentKeys } from "./keys"
 
 /**
  * The agents the person can use in the Desk, grouped by project: the projects
- * (`GET projects/mine`) and organizations (`GET organizations/mine`) in parallel, then the
+ * (`GET desk/projects/mine`) and organizations (`GET desk/organizations/mine`) in parallel, then the
  * published agents of every Desk project in parallel. One key holds them all, so a new project
  * never leaves a reader waiting on a query of its own that does not exist yet.
  */

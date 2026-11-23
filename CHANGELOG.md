@@ -9,13 +9,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- Studio languages: the studio is now available in German, Italian, Spanish and Polish, chosen from Edit profile.
-- Agent version in production: managers choose which saved version the app, the embed and the public API run.
-- Agent instructions: an advanced mode shows the instructions as a diff with the last saved version and edits them there.
-- Desk: a hidden sidebar shows over the page while the pointer is on the button that shows it.
-- Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon.
-- (beta) Agent models: agents can run on Anthropic and OpenAI models.
-
 ### Changed
 
 - (beta) Embedded chat on phones: the chat opens full screen and follows the part of the screen the keyboard leaves visible, the page behind stays still (iOS included) and comes back where it was, the floating window fits the visible screen height, the message box uses 16 px text on touch screens so iOS no longer zooms in on it, and an answer no longer scrolls the host page as it streams, and closes with a cross.
@@ -23,38 +16,59 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Embedded chat: one toast next to the launcher replaces the hint and the greeting card. It shows the greeting a few seconds after the first load, or the start of a reply that ended while the chat was closed, with a badge on the button until the chat opens, and leaves by itself.
 - (beta) Embedded chat: the visitor can write while a reply is coming. What they send waits, greyed, and goes out when the reply is over.
 - (beta) Embedded chat: a reply stays marked as in progress until its cards arrive, and the conversation scrolls down as cards load.
-- (beta) Embedded chat: once the visitor has written something, the new conversation button asks before clearing the conversation, under the header (Cancel, or Clear and start over).
-- Agent editor: settings save to the draft automatically, and the editor shows the save status or why a save failed.
-- Agent editor: conversation and extraction agents open in the same full-page editor, with its own menu.
-- Agent version history: the full-screen history lists the changed fields, saves the draft as a version and restores a version.
-- Agent drafts: a draft with the same settings as the last saved version is deleted.
-- Agent instructions and greeting: both fields show a character count, and the greeting shows its limit of 2,000 characters.
-- Agent page: the page shows the version in edit, the members, the evaluation app and the production app.
-- Desk agent switcher: a search window lists the agents by project and type, and opens with Ctrl+K or ⌘K.
-- (beta) Agent orchestration and embed: both sections of the editor apply in production and keep an explicit save with a confirmation.
-- (beta) Agent orchestration: managers read the instructions of an agent before they add it, and confirm before they remove a sub-agent.
+- CSV extraction: the Desk asks for confirmation before it stops a run.
+- (beta) Embedded chat: while the agent thinks or a card loads, the loader draws the star of the logo link by link, and its label has a sliding sheen.
+
+### Fixed
+
+### Security
+
+## [26.11.3] - 2026-11-23
+
+### Added
+
+- Public chat API 1.6: integrations can show each source next to the sentence it supports.
+- Studio languages: the studio is available in German, Italian, Spanish and Polish.
+- Agent version in production: managers choose which saved version the app, the embed and the public API run.
+- Agent instructions: an advanced mode edits the instructions as a diff with the last saved version.
+- Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon.
+- Evaluation app: a new app runs and compares the evaluations of conversation and extraction agents.
+- (beta) Agent models: agents can run on Anthropic and OpenAI models.
+- (beta) MCP servers: the studio tests the connection to a server, lists its tools and edits its settings.
+
+### Changed
+
+- Agent editor: conversation and extraction agents share one full-page editor that saves the draft automatically.
+- Agent version history: the history lists the changed fields, saves the draft as a version and restores a version.
+- Review campaigns: a campaign runs on the saved agent version its managers choose.
+- Desk agent switcher: users search their agents by project and type, also with Ctrl+K or ⌘K.
+- (beta) Agent orchestration and embed: changes to these settings apply in production after a confirmed save.
+- (beta) Agent orchestration: managers read the instructions of an agent before they add it as a sub-agent.
+- (beta) Embedded chat: a new launcher and window design shows the agent's greeting before the visitor opens the chat.
+- (beta) Embedded chat: the chat asks for confirmation before it clears a started conversation.
+- (beta) Embedded chat: interactive cards (MCP Apps) show in the language of the widget.
+
+### Deprecated
+
 - Agent models: gemini-3.6-flash retires on 19 November 2026 and gemini-3.7-flash on 28 January 2027.
-- (beta) Embedded chat: an interactive card (MCP App) shows in the language of the widget.
-- (beta) Embed launcher: a larger button with a dot-grid icon that turns into a close cross, a window that grows out of the button, and a card above the closed button that shows the agent's greeting until the visitor opens the chat, writes or dismisses it.
-- (beta) Embedded chat: the floating window is larger (400 × 704 px at most), its header shows the dot-grid mark instead of a sparkle and a chevron to minimize it, and the launcher shows a chevron while the chat is open.
-- (beta) Embedded chat: while the agent thinks or calls a tool, and while a card loads, the chat shows the dot grid of the launcher with a wave running across it, in the agent's colour, instead of a grey spinner.
-- (beta) Embedded chat: the copy button sits inside the answer bubble, in its bottom-right corner, shows on hover (always on touch screens) and turns into a check once copied.
 
 ### Removed
 
+- Review campaigns and evaluations: the Evaluation app replaces their former pages and the tester and reviewer apps.
 - Evaluations: a new run evaluates a saved agent version only, in the Evaluation app and through MCP.
 
 ### Fixed
 
+- Desk: a pen or touch resize of the sidebar or a side panel stops when the browser cancels the gesture.
 - (beta) Interactive cards (MCP Apps): a tool call that failed no longer shows a card.
 
 ### Security
 
-- Review campaigns: testers reach a test conversation only while they are testers of its campaign and that campaign is active.
-- Message feedback: users leave feedback only on the messages of their own conversations.
 - Access rights: a first sign-in needs a verified email, and members no longer reach colleagues' files or agent settings.
-- (beta) Interactive cards (MCP Apps): an install can serve the cards of each MCP server from a web origin of its own.
-- (beta) Interactive cards (MCP Apps): each card runs in its own isolated frame, limited to the domains it declares.
+- Review campaigns: testers reach a test conversation only while they test its campaign and the campaign is active.
+- Message feedback: users leave feedback only on the messages of their own conversations.
+- (beta) Interactive cards (MCP Apps): each card runs in an isolated frame, limited to the domains it declares.
+- (beta) Interactive cards (MCP Apps): an install can serve the cards of each MCP server from its own web origin.
 - (beta) Public chat API 1.5: the HTML of an interactive card comes with the domains the card declares (`csp`).
 
 ## [26.11.2] - 2026-11-16

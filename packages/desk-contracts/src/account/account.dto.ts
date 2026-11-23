@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-/** The signed-in person, as `GET me` returns them. The Desk reads only these fields. */
+/** The signed-in person, as `GET desk/me` returns them. The Desk reads only these fields. */
 export const meUserOutputSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -50,7 +50,7 @@ export type AcceptTermsInputDto = z.input<typeof acceptTermsInputSchema>
 export const acceptTermsOutputSchema = z.object({ success: z.boolean() })
 
 /**
- * Why the API refused a first sign-in: the `message` of its 401 on any route, `GET me` first.
+ * Why the API refused a first sign-in: the `message` of its 401 on any route, `GET desk/me` first.
  * Signing in again would fail the same way, so the Desk explains instead. The texts are the API's
  * own (packages/api-contracts/src/me/sign-in-errors.ts), which the Desk cannot import.
  */

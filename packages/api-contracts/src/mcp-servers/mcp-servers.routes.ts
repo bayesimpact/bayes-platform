@@ -4,7 +4,9 @@ import type {
   CompleteMcpServerOauthDto,
   CreateMcpServerDto,
   McpServerDto,
+  McpServerInspectionDto,
   McpServerOauthInitiationDto,
+  UpdateMcpServerDto,
 } from "./mcp-servers.dto"
 
 export const McpServersRoutes = {
@@ -15,6 +17,15 @@ export const McpServersRoutes = {
   getAll: defineRoute<ResponseData<McpServerDto[]>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/mcp-servers",
+  }),
+  updateOne: defineRoute<ResponseData<McpServerDto>, RequestPayload<UpdateMcpServerDto>>({
+    method: "patch",
+    path: "organizations/:organizationId/projects/:projectId/mcp-servers/:mcpServerId",
+  }),
+  /** Connects to the server now and returns its status and tools. Stores nothing. */
+  inspect: defineRoute<ResponseData<McpServerInspectionDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/mcp-servers/:mcpServerId/inspect",
   }),
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",

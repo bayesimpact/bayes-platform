@@ -272,6 +272,9 @@ export class EvaluationExtractionRunsService {
     } else {
       query.orderBy(`${alias}.createdAt`, "ASC")
     }
+    // Records with the same sort value keep one order, the same in every run of the dataset, so
+    // a page holds the same records from one read to the next and the runs compare page by page.
+    query.addOrderBy(`${alias}.evaluationExtractionDatasetRecordId`, "ASC")
 
     query.skip(page * limit).take(limit)
 

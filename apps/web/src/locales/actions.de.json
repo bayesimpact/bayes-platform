@@ -53,8 +53,6 @@
     "upload": "Hochladen",
     "initialize": "Initialisieren",
     "view": "Anzeigen",
-    "goToTester": "Test",
-    "goToReviewer": "Review",
     "pagination": "{{from}}–{{to}} von {{total}}",
     "fileInvalidType": "{{fileName}} hat einen ungültigen Dateityp: {{fileType}}",
     "fileTooMany": "Sie können höchstens {{maxFiles}} Datei(en) hochladen.",

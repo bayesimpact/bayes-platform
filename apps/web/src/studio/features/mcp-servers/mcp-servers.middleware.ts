@@ -3,13 +3,16 @@ import { listAgentSettingsWithDraft } from "@/common/features/agents/agent-setti
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { projectsActions } from "@/common/features/projects/projects.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
+import { mcpServersActions } from "./mcp-servers.slice"
 import {
   createMcpServer,
   deleteMcpServer,
   disableMcpServerForAgent,
   enableMcpServerForAgent,
   initiateMcpServerOauth,
+  inspectMcpServer,
   listMcpServers,
+  updateMcpServer,
 } from "./mcp-servers.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -22,8 +25,62 @@ function registerListeners() {
     },
   })
 
+  // The MCP servers page shows each server's live status, so it asks for a
+  // fresh list and a connection to every server. Nothing else does: opening a
+  // project must not dial every server it knows.
   listenerMiddleware.startListening({
-    matcher: isAnyOf(createMcpServer.fulfilled, deleteMcpServer.fulfilled),
+    actionCreator: mcpServersActions.mount,
+    effect: async (_, listenerApi) => {
+      const listed = await listenerApi.dispatch(listMcpServers())
+      if (!listMcpServers.fulfilled.match(listed)) return
+      for (const mcpServer of listed.payload) {
+        listenerApi.dispatch(inspectMcpServer({ mcpServerId: mcpServer.id }))
+      }
+    },
+  })
+
+  // A server just added or edited is checked at once: this is when a wrong URL
+  // or key is cheapest to notice.
+  for (const savedServer of [createMcpServer.fulfilled, updateMcpServer.fulfilled]) {
+    listenerMiddleware.startListening({
+      actionCreator: savedServer,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(inspectMcpServer({ mcpServerId: action.payload.id }))
+      },
+    })
+  }
+
+  listenerMiddleware.startListening({
+    actionCreator: updateMcpServer.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.updated",
+          type: "success",
+        }),
+      )
+      action.meta.arg.onSuccess()
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: updateMcpServer.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.updateError",
+          description: action.payload || undefined,
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    matcher: isAnyOf(
+      createMcpServer.fulfilled,
+      updateMcpServer.fulfilled,
+      deleteMcpServer.fulfilled,
+    ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(listMcpServers())
     },

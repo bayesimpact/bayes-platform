@@ -156,7 +156,7 @@ function ThinkingIndicator() {
   return (
     <div className="flex items-center gap-2.5 text-gray-500 text-sm">
       <DotGridLoader />
-      <span>{t("message.thinking")}</span>
+      <span className="embed-shimmer">{t("message.thinking")}</span>
     </div>
   )
 }

@@ -105,6 +105,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
 function CloseSidebarOnNavigation() {
   const router = useRouter()
   const { setOpenMobile } = useSidebar()
+  // The router is outside React: an effect subscribes to its navigations.
   useEffect(
     () =>
       router.subscribe("onResolved", (event) => {

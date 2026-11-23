@@ -37,7 +37,7 @@ function chunksOf(text: string): string[] {
   return chunks
 }
 
-/** `GET me`, answered with the given person, who accepted the terms, and their new name. */
+/** `GET desk/me`, answered with the given person, who accepted the terms, and their new name. */
 const meHandlers = (me: MeOutputDto = buildMe()) => [
   mockRoute(DeskAccountRoutes.getMe, () => me),
   mockRoute(DeskAccountRoutes.patchMe, ({ payload }) => {

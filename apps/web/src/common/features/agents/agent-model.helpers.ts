@@ -153,15 +153,6 @@ function isThinkingLevelKey(key: string): boolean {
   return (THINKING_LEVEL_KEYS as readonly string[]).includes(key)
 }
 
-/** The thinking level stored in model options, whatever name the provider gives it. */
-export function findThinkingLevelValue(options: Record<string, unknown> | null): unknown {
-  for (const key of THINKING_LEVEL_KEYS) {
-    const value = findModelOptionValue(options, key)
-    if (value !== undefined) return value
-  }
-  return undefined
-}
-
 /** The value at `path` in model options, if any. */
 export function readModelOption(options: Record<string, unknown> | null, path: string[]): unknown {
   let value: unknown = options

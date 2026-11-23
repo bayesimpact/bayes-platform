@@ -40,6 +40,7 @@
       "recordCount_other": "{{count}} Einträge",
       "newDataset": "Neuer Datensatz",
       "newDatasetName": "Name des neuen Datensatzes",
+      "newDatasetNamePlaceholder": "Namen des Datensatzes eingeben",
       "newDatasetSuffix": "{{name}} (neu)",
       "nameTooShort": "Der Name eines Datensatzes muss mindestens {{count}} Zeichen lang sein."
     },

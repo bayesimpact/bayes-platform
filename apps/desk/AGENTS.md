@@ -15,12 +15,18 @@ holds what is specific to the Desk.
   `invitations`, `memories`, `organizations`, `projects`), with `common/` for the error body and
   the params every route extends (`AgentParamsDto`, `ConversationParamsDto`), and a
   `Desk{Area}Routes` object per area (`extractions` has two: documents and CSV files). It
-  describes the API routes the Desk calls and the fields it reads; the API does not import it.
-- Endpoints: in this first phase, the Desk reads the API's existing endpoints, and `apps/api`
-  changes only in its usual way when one is missing (`docs/frontend/conventions.md`, Endpoints).
-  The sidebar reads `me`, then `projects/mine`, `organizations/mine` and the agents of each project
-  that grants `desk.ui.read`, as apps/web does, under one query (`deskAgentsQueryOptions` in
-  `features/agents`), and the person's invitations every minute. It keeps the agents whose
+  describes the `desk/` routes the Desk calls and the fields it reads, and the API serves these
+  routes with the same schemas.
+- Endpoints: the Desk calls only its own endpoints, under `desk/`, with one exception: a resource
+  card links to a library file at `organizations/.../resource-libraries/.../resources/.../file`
+  (`src/lib/safe-url.ts`), outside `desk/` and the contracts, until a Desk route serves it.
+  `DeskModule` (`apps/api/src/domains/desk/`) serves the `desk/` routes with `@SchemaRoute`, and
+  each one copies the endpoint the Desk called before, with the same permission on the same
+  resource. A new or changed endpoint is contract first (`docs/frontend/conventions.md`,
+  Endpoints). The sidebar reads `desk/me`, then `desk/projects/mine`, `desk/organizations/mine`
+  and the agents of each project that grants `desk.ui.read`, as apps/web does, under one query
+  (`deskAgentsQueryOptions` in `features/agents`), and the person's invitations every minute. It
+  keeps the agents whose
   `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API
   also lists the agents a project evaluator only reads.
 - MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
@@ -66,6 +72,7 @@ Run them from the repository root.
 | `npm run storybook -w @caseai-connect/desk` | Storybook on port 6009: the whole Desk on the MSW handlers, with no API and no sign-in, one story per state of its world |
 | `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
+| `npm run check:desk-parity -w @caseai-connect/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
 | `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and `fr.po`, without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
 | `npm run preview -w @caseai-connect/desk` | Serves that build on port 5178 at `/app/` |
@@ -130,6 +137,14 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
+- Evaluation (`apps/eval`) holds a copy of the chat: `src/features/conversation/`, and `Markdown`,
+  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no code, so
+  a change to one of these files goes to the copy too, in the same PR.
+  `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
+  difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
+  of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
+  one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a
+  snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts` and `extraction-handlers.ts`, written with

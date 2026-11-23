@@ -53,8 +53,6 @@
     "upload": "Subir",
     "initialize": "Inicializar",
     "view": "Ver",
-    "goToTester": "Prueba",
-    "goToReviewer": "Revisión",
     "pagination": "{{from}}-{{to}} de {{total}}",
     "fileInvalidType": "{{fileName}} tiene un tipo de archivo no válido: {{fileType}}",
     "fileTooMany": "Solo puede subir hasta {{maxFiles}} archivo(s).",

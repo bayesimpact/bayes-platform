@@ -57,5 +57,6 @@ import { ReviewCampaignInvitationsController } from "./review-campaign-invitatio
     ReviewCampaignInvitationsController,
     MyInvitationsController,
   ],
+  exports: [InvitationsService],
 })
 export class InvitationsModule {}
