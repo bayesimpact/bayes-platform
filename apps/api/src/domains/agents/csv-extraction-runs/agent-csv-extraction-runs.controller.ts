@@ -383,16 +383,19 @@ export abstract class AgentCsvExtractionRunsController {
     return new Promise((resolve, reject) => {
       const previewRows: Record<string, unknown>[] = []
       let fields: string[] | undefined
+      let headerFields: string[] | undefined
       let settled = false
       const preview = 5
 
       const buildColumns = () => {
-        if (!fields || fields.length === 0) {
+        // A file with a header and no data row emits no row: its header names its columns.
+        const columnNames = fields ?? headerFields
+        if (!columnNames || columnNames.length === 0) {
           reject(new UnprocessableEntityException("CSV file has no columns"))
           return
         }
         resolve(
-          fields.map((fieldName) => ({
+          columnNames.map((fieldName) => ({
             id: randomUUID(),
             name: fieldName,
             values: previewRows.map((row) => row[fieldName] ?? null),
@@ -407,10 +410,16 @@ export abstract class AgentCsvExtractionRunsController {
         fn()
       }
 
-      const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, {
+      // In the stream mode Papa keeps `step` and `complete` for itself: `chunk` is the one
+      // callback that gives the header, and it runs before the stream ends.
+      const parseConfig: StreamParseConfig = {
         header: true,
         skipEmptyLines: true,
-      })
+        chunk: (results) => {
+          headerFields = results.meta.fields
+        },
+      }
+      const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, parseConfig)
 
       parseStream.on("data", (row: Record<string, unknown>) => {
         if (!fields) fields = Object.keys(row)
@@ -426,6 +435,12 @@ export abstract class AgentCsvExtractionRunsController {
     })
   }
 }
+
+/**
+ * The config of Papa's stream mode. Its typings leave `chunk` out of that mode, but the stream
+ * mode runs it: the header-only case of the `getFileColumns` specs fails if that ever stops.
+ */
+type StreamParseConfig = Papa.ParseConfig & Pick<Papa.ParseLocalConfig, "chunk">
 
 /**
  * A run is open to its creator only, whatever the caller's project role. A run created before
