@@ -17,7 +17,6 @@ import { ProjectRoute } from "@/common/routes/ProjectRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { CurrentAgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/CurrentAgentRevisionBadge"
 import { ConversationAgentSessionList } from "@/studio/features/agents/components/AgentSessionList"
-import { CampaignsRoute } from "@/studio/routes/CampaignsRoute"
 import { ProjectAdminRoute } from "@/studio/routes/ProjectAdminRoute"
 import { StudioLayout } from "../components/StudioLayout"
 import { AgentSettingsVersionSelect } from "../features/agents/agent-settings/components/AgentSettingsVersionSelect"
@@ -166,19 +165,6 @@ export const studioRoutes = {
             {
               path: StudioRoutes.projectAdmin.path,
               element: <ProjectAdminRoute />,
-            },
-            {
-              path: StudioRoutes.reviewCampaigns.path,
-              element: <CampaignsRoute />,
-            },
-            {
-              // The campaign editor and its report open over the list, in a full-screen sheet.
-              path: StudioRoutes.reviewCampaign.path,
-              element: <CampaignsRoute />,
-            },
-            {
-              path: StudioRoutes.reviewCampaignReport.path,
-              element: <CampaignsRoute />,
             },
             {
               path: StudioRoutes.agent.path,

@@ -27,9 +27,7 @@ import {
   DatabaseZapIcon,
   FileIcon,
   LibraryBigIcon,
-  ListChecksIcon,
   Loader2Icon,
-  MegaphoneIcon,
   PlugIcon,
   ServerIcon,
   Settings2Icon,
@@ -57,7 +55,6 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
 
       <SidebarGroupContent>
         <SidebarMenu>
-          <NavEvaluation organizationId={project.organizationId} projectId={project.id} />
           <RestrictedFeature feature="project-analytics">
             <NavAnalytics organizationId={project.organizationId} projectId={project.id} />
           </RestrictedFeature>
@@ -84,32 +81,6 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
-}
-
-function NavReviewCampaigns({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-  const { isRoute } = useIsRoute()
-  const isActive =
-    isRoute(StudioRoutes.reviewCampaigns.path) ||
-    isRoute(StudioRoutes.reviewCampaign.path) ||
-    isRoute(StudioRoutes.reviewCampaignReport.path)
-  const path = StudioRoutes.reviewCampaigns.build({ organizationId, projectId })
-  return (
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton isActive={isActive} asChild>
-        <Link to={path}>
-          <MegaphoneIcon />
-          <span>{t("reviewCampaigns:title")}</span>
-        </Link>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
   )
 }
 
@@ -393,39 +364,5 @@ function NavAdmin({ organizationId, projectId }: { organizationId: string; proje
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
-  )
-}
-
-/**
- * Evaluation is a foldable category. The trigger toggles open/close instead of
- * navigating — children (currently only Review campaigns) are the destinations.
- * Once more evaluation surfaces are linked into Studio, they'll be added here as
- * additional `SidebarMenuSub*` entries.
- */
-export function NavEvaluation({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-  return (
-    <Collapsible asChild className="group/evaluation">
-      <SidebarMenuItem>
-        <CollapsibleTrigger asChild>
-          <SidebarMenuButton>
-            <ListChecksIcon />
-            <span>{t("evaluation:evaluations")}</span>
-            <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/evaluation:rotate-90" />
-          </SidebarMenuButton>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub>
-            <NavReviewCampaigns organizationId={organizationId} projectId={projectId} />
-          </SidebarMenuSub>
-        </CollapsibleContent>
-      </SidebarMenuItem>
-    </Collapsible>
   )
 }

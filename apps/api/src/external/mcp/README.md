@@ -8,6 +8,16 @@ Generic integration for external MCP (Model Context Protocol) servers. Supports 
 - **`agent_mcp_server`** table: junction enabling specific servers per agent
 - At runtime, the streaming service queries all enabled servers for the agent, connects to each, and merges their tools
 
+## Checking a server from the studio
+
+`POST …/mcp-servers/:mcpServerId/inspect` connects to the server once and answers with its status (`connected`, `authorizationRequired`, `failed`), its tools (name and description) and, when the connection failed, an error code with what the client reported (`describeMcpConnectionError`, `external/mcp/mcp-connection-error.ts`). Nothing is stored: the studio asks again each time the MCP servers page opens, after a server is created or edited, and on demand. `McpClientService.inspect` gives up after 10 seconds.
+
+The URL of an OAuth server goes through the outbound URL guard first (`oauth/outbound-url-guard.ts`), as it does in the OAuth discovery: a URL that is not public https answers `urlNotAllowed` and the access token is not sent. A server with an API key or no authentication is called as an agent turn calls it, with no guard, so a local server can be checked in development.
+
+## Editing a server
+
+`PATCH …/mcp-servers/:mcpServerId` edits a custom server in place, so the agents it is enabled on keep it. The API key and the header values are write-only: the listing only returns `headerNames`, an empty `apiKey` keeps the stored key, and a header sent with a `null` value keeps its stored value. A header name left out of `headers` is removed. Changing the URL or leaving the OAuth method drops the OAuth client and tokens, which were discovered from that URL. Built-in servers answer 403.
+
 ## Request headers
 
 Every call to an MCP server (tool calls and `resources/read`) carries the conversation context as HTTP headers, built by `buildMcpRequestHeaders` (`external/mcp/mcp-request-headers.ts`). They are plumbing, never prompt text, so a server can rely on them.

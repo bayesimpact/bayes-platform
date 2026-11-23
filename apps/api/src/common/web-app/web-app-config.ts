@@ -32,6 +32,15 @@ export function getDeskAppSettings(env: NodeJS.ProcessEnv = process.env): WebApp
   return readDistSettings(env.DESK_APP_DIST_DIR)
 }
 
+/**
+ * The Evaluation app (apps/eval) served by the API at `/eval`, ahead of the web front, from the
+ * `app-runtime` image. Enabled when EVAL_APP_DIST_DIR points to a built `apps/eval/dist` folder,
+ * whose files Vite built for the `/eval/` base.
+ */
+export function getEvalAppSettings(env: NodeJS.ProcessEnv = process.env): WebAppSettings | null {
+  return readDistSettings(env.EVAL_APP_DIST_DIR)
+}
+
 function readDistSettings(rawDistDir: string | undefined): WebAppSettings | null {
   const distDir = rawDistDir?.trim()
   if (!distDir) return null
@@ -43,7 +52,8 @@ function readDistSettings(rawDistDir: string | undefined): WebAppSettings | null
 /**
  * Runtime configuration handed to the browser as `window.__CONFIG__`.
  * Keys match `RuntimeConfig` in apps/web/src/config/runtime-config.ts. The Desk
- * gets the same one and reads its own keys (apps/desk/src/app/config.ts).
+ * and the Evaluation app get the same one and read their own keys (`src/app/config.ts`
+ * of apps/desk and apps/eval).
  * Public by construction: never put a secret here.
  */
 export type WebAppRuntimeConfig = Record<string, string>

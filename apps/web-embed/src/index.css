@@ -47,3 +47,19 @@
     background: none;
   }
 }
+
+/* The new-conversation confirmation (EmbedChat.tsx) drops in under the header. */
+.embed-confirm {
+  animation: embed-confirm-in 0.18s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+@keyframes embed-confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .embed-confirm {
+    animation: none;
+  }
+}

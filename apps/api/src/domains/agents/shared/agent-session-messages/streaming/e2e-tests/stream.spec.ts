@@ -344,7 +344,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
       expect(await findAssistantMessageSettingsId()).toBe(agentSettings.id)
     })
 
-    it("runs the published revision in a review campaign tester session", async () => {
+    it("runs its campaign's version, which starts as the published one", async () => {
       const { organization, project, agent, agentSettings } = await createContext({
         sessionType: "review_campaign_tester",
       })
@@ -354,6 +354,22 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
       expect(response.text).not.toContain("event: error")
       expect(await findAssistantMessageSettingsId()).toBe(agentSettings.id)
+    })
+
+    it("runs the version its campaign chose, not the one in production", async () => {
+      const { organization, project, agent } = await createContext({
+        sessionType: "review_campaign_tester",
+      })
+      const campaignVersion = await seedRevision({ organization, project, agent, revision: 2 })
+      await repositories.reviewCampaignRepository.update(
+        { agentId: agent.id },
+        { agentSettingsId: campaignVersion.id },
+      )
+
+      const response = await subject("Hello")
+
+      expect(response.text).not.toContain("event: error")
+      expect(await findAssistantMessageSettingsId()).toBe(campaignVersion.id)
     })
 
     it("rejects a revision on a review campaign tester session", async () => {

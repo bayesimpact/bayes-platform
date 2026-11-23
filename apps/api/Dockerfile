@@ -131,6 +131,36 @@ COPY packages/typescript-config ./packages/typescript-config
 RUN cd apps/desk && npm run build
 
 #
+# 📊 Evaluation app build (only used by the app-runtime target)
+#
+# Builds apps/eval for its `/eval/` base (vite.config.ts): the API serves the
+# result at /eval, ahead of the web front. As for the Desk, no VITE_* value is
+# baked in: the app reads the configuration the API injects into its
+# index.html. Only the app, its contracts and the MCP App host are installed.
+#
+FROM node:24.21.0-trixie-slim AS eval-build
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY apps/eval/package.json ./apps/eval/
+COPY packages/eval-contracts/package.json ./packages/eval-contracts/
+COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+
+RUN npm ci \
+    --workspace=@caseai-connect/eval \
+    --workspace=@caseai-connect/eval-contracts \
+    --workspace=@caseai-connect/mcp-app-host \
+    --include-workspace-root
+
+COPY apps/eval ./apps/eval
+COPY packages/eval-contracts ./packages/eval-contracts
+COPY packages/mcp-app-host ./packages/mcp-app-host
+COPY packages/typescript-config ./packages/typescript-config
+
+RUN cd apps/eval && npm run build
+
+#
 # 🚀 Runtime Base (shared)
 #
 FROM node:24.21.0-trixie-slim AS runtime-base
@@ -169,11 +199,12 @@ FROM runtime-base AS api-runtime
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
 
 #
-# 🚀 App Runtime: API + web front + Desk in one image
+# 🚀 App Runtime: API + web front + Desk + Evaluation app in one image
 #
-# Same process as api-runtime, plus the built web front served at / and the
-# built Desk at /app. The API keeps /api and /public. WEB_APP_DIST_DIR and
-# DESK_APP_DIST_DIR switch the serving on; the API image stays API-only.
+# Same process as api-runtime, plus the built web front served at /, the built
+# Desk at /app and the built Evaluation app at /eval. The API keeps /api and
+# /public. WEB_APP_DIST_DIR, DESK_APP_DIST_DIR and EVAL_APP_DIST_DIR switch the
+# serving on; the API image stays API-only.
 #
 FROM api-runtime AS app-runtime
 
@@ -181,6 +212,8 @@ COPY --from=web-build /app/apps/web/dist /app/apps/web/dist
 ENV WEB_APP_DIST_DIR=/app/apps/web/dist
 COPY --from=desk-build /app/apps/desk/dist /app/apps/desk/dist
 ENV DESK_APP_DIST_DIR=/app/apps/desk/dist
+COPY --from=eval-build /app/apps/eval/dist /app/apps/eval/dist
+ENV EVAL_APP_DIST_DIR=/app/apps/eval/dist
 
 #
 # 🚀 CPU Workers Runtime (no Docling)

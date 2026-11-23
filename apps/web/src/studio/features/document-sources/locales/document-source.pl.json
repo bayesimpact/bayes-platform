@@ -1,0 +1,31 @@
+{
+  "documentSource": {
+    "title": "Zewnętrzne",
+    "description": "Synchronizuj dokumenty z zewnętrznych aplikacji do bazy wiedzy agentów.",
+    "nav": "Zewnętrzne",
+    "columns": {
+      "source": "Źródło",
+      "app": "Aplikacja",
+      "tags": "Tagi",
+      "docs": "Dokumenty",
+      "lastSync": "Ostatnia synchronizacja",
+      "status": "Status"
+    },
+    "delete": {
+      "title": "Usunąć {{name}}?",
+      "description": "Spowoduje to usunięcie źródła i należących do niego dokumentów."
+    },
+    "empty": {
+      "title": "Brak źródeł zewnętrznych",
+      "description": "Źródła pojawią się tutaj, gdy aplikacja zsynchronizuje dokumenty z tą przestrzenią roboczą."
+    },
+    "legacyWebCrawl": {
+      "badge": "Dawny crawler",
+      "title": "Niektóre źródła pochodzą z dawnego crawlera stron",
+      "description": "Ich strony pozostają dostępne dla agentów, ale nic ich już nie aktualizuje. Aby zmienić takie źródło lub ponownie przeszukać jego witrynę, skontaktuj się z nami."
+    },
+    "notifications": {
+      "tagsUpdateError": "Nie udało się zaktualizować tagów źródła"
+    }
+  }
+}

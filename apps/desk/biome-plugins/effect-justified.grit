@@ -1,0 +1,16 @@
+language js
+
+// An effect syncs with something outside React. The line above it says with what, so a reader,
+// and the person who reviews, can tell it is not state derived from other values.
+or {
+  `useEffect($callback, $dependencies)`,
+  `useEffect($callback)`
+} as $effect where {
+  $effect <: within or {
+    JsFunctionDeclaration(),
+    JsFunctionExpression(),
+    JsArrowFunctionExpression()
+  } as $function ,
+  $function <: r"(?s)(?:.*\n)?(?:[ \t]*|[ \t]*(?:[^/*\s]|/[^/*])[^\n]*)\n[ \t]*useEffect\(.*",
+  register_diagnostic(span=$effect, message="Say what this effect syncs with, outside React (the DOM, a timer, a subscription, the focus), in a comment on the line just above `useEffect`. A value derived from other values is computed during the render instead.", severity="error")
+}

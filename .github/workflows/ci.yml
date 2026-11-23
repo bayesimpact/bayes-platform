@@ -13,6 +13,7 @@ jobs:
       api-tests: ${{ steps.filter.outputs.api-tests }}
       web-tests: ${{ steps.filter.outputs.web-tests }}
       desk-tests: ${{ steps.filter.outputs.desk-tests }}
+      eval-tests: ${{ steps.filter.outputs.eval-tests }}
       pdf-converter-tests: ${{ steps.filter.outputs.pdf-converter-tests }}
     steps:
       - name: Checkout code
@@ -54,6 +55,14 @@ jobs:
             echo "desk-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "desk-tests=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Evaluation's checks run when Evaluation, its contracts or the dependencies changed,
+          # and when the Desk's chat changed: Evaluation's chat is a copy of it, which
+          # check:desk-parity compares.
+          if echo "$CHANGED" | grep -qE '^(apps/eval/|packages/eval-contracts/|apps/desk/src/features/conversation/|apps/desk/src/components/shared/(Markdown|HighlightedCodeBlock|InlineCode)\.tsx$|package\.json$|package-lock\.json$)'; then
+            echo "eval-tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "eval-tests=false" >> "$GITHUB_OUTPUT"
           fi
           # The PDF converter tests (Go, with SeaweedFS for the S3 store) run
           # when the service, the SeaweedFS keys or this workflow changed.
@@ -218,6 +227,53 @@ jobs:
       - name: Build the Desk
         if: needs.changes.outputs.desk-tests == 'true'
         run: npm run build --workspace=@caseai-connect/desk
+
+  eval-tests:
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip, nothing Evaluation's checks exercise changed
+        if: needs.changes.outputs.eval-tests == 'false'
+        run: echo "Skipping Evaluation's checks, no change under apps/eval, packages/eval-contracts, the Desk's chat, package.json or package-lock.json"
+
+      - name: Checkout code
+        if: needs.changes.outputs.eval-tests == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # After the checkout: the npm cache key is read from package-lock.json.
+      - name: Use Node.js
+        if: needs.changes.outputs.eval-tests == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - name: Install dependencies
+        if: needs.changes.outputs.eval-tests == 'true'
+        run: npm ci
+
+      # The typecheck, Biome and check:boundaries run in ci-checks, through turbo.
+      - name: Check that the chat stays the Desk's
+        if: needs.changes.outputs.eval-tests == 'true'
+        run: npm run check:desk-parity --workspace=@caseai-connect/eval
+
+      - name: Check the component files
+        if: needs.changes.outputs.eval-tests == 'true'
+        run: npm run check:components --workspace=@caseai-connect/eval
+
+      - name: Check the translation catalogs
+        if: needs.changes.outputs.eval-tests == 'true'
+        run: npm run i18n:check --workspace=@caseai-connect/eval
+
+      - name: Run Evaluation tests
+        if: needs.changes.outputs.eval-tests == 'true'
+        run: npm run test --workspace=@caseai-connect/eval
+
+      - name: Build Evaluation
+        if: needs.changes.outputs.eval-tests == 'true'
+        run: npm run build --workspace=@caseai-connect/eval
 
   pdf-converter-tests:
     needs: changes

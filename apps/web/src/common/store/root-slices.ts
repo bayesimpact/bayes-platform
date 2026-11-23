@@ -7,9 +7,8 @@ import { oauthGrantsSlice } from "@/common/features/oauth-grants/oauth-grants.sl
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { organizationsSlice } from "../features/organizations/organizations.slice"
 
-// Shared slices: always available in both Studio and Desk interfaces.
-// Tester / reviewer slices are scoped to their respective interfaces and
-// injected lazily via injectTesterSlices / injectReviewerSlices.
+// Shared slices: always available, whatever the interface. The Studio and the backoffice inject
+// their own slices lazily.
 
 export const rootSliceList = [
   authSlice,

@@ -34,6 +34,7 @@ export function useSpeechRecognition({
   const handleTranscript = useEffectEvent((transcript: string) => onTranscript(transcript))
   const handleFailure = useEffectEvent((failure: SpeechRecognitionFailure) => onFailure?.(failure))
 
+  // The recognition is the browser's, outside React: an effect starts it, and stops it.
   useEffect(() => {
     const Recognition = speechRecognitionConstructor()
     if (!Recognition) return

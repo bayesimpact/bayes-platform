@@ -1,0 +1,16 @@
+{
+  "oauthGrants": {
+    "title": "App connesse",
+    "description": "App che hai autorizzato ad accedere ai tuoi progetti tramite MCP.",
+    "empty": "Nessuna app connessa. Le app che connetti tramite MCP compaiono qui.",
+    "unnamedApp": "App senza nome",
+    "projects": "Progetti",
+    "permissions": "Autorizzazioni",
+    "connectedOn": "Connessa il {{date}}",
+    "lastUsed": "Ultimo utilizzo {{since}}",
+    "neverUsed": "Mai utilizzata",
+    "revokeTitle": "Revocare {{name}}?",
+    "revokeDescription": "{{name}} perderà l'accesso alla prossima richiesta.",
+    "revokeError": "Impossibile revocare l'accesso. Riprova."
+  }
+}

@@ -1,0 +1,14 @@
+language js
+
+// Lingui names a placeholder after the variable it reads: `{count}`. Any other expression, such
+// as a call or a property, becomes `{0}` in the catalogs, which tells a translator nothing.
+or {
+  `<Trans $props>$children</Trans>` as $macro where {
+    $children <: r"(?s)(?:.*[^=])?\{\s*[^\"'`\s{}/][^{}]*[.(\[][^{}]*\}.*",
+    register_diagnostic(span=$macro, message="Give each value of a `<Trans>` a name first (`const fileName = file.name`), then use `{fileName}`: a call or a property reads `{0}` in the catalogs.", severity="error")
+  },
+  `<Plural $props />` as $macro where {
+    $props <: r"(?s).*\bvalue=\{[^{}]*[.(\[][^{}]*\}.*",
+    register_diagnostic(span=$macro, message="Give the count of a `<Plural>` a name first (`const recordCount = records.length`), then pass `value={recordCount}`: a call or a property reads `{0}` in the catalogs.", severity="error")
+  }
+}

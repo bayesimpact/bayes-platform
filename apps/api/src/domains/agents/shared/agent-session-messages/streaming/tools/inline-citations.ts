@@ -105,3 +105,48 @@ export function createPassthroughCitationExtractor(): InlineCitationExtractor {
     citedAliases: () => [],
   }
 }
+
+/**
+ * The two texts of a reply: the one stored (markers always removed) and the one sent to
+ * the client, which keeps the raw markers when the caller asked for inline citations
+ * (public API `citations: "inline"`). Feed it every streamed delta, then flush it.
+ */
+export type CitationStreamSplitter = {
+  /** Returns the text to send for this delta; empty when there is nothing to send yet. */
+  feed(rawChunk: string): string
+  /** Returns the text still to send at the end of the stream. */
+  flush(): string
+  /** The text to store, without markers. */
+  storedText(): string
+  /** Everything sent to the client, which is also the `fullContent` of the `end` event. */
+  streamedText(): string
+}
+
+export function createCitationStreamSplitter({
+  citations,
+  inlineCitations,
+}: {
+  citations: InlineCitationExtractor
+  inlineCitations: boolean
+}): CitationStreamSplitter {
+  let stored = ""
+  let streamed = ""
+  return {
+    feed(rawChunk) {
+      const stripped = citations.feed(rawChunk)
+      stored += stripped
+      const sent = inlineCitations ? rawChunk : stripped
+      streamed += sent
+      return sent
+    },
+    flush() {
+      const tail = citations.flush()
+      stored += tail
+      if (inlineCitations) return ""
+      streamed += tail
+      return tail
+    },
+    storedText: () => stored,
+    streamedText: () => streamed,
+  }
+}

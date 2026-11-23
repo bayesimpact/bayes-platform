@@ -40,10 +40,6 @@ export function RestrictedAccess({
         return abilities.canAccessStudio({ projectId })
       case "canAccessEvaluation":
         return abilities.canAccessEvaluation({ projectId })
-      case "canAccessTester":
-        return abilities.canAccessTester({ projectId })
-      case "canAccessReviewer":
-        return abilities.canAccessReviewer({ projectId })
       default:
         return false
     }

@@ -8,7 +8,11 @@
   "plugins": [
     "./biome-plugins/use-query-justified.grit",
     "./biome-plugins/no-effect-setting-state.grit",
-    "./biome-plugins/table-without-memo.grit"
+    "./biome-plugins/table-without-memo.grit",
+    "./biome-plugins/table-data-stable.grit",
+    "./biome-plugins/no-form-watch.grit",
+    "./biome-plugins/effect-justified.grit",
+    "./biome-plugins/lingui-named-placeholders.grit"
   ],
   "linter": {
     "rules": {

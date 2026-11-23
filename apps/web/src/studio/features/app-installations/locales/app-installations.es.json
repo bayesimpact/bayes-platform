@@ -1,0 +1,29 @@
+{
+  "appInstallations": {
+    "title": "Aplicaciones conectadas",
+    "description": "Aplicaciones que pueden acceder a este proyecto.",
+    "empty": {
+      "title": "Aún no hay aplicaciones conectadas",
+      "description": "Las aplicaciones que conecte a este proyecto aparecen aquí, junto con aquello a lo que pueden acceder."
+    },
+    "noPermissions": "Ningún permiso concedido",
+    "revoke": {
+      "action": "Revocar",
+      "title": "¿Revocar {{name}}?",
+      "description": "{{name}} pierde el acceso a este proyecto de inmediato. Sus conversaciones quedan ligadas a esta instalación: para volver a instalarla se necesita una nueva autorización y empieza sin ellas."
+    },
+    "notifications": {
+      "revoked": "Aplicación revocada",
+      "revokeError": "No se pudo revocar la aplicación"
+    },
+    "permissions": {
+      "menuItem_one": "Ver el permiso",
+      "menuItem_other": "Ver los {{count}} permisos"
+    },
+    "installedBy": "Conectada por <installer>{{installer}}</installer> el {{date}}",
+    "installer": {
+      "memberHint": "Pídale que vuelva a conectar {{name}} o que cambie sus permisos.",
+      "formerMemberHint": "Esta persona ya no puede gestionar las aplicaciones de este espacio de trabajo. Para volver a conectar {{name}}, instálela de nuevo desde la aplicación o pídaselo a un propietario del espacio de trabajo."
+    }
+  }
+}

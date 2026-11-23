@@ -1,6 +1,7 @@
 import type { AgentDto } from "../agents/agents.dto"
 import type { ConversationAgentSessionDto } from "../agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 import type { AgentSettingsDto } from "../agents/settings/agent-settings.dto"
+import type { AgentSessionToolCallDto } from "../agents/shared/agent-session-messages/agent-session-messages.dto"
 import type { TimeType } from "../generic"
 import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 
@@ -32,6 +33,11 @@ export type ReviewCampaignDto = {
   organizationId: string
   projectId: string
   agentId: string
+  /**
+   * The saved version of the agent's settings the whole campaign runs on: the testers' chat and
+   * the reviewers' view. Chosen by its managers while the campaign is a draft.
+   */
+  agentSettingsId: string
   name: string
   description: string | null
   status: ReviewCampaignStatus
@@ -67,6 +73,8 @@ export type ReviewCampaignDetailDto = ReviewCampaignDto & {
 
 export type CreateReviewCampaignRequestDto = {
   agentId: string
+  /** A saved version of the agent, never the draft. Defaults to the version in production. */
+  agentSettingsId?: string
   name: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestionDto[]
@@ -76,6 +84,11 @@ export type CreateReviewCampaignRequestDto = {
 
 export type UpdateReviewCampaignRequestDto = {
   agentId?: string
+  /**
+   * A saved version of the agent, never the draft. A new agent with no version given takes the
+   * one in production.
+   */
+  agentSettingsId?: string
   name?: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestionDto[]
@@ -112,6 +125,11 @@ export type ListMyReviewCampaignsResponseDto = {
     Pick<ReviewCampaignDto, "id" | "name" | "description" | "status" | "agentId" | "createdAt"> & {
       organizationId: string
       projectId: string
+      /**
+       * The agent the campaign reviews, which the person may hold through no project: their
+       * agent switcher lists it. `null` when the agent was deleted.
+       */
+      agent: Pick<AgentDto, "name" | "type"> | null
     }
   >
 }
@@ -229,6 +247,11 @@ export type ReviewerSessionTranscriptMessageDto = {
   role: string
   content: string
   createdAt: TimeType
+  /**
+   * The tools an agent's reply called, as the tester's chat received them: its steps, sources,
+   * resources and apps. None for a person's message.
+   */
+  toolCalls: AgentSessionToolCallDto[]
 }
 
 export type ReviewerAgentSnapshotDto = Pick<AgentDto, "id" | "name" | "type">

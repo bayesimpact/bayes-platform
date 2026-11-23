@@ -1,0 +1,31 @@
+{
+  "documentSource": {
+    "title": "Esterne",
+    "description": "Sincronizza i documenti dalle app esterne nella base di conoscenza dei tuoi agenti.",
+    "nav": "Esterne",
+    "columns": {
+      "source": "Origine",
+      "app": "App",
+      "tags": "Tag",
+      "docs": "Documenti",
+      "lastSync": "Ultima sincronizzazione",
+      "status": "Stato"
+    },
+    "delete": {
+      "title": "Eliminare {{name}}?",
+      "description": "Verranno eliminati l'origine e i documenti che le appartengono."
+    },
+    "empty": {
+      "title": "Ancora nessuna origine esterna",
+      "description": "Le origini compaiono qui quando un'app sincronizza documenti in questo spazio di lavoro."
+    },
+    "legacyWebCrawl": {
+      "badge": "Ex crawler web",
+      "title": "Alcune origini provengono dal vecchio crawler web",
+      "description": "Le loro pagine restano disponibili per i tuoi agenti, ma non vengono più aggiornate. Per modificare una di queste origini o eseguire di nuovo la scansione del sito, contattaci."
+    },
+    "notifications": {
+      "tagsUpdateError": "Impossibile aggiornare i tag dell'origine"
+    }
+  }
+}

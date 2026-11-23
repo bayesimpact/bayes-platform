@@ -73,4 +73,66 @@ describe("McpClientService", () => {
     expect(loggedError).toHaveBeenCalled()
     loggedError.mockRestore()
   })
+
+  describe("inspect", () => {
+    it("should list the tools of a server that answers", async () => {
+      const close = jest.fn(async () => {})
+      jest.mocked(createMCPClient).mockResolvedValue({
+        listTools: async () => ({
+          tools: [{ name: "search", description: "Searches." }, { name: "fetch" }],
+        }),
+        close,
+      } as unknown as Awaited<ReturnType<typeof createMCPClient>>)
+
+      const inspection = await buildService().inspect({
+        url: "https://tools.example.test/mcp",
+        apiKey: "sk-configured-key",
+      })
+
+      expect(inspection).toEqual({
+        isConnected: true,
+        tools: [
+          { name: "search", description: "Searches." },
+          { name: "fetch", description: null },
+        ],
+      })
+      expect(transportHeaders()).toEqual({ Authorization: "Bearer sk-configured-key" })
+      await Promise.resolve()
+      expect(close).toHaveBeenCalled()
+    })
+
+    it("should return the reason of a failure instead of an empty toolset", async () => {
+      // The failure is logged by design; keep it out of the test output.
+      const loggedWarning = jest.spyOn(Logger.prototype, "warn").mockImplementation(() => {})
+      jest
+        .mocked(createMCPClient)
+        .mockRejectedValue(
+          new Error("MCP HTTP Transport Error: POSTing to endpoint (HTTP 403): forbidden"),
+        )
+
+      const inspection = await buildService().inspect({ url: "https://tools.example.test/mcp" })
+
+      expect(inspection).toEqual({
+        isConnected: false,
+        error: expect.objectContaining({ code: "forbidden", httpStatus: 403 }),
+      })
+      loggedWarning.mockRestore()
+    })
+
+    it("should give up on a server that never answers", async () => {
+      jest.useFakeTimers()
+      const loggedWarning = jest.spyOn(Logger.prototype, "warn").mockImplementation(() => {})
+      jest.mocked(createMCPClient).mockReturnValue(new Promise(() => {}))
+
+      const pendingInspection = buildService().inspect({ url: "https://tools.example.test/mcp" })
+      await jest.advanceTimersByTimeAsync(10_000)
+
+      expect(await pendingInspection).toEqual({
+        isConnected: false,
+        error: expect.objectContaining({ code: "timeout" }),
+      })
+      loggedWarning.mockRestore()
+      jest.useRealTimers()
+    })
+  })
 })

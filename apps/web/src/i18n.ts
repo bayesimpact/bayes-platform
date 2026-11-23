@@ -1,7 +1,7 @@
 import i18n from "i18next"
 import LanguageDetector from "i18next-browser-languagedetector"
 import { initReactI18next } from "react-i18next"
-import { loadLocales } from "./locales/loader"
+import { loadLocales, SUPPORTED_LANGUAGES } from "./locales/loader"
 import { colonHandlerPostProcessor } from "./locales/post-processors"
 
 i18n
@@ -18,6 +18,7 @@ i18n
     debug: import.meta.env.DEV,
     load: "languageOnly",
     fallbackLng: "en",
+    supportedLngs: SUPPORTED_LANGUAGES,
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },

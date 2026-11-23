@@ -1,0 +1,123 @@
+{
+  "document": {
+    "document": "Documento",
+    "documents": "Documenti",
+    "sources": "Origini",
+    "uploading": "Caricamento dei documenti... {{processed}} di {{total}}",
+    "props": {
+      "createdAt": "Creato il",
+      "updatedAt": "Aggiornato il",
+      "deletedAt": "Eliminato il",
+      "title": "Titolo",
+      "content": "Contenuto",
+      "fileName": "Nome file",
+      "language": "Lingua",
+      "mimeType": "Tipo MIME",
+      "embeddingStatus": "Stato dell'indicizzazione",
+      "embeddingError": "Errore di indicizzazione",
+      "embeddingStatuses": {
+        "pending": "In attesa",
+        "queued": "In coda",
+        "processing": "In elaborazione",
+        "completed": "Pronto",
+        "failed": "Non riuscito"
+      },
+      "size": "Dimensione",
+      "storageRelativePath": "Percorso relativo di archiviazione",
+      "tags": "Tag"
+    },
+    "update": {
+      "title": "Modifica {{documentTitle}}",
+      "titleRequired": "Il titolo è obbligatorio"
+    },
+    "delete": {
+      "title": "Elimina {{documentTitle}}",
+      "description": "Vuoi davvero eliminare questo documento? Questa azione non può essere annullata."
+    },
+    "reprocess": {
+      "cta": "Rielabora"
+    },
+    "bulk": {
+      "selected_one": "{{count}} selezionato",
+      "selected_other": "{{count}} selezionati",
+      "selected_many": "{{count}} selezionati",
+      "delete": {
+        "title_one": "Elimina {{count}} documento",
+        "title_other": "Elimina {{count}} documenti",
+        "title_many": "Elimina {{count}} documenti",
+        "description": "Vuoi davvero eliminare i documenti selezionati? Questa azione non può essere annullata."
+      },
+      "addTag": {
+        "title_one": "Aggiungi tag a {{count}} documento",
+        "title_other": "Aggiungi tag a {{count}} documenti",
+        "title_many": "Aggiungi tag a {{count}} documenti",
+        "description": "Scegli i tag da applicare a ogni documento selezionato.",
+        "confirm": "Applica"
+      },
+      "removeTag": {
+        "cta": "Rimuovi tag",
+        "title_one": "Rimuovi tag da {{count}} documento",
+        "title_other": "Rimuovi tag da {{count}} documenti",
+        "title_many": "Rimuovi tag da {{count}} documenti",
+        "description": "Scegli i tag da rimuovere da ogni documento selezionato.",
+        "empty": "I documenti selezionati non hanno tag.",
+        "confirm": "Rimuovi"
+      }
+    },
+    "download": "Scarica",
+    "publicTag": {
+      "disclaimer": {
+        "title": "Rendere il documento accessibile pubblicamente?",
+        "description": "Questo documento sarà visibile e scaricabile da tutti gli utenti nella chat di questo progetto. Puoi rimuovere il tag in qualsiasi momento per revocare l'accesso.",
+        "confirm": "Rendi pubblico"
+      }
+    },
+    "list": {
+      "description": "Arricchisci le conoscenze e le capacità dei tuoi agenti aggiungendo documenti.",
+      "empty": {
+        "title": "Ancora nessun documento",
+        "description": "Carica il tuo primo documento per iniziare."
+      }
+    },
+    "filter": {
+      "all": "Tutti",
+      "uploaded": "Documenti"
+    },
+    "upload": {
+      "tagDialog": {
+        "title": "Tag per questo caricamento",
+        "description": "Facoltativo: scegli i tag da applicare a ogni file di questo caricamento.",
+        "fileCountSentence_one": "Stai per caricare un file.",
+        "fileCountSentence_other": "Stai per caricare {{count}} file.",
+        "fileCountSentence_many": "Stai per caricare {{count}} file.",
+        "nameLabel": "Nome (facoltativo)",
+        "confirm": "Carica"
+      }
+    },
+    "notifications": {
+      "uploadFailedCount_one": "Caricamento non riuscito per {{count}} documento",
+      "uploadFailedCount_other": "Caricamento non riuscito per {{count}} documenti",
+      "uploadFailedCount_many": "Caricamento non riuscito per {{count}} documenti",
+      "uploading": "Caricamento di {{fileName}}...",
+      "uploaded": "{{fileName}} caricato",
+      "uploadError": "Caricamento di {{fileName}} non riuscito",
+      "uploadErrorWithReason": "Errore durante il caricamento del file \"{{fileName}}\"",
+      "updated": "Documento aggiornato",
+      "updateError": "Aggiornamento del documento non riuscito",
+      "deleted": "Documento eliminato",
+      "deleteError": "Eliminazione del documento non riuscita",
+      "bulkDeleted_one": "{{count}} documento eliminato",
+      "bulkDeleted_other": "{{count}} documenti eliminati",
+      "bulkDeleted_many": "{{count}} documenti eliminati",
+      "bulkDeleteError": "Impossibile eliminare i documenti",
+      "tagsAdded_one": "Tag aggiunti a {{count}} documento",
+      "tagsAdded_other": "Tag aggiunti a {{count}} documenti",
+      "tagsAdded_many": "Tag aggiunti a {{count}} documenti",
+      "tagsAddError": "Impossibile aggiungere i tag ai documenti",
+      "tagsRemoved_one": "Tag rimossi da {{count}} documento",
+      "tagsRemoved_other": "Tag rimossi da {{count}} documenti",
+      "tagsRemoved_many": "Tag rimossi da {{count}} documenti",
+      "tagsRemoveError": "Impossibile rimuovere i tag dai documenti"
+    }
+  }
+}

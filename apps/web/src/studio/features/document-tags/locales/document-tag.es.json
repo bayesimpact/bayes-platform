@@ -1,0 +1,50 @@
+{
+  "documentTag": {
+    "documentTag": "Etiqueta",
+    "documentTags": "Etiquetas",
+    "props": {
+      "name": "Nombre",
+      "description": "Descripción",
+      "parentTag": "Etiqueta superior",
+      "tags": "Etiquetas",
+      "placeholders": {
+        "name": "Nombre de la etiqueta",
+        "description": "Descripción opcional"
+      },
+      "validation": {
+        "nameRequired": "El nombre es obligatorio",
+        "reservedName": "\"public-documents\" es un nombre de etiqueta reservado"
+      }
+    },
+    "sheet": {
+      "button": "Etiquetas",
+      "title": "Etiquetas",
+      "empty": "Aún no hay etiquetas"
+    },
+    "create": {
+      "button": "Crear etiqueta",
+      "title": "Crear etiqueta"
+    },
+    "edit": {
+      "title": "Editar {{tagName}}"
+    },
+    "delete": {
+      "title": "¿Eliminar {{tagName}}?",
+      "description": "Esta acción no se puede deshacer."
+    },
+    "publicDescription": "Cuando un documento con esta etiqueta aparece como fuente en una conversación de chat, el usuario puede descargarlo.",
+    "parentNone": "Ninguna",
+    "searchPlaceholder": "Buscar etiquetas...",
+    "noTagsFound": "No se encontraron etiquetas",
+    "untagged": "Sin etiqueta",
+    "addTag": "Añadir etiqueta",
+    "notifications": {
+      "deleted": "Etiqueta de documento eliminada correctamente",
+      "deleteError": "No se pudo eliminar la etiqueta de documento",
+      "created": "Etiqueta de documento creada correctamente",
+      "createError": "No se pudo crear la etiqueta de documento",
+      "updated": "Etiqueta de documento actualizada correctamente",
+      "updateError": "No se pudo actualizar la etiqueta de documento"
+    }
+  }
+}

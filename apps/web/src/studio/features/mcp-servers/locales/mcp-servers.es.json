@@ -1,0 +1,101 @@
+{
+  "mcpServers": {
+    "title": "Servidores MCP",
+    "description": "Gestione los servidores de herramientas externas conectados a este proyecto.",
+    "builtIn": "Integrado",
+    "empty": "Aún no hay servidores MCP configurados. Añada uno para dar a sus agentes acceso a herramientas externas.",
+    "actions": {
+      "newServer": "Nuevo servidor",
+      "testConnection": "Probar la conexión"
+    },
+    "create": {
+      "title": "Añadir servidor MCP",
+      "description": "Conecte un servidor MCP externo a este proyecto."
+    },
+    "delete": {
+      "title": "Eliminar servidor MCP",
+      "description": "¿Está seguro de que desea eliminar \"{{name}}\"? Los agentes que usan este servidor perderán el acceso a sus herramientas."
+    },
+    "fields": {
+      "name": "Nombre",
+      "namePlaceholder": "Introduzca el nombre del servidor",
+      "url": "URL",
+      "authMethod": "Autenticación",
+      "authMethodApiKey": "Clave de API",
+      "authMethodOauth": "OAuth",
+      "authMethodNone": "Ninguna",
+      "oauthHint": "Una vez creado el servidor, haga clic en Autorizar en su tarjeta.",
+      "apiKey": "Clave de API",
+      "apiKeyPlaceholder": "Introduzca la clave de API del servidor",
+      "apiKeyRequired": "Introduce la clave API del servidor.",
+      "apiKeyStoredPlaceholder": "••••••••",
+      "apiKeyStoredHint": "Déjalo vacío para conservar la clave actual.",
+      "oauthAuthorizationLost": "La autorización actual se eliminará. Volverás a autorizar desde la tarjeta del servidor.",
+      "headers": "Encabezados",
+      "headersHint": "Se envían en cada llamada a este servidor, además de su autenticación.",
+      "headerName": "Nombre del encabezado",
+      "headerNamePlaceholder": "X-Api-Version",
+      "headerValue": "Valor del encabezado",
+      "headerValuePlaceholder": "Valor",
+      "headerValueStoredPlaceholder": "Sin cambios",
+      "addHeader": "Añadir un encabezado"
+    },
+    "oauthCallback": {
+      "errorTitle": "Error de autorización",
+      "denied": "El proveedor denegó la autorización.",
+      "missingContext": "Este enlace de autorización no es válido o ha caducado. Vuelva a empezar desde la página de servidores MCP.",
+      "failed": "El servidor rechazó la autorización. Vuelva a empezar desde la página de servidores MCP."
+    },
+    "oauth": {
+      "authorize": "Autorizar",
+      "reauthorize": "Autorizar de nuevo",
+      "expiredHint": "La autorización ha caducado. Los agentes no pueden usar este servidor hasta que alguien lo autorice de nuevo."
+    },
+    "notifications": {
+      "created": "Servidor MCP creado",
+      "createError": "No se pudo crear el servidor MCP",
+      "deleted": "Servidor MCP eliminado",
+      "deleteError": "No se pudo eliminar el servidor MCP",
+      "enabled": "Servidor MCP activado",
+      "disabled": "Servidor MCP desactivado",
+      "enableError": "No se pudo activar el servidor MCP",
+      "disableError": "No se pudo desactivar el servidor MCP",
+      "authorizationError": "No se pudo autorizar el servidor MCP",
+      "updated": "Servidor MCP actualizado",
+      "updateError": "No se pudo actualizar el servidor MCP"
+    },
+    "update": {
+      "title": "Editar servidor MCP",
+      "description": "Los agentes que usan este servidor lo conservan."
+    },
+    "connection": {
+      "checking": "Comprobando…",
+      "connected": "Conectado",
+      "failed": "Conexión fallida",
+      "authorizationRequired": "Autorización necesaria",
+      "authorizationExpired": "Autorización caducada",
+      "unavailable": "Sin comprobar",
+      "errors": {
+        "unauthorized": "El servidor rechazó las credenciales (401). Comprueba la clave API o los encabezados.",
+        "forbidden": "El servidor denegó el acceso (403). Las credenciales son válidas, pero no pueden usar este punto de acceso.",
+        "notFound": "Ningún servidor MCP responde en esta URL ({{status}}). Comprueba la ruta.",
+        "httpError": "El servidor respondió con un error ({{status}}).",
+        "unreachable": "No se puede acceder al servidor. Comprueba la dirección y que el servidor esté en marcha.",
+        "timeout": "El servidor no respondió a tiempo.",
+        "notMcp": "Esta URL responde, pero no con el protocolo MCP.",
+        "urlNotAllowed": "Esta URL no está permitida. Usa una dirección https pública.",
+        "unknown": "La conexión ha fallado."
+      }
+    },
+    "tools": {
+      "title": "Herramientas de {{name}}",
+      "description": "Lo que este servidor ofrece a los agentes en los que está activado.",
+      "count_one": "{{count}} herramienta",
+      "count_other": "{{count}} herramientas",
+      "empty": "Este servidor responde, pero no expone ninguna herramienta.",
+      "view": "Ver las herramientas",
+      "showMore": "Ver más",
+      "showLess": "Ver menos"
+    }
+  }
+}

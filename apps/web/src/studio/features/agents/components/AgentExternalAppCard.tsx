@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { DeskRoutes } from "@/common/routes/desk-routes"
-import { EvalRoutes } from "@/eval/routes/helpers"
+import { EvalRoutes } from "@/common/routes/eval-routes"
 
 /**
  * Card of the agent page that opens another app in a new tab. It carries an external link in

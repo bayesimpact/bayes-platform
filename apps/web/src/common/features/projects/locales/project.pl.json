@@ -1,0 +1,47 @@
+{
+  "project": {
+    "settings": "Ustawienia",
+    "project": "Przestrzeń robocza",
+    "projects": "Przestrzenie robocze",
+    "props": {
+      "name": "Nazwa",
+      "createdAt": "Utworzono",
+      "updatedAt": "Zaktualizowano",
+      "placeholders": {
+        "name": "Wpisz nazwę przestrzeni roboczej"
+      },
+      "validation": {
+        "name": "Nazwa przestrzeni roboczej jest wymagana"
+      }
+    },
+    "list": {
+      "title": "Zarządzaj przestrzeniami roboczymi"
+    },
+    "create": {
+      "button": "Utwórz przestrzeń roboczą",
+      "title": "Nowa przestrzeń robocza",
+      "description": "Zarządzaj agentami konwersacyjnymi, agentami formularzy i innymi typami agentów.",
+      "dialog": {
+        "title": "Utwórz przestrzeń roboczą",
+        "description": "Utwórz nową przestrzeń roboczą dla organizacji {{organizationName}}"
+      }
+    },
+    "update": {
+      "title": "Edytuj przestrzeń roboczą",
+      "description": "Zaktualizuj informacje o przestrzeni roboczej"
+    },
+    "delete": {
+      "title": "Usuń przestrzeń roboczą",
+      "description": "Czy na pewno chcesz usunąć {{name}}? Tej operacji nie można cofnąć."
+    },
+    "notifications": {
+      "created": "Utworzono przestrzeń roboczą",
+      "createError": "Nie udało się utworzyć przestrzeni roboczej",
+      "updated": "Zaktualizowano przestrzeń roboczą",
+      "updateError": "Nie udało się zaktualizować przestrzeni roboczej",
+      "deleted": "Usunięto przestrzeń roboczą",
+      "deleteError": "Nie udało się usunąć przestrzeni roboczej",
+      "conversationCategoriesUpdateError": "Nie udało się zaktualizować kategorii rozmów"
+    }
+  }
+}

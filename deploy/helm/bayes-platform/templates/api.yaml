@@ -105,6 +105,10 @@ spec:
             - name: web-theme
               mountPath: {{ .Values.web.deskDistDir }}/theme
               readOnly: true
+            # So does the Evaluation app, served at /eval.
+            - name: web-theme
+              mountPath: {{ .Values.web.evalDistDir }}/theme
+              readOnly: true
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: false

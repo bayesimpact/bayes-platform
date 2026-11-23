@@ -1,0 +1,80 @@
+{
+  "resourceLibrary": {
+    "title": "Bibliotecas de recursos",
+    "description": "Agrupe los recursos que el asistente puede mostrar a los usuarios.",
+    "empty": "Aún no hay bibliotecas de recursos. Cree una para que los agentes de este proyecto puedan mostrar recursos.",
+    "resourceCount_one": "{{count}} recurso",
+    "resourceCount_other": "{{count}} recursos",
+    "resourceCount_many": "{{count}} recursos",
+    "manage": "Gestionar bibliotecas",
+    "actions": {
+      "newLibrary": "Nueva biblioteca"
+    },
+    "table": {
+      "title": "Título",
+      "description": "Descripción",
+      "link": "Enlace",
+      "actions": "Acciones"
+    },
+    "preview": {
+      "title": "Vista previa del recurso"
+    },
+    "form": {
+      "titleLabel": "Título",
+      "titlePlaceholder": "Primeros pasos",
+      "titleRequired": "El título es obligatorio",
+      "resources": "Recursos",
+      "noResources": "Aún no hay recursos."
+    },
+    "resourceForm": {
+      "createTitle": "Nuevo recurso",
+      "editTitle": "Editar recurso",
+      "titleLabel": "Título",
+      "titlePlaceholder": "Título del recurso",
+      "descriptionLabel": "Descripción",
+      "descriptionPlaceholder": "Se muestra a los usuarios en la tarjeta del recurso",
+      "matchingHintsLabel": "Pistas de coincidencia (no visibles para los usuarios)",
+      "matchingHintsPlaceholder": "Palabras clave, sinónimos o indicaciones del tipo \"usar cuando…\" que el asistente utiliza para relacionar las solicitudes de los usuarios",
+      "charactersUsed": "{{count}}/{{max}} caracteres",
+      "required": "Este campo es obligatorio"
+    },
+    "link": {
+      "url": "URL",
+      "file": "Archivo subido",
+      "urlPlaceholder": "https://example.com/resource",
+      "urlInvalid": "Introduzca una URL https:// válida"
+    },
+    "create": {
+      "title": "Nueva biblioteca de recursos"
+    },
+    "delete": {
+      "title": "Eliminar biblioteca de recursos",
+      "description": "¿Eliminar \"{{title}}\"? Los agentes que la usan perderán el acceso a sus recursos."
+    },
+    "removeResource": {
+      "title": "Quitar recurso",
+      "description": "¿Quitar \"{{title}}\" de esta biblioteca?"
+    },
+    "agentTab": {
+      "label": "Bibliotecas de recursos",
+      "description": "El asistente puede mostrar recursos de las bibliotecas seleccionadas cuando la solicitud de un usuario coincide con el título o la descripción de un recurso."
+    },
+    "picker": {
+      "addLibrary": "Añadir biblioteca",
+      "searchPlaceholder": "Buscar bibliotecas...",
+      "noResults": "No se encontraron bibliotecas"
+    },
+    "notifications": {
+      "created": "Biblioteca de recursos creada",
+      "createError": "No se pudo crear la biblioteca de recursos",
+      "updated": "Biblioteca de recursos actualizada",
+      "updateError": "No se pudo actualizar la biblioteca de recursos",
+      "deleted": "Biblioteca de recursos eliminada",
+      "deleteError": "No se pudo eliminar la biblioteca de recursos",
+      "resourceSaved": "Recurso guardado",
+      "resourceSaveError": "No se pudo guardar el recurso",
+      "resourceDeleted": "Recurso eliminado",
+      "resourceDeleteError": "No se pudo eliminar el recurso"
+    }
+  }
+}

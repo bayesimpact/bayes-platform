@@ -7,6 +7,7 @@ import { isReservedPath } from "@/config/api-prefix"
 import {
   buildWebAppRuntimeConfig,
   getDeskAppSettings,
+  getEvalAppSettings,
   getWebAppSettings,
   type WebAppSettings,
 } from "./web-app-config"
@@ -16,9 +17,10 @@ const logger = new Logger("WebApp")
 
 /**
  * Serves the built web front at `/` from the API process when WEB_APP_DIST_DIR
- * is set, and the Desk at `/app` when DESK_APP_DIST_DIR is (the `app-runtime`
- * image). Registers nothing otherwise, so the `api-runtime` image and local
- * development are unchanged.
+ * is set, the Desk at `/app` when DESK_APP_DIST_DIR is and the Evaluation app
+ * at `/eval` when EVAL_APP_DIST_DIR is (the `app-runtime` image). Registers
+ * nothing otherwise, so the `api-runtime` image and local development are
+ * unchanged.
  *
  * For each app, two Express middlewares, mounted before the Nest router:
  * - the static files of the build: hashed assets are immutable, the rest
@@ -33,25 +35,44 @@ export function registerWebApp(
   app: NestExpressApplication,
   settings: WebAppSettings | null = getWebAppSettings(),
   deskSettings: WebAppSettings | null = getDeskAppSettings(),
+  evalSettings: WebAppSettings | null = getEvalAppSettings(),
 ): void {
-  // The Desk first: its paths under /app would otherwise reach the web front's fallback.
-  if (deskSettings) registerDeskApp(app, deskSettings)
+  // The Desk and the Evaluation app first: their paths under /app and /eval would otherwise
+  // reach the web front's fallback.
+  if (deskSettings) registerAppAtPath(app, deskSettings, DESK_APP)
+  if (evalSettings) registerAppAtPath(app, evalSettings, EVAL_APP)
   if (!settings) return
   logger.log(`Serving the web front from ${settings.distDir} at /`)
   app.useStaticAssets(settings.distDir, staticOptions(settings))
   app.use(buildSpaFallback(settings))
 }
 
+/** An app served under a path of its own, ahead of the web front. */
+type AppAtPath = {
+  /** How the logs name it. */
+  name: string
+  /** Where it is served, as its Vite base without the last slash. */
+  path: string
+}
+
+const DESK_APP: AppAtPath = { name: "the Desk", path: "/app" }
+const EVAL_APP: AppAtPath = { name: "the Evaluation app", path: "/eval" }
+
 /**
- * Serves the Desk at `/app`: its static files, then its entry page with the
- * runtime configuration for every navigation under `/app/`. `/app` redirects to
- * `/app/`, the Desk's base. A file missing under `/app/assets/`, such as a chunk
- * of a previous release, is a 404: the Desk then offers to reload, where the
- * entry page would break the import with HTML.
+ * Serves an app at its path, the Desk at `/app` or the Evaluation app at `/eval`:
+ * its static files, then its entry page with the runtime configuration for every
+ * navigation under that path. `/app` redirects to `/app/`, the app's base. A file
+ * missing under `/app/assets/`, such as a chunk of a previous release, is a 404:
+ * the app then offers to reload, where the entry page would break the import
+ * with HTML.
  */
-function registerDeskApp(app: NestExpressApplication, settings: WebAppSettings): void {
-  logger.log(`Serving the Desk from ${settings.distDir} at ${DESK_PATH}/`)
-  app.useStaticAssets(settings.distDir, { ...staticOptions(settings), prefix: DESK_PATH })
+function registerAppAtPath(
+  app: NestExpressApplication,
+  settings: WebAppSettings,
+  { name, path: appPath }: AppAtPath,
+): void {
+  logger.log(`Serving ${name} from ${settings.distDir} at ${appPath}/`)
+  app.useStaticAssets(settings.distDir, { ...staticOptions(settings), prefix: appPath })
   const html = renderIndexHtml(
     readFileSync(settings.indexHtmlPath, "utf8"),
     buildWebAppRuntimeConfig(),
@@ -59,26 +80,23 @@ function registerDeskApp(app: NestExpressApplication, settings: WebAppSettings):
 
   app.use((request: Request, response: Response, next: NextFunction): void => {
     const { path } = request
-    if (path !== DESK_PATH && !path.startsWith(`${DESK_PATH}/`)) {
+    if (path !== appPath && !path.startsWith(`${appPath}/`)) {
       next()
       return
     }
     const isNavigation = request.method === "GET" || request.method === "HEAD"
-    if (path === DESK_PATH && isNavigation) {
-      const { search } = new URL(request.originalUrl, "http://desk.invalid")
-      response.redirect(301, `${DESK_PATH}/${search}`)
+    if (path === appPath && isNavigation) {
+      const { search } = new URL(request.originalUrl, "http://app.invalid")
+      response.redirect(301, `${appPath}/${search}`)
       return
     }
-    if (!isNavigation || path.startsWith(`${DESK_PATH}/assets/`) || !request.accepts("html")) {
+    if (!isNavigation || path.startsWith(`${appPath}/assets/`) || !request.accepts("html")) {
       response.status(404).end()
       return
     }
     response.status(200).set(ENTRY_PAGE_HEADERS).send(html)
   })
 }
-
-/** Where the Desk is served, as its Vite base without the last slash. */
-const DESK_PATH = "/app"
 
 /** The headers of an entry page: never cached, so a release reaches the next load. */
 const ENTRY_PAGE_HEADERS = {
@@ -91,11 +109,11 @@ const ENTRY_PAGE_HEADERS = {
 /**
  * The static files of a build: hashed assets are immutable, the rest (theme
  * files, manifest) is short-lived so a tenant can swap them. `version.json`,
- * the build an open Desk polls to learn of a new release, is never kept by a
- * cache on the way: each read revalidates it, with its ETag. The entry page is
- * never served from here (`index: false`).
+ * the build an open Desk or Evaluation app polls to learn of a new release, is
+ * never kept by a cache on the way: each read revalidates it, with its ETag. The
+ * entry page is never served from here (`index: false`).
  */
-/** The file in which a build of the Desk publishes its id (apps/desk/vite.config.ts). */
+/** The file in which a build of the Desk or of the Evaluation app publishes its id (their vite.config.ts). */
 const BUILD_MANIFEST_PATH = "version.json"
 
 function staticOptions(settings: WebAppSettings) {

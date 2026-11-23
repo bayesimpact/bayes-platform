@@ -31,7 +31,8 @@ const {
   ...generalPages
 } = composeStories(generalStories)
 const { ReplyFails, PassageSelected, ...conversationPages } = composeStories(conversationStories)
-const { DocumentDetails, ...extractionPages } = composeStories(extractionStories)
+const { DocumentDetails, CsvRunStopConfirmation, ...extractionPages } =
+  composeStories(extractionStories)
 /** The stories of a page, from the three folders of Storybook. */
 const pageStories = {
   ...generalPages,
@@ -167,6 +168,17 @@ describe("the stories of the Desk", () => {
 
     const panel = await screen.findByRole("complementary", { name: "quarterly-report.pdf" })
     expect(within(panel).getByRole("heading", { name: "Quarterly report" })).toBeInTheDocument()
+  })
+
+  it("CsvRunStopConfirmation asks before it stops a run that still goes on", async () => {
+    await CsvRunStopConfirmation.load()
+    const { container } = render(<CsvRunStopConfirmation />)
+    await CsvRunStopConfirmation.play?.({ canvasElement: container })
+
+    const dialog = await screen.findByRole("alertdialog", { name: "Stop this extraction?" })
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "Stop" })).toBeInTheDocument()
+    expect(screen.getByText("9 of 24 rows")).toBeInTheDocument()
   })
 
   it("AgentTheyOnlyRead opens the switcher without the agent the person only reads", async () => {

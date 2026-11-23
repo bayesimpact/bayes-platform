@@ -1,0 +1,33 @@
+{
+  "analytics": {
+    "analytics": "Analityka",
+    "list": {
+      "title": "Analityka",
+      "description": "Analityka projektu: rozmowy, średnia liczba pytań na sesję i więcej."
+    },
+    "agentFilter": {
+      "placeholder": "Filtruj według agenta",
+      "allAgents": "Wszyscy agenci"
+    },
+    "dateRangePlaceholder": "Zakres dat",
+    "conversationsChart": {
+      "title": "Rozmowy dziennie",
+      "description": "Liczba sesji konwersacyjnych rozpoczętych każdego dnia",
+      "metricLabel": "Łącznie rozmów"
+    },
+    "avgQuestionsChart": {
+      "title": "Śr. liczba pytań użytkownika na sesję",
+      "description": "Średnia liczba wiadomości użytkownika na sesję w danym dniu",
+      "metricLabel": "Dziennie"
+    },
+    "emptySessions": {
+      "note_one": "Pominięto {{emptyCount}} sesję otwartą bez pytania ({{share}} z {{sessionCount}} sesji).",
+      "note_few": "Pominięto {{emptyCount}} sesje otwarte bez pytania ({{share}} z {{sessionCount}} sesji).",
+      "note_many": "Pominięto {{emptyCount}} sesji otwartych bez pytania ({{share}} z {{sessionCount}} sesji).",
+      "warning": {
+        "title": "Większość sesji nie zawiera pytania",
+        "description": "{{emptyCount}} z {{sessionCount}} sesji ({{share}}) otwarto bez wiadomości użytkownika. Nie są liczone jako rozmowy. Zdarza się to często, gdy integracja tworzy sesję przy wczytaniu strony, a nie przy pierwszej wiadomości."
+      }
+    }
+  }
+}

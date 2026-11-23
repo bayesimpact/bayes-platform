@@ -1,7 +1,13 @@
+import { DeskAgentSessionsRoutes, DeskCsvExtractionsRoutes } from "@caseai-connect/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { extractionUrlsOf } from "@/test/desk-urls"
-import { buildExtractionAgentWorld } from "@/test/factories/desk-world.factory"
+import {
+  buildCsvRunInProgressWorld,
+  buildExtractionAgentWorld,
+  type DeskWorld,
+} from "@/test/factories/desk-world.factory"
+import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { desk } from "@/test/msw/story-api"
 import { deskMeta } from "./desk-meta"
 
@@ -13,6 +19,24 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
+
+/**
+ * Answers the CSV runs of a world as they are: the mocked API does a few more rows at each poll,
+ * and would end a run within seconds.
+ */
+const csvRunsAsTheyAreHandlers = (world: DeskWorld) => [
+  mockRoute(
+    DeskAgentSessionsRoutes.getCsvExtractionRuns,
+    ({ params }) => world.csvExtractionRuns[params.agentId] ?? [],
+  ),
+  mockRoute(
+    DeskCsvExtractionsRoutes.getOne,
+    ({ params }) =>
+      (world.csvExtractionRuns[params.agentId] ?? []).find(
+        (run) => run.id === params.agentCsvExtractionRunId,
+      ) ?? apiError(404),
+  ),
+]
 
 export const NewExtraction: Story = {
   parameters: desk({
@@ -73,4 +97,25 @@ export const CsvRun: Story = {
     world: buildExtractionAgentWorld,
     url: (world) => extractionUrlsOf(world).csvRunUrl("articles.csv"),
   }),
+}
+
+/**
+ * The run of a CSV file still goes on, and the person clicked "Stop": the Desk asks before it
+ * stops the run. The story's run stays where it is until the person confirms.
+ */
+export const CsvRunStopConfirmation: Story = {
+  parameters: desk({
+    world: buildCsvRunInProgressWorld,
+    handlers: csvRunsAsTheyAreHandlers,
+    url: (world) => extractionUrlsOf(world).csvRunUrl("articles.csv"),
+  }),
+  // The button's name in either language of the toolbar.
+  play: async ({ canvasElement }) => {
+    const stop = await within(canvasElement).findByRole(
+      "button",
+      { name: /^(Stop|Arrêter)$/ },
+      { timeout: 5000 },
+    )
+    await userEvent.click(stop)
+  },
 }

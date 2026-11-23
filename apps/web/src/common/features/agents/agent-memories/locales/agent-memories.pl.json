@@ -1,0 +1,27 @@
+{
+  "agentMemories": {
+    "card": {
+      "saved": "Zapisano w pamięci",
+      "proposalTitle": "Zapamiętać to na przyszłość?",
+      "proposalDescription": "Agent proponuje zachować ten fakt na potrzeby kolejnych rozmów.",
+      "save": "Tak, zapamiętaj",
+      "reject": "Nie, nie zapisuj",
+      "rewordLabel": "Lub zmień sformułowanie",
+      "rewordPlaceholder": "Zapisz fakt tak, jak ma zostać zapamiętany",
+      "submit": "Potwierdź",
+      "skip": "Później",
+      "answeredSaved": "Zapamiętano",
+      "answeredRejected": "Nie zapisano"
+    },
+    "panel": {
+      "button": "Pamięć",
+      "title": "Co pamięta agent",
+      "description": "Fakty o Tobie, które agent przechowuje między rozmowami. Widzisz je tylko Ty.",
+      "playgroundDescription": "Pamięć w Playground jest oddzielna od tego, co agent pamięta w rozmowach produkcyjnych.",
+      "empty": "Agent nie pamięta jeszcze niczego o Tobie.",
+      "pending": "Czeka na Twoją odpowiedź",
+      "clearAll": "Zapomnij o wszystkim",
+      "clearAllConfirm": "Zapomnieć o wszystkim, co agent o Tobie pamięta?"
+    }
+  }
+}

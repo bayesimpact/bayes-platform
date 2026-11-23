@@ -13,7 +13,7 @@ import type { TFunction } from "i18next"
 import { AlertCircleIcon } from "lucide-react"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { EvaluationConversationDataset } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
+import type { EvaluationConversationDataset } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
 import type {
   TestCase,
   TestCaseDatasetTarget,
