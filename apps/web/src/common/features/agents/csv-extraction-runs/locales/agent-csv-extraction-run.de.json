@@ -13,6 +13,12 @@
       "back": "Zurück",
       "next": "Weiter"
     },
+    "scope": {
+      "title": "Auszuführende Einträge",
+      "all": "Gesamten Datensatz ausführen ({{count}} Einträge)",
+      "allUnknown": "Gesamten Datensatz ausführen",
+      "limited": "Eine Teilmenge der Einträge ausführen"
+    },
     "columns": {
       "title": "Spaltenrollen konfigurieren",
       "description": "Wählen Sie die Rolle jeder Spalte Ihrer CSV-Datei aus.",
