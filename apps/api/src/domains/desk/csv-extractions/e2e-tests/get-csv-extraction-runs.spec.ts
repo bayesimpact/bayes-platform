@@ -102,26 +102,41 @@ describe("Desk CSV extractions - getCsvExtractionRuns", () => {
 
   it("returns only the requesting user's runs", async () => {
     const context = await createContext()
-    const myRun = await createCsvExtractionRun({ repositories, context })
+    const myRun = await createCsvExtractionRun({ repositories, context, type: "live" })
     const colleague = await repositories.userRepository.save(userFactory.build())
-    await createCsvExtractionRun({ repositories, context, user: colleague })
+    await createCsvExtractionRun({ repositories, context, type: "live", user: colleague })
 
     expect(await subject()).toEqual([myRun.id])
   })
 
   it("still lists runs created before ownership was tracked", async () => {
     const context = await createContext()
-    const legacyRun = await createCsvExtractionRun({ repositories, context, user: null })
+    const legacyRun = await createCsvExtractionRun({
+      repositories,
+      context,
+      type: "live",
+      user: null,
+    })
 
     expect(await subject()).toEqual([legacyRun.id])
   })
 
   it("returns only the runs of the requested agent, newest first", async () => {
     const context = await createContext()
-    const older = await createCsvExtractionRun({ repositories, context, status: "completed" })
+    const older = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "completed",
+      type: "live",
+    })
     older.createdAt = new Date("2024-01-01T00:00:00Z")
     await repositories.agentCsvExtractionRunRepository.save(older)
-    const newer = await createCsvExtractionRun({ repositories, context, status: "pending" })
+    const newer = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "pending",
+      type: "live",
+    })
     newer.createdAt = new Date("2024-06-01T00:00:00Z")
     await repositories.agentCsvExtractionRunRepository.save(newer)
 
@@ -130,6 +145,7 @@ describe("Desk CSV extractions - getCsvExtractionRuns", () => {
     await createCsvExtractionRun({
       repositories,
       context: { ...context, ...otherAgent },
+      type: "live",
     })
 
     expect(await subject()).toEqual([newer.id, older.id])

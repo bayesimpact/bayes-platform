@@ -161,7 +161,13 @@ describe("Desk CSV extractions - Auth", () => {
   ) => {
     const user =
       creator === "colleague" ? await repositories.userRepository.save(userFactory.build()) : null
-    const run = await createCsvExtractionRun({ repositories, context, status: "running", user })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "running",
+      type: "live",
+      user,
+    })
     await attachCsvExtractionRunExport({ repositories, context, run })
     agentCsvExtractionRunId = run.id
   }
