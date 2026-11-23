@@ -55,7 +55,7 @@ describe("ExtractionAgentSessions - listMyDocuments", () => {
     await app.close()
   })
 
-  const createContext = async (role: ProjectRoleKey = "project_member") => {
+  const createContext = async (role: ProjectRoleKey = "project_owner") => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
       projectMembership: { roleKeys: [role] },
       agent: { type: "extraction" },
@@ -70,7 +70,7 @@ describe("ExtractionAgentSessions - listMyDocuments", () => {
 
   const subject = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes.live.listMyDocuments,
+      route: ExtractionAgentSessionsRoutes.playground.listMyDocuments,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
     })
