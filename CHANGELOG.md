@@ -15,6 +15,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- CSV extraction: a CSV file with no data row or no header line no longer shows "Page not found".
+
 ### Security
 
 ## [26.11.3] - 2026-11-23
