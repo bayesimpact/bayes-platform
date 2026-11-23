@@ -9,15 +9,17 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Studio languages: the studio is now available in German, Italian, Spanish and Polish, chosen from Edit profile.
 - Agent version in production: managers choose which saved version the app, the embed and the public API run.
 - Agent instructions: an advanced mode shows the instructions as a diff with the last saved version and edits them there.
 - Desk: a hidden sidebar shows over the page while the pointer is on the button that shows it.
-- Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon, which runs outside the EU.
-- (beta) Agent models: agents can run on Claude models in the EU and on OpenAI models outside the EU.
+- Agent models: agents can run on gemini-4-argon, gemini-4-hydrogen and gemini-4-carbon.
+- (beta) Agent models: agents can run on Anthropic and OpenAI models.
 - (beta) Evaluation app: a new version of the app runs and compares the evaluations of conversation and extraction agents.
 
 ### Changed
 
+- (beta) Embedded chat: once the visitor has written something, the new conversation button asks before clearing the conversation, under the header (Cancel, or Clear and start over).
 - Agent editor: settings save to the draft automatically, and the editor shows the save status or why a save failed.
 - Agent editor: conversation and extraction agents open in the same full-page editor, with its own menu.
 - Agent version history: the full-screen history lists the changed fields, saves the draft as a version and restores a version.

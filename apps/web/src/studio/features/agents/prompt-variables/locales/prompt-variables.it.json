@@ -1,0 +1,15 @@
+{
+  "promptVariables": {
+    "title": "Variabili del prompt",
+    "description": "Valori delle variabili che l'agente dichiara nelle sue istruzioni. Ciascuna viene sostituita nel prompt prima di una chiamata al modello.",
+    "empty": "Questo agente non dichiara alcuna variabile nelle sue istruzioni.",
+    "required": "Obbligatoria",
+    "default": "Predefinito: {{value}}",
+    "clear": "Cancella {{name}}",
+    "valuePlaceholder": "Inserisci un valore",
+    "dialog": {
+      "description": "Imposta i valori da usare per questa chat. Lascia un campo vuoto per usare il valore predefinito dell'agente.",
+      "start": "Avvia chat"
+    }
+  }
+}

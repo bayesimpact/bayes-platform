@@ -1,0 +1,36 @@
+{
+  "agentMembership": {
+    "members": "Membri",
+    "props": {
+      "validation": {
+        "emailDuplicate": "Email già aggiunta",
+        "emailInvalid": "Indirizzo email non valido"
+      }
+    },
+    "create": {
+      "title": "Invita utenti",
+      "description": "Inserisci gli indirizzi email delle persone che devono usare questo agente. Accetteranno l'invito dopo aver effettuato l'accesso.",
+      "label": "Indirizzo email",
+      "placeholder": "Inserisci l'indirizzo email"
+    },
+    "pendingInvitations": {
+      "title": "Inviti in attesa",
+      "description": "Persone invitate a questo agente che non hanno ancora risposto."
+    },
+    "list": {
+      "title": "Membri di {{agentName}}",
+      "description": "Tutte le persone che possono usare questo agente e i ruoli che vi ricoprono."
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Inviti inviati per email",
+      "peopleInvited": "Persone invitate",
+      "inviteError": "Impossibile invitare le persone",
+      "rolesAdded_one": "Ruoli aggiunti a {{count}} membro",
+      "rolesAdded_other": "Ruoli aggiunti a {{count}} membri",
+      "rolesAdded_many": "Ruoli aggiunti a {{count}} membri",
+      "membersRemoved_one": "{{count}} membro rimosso",
+      "membersRemoved_other": "{{count}} membri rimossi",
+      "membersRemoved_many": "{{count}} membri rimossi"
+    }
+  }
+}

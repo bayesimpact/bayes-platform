@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { expect, userEvent, within } from "storybook/test"
 import {
   buildErrorMessage,
   buildStreamingMessage,
@@ -170,6 +171,43 @@ export const FailedMcpAppCard: Story = {
   name: "MCP App card failed to load",
   args: {
     messages: failedMcpAppCardConversation,
+  },
+}
+
+export const NewConversationConfirm: Story = {
+  name: "New conversation — confirm after the visitor wrote",
+  args: {
+    messages: shortConversation,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole("button", { name: "New conversation" }))
+    await expect(canvas.getByRole("alertdialog")).toBeInTheDocument()
+  },
+}
+
+export const NewConversationConfirmFrench: Story = {
+  name: "New conversation — confirm, French",
+  args: {
+    locale: "fr",
+    messages: shortConversation,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole("button", { name: "Nouvelle conversation" }))
+    await expect(canvas.getByRole("alertdialog")).toBeInTheDocument()
+  },
+}
+
+export const NewConversationNoConfirm: Story = {
+  name: "New conversation — no confirm before the visitor wrote",
+  args: {
+    messages: emptyConversation,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole("button", { name: "New conversation" }))
+    await expect(canvas.queryByRole("alertdialog")).not.toBeInTheDocument()
   },
 }
 

@@ -1,0 +1,68 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Inviti in attesa",
+      "description": "Queste persone otterranno l'accesso quando accetteranno l'invito nell'app.",
+      "signInHint": "Invia a ogni persona il suo link di invito. Deve accedere o registrarsi con l'indirizzo email esatto indicato nell'invito, altrimenti non lo vedrà."
+    },
+    "pendingItem": {
+      "description": "Invito inviato {{invitedAt}}",
+      "revoke": "Elimina invito",
+      "copyLink": "Copia link di invito",
+      "linkCopied": "Link di invito copiato",
+      "removeAgent": "Rimuovi questo agente dall'invito"
+    },
+    "deleteDialog": {
+      "title": "Eliminare l'invito?",
+      "description": "{{email}} non potrà più accettare questo invito."
+    },
+    "inviteDialog": {
+      "title": "Invita persone in {{workspaceName}}",
+      "description": "Scegli cosa ricevono. Ogni persona riceve un solo invito e lo accetta una volta.",
+      "emailsLabel": "Email",
+      "emailsPlaceholder": "nome@example.org, altro@example.org",
+      "emailsRequired": "Aggiungi almeno un'email.",
+      "invalidEmail": "\"{{email}}\" non è un'email valida.",
+      "removeEmail": "Rimuovi {{email}}",
+      "workspaceRoleLabel": "Ruolo nello spazio di lavoro",
+      "roleDescriptions": {
+        "project_admin": "Gestisce lo spazio di lavoro, i suoi membri e tutti gli agenti.",
+        "project_member": "Usa solo gli agenti scelti per lui."
+      },
+      "agentsLabel": "Accesso agli agenti",
+      "noAgents": "Questo spazio di lavoro non ha ancora agenti.",
+      "noMatch": "Nessun risultato.",
+      "inviteCount_one": "Invita {{count}} persona",
+      "inviteCount_other": "Invita {{count}} persone"
+    },
+    "confirmation": {
+      "title": "Conferma l'invito in {{workspaceName}}",
+      "invitedGet_one": "Questa persona riceverà un invito. Una volta accettato, avrà:",
+      "invitedGet_other": "Queste {{count}} persone riceveranno un invito. Una volta accettato, avranno:",
+      "role": "Ruolo",
+      "workspaceRole": "Ruolo nello spazio di lavoro",
+      "agents": "Accesso agli agenti",
+      "everyAgent": "Tutti gli agenti",
+      "noAgent": "Nessun agente",
+      "addedTo": "Aggiunto a {{agents}}",
+      "directTitle_one": "{{count}} persona ottiene subito l'accesso",
+      "directTitle_other": "{{count}} persone ottengono subito l'accesso",
+      "directHint": "Già nello spazio di lavoro, quindi non c'è nessun invito da accettare.",
+      "unchangedTitle_one": "{{count}} persona mantiene il suo accesso invariato",
+      "unchangedTitle_other": "{{count}} persone mantengono il loro accesso invariato",
+      "unchangedHint": "L'invito non cambia nulla per loro.",
+      "promoteHint": "{{access}}. Promuovilo dalla sua pagina di membro.",
+      "updatedTitle_one": "{{count}} invito in attesa dà più accesso",
+      "updatedTitle_other": "{{count}} inviti in attesa danno più accesso",
+      "updatedHint": "Già invitati: il loro invito viene completato e inviato di nuovo.",
+      "alsoGives": "Dà anche {{agents}}",
+      "alreadyInvited": "Già invitato: {{access}}",
+      "accessOnAgents": "{{role}}, su {{agents}}",
+      "accessOnNoAgent": "{{role}}, su nessun agente"
+    },
+    "removeAgentDialog": {
+      "title": "Rimuovere questo agente dall'invito?",
+      "description": "{{email}} non avrà più {{agentName}}. Il resto dell'invito resta invariato."
+    }
+  }
+}

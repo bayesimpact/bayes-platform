@@ -1,0 +1,40 @@
+{
+  "projectAdmin": {
+    "navLabel": "Amministrazione",
+    "title": "Amministrazione",
+    "description": "Gestisci le impostazioni del tuo spazio di lavoro.",
+    "tabs": {
+      "general": "Generale",
+      "agentSessionCategories": "Categorie di conversazione",
+      "retention": "Conservazione dei dati"
+    },
+    "general": {
+      "title": "Generale",
+      "description": "Aggiorna le impostazioni generali di questo spazio di lavoro.",
+      "workspaceName": "Nome dello spazio di lavoro"
+    },
+    "agentSessionCategories": {
+      "title": "Categorie di conversazione",
+      "description": "Gestisci le categorie usate per classificare automaticamente le conversazioni di questo spazio di lavoro.",
+      "addCategory": "Aggiungi categoria",
+      "addDialogTitle": "Aggiungi categoria di conversazione",
+      "categoryNamePlaceholder": "Nome della categoria",
+      "empty": "Ancora nessuna categoria.",
+      "removeCategory": "Rimuovi {{name}}",
+      "assignToAllConversationalAgents": "Attiva anche per tutti gli agenti conversazionali esistenti",
+      "removeDialogTitle": "Rimuovere la categoria di conversazione?",
+      "removeDialogDescription": "\"{{name}}\" verrà rimossa dall'elenco delle categorie dello spazio di lavoro."
+    },
+    "retention": {
+      "title": "Conservazione dei dati",
+      "retentionLabel": "Conservazione delle conversazioni (giorni)",
+      "retentionHelp": "Il contenuto delle conversazioni più vecchie di questo periodo viene cancellato definitivamente. Le statistiche di utilizzo restano. Tra 1 e 3650 giorni.",
+      "logTitle": "Registro delle eliminazioni",
+      "nextRun": "Prossima eliminazione: {{date}}",
+      "logEmpty": "Nessuna eliminazione eseguita finora.",
+      "columnDate": "Data",
+      "columnPurged": "Conversazioni cancellate",
+      "columnStatus": "Stato"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "documentSource": {
+    "title": "Extern",
+    "description": "Synchronisieren Sie Dokumente aus externen Apps in die Wissensdatenbank Ihrer Agenten.",
+    "nav": "Extern",
+    "columns": {
+      "source": "Quelle",
+      "app": "App",
+      "tags": "Tags",
+      "docs": "Dokumente",
+      "lastSync": "Letzte Synchronisierung",
+      "status": "Status"
+    },
+    "delete": {
+      "title": "{{name}} löschen?",
+      "description": "Dadurch werden die Quelle und die zugehörigen Dokumente gelöscht."
+    },
+    "empty": {
+      "title": "Noch keine externe Quelle",
+      "description": "Quellen erscheinen hier, sobald eine App Dokumente mit diesem Arbeitsbereich synchronisiert."
+    },
+    "legacyWebCrawl": {
+      "badge": "Früherer Web-Crawler",
+      "title": "Einige Quellen stammen vom früheren Web-Crawler",
+      "description": "Ihre Seiten bleiben für Ihre Agenten verfügbar, werden aber nicht mehr aktualisiert. Kontaktieren Sie uns, um eine dieser Quellen zu ändern oder ihre Website erneut zu crawlen."
+    },
+    "notifications": {
+      "tagsUpdateError": "Die Tags der Quelle konnten nicht aktualisiert werden"
+    }
+  }
+}

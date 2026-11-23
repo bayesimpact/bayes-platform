@@ -1,0 +1,79 @@
+{
+  "resourceLibrary": {
+    "title": "Ressourcenbibliotheken",
+    "description": "Ressourcen gruppieren, die der Assistent Benutzern anbieten kann.",
+    "empty": "Noch keine Ressourcenbibliotheken. Erstellen Sie eine, damit die Agenten dieses Projekts Ressourcen anbieten können.",
+    "resourceCount_one": "{{count}} Ressource",
+    "resourceCount_other": "{{count}} Ressourcen",
+    "manage": "Bibliotheken verwalten",
+    "actions": {
+      "newLibrary": "Neue Bibliothek"
+    },
+    "table": {
+      "title": "Titel",
+      "description": "Beschreibung",
+      "link": "Link",
+      "actions": "Aktionen"
+    },
+    "preview": {
+      "title": "Ressourcenvorschau"
+    },
+    "form": {
+      "titleLabel": "Titel",
+      "titlePlaceholder": "Erste Schritte",
+      "titleRequired": "Ein Titel ist erforderlich",
+      "resources": "Ressourcen",
+      "noResources": "Noch keine Ressourcen."
+    },
+    "resourceForm": {
+      "createTitle": "Neue Ressource",
+      "editTitle": "Ressource bearbeiten",
+      "titleLabel": "Titel",
+      "titlePlaceholder": "Titel der Ressource",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Wird Benutzern auf der Ressourcenkarte angezeigt",
+      "matchingHintsLabel": "Zuordnungshinweise (für Benutzer nicht sichtbar)",
+      "matchingHintsPlaceholder": "Schlüsselwörter, Synonyme oder „verwenden, wenn…“-Hinweise, mit denen der Assistent Benutzeranfragen zuordnet",
+      "charactersUsed": "{{count}}/{{max}} Zeichen",
+      "required": "Dieses Feld ist erforderlich"
+    },
+    "link": {
+      "url": "URL",
+      "file": "Hochgeladene Datei",
+      "urlPlaceholder": "https://example.com/resource",
+      "urlInvalid": "Geben Sie eine gültige https://-URL ein"
+    },
+    "create": {
+      "title": "Neue Ressourcenbibliothek"
+    },
+    "delete": {
+      "title": "Ressourcenbibliothek löschen",
+      "description": "„{{title}}“ löschen? Agenten, die sie nutzen, verlieren den Zugriff auf ihre Ressourcen."
+    },
+    "removeResource": {
+      "title": "Ressource entfernen",
+      "description": "„{{title}}“ aus dieser Bibliothek entfernen?"
+    },
+    "agentTab": {
+      "label": "Ressourcenbibliotheken",
+      "description": "Der Assistent kann Ressourcen aus den ausgewählten Bibliotheken anbieten, wenn die Anfrage eines Benutzers zum Titel oder zur Beschreibung einer Ressource passt."
+    },
+    "picker": {
+      "addLibrary": "Bibliothek hinzufügen",
+      "searchPlaceholder": "Bibliotheken durchsuchen...",
+      "noResults": "Keine Bibliotheken gefunden"
+    },
+    "notifications": {
+      "created": "Ressourcenbibliothek erstellt",
+      "createError": "Ressourcenbibliothek konnte nicht erstellt werden",
+      "updated": "Ressourcenbibliothek aktualisiert",
+      "updateError": "Ressourcenbibliothek konnte nicht aktualisiert werden",
+      "deleted": "Ressourcenbibliothek gelöscht",
+      "deleteError": "Ressourcenbibliothek konnte nicht gelöscht werden",
+      "resourceSaved": "Ressource gespeichert",
+      "resourceSaveError": "Ressource konnte nicht gespeichert werden",
+      "resourceDeleted": "Ressource gelöscht",
+      "resourceDeleteError": "Ressource konnte nicht gelöscht werden"
+    }
+  }
+}

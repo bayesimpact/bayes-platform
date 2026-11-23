@@ -1,0 +1,38 @@
+{
+  "conversationAgentSession": {
+    "props": {
+      "type": "Typ",
+      "createdAt": "Utworzono",
+      "updatedAt": "Zaktualizowano",
+      "traceUrl": "URL śladu",
+      "result": "Wynik formularza"
+    },
+    "create": {
+      "button": "Nowy czat",
+      "title": "Nowy czat",
+      "description": "Rozpocznij czat z agentem."
+    },
+    "list": {
+      "title": "Sesje czatu"
+    },
+    "chat": {
+      "title": "Playground",
+      "placeholder": "Zadaj pytanie..."
+    },
+    "subAgentResults": {
+      "title": "Stan formularzy subagentów",
+      "description": "Wyniki zebrane przez subagentów wypełniających formularze, którym ten agent przekazał zadania."
+    },
+    "formState": {
+      "show": "Stan formularza",
+      "description": "Informacje zebrane dotąd przez agenta.",
+      "thisAgent": "Ten agent"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Usuń czat",
+        "description": "Ten czat i jego wiadomości zostaną trwale usunięte. Tej operacji nie można cofnąć."
+      }
+    }
+  }
+}

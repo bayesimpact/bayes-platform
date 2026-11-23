@@ -1,0 +1,50 @@
+{
+  "documentTag": {
+    "documentTag": "Tag",
+    "documentTags": "Tags",
+    "props": {
+      "name": "Name",
+      "description": "Beschreibung",
+      "parentTag": "Übergeordneter Tag",
+      "tags": "Tags",
+      "placeholders": {
+        "name": "Name des Tags",
+        "description": "Optionale Beschreibung"
+      },
+      "validation": {
+        "nameRequired": "Der Name ist erforderlich",
+        "reservedName": "„public-documents“ ist ein reservierter Tag-Name"
+      }
+    },
+    "sheet": {
+      "button": "Tags",
+      "title": "Tags",
+      "empty": "Noch keine Tags"
+    },
+    "create": {
+      "button": "Tag erstellen",
+      "title": "Tag erstellen"
+    },
+    "edit": {
+      "title": "{{tagName}} bearbeiten"
+    },
+    "delete": {
+      "title": "{{tagName}} löschen?",
+      "description": "Dies kann nicht rückgängig gemacht werden."
+    },
+    "publicDescription": "Wenn ein Dokument mit diesem Tag als Quelle in einer Chat-Unterhaltung erscheint, kann der Benutzer es herunterladen.",
+    "parentNone": "Keiner",
+    "searchPlaceholder": "Tags durchsuchen...",
+    "noTagsFound": "Keine Tags gefunden",
+    "untagged": "Ohne Tag",
+    "addTag": "Tag hinzufügen",
+    "notifications": {
+      "deleted": "Dokument-Tag erfolgreich gelöscht",
+      "deleteError": "Dokument-Tag konnte nicht gelöscht werden",
+      "created": "Dokument-Tag erfolgreich erstellt",
+      "createError": "Dokument-Tag konnte nicht erstellt werden",
+      "updated": "Dokument-Tag erfolgreich aktualisiert",
+      "updateError": "Dokument-Tag konnte nicht aktualisiert werden"
+    }
+  }
+}

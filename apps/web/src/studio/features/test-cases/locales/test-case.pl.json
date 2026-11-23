@@ -1,0 +1,86 @@
+{
+  "testCase": {
+    "saveAsTestCase": "Zapisz jako przypadek testowy",
+    "dialog": {
+      "judgeDescription": "Zamień tę odpowiedź w przypadek testowy, odtwarzany przy każdym uruchomieniu zbioru danych.",
+      "reviewDescription": "Sprawdź, co trafi do zbioru danych. Uruchomienie wysyła dane wejściowe do agenta i ocenia jego odpowiedź względem oczekiwanej.",
+      "drafting": "Tworzenie przypadku testowego…",
+      "draftingWithExpectedOutput": "Tworzenie przypadku testowego i docelowej odpowiedzi…",
+      "draftFailedTitle": "Nie udało się utworzyć przypadku testowego",
+      "draftFailedDescription": "LLM nie odpowiedział. Spróbuj ponownie albo wróć i zmień wybór."
+    },
+    "verdict": {
+      "label": "Czy to odpowiedź, jakiej powinien udzielić agent?",
+      "good": {
+        "title": "Dobra odpowiedź",
+        "description": "Odpowiedź staje się wzorcem, względem którego oceniany jest agent."
+      },
+      "bad": {
+        "title": "Zła odpowiedź",
+        "description": "Opisz, co jest nie tak, a LLM przygotuje docelową odpowiedź."
+      }
+    },
+    "comment": {
+      "good": {
+        "label": "Co jest dobre w tej odpowiedzi?",
+        "placeholder": "Co agent zrobił dobrze i powinien robić dalej",
+        "description": "Opcjonalne. Zapisywane z przypadkiem testowym, aby każdy czytający zbiór danych wiedział, dlaczego ta odpowiedź jest wzorcem."
+      },
+      "bad": {
+        "label": "Co jest nie tak z tą odpowiedzią?",
+        "placeholder": "Co agent zrobił źle, pominął lub czego nie powinien był mówić",
+        "description": "LLM zamieni to w odpowiedź, jakiej powinien był udzielić agent. Zapisywane z przypadkiem testowym."
+      },
+      "fromReport": "Przejęte ze zgłoszenia użytkownika. Popraw, jeśli nie oddaje sedna.",
+      "required": "Opisz, co jest nie tak z tą odpowiedzią."
+    },
+    "dataset": {
+      "label": "Zbiór danych",
+      "recordCount_one": "{{count}} rekord",
+      "recordCount_few": "{{count}} rekordy",
+      "recordCount_many": "{{count}} rekordów",
+      "recordCount_other": "{{count}} rekordu",
+      "newDataset": "Nowy zbiór danych",
+      "newDatasetName": "Nazwa nowego zbioru danych",
+      "newDatasetSuffix": "{{name}} (nowy)",
+      "nameTooShort": "Nazwa zbioru danych musi mieć co najmniej {{count}} zn."
+    },
+    "review": {
+      "to": "do",
+      "input": "Dane wejściowe",
+      "anonymize": "Zanonimizuj",
+      "anonymized": "Zanonimizowano",
+      "inputModes": {
+        "conversation": "Kontekst rozmowy",
+        "lastMessage": "Dokładna ostatnia wiadomość"
+      },
+      "inputHints": {
+        "firstTurn": "Ta odpowiedź dotyczy pierwszej wiadomości, więc ta wiadomość zawiera całą rozmowę.",
+        "conversation_one": "Napisane przez LLM na podstawie wcześniejszej wymiany, aby pytanie było zrozumiałe samo w sobie przy odtwarzaniu.",
+        "conversation_few": "Napisane przez LLM na podstawie {{count}} wcześniejszych wymian, aby pytanie było zrozumiałe samo w sobie przy odtwarzaniu.",
+        "conversation_many": "Napisane przez LLM na podstawie {{count}} wcześniejszych wymian, aby pytanie było zrozumiałe samo w sobie przy odtwarzaniu.",
+        "conversation_other": "Napisane przez LLM na podstawie {{count}} wcześniejszej wymiany, aby pytanie było zrozumiałe samo w sobie przy odtwarzaniu.",
+        "lastMessage_one": "Ostatnia wiadomość użytkownika w wysłanej postaci. Uruchomienie nie odtwarza wcześniejszej wymiany.",
+        "lastMessage_few": "Ostatnia wiadomość użytkownika w wysłanej postaci. Uruchomienie nie odtwarza {{count}} wcześniejszych wymian.",
+        "lastMessage_many": "Ostatnia wiadomość użytkownika w wysłanej postaci. Uruchomienie nie odtwarza {{count}} wcześniejszych wymian.",
+        "lastMessage_other": "Ostatnia wiadomość użytkownika w wysłanej postaci. Uruchomienie nie odtwarza {{count}} wcześniejszej wymiany."
+      },
+      "expectedOutput": "Oczekiwana odpowiedź",
+      "expectedOutputHints": {
+        "good": "Odpowiedź agenta, zachowana jako wzorzec, względem którego oceniane jest każde uruchomienie.",
+        "bad": "Przygotowana przez LLM na podstawie tego, co wskazano jako błędne. Każde uruchomienie jest oceniane względem niej."
+      },
+      "save": "Zapisz przypadek testowy",
+      "errors": {
+        "inputRequired": "Dane wejściowe nie mogą być puste.",
+        "expectedOutputRequired": "Oczekiwana odpowiedź nie może być pusta.",
+        "draftInput": "Nie udało się przygotować pytania. Spróbuj ponownie lub napisz je samodzielnie.",
+        "anonymize": "Nie udało się zanonimizować danych wejściowych. Spróbuj ponownie.",
+        "save": "Nie udało się zapisać przypadku testowego. Spróbuj ponownie."
+      }
+    },
+    "notifications": {
+      "saved": "Zapisano przypadek testowy w zbiorze {{name}}"
+    }
+  }
+}

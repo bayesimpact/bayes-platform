@@ -25,6 +25,12 @@
       "errorSessionFailed": "Impossible de démarrer une session. Veuillez réessayer.",
       "errorUnknown": "Impossible de se connecter.",
       "sessionExpired": "Votre conversation précédente a expiré."
+    },
+    "newConversation": {
+      "title": "Commencer une nouvelle conversation ?",
+      "text": "Celle-ci sera effacée de cette fenêtre, et vous ne pourrez pas la retrouver.",
+      "cancel": "Annuler",
+      "confirm": "Effacer et recommencer"
     }
   }
 }
