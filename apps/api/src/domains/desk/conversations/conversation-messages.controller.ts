@@ -42,7 +42,7 @@ const CONVERSATION_CONTEXT = ["organization", "project", "agent", "agentSession"
 
 /**
  * The messages of a live conversation: the transcript, the HTML of its MCP Apps, its attachments
- * and the feedback on a reply. A copy of `LiveAgentMessagesController` and of
+ * and the feedback on a reply. A copy of `AgentMessagesController` and of
  * `AgentMessageFeedbackController.createOne`.
  */
 @Controller()
