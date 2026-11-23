@@ -12,6 +12,7 @@ import { EmbedChat } from "./chat/EmbedChat"
 import type { PublicChatErrorKey } from "./hooks/usePublicChat"
 import { usePublicChat } from "./hooks/usePublicChat"
 import { createEmbedI18n, type SupportedLocale } from "./i18n"
+import { readLinkTarget, sendLinksToParent } from "./open-link"
 import { previewOf } from "./preview"
 import { DEFAULT_PRIMARY_COLOR } from "./theme"
 
@@ -58,6 +59,11 @@ export function App() {
   const embedToken = readParam("embedToken")
   const displayMode = readDisplayModeFromUrl()
   const hideHeader = readHideHeaderFromUrl()
+  const linkTarget = readLinkTarget(window.location.search)
+
+  useEffect(() => {
+    if (linkTarget === "parent") return sendLinksToParent()
+  }, [linkTarget])
 
   const handleClose = () => {
     window.parent.postMessage({ type: "agent-studio:close" }, "*")
