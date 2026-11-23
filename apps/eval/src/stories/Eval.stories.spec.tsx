@@ -6,6 +6,7 @@ import { userEvent } from "storybook/test"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
 import * as campaignStories from "./Campaigns.stories"
+import * as conversationEvaluationStories from "./ConversationEvaluations.stories"
 import * as generalStories from "./Eval.stories"
 import * as reviewerStories from "./Reviewer.stories"
 import * as testerStories from "./Tester.stories"
@@ -28,8 +29,15 @@ const {
   PageFailsAfterNewRelease,
   ...generalPages
 } = composeStories(generalStories)
-const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
-  composeStories(campaignStories)
+const {
+  RemoveQuestion,
+  LeaveWithUnsavedChanges,
+  ChooseAgentVersion,
+  ChooseFirstVersionInProduction,
+  ...campaignPages
+} = composeStories(campaignStories)
+const { NewDataset, AddRecord, AddSeveralRecords, RunEvaluation, ...conversationEvaluationPages } =
+  composeStories(conversationEvaluationStories)
 // The reviewer and the tester both have a story named after their campaign.
 const { ClosedCampaign: ReviewerClosedCampaign, ...reviewerPages } = composeStories(reviewerStories)
 const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStories)
@@ -37,6 +45,7 @@ const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStorie
 const pageStories = {
   ...generalPages,
   ...campaignPages,
+  ...conversationEvaluationPages,
   ...reviewerPages,
   ReviewerClosedCampaign,
   TesterCampaign,
@@ -45,6 +54,67 @@ const pageStories = {
 
 /** Each story of a page, and what it shows once that page loaded: every story is listed. */
 const PAGES = {
+  DatasetList: {
+    Story: pageStories.DatasetList,
+    loaded: () => screen.findByRole("link", { name: "Open Pricing questions" }),
+  },
+  NoDataset: {
+    Story: pageStories.NoDataset,
+    loaded: () => screen.findByText("No dataset yet"),
+  },
+  Dataset: {
+    Story: pageStories.Dataset,
+    loaded: () => screen.findByText("Do unused seats get refunded?"),
+  },
+  DatasetRuns: {
+    Story: pageStories.DatasetRuns,
+    // Its runs, each by its short id and how long ago it started.
+    loaded: async () => {
+      await screen.findByText("4 runs")
+      await screen.findByRole("columnheader", { name: "ID" })
+      return screen.findByText("1 minute ago")
+    },
+  },
+  CompareRuns: {
+    Story: pageStories.CompareRuns,
+    loaded: () => screen.findByRole("heading", { name: "Record by record" }),
+  },
+  CompletedRun: {
+    Story: pageStories.CompletedRun,
+    // Its figures, and how long it took.
+    loaded: async () => {
+      await screen.findByText("Took 2 min 5 sec")
+      return screen.findByText("11 / 12")
+    },
+  },
+  RunUnderWay: {
+    Story: pageStories.RunUnderWay,
+    loaded: () => screen.findByRole("button", { name: "Cancel the run" }),
+  },
+  FailedRun: {
+    Story: pageStories.FailedRun,
+    loaded: () => screen.findByText("This run failed before it asked a record."),
+  },
+  CancelledRun: {
+    Story: pageStories.CancelledRun,
+    // The records the run had not asked yet have their own filter.
+    loaded: async () => {
+      await screen.findByText("Cancelled", { selector: "[data-slot=badge]" })
+      return screen.findByRole("button", { name: "Not asked (3)" })
+    },
+  },
+  RunEvaluationWithNoJudge: {
+    Story: pageStories.RunEvaluationWithNoJudge,
+    // The form says why it cannot start a run.
+    loaded: async () => {
+      await screen.findByText(/No model of this project can judge an evaluation/)
+      return screen.findByRole("button", { name: "Run" })
+    },
+  },
+  EmptyDataset: {
+    Story: pageStories.EmptyDataset,
+    loaded: () => screen.findByText("This dataset has no record yet."),
+  },
   Home: {
     Story: pageStories.Home,
     loaded: () => screen.findByRole("heading", { name: "Helpful Assistant" }),
@@ -91,7 +161,7 @@ const PAGES = {
   },
   NewCampaign: {
     Story: pageStories.NewCampaign,
-    loaded: () => screen.findByRole("button", { name: "Next" }),
+    loaded: () => screen.findByRole("button", { name: "Choose a version" }),
   },
   DraftCampaign: {
     Story: pageStories.DraftCampaign,
@@ -132,6 +202,14 @@ const PAGES = {
   LockedSetup: {
     Story: pageStories.LockedSetup,
     loaded: () => screen.findByRole("tab", { name: "Session review" }),
+  },
+  ClosedCampaignOnArchivedVersion: {
+    Story: pageStories.ClosedCampaignOnArchivedVersion,
+    loaded: () => screen.findByText("An archived version"),
+  },
+  ClosedCampaignSetup: {
+    Story: pageStories.ClosedCampaignSetup,
+    loaded: () => screen.findByText("Version 2"),
   },
   ClosedCampaign: {
     Story: pageStories.ClosedCampaign,
@@ -207,6 +285,222 @@ describe("the stories of the app", () => {
     expectNoErrorPage()
   })
 
+  it("NewDataset asks the name of the dataset", async () => {
+    await NewDataset.load()
+    render(<NewDataset />)
+
+    const dialog = await screen.findByRole("dialog", { name: "New dataset" })
+    expect(within(dialog).getByRole("textbox", { name: "Name" })).toBeInTheDocument()
+  })
+
+  it("RunEvaluation picks the version in production and the default judge, then opens the run", async () => {
+    await RunEvaluation.load()
+    render(<RunEvaluation />)
+
+    expect(await screen.findByRole("heading", { name: "Run an evaluation" })).toBeInTheDocument()
+    expect(screen.getByRole("group", { name: "Agent version" })).toHaveTextContent("Spring release")
+    expect(screen.getByRole("combobox", { name: "Judge model" })).toHaveValue("model-large")
+    expect(screen.getByRole("radio", { name: "All 12 records of the dataset" })).toBeChecked()
+
+    // Run creates the run, starts it and opens its page, which follows it.
+    await userEvent.click(screen.getByRole("button", { name: "Run" }))
+    expect(await screen.findByRole("button", { name: "Cancel the run" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /^Run of / })).toBeInTheDocument()
+  })
+
+  it("CompletedRun lists the runs of its dataset in the sidebar, under the dataset", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    const dataset = (await screen.findByRole("link", { name: "Pricing questions" })).closest("li")
+    if (!dataset) throw new Error("The sidebar has no entry for the dataset")
+    // The runs stand under the name of where they are: under way, over, failed.
+    for (const status of ["Running", "Completed", "Failed"]) {
+      expect(await within(dataset).findByText(status)).toBeInTheDocument()
+    }
+    const runs = within(dataset)
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href")?.includes("/runs/"))
+    expect(runs).toHaveLength(4)
+    // The run whose page shows is the marked one, not its dataset.
+    expect(runs.filter((run) => run.getAttribute("aria-current") === "page")).toHaveLength(1)
+    expect(screen.getByRole("link", { name: "Pricing questions" })).not.toHaveAttribute(
+      "aria-current",
+    )
+  })
+
+  it("DatasetRuns compares the runs a person checks, score by score", async () => {
+    const { DatasetRuns } = pageStories
+    await DatasetRuns.load()
+    render(<DatasetRuns />)
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Completed (2)" }))
+    expect(screen.getByRole("button", { name: "Compare runs" })).toBeDisabled()
+    const boxes = await screen.findAllByRole("checkbox", { name: /^Compare the run of/ })
+    for (const box of boxes) await userEvent.click(box)
+
+    await userEvent.click(await screen.findByRole("link", { name: "Compare 2 runs" }))
+    expect(await screen.findByRole("heading", { name: "Compare runs" })).toBeInTheDocument()
+    // One run gave its judge instructions: the figures say so, and name each judge's model.
+    expect(screen.getByRole("cell", { name: "Instructions for the judge" })).toBeInTheDocument()
+    expect(screen.getByRole("cell", { name: "Judge model" })).toBeInTheDocument()
+    // A run's version opens the history of the agent's versions, to see what changed.
+    await userEvent.click(screen.getByRole("button", { name: "Compare version 2 with the others" }))
+    const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    expect(within(sheet).getByText("The run used this version")).toBeInTheDocument()
+    await userEvent.keyboard("{Escape}")
+    // The record one run failed on has a score in the other run only.
+    const row = (await screen.findByText("Do unused seats get refunded?")).closest("tr")
+    if (!row) throw new Error("The comparison has no row for the record")
+    expect(within(row).getByText("4 / 5")).toBeInTheDocument()
+  })
+
+  it("TesterCampaign opens a session to chat while its feedback is due, and to view it after", async () => {
+    await TesterCampaign.load()
+    render(<TesterCampaign />)
+
+    const chats = await screen.findAllByRole("link", { name: /^Chat in the session of/ })
+    const views = screen.getAllByRole("link", { name: /^View the session of/ })
+    expect(chats[0]).toHaveTextContent("Chat")
+    expect(views[0]).toHaveTextContent("View")
+    // Only a session whose feedback is due offers to give it.
+    expect(
+      screen.getAllByRole("button", { name: /^Give feedback on the session of/ }),
+    ).toHaveLength(chats.length)
+  })
+
+  it("RunUnderWay asks before it cancels the run", async () => {
+    const { RunUnderWay } = pageStories
+    await RunUnderWay.load()
+    render(<RunUnderWay />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Cancel the run" }))
+    const dialog = await screen.findByRole("alertdialog", { name: "Cancel this run?" })
+    expect(screen.getByText("Running", { selector: "[data-slot=badge]" })).toBeInTheDocument()
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel the run" }))
+    expect(
+      await screen.findByText("Cancelled", { selector: "[data-slot=badge]" }),
+    ).toBeInTheDocument()
+  })
+
+  it("DatasetRuns opens the history of the agent's versions from a run's version, only to read", async () => {
+    const { DatasetRuns } = pageStories
+    await DatasetRuns.load()
+    render(<DatasetRuns />)
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Compare version 2 with the others" }),
+    )
+    const sheet = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    expect(within(sheet).getByText("The run used this version")).toBeInTheDocument()
+    expect(
+      within(sheet).queryByRole("button", { name: "Select this version" }),
+    ).not.toBeInTheDocument()
+  })
+
+  it("CompletedRun shows the form the agent filled, and where each record stands", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    expect(await screen.findByRole("columnheader", { name: "Filled form" })).toBeInTheDocument()
+    expect(screen.getByText("No fields filled")).toBeInTheDocument()
+    expect(screen.getByText(/"plan": "Pro"/)).toBeInTheDocument()
+    // Each record says where it stands: eleven were graded, one failed.
+    expect(screen.getByText("12 records")).toBeInTheDocument()
+    expect(screen.getAllByText("Graded").length).toBeGreaterThan(10)
+  })
+
+  it("CompletedRun says what the run used, in two tabs of its side panel", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    // The window of the tests is narrow: the panel starts closed.
+    const toggle = await screen.findByRole("button", { name: "Agent and judge" })
+    if (toggle.getAttribute("aria-pressed") !== "true") await userEvent.click(toggle)
+    const panel = await screen.findByRole("complementary", { name: "Agent and judge" })
+    expect(within(panel).getByText("Conversational agent")).toBeInTheDocument()
+    // What the version set for its model, and which documents it searched.
+    expect(within(panel).getByText("High")).toBeInTheDocument()
+    expect(within(panel).getByText("0.2")).toBeInTheDocument()
+    expect(within(panel).getByText("The documents of its tags")).toBeInTheDocument()
+    expect(within(panel).getByRole("link", { name: /Open in Studio/ })).toBeInTheDocument()
+    expect(
+      within(panel).getByRole("button", { name: "Compare version 3 with the others" }),
+    ).toBeInTheDocument()
+
+    await userEvent.click(within(panel).getByRole("tab", { name: "Judge" }))
+    expect(
+      await within(panel).findByText(
+        "Accept an answer that names the right plan, whatever its wording.",
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it("CompletedRun narrows its results to the errors, then to the low scores", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    const filters = await screen.findByRole("group", { name: "Filter the results" })
+    // A run that is over has no record waiting: it offers no filter for them.
+    expect(within(filters).queryByRole("button", { name: /^Waiting/ })).not.toBeInTheDocument()
+    const rows = () => screen.getAllByRole("row").length - 1
+
+    expect(rows()).toBe(12)
+    await userEvent.click(within(filters).getByRole("button", { name: "Errors (1)" }))
+    expect(rows()).toBe(1)
+    expect(screen.getByText("The model did not answer in time.")).toBeInTheDocument()
+
+    await userEvent.click(within(filters).getByRole("button", { name: "Low scores (1)" }))
+    expect(rows()).toBe(1)
+    expect(screen.getByText("0 / 5")).toBeInTheDocument()
+
+    await userEvent.click(within(filters).getByRole("button", { name: "All (12)" }))
+    expect(rows()).toBe(12)
+  })
+
+  it("CompletedRun opens a result whole in a sheet, from its row", async () => {
+    const { CompletedRun } = pageStories
+    await CompletedRun.load()
+    render(<CompletedRun />)
+
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Open the result of: Do you offer a discount for a yearly payment?",
+      }),
+    )
+    const sheet = await screen.findByRole("dialog", { name: "Result" })
+    expect(within(sheet).getByText("Do you offer a discount for a yearly payment?")).toBeVisible()
+    expect(within(sheet).getByText("3 / 5")).toBeInTheDocument()
+    expect(within(sheet).getByRole("heading", { name: "Agent's answer" })).toBeInTheDocument()
+  })
+
+  it("AddRecord asks a record's input and expected output", async () => {
+    await AddRecord.load()
+    const { container } = render(<AddRecord />)
+    await act(() => AddRecord.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Add a record" })
+    expect(within(dialog).getByRole("textbox", { name: "Input" })).toBeInTheDocument()
+    expect(within(dialog).getByRole("textbox", { name: "Expected output" })).toBeInTheDocument()
+  })
+
+  it("AddSeveralRecords names the line that makes no record", async () => {
+    await AddSeveralRecords.load()
+    const { container } = render(<AddSeveralRecords />)
+    await act(() => AddSeveralRecords.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Bulk add records" })
+    expect(
+      await within(dialog).findByText("Line 2 has no input or no expected output."),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "Add 1 record" })).toBeDisabled()
+  })
+
   it("PageNotFound says so", async () => {
     await PageNotFound.load()
     render(<PageNotFound />)
@@ -269,6 +563,26 @@ describe("the stories of the app", () => {
     expect(
       await screen.findByRole("alertdialog", { name: "Remove question 1?" }),
     ).toBeInTheDocument()
+  })
+
+  it("ChooseAgentVersion opens the history of the agent's versions", async () => {
+    await ChooseAgentVersion.load()
+    const { container } = render(<ChooseAgentVersion />)
+    await act(() => ChooseAgentVersion.play?.({ canvasElement: container }))
+
+    expect(
+      await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" }),
+    ).toBeInTheDocument()
+  })
+
+  it("ChooseFirstVersionInProduction names the first of several versions", async () => {
+    await ChooseFirstVersionInProduction.load()
+    const { container } = render(<ChooseFirstVersionInProduction />)
+    await act(() => ChooseFirstVersionInProduction.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    expect(await within(dialog).findByText("First version")).toBeInTheDocument()
+    expect(within(dialog).queryByText("Only one version")).not.toBeInTheDocument()
   })
 
   it("LeaveWithUnsavedChanges asks before the changes are lost", async () => {

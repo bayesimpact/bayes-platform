@@ -1,3 +1,4 @@
+import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
@@ -5,16 +6,23 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import type { CampaignFormValues } from "../schemas"
+import { AgentVersionField } from "./AgentVersionField"
 
 export type CampaignGeneralFieldsProps = {
   form: UseFormReturn<CampaignFormValues>
   /** The agent the campaign reviews, which a campaign keeps for good. */
   agentName: string
+  agentParams: AgentParamsDto
   isLocked: boolean
 }
 
-/** A campaign's name and what it is for, in a card of its own. */
-export function CampaignGeneralFields({ form, agentName, isLocked }: CampaignGeneralFieldsProps) {
+/** A campaign's name, what it is for, and the version of its agent it runs on. */
+export function CampaignGeneralFields({
+  form,
+  agentName,
+  agentParams,
+  isLocked,
+}: CampaignGeneralFieldsProps) {
   const { t } = useLingui()
   const nameId = useId()
   const descriptionId = useId()
@@ -69,6 +77,12 @@ export function CampaignGeneralFields({ form, agentName, isLocked }: CampaignGen
             />
           </Field>
         )}
+      />
+      <AgentVersionField
+        control={form.control}
+        agentParams={agentParams}
+        agentName={agentName}
+        isLocked={isLocked}
       />
     </section>
   )

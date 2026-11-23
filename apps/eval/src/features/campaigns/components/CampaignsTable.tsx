@@ -23,7 +23,6 @@ export function CampaignsTable({ agent, campaigns }: CampaignsTableProps) {
     data: campaigns,
     columns: campaignColumnsOf({
       agent,
-      locale: i18n.locale,
       translate: (descriptor) => i18n._(descriptor),
     }),
     getRowId: (campaign) => campaign.id,

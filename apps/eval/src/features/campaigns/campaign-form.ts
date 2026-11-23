@@ -1,4 +1,5 @@
 import type {
+  AgentVersionOutputDto,
   CreateReviewCampaignInputDto,
   ReviewCampaignOutputDto,
   ReviewCampaignQuestionDto,
@@ -30,9 +31,17 @@ export function blankQuestion(): QuestionFormValues {
   }
 }
 
-/** The form's values of an existing campaign. */
-export function campaignFormValuesOf(campaign: ReviewCampaignOutputDto): CampaignFormValues {
+/**
+ * The form's values of an existing campaign. A version no longer listed, archived since, counts
+ * as no choice: the person chooses again before the campaign goes on.
+ */
+export function campaignFormValuesOf(
+  campaign: ReviewCampaignOutputDto,
+  versions: AgentVersionOutputDto[],
+): CampaignFormValues {
+  const isListed = versions.some((version) => version.id === campaign.agentSettingsId)
   return {
+    agentSettingsId: isListed ? campaign.agentSettingsId : "",
     name: campaign.name,
     description: campaign.description ?? "",
     testerPerSessionQuestions: campaign.testerPerSessionQuestions.map(questionFormValuesOf),
@@ -60,11 +69,12 @@ export function questionInputOf(
   }
 }
 
-/** What the API takes from the form: a blank description is none. */
+/** What the API takes from the form: a blank description is none, and no version keeps the saved one. */
 export function campaignConfigInputOf(
   values: CampaignFormValues,
 ): Omit<CreateReviewCampaignInputDto, "agentId"> {
   return {
+    ...(values.agentSettingsId === "" ? {} : { agentSettingsId: values.agentSettingsId }),
     name: values.name,
     description: values.description.trim() === "" ? null : values.description,
     testerPerSessionQuestions: values.testerPerSessionQuestions.map((question) =>

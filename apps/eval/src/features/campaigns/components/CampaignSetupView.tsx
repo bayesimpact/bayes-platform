@@ -1,8 +1,15 @@
-import type { AgentTypeDto, ReviewCampaignDetailOutputDto } from "@caseai-connect/eval-contracts"
+import type {
+  AgentParamsDto,
+  AgentTypeDto,
+  ReviewCampaignDetailOutputDto,
+} from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
+import { AgentVersionTitle } from "@/components/shared/AgentVersionTitle"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import { AGENT_TYPE_LABELS } from "@/lib/agent-type-labels"
 import { FeedbackFormFields } from "./FeedbackFormFields"
 
@@ -10,14 +17,23 @@ export type CampaignSetupViewProps = {
   campaign: ReviewCampaignDetailOutputDto
   agentName: string
   agentType: AgentTypeDto
+  agentParams: AgentParamsDto
 }
 
 /**
  * The setup of a campaign that no longer changes: what it is, then its three forms as its testers
  * and reviewers fill them, one sub-tab per form.
  */
-export function CampaignSetupView({ campaign, agentName, agentType }: CampaignSetupViewProps) {
+export function CampaignSetupView({
+  campaign,
+  agentName,
+  agentType,
+  agentParams,
+}: CampaignSetupViewProps) {
   const { i18n } = useLingui()
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
+  // An archived version is no longer listed: the campaign still runs on it.
+  const version = versions.find((candidate) => candidate.id === campaign.agentSettingsId)
   return (
     <div className="flex flex-col gap-6">
       <SectionCard
@@ -43,6 +59,20 @@ export function CampaignSetupView({ campaign, agentName, agentType }: CampaignSe
             <Trans comment="The kind of agent a review campaign reviews">Type</Trans>
           </dt>
           <dd>{i18n._(AGENT_TYPE_LABELS[agentType])}</dd>
+          <dt className="text-muted-foreground">
+            <Trans comment="The saved version of the agent's settings a review campaign runs on">
+              Agent version
+            </Trans>
+          </dt>
+          <dd>
+            {version ? (
+              <AgentVersionTitle version={version} />
+            ) : (
+              <span className="text-muted-foreground italic">
+                <Trans>An archived version</Trans>
+              </span>
+            )}
+          </dd>
         </dl>
       </SectionCard>
       <Tabs defaultValue="session">

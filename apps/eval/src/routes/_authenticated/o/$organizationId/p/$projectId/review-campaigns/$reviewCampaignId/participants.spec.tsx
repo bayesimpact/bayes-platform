@@ -56,7 +56,10 @@ describe("a reviewer's campaign", () => {
     renderApp(`${campaignUrlOf(world, "Pricing questions")}/review`)
 
     expect(await screen.findByText("3 sessions · 2 to review")).toBeInTheDocument()
-    expect(screen.getByText(/^Created [A-Z][a-z]{2} \d{1,2}, \d{4}$/)).toBeInTheDocument()
+    // How long ago the campaign was created, which the full date and time explain on hover.
+    expect(
+      screen.getByText((_text, element) => /^Created .+ ago$/.test(element?.textContent ?? "")),
+    ).toBeInTheDocument()
     expect(screen.getAllByRole("link", { name: /^Review session/ })).toHaveLength(2)
     expect(screen.getAllByRole("link", { name: /^View session/ })).toHaveLength(1)
   })

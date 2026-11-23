@@ -13,6 +13,12 @@
       "back": "Indietro",
       "next": "Avanti"
     },
+    "scope": {
+      "title": "Record da eseguire",
+      "all": "Esegui l'intero dataset ({{count}} record)",
+      "allUnknown": "Esegui l'intero dataset",
+      "limited": "Esegui un sottoinsieme di record"
+    },
     "columns": {
       "title": "Configura i ruoli delle colonne",
       "description": "Seleziona il ruolo di ogni colonna del file CSV.",

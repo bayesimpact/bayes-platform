@@ -1,4 +1,5 @@
 export { useOpenAgentCommandCenter } from "./agent-command-center-context"
+export { agentVersionsQueryOptions } from "./api/queries"
 export { switchableAgentCountOf } from "./campaign-agents"
 export { AgentCommandCenterProvider } from "./components/AgentCommandCenterProvider"
 export { AgentSidebarHeader } from "./components/AgentSidebarHeader"

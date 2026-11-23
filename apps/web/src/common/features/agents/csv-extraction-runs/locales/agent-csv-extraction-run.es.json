@@ -13,6 +13,12 @@
       "back": "Volver",
       "next": "Siguiente"
     },
+    "scope": {
+      "title": "Registros a ejecutar",
+      "all": "Ejecutar todo el conjunto de datos ({{count}} registros)",
+      "allUnknown": "Ejecutar todo el conjunto de datos",
+      "limited": "Ejecutar un subconjunto de registros"
+    },
     "columns": {
       "title": "Configurar los roles de las columnas",
       "description": "Seleccione el rol de cada columna de su archivo CSV.",

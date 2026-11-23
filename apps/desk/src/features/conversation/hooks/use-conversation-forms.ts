@@ -13,6 +13,7 @@ import { conversationsQueryOptions } from "@/features/history"
 export function useConversationForms(
   conversation: ConversationParamsDto,
 ): ConversationFormOutputDto[] {
+  // useQuery: optional data, shown once known, which must not hold the conversation back.
   const { data } = useQuery({
     ...conversationsQueryOptions(conversation),
     select: (conversations) =>

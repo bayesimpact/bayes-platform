@@ -34,24 +34,6 @@ import type {
   RetentionSweepRuns,
 } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type {
-  EvaluationConversationDataset,
-  PaginatedEvaluationConversationDatasetRecords,
-} from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
-import type {
-  EvaluationConversationRun,
-  EvaluationConversationRunRecord,
-  PaginatedEvaluationConversationRunRecords,
-} from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.models"
-import type {
-  EvaluationExtractionDataset,
-  EvaluationExtractionDatasetFile,
-  PaginatedEvaluationExtractionDatasetRecords,
-} from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
-import type {
-  EvaluationExtractionRun,
-  EvaluationExtractionRunRecord,
-} from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.models"
 import type { AgentEmbedConfig } from "@/studio/features/agent-embed-configs/agent-embed-configs.models"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
@@ -70,6 +52,7 @@ import type {
 import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
+import type { EvaluationConversationDataset } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { InviteeAccessByEmail } from "@/studio/features/invitations/invitations.spi"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
@@ -81,17 +64,6 @@ import type {
   ProjectRole,
 } from "@/studio/features/project-memberships/project-memberships.models"
 import type { ResourceLibrary } from "@/studio/features/resource-libraries/resource-libraries.models"
-import type { CampaignReport } from "@/studio/features/review-campaigns/reports/reports.models"
-import type {
-  ReviewCampaign,
-  ReviewCampaignDetail,
-} from "@/studio/features/review-campaigns/review-campaigns.models"
-import type {
-  MyReviewCampaign,
-  MyTesterSessionSummary,
-  TesterCampaignSurvey,
-  TesterContext,
-} from "@/tester/features/review-campaigns/tester.models"
 import type { StoryPreloadedState } from "./decorators"
 
 /**
@@ -252,10 +224,6 @@ export const seed = {
     )
   },
 
-  currentReviewCampaignId(id: string | null): StoryPreloadedState {
-    return { currentIds: { reviewCampaignId: id } }
-  },
-
   currentMemberUserId(id: string | null): StoryPreloadedState {
     return { currentIds: { memberUserId: id } }
   },
@@ -266,10 +234,6 @@ export const seed = {
 
   currentResourceId(id: string | null): StoryPreloadedState {
     return { currentIds: { resourceId: id } }
-  },
-
-  campaignReport(report: CampaignReport): StoryPreloadedState {
-    return { reviewCampaignsReports: { report: ads.fulfilled(report) } }
   },
 
   conversationAgentSessions(
@@ -412,12 +376,8 @@ export const seed = {
       }
     },
 
-    reviewCampaigns(campaigns: ReviewCampaign[]): StoryPreloadedState {
-      return { reviewCampaigns: { data: ads.fulfilled(campaigns) } }
-    },
-
-    selectedReviewCampaignDetail(detail: ReviewCampaignDetail): StoryPreloadedState {
-      return { reviewCampaigns: { selectedDetail: ads.fulfilled(detail) } }
+    conversationDatasets(datasets: EvaluationConversationDataset[]): StoryPreloadedState {
+      return { conversationDatasets: { data: ads.fulfilled(datasets) } }
     },
 
     agentMemberships(memberships: AgentMembership[]): StoryPreloadedState {
@@ -588,128 +548,6 @@ export const seed = {
     },
     maintenanceJobs(maintenanceJobs: MaintenanceJob[]): StoryPreloadedState {
       return { backoffice: { maintenanceJobs: ads.fulfilled(maintenanceJobs) } }
-    },
-  },
-
-  eval: {
-    conversationDatasets(
-      datasets: EvaluationConversationDataset[],
-      options: { currentId?: string | null } = {},
-    ): StoryPreloadedState {
-      const currentId = options.currentId ?? null
-      // The slice clears its records when the route sets a dataset id it does not hold yet,
-      // and stories have no middleware to load them again: it starts on the current one.
-      return mergeSeeds(
-        { conversationDatasets: { data: ads.fulfilled(datasets), currentDatasetId: currentId } },
-        { currentIds: { datasetId: currentId } },
-      )
-    },
-
-    conversationDatasetRecords(
-      records: PaginatedEvaluationConversationDatasetRecords,
-    ): StoryPreloadedState {
-      return { conversationDatasets: { records: ads.fulfilled(records) } }
-    },
-
-    conversationRuns(
-      runs: EvaluationConversationRun[],
-      options: { currentId?: string | null } = {},
-    ): StoryPreloadedState {
-      const currentId = options.currentId ?? null
-      const currentRun = runs.find((run) => run.id === currentId)
-      return mergeSeeds(
-        { conversationRuns: { data: ads.fulfilled(runs), currentRunId: currentId } },
-        currentRun ? { conversationRuns: { currentRun: ads.fulfilled(currentRun) } } : {},
-        { currentIds: { runId: currentId } },
-      )
-    },
-
-    conversationRunRecords(
-      records: PaginatedEvaluationConversationRunRecords,
-    ): StoryPreloadedState {
-      return {
-        conversationRuns: {
-          currentRunRecords: ads.fulfilled(records),
-          currentRecordsQuery: { page: records.page, limit: records.limit },
-        },
-      }
-    },
-
-    conversationRunsComparison(
-      recordsByRunId: Record<string, EvaluationConversationRunRecord[]>,
-    ): StoryPreloadedState {
-      return {
-        conversationRuns: {
-          // Seed the run ids too so the route's setComparisonRunIds sees the
-          // same comparison and does not reset the seeded records on mount.
-          comparisonRunIds: Object.keys(recordsByRunId),
-          comparisonRecords: ads.fulfilled(recordsByRunId),
-        },
-      }
-    },
-
-    extractionDatasets(
-      datasets: EvaluationExtractionDataset[],
-      options: { currentId?: string | null; files?: EvaluationExtractionDatasetFile[] } = {},
-    ): StoryPreloadedState {
-      const currentId = options.currentId ?? null
-      // The datasets route also gates on the uploaded files, which only its mount
-      // middleware loads: stories run without middleware, so they are seeded here.
-      const files = options.files ?? []
-      return mergeSeeds(
-        { extractionDatasets: { data: ads.fulfilled(datasets), files: ads.fulfilled(files) } },
-        { currentIds: { datasetId: currentId } },
-      )
-    },
-
-    extractionDatasetRecords(
-      records: PaginatedEvaluationExtractionDatasetRecords,
-    ): StoryPreloadedState {
-      return { extractionDatasets: { records: ads.fulfilled(records) } }
-    },
-
-    extractionRuns(
-      runs: EvaluationExtractionRun[],
-      options: { currentId?: string | null } = {},
-    ): StoryPreloadedState {
-      const currentId = options.currentId ?? null
-      const currentRun = runs.find((run) => run.id === currentId)
-      return mergeSeeds(
-        { extractionRuns: { data: ads.fulfilled(runs), currentRunId: currentId } },
-        currentRun ? { extractionRuns: { currentRun: ads.fulfilled(currentRun) } } : {},
-        { currentIds: { runId: currentId } },
-      )
-    },
-
-    extractionRunsComparison(
-      recordsByRunId: Record<string, EvaluationExtractionRunRecord[]>,
-    ): StoryPreloadedState {
-      return {
-        extractionRuns: {
-          // Seed the run ids too so the route's setComparisonRunIds sees the
-          // same comparison and does not reset the seeded records on mount.
-          comparisonRunIds: Object.keys(recordsByRunId),
-          comparisonRecords: ads.fulfilled(recordsByRunId),
-        },
-      }
-    },
-  },
-
-  tester: {
-    myCampaigns(campaigns: MyReviewCampaign[]): StoryPreloadedState {
-      return { reviewCampaignsTester: { myCampaigns: ads.fulfilled(campaigns) } }
-    },
-
-    context(context: TesterContext): StoryPreloadedState {
-      return { reviewCampaignsTester: { testerContext: ads.fulfilled(context) } }
-    },
-
-    campaignSurvey(survey: TesterCampaignSurvey | null): StoryPreloadedState {
-      return { reviewCampaignsTester: { campaignSurvey: ads.fulfilled(survey) } }
-    },
-
-    campaignSessions(sessions: MyTesterSessionSummary[]): StoryPreloadedState {
-      return { reviewCampaignsTester: { campaignSessions: ads.fulfilled(sessions) } }
     },
   },
 }

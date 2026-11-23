@@ -136,7 +136,7 @@ describe("the app's home", () => {
     const world = buildSeveralProjectsWorld()
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world, "Writing Helper"))
-    expect(await screen.findByText("Evaluations are not here yet")).toBeInTheDocument()
+    expect(await screen.findByText("No dataset yet")).toBeInTheDocument()
 
     await userEvent.keyboard(COMMAND_CENTER_SHORTCUT)
     const dialog = await screen.findByRole("dialog", { name: "Switch agent" })
@@ -222,12 +222,51 @@ describe("the sections of an agent", () => {
     expect(sectionLinks()).toEqual(["Campaigns"])
   })
 
+  it("folds Campaigns on a page of Evaluations, and Evaluations on a page of Campaigns", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    renderApp(evaluationsUrlOf(world))
+
+    const evaluations = await screen.findByRole("button", { name: "Evaluations" })
+    expect(evaluations).toHaveAttribute("aria-expanded", "true")
+    expect(screen.getByRole("button", { name: "Campaigns" })).not.toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+
+    await userEvent.click(screen.getByRole("button", { name: "Campaigns" }))
+    await userEvent.click(await screen.findByRole("link", { name: "List all" }))
+    expect(await screen.findByRole("heading", { name: "Campaigns" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Campaigns" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+    expect(screen.getByRole("button", { name: "Evaluations" })).not.toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+  })
+
+  it("opens the dialog of a new dataset from the sidebar, and closes it with its URL", async () => {
+    const world = buildEvalWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(evaluationsUrlOf(world))
+
+    await userEvent.click(await screen.findByRole("link", { name: "New dataset" }))
+    const dialog = await screen.findByRole("dialog", { name: "New dataset" })
+    expect(router.state.location.search).toEqual({ create: true })
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }))
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
+    expect(router.state.location.search).toEqual({})
+  })
+
   it("opens on the evaluations of an agent that opens nothing else", async () => {
     const world = buildSeveralProjectsWorld()
     server.use(...worldHandlers(world))
     renderApp(agentUrlOf(world, "Helpful Assistant"))
 
-    expect(await screen.findByText("Evaluations are not here yet")).toBeInTheDocument()
+    expect(await screen.findByText("No dataset yet")).toBeInTheDocument()
     expect(sectionLinks()).toEqual(["Evaluations"])
   })
 

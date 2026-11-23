@@ -1,4 +1,3 @@
-export { defaultCampaignValues } from "./campaign-defaults"
 export { CampaignPage } from "./components/CampaignPage"
 export { CampaignPageFrame } from "./components/CampaignPageFrame"
 export { CampaignsPage } from "./components/CampaignsPage"
@@ -8,7 +7,9 @@ export { NewCampaignPage } from "./components/NewCampaignPage"
 export {
   hasCampaignPages,
   loadCampaign,
+  loadCampaignSetup,
   loadCampaigns,
+  loadNewCampaign,
   prefetchCampaigns,
   requireCampaignAgent,
 } from "./load-campaigns"

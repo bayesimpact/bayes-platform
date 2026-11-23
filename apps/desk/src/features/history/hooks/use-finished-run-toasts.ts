@@ -23,6 +23,7 @@ export function useFinishedRunToasts(agent: HistoryAgent, entries: HistoryEntry[
   // The states of the last render, `null` until the history first loads.
   const previousStatesRef = useRef<Map<string, HistoryEntryState> | null>(null)
 
+  // A toast is outside React: an effect shows one per run that ends, not one per render.
   useEffect(() => {
     const states = new Map(
       entries.flatMap((entry) => (entry.kind === "conversation" ? [] : [[entry.id, entry.state]])),

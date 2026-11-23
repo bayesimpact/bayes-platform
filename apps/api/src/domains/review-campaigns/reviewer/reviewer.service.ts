@@ -194,11 +194,11 @@ export class ReviewerService {
       organizationId: campaign.organizationId,
       projectId: campaign.projectId,
     }
-    // The reviewer context must describe the published settings, not the draft an
-    // author may be editing in the agent editor (#636).
-    const agentSettings = await this.agentSettingsService.getProduction({
+    // The reviewer context describes the version the campaign runs on, not the draft an author
+    // may be editing in the agent editor (#636) nor a later version put in production.
+    const agentSettings = await this.agentSettingsService.getById({
       connectScope,
-      agentId: campaign.agentId,
+      agentSettingsId: campaign.agentSettingsId,
     })
     // Loads everything we need in parallel. Redaction happens below based on
     // whether the caller has already reviewed.

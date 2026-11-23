@@ -1,5 +1,5 @@
-import { Trans, useLingui } from "@lingui/react/macro"
-import { fullDateOf } from "@/lib/format-time"
+import { Trans } from "@lingui/react/macro"
+import { TimeAgo } from "./TimeAgo"
 
 export type CampaignDescriptionProps = {
   description: string | null
@@ -7,20 +7,21 @@ export type CampaignDescriptionProps = {
   createdAt?: number
 }
 
-/** What a campaign is for, then the day it was created: the description of its page's header. */
+/**
+ * What a campaign is for, then how long ago it was created, with the full date and time on
+ * hover: the description of its page's header.
+ */
 export function CampaignDescription({ description, createdAt }: CampaignDescriptionProps) {
-  const { i18n } = useLingui()
-  const createdOn = createdAt === undefined ? null : fullDateOf(createdAt, i18n.locale)
   return (
     <>
       {description}
-      {createdOn ? (
+      {createdAt === undefined ? null : (
         <span className="block text-sm">
-          <Trans comment="When a review campaign was created, such as: Created Nov 19, 2026">
-            Created {createdOn}
+          <Trans comment="When a review campaign was created, such as: Created 5 days ago">
+            Created <TimeAgo moment={createdAt} />
           </Trans>
         </span>
-      ) : null}
+      )}
     </>
   )
 }

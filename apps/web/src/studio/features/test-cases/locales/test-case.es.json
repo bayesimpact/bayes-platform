@@ -41,6 +41,7 @@
       "recordCount_many": "{{count}} registros",
       "newDataset": "Nuevo conjunto de datos",
       "newDatasetName": "Nombre del nuevo conjunto de datos",
+      "newDatasetNamePlaceholder": "Introduzca el nombre del conjunto de datos",
       "newDatasetSuffix": "{{name}} (nuevo)",
       "nameTooShort": "El nombre de un conjunto de datos necesita al menos {{count}} caracteres."
     },

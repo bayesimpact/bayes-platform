@@ -1,0 +1,8 @@
+language js
+
+// TanStack Table reads a new array as new data: one made at each render, by a call or a
+// literal, sends the table into a loop of renders.
+`useReactTable($options)` as $call where {
+  $options <: contains `data: $data` where { $data <: r"(?s).*(?:\(|\[).*" },
+  register_diagnostic(span=$call, message="Give `useReactTable` the same `data` array from one render to the next: a name bound to the query's data, a `useMemo`, or a constant for the empty case. An array made in the options (a call such as `.filter()`, or a literal) is new at each render and loops the table.", severity="error")
+}

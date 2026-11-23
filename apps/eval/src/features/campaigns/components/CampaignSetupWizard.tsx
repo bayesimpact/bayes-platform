@@ -9,6 +9,7 @@ import { HeaderActions } from "@/components/shared/HeaderActions"
 import { SidePanelToggle } from "@/components/shared/SidePanelToggle"
 import { SplitPage } from "@/components/shared/SplitPage"
 import type { EvaluationAgent } from "@/features/agents"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useUpdateCampaign } from "../api/mutations"
 import { campaignQueryOptions } from "../api/queries"
@@ -62,12 +63,13 @@ export function CampaignSetupWizard({
   const { t } = useLingui()
   const navigate = useNavigate()
   const { data: campaign } = useSuspenseQuery(campaignQueryOptions(campaignParams))
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
   const updateCampaign = useUpdateCampaign(campaignParams)
   const form = useForm({
     resolver: zodResolver(campaignFormSchema),
     // The form follows the campaign as the API returns it, after each save; a read of the
     // campaign in the background keeps what the person is writing.
-    values: campaignFormValuesOf(campaign),
+    values: campaignFormValuesOf(campaign, versions),
     resetOptions: { keepDirtyValues: true },
   })
   const isDraft = campaign.status === "draft"
@@ -80,7 +82,7 @@ export function CampaignSetupWizard({
   // keeps what the person wrote, but not the form's own sense of what changed.
   const hasUnsavedChanges = () =>
     JSON.stringify(campaignConfigInputOf(form.getValues())) !==
-    JSON.stringify(campaignConfigInputOf(campaignFormValuesOf(campaign)))
+    JSON.stringify(campaignConfigInputOf(campaignFormValuesOf(campaign, versions)))
   /** Saves what changed, if anything, then does what follows. */
   const saveThen = (then: () => void) => {
     if (!hasUnsavedChanges()) return then()
@@ -152,7 +154,12 @@ export function CampaignSetupWizard({
         }
       >
         {step === "campaign" ? (
-          <CampaignGeneralFields form={form} agentName={agent.name} isLocked={false} />
+          <CampaignGeneralFields
+            form={form}
+            agentName={agent.name}
+            agentParams={agentParams}
+            isLocked={false}
+          />
         ) : null}
         {step === "session" ? (
           <QuestionListEditor

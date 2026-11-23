@@ -1,17 +1,21 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { BackLink } from "@/components/shared/BackLink"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
 import type { EvaluationAgent } from "@/features/agents"
+import { agentVersionsQueryOptions } from "@/features/agents"
 import { ApiError } from "@/lib/api-client"
 import { useCreateCampaign } from "../api/mutations"
+import { defaultCampaignValues } from "../campaign-defaults"
 import { campaignConfigInputOf } from "../campaign-form"
-import { type CampaignFormValues, campaignFormSchema } from "../schemas"
+import { campaignFormSchema } from "../schemas"
 import { SETUP_STEP_FIELDS } from "../setup-steps"
 import { CampaignGeneralFields } from "./CampaignGeneralFields"
 import { SetupStepFooter } from "./SetupStepFooter"
@@ -20,16 +24,18 @@ import { SetupStepper } from "./SetupStepper"
 export type NewCampaignPageProps = {
   agent: EvaluationAgent
   agentParams: AgentParamsDto
-  /** The setup a new campaign starts from, in the person's language. */
-  defaultValues: CampaignFormValues
 }
 
 /**
- * The first step of a new campaign: its name and what it is for. The next one creates it as a
- * draft, with the default questions, and opens its second step.
+ * The first step of a new campaign: its name, what it is for and the version of the agent it runs
+ * on. The next one creates it as a draft, with the default questions, and opens its second step.
  */
-export function NewCampaignPage({ agent, agentParams, defaultValues }: NewCampaignPageProps) {
-  const { t } = useLingui()
+export function NewCampaignPage({ agent, agentParams }: NewCampaignPageProps) {
+  const { i18n, t } = useLingui()
+  const { data: versions } = useSuspenseQuery(agentVersionsQueryOptions(agentParams))
+  // Built once: the default questions get their ids here, and keep them while the person edits.
+  // The campaign runs on the version in production unless the person picks another.
+  const [defaultValues] = useState(() => defaultCampaignValues(i18n, agent.name, versions))
   const navigate = useNavigate()
   const createCampaign = useCreateCampaign(agentParams)
   const form = useForm({ resolver: zodResolver(campaignFormSchema), defaultValues })
@@ -78,7 +84,12 @@ export function NewCampaignPage({ agent, agentParams, defaultValues }: NewCampai
       />
       {/* The campaign does not exist yet: no other step opens before the first one is done. */}
       <SetupStepper currentStep="campaign" canOpen={() => false} onOpen={() => {}} />
-      <CampaignGeneralFields form={form} agentName={agent.name} isLocked={false} />
+      <CampaignGeneralFields
+        form={form}
+        agentName={agent.name}
+        agentParams={agentParams}
+        isLocked={false}
+      />
       <SetupStepFooter onNext={() => void handleNext()} isPending={createCampaign.isPending} />
     </PageContainer>
   )

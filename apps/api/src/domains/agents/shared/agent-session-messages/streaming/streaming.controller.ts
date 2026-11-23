@@ -40,9 +40,14 @@ export abstract class StreamingController {
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
   ) {}
 
+  /**
+   * `pinnedAgentSettingsId` is the version a session must run on whatever runs in production: a
+   * review campaign's tester session runs the version its campaign chose.
+   */
   protected handleStream(
     request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     body: unknown,
+    pinnedAgentSettingsId?: string,
   ): Observable<MessageEvent> {
     if (request.agentSession.type !== this.type) throw new NotFoundException()
 
@@ -71,12 +76,18 @@ export abstract class StreamingController {
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
-          const agentSettings = await this.agentSettingsService.getForSession({
-            connectScope,
-            agentId: agent.id,
-            sessionType: session.type,
-            revision: agentSettingsRevision,
-          })
+          const agentSettings =
+            pinnedAgentSettingsId !== undefined
+              ? await this.agentSettingsService.getById({
+                  connectScope,
+                  agentSettingsId: pinnedAgentSettingsId,
+                })
+              : await this.agentSettingsService.getForSession({
+                  connectScope,
+                  agentId: agent.id,
+                  sessionType: session.type,
+                  revision: agentSettingsRevision,
+                })
 
           // The agent in control answers: the session's agent, or the
           // sub-agent a handoff gave the conversation to. Re-read after each

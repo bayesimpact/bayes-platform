@@ -21,9 +21,6 @@ const resource = resourceLibrary.extend("/resources/:resourceId")
 const projectAnalytics = project.extend("/analytics")
 const projectMemberships = project.extend("/members")
 const projectMembership = projectMemberships.extend("/:memberUserId")
-const reviewCampaigns = project.extend("/review-campaigns")
-const reviewCampaign = reviewCampaigns.extend("/:reviewCampaignId")
-const reviewCampaignReport = reviewCampaign.extend("/report")
 const projectAdmin = project.extend("/admin")
 
 // AGENT-LEVEL
@@ -66,9 +63,6 @@ export const StudioRoutes = {
   resourceLibrary,
   resourceLibraryNew,
   resourceNew,
-  reviewCampaign,
-  reviewCampaignReport,
-  reviewCampaigns,
 }
 
 // FIXME: to be removed (alexis)

@@ -138,6 +138,44 @@ describe("EvaluationExtractionRuns - getRecords", () => {
     expect(res.body.data.limit).toBe(10)
   })
 
+  it("should order records with the same sort value by their dataset record", async () => {
+    const { organization, project, dataset, run } = await createContext()
+    const datasetRecords = evaluationExtractionDatasetRecordFactory
+      .transient({ organization, project, evaluationExtractionDataset: dataset })
+      .buildList(3, { data: { col1: "same value" } })
+    await setup.getRepository(EvaluationExtractionDatasetRecord).save(datasetRecords)
+    const sortedDatasetRecordIds = datasetRecords.map((record) => record.id).sort()
+    // Saved in the reverse order: the order of the rows on disk is not the one expected.
+    for (const datasetRecordId of [...sortedDatasetRecordIds].reverse()) {
+      const datasetRecord = datasetRecords.find((record) => record.id === datasetRecordId)!
+      await setup.getRepository(EvaluationExtractionRunRecord).save(
+        evaluationExtractionRunRecordFactory
+          .transient({
+            organization,
+            project,
+            evaluationExtractionRun: run,
+            evaluationExtractionDatasetRecord: datasetRecord,
+          })
+          .build({ status: "match" }),
+      )
+    }
+
+    const res = await request({
+      route: EvaluationExtractionRunsRoutes.getRecords,
+      pathParams: removeNullish({ organizationId, projectId, evaluationExtractionRunId }),
+      token: accessToken,
+      query: { sortBy: "input_col1", sortOrder: "asc", columnFilters: '{"input_col1":"same"}' },
+    })
+
+    expectResponse(res, 200)
+    expect(
+      res.body.data.records.map(
+        (record: { evaluationExtractionDatasetRecordId: string }) =>
+          record.evaluationExtractionDatasetRecordId,
+      ),
+    ).toEqual(sortedDatasetRecordIds)
+  })
+
   it("should return empty list when no records exist", async () => {
     const { organization, project, dataset, agent, agentSettings } = await createContext()
 

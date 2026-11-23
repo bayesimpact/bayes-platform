@@ -1,7 +1,13 @@
 import { z } from "zod"
-import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
+import {
+  AGENT_PATH,
+  agentParamsSchema,
+  PROJECT_PATH,
+  projectParamsSchema,
+} from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
-import { projectAgentOutputSchema } from "./agents.dto"
+import { agentModelsOutputSchema } from "./agent-versions.dto"
+import { agentVersionOutputSchema, projectAgentOutputSchema } from "./agents.dto"
 
 export const EvalAgentsRoutes = {
   /**
@@ -14,5 +20,19 @@ export const EvalAgentsRoutes = {
     path: `${PROJECT_PATH}/agents`,
     params: projectParamsSchema,
     response: z.array(projectAgentOutputSchema),
+  }),
+  /** The versions of an agent's settings, the draft included: `agent.settings.read`. */
+  getVersions: defineSchemaRoute({
+    method: "get",
+    path: `${AGENT_PATH}/settings`,
+    params: agentParamsSchema,
+    response: z.array(agentVersionOutputSchema),
+  }),
+  /** The models of a project, available or not, and its default judge. */
+  getModels: defineSchemaRoute({
+    method: "get",
+    path: `${PROJECT_PATH}/agent-models`,
+    params: projectParamsSchema,
+    response: agentModelsOutputSchema,
   }),
 }
