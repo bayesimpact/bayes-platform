@@ -1,16 +1,9 @@
 import type { McpServerAuthStatus } from "@caseai-connect/api-contracts"
 import { ForbiddenException, Injectable, Logger } from "@nestjs/common"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ConfigService } from "@nestjs/config"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, IsNull, type Repository } from "typeorm"
-import { isGoogleIamAuthEnabled } from "@/external/google-iam"
 import { AgentMcpServer } from "./agent-mcp-server.entity"
-import {
-  BUILT_IN_PRESET_SLUGS,
-  isBuiltInMcpServer,
-  PDF_EXPORT_PRESET_SLUG,
-} from "./built-in/built-in-mcp-servers"
+import { BUILT_IN_PRESET_SLUGS, isBuiltInMcpServer } from "./built-in/built-in-mcp-servers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
@@ -38,7 +31,6 @@ export class McpServersService {
     private readonly agentMcpServerRepository: Repository<AgentMcpServer>,
     private readonly encryptionService: EncryptionService,
     private readonly mcpOauthService: McpOauthService,
-    private readonly configService: ConfigService,
   ) {}
 
   async getEnabledServersForAgent(agentId: string): Promise<EnabledMcpServer[]> {
@@ -64,7 +56,7 @@ export class McpServersService {
   private async toEnabledServerIfUsable(mcpServer: McpServer): Promise<EnabledMcpServer | null> {
     const { oauth, ...config } = this.decryptConfig(mcpServer)
     const usesOauth = oauth !== undefined || config.authMethod === "oauth"
-    if (!usesOauth) return this.toEnabledServer(mcpServer, config)
+    if (!usesOauth) return { id: mcpServer.id, ...config }
 
     const accessToken = oauth
       ? await this.mcpOauthService.getValidAccessToken(mcpServer.id, oauth)
@@ -75,7 +67,7 @@ export class McpServersService {
       )
       return null
     }
-    return this.toEnabledServer(mcpServer, { ...config, apiKey: accessToken })
+    return { id: mcpServer.id, ...config, apiKey: accessToken }
   }
 
   async createPreset(slug: string, name: string, config: McpServerConfig): Promise<McpServer> {
@@ -172,22 +164,6 @@ export class McpServersService {
     if (config.oauth || config.authMethod === "oauth") return "oauthPending"
     if (config.apiKey) return "apiKey"
     return "none"
-  }
-
-  /**
-   * The built-in PDF export server runs on Cloud Run behind invoker IAM in
-   * production: its audience is the service root URL, and the MCP client mints
-   * an ID token for it. Custom servers keep their own configured auth.
-   */
-  private toEnabledServer(mcpServer: McpServer, config: McpServerConfig): EnabledMcpServer {
-    const usesGoogleIam =
-      mcpServer.presetSlug === PDF_EXPORT_PRESET_SLUG &&
-      isGoogleIamAuthEnabled(this.configService.get<string>("PDF_CONVERTER_AUTH"))
-    return {
-      id: mcpServer.id,
-      ...config,
-      ...(usesGoogleIam ? { googleIamAudience: new URL(config.url).origin } : {}),
-    }
   }
 
   private decryptConfig(mcpServer: McpServer): McpServerConfig {

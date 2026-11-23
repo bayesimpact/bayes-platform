@@ -1,4 +1,3 @@
-import { GoogleIdTokenService } from "@/external/google-iam"
 import type { IFileStorage } from "../storage/file-storage.interface"
 import { PdfConverterClient } from "./pdf-converter.client"
 import { PdfHasNoPagesError } from "./pdf-has-no-pages.error"
@@ -6,7 +5,7 @@ import { PdfPageLimitExceededError } from "./pdf-page-limit-exceeded.error"
 import { PdfPagesService } from "./pdf-pages.service"
 
 describe("PdfPagesService", () => {
-  const buildService = () => new PdfPagesService(new PdfConverterClient(new GoogleIdTokenService()))
+  const buildService = () => new PdfPagesService(new PdfConverterClient())
 
   const buildFileStorageService = () =>
     ({

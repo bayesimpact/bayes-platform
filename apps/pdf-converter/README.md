@@ -41,7 +41,7 @@ Errors are:
 that lets an agent turn markdown into a downloadable PDF. `GET` and `DELETE /mcp` return
 `405 Method Not Allowed` with `Allow: POST` — there is no session to resume, every call
 is self-contained. The endpoint has no auth of its own: it is protected the same way as
-the rest of the service, by Cloud Run invoker IAM.
+the rest of the service (see [Authentication](#authentication)).
 
 ### Tool: `convert_markdown_to_pdf`
 
@@ -166,12 +166,9 @@ curl -sS -X POST "http://localhost:3002/mcp" \
 
 ## Authentication
 
-The app itself has no auth layer. In production the Cloud Run service runs
-with invoker IAM enabled: only identities holding `roles/run.invoker` (the
-platform's api service account) can reach the container, and callers must
-send a Google ID token minted for the service URL — the main API does this
-when `PDF_CONVERTER_AUTH=google-iam` is set (Terraform sets it). Locally the
-service is only bound on the developer's machine.
+The app itself has no auth layer, and the API sends no auth header. The Helm
+chart exposes it only inside the cluster (a `ClusterIP` service, no ingress).
+Locally the service is only bound on the developer's machine.
 
 ## Environment variables
 
@@ -209,8 +206,6 @@ To make the main API use it locally, set in `apps/api/.env`:
 ```
 PDF_CONVERTER_URL=http://localhost:3002
 ```
-
-(Leave `PDF_CONVERTER_AUTH` unset locally — no auth header is sent.)
 
 ## Tests
 
