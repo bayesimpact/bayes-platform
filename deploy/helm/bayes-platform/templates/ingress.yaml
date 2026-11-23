@@ -32,6 +32,15 @@ Both carry ingress.apiAnnotations (uploads, long answers).
   {{- if ne $apiHost $webHost }}
   {{- $rules = append $rules (dict "name" (printf "%s-host-healthz" $apiService) "component" "api" "host" $apiHost "paths" (list "/api/healthz") "pathType" "Exact" "noTLS" true "service" $apiService "port" .Values.api.port "annotations" $healthzAnnotations) }}
   {{- end }}
+  {{- /*
+  The sandbox of MCP App cards (urls.mcpAppSandbox): a wildcard host on a domain apart from
+  the platform's, one label per MCP server. It reaches the API for one exact path, the sandbox
+  page of the web front's build, and nothing else: no front, no API.
+  */}}
+  {{- with .Values.urls.mcpAppSandbox }}
+  {{- $sandboxHost := include "bayes-platform.host" . | replace "{label}" "*" }}
+  {{- $rules = append $rules (dict "name" (printf "%s-mcp-app-sandbox" $apiService) "component" "api" "host" $sandboxHost "paths" (list "/mcp-app-sandbox.html") "pathType" "Exact" "tlsSecret" $root.Values.ingress.mcpAppSandboxTlsSecret "service" $apiService "port" $root.Values.api.port "annotations" $root.Values.ingress.mcpAppSandboxAnnotations) }}
+  {{- end }}
 {{- end }}
 {{- if .Values.webEmbed.enabled }}
   {{- $s := include "bayes-platform.componentName" (dict "root" $root "component" "web-embed") }}
@@ -57,7 +66,7 @@ metadata:
     {{- include "bayes-platform.labels" $root | nindent 4 }}
     app.kubernetes.io/component: {{ $rule.component }}
   annotations:
-    {{- if and $root.Values.ingress.clusterIssuer (not $rule.noTLS) }}
+    {{- if and $root.Values.ingress.clusterIssuer (not $rule.noTLS) (not $rule.tlsSecret) }}
     cert-manager.io/cluster-issuer: {{ $root.Values.ingress.clusterIssuer }}
     {{- end }}
     {{- with $root.Values.ingress.annotations }}
@@ -73,11 +82,11 @@ spec:
   {{- if and $root.Values.ingress.tls (not $rule.noTLS) }}
   tls:
     - hosts:
-        - {{ $rule.host }}
-      secretName: {{ $rule.name }}-tls
+        - {{ $rule.host | quote }}
+      secretName: {{ $rule.tlsSecret | default (printf "%s-tls" $rule.name) }}
   {{- end }}
   rules:
-    - host: {{ $rule.host }}
+    - host: {{ $rule.host | quote }}
       http:
         paths:
           {{- range $path := $rule.paths }}

@@ -1,0 +1,32 @@
+{
+  "agentSessionMessage": {
+    "attachment": "Archivo adjunto",
+    "followUpQuestions": "Preguntas sugeridas",
+    "navigator": {
+      "title": "Ir a un mensaje",
+      "trigger": "Ir a un mensaje",
+      "search": "Buscar preguntas…",
+      "empty": "Ninguna pregunta coincide"
+    },
+    "thinking": {
+      "0": "Pensando…",
+      "1": "Sigo pensando…",
+      "2": "Analizándolo…",
+      "3": "Atando cabos…",
+      "4": "Uniendo las piezas…",
+      "5": "Empezando a escribir…"
+    },
+    "interrupted": "Esta respuesta se interrumpió antes de terminar.",
+    "mcpApp": {
+      "loading": "Cargando tarjeta interactiva…"
+    },
+    "steps": {
+      "working_one": "Trabajando en {{count}} paso",
+      "working_many": "Trabajando en {{count}} pasos",
+      "working_other": "Trabajando en {{count}} pasos",
+      "summary_one": "{{count}} paso completado",
+      "summary_many": "{{count}} pasos completados",
+      "summary_other": "{{count}} pasos completados"
+    }
+  }
+}

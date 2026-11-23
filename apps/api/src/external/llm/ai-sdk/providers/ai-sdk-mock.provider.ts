@@ -8,6 +8,7 @@ import type {
   LLMCallContext,
   LLMChatMessage,
   LLMConfig,
+  LLMServiceTier,
   MockValue,
 } from "@/common/interfaces/llm-provider.interface"
 import { generateRandomFromJSONSchema } from "@/common/test/random-generator"
@@ -22,6 +23,8 @@ import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-
 export type MockCall = {
   agentId: string | undefined
   callOrigin: CallOrigin
+  serviceTier: LLMServiceTier
+
   prompt: string
   /** Names of the tools DECLARED to the model for this generation. */
   toolNames: string[]
@@ -93,6 +96,13 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
   addErrorTurn(agentId: string, error: Error): void {
     this.enqueue(agentId, [{ type: "error", error }])
   }
+  /** The next `times` generations fail, each with a freshly built error. */
+  addErrorTurns(agentId: string, times: number, buildError: () => Error): void {
+    this.enqueue(
+      agentId,
+      Array.from({ length: times }, () => ({ type: "error" as const, error: buildError() })),
+    )
+  }
   private enqueue(agentId: string, values: MockValue[]): void {
     const queue = this.queuesByAgentId.get(agentId) ?? []
     queue.push(...values)
@@ -153,6 +163,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
   }
 
   getLanguageModel({
+    config,
     callOrigin,
     callContext,
   }: {
@@ -167,7 +178,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
       // are signed storage URLs that are unreachable from the test process.
       supportedUrls: { "*/*": [/.*/] },
       doGenerate: async (options) => {
-        const resolved = this.resolve({ mode: "generate", callOrigin, agentId, options })
+        const resolved = this.resolve({ mode: "generate", config, callOrigin, agentId, options })
         if (resolved.type === "error") throw resolved.error
         if (resolved.type === "malformedToolCall") {
           throw new Error("malformed tool call turns are only supported in stream mode")
@@ -200,7 +211,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
         }
       },
       doStream: async (options) => {
-        const resolved = this.resolve({ mode: "stream", callOrigin, agentId, options })
+        const resolved = this.resolve({ mode: "stream", config, callOrigin, agentId, options })
         if (resolved.type === "error") throw resolved.error
         return {
           stream:
@@ -218,11 +229,13 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
 
   private resolve({
     mode,
+    config,
     callOrigin,
     agentId,
     options,
   }: {
     mode: "generate" | "stream"
+    config: LLMConfig
     callOrigin: CallOrigin
     agentId: string
     options: LanguageModelV3CallOptions
@@ -230,6 +243,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
     this.calls.push({
       agentId,
       callOrigin,
+      serviceTier: config.serviceTier,
       prompt: JSON.stringify(options.prompt),
       toolNames: (options.tools ?? []).map((declaredTool) => declaredTool.name),
       toolSchemas: Object.fromEntries(

@@ -32,15 +32,21 @@ function getRowColor(row: CategoryRankingRow): string {
 
 function formatDateTick(dateString: string): string {
   const date = new Date(dateString)
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  return date.toLocaleDateString(document.documentElement.lang || undefined, {
+    month: "short",
+    day: "numeric",
+  })
 }
 
 function formatTooltipDate(labelValue: React.ReactNode): string {
-  return new Date(String(labelValue)).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return new Date(String(labelValue)).toLocaleDateString(
+    document.documentElement.lang || undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    },
+  )
 }
 
 function formatShare(share: number): string {

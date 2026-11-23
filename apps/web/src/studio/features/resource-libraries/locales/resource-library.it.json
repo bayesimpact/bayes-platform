@@ -1,0 +1,80 @@
+{
+  "resourceLibrary": {
+    "title": "Librerie di risorse",
+    "description": "Raggruppa le risorse che l'assistente può proporre agli utenti.",
+    "empty": "Ancora nessuna libreria di risorse. Creane una per permettere agli agenti di questo progetto di proporre risorse.",
+    "resourceCount_one": "{{count}} risorsa",
+    "resourceCount_other": "{{count}} risorse",
+    "resourceCount_many": "{{count}} risorse",
+    "manage": "Gestisci librerie",
+    "actions": {
+      "newLibrary": "Nuova libreria"
+    },
+    "table": {
+      "title": "Titolo",
+      "description": "Descrizione",
+      "link": "Link",
+      "actions": "Azioni"
+    },
+    "preview": {
+      "title": "Anteprima della risorsa"
+    },
+    "form": {
+      "titleLabel": "Titolo",
+      "titlePlaceholder": "Per iniziare",
+      "titleRequired": "Il titolo è obbligatorio",
+      "resources": "Risorse",
+      "noResources": "Ancora nessuna risorsa."
+    },
+    "resourceForm": {
+      "createTitle": "Nuova risorsa",
+      "editTitle": "Modifica risorsa",
+      "titleLabel": "Titolo",
+      "titlePlaceholder": "Titolo della risorsa",
+      "descriptionLabel": "Descrizione",
+      "descriptionPlaceholder": "Mostrata agli utenti nella scheda della risorsa",
+      "matchingHintsLabel": "Indicazioni di corrispondenza (non mostrate agli utenti)",
+      "matchingHintsPlaceholder": "Parole chiave, sinonimi o indicazioni \"da usare quando…\" che l'assistente usa per abbinare le richieste degli utenti",
+      "charactersUsed": "{{count}}/{{max}} caratteri",
+      "required": "Questo campo è obbligatorio"
+    },
+    "link": {
+      "url": "URL",
+      "file": "File caricato",
+      "urlPlaceholder": "https://example.com/resource",
+      "urlInvalid": "Inserisci un URL https:// valido"
+    },
+    "create": {
+      "title": "Nuova libreria di risorse"
+    },
+    "delete": {
+      "title": "Elimina libreria di risorse",
+      "description": "Eliminare \"{{title}}\"? Gli agenti che la usano perderanno l'accesso alle sue risorse."
+    },
+    "removeResource": {
+      "title": "Rimuovi risorsa",
+      "description": "Rimuovere \"{{title}}\" da questa libreria?"
+    },
+    "agentTab": {
+      "label": "Librerie di risorse",
+      "description": "L'assistente può proporre risorse delle librerie selezionate quando la richiesta di un utente corrisponde al titolo o alla descrizione di una risorsa."
+    },
+    "picker": {
+      "addLibrary": "Aggiungi libreria",
+      "searchPlaceholder": "Cerca librerie...",
+      "noResults": "Nessuna libreria trovata"
+    },
+    "notifications": {
+      "created": "Libreria di risorse creata",
+      "createError": "Creazione della libreria di risorse non riuscita",
+      "updated": "Libreria di risorse aggiornata",
+      "updateError": "Aggiornamento della libreria di risorse non riuscito",
+      "deleted": "Libreria di risorse eliminata",
+      "deleteError": "Eliminazione della libreria di risorse non riuscita",
+      "resourceSaved": "Risorsa salvata",
+      "resourceSaveError": "Salvataggio della risorsa non riuscito",
+      "resourceDeleted": "Risorsa eliminata",
+      "resourceDeleteError": "Eliminazione della risorsa non riuscita"
+    }
+  }
+}

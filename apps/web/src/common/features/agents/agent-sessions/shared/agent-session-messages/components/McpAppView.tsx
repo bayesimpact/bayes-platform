@@ -8,6 +8,7 @@ import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import { cn } from "@caseai-connect/ui/utils"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { runtimeConfig } from "@/config/runtime-config"
 
 const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
 const INITIAL_IFRAME_HEIGHT_PX = 72
@@ -43,6 +44,7 @@ export function McpAppPlaceholder({ className }: { className?: string }) {
 export function McpAppView({
   html,
   csp,
+  mcpServerId,
   toolInput,
   toolResult,
   onMessage,
@@ -51,6 +53,8 @@ export function McpAppView({
   html: string
   /** The domains the card declares. Without any, it runs with no network and no frame. */
   csp?: McpAppCsp
+  /** The MCP server the card comes from, which names the origin of its sandbox. */
+  mcpServerId?: string
   toolInput: unknown
   toolResult: unknown
   /**
@@ -94,6 +98,7 @@ export function McpAppView({
     const mounted = mountMcpApp(iframe, {
       html,
       csp,
+      sandbox: { template: runtimeConfig.mcpAppSandboxOrigin, key: mcpServerId },
       hostInfo: HOST_INFO,
       locale: localeRef.current,
       getToolData: () => ({ input: toolInput, result: toolResult }),
@@ -115,7 +120,7 @@ export function McpAppView({
       if (mountRef.current === mounted) mountRef.current = null
       mounted.unmount()
     }
-  }, [html, csp, toolInput, toolResult])
+  }, [html, csp, mcpServerId, toolInput, toolResult])
 
   if (hasFailed) return null
 

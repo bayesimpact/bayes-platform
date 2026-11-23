@@ -1,0 +1,50 @@
+{
+  "documentTag": {
+    "documentTag": "Tag",
+    "documentTags": "Tag",
+    "props": {
+      "name": "Nome",
+      "description": "Descrizione",
+      "parentTag": "Tag padre",
+      "tags": "Tag",
+      "placeholders": {
+        "name": "Nome del tag",
+        "description": "Descrizione facoltativa"
+      },
+      "validation": {
+        "nameRequired": "Il nome è obbligatorio",
+        "reservedName": "\"public-documents\" è un nome di tag riservato"
+      }
+    },
+    "sheet": {
+      "button": "Tag",
+      "title": "Tag",
+      "empty": "Ancora nessun tag"
+    },
+    "create": {
+      "button": "Crea tag",
+      "title": "Crea tag"
+    },
+    "edit": {
+      "title": "Modifica {{tagName}}"
+    },
+    "delete": {
+      "title": "Eliminare {{tagName}}?",
+      "description": "Questa azione non può essere annullata."
+    },
+    "publicDescription": "Quando un documento con questo tag compare come fonte in una conversazione in chat, l'utente può scaricarlo.",
+    "parentNone": "Nessuno",
+    "searchPlaceholder": "Cerca tag...",
+    "noTagsFound": "Nessun tag trovato",
+    "untagged": "Senza tag",
+    "addTag": "Aggiungi tag",
+    "notifications": {
+      "deleted": "Tag eliminato",
+      "deleteError": "Eliminazione del tag non riuscita",
+      "created": "Tag creato",
+      "createError": "Creazione del tag non riuscita",
+      "updated": "Tag aggiornato",
+      "updateError": "Aggiornamento del tag non riuscito"
+    }
+  }
+}

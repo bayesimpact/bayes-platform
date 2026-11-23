@@ -383,8 +383,8 @@ export class McpEvaluationToolsService {
 
   /**
    * The settings the run pins: a given published revision, or the one in production. The
-   * person must see the agent. A draft is never evaluated: a person who sees it is told so, and
-   * anyone else gets the same answer as for a missing version.
+   * person must see the agent. A draft is never evaluated: a person who reads the agent's
+   * settings is told so, and anyone else gets the same answer as for a missing version.
    */
   private async resolveAgentSettings(
     caller: McpCaller,
@@ -403,7 +403,7 @@ export class McpEvaluationToolsService {
         : await this.agentSettingsService.get({ connectScope, agentId, revision: agentRevision })
     if (!settings || settings.isArchived) return notFound
     if (!settings.isDraft) return { ok: true, value: settings }
-    return (await this.agentToolsService.canSeeDraft(caller.userId, agentId))
+    return (await this.agentToolsService.canReadSettings(caller.userId, agentId))
       ? { ok: false, error: EVALUATED_VERSION_IS_DRAFT_ERROR }
       : notFound
   }

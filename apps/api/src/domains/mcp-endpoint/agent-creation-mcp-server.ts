@@ -347,7 +347,7 @@ export function buildAgentCreationMcpServer({
     {
       title: "Get agent",
       description:
-        "Returns an agent with the settings (model, instructions, greeting) of its published version, of its draft when the user can see drafts, and the list of its versions. Read it before update_agent or run_evaluation.",
+        "Returns an agent with the settings (model, instructions, greeting) of its published version and of its draft, and the list of its versions. Only for the users who can read the agent's settings in the studio. Read it before update_agent or run_evaluation.",
       inputSchema: z.object({
         agentId: z.uuid().describe("Id of the agent, from list_agents."),
       }),

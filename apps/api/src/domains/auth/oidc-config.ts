@@ -63,8 +63,9 @@ export type OidcEmailLinkingPolicy = {
    */
   allowEmailLinking: boolean
   /**
-   * Links by email even when the provider does not say the email is verified.
-   * Only for a single-tenant provider fully controlled by the customer.
+   * Accepts a first sign-in, linked by email or new, even when the provider
+   * does not say the email is verified. Only for a single-tenant provider
+   * fully controlled by the customer.
    */
   trustUnverifiedEmail: boolean
 }

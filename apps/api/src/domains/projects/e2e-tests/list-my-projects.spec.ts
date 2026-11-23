@@ -16,7 +16,6 @@ import {
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
-  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN,
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
@@ -168,10 +167,7 @@ describe("Projects - getAllMine", () => {
     expectResponse(response, 200)
     expect(response.body.data.map((listedProject) => listedProject.id)).toEqual([project.id])
     expect(response.body.data[0]?.permissions).toEqual(
-      expect.arrayContaining([
-        DESK_UI_READ_PERMISSION,
-        AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
-      ]),
+      expect.arrayContaining([DESK_UI_READ_PERMISSION, TESTER_UI_READ_PERMISSION]),
     )
   })
 })

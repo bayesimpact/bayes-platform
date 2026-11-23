@@ -60,6 +60,10 @@ spec:
               value: {{ .Values.urls.webEmbed | quote }}
             - name: WEB_HELP_CENTER_URL
               value: {{ .Values.urls.help | quote }}
+            {{- with .Values.urls.mcpAppSandbox }}
+            - name: WEB_MCP_APP_SANDBOX_ORIGIN
+              value: {{ . | quote }}
+            {{- end }}
             {{- range $key, $value := .Values.web.env }}
             - name: {{ $key }}
               value: {{ $value | toString | quote }}
@@ -100,6 +104,10 @@ spec:
             # The Desk, served at /app, takes the same theme.
             - name: web-theme
               mountPath: {{ .Values.web.deskDistDir }}/theme
+              readOnly: true
+            # So does the Evaluation app, served at /eval.
+            - name: web-theme
+              mountPath: {{ .Values.web.evalDistDir }}/theme
               readOnly: true
             {{- end }}
           securityContext:

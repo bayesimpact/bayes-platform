@@ -1,0 +1,16 @@
+{
+  "oauthGrants": {
+    "title": "Połączone aplikacje",
+    "description": "Aplikacje, którym zezwolono na dostęp do Twoich projektów przez MCP.",
+    "empty": "Brak połączonych aplikacji. Aplikacje połączone przez MCP pojawią się tutaj.",
+    "unnamedApp": "Aplikacja bez nazwy",
+    "projects": "Projekty",
+    "permissions": "Uprawnienia",
+    "connectedOn": "Połączono {{date}}",
+    "lastUsed": "Ostatnio użyto {{since}}",
+    "neverUsed": "Nigdy nie użyto",
+    "revokeTitle": "Cofnąć dostęp aplikacji {{name}}?",
+    "revokeDescription": "{{name}} straci dostęp przy następnym żądaniu.",
+    "revokeError": "Nie udało się cofnąć dostępu. Spróbuj ponownie."
+  }
+}

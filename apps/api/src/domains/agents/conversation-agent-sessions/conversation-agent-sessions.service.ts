@@ -107,6 +107,24 @@ export class ConversationAgentSessionsService {
     })
   }
 
+  /** Whether a message of the session carries this attachment. */
+  async hasMessageWithAttachment({
+    agentSessionId,
+    attachmentDocumentId,
+    connectScope,
+  }: {
+    agentSessionId: string
+    attachmentDocumentId: string
+    connectScope: RequiredConnectScope
+  }): Promise<boolean> {
+    const [message] = await this.agentMessageConnectRepository.find(connectScope, {
+      where: { sessionId: agentSessionId, attachmentDocumentId },
+      select: { id: true },
+      take: 1,
+    })
+    return message !== undefined
+  }
+
   async getAllSessionsForAgent({
     connectScope,
     agentId,

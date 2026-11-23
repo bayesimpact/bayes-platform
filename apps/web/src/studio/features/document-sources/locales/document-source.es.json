@@ -1,0 +1,31 @@
+{
+  "documentSource": {
+    "title": "Externas",
+    "description": "Sincronice documentos desde aplicaciones externas con la base de conocimientos de sus agentes.",
+    "nav": "Externas",
+    "columns": {
+      "source": "Fuente",
+      "app": "Aplicación",
+      "tags": "Etiquetas",
+      "docs": "Docs",
+      "lastSync": "Última sincronización",
+      "status": "Estado"
+    },
+    "delete": {
+      "title": "¿Eliminar {{name}}?",
+      "description": "Se eliminarán la fuente y los documentos que le pertenecen."
+    },
+    "empty": {
+      "title": "Aún no hay fuentes externas",
+      "description": "Las fuentes aparecen aquí cuando una aplicación sincroniza documentos con este espacio de trabajo."
+    },
+    "legacyWebCrawl": {
+      "badge": "Antiguo rastreador web",
+      "title": "Algunas fuentes proceden del antiguo rastreador web",
+      "description": "Sus páginas siguen disponibles para sus agentes, pero ya nada las actualiza. Para modificar una de estas fuentes o volver a rastrear su sitio, póngase en contacto con nosotros."
+    },
+    "notifications": {
+      "tagsUpdateError": "No se pudieron actualizar las etiquetas de la fuente"
+    }
+  }
+}

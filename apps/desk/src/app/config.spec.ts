@@ -75,6 +75,13 @@ describe("the Desk's configuration", () => {
     expect(config).toMatchObject({ helpCenterUrl: "https://help.example.org" })
   })
 
+  it("reads the origin of the sandbox of MCP Apps, with its label placeholder", async () => {
+    const mcpAppSandboxOrigin = "https://{label}.usercontent.example"
+    const config = await readConfigWith({ injected: { mcpAppSandboxOrigin } })
+
+    expect(config).toMatchObject({ mcpAppSandboxOrigin })
+  })
+
   it("shows the deployed tag as the version, or else the short commit", async () => {
     const { displayedVersion } = await import("./config")
 
@@ -99,5 +106,8 @@ describe("the Desk's configuration", () => {
     await expect(
       readConfigWith({ injected: { helpCenterUrl: "javascript:alert(1)" } }),
     ).rejects.toThrow(/helpCenterUrl/)
+    await expect(
+      readConfigWith({ injected: { mcpAppSandboxOrigin: "https://{label}.example.org/cards" } }),
+    ).rejects.toThrow(/mcpAppSandboxOrigin/)
   })
 })

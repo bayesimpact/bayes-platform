@@ -86,6 +86,11 @@ msgstr "{name}, menu de {email}"
 msgid "{processed} of {total, plural, one {# row} other {# rows}}"
 msgstr "{processed} sur {total, plural, one {# ligne} other {# lignes}}"
 
+#. A project and its organization, above its agents in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "{projectName} · {organizationName}"
+msgstr "{projectName} · {organizationName}"
+
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
 msgstr "{rowCount, plural, one {Extraire la première ligne} other {Extraire les # premières lignes}}"
@@ -101,6 +106,11 @@ msgstr "{taskCount, plural, one {# tâche modifiée} other {# tâches modifiées
 #: src/features/conversation/components/Composer.tsx
 msgid "<0/> to send"
 msgstr "<0/> pour envoyer"
+
+#. A section of the list that switches agent: where its agents are, then their type
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "<0>{place}</0> · {typeName}"
+msgstr "<0>{place}</0> · {typeName}"
 
 #: src/features/conversation/components/Composer.tsx
 msgid "<0><1/><2/></0> for a new line"
@@ -175,10 +185,6 @@ msgstr "politique d’utilisation des systèmes d’intelligence artificielle"
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne relie pas une nouvelle connexion à un compte existant."
-
-#: src/components/shared/SignInProblemPage.tsx
-msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
-msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
 
 #. Opens a note on the passage of a reply the person selected
 #: src/features/conversation/components/SelectionActions.tsx
@@ -259,6 +265,10 @@ msgstr "Finalisation du formulaire"
 msgid "Contact your administrator."
 msgstr "Contactez votre administrateur."
 
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Conversation agents"
+msgstr "Agents de conversation"
+
 #. The copy button, once it copied its text
 #. The copy button, once it copied its text
 #: src/components/shared/CopyButton.tsx
@@ -307,9 +317,14 @@ msgid "CSV file"
 msgstr "Fichier CSV"
 
 #. The Control key of a keyboard
-#: src/components/shared/SidebarToggle.tsx
+#: src/components/shared/ShortcutHint.tsx
 msgid "Ctrl"
 msgstr "Ctrl"
+
+#. Marks the agent whose pages show, in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Current"
+msgstr "Actuel"
 
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Decline"
@@ -414,6 +429,11 @@ msgstr "Adresse email manquante"
 msgid "Enter"
 msgstr "Entrée"
 
+#. The Escape key of a keyboard
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Esc"
+msgstr "Échap"
+
 #: src/features/extraction/components/CsvRowScope.tsx
 msgid "Every row of the file"
 msgstr "Toutes les lignes du fichier"
@@ -436,6 +456,10 @@ msgstr "Extraire à nouveau"
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Extract every row"
 msgstr "Extraire toutes les lignes"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Extraction agents"
+msgstr "Agents d'extraction"
 
 #. A run that ended with an error
 #: src/lib/run-state.ts
@@ -639,7 +663,7 @@ msgstr "Page suivante"
 msgid "No"
 msgstr "Non"
 
-#: src/features/agents/components/AgentSwitcher.tsx
+#: src/features/agents/components/AgentCommandCenter.tsx
 msgid "No agent matches this search."
 msgstr "Aucun agent ne correspond à cette recherche."
 
@@ -881,13 +905,17 @@ msgstr "Enregistrer"
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
-#: src/features/agents/components/AgentSwitcher.tsx
+#: src/features/agents/components/AgentCommandCenter.tsx
 msgid "Search an agent"
 msgstr "Rechercher un agent"
 
-#: src/features/agents/components/AgentSwitcher.tsx
-msgid "Search an agent or a project"
-msgstr "Rechercher un agent ou un projet"
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent by its name, its project or its organization."
+msgstr "Rechercher un agent par son nom, son projet ou son organisation."
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent or a project…"
+msgstr "Rechercher un agent ou un projet…"
 
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Searching the knowledge base"
@@ -1029,6 +1057,10 @@ msgstr "Arrêtée"
 #: src/features/conversation/components/FollowUpQuestions.tsx
 msgid "Suggested questions"
 msgstr "Questions suggérées"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Switch agent"
+msgstr "Changer d'agent"
 
 #: src/features/agents/components/AgentSwitcher.tsx
 msgid "Switch agent, current agent: {agentName}"
@@ -1308,6 +1340,16 @@ msgstr "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en
 msgid "Ticked: {text}"
 msgstr "Cochée : {text}"
 
+#. What the arrow keys do in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to move"
+msgstr "pour se déplacer"
+
+#. What the Enter key does in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to open"
+msgstr "pour ouvrir"
+
 #: src/features/history/components/HistoryList.tsx
 msgid "Today"
 msgstr "Aujourd'hui"
@@ -1454,6 +1496,10 @@ msgstr "Votre retour n’a pas pu être envoyé. Réessayez."
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider did not share your email address with the Desk."
 msgstr "Votre fournisseur d’identité n’a pas transmis votre adresse email au Desk."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider has not verified your email address yet."
+msgstr "Votre fournisseur d’identité n’a pas encore vérifié votre adresse email."
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider refused the sign-in."

@@ -12,9 +12,7 @@ import {
   ArrowRightIcon,
   ChevronDownIcon,
   FlaskConicalIcon,
-  HatGlassesIcon,
   LayoutGridIcon,
-  ListChecksIcon,
   SettingsIcon,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -23,11 +21,9 @@ import type { OrganizationWithProjects } from "@/common/features/organizations/o
 import type { MyProject } from "@/common/features/projects/projects.models"
 import { useAbility } from "@/common/hooks/use-ability"
 import { DeskRoutes } from "@/common/routes/desk-routes"
+import { EvalRoutes } from "@/common/routes/eval-routes"
 import { toAppHref } from "@/config/runtime-config"
-import { EvalRoutes } from "@/eval/routes/helpers"
-import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import { TesterRoutes } from "@/tester/routes/helpers"
 
 export function WorkspaceItem({
   organization,
@@ -51,7 +47,7 @@ export function WorkspaceItem({
   )
 }
 
-type AppName = "desk" | "studio" | "eval" | "tester" | "reviewer"
+type AppName = "desk" | "studio" | "eval" | "campaigns"
 type AppData = {
   id: AppName
   path: string
@@ -130,14 +126,17 @@ function useAvailableApps({
   if (abilities.canAccessStudio({ projectId: project.id }))
     apps.push(getAppData({ app: "studio", organizationId, projectId: project.id, t }))
 
-  if (abilities.canAccessEvaluation({ projectId: project.id }))
+  const takesPartInCampaign =
+    abilities.canAccessTester({ projectId: project.id }) ||
+    abilities.canAccessReviewer({ projectId: project.id })
+
+  if (abilities.canAccessEvaluation({ projectId: project.id })) {
     apps.push(getAppData({ app: "eval", organizationId, projectId: project.id, t }))
-
-  if (abilities.canAccessTester({ projectId: project.id }))
-    apps.push(getAppData({ app: "tester", organizationId, projectId: project.id, t }))
-
-  if (abilities.canAccessReviewer({ projectId: project.id }))
-    apps.push(getAppData({ app: "reviewer", organizationId, projectId: project.id, t }))
+  } else if (takesPartInCampaign) {
+    // A person who only tests or reviews a campaign may have no agent in the Evaluation app: its
+    // home opens their campaign, where the project's URL would find nothing.
+    apps.push(getAppData({ app: "campaigns", organizationId, projectId: project.id, t }))
+  }
 
   return apps
 }
@@ -175,19 +174,12 @@ function getAppData({
         name: t("actions:goToEval"),
         icon: <FlaskConicalIcon />,
       }
-    case "tester":
+    case "campaigns":
       return {
-        id: "tester",
-        path: TesterRoutes.home.path,
-        name: t("actions:goToTester"),
-        icon: <ListChecksIcon />,
-      }
-    case "reviewer":
-      return {
-        id: "reviewer",
-        path: ReviewerRoutes.home.path,
-        name: t("actions:goToReviewer"),
-        icon: <HatGlassesIcon />,
+        id: "campaigns",
+        path: EvalRoutes.home.path,
+        name: t("actions:goToEval"),
+        icon: <FlaskConicalIcon />,
       }
   }
 }

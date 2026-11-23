@@ -1,1 +1,45 @@
 @import "tailwindcss";
+
+/* The dot-grid loader (chat/components/DotGrid.tsx): a wave runs across the grid from its
+   top-left corner, each dot growing and brightening in turn. */
+@keyframes embed-dot-wave {
+  0%,
+  70%,
+  100% {
+    transform: scale(0.65);
+    opacity: 0.35;
+  }
+  35% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.embed-dot-wave {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: embed-dot-wave 1.3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .embed-dot-wave {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* The new-conversation confirmation (EmbedChat.tsx) drops in under the header. */
+.embed-confirm {
+  animation: embed-confirm-in 0.18s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+@keyframes embed-confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .embed-confirm {
+    animation: none;
+  }
+}

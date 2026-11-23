@@ -55,12 +55,14 @@ email: an admin adds people by email and the access is granted right away.**
   reads userinfo and links the account that has the same email, which picks
   up every access granted to it. An unknown email gets a new account without
   access, and the web app shows a "no access yet" page.
-* Linking by email requires `email_verified: true` (OpenID Connect Core 1.0,
-  section 5.1). Without it the sign-in is refused with an explicit message:
-  a provider that does not verify emails would let anyone take over an
-  account by registering its email. `OIDC_TRUST_UNVERIFIED_EMAIL=true` lifts
-  the check for a single-tenant provider the customer fully controls;
-  `OIDC_ALLOW_EMAIL_LINKING=false` disables linking altogether.
+* A first sign-in requires `email_verified: true` (OpenID Connect Core 1.0,
+  section 5.1), whether it links an existing account or creates a new one.
+  Without it the sign-in is refused with an explicit message: a provider
+  that does not verify emails would let anyone take over an account by
+  registering its email, or hold an email before its owner is given access.
+  `OIDC_TRUST_UNVERIFIED_EMAIL=true` lifts the check for a single-tenant
+  provider the customer fully controls; `OIDC_ALLOW_EMAIL_LINKING=false`
+  disables linking altogether.
 * The same rule moves an install from one provider to another: the new `sub`
   is linked to the existing account through its verified email.
 

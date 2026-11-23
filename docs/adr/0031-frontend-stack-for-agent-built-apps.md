@@ -231,6 +231,27 @@ else:
 * It follows the TypeScript options of the new stack (`erasableSyntaxOnly`,
   `verbatimModuleSyntax`), resolves through its `exports` with no build, and has its own specs.
 
+**The sandbox origin.** An install may serve the outer frame from an origin of its own, on a domain
+apart from the platform's: `https://{label}.<environment>.bayes-usercontent.org` on the hosted
+platform. The host and the sandbox then name each other's origin in every message, where a frame
+written through `srcdoc` has an opaque origin that only a random id can stand for.
+
+* The label is the start of the SHA-256 of the app's MCP server id, 32 hexadecimal characters: the
+  apps of one server share an origin, which no other server has. The package computes it, so the
+  three apps cannot disagree.
+* Each app reads the origin's template in its own configuration (`mcpAppSandboxOrigin` for
+  `apps/web` and the Desk, `VITE_MCP_APP_SANDBOX_ORIGIN` for `apps/web-embed`) and passes it to
+  the package. The build of `apps/web` publishes the page of the outer frame at
+  `/mcp-app-sandbox.html`, from the package's `sandbox-page` export, and the install lets the
+  sandbox origin reach that one path.
+* The frame that runs the app keeps its opaque origin, and its policy. The sandbox origin holds no
+  cookie and no storage an app could read, so any page may frame it: it only gets a frame that
+  runs the HTML it sends itself. Giving an app the sandbox origin (storage, a stable origin for
+  CORS) needs its own decision, and a list of the hosts the page answers to.
+* The page is served with no Content Security Policy: a `srcdoc` frame inherits its parent's.
+* Without a template, or for an app whose server is unknown, the host writes the page itself, as
+  before. Local development, the tests and Storybook run that way.
+
 No other package is shared on these grounds. A second one needs its own decision.
 
 ### 2.5 Code conventions

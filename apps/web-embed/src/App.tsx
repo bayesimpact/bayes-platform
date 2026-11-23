@@ -12,6 +12,8 @@ import { EmbedChat } from "./chat/EmbedChat"
 import type { PublicChatErrorKey } from "./hooks/usePublicChat"
 import { usePublicChat } from "./hooks/usePublicChat"
 import { createEmbedI18n, type SupportedLocale } from "./i18n"
+import { previewOf } from "./preview"
+import { DEFAULT_PRIMARY_COLOR } from "./theme"
 
 // ─── URL param helpers ─────────────────────────────────────────────────────
 
@@ -126,6 +128,22 @@ function LiveChat({
     send,
     reset,
   } = usePublicChat(embedToken)
+
+  // Tell the launcher what to show next to its button while the chat is closed: the agent's
+  // opening message, as long as the visitor has not written anything, and nothing afterwards.
+  // The greeting is public text, which is why any parent origin may read it.
+  const preview = previewOf(messages)
+  useEffect(() => {
+    if (status !== "ready") return
+    window.parent.postMessage(
+      {
+        type: "agent-studio:preview",
+        text: preview,
+        title: remoteConfig?.title ?? remoteConfig?.agentName ?? null,
+      },
+      "*",
+    )
+  }, [status, preview, remoteConfig?.title, remoteConfig?.agentName])
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
@@ -260,7 +278,7 @@ function ChatLoadingShell({ theme, hideHeader }: { theme: EmbedChatTheme; hideHe
       {!hideHeader && (
         <div
           className="chat-header flex h-16 shrink-0 items-center gap-3 px-5"
-          style={{ backgroundColor: theme.primaryColor ?? "#2563eb" }}
+          style={{ backgroundColor: theme.primaryColor ?? DEFAULT_PRIMARY_COLOR }}
         >
           <div className="h-9 w-9 animate-pulse rounded-full bg-white/30" />
           <div className="h-4 w-32 animate-pulse rounded bg-white/30" />
@@ -288,7 +306,7 @@ function ChatErrorShell({
       {!hideHeader && (
         <div
           className="chat-header flex h-16 shrink-0 items-center gap-3 px-5"
-          style={{ backgroundColor: theme.primaryColor ?? "#2563eb" }}
+          style={{ backgroundColor: theme.primaryColor ?? DEFAULT_PRIMARY_COLOR }}
         />
       )}
       <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center">

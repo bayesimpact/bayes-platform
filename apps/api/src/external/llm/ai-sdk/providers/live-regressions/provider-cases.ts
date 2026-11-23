@@ -1,17 +1,20 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import { AISDKAnthropicProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-anthropic.provider"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
+import { AISDKOpenAIProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-openai.provider"
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
+import { AISDKVertex4Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex4.provider"
 
 /**
  * The provider/model matrix shared by every live-regression spec in this
  * folder. A case is auto-skipped (with a visible reason) when its serving
  * env is absent: vLLM-backed models need their VLLM_<MODEL>_URL, Vertex
- * models need Google ADC credentials.
+ * models need Google ADC credentials, OpenAI models need OPENAI_API_KEY.
  */
 export type ProviderCase = {
   label: string
@@ -36,6 +39,24 @@ export const PROVIDER_CASES: ProviderCase[] = [
     model: AgentModel.Gemma4_31B,
     buildProvider: () => new AISDKGemmaProvider(),
     unavailableReason: vllmUnavailableReason("VLLM_GEMMA4_31B_URL"),
+  },
+  {
+    label: "Gemini 4 Argon (Vertex4, eu)",
+    model: AgentModel.Gemini4Argon,
+    buildProvider: () => new AISDKVertex4Provider(),
+    unavailableReason: () => null,
+  },
+  {
+    label: "Gemini 4 Hydrogen (Vertex4, eu)",
+    model: AgentModel.Gemini4Hydrogen,
+    buildProvider: () => new AISDKVertex4Provider(),
+    unavailableReason: () => null,
+  },
+  {
+    label: "Gemini 4 Carbon (Vertex4, global)",
+    model: AgentModel.Gemini4Carbon,
+    buildProvider: () => new AISDKVertex4Provider(),
+    unavailableReason: () => null,
   },
   {
     label: "Gemini 3.8 Flash (Vertex3)",
@@ -97,5 +118,42 @@ export const PROVIDER_CASES: ProviderCase[] = [
     model: AgentModel.MedGemma10_27B,
     buildProvider: () => new AISDKMedGemmaProvider(),
     unavailableReason: vllmUnavailableReason("VLLM_MEDGEMMA10_27B_URL"),
+  },
+  {
+    label: "Claude Sonnet 5.5 (Vertex, eu)",
+    model: AgentModel.ClaudeSonnet55,
+    buildProvider: () => new AISDKAnthropicProvider(),
+    // Re-enable once Claude has a quota in the Model Garden of the project.
+    unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
+  },
+  {
+    label: "Claude Haiku 5.5 (Vertex, eu)",
+    model: AgentModel.ClaudeHaiku55,
+    buildProvider: () => new AISDKAnthropicProvider(),
+    unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
+  },
+  {
+    label: "Claude Opus 5 (Vertex, eu)",
+    model: AgentModel.ClaudeOpus5,
+    buildProvider: () => new AISDKAnthropicProvider(),
+    unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
+  },
+  {
+    label: "Claude Opus 5.5 (Vertex, eu)",
+    model: AgentModel.ClaudeOpus55,
+    buildProvider: () => new AISDKAnthropicProvider(),
+    unavailableReason: () => "temporarily disabled (no Vertex quota for Claude)",
+  },
+  {
+    label: "GPT-5.4 (OpenAI)",
+    model: AgentModel.Gpt54,
+    buildProvider: () => new AISDKOpenAIProvider(),
+    unavailableReason: () => (process.env.OPENAI_API_KEY ? null : "OPENAI_API_KEY is not set"),
+  },
+  {
+    label: "GPT-5.4 mini (OpenAI)",
+    model: AgentModel.Gpt54Mini,
+    buildProvider: () => new AISDKOpenAIProvider(),
+    unavailableReason: () => (process.env.OPENAI_API_KEY ? null : "OPENAI_API_KEY is not set"),
   },
 ]

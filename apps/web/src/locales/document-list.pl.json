@@ -1,0 +1,19 @@
+{
+  "documentList": {
+    "props": {
+      "name": "Nazwa",
+      "createdAt": "Utworzono"
+    },
+    "selected_one": "Zaznaczono: {{count}}",
+    "selected_few": "Zaznaczono: {{count}}",
+    "selected_many": "Zaznaczono: {{count}}",
+    "selected_other": "Zaznaczono: {{count}}",
+    "delete": {
+      "title_one": "Usuń dokument",
+      "title_few": "Usuń {{count}} dokumenty",
+      "title_many": "Usuń {{count}} dokumentów",
+      "title_other": "Usuń {{count}} dokumentu",
+      "description": "Tej operacji nie można cofnąć. Zaznaczone dokumenty zostaną trwale usunięte."
+    }
+  }
+}

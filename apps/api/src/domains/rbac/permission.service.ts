@@ -395,15 +395,37 @@ export class PermissionService {
   }
 
   /**
+   * Whether the roles the user holds on this one review campaign give the project permission,
+   * the campaign being in one of their giving statuses. Use it for an action inside a tester's
+   * session: `has` on the project also counts the user's other campaigns of that project.
+   */
+  async hasProjectPermissionFromReviewCampaign(
+    userId: string,
+    permission: string,
+    reviewCampaignId: string,
+  ): Promise<boolean> {
+    if (!PROJECT_PERMISSION_FROM_REVIEW_CAMPAIGN_SET.has(permission)) return false
+
+    const permissionsByProjectId = await this.listProjectPermissionsFromReviewCampaigns(
+      userId,
+      [permission],
+      undefined,
+      reviewCampaignId,
+    )
+    return permissionsByProjectId.size > 0
+  }
+
+  /**
    * Project permissions given by the review campaign roles the user holds, per project of the
-   * campaigns (or of the given project only), restricted to the given keys, all within
-   * PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN. A role only gives them while its campaign is in one
-   * of its REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS.
+   * campaigns (or of the given project only, or of the given campaign only), restricted to the
+   * given keys, all within PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN. A role only gives them while
+   * its campaign is in one of its REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS.
    */
   private async listProjectPermissionsFromReviewCampaigns(
     userId: string,
     permissions: readonly string[],
     projectId?: string,
+    reviewCampaignId?: string,
   ): Promise<Map<string, string[]>> {
     const rows: ResourcePermissionRow[] = await this.dataSource.query(
       `SELECT DISTINCT review_campaign.project_id AS "resourceId",
@@ -422,13 +444,15 @@ export class PermissionService {
          AND membership.resource_type = 'review_campaign'
          AND membership.deleted_at IS NULL
          AND role_permission.permission_key = ANY($2)
-         AND ($5::uuid IS NULL OR review_campaign.project_id = $5)`,
+         AND ($5::uuid IS NULL OR review_campaign.project_id = $5)
+         AND ($6::uuid IS NULL OR review_campaign.id = $6)`,
       [
         userId,
         permissions,
         STATUS_GIVING_PROJECT_PERMISSIONS_ROLE_KEYS,
         STATUS_GIVING_PROJECT_PERMISSIONS_STATUSES,
         projectId ?? null,
+        reviewCampaignId ?? null,
       ],
     )
 

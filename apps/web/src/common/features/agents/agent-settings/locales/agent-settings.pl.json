@@ -1,0 +1,356 @@
+{
+  "agentSettings": {
+    "agentSettings": "Ustawienia agenta",
+    "agentSettingsHistory": "Historia ustawień agenta",
+    "selectAgentSettings": "Wybierz ustawienia agenta",
+    "props": {
+      "nameDescription": "Ta nazwa identyfikuje agenta w Studio i w aplikacji. Agent jej nie zna: zapytany o imię, nie poda tej nazwy. Aby nadać mu imię, wpisz je w instrukcjach.",
+      "createdAt": "Utworzono",
+      "instructions": "Instrukcje",
+      "formConfiguration": "Konfiguracja formularza",
+      "greeting": "Powitanie",
+      "documentsRagMode": "Źródło odpowiedzi",
+      "model": "Model",
+      "outputJsonSchema": "Schemat JSON wyniku",
+      "fillFormEnabled": "Wypełnianie formularza",
+      "priorityCallsEnabled": "Wywołania priorytetowe",
+      "promptVariables": "Zmienne promptu",
+      "embeddingModel": "Model embeddingów",
+      "followUpSuggestionsEnabled": "Pytania uzupełniające",
+      "followUpSuggestionsInstructions": "Instrukcje dla pytań uzupełniających",
+      "followUpSuggestionsMax": "Maksymalna liczba pytań uzupełniających",
+      "schemaBuilder": {
+        "advancedMode": "Tryb zaawansowany",
+        "visualMode": "Edytor wizualny",
+        "addField": "Dodaj pole",
+        "removeField": "Usuń pole",
+        "empty": "Brak pól. Dodaj pole, aby zacząć.",
+        "fieldName": "Nazwa pola",
+        "fieldNameEmpty": "Ustaw nazwę pola",
+        "fieldNamePlaceholder": "np. kraj",
+        "type": "Typ",
+        "description": "Opis",
+        "descriptionEmpty": "Dodaj opis",
+        "descriptionPlaceholder": "Pytanie lub wskazówka, której asystent używa do wypełnienia tego pola",
+        "expandDescription": "Rozwiń",
+        "required": "Wymagane",
+        "dragHandle": "Przeciągnij, aby zmienić kolejność",
+        "orderQuestions": "Zadawaj pytania w tej kolejności",
+        "orderQuestionsHint": "Po włączeniu asystent pyta o pola w kolejności podanej niżej. Wyłącz, aby sam wybierał kolejność.",
+        "enumValuesEmpty": "Dodaj opcje",
+        "enumValues_one": "{{count}} opcja",
+        "enumValues_few": "{{count}} opcje",
+        "enumValues_many": "{{count}} opcji",
+        "enumValues_other": "{{count}} opcji",
+        "enumValuesPlaceholder": "Dodaj opcję",
+        "enumValueAdd": "Dodaj opcję",
+        "enumValueRemove": "Usuń opcję {{value}}",
+        "enumValuesHint": "Asystent może wybrać tylko jedną z tych wartości.",
+        "rangeEmpty": "Ustaw zakres",
+        "rangeBoth": "{{min}} – {{max}}",
+        "rangeMinOnly": "Min. {{min}}",
+        "rangeMaxOnly": "Maks. {{max}}",
+        "rangeMin": "Minimum",
+        "rangeMax": "Maksimum",
+        "rangeHint": "Opcjonalne. Pozostaw jedną z granic pustą, aby nie ograniczać zakresu z tej strony.",
+        "types": {
+          "string": "Tekst",
+          "number": "Liczba",
+          "boolean": "Tak / Nie",
+          "array": "Lista",
+          "enum": "Wybór",
+          "object": "Obiekt"
+        }
+      },
+      "temperature": "Temperatura",
+      "updatedAt": "Zaktualizowano",
+      "documentTags": "Tagi dokumentów",
+      "agentSessionCategories": "Kategorie rozmów",
+      "agentSessionCategoriesInUse": "Kategorii użytych już w rozmowach tego agenta nie można odznaczyć.",
+      "documentsRagModeOptions": {
+        "none": "Odpowiadaj tylko na podstawie wiedzy modelu",
+        "all": "Przeszukuj wszystkie dokumenty",
+        "tags": "Przeszukuj według tagów dokumentów"
+      },
+      "placeholders": {
+        "instructions": "Wpisz instrukcje, którymi agent ma się kierować, odpowiadając użytkownikowi",
+        "greeting": "Opcjonalne powitanie wysyłane przez agenta na początku nowej rozmowy",
+        "documentsRagMode": "Wybierz sposób użycia dokumentów",
+        "model": "Wybierz model",
+        "embeddingModel": "Wybierz model embeddingów",
+        "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
+        "temperature": "Wpisz temperaturę 0.0–2.0",
+        "thinkingLevel": "Wybierz poziom rozumowania"
+      },
+      "validation": {
+        "nameMinLength": "Nazwa musi mieć co najmniej 3 znaki",
+        "promptRequired": "Instrukcje są wymagane",
+        "temperatureInvalid": "Temperatura musi mieścić się w zakresie od 0.0 do 2.0",
+        "outputJsonSchemaRequired": "Schemat JSON wyniku jest wymagany",
+        "outputJsonSchemaInvalid": "Schemat JSON wyniku musi być prawidłowym obiektem JSON"
+      },
+      "thinkingLevel": "Poziom rozumowania",
+      "thinkingLevels": {
+        "none": "Brak",
+        "minimal": "Minimalny",
+        "low": "Niski",
+        "medium": "Średni",
+        "high": "Wysoki"
+      },
+      "modelOptions": "Opcje modelu",
+      "characterCount_one": "{{formattedCount}} znak",
+      "characterCount_few": "{{formattedCount}} znaki",
+      "characterCount_many": "{{formattedCount}} znaków",
+      "characterCountWithMax": "{{current}} / {{max}} znaków"
+    },
+    "defaultPromptDialog": {
+      "title": "Instrukcje",
+      "description": "Te instrukcje określają zachowanie agenta.",
+      "button": "Pokaż instrukcje"
+    },
+    "tabs": {
+      "general": "Ogólne",
+      "model": "Model",
+      "output": "Wynik",
+      "sources": "Źródła",
+      "tools": "Narzędzia",
+      "categories": "Kategorie rozmów",
+      "orchestration": "Orkiestracja",
+      "embed": "Osadzanie",
+      "mcpServers": "Serwery MCP"
+    },
+    "mcpServers": {
+      "label": "Serwery MCP",
+      "manage": "Zarządzaj serwerami",
+      "emptyTitle": "Brak serwerów MCP",
+      "emptyDescription": "Dodaj serwery MCP do tego projektu, aby dać agentom dostęp do zewnętrznych narzędzi.",
+      "builtInDescription": "Wbudowany w platformę, nie wymaga konfiguracji."
+    },
+    "unsavedChanges": {
+      "title": "Niezapisane zmiany",
+      "description": "Masz niezapisane zmiany, które zostaną utracone. Czy chcesz je odrzucić?"
+    },
+    "autosave": {
+      "saving": "Zapisywanie…",
+      "saved": "Zapisano wersję roboczą",
+      "unsaved": "Niezapisane zmiany",
+      "refused": "Nie udało się zapisać tej zmiany",
+      "unsavedBeforeVersions": "Popraw niezapisane zmiany, zanim zaczniesz zarządzać wersjami",
+      "productionVersion": "v{{revision}} · produkcyjna",
+      "savedVersion": "v{{revision}} · zapisana"
+    },
+    "liveSettings": {
+      "immediate": "Zmiana w tym miejscu działa od razu <strong>w wersji produkcyjnej</strong>.",
+      "notice": "Zmiany w tym miejscu obowiązują w produkcyjnej wersji agenta zaraz po zapisaniu.",
+      "confirmSave": {
+        "title": "Zastosować te ustawienia teraz?",
+        "description": "Te zmiany obowiązują w agencie <strong>w wersji produkcyjnej</strong> zaraz po zapisaniu."
+      }
+    },
+    "create": {
+      "button": "Zapisz wersję",
+      "noDraft": "Brak wersji roboczej. Najpierw zapisz zmianę, aby utworzyć nową wersję roboczą.",
+      "optional": "Opcjonalne",
+      "props": {
+        "revisionName": "Nazwa wersji",
+        "revisionDesc": "Opis wersji",
+        "placeholders": {
+          "revisionName": "Nazwij tę wersję",
+          "revisionDesc": "Opisz, co zmieniło się w tej wersji"
+        },
+        "setAsProduction": "Ustaw tę wersję jako produkcyjną"
+      },
+      "dialog": {
+        "title": "Zapisać wersję {{revision}}?",
+        "description": "Wersja {{revision}} zostaje zamrożona. Kolejne zmiany rozpoczną nową wersję roboczą.",
+        "submit": "Zapisz wersję"
+      },
+      "setAsProductionDescription": "Aplikacja, osadzenie i publiczne API będą rozpoczynać z nią nowe rozmowy. W przeciwnym razie wersją produkcyjną pozostaje wersja {{current}}.",
+      "firstVersionProduction": "To pierwsza zapisana wersja agenta, więc staje się wersją produkcyjną."
+    },
+    "history": {
+      "title": "Historia wersji",
+      "description": "Przeglądaj, porównuj i przywracaj wersje agenta {{name}} oraz wybierz wersję produkcyjną.",
+      "loadError": "Nie udało się wczytać historii wersji",
+      "revisionLabel": "Wersja {{revision}}",
+      "revisionBadge": "v{{revision}}",
+      "revisionBadgeAria": "Wersja {{revision}} ustawień agenta",
+      "messageRevisionTooltip": "Odpowiedź udzielona w wersji {{revision}}",
+      "runRevisionTooltip": "Ekstrakcja wykonana w wersji {{revision}}",
+      "headerRevisionTooltip": "Nowe wiadomości korzystają z wersji {{revision}}",
+      "compareWithPrevious": "Zmiany w tej wersji",
+      "compareWithCurrent": "Porównaj z produkcyjną",
+      "compareWithDraft": "Porównaj z wersją roboczą",
+      "comparing": "Zmiany od wersji {{before}} do wersji {{after}}.",
+      "noChangesTitle": "Brak różnic",
+      "noChangesDescription": "Te dwie wersje mają identyczne ustawienia.",
+      "onlyVersionTitle": "Tylko jedna wersja",
+      "onlyVersionDescription": "Ten agent ma tylko jedną wersję ustawień, więc nie ma jeszcze czego porównywać.",
+      "restore": "Przywróć tę wersję",
+      "restoreDialog": {
+        "title": "Przywrócić wersję {{revision}}?",
+        "description": "Ustawienia wersji {{revision}} zostaną skopiowane do wersji roboczej, aby można je było edytować i zapisać jako nową wersję. Wersja produkcyjna się nie zmienia."
+      },
+      "draft": "Wersja robocza",
+      "manage": "Zarządzaj wersjami",
+      "changedFields_one": "{{count}} zmienione pole:",
+      "changedFields_few": "{{count}} zmienione pola:",
+      "changedFields_many": "{{count}} zmienionych pól:",
+      "advancedMode": "Tryb zaawansowany",
+      "advancedModeHint": "Porównujesz wersję roboczą z v{{revision}}, ostatnią zapisaną wersją. Twoje zmiany trafiają do wersji roboczej."
+    },
+    "version": {
+      "ariaLabel": "Wersja ustawień dla nowych wiadomości",
+      "extractionAriaLabel": "Wersja ustawień dla ekstrakcji",
+      "placeholder": "Wybierz wersję",
+      "item": "v{{revision}} — {{detail}}",
+      "current": "Produkcyjna ({{date}})"
+    },
+    "orchestration": {
+      "selectedTitle": "Subagenci",
+      "availableTitle": "Dostępni agenci konwersacyjni",
+      "emptyTitle": "Brak subagentów",
+      "emptyDescription": "Ten agent odpowiada bezpośrednio, bez przekazywania zadań innemu agentowi.",
+      "noAvailableAgents": "Brak innych dostępnych agentów konwersacyjnych.",
+      "missingAgent": "Brakujący agent",
+      "add": "Dodaj",
+      "remove": "Usuń",
+      "removeConfirm": {
+        "title": "Usunąć {{name}} z subagentów?",
+        "description": "Nazwa narzędzia i jego opis zostaną utracone."
+      },
+      "enabled": "Włączony",
+      "disabled": "Wyłączony",
+      "toolName": "Nazwa narzędzia",
+      "toolNamePlaceholder": "ask_specialist_agent",
+      "description": "Opis narzędzia",
+      "defaultDescription": "Przekazuj specjalistyczne prośby do agenta {{name}}.",
+      "mode": "Tryb",
+      "modeRelay": "Konsultowany",
+      "modeHandoff": "Przejmuje rozmowę",
+      "modeRelayHint": "Orkiestrator wywołuje tego agenta na jedną wymianę i sam odpowiada użytkownikowi.",
+      "modeHandoffHint": "Ten agent rozmawia z użytkownikiem bezpośrednio, aż wykona swoją część, a potem oddaje rozmowę.",
+      "unpublishedHint": "Niedostępny dla orkiestratora, dopóki nie zostanie opublikowany.",
+      "talkingTo": "Rozmowa z: {{name}}"
+    },
+    "embed": {
+      "loading": "Wczytywanie konfiguracji osadzania…",
+      "loadError": "Nie udało się wczytać konfiguracji osadzania.",
+      "enabledLabel": "Włącz osadzanie",
+      "enabledDescription": "Udostępnia agenta {{name}} poza platformą: widżet, stronę publiczną i publiczne API. Po wyłączeniu wszystkie trzy przestają działać.",
+      "snippetLabel": "Widżet na stronie internetowej",
+      "snippetDescription": "Wklej ten tag <script> przed zamykającym tagiem </body> na każdej stronie, na której ma się pojawić widżet czatu.",
+      "snippetHint": "Opcjonalne atrybuty: data-color=\"#2563eb\" (kolor przycisku), data-locale=\"fr\" (język widżetu), data-display-mode=\"drawer\" (panel boczny zamiast dymka), data-hint=\"Potrzebujesz pomocy?\" (podpowiedź wyświetlana po wczytaniu i najechaniu).",
+      "publicPageLabel": "Strona publiczna",
+      "publicPageDescription": "Udostępnij ten link lub jego kod QR, aby agent {{name}} był dostępny bez strony hosta.",
+      "publicPageHint": "Strona działa tylko przy włączonym osadzaniu. Dodaj &locale=fr, aby wymusić język.",
+      "allowedOriginsLabel": "Dozwolone źródła",
+      "allowedOriginsDescription": "Na razie pozostaw puste. Widżet łączy się z platformą z adresu {{embedOrigin}}, a nie z Twojej strony: lista bez tego adresu blokuje widżet. Sprawdzanie strony, na której wyświetla się widżet, nie jest jeszcze dostępne.",
+      "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
+      "titleLabel": "Tytuł widżetu",
+      "titleDescription": "Tytuł wyświetlany w nagłówku czatu. Domyślnie {{name}}, jeśli pole jest puste.",
+      "logoUrlLabel": "URL logo",
+      "logoUrlDescription": "URL obrazu logo wyświetlanego w nagłówku czatu.",
+      "logoUrlPlaceholder": "https://example.com/logo.png",
+      "primaryColorLabel": "Kolor marki",
+      "primaryColorDescription": "Główny kolor nagłówka widżetu czatu. Wpisz wartość szesnastkową (np. #2563eb).",
+      "bannerTextLabel": "Tekst banera",
+      "bannerTextDescription": "Opcjonalna informacja przypięta nad rozmową na stronie publicznej i w widżecie. Służy do określenia kontekstu, np. wersji testowej lub grupy docelowej.",
+      "bannerTextPlaceholder": "Wersja testowa, tylko dla zespołu pilotażowego",
+      "appearance": {
+        "title": "Wygląd",
+        "description": "Wyświetlany w nagłówku widżetu i strony publicznej."
+      },
+      "apiSection": {
+        "title": "Publiczne API",
+        "description": "Aby zbudować własny interfejs czatu, wywołuj API bezpośrednio zamiast korzystać z widżetu."
+      },
+      "apiBaseUrlLabel": "Bazowy URL",
+      "apiBaseUrlDescription": "Każda ścieżka API zaczyna się od tego adresu URL. Zawiera token osadzania tego agenta.",
+      "apiReferenceLink": "Przeczytaj dokumentację API",
+      "widgetGuideLink": "Przeczytaj przewodnik po widżecie"
+    },
+    "promptVariables": {
+      "title": "Zmienne promptu",
+      "description": "Domyślne wartości zmiennych zadeklarowanych przez agenta w instrukcjach. Używane, gdy sesja rozpoczyna się bez wartości dla którejś z nich."
+    },
+    "source_zero": "Brak źródeł",
+    "source_one": "{{count}} źródło",
+    "source_few": "{{count}} źródła",
+    "source_many": "{{count}} źródeł",
+    "source_other": "{{count}} źródła",
+    "model": {
+      "generation": {
+        "title": "Generowanie odpowiedzi",
+        "description": "Model, który pisze odpowiedzi agenta."
+      },
+      "priorityCalls": {
+        "title": "Wywołania priorytetowe",
+        "description": "Krótszy i stabilniejszy czas odpowiedzi przy wyższym koszcie wywołania."
+      },
+      "embeddingModel": {
+        "title": "Wyszukiwanie w dokumentach",
+        "description": "Model, który wyszukuje fragmenty dokumentów projektu pasujące do każdego pytania.",
+        "help": "Model pojawi się, gdy projekt zakończy tworzenie embeddingów swoich dokumentów za jego pomocą.",
+        "chooseDocuments": "Wybierz przeszukiwane dokumenty"
+      }
+    },
+    "tools": {
+      "fillForm": {
+        "title": "Wypełnianie formularza",
+        "description": "Pozwól agentowi wypełniać ustrukturyzowany formularz na podstawie odpowiedzi użytkownika podczas rozmowy.",
+        "schemaDescription": "Zdefiniuj pola formularza, które agent ma wypełnić. Kolejność pól to kolejność, w jakiej agent zadaje pytania."
+      },
+      "followUpSuggestions": {
+        "title": "Sugeruj pytania uzupełniające",
+        "description": "Po odpowiedzi agent może zaproponować krótkie pytania, które użytkownik może kliknąć, aby kontynuować rozmowę.",
+        "instructions": "Instrukcje",
+        "instructionsDescription": "Opcjonalne. Określ, kiedy i jak agent ma tworzyć pytania.",
+        "instructionsPlaceholder": "Na przykład: tylko gdy odpowiedź zawiera trudne pojęcie.",
+        "max": "Maksymalnie na odpowiedź"
+      },
+      "memory": {
+        "title": "Pamięć",
+        "description": "Pozwól agentowi zapamiętywać fakty o każdym zalogowanym użytkowniku między rozmowami. Użytkownicy widzą i mogą usuwać to, co agent pamięta.",
+        "modes": {
+          "off": "Wyłączona",
+          "ask": "Pytaj przed zapisaniem",
+          "auto": "Zapisuj automatycznie"
+        }
+      }
+    },
+    "notifications": {
+      "versionRestored": "Przywrócono wersję agenta",
+      "versionRestoreError": "Nie udało się przywrócić wersji agenta",
+      "versionPublished": "Zapisano wersję agenta",
+      "versionPublishError": "Nie udało się opublikować wersji agenta",
+      "embedConfigUpdated": "Zaktualizowano konfigurację osadzania",
+      "embedConfigUpdateError": "Nie udało się zaktualizować konfiguracji osadzania",
+      "subAgentsUpdated": "Zaktualizowano subagentów",
+      "subAgentsUpdateError": "Nie udało się zaktualizować subagentów",
+      "productionSet": "Wersja {{revision}} jest teraz produkcyjna",
+      "productionSetError": "Nie udało się zmienić wersji produkcyjnej"
+    },
+    "sources": {
+      "documents": {
+        "title": "Dokumenty",
+        "description": "Dokumenty projektu, które agent przeszukuje, aby odpowiedzieć.",
+        "embeddingModel": "Model embeddingów: {{model}}"
+      }
+    },
+    "production": {
+      "badge": "Produkcyjna",
+      "saved": "Zapisana",
+      "none": "Brak wersji produkcyjnej",
+      "noneDescription": "Zapisz wersję, aby udostępnić tego agenta w aplikacji, osadzeniu i publicznym API.",
+      "set": "Ustaw jako produkcyjną",
+      "dialog": {
+        "title": "Ustawić wersję {{revision}} jako produkcyjną?",
+        "description": "Aplikacja, osadzenie, publiczne API i agenci wywołujący tego agenta będą rozpoczynać nowe rozmowy z wersją {{revision}}. Rozpoczęte już rozmowy zachowają swoją wersję.",
+        "replaces": "Wersja {{current}} przestaje być produkcyjna. Pozostaje w historii i możesz ją w każdej chwili przywrócić."
+      },
+      "description": "Aplikacja, osadzenie i publiczne API rozpoczynają nowe rozmowy z tą wersją.",
+      "openHistory": "Otwórz historię wersji, aby zmienić wersję produkcyjną"
+    }
+  }
+}

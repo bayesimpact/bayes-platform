@@ -219,7 +219,7 @@ function WithData({ onDirtyChange }: EmbedTabProps) {
                 <input
                   id="embed-primary-color-picker"
                   type="color"
-                  value={form.primaryColor || "#2563eb"}
+                  value={form.primaryColor || "#000000"}
                   onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
                   className="h-9 w-10 cursor-pointer rounded border border-input p-0.5"
                 />
@@ -227,7 +227,7 @@ function WithData({ onDirtyChange }: EmbedTabProps) {
                   id="embed-primary-color"
                   value={form.primaryColor}
                   onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                  placeholder="#2563eb"
+                  placeholder="#000000"
                   className="font-mono"
                 />
               </div>

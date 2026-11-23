@@ -17,12 +17,21 @@ export enum AgentModel {
   Gemini36Flash = "gemini-3.6-flash",
   Gemini37Flash = "gemini-3.7-flash",
   Gemini38Flash = "gemini-3.8-flash",
+  Gemini4Argon = "gemini-4-argon",
+  Gemini4Carbon = "gemini-4-carbon",
+  Gemini4Hydrogen = "gemini-4-hydrogen",
   MedGemma10_27B = "google/medgemma-27b-it",
   Gemma4_26B = "google/gemma-4-26b-A4B-it",
   Gemma4_31B = "google/gemma-4-31B-it",
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
   MistralSmall32_24B = "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
   Qwen38_27B = "Qwen/Qwen3.8-27B",
+  ClaudeSonnet55 = "claude-sonnet-5-5",
+  ClaudeHaiku55 = "claude-haiku-5-5",
+  ClaudeOpus5 = "claude-opus-5",
+  ClaudeOpus55 = "claude-opus-5-5",
+  Gpt54 = "gpt-5.4",
+  Gpt54Mini = "gpt-5.4-mini",
   _Mock = "mock-language-model-v3",
 }
 
@@ -32,7 +41,10 @@ export enum AgentProvider {
   Vertex = "VERTEX",
   Mistral = "MISTRAL",
   Vertex3 = "VERTEX-3",
+  Vertex4 = "VERTEX-4",
   Qwen = "QWEN",
+  Anthropic = "ANTHROPIC",
+  OpenAI = "OPENAI",
   _Mock = "MOCK",
 }
 export const AgentModelToAgentProvider = {
@@ -44,14 +56,57 @@ export const AgentModelToAgentProvider = {
   [AgentModel.Gemini36Flash]: AgentProvider.Vertex3,
   [AgentModel.Gemini37Flash]: AgentProvider.Vertex3,
   [AgentModel.Gemini38Flash]: AgentProvider.Vertex3,
+  [AgentModel.Gemini4Argon]: AgentProvider.Vertex4,
+  [AgentModel.Gemini4Carbon]: AgentProvider.Vertex4,
+  [AgentModel.Gemini4Hydrogen]: AgentProvider.Vertex4,
   [AgentModel.MedGemma10_27B]: AgentProvider.MedGemma,
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
   [AgentModel.Gemma4_31B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
   [AgentModel.MistralSmall32_24B]: AgentProvider.Mistral,
   [AgentModel.Qwen38_27B]: AgentProvider.Qwen,
+  [AgentModel.ClaudeSonnet55]: AgentProvider.Anthropic,
+  [AgentModel.ClaudeHaiku55]: AgentProvider.Anthropic,
+  [AgentModel.ClaudeOpus5]: AgentProvider.Anthropic,
+  [AgentModel.ClaudeOpus55]: AgentProvider.Anthropic,
+  [AgentModel.Gpt54]: AgentProvider.OpenAI,
+  [AgentModel.Gpt54Mini]: AgentProvider.OpenAI,
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
+
+/**
+ * The providers whose models take a service tier, priority or flex: Gemini 3.x and 4 (Vertex
+ * AI's shared request type) and OpenAI (the service tier of the Responses API). Priority needs the
+ * project's `llm-priority-calls` flag and the agent's toggle; flex needs the project's
+ * `llm-flex-workers` flag and only applies to background jobs.
+ */
+const SERVICE_TIER_PROVIDERS: readonly AgentProvider[] = [
+  AgentProvider.Vertex3,
+  AgentProvider.Vertex4,
+  AgentProvider.OpenAI,
+]
+
+/**
+ * Models of a service tier provider that Google refuses on flex: Vertex AI answers a 400 "Flex
+ * API is not supported for model" for every Gemini 4 model (probe of 2026-11-19). They still
+ * take priority.
+ */
+const MODELS_WITHOUT_FLEX: readonly AgentModel[] = [
+  AgentModel.Gemini4Argon,
+  AgentModel.Gemini4Carbon,
+  AgentModel.Gemini4Hydrogen,
+]
+
+/** Whether `model` can be called with a service tier (priority, and flex unless excluded). */
+export function supportsServiceTiers(model: string | undefined): boolean {
+  if (model === undefined || !(model in AgentModelToAgentProvider)) return false
+  return SERVICE_TIER_PROVIDERS.includes(AgentModelToAgentProvider[model as AgentModel])
+}
+
+/** Whether `model` can be called with the flex tier (worker calls). */
+export function supportsFlexTier(model: string | undefined): boolean {
+  return supportsServiceTiers(model) && !MODELS_WITHOUT_FLEX.includes(model as AgentModel)
+}
 
 export type AgentModelOf<Provider extends AgentProvider> = {
   [Model in AgentModel]: (typeof AgentModelToAgentProvider)[Model] extends Provider ? Model : never

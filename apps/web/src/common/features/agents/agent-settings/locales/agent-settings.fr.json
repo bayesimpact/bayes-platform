@@ -89,6 +89,7 @@
       },
       "thinkingLevel": "Niveau de réflexion",
       "thinkingLevels": {
+        "none": "Aucun",
         "minimal": "Minimal",
         "low": "Faible",
         "medium": "Moyen",

@@ -14,9 +14,13 @@ import {
   readModelOption,
   writeModelOption,
 } from "./agent-model.helpers"
+import agentSettingsEn from "./agent-settings/locales/agent-settings.en.json"
+import agentSettingsFr from "./agent-settings/locales/agent-settings.fr.json"
 import type { AgentModelsCatalog } from "./agents.models"
 
 const catalog = agentModelsCatalogFactory.build()
+const thinkingLevelsEn = agentSettingsEn.agentSettings.props.thinkingLevels
+const thinkingLevelsFr = agentSettingsFr.agentSettings.props.thinkingLevels
 
 /** The catalog with one model's entry changed, as the API would send it. */
 const catalogWith = (
@@ -66,8 +70,10 @@ describe("agent model catalog (as the API sends it)", () => {
     expect(findAgentModelEntry(catalog, catalog.defaults.judge)?.deprecation).toBeNull()
   })
 
-  it("reports no model as served outside the EU", () => {
-    expect(catalog.models.filter((entry) => entry.servedOutsideEu)).toEqual([])
+  it("reports only gemini-4-carbon and the OpenAI models as served outside the EU", () => {
+    expect(
+      catalog.models.filter((entry) => entry.servedOutsideEu).map((entry) => entry.model),
+    ).toEqual([AgentModel.Gemini4Carbon, AgentModel.Gpt54, AgentModel.Gpt54Mini])
   })
 })
 
@@ -151,6 +157,9 @@ describe("formatAgentModelLabel", () => {
       "gemini-3.6-flash",
       "gemini-3.7-flash",
       "gemini-3.8-flash",
+      "gemini-4-argon",
+      "gemini-4-carbon (non-EU)",
+      "gemini-4-hydrogen",
       "google/gemma-4-26b-A4B-it",
       "google/gemma-4-31B-it",
       "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
@@ -191,7 +200,7 @@ describe("formatAgentModelLabel", () => {
 })
 
 describe("buildAgentModelOptions", () => {
-  it("offers the vertex 3 models when the project has no flag", () => {
+  it("offers the vertex 3 and 4 models when the project has no flag", () => {
     expect(buildAgentModelOptions(catalog)).toEqual([
       AgentModel.Gemini31FlashLite,
       AgentModel.Gemini35FlashLite,
@@ -199,6 +208,9 @@ describe("buildAgentModelOptions", () => {
       AgentModel.Gemini36Flash,
       AgentModel.Gemini37Flash,
       AgentModel.Gemini38Flash,
+      AgentModel.Gemini4Argon,
+      AgentModel.Gemini4Carbon,
+      AgentModel.Gemini4Hydrogen,
     ])
   })
 
@@ -221,6 +233,14 @@ describe("buildAgentModelOptions", () => {
     [AgentProvider.Gemma, AgentModel.Gemma4_26B, AgentModel.Gemma4_31B],
     [AgentProvider.Mistral, AgentModel.MistralSmall32_24B],
     [AgentProvider.Qwen, AgentModel.Qwen38_27B],
+    [
+      AgentProvider.Anthropic,
+      AgentModel.ClaudeSonnet55,
+      AgentModel.ClaudeHaiku55,
+      AgentModel.ClaudeOpus5,
+      AgentModel.ClaudeOpus55,
+    ],
+    [AgentProvider.OpenAI, AgentModel.Gpt54, AgentModel.Gpt54Mini],
   ])("adds only the %s models once the API says they are available", (provider, ...models) => {
     const options = buildAgentModelOptions(
       agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
@@ -278,10 +298,54 @@ describe("describeModelOptionFields", () => {
   it.each([
     AgentModel.Gemini37Flash,
     AgentModel.Gemini38Flash,
+    AgentModel.Gemini4Argon,
+    AgentModel.Gemini4Hydrogen,
   ])("offers the thinking levels %s accepts, without minimal", (model) => {
     expect(fieldsOf(model)).toEqual({
       thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium", "high"] },
     })
+  })
+
+  it("offers only low and medium for gemini-4-carbon, too slow on high", () => {
+    expect(fieldsOf(AgentModel.Gemini4Carbon)).toEqual({
+      thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium"] },
+    })
+  })
+
+  it.each([
+    AgentModel.ClaudeSonnet55,
+    AgentModel.ClaudeHaiku55,
+    AgentModel.ClaudeOpus5,
+    AgentModel.ClaudeOpus55,
+  ])("offers the effort of %s as its thinking level", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: {
+        path: ["providerOptions", "anthropic", "effort"],
+        levels: ["low", "medium", "high"],
+      },
+    })
+  })
+
+  it.each([
+    AgentModel.Gpt54,
+    AgentModel.Gpt54Mini,
+  ])("offers the reasoning effort of %s as its thinking level", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: {
+        path: ["providerOptions", "openai", "reasoningEffort"],
+        levels: ["none", "low", "medium", "high"],
+      },
+    })
+  })
+
+  it("offers a translated label for every thinking level of the catalog", () => {
+    const levels = new Set(
+      catalog.models.flatMap(
+        (entry) => describeModelOptionFields(entry).thinkingLevel?.levels ?? [],
+      ),
+    )
+    expect([...levels].filter((level) => !(level in thinkingLevelsEn))).toEqual([])
+    expect([...levels].filter((level) => !(level in thinkingLevelsFr))).toEqual([])
   })
 
   it("offers nothing for a model that left the catalog", () => {
@@ -356,10 +420,38 @@ describe("isPriorityCallsAvailable", () => {
     ).toBe(false)
   })
 
-  it("is hidden for models outside the vertex 3 provider", () => {
-    expect(
-      isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model: AgentModel.Gemini25Flash }),
-    ).toBe(false)
+  it.each([
+    AgentModel.Gemini4Argon,
+    AgentModel.Gemini4Carbon,
+    AgentModel.Gemini4Hydrogen,
+  ])("is available for the Gemini 4 model %s when the project has the flag", (model) => {
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model })).toBe(true)
+  })
+
+  it.each([
+    AgentModel.Gpt54,
+    AgentModel.Gpt54Mini,
+  ])("is available for the OpenAI model %s when the project has the flag", (model) => {
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model })).toBe(true)
+  })
+
+  it("is hidden for an OpenAI model without the project flag", () => {
+    expect(isPriorityCallsAvailable({ hasFeature: () => false, model: AgentModel.Gpt54 })).toBe(
+      false,
+    )
+  })
+
+  it.each([
+    AgentModel.Gemini25Flash,
+    AgentModel.ClaudeSonnet55,
+    AgentModel.Gemma4_26B,
+    AgentModel.MistralSmall32_24B,
+    AgentModel.Qwen38_27B,
+  ])("is hidden for %s, whose provider has no tier", (model) => {
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model })).toBe(false)
+  })
+
+  it("is hidden when no model is picked", () => {
     expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model: undefined })).toBe(false)
   })
 })

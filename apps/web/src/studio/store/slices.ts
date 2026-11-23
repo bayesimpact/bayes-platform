@@ -12,8 +12,6 @@ import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { agentCsvExtractionRunsMiddleware } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.middleware"
 import { agentCsvExtractionRunsSlice } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
-import { evaluationConversationDatasetsMiddleware } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.middleware"
-import { evaluationConversationDatasetsSlice } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
 import { agentEmbedConfigsMiddleware } from "@/studio/features/agent-embed-configs/agent-embed-configs.middleware"
 import { agentEmbedConfigsSlice } from "@/studio/features/agent-embed-configs/agent-embed-configs.slice"
 import { agentMembershipsMiddleware } from "@/studio/features/agent-memberships/agent-memberships.middleware"
@@ -30,10 +28,10 @@ import { conversationReviewMiddleware } from "@/studio/features/conversation-rev
 import { conversationReviewSlice } from "@/studio/features/conversation-review/conversation-review.slice"
 import { documentTagsMiddleware } from "@/studio/features/document-tags/document-tags.middleware"
 import { documentTagsSlice } from "@/studio/features/document-tags/document-tags.slice"
+import { evaluationConversationDatasetsMiddleware } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.middleware"
+import { evaluationConversationDatasetsSlice } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
 import { projectMembershipsMiddleware } from "@/studio/features/project-memberships/project-memberships.middleware"
 import { projectMembershipsSlice } from "@/studio/features/project-memberships/project-memberships.slice"
-import { reviewCampaignsMiddleware } from "@/studio/features/review-campaigns/review-campaigns.middleware"
-import { reviewCampaignsSlice } from "@/studio/features/review-campaigns/review-campaigns.slice"
 import { testCasesMiddleware } from "@/studio/features/test-cases/test-cases.middleware"
 import { agentSettingsMiddleware } from "../../common/features/agents/agent-settings/agent-settings.middleware"
 import { agentSettingsSlice } from "../../common/features/agents/agent-settings/agent-settings.slice"
@@ -54,8 +52,6 @@ import { projectEmbeddingModelsSlice } from "../features/project-embedding-model
 import { studioProjectsMiddleware } from "../features/projects/projects.middleware"
 import { resourceLibrariesMiddleware } from "../features/resource-libraries/resource-libraries.middleware"
 import { resourceLibrariesSlice } from "../features/resource-libraries/resource-libraries.slice"
-import { reviewCampaignsReportsMiddleware } from "../features/review-campaigns/reports/reports.middleware"
-import { reviewCampaignsReportsSlice } from "../features/review-campaigns/reports/reports.slice"
 import { currentIdsSlice } from "./currentIds.slice"
 
 const studioMiddlewareList = [
@@ -85,8 +81,6 @@ const studioMiddlewareList = [
   projectEmbeddingModelsMiddleware,
   projectMembershipsMiddleware,
   resourceLibrariesMiddleware,
-  reviewCampaignsMiddleware,
-  reviewCampaignsReportsMiddleware,
   studioAgentsMiddleware,
   studioProjectsMiddleware,
   testCasesMiddleware,
@@ -119,8 +113,6 @@ export const studioSliceList = [
   projectMembershipsSlice,
   projectsSlice,
   resourceLibrariesSlice,
-  reviewCampaignsReportsSlice,
-  reviewCampaignsSlice,
 ]
 
 export const { injectSlices: injectStudioSlices, resetSlices: resetStudioSlices } =

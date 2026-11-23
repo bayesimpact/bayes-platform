@@ -34,7 +34,7 @@ import { useMemo } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
-import type { EvaluationConversationDataset } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
+import type { EvaluationConversationDataset } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
 import type { TestCaseJudgement, TestCaseSource, TestCaseVerdict } from "../test-cases.models"
 import { TestCaseAnswerPreview } from "./TestCaseAnswerPreview"
 
@@ -214,10 +214,7 @@ export function TestCaseJudgeStep({
               <FormItem>
                 <FormLabel>{t("testCase:dataset.newDatasetName")}</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder={t("evaluationConversationDataset:dataset.props.placeholders.name")}
-                    {...field}
-                  />
+                  <Input placeholder={t("testCase:dataset.newDatasetNamePlaceholder")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

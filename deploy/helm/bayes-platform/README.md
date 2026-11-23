@@ -122,7 +122,9 @@ ingress:
   tls: true
 ```
 
-Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. `/api/healthz` is not reachable through it (403): the probes call the pod directly, and the endpoint queries the database on every call. Set `ingress.healthzAllowFrom` to the ranges of an uptime checker that must call it. In the identity provider, add the `web` URL to the redirect URIs, post-logout redirect URIs and web origins of the web app client. The Desk, which the same image serves at `/app` with the same client, needs two more: `<web URL>/app/auth/callback` as a redirect URI and `<web URL>/app/` as a post-logout redirect URI.
+To run MCP App cards on an origin of their own, set `urls.mcpAppSandbox` to a domain apart from the platform's, with `{label}` for the label of each MCP server (`https://{label}.usercontent.example.org`), and give it a wildcard DNS record and a wildcard certificate (`ingress.mcpAppSandboxTlsSecret`, or cert-manager with a DNS-01 issuer). That host serves the sandbox page alone.
+
+Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. `/api/healthz` is not reachable through it (403): the probes call the pod directly, and the endpoint queries the database on every call. Set `ingress.healthzAllowFrom` to the ranges of an uptime checker that must call it. In the identity provider, add the `web` URL to the redirect URIs, post-logout redirect URIs and web origins of the web app client. The Desk, which the same image serves at `/app` with the same client, needs two more: `<web URL>/app/auth/callback` as a redirect URI and `<web URL>/app/` as a post-logout redirect URI. The Evaluation app, served at `/eval`, needs its own two: `<web URL>/eval/auth/callback` and `<web URL>/eval/`.
 
 The database migrations run as a Job after the first install and before every upgrade. The Job of the last run stays, succeeded or failed, until the next upgrade replaces it. To read its output:
 
@@ -208,7 +210,7 @@ web:
       <svg ...>...</svg>
 ```
 
-All three files must be given: the mount replaces the whole `theme/` folder. The same files are mounted over the Desk's (`web.deskDistDir`), which reads them at `/app/theme/`. A change to `web.theme` rolls the API pods.
+All three files must be given: the mount replaces the whole `theme/` folder. The same files are mounted over the Desk's (`web.deskDistDir`), which reads them at `/app/theme/`, and over the Evaluation app's (`web.evalDistDir`), which reads them at `/eval/theme/`. A change to `web.theme` rolls the API pods.
 
 The help center has its own accent, `--brand-primary`, used by its feature walkthroughs. Same mechanism, one file: `help.theme.enabled: true` and `help.theme.css` with `:root { --brand-primary: ...; }`, usually the web front's `--primary`. A change rolls the help pods.
 

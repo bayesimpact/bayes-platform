@@ -213,4 +213,25 @@ describe("AgentCsvExtractionRunProcessorService", () => {
     expect(updatedRun.status).toBe("failed")
     expect(updatedRun.summary).toEqual({ total: 1, processed: 0, errors: 1, running: 0 })
   })
+
+  // Deleting an agent soft-deletes its runs, also while record jobs are in flight.
+  it("processRunRecord - does not update the summary of a deleted run", async () => {
+    const { agent, run, record, payload } = await seedExtractionRunRecord()
+    mockProvider.addObjectTurn(agent.id, { fullName: "John Doe" })
+    await repositories.agentCsvExtractionRunRepository.softDelete(run.id)
+
+    await expect(service.processRunRecord(payload)).resolves.toBeUndefined()
+
+    const updatedRecord = await repositories.agentCsvExtractionRunRecordRepository.findOneByOrFail({
+      id: record.id,
+    })
+    expect(updatedRecord.status).toBe("success")
+    const deletedRun = await repositories.agentCsvExtractionRunRepository.findOneOrFail({
+      where: { id: run.id },
+      withDeleted: true,
+    })
+    expect(deletedRun.summary).toEqual(run.summary)
+    expect(mockCsvExport.generateAndStoreDocument).not.toHaveBeenCalled()
+    expect(mockStatusNotifier.notifyRunStatusChanged).not.toHaveBeenCalled()
+  })
 })

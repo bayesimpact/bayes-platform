@@ -35,13 +35,38 @@ export const AgentTheyOnlyRead: Story = {
   parameters: desk({ world: buildReadOnlyAgentWorld }),
   play: async ({ canvasElement }) => {
     await userEvent.click(
-      await within(canvasElement).findByRole("combobox", { name: /Switch agent/ }),
+      await within(canvasElement).findByRole("button", { name: /Switch agent/ }),
+    )
+  },
+}
+
+/**
+ * The sidebar, hidden: the pointer on the button that shows it makes it peek over the page, as in
+ * the Claude app.
+ */
+export const SidebarClosed: Story = {
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      await within(canvasElement).findByRole("button", { name: "Hide the sidebar" }),
     )
   },
 }
 
 export const SeveralProjects: Story = {
   parameters: desk({ world: buildSeveralProjectsWorld }),
+}
+
+/**
+ * The command center that switches agent, open: the agents of every project, by project then by
+ * type, the current one marked. ⌘K (Ctrl+K outside Apple systems) opens it too.
+ */
+export const AgentCommandCenterOpen: Story = {
+  parameters: desk({ world: buildSeveralProjectsWorld }),
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      await within(canvasElement).findByRole("button", { name: /Switch agent/ }),
+    )
+  },
 }
 
 export const NoAgent: Story = {

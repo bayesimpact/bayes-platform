@@ -1,5 +1,5 @@
-# The dev environment of one git worktree: web app, Desk, API, workers, web-embed, help site,
-# pdf-converter, the four Storybooks, Grafana, a sign-in (oidc-picker), a Redis and two
+# The dev environment of one git worktree: web app, Desk, Evaluation, API, workers, web-embed, help
+# site, pdf-converter, the five Storybooks, Grafana, a sign-in (oidc-picker), a Redis and two
 # databases on the shared Postgres. The worktree tooling writes infra/worktree/.env
 # (COMPOSE_PROJECT_NAME=wt-<name> and the WT_* values below), then runs `docker compose up -d`
 # with this file.
@@ -48,6 +48,7 @@ x-node-volumes: &node-volumes
   - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
   - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
   - { type: volume, source: nm-desk, target: "${WT_PATH}/apps/desk/node_modules" }
+  - { type: volume, source: nm-eval, target: "${WT_PATH}/apps/eval/node_modules" }
   - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
   - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
   - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -174,6 +175,7 @@ services:
       - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
       - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
       - { type: volume, source: nm-desk, target: "${WT_PATH}/apps/desk/node_modules" }
+      - { type: volume, source: nm-eval, target: "${WT_PATH}/apps/eval/node_modules" }
       - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
       - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
       - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -366,6 +368,11 @@ services:
       # Same origin as the API: Traefik routes /api, /public and the OAuth metadata of this host to it.
       VITE_API_URL: /api
       VITE_AGENT_EMBED_URL: ${WT_EMBED_ORIGIN}
+      # The sandbox of MCP App cards answers on a domain of its own, one label per MCP server,
+      # as on the hosted platform: https://{label}.local.bayes-usercontent.org. The web service
+      # serves it, for the sandbox page alone (its sandbox routers below). Empty when the
+      # environment has no such domain: a card then runs in a frame its app writes itself.
+      VITE_MCP_APP_SANDBOX_ORIGIN: ${WT_SANDBOX_ORIGIN:-}
       VITE_OIDC_AUTHORITY: ${WT_AUTH_ISSUER}
       VITE_OIDC_CLIENT_ID: platform-web
       VITE_OIDC_AUDIENCE: ""
@@ -386,6 +393,19 @@ services:
       - traefik.http.routers.wt-${WT_SLUG}-web.priority=10
       - traefik.http.routers.wt-${WT_SLUG}-web.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-web.loadbalancer.server.port=5173
+      # The sandbox domain is one for every environment of the machine, as it is one for a
+      # hosted environment. A browser names the page that frames the sandbox in Referer: the
+      # first router takes the frames of this environment's own pages (its app, its widget, its
+      # Storybooks), so a branch that changes the sandbox page gets its own. The second takes a
+      # request that names no page, and any environment may answer it: the page is the same
+      # in every branch that did not change it. Without a sandbox domain, neither matches.
+      - traefik.http.routers.wt-${WT_SLUG}-sandbox.rule=HostRegexp(`^[a-z0-9]+\.${WT_SANDBOX_DOMAIN:-sandbox.invalid}$$`) && Path(`/mcp-app-sandbox.html`) && HeaderRegexp(`Referer`, `^https?://${WT_SLUG}(-embed|-storybook|-embed-storybook|-desk-storybook)?\.`)
+      - traefik.http.routers.wt-${WT_SLUG}-sandbox.priority=200
+      - traefik.http.routers.wt-${WT_SLUG}-sandbox.service=wt-${WT_SLUG}-web
+      - traefik.http.routers.wt-${WT_SLUG}-sandbox-any.rule=HostRegexp(`^[a-z0-9]+\.${WT_SANDBOX_DOMAIN:-sandbox.invalid}$$`) && Path(`/mcp-app-sandbox.html`)
+      - traefik.http.routers.wt-${WT_SLUG}-sandbox-any.priority=100
+      - traefik.http.routers.wt-${WT_SLUG}-sandbox-any.service=wt-${WT_SLUG}-web
+      - traefik.http.routers.wt-${WT_SLUG}-web.service=wt-${WT_SLUG}-web
 
   # The Desk (apps/desk) on the environment's host, under /app: its router sits between the API's
   # and the web app's, so the three share one origin as in production. /app redirects to /app/,
@@ -397,6 +417,7 @@ services:
     networks: [default, shared]
     environment:
       <<: *node-env
+      VITE_MCP_APP_SANDBOX_ORIGIN: ${WT_SANDBOX_ORIGIN:-}
       VITE_OIDC_AUTHORITY: ${WT_AUTH_ISSUER}
       VITE_OIDC_CLIENT_ID: platform-web
       VITE_OIDC_AUDIENCE: ""
@@ -420,6 +441,39 @@ services:
       - traefik.http.middlewares.wt-${WT_SLUG}-desk-slash.redirectregex.replacement=$${1}/app/
       - traefik.http.services.wt-${WT_SLUG}-desk.loadbalancer.server.port=5177
 
+  # Evaluation (apps/eval) on the environment's host, under /eval, as the Desk is under /app: its
+  # router wins over the web app's. /eval redirects to /eval/, the Vite base.
+  eval:
+    <<: *node
+    profiles: [eval]
+    working_dir: ${WT_PATH}/apps/eval
+    networks: [default, shared]
+    environment:
+      <<: *node-env
+      VITE_MCP_APP_SANDBOX_ORIGIN: ${WT_SANDBOX_ORIGIN:-}
+      VITE_OIDC_AUTHORITY: ${WT_AUTH_ISSUER}
+      VITE_OIDC_CLIENT_ID: platform-web
+      VITE_OIDC_AUDIENCE: ""
+      VITE_OIDC_AUTHORIZATION_PARAMS: ""
+    depends_on: *after-init
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--strictPort"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5179/eval/').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+    labels:
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
+      - dev.worktree.service=eval
+      - dev.worktree.link.eval=${WT_ORIGIN}/eval/
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-eval.rule=(Host(`${WT_SLUG}.${WT_DOMAIN}`) || Host(`${WT_SLUG}.connect.localhost`)) && PathRegexp(`^/eval(/|$$)`)
+      - traefik.http.routers.wt-${WT_SLUG}-eval.priority=50
+      - traefik.http.routers.wt-${WT_SLUG}-eval.middlewares=wt-${WT_SLUG}-eval-slash,dev-starting@docker
+      - traefik.http.middlewares.wt-${WT_SLUG}-eval-slash.redirectregex.regex=^(https?://[^/]+)/eval$$
+      - traefik.http.middlewares.wt-${WT_SLUG}-eval-slash.redirectregex.replacement=$${1}/eval/
+      - traefik.http.services.wt-${WT_SLUG}-eval.loadbalancer.server.port=5179
+
   embed:
     <<: *node
     profiles: [embed]
@@ -428,6 +482,7 @@ services:
     environment:
       <<: *node-env
       VITE_API_URL: ${WT_ORIGIN}
+      VITE_MCP_APP_SANDBOX_ORIGIN: ${WT_SANDBOX_ORIGIN:-}
     depends_on: *after-init
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--strictPort"]
     healthcheck:
@@ -477,7 +532,10 @@ services:
     profiles: [storybook-web]
     working_dir: ${WT_PATH}/apps/web
     networks: [default, shared]
-    environment: *tools-env
+    environment:
+      <<: *tools-env
+      # The card stories run in the environment's sandbox, as the web app does.
+      VITE_MCP_APP_SANDBOX_ORIGIN: ${WT_SANDBOX_ORIGIN:-}
     depends_on: *after-init
     sysctls:
       net.ipv4.ip_unprivileged_port_start: 0
@@ -567,6 +625,30 @@ services:
       - traefik.http.routers.wt-${WT_SLUG}-storybook-desk.rule=Host(`${WT_SLUG}-desk-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}`) || Host(`${WT_SLUG}-desk-storybook.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-storybook-desk.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-storybook-desk.loadbalancer.server.port=${WT_PUBLIC_PORT}
+
+  storybook-eval:
+    <<: *node
+    profiles: [storybook-eval]
+    working_dir: ${WT_PATH}/apps/eval
+    networks: [default, shared]
+    environment: *tools-env
+    depends_on: *after-init
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    command: ["npm", "run", "storybook", "--", "-p", "${WT_PUBLIC_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_PUBLIC_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+    labels:
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
+      - dev.worktree.service=storybook-eval
+      - dev.worktree.link.eval-storybook=${WT_SCHEME}://${WT_SLUG}-eval-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}${WT_PORT_SUFFIX}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-eval.rule=Host(`${WT_SLUG}-eval-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}`) || Host(`${WT_SLUG}-eval-storybook.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-eval.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-storybook-eval.loadbalancer.server.port=${WT_PUBLIC_PORT}
 
   # Bull Board on this environment's Redis, no login (infra/bull-board/README.md).
   bull-board:
@@ -688,6 +770,7 @@ volumes:
   nm-root: {}
   nm-api: {}
   nm-desk: {}
+  nm-eval: {}
   nm-help: {}
   nm-web: {}
   nm-web-embed: {}

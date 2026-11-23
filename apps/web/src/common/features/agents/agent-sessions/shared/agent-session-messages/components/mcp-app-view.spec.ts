@@ -56,14 +56,21 @@ describe("hasMcpAppCard", () => {
 describe("findMcpAppHtml", () => {
   const entries = [{ ...pointer, html: "<html>live</html>" }]
 
-  it("prefers the HTML embedded on the tool call", () => {
+  it("prefers the HTML embedded on the tool call, and keeps the server it names", () => {
     expect(findMcpAppHtml({ ...pointer, html: "<html>inline</html>" }, entries)).toEqual({
       html: "<html>inline</html>",
+      mcpServerId: pointer.mcpServerId,
     })
+    expect(
+      findMcpAppHtml({ ...pointer, mcpServerId: "", html: "<html>inline</html>" }, entries),
+    ).toEqual({ html: "<html>inline</html>" })
   })
 
   it("resolves the pointer against the entry read from the same server", () => {
-    expect(findMcpAppHtml(pointer, entries)).toEqual({ html: "<html>live</html>" })
+    expect(findMcpAppHtml(pointer, entries)).toEqual({
+      html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
+    })
     expect(findMcpAppHtml({ ...pointer, mcpServerId: "other-server" }, entries)).toBeUndefined()
   })
 
@@ -72,6 +79,7 @@ describe("findMcpAppHtml", () => {
 
     expect(findMcpAppHtml(pointer, [{ ...pointer, html: "<html>live</html>", csp }])).toEqual({
       html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
       csp,
     })
     expect(
@@ -79,9 +87,10 @@ describe("findMcpAppHtml", () => {
     ).toEqual(csp)
   })
 
-  it("accepts any server's entry for a pointer recorded without a server id", () => {
+  it("accepts any server's entry for a pointer recorded without a server id, and names that server", () => {
     expect(findMcpAppHtml({ ...pointer, mcpServerId: "" }, entries)).toEqual({
       html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
     })
   })
 
@@ -98,6 +107,7 @@ describe("getRenderableMcpApp", () => {
   it("renders a card whose HTML arrived through the separate load", () => {
     expect(getRenderableMcpApp(cardToolCall, [{ ...pointer, html: "<html>live</html>" }])).toEqual({
       html: "<html>live</html>",
+      mcpServerId: pointer.mcpServerId,
       toolInput: cardToolCall.arguments,
       toolResult: cardToolCall.result,
     })
@@ -119,6 +129,7 @@ describe("getRenderableMcpApp", () => {
       }),
     ).toEqual({
       html: "<html><body>Patient</body></html>",
+      mcpServerId: "mcp-server-1",
       toolInput: { query: "hello" },
       toolResult: result,
     })

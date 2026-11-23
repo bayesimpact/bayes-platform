@@ -7,7 +7,7 @@ import { Test } from "@nestjs/testing"
 import request from "supertest"
 import { configureGlobalPrefix } from "@/config/api-prefix"
 import { registerWebApp } from "./web-app.middleware"
-import { getDeskAppSettings, getWebAppSettings } from "./web-app-config"
+import { getDeskAppSettings, getEvalAppSettings, getWebAppSettings } from "./web-app-config"
 
 @Controller("ping")
 class PrivatePingController {
@@ -52,18 +52,34 @@ function buildDeskDist(): string {
   return distDir
 }
 
+function buildEvalDist(): string {
+  const distDir = mkdtempSync(join(tmpdir(), "eval-app-dist-"))
+  mkdirSync(join(distDir, "assets"))
+  mkdirSync(join(distDir, "theme"))
+  writeFileSync(
+    join(distDir, "index.html"),
+    "<html><head><title>Evaluation</title></head><body>evaluation entry</body></html>",
+  )
+  writeFileSync(join(distDir, "assets", "index-ghi789.js"), "console.log(3)")
+  writeFileSync(join(distDir, "theme", "theme.css"), ":root {}")
+  writeFileSync(join(distDir, "version.json"), '{"buildId":"build-2"}\n')
+  return distDir
+}
+
 async function createApp(
   distDir: string | null,
   deskDistDir: string | null = null,
+  evalDistDir: string | null = null,
 ): Promise<NestExpressApplication> {
   const settings = distDir ? getWebAppSettings({ WEB_APP_DIST_DIR: distDir }) : null
   const deskSettings = deskDistDir ? getDeskAppSettings({ DESK_APP_DIST_DIR: deskDistDir }) : null
+  const evalSettings = evalDistDir ? getEvalAppSettings({ EVAL_APP_DIST_DIR: evalDistDir }) : null
   const module = await Test.createTestingModule({
     controllers: [PrivatePingController, PublicPingController],
   }).compile()
   const app = module.createNestApplication<NestExpressApplication>()
   configureGlobalPrefix(app)
-  registerWebApp(app, settings, deskSettings)
+  registerWebApp(app, settings, deskSettings, evalSettings)
   await app.init()
   return app
 }
@@ -234,6 +250,81 @@ describe("registerWebApp with the Desk", () => {
     const response = await request(app.getHttpServer()).get("/application").accept("text/html")
     expect(response.text).toContain("<title>AgentStudio</title>")
     expect((await request(app.getHttpServer()).get("/assets/index-abc123.js")).status).toBe(200)
+  })
+})
+
+describe("registerWebApp with the Evaluation app", () => {
+  const previousEnv = { ...process.env }
+  let app: NestExpressApplication
+
+  beforeAll(async () => {
+    process.env.WEB_OIDC_CLIENT_ID = "spa-client"
+    process.env.WEB_HELP_CENTER_URL = "https://help.example.org"
+    app = await createApp(buildDist(), buildDeskDist(), buildEvalDist())
+  })
+
+  afterAll(async () => {
+    process.env = previousEnv
+    await app.close()
+  })
+
+  it("serves the Evaluation app's entry page, with the injected configuration, for its pages", async () => {
+    for (const path of ["/eval/", "/eval/o/1/p/2", "/eval/o/1/p/2/a/3", "/eval/auth/callback"]) {
+      const response = await request(app.getHttpServer()).get(path).accept("text/html")
+      expect(response.status).toBe(200)
+      expect(response.text).toContain("evaluation entry")
+      expect(response.text).toContain('"oidcClientId":"spa-client"')
+      expect(response.text).toContain('"helpCenterUrl":"https://help.example.org"')
+      expect(response.headers["cache-control"]).toBe("no-store")
+    }
+  })
+
+  it("redirects /eval to the Evaluation app's base, with its query", async () => {
+    const response = await request(app.getHttpServer())
+      .get("/eval?login_hint=a")
+      .accept("text/html")
+    expect(response.status).toBe(301)
+    expect(response.headers.location).toBe("/eval/?login_hint=a")
+  })
+
+  it("serves the Evaluation app's files, its hashed assets as immutable", async () => {
+    const asset = await request(app.getHttpServer()).get("/eval/assets/index-ghi789.js")
+    expect(asset.status).toBe(200)
+    expect(asset.headers["cache-control"]).toBe("public, max-age=31536000, immutable")
+    const theme = await request(app.getHttpServer()).get("/eval/theme/theme.css")
+    expect(theme.status).toBe(200)
+    expect(theme.headers["cache-control"]).toBe("public, max-age=300")
+  })
+
+  it("serves the Evaluation app's version.json as a file no cache keeps", async () => {
+    const manifest = await request(app.getHttpServer()).get("/eval/version.json").accept("*/*")
+    expect(manifest.status).toBe(200)
+    expect(manifest.body).toEqual({ buildId: "build-2" })
+    expect(manifest.headers["cache-control"]).toBe("no-cache")
+  })
+
+  it("answers a missing asset with a 404, never with an entry page", async () => {
+    const response = await request(app.getHttpServer())
+      .get("/eval/assets/old-chunk.js")
+      .accept("*/*")
+    expect(response.status).toBe(404)
+    expect(response.text).not.toContain("entry")
+  })
+
+  it("keeps the Desk and the web front everywhere else", async () => {
+    const desk = await request(app.getHttpServer()).get("/app/").accept("text/html")
+    expect(desk.text).toContain("desk entry")
+    const web = await request(app.getHttpServer()).get("/evaluation").accept("text/html")
+    expect(web.text).toContain("<title>AgentStudio</title>")
+  })
+})
+
+describe("registerWebApp without the Evaluation app", () => {
+  it("leaves /eval to the web front", async () => {
+    const app = await createApp(buildDist(), buildDeskDist())
+    const response = await request(app.getHttpServer()).get("/eval/").accept("text/html")
+    expect(response.text).toContain("<title>AgentStudio</title>")
+    await app.close()
   })
 })
 
