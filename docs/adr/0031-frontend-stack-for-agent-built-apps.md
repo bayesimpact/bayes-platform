@@ -536,9 +536,10 @@ and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 th
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
 
 * A route is declared with `defineSchemaRoute`, a helper of the package. It takes the method, the
-  path and the schemas of the params, query, body and response, plus the event schema of a stream
-  (`defineStreamRoute`), and infers the request and response types from them. It returns `path`,
-  `getPath` and `method`, as `defineRoute` does, plus a `schemas` property, with no phantom
+  path and the schemas of the params, query, body and response, and infers the request and
+  response types from them. A stream route is declared with `defineStreamRoute`, which takes an
+  `event` schema in place of the response. `defineSchemaRoute` returns `path`, `getPath` and
+  `method`, as `defineRoute` does, plus a `schemas` property, with no phantom
   `request` and `response`. The API's handlers take the route through `@SchemaRoute`, and its e2e
   specs through `testSchemaRequester`; building a typed path is the client's job. A part the route
   does not read must be empty, and an absent body counts as empty, so nothing unchecked comes in.
@@ -578,12 +579,15 @@ filtering on the client what they return for every app, and a missing endpoint i
 other routes and controllers of `apps/api`, with `ZodValidationPipe` on its body.
 `packages/desk-contracts` describes the routes the Desk calls and the fields it reads, the Desk
 checks every response against it, and the API does not import it. `docs/frontend/conventions.md`
-holds the rules of this phase.
+holds the rules of this phase. The note of 2026-11-23 below supersedes this one.
 
 **The Desk on its own API (Alexis, 2026-11-23).** The first step of this section gives the Desk
 endpoints of its own, as faithful copies. Every route of `packages/desk-contracts` (42 routes, one
 of them the reply stream) starts with `desk/` and has a handler in `apps/api/src/domains/desk/`, in
-`DeskModule`, with one controller per area. The Desk calls only these endpoints. The context
+`DeskModule`. Its folders follow the areas of the contracts, with two exceptions: the
+`agent-sessions` routes live by agent type in `conversations/`, `extractions/` and
+`csv-extractions/`, and `csv-extractions/` serves the CSV routes of `extractions`. A folder may
+hold several controllers: `conversations/` has three. The Desk calls only these endpoints. The context
 resolvers come from `ResourceContextModule` in `apps/api/src/common/context/`, so the Desk module
 registers no entity of another domain. `apps/api/src/common/schema-route/` holds `@SchemaRoute`,
 its input guard and its response interceptor. The input guard parses the params, query and body

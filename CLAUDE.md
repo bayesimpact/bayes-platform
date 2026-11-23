@@ -11,7 +11,7 @@ This is a Turborepo monorepo with the following structure:
 - `apps/desk` - The Desk, rebuilt on the frontend stack of ADR 0031 (Vite, TanStack Router and Query, shadcn on Base UI, Lingui), runs on port 5177 at `/app/`; see `apps/desk/AGENTS.md`
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
-- `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and response with the same schemas
+- `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 

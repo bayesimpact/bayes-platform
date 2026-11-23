@@ -364,7 +364,10 @@ One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
 An app calls only endpoints of its own, under a path prefix named after it: the Desk calls only
 `desk/` endpoints. They live in a module of `apps/api` named after the app
-(`apps/api/src/domains/desk/`), with one controller per area of the contracts. Each handler of the
+(`apps/api/src/domains/desk/`), with a folder per area of the contracts. The Desk splits its
+`agent-sessions` routes by agent type, into `conversations/`, `extractions/` and
+`csv-extractions/`, the folder of the CSV routes of `extractions`. A folder may hold several
+controllers. Each handler of the
 Desk copies the logic of the endpoint the Desk called before, with the same permission on the same
 resource. ADR 0031, section 2.13, lists what waits.
 
