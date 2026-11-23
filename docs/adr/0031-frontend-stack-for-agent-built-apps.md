@@ -333,7 +333,9 @@ No other package is shared on these grounds. A second one needs its own decision
   memoize.
 * A 400 from a Desk endpoint carries the Zod issues (section 2.13), and the mutation maps them onto
   the fields with `setError`. Other failures become a toast. In phase 1, the existing endpoints
-  answer a 400 with one message string, and every API failure becomes a toast. The submit button is
+  answered a 400 with one message string, and every API failure became a toast. Since 2026-11-23
+  the Desk endpoints answer a 400 with the issues, and the Desk still turns every API failure into a
+  toast. The submit button is
   disabled while the form submits, and a submitted form confirms its outcome with a toast.
 * Every data table goes through one `DataTable` in `components/shared/`. Column definitions sit in
   `features/<feature>/components/<entity>-columns.tsx`, typed on the row type. A server-paginated
@@ -529,17 +531,17 @@ params every area extends), each with an `{area}.dto.ts` that
 holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
 CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
 object per area. It depends on Zod alone and imports nothing from `packages/api-contracts`. The
-Desk resolves it as source through its `exports`. Once Desk endpoints exist (section 2.13), the API
-requires its CommonJS build at runtime and maps it to its source in Jest, as it does for
-`api-contracts`; in phase 1 the API does not import it.
+Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
+and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
+import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
 
 * A route is declared with `defineSchemaRoute`, a helper of the package. It takes the method, the
-  path and the schemas of the params, query, body and response, plus the event schema of a stream,
-  and infers the request and response types from them. It returns the shape of `defineRoute`
-  (`path`, `getPath`, `method`, phantom `request` and `response`) plus a `schemas` property, so the
-  API's controllers and its e2e requester use Desk routes like any other; building a typed path is
-  the client's job. A part the route does not read must be empty, and an absent body counts as
-  empty, so nothing unchecked comes in.
+  path and the schemas of the params, query, body and response, plus the event schema of a stream
+  (`defineStreamRoute`), and infers the request and response types from them. It returns `path`,
+  `getPath` and `method`, as `defineRoute` does, plus a `schemas` property, with no phantom
+  `request` and `response`. The API's handlers take the route through `@SchemaRoute`, and its e2e
+  specs through `testSchemaRequester`; building a typed path is the client's job. A part the route
+  does not read must be empty, and an absent body counts as empty, so nothing unchecked comes in.
 * Schemas are named by role, after the kit's `xxxInput`, `xxxOutput` and `xxxQuery`, with the
   `Schema` suffix of the existing contracts (`createConversationInputSchema`,
   `conversationOutputSchema`), and their types take the `Dto` suffix. Types derive from schemas
@@ -577,6 +579,32 @@ other routes and controllers of `apps/api`, with `ZodValidationPipe` on its body
 `packages/desk-contracts` describes the routes the Desk calls and the fields it reads, the Desk
 checks every response against it, and the API does not import it. `docs/frontend/conventions.md`
 holds the rules of this phase.
+
+**The Desk on its own API (Alexis, 2026-11-23).** The first step of this section gives the Desk
+endpoints of its own, as faithful copies. Every route of `packages/desk-contracts` (42 routes, one
+of them the reply stream) starts with `desk/` and has a handler in `apps/api/src/domains/desk/`, in
+`DeskModule`, with one controller per area. The Desk calls only these endpoints. The context
+resolvers come from `ResourceContextModule` in `apps/api/src/common/context/`, so the Desk module
+registers no entity of another domain. `apps/api/src/common/schema-route/` holds `@SchemaRoute`,
+its input guard and its response interceptor. The input guard parses the params, query and body
+with the route's schemas before any resolver runs, and answers 400 with the issues. The interceptor
+parses each response with the route's schema, strips unknown keys, and answers 500 on a mismatch.
+The API requires the CommonJS build of the contracts (`dist`) at runtime, and Jest maps the package
+to its source. Each Desk endpoint copies the endpoint the Desk called before, with the session type
+fixed to `live`: the same method, params, body and response, the same permission on the same
+resource, and the same status codes and tracked activities. Two things change: every schema refusal
+answers 400, and a response holds only the fields the contract declares. The rest of this section
+stays the target, and these parts wait for later changes:
+
+* the Desk access guard and `@DeskRoute` (`desk.ui.read` on the project, `agent.read` on the agent
+  with a 404);
+* the agent list built from `PermissionService.listResourceIds` and a repository method;
+* reads in GET, paths without `live`, and `desk/me` as a home that filters projects and
+  invitations;
+* the check of stream events on the server, and the typed `error` event;
+* the source document read through the caller's own run, and feedback through the caller's own
+  conversation;
+* the removal of the routes that only the Desk called.
 
 * The Desk is the first app with endpoints of its own, and the next apps follow the same pattern: a
   contracts package, a path prefix and an API module named after the app, and an access guard on the

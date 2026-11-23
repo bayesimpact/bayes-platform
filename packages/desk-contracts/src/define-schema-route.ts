@@ -76,7 +76,8 @@ export type AnySchemaRoute = SchemaRoute<
 /**
  * Declares a route of the API with the Zod schemas of what the Desk sends and reads. The Desk's
  * client builds the request from them and parses the response at runtime, so a response that
- * drifts from the contract fails loudly. The API does not use them yet.
+ * drifts from the contract fails loudly. The API serves the route with `@SchemaRoute`, which
+ * checks the request and the response with the same schemas.
  */
 export function defineSchemaRoute<
   TMethod extends SchemaRouteMethod,

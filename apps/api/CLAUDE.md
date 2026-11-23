@@ -174,6 +174,19 @@ export class ExampleController {
 }
 ```
 
+### Schema routes and the Desk module
+
+The Desk (`apps/desk`) calls only the routes of `@caseai-connect/desk-contracts`, under `desk/`. `src/domains/desk/` serves them, one controller per area, and `src/common/schema-route/` holds the generic part. To add or change a Desk endpoint:
+
+1. Contract first: the Zod schemas in `packages/desk-contracts/src/{area}/{area}.dto.ts`, and the route in `{area}.routes.ts` with `defineSchemaRoute` (`defineStreamRoute` for a stream), on the `Desk{Area}Routes` object that `src/index.ts` exports.
+2. The handler, in a `@Controller()` with no prefix and no guard of its own: `@SchemaRoute(route, { permission, context, activity, status })`. It sets the method and path, the guard chain (`JwtAuthGuard`, `UserGuard`, the input guard, then `ResourceContextGuard` and `CheckPermissionGuard`), the required contexts, the permission, the tracked activity, the status code and the response interceptor. `permission` is required: `{ key, on }`, or `"signed-in"` for a route open to any signed-in person. A scoped permission needs its `context` list, since the permission guard reads the resource the resolvers put on the request. `status` defaults to Nest's (201 for a POST). A stream answers 200 and records no activity.
+3. The handler reads the parsed params, query and payload with `@RouteInput() input: SchemaRouteInput<typeof route>`, and returns `Promise<SchemaRouteResponse<typeof route>>`, the `{ data }` the response schema takes as input, so the typecheck proves the record fits the Desk DTO.
+4. Every schema refusal answers 400 before any context resolver runs, with Nest's body plus `issues: [{ path, code, message }]`. The interceptor parses the response with the route's schema: unknown keys are stripped, and a mismatch is logged and answers 500. The handler keeps only the checks a schema cannot express.
+5. `src/domains/desk/` imports no `*.entity.ts` of another domain, type imports included (dependency-cruiser). Type a record from the return type of the service that gives it, or from `src/common/context/request.interface.ts`. The context resolvers come from `ResourceContextModule` (`src/common/context/`). A provider the Desk needs is exported by its feature module.
+6. E2e specs in `src/domains/desk/{area}/e2e-tests/`: an `auth.spec.ts` for all the area's routes and one spec per action, with `testSchemaRequester(app)` and `expectSchemaResponse(route, response, status)` from `test/schema-request.ts`. A stream is requested with supertest at `route.getPath(params)`. `src/domains/desk/desk-routes.spec.ts` checks that every route of the contracts has a handler.
+
+In a worktree environment, run `bayes wt up` after a change to the contracts: the `api` container can miss new exports and keep serving the old code.
+
 ---
 
 ## Testing Requirements

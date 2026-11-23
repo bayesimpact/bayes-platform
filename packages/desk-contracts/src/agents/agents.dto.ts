@@ -15,8 +15,8 @@ export const AGENT_SESSION_CREATE_PERMISSIONS = {
 } as const satisfies Record<AgentTypeDto, string>
 
 /**
- * An agent of a project, as `GET organizations/:organizationId/projects/:projectId/agents` returns
- * it: the agents the person can read, published at least once, sorted by name.
+ * An agent of a project, as `GET desk/organizations/:organizationId/projects/:projectId/agents`
+ * returns it: the agents the person can read, published at least once, sorted by name.
  */
 export const projectAgentOutputSchema = z.object({
   id: z.uuid(),

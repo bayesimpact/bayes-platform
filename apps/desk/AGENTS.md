@@ -15,10 +15,13 @@ holds what is specific to the Desk.
   `invitations`, `memories`, `organizations`, `projects`), with `common/` for the error body and
   the params every route extends (`AgentParamsDto`, `ConversationParamsDto`), and a
   `Desk{Area}Routes` object per area (`extractions` has two: documents and CSV files). It
-  describes the API routes the Desk calls and the fields it reads; the API does not import it.
-- Endpoints: in this first phase, the Desk reads the API's existing endpoints, and `apps/api`
-  changes only in its usual way when one is missing (`docs/frontend/conventions.md`, Endpoints).
-  The sidebar reads `me`, then `projects/mine`, `organizations/mine` and the agents of each project
+  describes the `desk/` routes the Desk calls and the fields it reads, and the API serves these
+  routes with the same schemas.
+- Endpoints: the Desk calls only its own endpoints, under `desk/`. `DeskModule`
+  (`apps/api/src/domains/desk/`) serves them with `@SchemaRoute`, and each one copies the endpoint
+  the Desk called before, with the same permission on the same resource. A new or changed endpoint
+  is contract first (`docs/frontend/conventions.md`, Endpoints). The sidebar reads `desk/me`, then
+  `desk/projects/mine`, `desk/organizations/mine` and the agents of each project
   that grants `desk.ui.read`, as apps/web does, under one query (`deskAgentsQueryOptions` in
   `features/agents`), and the person's invitations every minute. It keeps the agents whose
   `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API

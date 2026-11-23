@@ -6,15 +6,6 @@ export const PROJECT_PATH = "desk/organizations/:organizationId/projects/:projec
 /** The path of an agent, which the paths of its Desk routes start with. */
 export const AGENT_PATH = `${PROJECT_PATH}/agents/:agentId`
 
-/**
- * The path of a project before the Desk had endpoints of its own. The areas whose Desk
- * controllers do not exist yet still call it. It goes once every area has switched.
- */
-export const LEGACY_PROJECT_PATH = "organizations/:organizationId/projects/:projectId"
-
-/** The path of an agent before the Desk had endpoints of its own. It goes with `LEGACY_PROJECT_PATH`. */
-export const LEGACY_AGENT_PATH = `${LEGACY_PROJECT_PATH}/agents/:agentId`
-
 /** The params of the routes under one project. */
 export const projectParamsSchema = z.strictObject({
   organizationId: z.uuid(),
