@@ -215,8 +215,9 @@ or editing the boundaries' configuration.
   caller may unmount before the answer, with a comment saying so; an inline error only inside a
   dialog.
 - Forms use React Hook Form with `zodResolver(schema)`, where the schema is the route's input
-  schema in the contracts package, the same rules as the API's input guard (see Endpoints). A form
-  may add a `.refine` for a UX rule the server does not need. Fields are `Field`, `FieldLabel` and
+  schema in the contracts package, the same rules as the API's input guard, or its
+  `ZodValidationPipe` for an app with no endpoints of its own (see Endpoints). A form may add a
+  `.refine` for a UX rule the server does not need. Fields are `Field`, `FieldLabel` and
   `FieldError` bound through `Controller`, with no `Form` wrapper. `useWatch` replaces `watch()`.
   `zodResolver` infers the form's types (no `useForm<XxxDto>` argument). The resolver shows field
   errors before the form is sent; a failure from the API becomes a toast. The form submits one
@@ -335,17 +336,20 @@ or editing the boundaries' configuration.
 
 Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`), the
 routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
-Zod alone and imports nothing from `packages/api-contracts`. The app reads its source, and the API
-requires its CommonJS build (`dist`) and serves its routes with the same schemas (see Endpoints).
-One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
+Zod alone and imports nothing from `packages/api-contracts`. The app reads its source. When the app
+has endpoints of its own, as the Desk does, the API requires the package's CommonJS build (`dist`)
+and serves its routes with the same schemas. Until then, as for Evaluation, the API does not import
+it (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
 - A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`.
-  It returns the shape of `defineRoute` plus its `schemas`, refuses at compile time a `params`
+  It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its `schemas`, with no
+  phantom `request` and `response`. It refuses at compile time a `params`
   schema whose keys differ from the path's `:name` segments, and adds the `{ payload }` and
   `{ data }` envelopes.
 - A response schema declares the fields the app reads, and only those: `z.object` strips the
-  others, so the app never depends on a field it does not declare. The API strips them too, before
-  the response leaves. A response the schema rejects raises a `ContractMismatchError`.
+  others, so the app never depends on a field it does not declare. On an endpoint of the app's own,
+  the API strips them too, before the response leaves. A response the schema rejects raises a
+  `ContractMismatchError`.
 - Schemas are named by role (`createConversationInputSchema`, `meOutputSchema`), and their types
   take the `Dto` suffix: `z.input` for what a client sends, `z.output` for what it gets. A DTO is
   never written by hand.
@@ -362,8 +366,9 @@ One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
 ## Endpoints
 
-An app calls only endpoints of its own, under a path prefix named after it: the Desk calls only
-`desk/` endpoints. They live in a module of `apps/api` named after the app
+An app with endpoints of its own calls only those, under a path prefix named after it: the Desk
+calls only `desk/` endpoints, with one exception that `apps/desk/AGENTS.md` names (the link to a
+library file). They live in a module of `apps/api` named after the app
 (`apps/api/src/domains/desk/`), with a folder per area of the contracts. The Desk splits its
 `agent-sessions` routes by agent type, into `conversations/`, `extractions/` and
 `csv-extractions/`, the folder of the CSV routes of `extractions`. A folder may hold several
@@ -383,12 +388,28 @@ resource. ADR 0031, section 2.13, lists what waits.
 - A 400 from the input guard keeps Nest's body and adds `issues: [{ path, code, message }]`. A
   response that breaks its schema answers 500.
 
+An app with no endpoints of its own yet, as Evaluation today, is built on the API as it is.
+`apps/api` changes as little as possible, and only in its usual way: its backend is rebuilt once
+the app's screens are right.
+
+- The app reads the existing endpoints when they hold what a screen needs, even if that takes
+  several queries. It filters on the client what the API returns for every app, as apps/web does.
+- A missing endpoint is written like the other routes and controllers of `apps/api`, as
+  `apps/api/CLAUDE.md` asks: a `defineRoute` route and its DTOs in `packages/api-contracts`, a
+  controller with the usual guards and `@CheckPermission`, and a body checked with
+  `@UsePipes(new ZodValidationPipe(schema))`, as `AgentsController` does. The app then declares
+  the same route in its contracts package, with the schemas of what it reads.
+- A 400 from `ZodValidationPipe` carries the Zod errors in its `message`, as one string.
+
 ## Recipes
 
-**An endpoint the app reads**, contract first: its schemas and its route in the app's contracts
-package, then its handler with `@SchemaRoute` in the app's module of `apps/api`
-(`apps/api/src/domains/desk/` for the Desk) and its e2e specs, written as `apps/api/CLAUDE.md`
-asks. Then the MSW handler and its factory, the repository's checks, and the app's `check`, whose
+**An endpoint the app reads**: for an app with endpoints of its own, contract first: its schemas
+and its route in the app's contracts package, then its handler with `@SchemaRoute` in the app's
+module of `apps/api` (`apps/api/src/domains/desk/` for the Desk) and its e2e specs, written as
+`apps/api/CLAUDE.md` asks. For an app with none yet: when an existing endpoint holds the data, its
+route in the app's contracts package with the schemas of what the app reads. When none does, the
+route, the controller and the e2e specs in `apps/api` first, written as `apps/api/CLAUDE.md` asks.
+Then the MSW handler and its factory, the repository's checks, and the app's `check`, whose
 typecheck proves the app reads the new types.
 
 **A feature**: its endpoint first when it is missing or must change, then keys, queries and

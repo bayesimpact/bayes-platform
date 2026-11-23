@@ -24,6 +24,10 @@ it stops at a faithful copy: each Desk endpoint does what the endpoint the Desk 
   and parses each response with the route's response schema before it leaves.
 - The Desk calls only Desk endpoints once the change lands. It switches through the paths of the
   contracts, with no other change in `apps/desk`.
+  Note (2026-11-23, final review): one call stays outside `desk/`. A resource card links to a
+  library file at `organizations/.../resource-libraries/.../resources/.../file`
+  (`apps/desk/src/lib/safe-url.ts`), a route outside the contracts. A Desk route for it is a later
+  step.
 - Each Desk endpoint checks the permission that the matching endpoint checks today, on the same
   resource.
 

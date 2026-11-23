@@ -52,7 +52,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - See `apps/api/CLAUDE.md` for detailed API rules
 
 ### Desk Application
-- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `desk/`, which `apps/api/src/domains/desk/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
+- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `desk/` (one exception, a library file link, is named in `apps/desk/AGENTS.md`), which `apps/api/src/domains/desk/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/desk/AGENTS.md`
 - Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
 

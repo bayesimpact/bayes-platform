@@ -17,12 +17,14 @@ holds what is specific to the Desk.
   `Desk{Area}Routes` object per area (`extractions` has two: documents and CSV files). It
   describes the `desk/` routes the Desk calls and the fields it reads, and the API serves these
   routes with the same schemas.
-- Endpoints: the Desk calls only its own endpoints, under `desk/`. `DeskModule`
-  (`apps/api/src/domains/desk/`) serves them with `@SchemaRoute`, and each one copies the endpoint
-  the Desk called before, with the same permission on the same resource. A new or changed endpoint
-  is contract first (`docs/frontend/conventions.md`, Endpoints). The sidebar reads `desk/me`, then
-  `desk/projects/mine`, `desk/organizations/mine` and the agents of each project
-  that grants `desk.ui.read`, as apps/web does, under one query (`deskAgentsQueryOptions` in
+- Endpoints: the Desk calls only its own endpoints, under `desk/`, with one exception: a resource
+  card links to a library file at `organizations/.../resource-libraries/.../resources/.../file`
+  (`src/lib/safe-url.ts`), outside `desk/` and the contracts, until a Desk route serves it.
+  `DeskModule` (`apps/api/src/domains/desk/`) serves the `desk/` routes with `@SchemaRoute`, and
+  each one copies the endpoint the Desk called before, with the same permission on the same
+  resource. A new or changed endpoint is contract first (`docs/frontend/conventions.md`,
+  Endpoints). The sidebar reads `desk/me`, then `desk/projects/mine`, `desk/organizations/mine`
+  and the agents of each project that grants `desk.ui.read`, as apps/web does, under one query (`deskAgentsQueryOptions` in
   `features/agents`), and the person's invitations every minute. It keeps the agents whose
   `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API
   also lists the agents a project evaluator only reads.
