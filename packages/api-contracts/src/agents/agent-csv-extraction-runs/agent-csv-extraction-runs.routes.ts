@@ -69,6 +69,5 @@ function defineAgentCsvExtractionRunsRoutes(type: BaseAgentSessionTypeDto) {
 }
 
 export const AgentCsvExtractionRunsRoutes = {
-  live: defineAgentCsvExtractionRunsRoutes("live"),
   playground: defineAgentCsvExtractionRunsRoutes("playground"),
 }

@@ -1,5 +1,9 @@
-import { ExtractionAgentSessionsRoutes } from "@caseai-connect/api-contracts"
-import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common"
+import {
+  type ExtractionAgentSessionStatusChangedEventDto,
+  ExtractionAgentSessionsRoutes,
+} from "@caseai-connect/api-contracts"
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, Sse, UseGuards } from "@nestjs/common"
+import type { Observable } from "rxjs"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
@@ -46,6 +50,17 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
   @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "agent")
   getAll(@Req() request: EndpointRequestWithAgent): Promise<typeof Routes.getAll.response> {
     return this.handleGetAll(request)
+  }
+
+  // The status of the caller's own playground runs. It carries status changes only, never
+  // results. The Desk follows its live runs by polling its own endpoints, so this stream, which
+  // the live controller used to serve, now belongs to the playground alone.
+  @Sse(ExtractionAgentSessionsRoutes.streamSessionStatus.path, { method: 0 /* GET */ })
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION, "agent")
+  streamSessionStatus(
+    @Req() request: EndpointRequestWithAgent,
+  ): Observable<ExtractionAgentSessionStatusChangedEventDto> {
+    return this.handleStreamSessionStatus(request)
   }
 
   @Post(Routes.getOne.path)

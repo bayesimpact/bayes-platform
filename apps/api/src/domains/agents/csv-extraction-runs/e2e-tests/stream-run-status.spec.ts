@@ -105,7 +105,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     emit: () => void,
   ): Promise<AgentCsvExtractionRunStatusChangedEventPayload> =>
     new Promise((resolve, reject) => {
-      const path = AgentCsvExtractionRunsRoutes.live.streamRunStatus.getPath({
+      const path = AgentCsvExtractionRunsRoutes.playground.streamRunStatus.getPath({
         organizationId,
         projectId,
         agentId,

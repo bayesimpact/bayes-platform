@@ -89,7 +89,7 @@ describe("AgentCsvExtractionRuns - deleteOne", () => {
 
   const subject = async () =>
     request({
-      route: AgentCsvExtractionRunsRoutes.live.deleteOne,
+      route: AgentCsvExtractionRunsRoutes.playground.deleteOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
       token: accessToken,
     })

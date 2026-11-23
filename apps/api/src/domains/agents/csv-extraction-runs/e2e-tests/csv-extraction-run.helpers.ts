@@ -95,7 +95,7 @@ export async function createCsvExtractionRun({
   repositories,
   context,
   status = "pending",
-  type = "live",
+  type = "playground",
   user = context.user,
 }: {
   repositories: AllRepositories

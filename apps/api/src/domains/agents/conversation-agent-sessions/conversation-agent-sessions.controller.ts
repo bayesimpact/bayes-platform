@@ -22,7 +22,8 @@ import type { ConversationAgentSession } from "./conversation-agent-session.enti
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
 
-type Routes = (typeof ConversationAgentSessionsRoutes)[BaseAgentSessionType]
+/** The route sets the subclasses still serve: the live ones are gone, the Desk serves its own. */
+type Routes = (typeof ConversationAgentSessionsRoutes)["playground"]
 
 /**
  * Base of the live and playground conversation session controllers. Each subclass serves one

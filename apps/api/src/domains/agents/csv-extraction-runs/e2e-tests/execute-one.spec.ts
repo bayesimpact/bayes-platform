@@ -78,7 +78,7 @@ describe("AgentCsvExtractionRuns - executeOne", () => {
 
   const subject = async (recordLimit: number | null) =>
     request({
-      route: AgentCsvExtractionRunsRoutes.live.executeOne,
+      route: AgentCsvExtractionRunsRoutes.playground.executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
       token: accessToken,
       request: { payload: { recordLimit } },

@@ -24,7 +24,6 @@ import { AgentCsvExtractionRunRecord } from "./agent-csv-extraction-run-record.e
 import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extraction-run-status-notifier.service"
 import { AgentCsvExtractionRunStatusStreamService } from "./agent-csv-extraction-run-status-stream.service"
 import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.service"
-import { LiveAgentCsvExtractionRunsController } from "./live-agent-csv-extraction-runs.controller"
 import { PlaygroundAgentCsvExtractionRunsController } from "./playground-agent-csv-extraction-runs.controller"
 
 @Module({
@@ -58,7 +57,7 @@ import { PlaygroundAgentCsvExtractionRunsController } from "./playground-agent-c
     ProjectContextResolver,
     ResourceContextGuard,
   ],
-  controllers: [LiveAgentCsvExtractionRunsController, PlaygroundAgentCsvExtractionRunsController],
+  controllers: [PlaygroundAgentCsvExtractionRunsController],
   exports: [
     AgentCsvExtractionRunsService,
     AgentCsvExtractionRunCsvExportService,

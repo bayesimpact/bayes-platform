@@ -1,7 +1,4 @@
-import {
-  AgentCsvExtractionRunsRoutes,
-  type BaseAgentSessionTypeDto,
-} from "@caseai-connect/api-contracts"
+import { AgentCsvExtractionRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { clearTestDatabase } from "@/common/test/test-database"
@@ -68,9 +65,9 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     await app.close()
   })
 
-  const subject = async (type: BaseAgentSessionTypeDto = "live") =>
+  const subject = async () =>
     request({
-      route: AgentCsvExtractionRunsRoutes[type].getAll,
+      route: AgentCsvExtractionRunsRoutes.playground.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
     })
@@ -82,13 +79,13 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     agentId = context.agent.id
     authSubject = context.user.authSubject!
 
-    const response = await subject("live")
+    const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data).toEqual([])
   })
 
-  it("returns only the runs of the route's type", async () => {
+  it("does not list the live runs of the Desk", async () => {
     // The Desk app lists live runs and the Studio playground its own: one surface's runs must
     // never leak into the other.
     const context = await createCsvExtractionRunContext({ repositories, authSubject })
@@ -104,15 +101,12 @@ describe("AgentCsvExtractionRuns - getAll", () => {
       type: "playground",
     })
 
-    const liveResponse = await subject("live")
-    expectResponse(liveResponse, 200)
-    expect(liveResponse.body.data.map((run) => run.id)).toEqual([liveRun.id])
-    expect(liveResponse.body.data[0]?.type).toBe("live")
+    const response = await subject()
 
-    const playgroundResponse = await subject("playground")
-    expectResponse(playgroundResponse, 200)
-    expect(playgroundResponse.body.data.map((run) => run.id)).toEqual([playgroundRun.id])
-    expect(playgroundResponse.body.data[0]?.type).toBe("playground")
+    expectResponse(response, 200)
+    expect(response.body.data.map((run) => run.id)).toEqual([playgroundRun.id])
+    expect(response.body.data[0]?.type).toBe("playground")
+    expect(response.body.data.map((run) => run.id)).not.toContain(liveRun.id)
   })
 
   it("returns only the requesting user's runs", async () => {
@@ -129,7 +123,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     await repositories.userRepository.save(colleague)
     await createCsvExtractionRun({ repositories, context, user: colleague })
 
-    const response = await subject("live")
+    const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data.map((run) => run.id)).toEqual([myRun.id])
@@ -146,7 +140,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
 
     const legacyRun = await createCsvExtractionRun({ repositories, context, user: null })
 
-    const response = await subject("live")
+    const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data.map((run) => run.id)).toEqual([legacyRun.id])
@@ -191,7 +185,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
       .build()
     await repositories.agentCsvExtractionRunRepository.save(otherRun)
 
-    const response = await subject("live")
+    const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data.map((run) => run.id)).toEqual([newer.id, older.id])

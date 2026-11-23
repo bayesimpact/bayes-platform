@@ -4,7 +4,6 @@ import { selectPlaygroundRevision } from "@/common/features/agents/agent-setting
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
-import { isStudioInterface } from "@/studio/routes/helpers"
 import type { ConversationAgentSession } from "../../conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSession } from "../../extraction/extraction-agent-sessions.models"
 
@@ -75,7 +74,8 @@ export const deleteAgentSession = createAsyncThunk<
   },
 )
 
-// FIXME: This is a temporary solution to avoid having to duplicate functions for live and playground agent sessions.
+// The live sessions of apps/web are gone: the Desk serves its own under `desk/`, and what is
+// left here is the playground. Dropping the parameter from every session call is a follow-up.
 export function buildType(): BaseAgentSessionTypeDto {
-  return isStudioInterface() ? "playground" : "live"
+  return "playground"
 }

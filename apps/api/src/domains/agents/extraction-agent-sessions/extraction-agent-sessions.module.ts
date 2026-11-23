@@ -10,7 +10,6 @@ import {
 import { ExtractionAgentSessionBatchModule } from "./extraction-agent-session-batch.module"
 import { ExtractionAgentSessionStatusStreamService } from "./extraction-agent-session-status-stream.service"
 import { ExtractionAgentSessionsService } from "./extraction-agent-sessions.service"
-import { LiveExtractionAgentSessionsController } from "./live-extraction-agent-sessions.controller"
 import { PlaygroundExtractionAgentSessionsController } from "./playground-extraction-agent-sessions.controller"
 
 @Module({
@@ -26,7 +25,7 @@ import { PlaygroundExtractionAgentSessionsController } from "./playground-extrac
     ExtractionAgentSessionsService,
     ExtractionAgentSessionStatusStreamService,
   ],
-  controllers: [LiveExtractionAgentSessionsController, PlaygroundExtractionAgentSessionsController],
+  controllers: [PlaygroundExtractionAgentSessionsController],
   exports: [ExtractionAgentSessionsService],
 })
 export class ExtractionAgentSessionsModule {}

@@ -249,12 +249,12 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     await createContext()
 
     const response = await request({
-      route: AgentCsvExtractionRunsRoutes.live.createOne,
+      route: AgentCsvExtractionRunsRoutes.playground.createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request: {
         payload: { csvDocumentId, columnSchema, agentSettingsRevision: "2" },
-      } as unknown as typeof AgentCsvExtractionRunsRoutes.live.createOne.request,
+      } as unknown as typeof AgentCsvExtractionRunsRoutes.playground.createOne.request,
     })
 
     expectResponse(response, 403)

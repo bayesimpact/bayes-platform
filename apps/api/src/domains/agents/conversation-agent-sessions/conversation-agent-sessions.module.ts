@@ -14,13 +14,11 @@ import {
 } from "../base-agent-sessions/base-agent-sessions-module.helpers"
 import { AgentConversationReviewersModule } from "../conversation-reviewers/agent-conversation-reviewers.module"
 import { AgentMessageAttachmentDocumentsService } from "../shared/agent-session-messages/agent-message-attachment-documents.service"
-import { LiveAgentMessagesController } from "../shared/agent-session-messages/live-agent-messages.controller"
 import { McpAppHtmlService } from "../shared/agent-session-messages/mcp-app-html.service"
 import { PlaygroundAgentMessagesController } from "../shared/agent-session-messages/playground-agent-messages.controller"
 import { ReviewCampaignTesterAgentMessagesController } from "../shared/agent-session-messages/review-campaign-tester-agent-messages.controller"
 import { StreamingModule } from "../shared/agent-session-messages/streaming/streaming.module"
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
-import { LiveConversationAgentSessionsController } from "./live-conversation-agent-sessions.controller"
 import { PlaygroundConversationAgentSessionsController } from "./playground-conversation-agent-sessions.controller"
 import { ConversationRetentionSweepRun } from "./retention/conversation-retention-sweep-run.entity"
 import { ConversationRetentionSweepRunsController } from "./retention/conversation-retention-sweep-runs.controller"
@@ -52,8 +50,6 @@ import { ConversationReviewService } from "./review/conversation-review.service"
   controllers: [
     ConversationRetentionSweepRunsController,
     ConversationReviewController,
-    LiveAgentMessagesController,
-    LiveConversationAgentSessionsController,
     PlaygroundAgentMessagesController,
     PlaygroundConversationAgentSessionsController,
     ReviewCampaignTesterAgentMessagesController,

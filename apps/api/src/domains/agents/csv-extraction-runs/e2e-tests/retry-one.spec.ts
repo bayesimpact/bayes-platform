@@ -92,7 +92,7 @@ describe("AgentCsvExtractionRuns - retryOne", () => {
 
   const subject = async () =>
     request({
-      route: AgentCsvExtractionRunsRoutes.live.retryOne,
+      route: AgentCsvExtractionRunsRoutes.playground.retryOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
       token: accessToken,
     })
