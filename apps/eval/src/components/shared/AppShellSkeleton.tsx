@@ -1,0 +1,17 @@
+import { Skeleton } from "@/components/ui/skeleton"
+import { AppShell } from "./AppShell"
+
+/** The app's frame while the agents load: a sidebar of placeholders and an empty center. */
+export function AppShellSkeleton() {
+  return (
+    <AppShell
+      header={<Skeleton className="h-8 w-full" />}
+      footer={<Skeleton className="h-8 w-32" />}
+    >
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 pb-16">
+        <Skeleton className="h-9 w-80 max-w-full" />
+        <Skeleton className="h-32 w-full max-w-2xl rounded-lg" />
+      </div>
+    </AppShell>
+  )
+}

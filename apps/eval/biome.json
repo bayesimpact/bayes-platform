@@ -1,0 +1,123 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "root": false,
+  "extends": "//",
+  "files": {
+    "includes": ["**", "!src/routeTree.gen.ts"]
+  },
+  "plugins": [
+    "./biome-plugins/use-query-justified.grit",
+    "./biome-plugins/no-effect-setting-state.grit",
+    "./biome-plugins/table-without-memo.grit"
+  ],
+  "linter": {
+    "rules": {
+      "style": {
+        "noEnum": "error",
+        "noNonNullAssertion": "error",
+        "noDefaultExport": "error",
+        "useConsistentTypeDefinitions": {
+          "level": "error",
+          "options": {
+            "style": "type"
+          }
+        },
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "requireAscii": true,
+            "filenameCases": ["kebab-case", "PascalCase"]
+          }
+        },
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "redux": "The stack has no Redux: server state lives in TanStack Query.",
+              "@reduxjs/toolkit": "The stack has no Redux: server state lives in TanStack Query.",
+              "react-redux": "The stack has no Redux: server state lives in TanStack Query.",
+              "zustand": "Zustand needs a human's go (docs/frontend/conventions.md).",
+              "axios": "Network calls go through lib/api-client.ts, on fetch.",
+              "react-router": "Routing is TanStack Router.",
+              "react-router-dom": "Routing is TanStack Router.",
+              "i18next": "Text goes through Lingui.",
+              "react-i18next": "Text goes through Lingui."
+            },
+            "patterns": [
+              {
+                "group": ["@radix-ui/*"],
+                "message": "Components are shadcn's on Base UI, not Radix."
+              }
+            ]
+          }
+        }
+      },
+      "suspicious": {
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error"]
+          }
+        }
+      },
+      "complexity": {
+        "noExcessiveLinesPerFunction": {
+          "level": "error",
+          "options": {
+            "maxLines": 200,
+            "skipBlankLines": true
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["*.config.ts", ".storybook/**", "**/*.stories.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.spec.ts", "**/*.spec.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/routes/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/features/*/components/**", "src/components/**", "src/routes/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "fetch": "A component calls the API through its feature's api/ hooks, never fetch."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

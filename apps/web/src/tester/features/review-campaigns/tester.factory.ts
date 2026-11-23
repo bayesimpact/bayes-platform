@@ -80,6 +80,10 @@ export const myReviewCampaignFactory = MyReviewCampaignFactory.define(
       createdAt: params.createdAt ?? faker.date.recent().getTime(),
       organizationId: project.organizationId,
       projectId: project.id,
+      agent: {
+        name: params.agent?.name ?? "Helpful Assistant",
+        type: params.agent?.type ?? "conversation",
+      },
     }
   },
 )

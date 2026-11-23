@@ -148,6 +148,22 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         role: "assistant",
         content: "hi",
         agentSettingsId: agentSettings.id,
+        toolCalls: [
+          { id: "call-lookup", name: "lookup_knowledge_base", arguments: { query: "plans" } },
+          {
+            id: "call-sources",
+            name: "sources",
+            arguments: {
+              sources: [
+                {
+                  documentId: "11111111-1111-4111-8111-111111111111",
+                  documentTitle: "Pricing guide.pdf",
+                  chunks: [{ chunkId: "chunk-1", partialContent: "The Pro plan covers…" }],
+                },
+              ],
+            },
+          },
+        ],
       },
       {
         organizationId: organization.id,
@@ -199,6 +215,17 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     expect(data.testerUserId).toBe(tester.id)
     expect(data.agent).toMatchObject({ id: agent.id, name: agent.name, type: "conversation" })
     expect(data.transcript).toHaveLength(2)
+    // A reply carries the tool calls the tester's chat received
+    expect(data.transcript).toEqual([
+      expect.objectContaining({ role: "user", toolCalls: [] }),
+      expect.objectContaining({
+        role: "assistant",
+        toolCalls: [
+          { id: "call-lookup", name: "lookup_knowledge_base", arguments: { query: "plans" } },
+          expect.objectContaining({ id: "call-sources", name: "sources" }),
+        ],
+      }),
+    ])
     // Opinion/hidden fields must be absent in blind mode
     expect(data.testerFeedback).toBeUndefined()
     expect(data.myReview).toBeUndefined()

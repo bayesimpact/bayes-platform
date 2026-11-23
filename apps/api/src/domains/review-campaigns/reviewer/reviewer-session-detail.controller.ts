@@ -11,6 +11,9 @@ import type { EndpointRequestWithAgentSessionInCampaign } from "@/common/context
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
+import { toMcpAppHtmlDtos } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
@@ -25,7 +28,10 @@ import { ReviewerService } from "./reviewer.service"
 @RequireContext("organization", "project", "agentSessionInCampaign")
 @Controller()
 export class ReviewerSessionDetailController {
-  constructor(private readonly reviewerService: ReviewerService) {}
+  constructor(
+    private readonly reviewerService: ReviewerService,
+    private readonly mcpAppHtmlService: McpAppHtmlService,
+  ) {}
 
   @Get(ReviewCampaignsRoutes.getReviewerSession.path)
   @CheckPermission(REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION, "review_campaign")
@@ -41,6 +47,31 @@ export class ReviewerSessionDetailController {
       reviewerUserId: request.user.id,
     })
     return { data: toGetReviewerSessionResponseDto(result) }
+  }
+
+  /**
+   * The current HTML of the session's MCP Apps, for the reviewer to read the replies as the tester
+   * did. Apart from the session: reading it connects to the MCP servers the transcript points at.
+   */
+  @Get(ReviewCampaignsRoutes.getReviewerSessionMcpAppHtml.path)
+  @CheckPermission(REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION, "review_campaign")
+  async getReviewerSessionMcpAppHtml(
+    @Req() request: EndpointRequestWithAgentSessionInCampaign,
+  ): Promise<typeof ReviewCampaignsRoutes.getReviewerSessionMcpAppHtml.response> {
+    const { sessionId, agentType, userId } = request.agentSessionInCampaign
+    const { transcript } = await this.reviewerService.getSessionForReview({
+      campaign: request.reviewCampaign,
+      sessionId,
+      agentType,
+      sessionOwnerUserId: userId,
+      reviewerUserId: request.user.id,
+    })
+    const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
+      agentId: request.reviewCampaign.agentId,
+      sessionId,
+      messages: transcript,
+    })
+    return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 }
 
@@ -92,6 +123,8 @@ function toTranscriptMessageDto(message: AgentMessage): ReviewerSessionTranscrip
     role: message.role,
     content: message.content,
     createdAt: message.createdAt.getTime(),
+    // As the tester's chat received them: the reviewer reads the reply the tester read.
+    toolCalls: message.toolCalls ?? [],
   }
 }
 
