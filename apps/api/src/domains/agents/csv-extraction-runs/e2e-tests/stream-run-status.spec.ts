@@ -93,7 +93,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     organizationId,
     projectId,
     agentId,
-    runType: "live",
+    runType: "playground",
     userId,
     status: "completed",
     summary: null,
@@ -191,25 +191,26 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
   it("should stream only the status of the route's run type", async () => {
     await createContext()
 
-    const playgroundEvent = buildEvent({
-      runType: "playground",
+    // A live run belongs to the Desk, which follows its runs on its own endpoints.
+    const liveEvent = buildEvent({
+      runType: "live",
       agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000013",
     })
-    const liveEvent = buildEvent({
+    const playgroundEvent = buildEvent({
       agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000022",
     })
 
     const received = await streamFirstEvent(() => {
-      statusStreamSubject.next(playgroundEvent)
       statusStreamSubject.next(liveEvent)
+      statusStreamSubject.next(playgroundEvent)
     })
 
-    expect(received.runType).toBe("live")
+    expect(received.runType).toBe("playground")
     expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000022")
   })
 
-  it("should stream to a plain member only their own runs and the runs without a creator", async () => {
-    await createContext("project_member")
+  it("should stream only the caller's own runs and the runs without a creator", async () => {
+    await createContext("project_owner")
 
     const colleagueEvent = buildEvent({
       userId: "00000000-0000-0000-0000-0000000000aa",
