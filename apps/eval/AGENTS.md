@@ -213,8 +213,8 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   and takes its changes. The records of an extraction dataset, the results of an extraction run
   and the comparison of runs work that way, 50 rows a page. The records of a conversation dataset
   and of a conversation run, written by hand and few, are still read whole.
-- What the former evaluation app (`apps/web/src/eval`) did is the reference for both types of
-  agent: its behaviours are kept unless the product owner asked otherwise. Kept on purpose from
+- What the former evaluation app did (`apps/web/src/eval`, removed since: read it in the git
+  history) is the reference for both types of agent: its behaviours are kept unless the product owner asked otherwise. Kept on purpose from
   it: the "N records remaining" badge and the progress text of a run under way
   (`RunPageHeader`, `RunProgressNote`), a toast when a run a person watches ends
   (`useRunEndToasts`, on the polled data), the trace of an answer for who holds `trace.read`

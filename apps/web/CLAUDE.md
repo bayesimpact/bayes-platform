@@ -72,11 +72,11 @@ Each feature MUST follow this canonical pattern (the "me" feature is the referen
 
 **Rule**: page components MUST NOT dispatch fetch thunks from `useEffect`. Data loading is handled by **route wrapper components** using `useMount` + listener middleware + `AsyncRoute`. See [ADR 0009](../../docs/adr/0009-subroute-data-loading.md) for full rationale.
 
-**Three-layer pattern** (reference: `apps/web/src/eval/routes/EvalRoutes.tsx`):
+**Three-layer pattern** (reference: `apps/web/src/tester/routes/TesterRoutes.tsx`):
 
 #### Layer 1 — Root route: `useInitStore` + `useSetCurrentIds` + `initDone` gate
 
-The root route (e.g. `TesterRoute`, eval's `ProjectRouteHandler`) injects dynamic slices and sets ALL URL-driven IDs at the **same component level**. The `initDone` gate creates two-phase rendering: effects fire in phase 1 (slices injected + IDs set), children mount in phase 2 with correct state.
+The root route (e.g. `TesterRoute`) injects dynamic slices and sets ALL URL-driven IDs at the **same component level**. The `initDone` gate creates two-phase rendering: effects fire in phase 1 (slices injected + IDs set), children mount in phase 2 with correct state.
 
 ```ts
 // Local to the route file — sets only the IDs this feature needs.
@@ -149,7 +149,7 @@ listenerMiddleware.startListening({
 - **`useSetCurrentIds` MUST be at the same level as `useInitStore`** — the `initDone` gate ensures IDs are set before children mount. Putting `useSetCurrentIds` in a child creates a race condition (React fires child effects before parent effects).
 - **Page/leaf components MUST NOT dispatch data loading** — all loading is in route wrappers + middleware. Leaf components assume data is available.
 - **Use `useMount` hook, not raw `useEffect`** for mount/unmount — `useMount` standardizes the pattern and prevents mistakes. It accepts `{ actions, condition?, refreshOn? }`. Pass `refreshOn: (string | null)[]` when the route stays mounted but must re-fetch as a current ID changes (e.g. `refreshOn: [agentSessionId]` re-runs `unmount` then `mount` when the session switches in place). Without it the effect only fires once on mount.
-- **Conditions come from Redux selectors, not `useParams`** — the route reads `useAppSelector(selectCurrentXxxId)` to match the eval pattern.
+- **Conditions come from Redux selectors, not `useParams`** — the route reads `useAppSelector(selectCurrentXxxId)`.
 - **Each sub-route level needing its own data gets its own `mount`/`unmount` actions** — allows dedicated middleware listeners and avoids overloading a single `mount` action.
 
 **Exceptions where `useEffect` is fine**: dynamic slice injection lifecycle (`use-init-store.ts`), the local `useSetCurrentIds` in the root route, DOM subscriptions, focus/scroll, third-party widget mount/unmount.
@@ -285,8 +285,8 @@ See [ADR 0010](../../docs/adr/0010-factory-per-model-and-story-per-route.md) for
 
 **Rule**: when you create or rename `features/{domain}/{domain}.models.ts`, you MUST create the sibling factory file `features/{domain}/{domain}.factory.ts` (or `{domain}/{singular}.factory.ts` — match the existing siblings in the same folder) in the same commit. No model ships without a factory.
 
-- Pattern: [evaluation-conversation-datasets.factory.ts](src/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory.ts) and [documents.factory.ts](src/studio/features/documents/documents.factory.ts) are canonical references.
-- Use `fishery`'s `Factory.define`. Transient params carry the parent scope (e.g. `{ project: Project }`, `{ dataset: EvaluationConversationDataset }`). Throw if a required transient param is missing — silent fallback defaults make seeded stories drift from real shapes.
+- Pattern: [evaluation-conversation-datasets.factory.ts](src/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory.ts) and [documents.factory.ts](src/studio/features/documents/documents.factory.ts) are canonical references.
+- Use `fishery`'s `Factory.define`. Transient params carry the parent scope (e.g. `{ project: Project }`, `{ organization: Organization }`). Throw if a required transient param is missing — silent fallback defaults make seeded stories drift from real shapes.
 - Use `faker` for values. Keep samples **domain-neutral** (see the root CLAUDE.md "Neutral Sample Data" rule) — `faker.lorem.sentence()`, `faker.commerce.productName()`, never a vertical-specific term unless asked.
 - Every field on the model MUST be defaulted in the factory, with `params.X ?? <default>` so callers can override.
 
@@ -294,10 +294,10 @@ See [ADR 0010](../../docs/adr/0010-factory-per-model-and-story-per-route.md) for
 
 **Rule**: when you add an entry to `{scope}/routes/{Scope}Routes.tsx` (e.g. `studioRoutes`, `testerRoutes`), you MUST create a matching story under `apps/web/src/stories/routes/{scope}/{RouteName}.stories.tsx` in the same commit. Pure redirects/aliases are exempt; anything that renders UI is not.
 
-- Pattern: [EvaluationConversationDatasetsRoute.stories.tsx](src/stories/routes/eval/EvaluationConversationDatasetsRoute.stories.tsx) and [DocumentsRoute.stories.tsx](src/stories/routes/studio/DocumentsRoute.stories.tsx) are canonical references.
+- Pattern: [DocumentsRoute.stories.tsx](src/stories/routes/studio/DocumentsRoute.stories.tsx) and [ProjectMembershipsRoute.stories.tsx](src/stories/routes/studio/ProjectMembershipsRoute.stories.tsx) are canonical references.
 - The story must mount the **real** route tree (`createMemoryRouter([studioRoutes], { initialEntries: [path] })`), not just the leaf component. This catches breakage in route wrappers, `useMount`, `AsyncRoute`, and feature-flag gates.
 - Seed Redux via `buildMockStore` + `mergeSeeds(seed.X(...), ...)`. Use the feature factories — never inline literal fixtures. If the seed helper you need is missing, add it to [seed.ts](src/stories/seed.ts).
-- Expose toggles via `argTypes` for every data dependency the route reads (e.g. `withDatasets`, `withRuns`) so the empty AND populated states are both reachable from the Storybook controls panel.
+- Expose toggles via `argTypes` for every data dependency the route reads (e.g. `withDocuments`, `withDocumentTags`) so the empty AND populated states are both reachable from the Storybook controls panel.
 - If the route is wrapped in `<RestrictedFeature feature="X">`, the seeded project MUST have `featureFlags: ["X"]` or the story renders blank.
 
 ### When the seed helper is missing, add it
@@ -317,23 +317,22 @@ When starting a new admin/studio UI slice with meaningful UX surface (list + edi
 
 ### Storybook Mock Services Are Factories, Not Singletons
 
-Page wrappers that dispatch list thunks on mount (e.g. `CampaignListPage`) will overwrite seeded Redux state if the mock service returns hardcoded data — the page's `mount` handler dispatches `listX()`, the `fulfilled` reducer overwrites whatever was seeded in `withRedux({ list: [] })`, and your `Empty` story flashes 3 fixtures.
+Page wrappers that dispatch list thunks on mount (e.g. `ProjectMembershipsRoute`) will overwrite seeded Redux state if the mock service returns hardcoded data — the page's `mount` handler dispatches `listX()`, the `fulfilled` reducer overwrites whatever was seeded in `withRedux({ list: [] })`, and your `Empty` story flashes 3 fixtures.
 
 **Don't**: export a singleton mock service with fixed return values.
 
 **Do**: export a factory that accepts per-story overrides:
 
 ```typescript
-export function buildMockReviewCampaignsService(
-  overrides: { campaigns?: ReviewCampaignDto[] } = {},
-): IReviewCampaignsSpi {
-  const campaigns = overrides.campaigns ?? defaultFixtures
-  return { async getAll() { return campaigns }, /* ... */ }
+export function buildMockProjectMembershipsService(
+  overrides: { memberships?: ProjectMembership[] } = {},
+): IProjectMembershipsSpi {
+  return { async getAll() { return overrides.memberships ?? [] }, /* ... */ }
 }
 
 // In the story:
-servicesMock: {
-  reviewCampaigns: buildMockReviewCampaignsService({ campaigns: [] }),
+services: {
+  projectMemberships: buildMockProjectMembershipsService({ memberships: [] }),
 }
 ```
 

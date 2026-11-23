@@ -9,7 +9,6 @@ import {
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
-import { evaluationConversationDatasetFactory } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -19,6 +18,7 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { buildMockTestCasesService } from "@/stories/test-cases/mock-service"
+import { evaluationConversationDatasetFactory } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -178,7 +178,7 @@ export const Default: Story = {
           services: { testCases: buildMockTestCasesService() },
           state: mergeSeeds(
             baseSeeds,
-            seed.eval.conversationDatasets(datasets),
+            seed.studio.conversationDatasets(datasets),
             seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
             seed.conversationAgentSessions({ [currentAgent.id]: [session] }),
             subSessions.length > 0

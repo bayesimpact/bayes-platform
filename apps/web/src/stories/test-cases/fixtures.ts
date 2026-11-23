@@ -1,7 +1,7 @@
 import { fn } from "storybook/test"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
-import { evaluationConversationDatasetFactory } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
+import { evaluationConversationDatasetFactory } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
 import {
   testCaseInputDraftFactory,
   testCaseSourceFactory,

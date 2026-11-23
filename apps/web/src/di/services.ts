@@ -11,10 +11,6 @@ import type { IOAuthConsentSpi } from "@/common/features/oauth-consent/oauth-con
 import type { IOAuthGrantsSpi } from "@/common/features/oauth-grants/oauth-grants.spi"
 import type { IOrganizationsSpi } from "@/common/features/organizations/organizations.spi"
 import type { IProjectsSpi } from "@/common/features/projects/projects.spi"
-import type { IEvaluationConversationDatasetsSpi } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.spi"
-import type { IEvaluationConversationRunsSpi } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.spi"
-import type { IEvaluationExtractionDatasetsSpi } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.spi"
-import type { IEvaluationExtractionRunsSpi } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.spi"
 import { services } from "@/external/axios.services"
 import type { IReviewerSpi } from "@/reviewer/features/review-campaigns/reviewer.spi"
 import type { IAgentEmbedConfigsSpi } from "@/studio/features/agent-embed-configs/agent-embed-configs.spi"
@@ -29,13 +25,13 @@ import type { IConversationReviewSpi } from "@/studio/features/conversation-revi
 import type { IDocumentSourcesSpi } from "@/studio/features/document-sources/document-sources.spi"
 import type { IDocumentTagsSpi } from "@/studio/features/document-tags/document-tags.spi"
 import type { IDocumentsSpi } from "@/studio/features/documents/documents.spi"
+import type { IEvaluationConversationDatasetsSpi } from "@/studio/features/evaluation-conversation-datasets/evaluation-conversation-datasets.spi"
 import type { IInvitationsSpi } from "@/studio/features/invitations/invitations.spi"
 import type { IMcpServersSpi } from "@/studio/features/mcp-servers/mcp-servers.spi"
 import type { IProjectEmbeddingModelsSpi } from "@/studio/features/project-embedding-models/project-embedding-models.spi"
 import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
 import type { IResourceLibrariesSpi } from "@/studio/features/resource-libraries/resource-libraries.spi"
 import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
-import type { IReviewCampaignsSpi } from "@/studio/features/review-campaigns/review-campaigns.spi"
 import type { ITestCasesSpi } from "@/studio/features/test-cases/test-cases.spi"
 import type { ITesterSpi } from "@/tester/features/review-campaigns/tester.spi"
 
@@ -57,9 +53,6 @@ export type Services = {
   documents: IDocumentsSpi
   documentTags: IDocumentTagsSpi
   evaluationConversationDatasets: IEvaluationConversationDatasetsSpi
-  evaluationConversationRuns: IEvaluationConversationRunsSpi
-  evaluationExtractionDatasets: IEvaluationExtractionDatasetsSpi
-  evaluationExtractionRuns: IEvaluationExtractionRunsSpi
   extractionAgentSessions: IExtractionAgentSessionsSpi
   mcpServers: IMcpServersSpi
   appCatalog: IAppCatalogSpi
@@ -74,7 +67,6 @@ export type Services = {
   projectMemberships: IProjectMembershipsSpi
   projects: IProjectsSpi
   resourceLibraries: IResourceLibrariesSpi
-  reviewCampaigns: IReviewCampaignsSpi
   reviewCampaignsReports: IReportsSpi
   reviewCampaignsReviewer: IReviewerSpi
   reviewCampaignsTester: ITesterSpi
