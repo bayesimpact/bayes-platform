@@ -335,7 +335,10 @@ msgstr "Refuser"
 msgid "Decline the invitation to {name}"
 msgstr "Refuser l’invitation à {name}"
 
+#: src/features/conversation/components/ConversationMenu.tsx
+#: src/features/extraction/components/CsvRunActions.tsx
 #: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/extraction/components/ExtractionRunActions.tsx
 #: src/features/history/components/DeleteEntryDialog.tsx
 #: src/features/history/components/HistoryEntryActions.tsx
 msgid "Delete"
@@ -344,15 +347,6 @@ msgstr "Supprimer"
 #: src/features/extraction/components/DocumentRow.tsx
 msgid "Delete {name}"
 msgstr "Supprimer {name}"
-
-#: src/features/conversation/components/ConversationMenu.tsx
-msgid "Delete the conversation"
-msgstr "Supprimer la conversation"
-
-#: src/features/extraction/components/CsvRunActions.tsx
-#: src/features/extraction/components/ExtractionRunActions.tsx
-msgid "Delete the extraction"
-msgstr "Supprimer l’extraction"
 
 #: src/features/history/components/DeleteEntryDialog.tsx
 msgid "Delete this conversation?"

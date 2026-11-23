@@ -60,7 +60,7 @@ describe("an extraction of a document", () => {
 
     await screen.findByRole("heading", { name: "quarterly-report.pdf" })
     await userEvent.click(screen.getByRole("button", { name: "More actions" }))
-    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete the extraction" }))
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }))
     const dialog = await screen.findByRole("alertdialog")
     await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }))
 

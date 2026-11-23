@@ -40,7 +40,7 @@ export function ConversationMenu({ conversation }: ConversationMenuProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem variant="destructive" onClick={() => setIsDeleting(true)}>
             <Trash2Icon aria-hidden />
-            <Trans>Delete the conversation</Trans>
+            <Trans>Delete</Trans>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
