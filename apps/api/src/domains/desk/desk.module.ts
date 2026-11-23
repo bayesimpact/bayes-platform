@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common"
 import { ResourceContextModule } from "@/common/context/resource-context.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { AgentMemoriesStoreModule } from "@/domains/agents/memories/agent-memories-store.module"
 import { AgentMessageFeedbackModule } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
 import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AuthModule } from "@/domains/auth/auth.module"
@@ -17,7 +18,9 @@ import { DeskAgentsController } from "./agents/desk-agents.controller"
 import { DeskConversationMessagesController } from "./conversations/desk-conversation-messages.controller"
 import { DeskConversationReplyController } from "./conversations/desk-conversation-reply.controller"
 import { DeskConversationsController } from "./conversations/desk-conversations.controller"
+import { DeskDocumentsController } from "./documents/desk-documents.controller"
 import { DeskInvitationsController } from "./invitations/desk-invitations.controller"
+import { DeskMemoriesController } from "./memories/desk-memories.controller"
 import { DeskOrganizationsController } from "./organizations/desk-organizations.controller"
 import { DeskProjectsController } from "./projects/desk-projects.controller"
 
@@ -40,6 +43,7 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     StreamingModule,
     AgentMessageFeedbackModule,
     StorageModule,
+    AgentMemoriesStoreModule,
   ],
   controllers: [
     DeskAccountController,
@@ -50,6 +54,8 @@ import { DeskProjectsController } from "./projects/desk-projects.controller"
     DeskConversationsController,
     DeskConversationMessagesController,
     DeskConversationReplyController,
+    DeskDocumentsController,
+    DeskMemoriesController,
   ],
 })
 export class DeskModule {}
