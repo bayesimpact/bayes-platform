@@ -17,7 +17,8 @@
       "copyAriaLabel": "Copy to clipboard",
       "followUpQuestions": "Suggested questions",
       "sources_one": "{{count}} source",
-      "sources_other": "{{count}} sources"
+      "sources_other": "{{count}} sources",
+      "queued": "Sent when the reply is over"
     },
     "status": {
       "connecting": "Connecting…",

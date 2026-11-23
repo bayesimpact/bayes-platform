@@ -23,6 +23,11 @@ export function ChatHeader({
 }) {
   const { t } = useTranslation("chat")
   const displayName = agentName ?? t("header.defaultAgentName")
+  // On a phone the launcher opens the chat full screen, and a cross reads better than a chevron
+  // for leaving it, as messengers show it there.
+  const isFullScreenPhone =
+    typeof window !== "undefined" &&
+    window.matchMedia("(pointer: coarse) and (max-width: 640px)").matches
 
   return (
     <div
@@ -54,7 +59,7 @@ export function ChatHeader({
         </button>
       )}
       {onClose &&
-        (collapsible ? (
+        (collapsible && !isFullScreenPhone ? (
           <button
             type="button"
             aria-label={t("header.collapseAriaLabel")}
