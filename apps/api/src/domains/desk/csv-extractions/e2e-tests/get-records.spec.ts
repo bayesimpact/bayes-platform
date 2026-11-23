@@ -175,6 +175,38 @@ describe("Desk CSV extractions - getRecords", () => {
     expectResponse(await subject({ page: "0", limit: "101" }), 400)
   })
 
+  it("answers 400 when limit is 0", async () => {
+    await createContext({ recordCount: 1 })
+
+    expectResponse(await subject({ page: "0", limit: "0" }), 400)
+  })
+
+  it("answers 400 when limit is empty", async () => {
+    await createContext({ recordCount: 1 })
+
+    expectResponse(await subject({ page: "0", limit: "" }), 400)
+  })
+
+  it("answers 400 when page is empty", async () => {
+    await createContext({ recordCount: 1 })
+
+    expectResponse(await subject({ page: "", limit: "10" }), 400)
+  })
+
+  it("sorts by row when sortBy names no sortable field", async () => {
+    await createContext({ recordCount: 3 })
+
+    const response = await subject({
+      page: "0",
+      limit: "10",
+      sortBy: "unknownField",
+      sortOrder: "desc",
+    })
+
+    expectSchemaResponse(DeskCsvExtractionsRoutes.getRecords, response)
+    expect(response.body.data.records.map((record) => record.rowIndex)).toEqual([0, 1, 2])
+  })
+
   it("answers 400 without page and limit", async () => {
     // The live route falls back to page 0 and 10 rows; the Desk schema requires both.
     await createContext({ recordCount: 1 })

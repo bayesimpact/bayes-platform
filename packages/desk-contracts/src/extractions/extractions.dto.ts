@@ -196,9 +196,9 @@ export const csvExtractionRecordOutputSchema = z.object({
 
 export type CsvExtractionRecordOutputDto = z.output<typeof csvExtractionRecordOutputSchema>
 
-/** A whole number of the query, sent as text. */
+/** A whole number of the query, sent as text. An empty text is refused: `Number("")` is 0. */
 const queryNumberSchema = (numberSchema: z.ZodNumber) =>
-  z.codec(z.string(), numberSchema, {
+  z.codec(z.string().trim().min(1), numberSchema, {
     decode: (text) => Number(text),
     encode: (value) => String(value),
   })
@@ -212,7 +212,7 @@ const CSV_EXTRACTION_RECORDS_MAX_LIMIT = 100
  */
 export const csvExtractionRecordsQuerySchema = z.strictObject({
   page: queryNumberSchema(z.number().int().min(0)),
-  limit: queryNumberSchema(z.number().int().min(0).max(CSV_EXTRACTION_RECORDS_MAX_LIMIT)),
+  limit: queryNumberSchema(z.number().int().min(1).max(CSV_EXTRACTION_RECORDS_MAX_LIMIT)),
   sortBy: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
