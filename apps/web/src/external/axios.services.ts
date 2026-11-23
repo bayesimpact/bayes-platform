@@ -11,7 +11,6 @@ import oauthConsent from "@/common/features/oauth-consent/external/oauth-consent
 import oauthGrants from "@/common/features/oauth-grants/external/oauth-grants.api"
 import organizations from "@/common/features/organizations/external/organizations.api"
 import projects from "@/common/features/projects/external/projects.api"
-import reviewCampaignsReviewer from "@/reviewer/features/review-campaigns/external/reviewer.api"
 import agentEmbedConfigs from "@/studio/features/agent-embed-configs/external/agent-embed-configs.api"
 import agentMemberships from "@/studio/features/agent-memberships/external/agent-memberships.api"
 import agentMessageFeedback from "@/studio/features/agent-message-feedback/external/agent-message-feedback.api"
@@ -30,9 +29,7 @@ import mcpServers from "@/studio/features/mcp-servers/external/mcp-servers.api"
 import projectEmbeddingModels from "@/studio/features/project-embedding-models/external/project-embedding-models.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
 import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
-import reviewCampaignsReports from "@/studio/features/review-campaigns/reports/external/reports.api"
 import testCases from "@/studio/features/test-cases/external/test-cases.api"
-import reviewCampaignsTester from "@/tester/features/review-campaigns/external/tester.api"
 
 export const services = {
   agentAnalytics,
@@ -66,8 +63,5 @@ export const services = {
   projectMemberships,
   projects,
   resourceLibraries,
-  reviewCampaignsReports,
-  reviewCampaignsReviewer,
-  reviewCampaignsTester,
   testCases,
 }

@@ -64,12 +64,6 @@ import type {
   ProjectRole,
 } from "@/studio/features/project-memberships/project-memberships.models"
 import type { ResourceLibrary } from "@/studio/features/resource-libraries/resource-libraries.models"
-import type {
-  MyReviewCampaign,
-  MyTesterSessionSummary,
-  TesterCampaignSurvey,
-  TesterContext,
-} from "@/tester/features/review-campaigns/tester.models"
 import type { StoryPreloadedState } from "./decorators"
 
 /**
@@ -228,10 +222,6 @@ export const seed = {
       { agents: { data: ads.fulfilled(agents) } },
       { currentIds: { agentId: currentId } },
     )
-  },
-
-  currentReviewCampaignId(id: string | null): StoryPreloadedState {
-    return { currentIds: { reviewCampaignId: id } }
   },
 
   currentMemberUserId(id: string | null): StoryPreloadedState {
@@ -558,24 +548,6 @@ export const seed = {
     },
     maintenanceJobs(maintenanceJobs: MaintenanceJob[]): StoryPreloadedState {
       return { backoffice: { maintenanceJobs: ads.fulfilled(maintenanceJobs) } }
-    },
-  },
-
-  tester: {
-    myCampaigns(campaigns: MyReviewCampaign[]): StoryPreloadedState {
-      return { reviewCampaignsTester: { myCampaigns: ads.fulfilled(campaigns) } }
-    },
-
-    context(context: TesterContext): StoryPreloadedState {
-      return { reviewCampaignsTester: { testerContext: ads.fulfilled(context) } }
-    },
-
-    campaignSurvey(survey: TesterCampaignSurvey | null): StoryPreloadedState {
-      return { reviewCampaignsTester: { campaignSurvey: ads.fulfilled(survey) } }
-    },
-
-    campaignSessions(sessions: MyTesterSessionSummary[]): StoryPreloadedState {
-      return { reviewCampaignsTester: { campaignSessions: ads.fulfilled(sessions) } }
     },
   },
 }

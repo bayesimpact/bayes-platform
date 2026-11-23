@@ -3,8 +3,8 @@ import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { AgentMemory } from "./agent-memories.models"
 
-// The slice is injected in Studio and Desk only: other interfaces (tester)
-// render the same messages without it, and get no memory UI.
+// The slice is injected in the Studio only: code that renders the same messages
+// without it gets no memory UI.
 export const selectAgentMemoriesData = (state: RootState): AsyncData<AgentMemory[]> | null =>
   state.agentMemories?.data ?? null
 

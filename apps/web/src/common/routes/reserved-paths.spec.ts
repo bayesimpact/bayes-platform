@@ -7,9 +7,7 @@ import {
   BackofficeRoutes,
   BackofficeUserRoutes,
 } from "@/backoffice/routes/helpers"
-import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import { TesterRoutes } from "@/tester/routes/helpers"
 import { RouteNames } from "./helpers"
 
 /**
@@ -27,9 +25,7 @@ const clientPaths: string[] = [
     BackofficeAgentRoutes,
     BackofficeProjectRoutes,
     BackofficePermissionsRoutes,
-    ReviewerRoutes,
     StudioRoutes,
-    TesterRoutes,
   ].flatMap((routes) => Object.values(routes).map((route) => route.path)),
 ]
 

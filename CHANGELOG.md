@@ -38,7 +38,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Removed
 
 - Evaluations: a new run evaluates a saved agent version only, in the Evaluation app and through MCP.
-- Review campaigns and evaluations: the Evaluation app replaces the campaign pages of the Studio and the former evaluation pages.
+- Review campaigns and evaluations: the Evaluation app replaces their former pages and the tester and reviewer apps.
 
 ### Fixed
 

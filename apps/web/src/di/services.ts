@@ -12,7 +12,6 @@ import type { IOAuthGrantsSpi } from "@/common/features/oauth-grants/oauth-grant
 import type { IOrganizationsSpi } from "@/common/features/organizations/organizations.spi"
 import type { IProjectsSpi } from "@/common/features/projects/projects.spi"
 import { services } from "@/external/axios.services"
-import type { IReviewerSpi } from "@/reviewer/features/review-campaigns/reviewer.spi"
 import type { IAgentEmbedConfigsSpi } from "@/studio/features/agent-embed-configs/agent-embed-configs.spi"
 import type { IAgentMembershipsSpi } from "@/studio/features/agent-memberships/agent-memberships.spi"
 import type { IAgentMessageFeedbackSpi } from "@/studio/features/agent-message-feedback/agent-message-feedback.spi"
@@ -31,9 +30,7 @@ import type { IMcpServersSpi } from "@/studio/features/mcp-servers/mcp-servers.s
 import type { IProjectEmbeddingModelsSpi } from "@/studio/features/project-embedding-models/project-embedding-models.spi"
 import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
 import type { IResourceLibrariesSpi } from "@/studio/features/resource-libraries/resource-libraries.spi"
-import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
 import type { ITestCasesSpi } from "@/studio/features/test-cases/test-cases.spi"
-import type { ITesterSpi } from "@/tester/features/review-campaigns/tester.spi"
 
 export type Services = {
   agentAnalytics: IAgentAnalyticsSpi
@@ -67,9 +64,6 @@ export type Services = {
   projectMemberships: IProjectMembershipsSpi
   projects: IProjectsSpi
   resourceLibraries: IResourceLibrariesSpi
-  reviewCampaignsReports: IReportsSpi
-  reviewCampaignsReviewer: IReviewerSpi
-  reviewCampaignsTester: ITesterSpi
   testCases: ITestCasesSpi
 }
 
