@@ -36,7 +36,7 @@ import {
   type CsvExtractionRunRecord,
   toCsvExtractionRecordDto,
   toCsvExtractionRunDto,
-} from "./desk-csv-extraction.mappers"
+} from "./csv-extraction.mappers"
 
 const AGENT_CONTEXT = ["organization", "project", "agent"] as const
 const RUN_CONTEXT = [...AGENT_CONTEXT, "agentCsvExtractionRun"] as const

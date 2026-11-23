@@ -30,7 +30,7 @@ import {
   toExtractionRunDetailDto,
   toExtractionRunDto,
   toMimeType,
-} from "./desk-extraction.mappers"
+} from "./extraction.mappers"
 
 const AGENT_CONTEXT = ["organization", "project", "agent"] as const
 const RUN_CONTEXT = [...AGENT_CONTEXT, "agentSession"] as const

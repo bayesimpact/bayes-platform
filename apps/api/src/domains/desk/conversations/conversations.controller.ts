@@ -23,7 +23,7 @@ import {
   type ConversationSessionRecord,
   type FormSchemasByAgentId,
   toConversationSessionDto,
-} from "./desk-conversation.mappers"
+} from "./conversation.mappers"
 
 /**
  * The live conversations of the signed-in person with a conversation agent: the history, a new
