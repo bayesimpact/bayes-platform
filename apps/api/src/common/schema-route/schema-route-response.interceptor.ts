@@ -38,7 +38,9 @@ export class SchemaRouteResponseInterceptor implements NestInterceptor {
         const result = route.schemas.response.safeParse(answer)
         if (result.success) return result.data
 
-        const issuePaths = result.error.issues.map((issue) => issue.path.map(String).join("."))
+        const issuePaths = result.error.issues.map((issue) =>
+          issue.path.length ? issue.path.map(String).join(".") : "(root)",
+        )
         this.logger.error(
           `The response of ${route.method.toUpperCase()} ${route.path} breaks its schema at: ${issuePaths.join(", ")}`,
         )

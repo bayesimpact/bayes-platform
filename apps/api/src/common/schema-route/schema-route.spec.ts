@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
-import { defineSchemaRoute } from "@caseai-connect/desk-contracts"
-import { Controller, type INestApplication, Logger, Module, Req } from "@nestjs/common"
+import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/desk-contracts"
+import { Controller, HttpStatus, type INestApplication, Logger, Module, Req } from "@nestjs/common"
 import type { Request } from "express"
 import type { App } from "supertest/types"
 import { z } from "zod"
@@ -238,5 +238,78 @@ describe("SchemaRoute", () => {
     } finally {
       loggerError.mockRestore()
     }
+  })
+
+  it("logs (root) when the whole response breaks the schema", async () => {
+    const loggerError = jest.spyOn(Logger.prototype, "error").mockImplementation(() => undefined)
+    answerUpdate.mockReturnValueOnce(null)
+
+    try {
+      const response = await updateFixture({
+        fixtureId: randomUUID(),
+        body: { payload: { name: "Helpful Assistant" } },
+      })
+
+      expect(response.status).toBe(500)
+      expect(loggerError).toHaveBeenCalledWith(
+        expect.stringMatching(/breaks its schema at: \(root\)$/),
+      )
+    } finally {
+      loggerError.mockRestore()
+    }
+  })
+})
+
+describe("SchemaRoute options", () => {
+  const streamFixtureRoute = defineStreamRoute({
+    method: "post",
+    path: "fixtures/:fixtureId/stream",
+    params: z.strictObject({ fixtureId: z.uuid() }),
+    event: z.object({ type: z.literal("end") }),
+  })
+
+  it("refuses a scoped permission with no context", () => {
+    expect(() =>
+      SchemaRoute(updateFixtureRoute, { permission: { key: "agent.read", on: "agent" } }),
+    ).toThrow("/fixtures/:fixtureId: a scoped permission needs a context")
+  })
+
+  it("refuses a scoped permission with an empty context", () => {
+    expect(() =>
+      SchemaRoute(updateFixtureRoute, {
+        permission: { key: "agent.read", on: "agent" },
+        context: [],
+      }),
+    ).toThrow("/fixtures/:fixtureId: a scoped permission needs a context")
+  })
+
+  it('refuses "signed-in" with a context', () => {
+    expect(() =>
+      SchemaRoute(updateFixtureRoute, { permission: "signed-in", context: ["organization"] }),
+    ).toThrow('/fixtures/:fixtureId: a "signed-in" route loads no context')
+  })
+
+  it("accepts a scoped permission with its context", () => {
+    expect(() =>
+      SchemaRoute(updateFixtureRoute, {
+        permission: { key: "agent.read", on: "agent" },
+        context: ["organization", "project", "agent"],
+      }),
+    ).not.toThrow()
+  })
+
+  it("refuses an activity on a stream route", () => {
+    expect(() =>
+      SchemaRoute(streamFixtureRoute, {
+        permission: "signed-in",
+        activity: { action: "conversationAgentSession.create" },
+      }),
+    ).toThrow("/fixtures/:fixtureId/stream: a stream route records no activity")
+  })
+
+  it("refuses a status other than 200 on a stream route", () => {
+    expect(() =>
+      SchemaRoute(streamFixtureRoute, { permission: "signed-in", status: HttpStatus.CREATED }),
+    ).toThrow("/fixtures/:fixtureId/stream: a stream route answers 200")
   })
 })

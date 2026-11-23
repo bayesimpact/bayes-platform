@@ -59,6 +59,16 @@ export function SchemaRoute(
     SetMetadata(SCHEMA_ROUTE_METADATA_KEY, route),
   ]
 
+  // The permission guard reads the resource the context resolvers put on the request, and a
+  // context loaded with no permission check would reach resources unchecked.
+  if (options.permission === "signed-in") {
+    if (options.context?.length) {
+      throw new Error(`${route.path}: a "signed-in" route loads no context`)
+    }
+  } else if (!options.context?.length) {
+    throw new Error(`${route.path}: a scoped permission needs a context`)
+  }
+
   if (options.context?.length) {
     guards.push(ResourceContextGuard)
     decorators.push(RequireContext(...options.context))
