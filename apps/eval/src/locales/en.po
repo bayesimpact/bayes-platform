@@ -221,6 +221,13 @@ msgctxt "form"
 msgid "Agent"
 msgstr "Agent"
 
+#. The saved version of the agent's settings a review campaign runs on
+#. The saved version of the agent's settings a review campaign runs on
+#: src/features/campaigns/components/AgentVersionField.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Agent version"
+msgstr "Agent version"
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 msgstr "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
@@ -228,6 +235,10 @@ msgstr "An account already exists for your email address, and this platform does
 #: src/components/shared/SignInProblemPage.tsx
 msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
 msgstr "An account is waiting for your email address, but your identity provider has not verified it yet."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "An archived version"
+msgstr "An archived version"
 
 #. Opens a note on the passage of a reply the person selected
 #: src/features/conversation/components/SelectionActions.tsx
@@ -295,6 +306,10 @@ msgstr "Back to home"
 msgid "Back to the app"
 msgstr "Back to the app"
 
+#: src/features/campaigns/components/AgentVersionsSheet.tsx
+msgid "Browse and compare the saved versions of the agent, then choose the one the campaign runs on."
+msgstr "Browse and compare the saved versions of the agent, then choose the one the campaign runs on."
+
 #. The setup step with a campaign's name
 #: src/features/campaigns/setup-steps.ts
 msgid "Campaign"
@@ -323,9 +338,25 @@ msgstr "Cancel"
 msgid "Captured form"
 msgstr "Captured form"
 
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Changed fields:"
+msgstr "Changed fields:"
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Changes in this version"
+msgstr "Changes in this version"
+
 #: src/components/shared/RouteErrorState.tsx
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
+
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Choose a version"
+msgstr "Choose a version"
+
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Choose the version the campaign runs on."
+msgstr "Choose the version the campaign runs on."
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "Close “{name}”?"
@@ -355,6 +386,15 @@ msgstr "Closing ends the campaign for good: testers can no longer start sessions
 #: src/features/campaigns/components/FeedbackFormFields.tsx
 msgid "Comment"
 msgstr "Comment"
+
+#. The label of the choice of what a version is compared with
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Compare with"
+msgstr "Compare with"
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Compare with production"
+msgstr "Compare with production"
 
 #: src/features/conversation/components/FormsButton.tsx
 msgid "Completed form"
@@ -489,6 +529,11 @@ msgstr "Dictate your message"
 msgid "Did the agent address your question?"
 msgstr "Did the agent address your question?"
 
+#. Which documents of its project an agent searches
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Documents used"
+msgstr "Documents used"
+
 #. Ends a campaign's setup
 #: src/features/campaigns/components/CampaignSetupWizard.tsx
 msgid "Done"
@@ -543,6 +588,11 @@ msgstr "Email address missing"
 #: src/features/campaigns/components/InviteParticipantsForm.tsx
 msgid "Email addresses, separated by commas or new lines"
 msgstr "Email addresses, separated by commas or new lines"
+
+#. The model an agent searches its documents with
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Embedding model"
+msgstr "Embedding model"
 
 #: src/features/campaign-test/components/TesterSessionPage.tsx
 msgid "End the session and give feedback"
@@ -640,9 +690,38 @@ msgstr "Final survey"
 msgid "Final surveys"
 msgstr "Final surveys"
 
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "First version"
+msgstr "First version"
+
+#. Whether an agent suggests follow-up questions
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Follow-up suggestions"
+msgstr "Follow-up suggestions"
+
+#. How many follow-up questions an agent suggests at most
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Follow-up suggestions at most"
+msgstr "Follow-up suggestions at most"
+
+#. How an agent writes its follow-up questions
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Follow-up suggestions instructions"
+msgstr "Follow-up suggestions instructions"
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Forgetting what you asked"
 msgstr "Forgetting what you asked"
+
+#. The form an agent fills during a conversation
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Form"
+msgstr "Form"
+
+#. Whether an agent fills a form during a conversation
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Form filling"
+msgstr "Form filling"
 
 #: src/features/conversation/components/FormsButton.tsx
 msgid "Form in progress"
@@ -690,6 +769,11 @@ msgstr "Give the campaign a name."
 #: src/features/conversation/components/GoodReplyButton.tsx
 msgid "Good reply"
 msgstr "Good reply"
+
+#. The first message of an agent in a conversation
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Greeting"
+msgstr "Greeting"
 
 #. Before the first message an agent says in a new session
 #: src/features/campaign-context/components/CampaignAgentCard.tsx
@@ -742,6 +826,16 @@ msgstr "If the page stays blank, its site does not allow being shown here: open 
 #: src/components/shared/Markdown.tsx
 msgid "Image"
 msgstr "Image"
+
+#. The version of an agent its live channels run with
+#: src/features/campaigns/components/ProductionBadge.tsx
+msgid "In production"
+msgstr "In production"
+
+#. The instructions of an agent
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Instructions"
+msgstr "Instructions"
 
 #: src/features/conversation/components/McpAppCard.tsx
 msgid "Interactive card"
@@ -828,6 +922,16 @@ msgstr "Message to {agentName}"
 msgid "Messages"
 msgstr "Messages"
 
+#. The language model of an agent
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Model"
+msgstr "Model"
+
+#. The options of an agent's model
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Model options"
+msgstr "Model options"
+
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "More actions"
 msgstr "More actions"
@@ -895,6 +999,10 @@ msgstr "No answer yet."
 msgid "No description"
 msgstr "No description"
 
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "No differences"
+msgstr "No differences"
+
 #: src/features/campaigns/components/ParticipantsTable.tsx
 msgid "No participant yet."
 msgstr "No participant yet."
@@ -931,6 +1039,10 @@ msgstr "No session yet: the table fills as testers start sessions."
 msgid "No session yet."
 msgstr "No session yet."
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "No version chosen yet."
+msgstr "No version chosen yet."
+
 #: src/components/shared/AnswerList.tsx
 msgid "Not answered"
 msgstr "Not answered"
@@ -946,6 +1058,16 @@ msgstr "Nothing noted yet."
 #: src/routes/-components/AgentHubPage.tsx
 msgid "Nothing to open for this agent"
 msgstr "Nothing to open for this agent"
+
+#. A setting of an agent that is turned off, in a diff
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Off"
+msgstr "Off"
+
+#. A setting of an agent that is turned on, in a diff
+#: src/features/campaigns/agent-version-diff.ts
+msgid "On"
+msgstr "On"
 
 #: src/features/campaigns/components/ActivateStep.tsx
 #: src/features/campaigns/components/CampaignStatusActions.tsx
@@ -967,6 +1089,10 @@ msgstr "One answer per session a tester gave feedback on."
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "One answer per tester who filled the final survey."
 msgstr "One answer per tester who filled the final survey."
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Only one version"
+msgstr "Only one version"
 
 #. Opens a session with the agent
 #: src/features/campaign-test/components/tester-session-columns.tsx
@@ -1058,10 +1184,20 @@ msgstr "Picking useful resources"
 msgid "Preview"
 msgstr "Preview"
 
+#. Whether an agent's calls to its model go first
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Priority calls"
+msgstr "Priority calls"
+
 #. What an invitation gives access to
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "Project"
 msgstr "Project"
+
+#. The default values of the variables of an agent's instructions
+#: src/features/campaigns/agent-version-diff.ts
+msgid "Prompt variables"
+msgstr "Prompt variables"
 
 #. The text of question number {position} of a campaign
 #: src/features/campaigns/components/QuestionEditor.tsx
@@ -1251,6 +1387,11 @@ msgstr "Save changes"
 msgid "Save your changes first."
 msgstr "Save your changes first."
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+#: src/features/campaigns/components/AgentVersionList.tsx
+msgid "Saved on {savedOn}"
+msgstr "Saved on {savedOn}"
+
 #: src/features/conversation/components/ConversationView.tsx
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
@@ -1278,6 +1419,15 @@ msgstr "Searching the resources"
 #: src/routes/-components/AgentSectionsNav.tsx
 msgid "Sections of {agentName}"
 msgstr "Sections of {agentName}"
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Select this version"
+msgstr "Select this version"
+
+#. The version a review campaign runs on already
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Selected"
+msgstr "Selected"
 
 #: src/features/conversation/components/Composer.tsx
 msgid "Send"
@@ -1379,6 +1529,10 @@ msgstr "Show more"
 #: src/components/shared/SidebarToggle.tsx
 msgid "Show the sidebar"
 msgstr "Show the sidebar"
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "Showing changes from version {olderRevision} to version {newerRevision}."
+msgstr "Showing changes from version {olderRevision} to version {newerRevision}."
 
 #: src/components/shared/SignInProblemPage.tsx
 #: src/features/account/components/UserMenu.tsx
@@ -1489,6 +1643,10 @@ msgstr "Tester {testerId}, started {started}"
 msgid "Tester feedback"
 msgstr "Tester feedback"
 
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Testers chat with this version and reviewers read it, for the whole campaign."
+msgstr "Testers chat with this version and reviewers read it, for the whole campaign."
+
 #. The language of a code block that names none
 #: src/components/shared/HighlightedCodeBlock.tsx
 msgid "text"
@@ -1559,6 +1717,10 @@ msgstr "The campaign is closed: you can read the sessions and the reviews."
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The campaign is closed."
 msgstr "The campaign is closed."
+
+#: src/features/campaigns/components/AgentVersionList.tsx
+msgid "The campaign runs on this version"
+msgstr "The campaign runs on this version"
 
 #: src/features/campaigns/components/CampaignStatusActions.tsx
 msgid "The campaign was deleted."
@@ -1688,9 +1850,17 @@ msgstr "The testers who filled the final survey."
 msgid "These people already have access or an invitation."
 msgstr "These people already have access or an invitation."
 
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "These two versions have the same settings."
+msgstr "These two versions have the same settings."
+
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Thinking…"
 msgstr "Thinking…"
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "This agent has a single saved version: there is nothing to compare."
+msgstr "This agent has a single saved version: there is nothing to compare."
 
 #: src/features/campaigns/components/NewCampaignPage.tsx
 msgid "This agent has no published version yet. Publish it, then create the campaign."
@@ -1712,6 +1882,10 @@ msgstr "This file is empty."
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "This form asks no question."
 msgstr "This form asks no question."
+
+#: src/features/campaigns/components/AgentVersionCompare.tsx
+msgid "This is the first saved version of the agent: there is nothing before it to compare with."
+msgstr "This is the first saved version of the agent: there is nothing before it to compare with."
 
 #: src/components/shared/SidebarSection.tsx
 msgid "This list could not load."
@@ -1817,10 +1991,19 @@ msgstr "Using a tool"
 msgid "Verify your email"
 msgstr "Verify your email"
 
+#. A saved version of an agent's settings, by its number
+#: src/features/campaigns/components/AgentVersionTitle.tsx
+msgid "Version {revision}"
+msgstr "Version {revision}"
+
 #. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
 #: src/features/account/components/UserMenu.tsx
 msgid "Version {version}"
 msgstr "Version {version}"
+
+#: src/features/campaigns/components/AgentVersionsSheet.tsx
+msgid "Versions of {agentName}"
+msgstr "Versions of {agentName}"
 
 #. The button that opens a session the reviewer already reviewed
 #: src/features/campaign-review/components/reviewer-session-columns.tsx

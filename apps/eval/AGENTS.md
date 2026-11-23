@@ -160,6 +160,15 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
   others. In the setup, the bar's Activate gives way to the Activate step, and the preview opens
   only the step's form. The three forms have one name each, everywhere: After each session, Final
   survey, Session review, the names their testers and reviewers see.
+- A campaign runs on one saved version of its agent's settings (`agentSettingsId`): the API
+  gives the tester's chat, the tester's context and the reviewer's view that version, whatever
+  goes to production meanwhile. The Campaign step names it (`AgentVersionField`), the one in
+  production by default, and opens the agent's history in a sheet (`AgentVersionsSheet`), as the
+  Studio shows it: the saved versions, never the draft, each one's changes against the version
+  before it or the one in production (`agent-version-diff.ts`, drawn by `@pierre/diffs` in
+  `TextDiff`, the Studio's library), and a button that selects it. The versions come from
+  `GET .../agents/:agentId/settings` (`agent.settings.read`, which a campaign's managers hold).
+  The General card of `CampaignSetupView` names the version of a campaign that no longer changes.
 - Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms
   (`CampaignSetupView`), its General card then one sub-tab per form, as the report does. A form's
   fields are `FeedbackFormFields`, which the setup's preview panel folds in `FeedbackFormPreview`

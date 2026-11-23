@@ -65,8 +65,13 @@ const questionFormSchema = z
 
 export type QuestionFormValues = z.input<typeof questionFormSchema>
 
-/** The form of a campaign's setup: its name, what it is for and its three lists of questions. */
+/**
+ * The form of a campaign's setup: the version of the agent it runs on, its name, what it is for
+ * and its three lists of questions.
+ */
 export const campaignFormSchema = z.object({
+  /** The saved version of the agent the campaign runs on: empty while the agent has none. */
+  agentSettingsId: z.string().min(1),
   name: z.string().trim().min(1),
   description: z.string(),
   testerPerSessionQuestions: z.array(questionFormSchema),

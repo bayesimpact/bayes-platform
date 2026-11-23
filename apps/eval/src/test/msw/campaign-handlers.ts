@@ -1,4 +1,5 @@
 import {
+  type AgentVersionOutputDto,
   type CampaignReportOutputDto,
   EvalCampaignInvitationsRoutes,
   EvalConversationsRoutes,
@@ -9,6 +10,7 @@ import {
   type MeOutputDto,
   type ReviewCampaignDetailOutputDto,
 } from "@caseai-connect/eval-contracts"
+import { buildAgentVersions } from "../factories/agents.factory"
 import { buildConversationMessage, buildToolCall } from "../factories/conversations.factory"
 import type { EvalWorld } from "../factories/eval-world.factory"
 import {
@@ -55,8 +57,20 @@ function managementHandlers(world: EvalWorld) {
     mockRoute(EvalReviewCampaignsRoutes.createOne, ({ params, payload }) => {
       const agent = world.agents.find((candidate) => candidate.id === payload.agentId)
       if (!agent) return apiError(422, `Agent ${payload.agentId} not found in this project`)
+      // As the API: the version given, a saved one, else the one in production.
+      const versions = agentVersionsOf(world, agent.id)
+      const version = payload.agentSettingsId
+        ? versions.find((candidate) => candidate.id === payload.agentSettingsId)
+        : versions.find((candidate) => candidate.isProduction)
+      if (!version || version.isDraft) {
+        return apiError(
+          422,
+          `Agent ${agent.id} has no published version: publish it before reviewing it in a campaign`,
+        )
+      }
       const campaign = buildReviewCampaign(agent, params.organizationId, {
         ...payload,
+        agentSettingsId: version.id,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       })
@@ -378,4 +392,12 @@ export function campaignHandlers(world: EvalWorld, me: MeOutputDto) {
     ...testerHandlers(world),
     ...conversationHandlers(world),
   ]
+}
+
+/** The versions of an agent's settings, newest first: the world's, else the usual ones. */
+export function agentVersionsOf(world: EvalWorld, agentId: string): AgentVersionOutputDto[] {
+  const agent = world.agents.find((candidate) => candidate.id === agentId)
+  if (!agent) return []
+  world.agentVersions[agentId] ??= buildAgentVersions(agent)
+  return world.agentVersions[agentId]
 }

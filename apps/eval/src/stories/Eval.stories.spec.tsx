@@ -28,8 +28,13 @@ const {
   PageFailsAfterNewRelease,
   ...generalPages
 } = composeStories(generalStories)
-const { RemoveQuestion, LeaveWithUnsavedChanges, ...campaignPages } =
-  composeStories(campaignStories)
+const {
+  RemoveQuestion,
+  LeaveWithUnsavedChanges,
+  ChooseAgentVersion,
+  ChooseFirstVersionInProduction,
+  ...campaignPages
+} = composeStories(campaignStories)
 // The reviewer and the tester both have a story named after their campaign.
 const { ClosedCampaign: ReviewerClosedCampaign, ...reviewerPages } = composeStories(reviewerStories)
 const { Campaign: TesterCampaign, ...testerPages } = composeStories(testerStories)
@@ -91,7 +96,7 @@ const PAGES = {
   },
   NewCampaign: {
     Story: pageStories.NewCampaign,
-    loaded: () => screen.findByRole("button", { name: "Next" }),
+    loaded: () => screen.findByRole("button", { name: "Choose a version" }),
   },
   DraftCampaign: {
     Story: pageStories.DraftCampaign,
@@ -132,6 +137,14 @@ const PAGES = {
   LockedSetup: {
     Story: pageStories.LockedSetup,
     loaded: () => screen.findByRole("tab", { name: "Session review" }),
+  },
+  ClosedCampaignOnArchivedVersion: {
+    Story: pageStories.ClosedCampaignOnArchivedVersion,
+    loaded: () => screen.findByText("An archived version"),
+  },
+  ClosedCampaignSetup: {
+    Story: pageStories.ClosedCampaignSetup,
+    loaded: () => screen.findByText("Version 2"),
   },
   ClosedCampaign: {
     Story: pageStories.ClosedCampaign,
@@ -269,6 +282,26 @@ describe("the stories of the app", () => {
     expect(
       await screen.findByRole("alertdialog", { name: "Remove question 1?" }),
     ).toBeInTheDocument()
+  })
+
+  it("ChooseAgentVersion opens the history of the agent's versions", async () => {
+    await ChooseAgentVersion.load()
+    const { container } = render(<ChooseAgentVersion />)
+    await act(() => ChooseAgentVersion.play?.({ canvasElement: container }))
+
+    expect(
+      await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" }),
+    ).toBeInTheDocument()
+  })
+
+  it("ChooseFirstVersionInProduction names the first of several versions", async () => {
+    await ChooseFirstVersionInProduction.load()
+    const { container } = render(<ChooseFirstVersionInProduction />)
+    await act(() => ChooseFirstVersionInProduction.play?.({ canvasElement: container }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Versions of Helpful Assistant" })
+    expect(await within(dialog).findByText("First version")).toBeInTheDocument()
+    expect(within(dialog).queryByText("Only one version")).not.toBeInTheDocument()
   })
 
   it("LeaveWithUnsavedChanges asks before the changes are lost", async () => {

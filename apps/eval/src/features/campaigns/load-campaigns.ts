@@ -1,11 +1,19 @@
-import type { ProjectParamsDto, ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type {
+  AgentParamsDto,
+  ProjectParamsDto,
+  ReviewCampaignParamsDto,
+} from "@caseai-connect/eval-contracts"
 import { PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION } from "@caseai-connect/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { orNotFound } from "@/lib/not-found"
 import { loaderStaleTime } from "@/lib/start-query"
-import { campaignQueryOptions, projectCampaignsQueryOptions } from "./api/queries"
+import {
+  agentVersionsQueryOptions,
+  campaignQueryOptions,
+  projectCampaignsQueryOptions,
+} from "./api/queries"
 
 /** Whether the person sees the review campaigns of an agent's project. */
 function canSeeCampaigns(agent: EvaluationAgent): boolean {
@@ -48,6 +56,13 @@ export async function loadCampaigns(queryClient: QueryClient, project: ProjectPa
   )
 }
 
+/** Loads the saved versions of an agent, which a new campaign chooses from. */
+export async function loadNewCampaign(queryClient: QueryClient, agent: AgentParamsDto) {
+  await orNotFound(() =>
+    queryClient.query({ ...agentVersionsQueryOptions(agent), staleTime: loaderStaleTime }),
+  )
+}
+
 /** Loads a campaign, which is not found when it belongs to another agent. */
 export async function loadCampaign(
   queryClient: QueryClient,
@@ -58,4 +73,26 @@ export async function loadCampaign(
     queryClient.query({ ...campaignQueryOptions(campaign), staleTime: loaderStaleTime }),
   )
   if (detail.agentId !== agent.id) throw notFound()
+}
+
+/**
+ * Loads a campaign's editor: the campaign, with the saved versions of its agent, which its setup
+ * chooses from and names.
+ */
+export async function loadCampaignSetup(
+  queryClient: QueryClient,
+  campaign: ReviewCampaignParamsDto,
+  agent: EvaluationAgent,
+) {
+  const agentParams = {
+    organizationId: campaign.organizationId,
+    projectId: campaign.projectId,
+    agentId: agent.id,
+  }
+  await Promise.all([
+    loadCampaign(queryClient, campaign, agent),
+    orNotFound(() =>
+      queryClient.query({ ...agentVersionsQueryOptions(agentParams), staleTime: loaderStaleTime }),
+    ),
+  ])
 }
