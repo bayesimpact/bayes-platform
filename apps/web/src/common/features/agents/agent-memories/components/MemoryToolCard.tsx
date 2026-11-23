@@ -39,7 +39,7 @@ export function MemoryToolCard({ toolCall }: { toolCall: ToolCall }) {
   const { t } = useTranslation()
   const statusById = useAppSelector(selectAgentMemoryStatusById)
   const items = parseSaveMemoryResult(toolCall.result)
-  // No memory slice (tester) or not loaded yet: nothing reliable to show.
+  // No memory slice or not loaded yet: nothing reliable to show.
   if (!statusById || items.length === 0) return null
 
   const saved = items.filter((item) => item.status === "saved")

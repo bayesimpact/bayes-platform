@@ -72,11 +72,11 @@ Each feature MUST follow this canonical pattern (the "me" feature is the referen
 
 **Rule**: page components MUST NOT dispatch fetch thunks from `useEffect`. Data loading is handled by **route wrapper components** using `useMount` + listener middleware + `AsyncRoute`. See [ADR 0009](../../docs/adr/0009-subroute-data-loading.md) for full rationale.
 
-**Three-layer pattern** (reference: `apps/web/src/tester/routes/TesterRoutes.tsx`):
+**Three-layer pattern** (reference: `apps/web/src/studio/routes/StudioRoute.tsx`, the root route of `StudioRoutes.tsx`):
 
 #### Layer 1 — Root route: `useInitStore` + `useSetCurrentIds` + `initDone` gate
 
-The root route (e.g. `TesterRoute`) injects dynamic slices and sets ALL URL-driven IDs at the **same component level**. The `initDone` gate creates two-phase rendering: effects fire in phase 1 (slices injected + IDs set), children mount in phase 2 with correct state.
+The root route (e.g. `StudioRoute`) injects dynamic slices and sets ALL URL-driven IDs at the **same component level**. The `initDone` gate creates two-phase rendering: effects fire in phase 1 (slices injected + IDs set), children mount in phase 2 with correct state.
 
 ```ts
 // Local to the route file — sets only the IDs this feature needs.
@@ -292,7 +292,7 @@ See [ADR 0010](../../docs/adr/0010-factory-per-model-and-story-per-route.md) for
 
 ### Every router route MUST have a sibling story
 
-**Rule**: when you add an entry to `{scope}/routes/{Scope}Routes.tsx` (e.g. `studioRoutes`, `testerRoutes`), you MUST create a matching story under `apps/web/src/stories/routes/{scope}/{RouteName}.stories.tsx` in the same commit. Pure redirects/aliases are exempt; anything that renders UI is not.
+**Rule**: when you add an entry to `{scope}/routes/{Scope}Routes.tsx` (e.g. `studioRoutes`, `backofficeRoutes`), you MUST create a matching story under `apps/web/src/stories/routes/{scope}/{RouteName}.stories.tsx` in the same commit. Pure redirects/aliases are exempt; anything that renders UI is not.
 
 - Pattern: [DocumentsRoute.stories.tsx](src/stories/routes/studio/DocumentsRoute.stories.tsx) and [ProjectMembershipsRoute.stories.tsx](src/stories/routes/studio/ProjectMembershipsRoute.stories.tsx) are canonical references.
 - The story must mount the **real** route tree (`createMemoryRouter([studioRoutes], { initialEntries: [path] })`), not just the leaf component. This catches breakage in route wrappers, `useMount`, `AsyncRoute`, and feature-flag gates.
@@ -310,7 +310,7 @@ See [ADR 0010](../../docs/adr/0010-factory-per-model-and-story-per-route.md) for
 
 When starting a new admin/studio UI slice with meaningful UX surface (list + editor + lifecycle actions), the preferred phasing is:
 
-1. **Phase A — Storybook slice**: presentational components with mock data, wired into a handful of **scenario-driven** stories (one per user-facing lifecycle state, e.g. `DraftEditable`, `ActiveLocked`, `ClosedReadOnly`) — NOT a prop catalog with one story per component. Components live in `apps/web/src/{studio,tester,reviewer}/features/<domain>/components/`; stories in `apps/web/src/stories/<domain>/`. Hard-coded English strings are fine; i18n waits for phase B.
+1. **Phase A — Storybook slice**: presentational components with mock data, wired into a handful of **scenario-driven** stories (one per user-facing lifecycle state, e.g. `DraftEditable`, `ActiveLocked`, `ClosedReadOnly`) — NOT a prop catalog with one story per component. Components live in `apps/web/src/{studio,backoffice}/features/<domain>/components/`; stories in `apps/web/src/stories/<domain>/`. Hard-coded English strings are fine; i18n waits for phase B.
 2. **Phase B — wire Redux + routes**: models / spi / external api / slice / thunks / selectors / middleware / register in services / page wrappers / route registration / i18n. Connects phase-A components to the API.
 
 **Why**: lets the UX be reviewed visually before Redux plumbing, prevents rework. Presentational components stay small (one per file); stories are what consolidate them into scenes.

@@ -161,11 +161,10 @@ async function main(): Promise<void> {
       logger.log(`Created tester membership for ${email}`)
     }
 
-    const testerUrl = `/tester/o/${firstProject.organizationId}/p/${firstProject.id}/review-campaigns/${campaign.id}`
+    const testerUrl = `/eval/o/${firstProject.organizationId}/p/${firstProject.id}/review-campaigns/${campaign.id}/test`
     logger.log("")
-    logger.log(`Done. Open the tester landing at:`)
+    logger.log(`Done. Open the tester's page of the campaign in the Evaluation app at:`)
     logger.log(`  ${testerUrl}`)
-    logger.log(`Or visit /tester to see it in "My review campaigns".`)
   } finally {
     await app.close()
   }

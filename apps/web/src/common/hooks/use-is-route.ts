@@ -1,8 +1,6 @@
 import { useCallback, useMemo } from "react"
 import { useLocation } from "react-router-dom"
-import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import { TesterRoutes } from "@/tester/routes/helpers"
 
 export function useIsRoute() {
   const { pathname } = useLocation()
@@ -29,9 +27,7 @@ function getPathPieces(pathname: string) {
     .toString()
 }
 
-const appNames = new Set(
-  [StudioRoutes, TesterRoutes, ReviewerRoutes].map((routes) => routes.home.path.slice(1)),
-)
+const appNames = new Set([StudioRoutes].map((routes) => routes.home.path.slice(1)))
 function getRoutePieces(routeName: string) {
   let result = routeName
   for (const appName of appNames) {

@@ -10,19 +10,15 @@ import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { selectCurrentCsvRunId } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
-import { selectCurrentReviewerSessionId } from "@/common/features/review-campaigns/current-reviewer-session-id/current-reviewer-session-id.selectors"
 import type { RootState } from "@/common/store"
 import { useAppSelector } from "@/common/store/hooks"
 import { rootSliceList } from "@/common/store/root-slices"
 import type { Services } from "@/di/services"
-import { reviewerSliceList } from "@/reviewer/store/slices"
 import {
   selectCurrentResourceId,
   selectCurrentResourceLibraryId,
 } from "@/studio/features/resource-libraries/resource-libraries.selectors"
 import { studioSliceList } from "@/studio/store/slices"
-import { testerSliceList } from "@/tester/store/slices"
 
 export type DeepPartial<T> =
   T extends ReadonlyArray<infer U>
@@ -45,8 +41,6 @@ type Slice = { name: string; reducer: Reducer }
 const allMockSlices: ReadonlyArray<Slice> = [
   ...rootSliceList,
   ...studioSliceList,
-  ...testerSliceList,
-  ...reviewerSliceList,
   ...backofficeSliceList,
 ]
 
@@ -137,8 +131,6 @@ function useReplaceIds(path: string) {
   const agentSessionId = useAppSelector(selectCurrentAgentSessionId)
   const extractionRunId = useAppSelector(selectCurrentExtractionRunId)
   const csvRunId = useAppSelector(selectCurrentCsvRunId)
-  const reviewCampaignId = useAppSelector(selectCurrentReviewCampaignId)
-  const reviewerSessionId = useAppSelector(selectCurrentReviewerSessionId)
   const resourceLibraryId = useAppSelector(selectCurrentResourceLibraryId)
   const resourceId = useAppSelector(selectCurrentResourceId)
 
@@ -148,8 +140,6 @@ function useReplaceIds(path: string) {
   if (agentSessionId) path = path.replace(":agentSessionId", agentSessionId)
   if (extractionRunId) path = path.replace(":extractionRunId", extractionRunId)
   if (csvRunId) path = path.replace(":csvRunId", csvRunId)
-  if (reviewCampaignId) path = path.replace(":reviewCampaignId", reviewCampaignId)
-  if (reviewerSessionId) path = path.replace(":reviewerSessionId", reviewerSessionId)
   if (resourceLibraryId) path = path.replace(":resourceLibraryId", resourceLibraryId)
   if (resourceId) path = path.replace(":resourceId", resourceId)
 

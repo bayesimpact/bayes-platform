@@ -6,10 +6,10 @@ import { McpOauthCallbackRoute } from "@/common/routes/McpOauthCallbackRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { OAuthAuthorizeRoute } from "@/common/routes/OAuthAuthorizeRoute"
 import { APP_BASE_PATH } from "@/config/runtime-config"
-import { reviewerRoutes } from "@/reviewer/routes/ReviewerRoutes"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
-import { testerRoutes } from "@/tester/routes/TesterRoutes"
 import { RouteNames } from "./helpers"
+import { LegacyCampaignRoute } from "./LegacyCampaignRoute"
+import { LEGACY_CAMPAIGN_APP_PATHS } from "./legacy-campaign-urls"
 import { OnboardingRoute } from "./OnboardingRoute"
 import { ProtectedRoute } from "./ProtectedRoute"
 
@@ -38,10 +38,14 @@ const router = () =>
           oauthAuthorizeRoute,
           studioRoutes,
           backofficeRoutes,
-          testerRoutes,
-          reviewerRoutes,
         ],
       },
+
+      // The Evaluation app signs the person in itself, so these stay outside the protected routes.
+      ...LEGACY_CAMPAIGN_APP_PATHS.map((path) => ({
+        path: `${path}/*`,
+        element: <LegacyCampaignRoute />,
+      })),
 
       {
         path: "*",
