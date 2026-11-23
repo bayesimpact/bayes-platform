@@ -11,7 +11,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { FileKindIcon } from "./FileKindIcon"
+import { CsvFileHeader } from "./CsvFileHeader"
 
 export type CsvFileWithoutColumnsProps = {
   agent: AgentParamsDto
@@ -25,10 +25,7 @@ export type CsvFileWithoutColumnsProps = {
 export function CsvFileWithoutColumns({ agent, fileName }: CsvFileWithoutColumnsProps) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-10 pb-16">
-      <header className="flex min-w-0 items-center gap-3">
-        <FileKindIcon kind="csv" variant="tile" />
-        <h1 className="truncate text-xl font-semibold tracking-tight">{fileName}</h1>
-      </header>
+      <CsvFileHeader fileName={fileName} />
       <Empty className="rounded-2xl border border-solid bg-background dark:bg-card">
         <EmptyHeader>
           <EmptyMedia variant="icon">

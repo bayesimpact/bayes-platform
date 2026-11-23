@@ -34,7 +34,7 @@ const MAX_ROWS = 30
 /**
  * The extraction routes on a world: uploads, runs that read their document for a few seconds, CSV
  * runs that advance a few rows per poll. A file whose name holds "fail" fails, to show it, and a
- * CSV file whose name holds "empty" has no column.
+ * CSV file whose name starts with "empty" has no column.
  */
 export function extractionHandlers(world: DeskWorld) {
   const presigned = new Map<
@@ -123,7 +123,7 @@ export function extractionHandlers(world: DeskWorld) {
       })
       documentsOf(params.agentId).unshift(document)
       if (file.mimeType === "text/csv") {
-        world.csvColumns[document.id] = file.fileName?.includes("empty")
+        world.csvColumns[document.id] = file.fileName?.startsWith("empty")
           ? []
           : buildCsvFileColumns()
       }

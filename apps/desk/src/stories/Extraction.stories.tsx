@@ -101,7 +101,10 @@ export const CsvSetupOfHeaderOnlyFile: Story = {
   }),
 }
 
-/** A CSV file with no header line has no column to set up: its page says so, and leads to another file. */
+/**
+ * A CSV file with no header line has no column to set up: its page says so, and leads to another
+ * file.
+ */
 export const CsvSetupOfFileWithoutColumns: Story = {
   parameters: desk({
     world: buildCsvFilesWithoutRowsWorld,
