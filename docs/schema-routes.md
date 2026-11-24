@@ -4,9 +4,9 @@ A schema route is an API endpoint that is declared once, in a contracts package,
 schemas of what it takes and what it answers. The API serves it with one decorator,
 `@SchemaRoute`, which checks every request and every JSON response with those schemas.
 
-The Desk is the first app whose endpoints are schema routes (`apps/api/src/domains/desk/`). The
-next apps of the stack of [ADR 0031](adr/0031-frontend-stack-for-agent-built-apps.md) follow the
-same pattern. The ADR, section 2.13, keeps the decision. This page explains how the pattern works
+The Desk is the first app whose endpoints are schema routes (`apps/api/src/domains/desk/`).
+Evaluation is the second (`apps/api/src/domains/eval/`). The next apps of the stack of
+[ADR 0031](adr/0031-frontend-stack-for-agent-built-apps.md) follow the same pattern. The ADR, section 2.13, keeps the decision. This page explains how the pattern works
 and how to use it.
 
 The code is small. Read it beside this page:
@@ -187,15 +187,18 @@ For a stream, call supertest at `route.getPath(params)`.
 Each folder of an app's module has an `auth.spec.ts` for all its routes: no token (401), a
 malformed id (400), an unknown resource (404), each role. `src/domains/desk/routes.spec.ts` checks
 that every route of the Desk contracts starts with `/desk/` and has a handler.
+`src/domains/eval/routes.spec.ts` does the same for the Evaluation contracts and `/eval/`.
 
 ## Using it for another app
 
 The layer in `src/common/schema-route/` is generic. An app that gets endpoints of its own needs:
 
-1. **A contracts package** with `defineSchemaRoute`, as `packages/desk-contracts` has.
-   `packages/eval-contracts` already holds the same helper. The layer takes its route types from
-   `@caseai-connect/desk-contracts` today. A route of another package has the same shape, so it
-   type-checks. Move the helper to a package of its own when a second app needs it.
+1. **A contracts package** with its own `defineSchemaRoute`, as `packages/desk-contracts` and
+   `packages/eval-contracts` have. Each package keeps its copy of the helper, so each app stays a
+   closed world and its contracts import nothing but Zod. The layer in
+   `src/common/schema-route/` declares the shape of a route itself (`AnySchemaRoute` and
+   `AnyStreamRoute` in `schema-route.types.ts`) and imports no contracts package. A route of any
+   package that has this shape type-checks.
 2. **A CommonJS build that the API requires.** Do what was done for the Desk contracts: a
    `tsconfig.build.json` and the `build` and `dev` scripts, `main` and a `require` entry in
    `exports`, the dependency in `apps/api/package.json` and `package-lock.json`, the
@@ -203,9 +206,12 @@ The layer in `src/common/schema-route/` is generic. An app that gets endpoints o
    `infra/worktree/init.sh` and the `contracts` service of `infra/worktree/docker-compose.yaml`,
    and `API_PATHS` in the `Makefile`.
 3. **A path prefix and a module named after the app**: `desk/` and `src/domains/desk/` for the
-   Desk. The module imports `ResourceContextModule` (`src/common/context/`) for the context
-   resolvers, and registers no entity of another domain.
-4. **A spec like `src/domains/desk/routes.spec.ts`**, so a route with no handler fails a test.
+   Desk, `eval/` and `src/domains/eval/` for Evaluation. The module imports
+   `ResourceContextModule` (`src/common/context/`) for the context resolvers, and registers no
+   entity of another domain. An app that needs the resolvers of evaluations and review campaigns
+   also imports `EvaluationContextModule`, a second context module in the same folder.
+4. **A spec like `src/domains/desk/routes.spec.ts` or `src/domains/eval/routes.spec.ts`**, so a
+   route with no handler fails a test.
 5. **Its documents**: the app's `AGENTS.md`, `docs/frontend/conventions.md` (Endpoints) and
    `apps/api/CLAUDE.md`.
 
@@ -219,6 +225,13 @@ no schemas for the decorator to read.
   and no activity is recorded.
 - A Desk handler holds a copy of the logic of an abstract controller of the `agents` domain, which
   now serves the playground. Nothing links the two: a change to one goes to the other.
+- A handler of the tester's conversation in Evaluation holds a copy of the same abstract
+  controllers. A change to one of them now goes to the Desk handler and to the Evaluation handler
+  too.
+- The evaluation and campaign handlers of Evaluation hold a copy of the old controllers of
+  `domains/evaluations/` and `domains/review-campaigns/`, until those are removed.
+- Each contracts package keeps a copy of `defineSchemaRoute`. The two files must keep the same
+  shape. The typecheck of the API proves it on every handler.
 - In a worktree environment, run `bayes wt up` after a change to a contracts package. After a
   rebase, check that the API runs (`/api/me` answers 401) and run `bayes wt restart api` when it
   does not.

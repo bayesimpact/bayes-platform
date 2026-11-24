@@ -13,10 +13,10 @@ import { mergeMyCampaigns } from "../my-campaigns"
 import { evaluationAgentKeys } from "./keys"
 
 /**
- * What the app holds for the person: the projects (`GET projects/mine`), the organizations
- * (`GET organizations/mine`) and the campaigns they test or review (`GET me/review-campaigns`,
- * once per role) in parallel, then the agents of every project the app opens, those with a
- * version in production, in parallel. One key holds them all.
+ * What the app holds for the person: the projects (`GET eval/projects/mine`), the organizations
+ * (`GET eval/organizations/mine`) and the campaigns they test or review
+ * (`GET eval/me/review-campaigns`, once per role) in parallel, then the agents of every project
+ * the app opens, those with a version in production, in parallel. One key holds them all.
  */
 export const evaluationWorkspaceQueryOptions = () =>
   queryOptions({

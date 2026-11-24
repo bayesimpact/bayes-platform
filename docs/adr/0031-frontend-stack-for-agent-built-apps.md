@@ -614,6 +614,35 @@ stays the target, and these parts wait for later changes:
   conversation;
 * a Desk route for the file of a library resource, which the Desk still links outside `desk/`.
 
+**Evaluation on its own API (Alexis, 2026-11-24).** The second step gives Evaluation endpoints of
+its own, as faithful copies, the way the Desk got them. Every route of
+`packages/eval-contracts` starts with `eval/` and has a handler in `apps/api/src/domains/eval/`, in
+`EvalModule`, and `routes.spec.ts` of that folder proves it. The reply stream of a tester's
+conversation is one of these routes. The folders follow the areas of the contracts, and the
+evaluations and the review campaigns have a folder for each feature. The context resolvers that the
+Desk does not use come from `EvaluationContextModule` in `apps/api/src/common/context/`, beside
+`ResourceContextModule`, so the module registers no entity of another domain. The code of the
+`evaluations` and `review-campaigns` domains stays where it is: only the controllers are new. The
+API requires the CommonJS build of `eval-contracts`, as it does for the Desk, and Jest maps the
+package to its source. The layer in `apps/api/src/common/schema-route/` now declares the shape of a
+route itself and imports no contracts package, so a route of either package fits. Each contracts
+package keeps its own `defineSchemaRoute`. Each Evaluation endpoint copies the endpoint the app
+called before: the same method, params, body and response, the same permission on the same
+resource, and the same status codes and tracked activities. Two things change: every schema refusal
+answers 400, and a response holds only the fields the contract declares. Two query schemas of the
+package changed so the API can check them: `page` and `limit` refuse an empty text, and a filter
+that is not JSON is a Zod issue. The old endpoints stay as they are, and the Studio and the MCP
+tools still use some of them. These parts wait for later changes:
+
+* the removal of the old endpoints that only Evaluation called;
+* the move of the entities, services, repositories and workers of `evaluations` and
+  `review-campaigns` into the Evaluation module;
+* the Evaluation access guard on `evaluation.ui.read`;
+* the check of stream events on the server;
+* the routes the app does not call: the status streams of evaluation runs, the CSV of a campaign
+  report, the CSV export of an extraction run, the test-case routes, `addMemberRole`,
+  `updateTesterFeedback` and the single-message `getOne`.
+
 * The Desk is the first app with endpoints of its own, and the next apps follow the same pattern: a
   contracts package, a path prefix and an API module named after the app, and an access guard on the
   app's UI permission (`studio.ui.read`, `evaluation.ui.read` and so on).

@@ -6,7 +6,7 @@ import {
   myProjectOutputSchema,
 } from "@caseai-connect/eval-contracts"
 
-/** An organization of `GET organizations/mine`, checked against the contract. */
+/** An organization of `GET eval/organizations/mine`, checked against the contract. */
 export function buildMyOrganization(
   overrides: Partial<MyOrganizationOutputDto> = {},
 ): MyOrganizationOutputDto {
@@ -17,7 +17,7 @@ export function buildMyOrganization(
   })
 }
 
-/** A project of `GET projects/mine`, which the person can evaluate unless `permissions` says otherwise. */
+/** A project of `GET eval/projects/mine`, which the person can evaluate unless `permissions` says otherwise. */
 export function buildMyProject(
   organization: MyOrganizationOutputDto,
   overrides: Partial<MyProjectOutputDto> = {},

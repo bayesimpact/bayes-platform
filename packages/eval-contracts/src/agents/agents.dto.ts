@@ -24,7 +24,7 @@ export type ProjectAgentOutputDto = z.output<typeof projectAgentOutputSchema>
 export const documentsRagModeSchema = z.enum(["all", "none", "tags"])
 
 /**
- * A version of an agent's settings, as `GET .../agents/:agentId/settings` returns it: the saved
+ * A version of an agent's settings, as `GET eval/.../agents/:agentId/settings` returns it: the saved
  * versions, newest first, and the draft when there is one. An archived version is not listed.
  */
 export const agentVersionOutputSchema = z.object({

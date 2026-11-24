@@ -334,12 +334,11 @@ or editing the boundaries' configuration.
 
 ## The contract
 
-Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`), the
-routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
+Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`,
+Evaluation's is `packages/eval-contracts`), the routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
 Zod alone and imports nothing from `packages/api-contracts`. The app reads its source. When the app
-has endpoints of its own, as the Desk does, the API requires the package's CommonJS build (`dist`)
-and serves its routes with the same schemas. Until then, as for Evaluation, the API does not import
-it (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
+has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
+build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
 - A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`.
   It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its `schemas`, with no
@@ -361,7 +360,7 @@ it (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes
   a sort key is a `z.enum`, and nested filters travel as one JSON parameter through a `z.codec`.
   The client builds the query string with `z.encode`. When the API checks the query with the
   schema, a number goes through a `z.codec` that refuses an empty text, which `z.coerce` reads as
-  0 (`csvExtractionRecordsQuerySchema`). Docs: [codecs](https://zod.dev/codecs).
+  0 (`csvExtractionRecordsQuerySchema`, `queryNumberSchema` of Evaluation). Docs: [codecs](https://zod.dev/codecs).
 - Lists keep the API's offset pagination (`items`, `total`, `page`, `limit`, a 0-based page and a
   limit of 100 at most).
 
@@ -376,6 +375,11 @@ library file). They live in a module of `apps/api` named after the app
 controllers. Each handler of the Desk copies the logic of the endpoint the Desk called before, with
 the same permission on the same resource. ADR 0031, section 2.13, lists what waits.
 
+Evaluation follows the same rules. It calls only `eval/` endpoints, which live in
+`apps/api/src/domains/eval/`, with a folder per area of the contracts and a sub-folder per feature
+for the evaluations and the review campaigns. Each handler of Evaluation copies the logic of the
+endpoint the app called before, with the same permission on the same resource.
+
 - A handler serves a route of the contracts package through `@SchemaRoute`
   (`apps/api/src/common/schema-route/`). Its input guard parses the params, the query and the body
   with the route's schemas before any context resolver runs, and its interceptor parses the
@@ -389,7 +393,7 @@ the same permission on the same resource. ADR 0031, section 2.13, lists what wai
 - A 400 from the input guard keeps Nest's body and adds `issues: [{ path, code, message }]`. A
   response that breaks its schema answers 500.
 
-An app with no endpoints of its own yet, as Evaluation today, is built on the API as it is.
+An app with no endpoints of its own yet is built on the API as it is.
 `apps/api` changes as little as possible, and only in its usual way: its backend is rebuilt once
 the app's screens are right.
 
@@ -406,7 +410,8 @@ the app's screens are right.
 
 **An endpoint the app reads**: for an app with endpoints of its own, contract first: its schemas
 and its route in the app's contracts package, then its handler with `@SchemaRoute` in the app's
-module of `apps/api` (`apps/api/src/domains/desk/` for the Desk) and its e2e specs, written as
+module of `apps/api` (`apps/api/src/domains/desk/` for the Desk, `apps/api/src/domains/eval/` for
+Evaluation) and its e2e specs, written as
 `apps/api/CLAUDE.md` asks. For an app with none yet: when an existing endpoint holds the data, its
 route in the app's contracts package with the schemas of what the app reads. When none does, the
 route, the controller and the e2e specs in `apps/api` first, written as `apps/api/CLAUDE.md` asks.

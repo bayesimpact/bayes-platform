@@ -16,7 +16,7 @@ import {
 } from "@/lib/auth/session"
 
 /**
- * Every page of the app but the sign-in callback: a session, the signed-in person (`GET me`), at
+ * Every page of the app but the sign-in callback: a session, the signed-in person (`GET eval/me`), at
  * least one project they can evaluate, then the page. A sign-in the API refuses shows here, and so
  * does a person without the evaluator role, before any page. Every page gets the command center
  * that switches agent, for a person with several.
