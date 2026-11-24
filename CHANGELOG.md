@@ -9,15 +9,17 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- (beta) Embedded chat: integrators can let the host page open the links of the chat.
+
 ### Changed
 
-- (beta) Embedded chat on phones: the chat opens full screen and follows the part of the screen the keyboard leaves visible, the page behind stays still (iOS included) and comes back where it was, the floating window fits the visible screen height, the message box uses 16 px text on touch screens so iOS no longer zooms in on it, and an answer no longer scrolls the host page as it streams, and closes with a cross.
-- (beta) Embedded chat: the launcher opens and closes on pages whose security policy blocks injected styles, and its dots stay white on a coloured button such as the Bayes orange.
-- (beta) Embedded chat: one toast next to the launcher replaces the hint and the greeting card. It shows the greeting a few seconds after the first load, or the start of a reply that ended while the chat was closed, with a badge on the button until the chat opens, and leaves by itself.
-- (beta) Embedded chat: the visitor can write while a reply is coming. What they send waits, greyed, and goes out when the reply is over.
-- (beta) Embedded chat: a reply stays marked as in progress until its cards arrive, and the conversation scrolls down as cards load.
 - CSV extraction: the Desk asks for confirmation before it stops a run.
-- (beta) Embedded chat: while the agent thinks or a card loads, the loader draws the star of the logo link by link, and its label has a sliding sheen.
+- (beta) Embedded chat on phones: the chat opens full screen, follows the keyboard and keeps the page behind still.
+- (beta) Embedded chat: the launcher works on pages whose security policy blocks injected styles.
+- (beta) Embedded chat: one toast next to the launcher shows the greeting or the start of an unread reply.
+- (beta) Embedded chat: visitors can write while a reply is coming, and the message goes out after it.
+- (beta) Embedded chat: a reply stays marked as in progress until its cards arrive.
+- (beta) Embedded chat: the loader draws the star of the logo while the agent thinks or a card loads.
 
 ### Fixed
 
