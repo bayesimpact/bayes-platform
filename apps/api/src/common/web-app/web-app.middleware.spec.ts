@@ -118,7 +118,7 @@ describe("registerWebApp", () => {
     expect(response.text).toContain("window.__CONFIG__")
   })
 
-  it("forbids framing the OAuth consent page, and only that page", async () => {
+  it("forbids framing the OAuth consent page, and lets only its own origin frame the others", async () => {
     const consent = await request(app.getHttpServer())
       .get("/oauth/authorize?client_id=x")
       .accept("text/html")
@@ -126,7 +126,15 @@ describe("registerWebApp", () => {
 
     expect(consent.headers["x-frame-options"]).toBe("DENY")
     expect(consent.headers["content-security-policy"]).toBe("frame-ancestors 'none'")
-    expect(studio.headers["x-frame-options"]).toBeUndefined()
+    expect(studio.headers["x-frame-options"]).toBe("SAMEORIGIN")
+    expect(studio.headers["content-security-policy"]).toBe("frame-ancestors 'self'")
+  })
+
+  it("sends no frame restriction with the files of the build", async () => {
+    const asset = await request(app.getHttpServer()).get("/assets/index-abc123.js")
+    expect(asset.status).toBe(200)
+    expect(asset.headers["x-frame-options"]).toBeUndefined()
+    expect(asset.headers["content-security-policy"]).toBeUndefined()
   })
 
   it("serves hashed assets as immutable", async () => {
