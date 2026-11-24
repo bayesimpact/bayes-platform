@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 
 - (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.
+- CSV extraction: a CSV file with no data row or no header line no longer shows "Page not found".
 
 ### Security
 
@@ -34,8 +35,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Embedded chat: the loader draws the star of the logo while the agent thinks or a card loads.
 
 ### Fixed
-
-- CSV extraction: a CSV file with no data row or no header line no longer shows "Page not found".
 
 ### Security
 
