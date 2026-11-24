@@ -19,8 +19,16 @@ export type McpAppSandboxSource = {
   key?: string
 }
 
-/** The DNS label of a key: the start of its SHA-256, in hexadecimal. */
+/**
+ * The DNS label of a key: the start of its SHA-256, in hexadecimal.
+ *
+ * It throws on a page served over plain http, or framed by one: the browser gives such a page no
+ * `crypto.subtle`, so the app has no origin of its own to run in and must not run.
+ */
 export async function sandboxLabelOf(key: string): Promise<string> {
+  if (!crypto.subtle) {
+    throw new Error("The sandbox origin needs https: this page, or one that frames it, is http")
+  }
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key))
   const hex = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0"))
   return hex.join("").slice(0, LABEL_LENGTH)

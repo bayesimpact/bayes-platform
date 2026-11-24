@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.
+
 ### Security
 
 ## [26.11.4] - 2026-11-24
