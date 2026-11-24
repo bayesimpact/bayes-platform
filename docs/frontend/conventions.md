@@ -375,7 +375,8 @@ library file). They live in a module of `apps/api` named after the app
 controllers. Each handler of the Desk copies the logic of the endpoint the Desk called before, with
 the same permission on the same resource. ADR 0031, section 2.13, lists what waits.
 
-Evaluation follows the same rules. It calls only `eval/` endpoints, which live in
+Evaluation follows the same rules. It calls only `eval/` endpoints, with one exception that
+`apps/eval/AGENTS.md` names (the link to a library file). They live in
 `apps/api/src/domains/eval/`, with a folder per area of the contracts and a sub-folder per feature
 for the evaluations and the review campaigns. Each handler of Evaluation copies the logic of the
 endpoint the app called before, with the same permission on the same resource.

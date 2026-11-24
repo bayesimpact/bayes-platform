@@ -77,6 +77,26 @@ module.exports = {
     },
 
     {
+      name: "no-imports-between-app-modules",
+      severity: "error",
+      comment:
+        "Each app's module is a closed world: `src/domains/desk/` and " +
+        "`src/domains/eval/` never import each other. A mapper both need is copied.",
+      from: { path: "^src/domains/desk/" },
+      to: { path: "^src/domains/eval/" },
+    },
+
+    {
+      name: "no-imports-between-app-modules-reverse",
+      severity: "error",
+      comment:
+        "Each app's module is a closed world: `src/domains/desk/` and " +
+        "`src/domains/eval/` never import each other. A mapper both need is copied.",
+      from: { path: "^src/domains/eval/" },
+      to: { path: "^src/domains/desk/" },
+    },
+
+    {
       name: "no-feature-imports-cross-domain",
       severity: "error",
       comment:
@@ -91,6 +111,7 @@ module.exports = {
           "^src/domains/agents/(?!shared/memberships/)",
           "^src/domains/documents/",
           "^src/domains/evaluations/",
+          "^src/domains/review-campaigns/",
           "^src/domains/mcp-servers/",
           "^src/domains/activities/",
           "^src/domains/feature-flags/",

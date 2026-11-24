@@ -228,8 +228,10 @@ no schemas for the decorator to read.
 - A handler of the tester's conversation in Evaluation holds a copy of the same abstract
   controllers. A change to one of them now goes to the Desk handler and to the Evaluation handler
   too.
-- The evaluation and campaign handlers of Evaluation hold a copy of the old controllers of
-  `domains/evaluations/` and `domains/review-campaigns/`, until those are removed.
+- Each Evaluation handler holds a copy of the logic of the endpoint the app called before. Most
+  come from `domains/evaluations/` and `domains/review-campaigns/`. The others come from the
+  domains of the shared areas (`me`, `invitations`, `organizations`, `projects`, `agents`,
+  `documents`). Nothing links a copy to its source, so a change to one goes to the other.
 - Each contracts package keeps a copy of `defineSchemaRoute`. The two files must keep the same
   shape. The typecheck of the API proves it on every handler.
 - In a worktree environment, run `bayes wt up` after a change to a contracts package. After a

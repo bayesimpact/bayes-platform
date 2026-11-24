@@ -59,7 +59,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
 
 ### Evaluation Application
-- The second app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `eval/`, which `apps/api/src/domains/eval/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
+- The second app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `eval/` (one exception, a library file link, is named in `apps/eval/AGENTS.md`), which `apps/api/src/domains/eval/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/eval/AGENTS.md`
 - Its gate: `npm run check -w @caseai-connect/eval`, on top of the completion criteria below
 

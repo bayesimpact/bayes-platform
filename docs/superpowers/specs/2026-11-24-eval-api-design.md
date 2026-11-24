@@ -26,6 +26,10 @@ calls today does.
   schemas, and parses each response with the route's response schema before it leaves.
 - Evaluation calls only Evaluation endpoints once the change lands. It switches through the paths
   of the contracts, with no other change in `apps/eval`.
+  Note (2026-11-24, final review): one call stays outside `eval/`. A resource card links to a
+  library file at `organizations/.../resource-libraries/.../resources/.../file`
+  (`apps/eval/src/lib/safe-url.ts`), a route outside the contracts. An Evaluation route for it is a
+  later step.
 - Each Evaluation endpoint checks the permission that the matching endpoint checks today, on the
   same resource.
 

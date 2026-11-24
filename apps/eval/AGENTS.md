@@ -13,7 +13,10 @@ file holds what is specific to Evaluation. It uses the same library versions as 
 - Contracts: `@caseai-connect/eval-contracts` (`packages/eval-contracts`), one folder per area,
   with an `Eval{Area}Routes` object per area. It describes the API routes the app calls and the
   fields it reads. The API requires its CommonJS build and serves every route under `eval/`, in
-  `apps/api/src/domains/eval/`, with the same schemas. The app calls only `eval/` endpoints.
+  `apps/api/src/domains/eval/`, with the same schemas. The app calls only `eval/` endpoints,
+  with one exception: a resource card links to a library file at
+  `organizations/.../resource-libraries/.../resources/.../file` (`src/lib/safe-url.ts`), outside
+  `eval/` and the contracts, until an Evaluation route serves it.
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It comes back to `<origin>/eval/auth/callback` (`<origin>/eval/` after
   sign-out). It shares one session with every app of the origin (apps/web, the Desk): the user
