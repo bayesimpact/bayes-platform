@@ -62,7 +62,9 @@ export function ChatFooter({
         <div
           data-slot="chat-footer"
           className={cn(
-            "m-4 flex cursor-text flex-col rounded-2xl border-2 transition-colors",
+            // One row: the message box takes one line when empty and grows with the text, and the
+            // buttons stay on its last line.
+            "m-4 flex cursor-text items-end rounded-2xl border-2 transition-colors",
             isFocused ? "border-[var(--embed-accent)]" : "border-gray-200",
             className,
           )}

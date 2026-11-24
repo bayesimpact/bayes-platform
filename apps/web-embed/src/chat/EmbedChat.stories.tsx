@@ -229,6 +229,39 @@ export const QueuedMessage: Story = {
   },
 }
 
+export const DraftOnSeveralLines: Story = {
+  name: "Message box — grows with the text",
+  args: {
+    messages: shortConversation,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const messageBox = canvas.getByRole("textbox")
+    const emptyHeight = messageBox.getBoundingClientRect().height
+    await userEvent.type(
+      messageBox,
+      "I ordered two items last week and only one arrived. The tracking page says both were delivered. Can you check what happened to the second one?",
+    )
+    await expect(messageBox.getBoundingClientRect().height).toBeGreaterThan(emptyHeight)
+  },
+}
+
+export const DraftLongerThanTheBox: Story = {
+  name: "Message box — a long text scrolls",
+  args: {
+    messages: shortConversation,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.type(
+      canvas.getByRole("textbox"),
+      Array.from({ length: 12 }, (_, index) => `Line ${index + 1} of a long message.`).join(
+        "{Shift>}{Enter}{/Shift}",
+      ),
+    )
+  },
+}
+
 export const NoCloseButton: Story = {
   args: {
     messages: shortConversation,

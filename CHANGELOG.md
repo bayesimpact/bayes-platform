@@ -11,6 +11,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- (beta) Embedded chat: the message box takes one line when empty and grows with the text.
+
 ### Fixed
 
 - (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.
