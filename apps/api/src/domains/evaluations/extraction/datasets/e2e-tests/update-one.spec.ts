@@ -1,3 +1,4 @@
+import { Readable } from "node:stream"
 import type { EvaluationExtractionDatasetSchemaColumnDto } from "@caseai-connect/api-contracts"
 import { EvaluationExtractionDatasetsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
@@ -32,10 +33,18 @@ const CSV_CONTENT = "question,answer\nWhat is 1+1?,2\nWhat is 2+2?,4"
 
 const mockFileStorageService = {
   readFile: jest.fn().mockResolvedValue(Buffer.from(CSV_CONTENT)),
+  createReadStream: jest.fn().mockImplementation(() => Readable.from(Buffer.from(CSV_CONTENT))),
   save: jest.fn(),
   getTemporaryUrl: jest.fn(),
   generateSignedUploadUrl: jest.fn(),
   buildStorageRelativePath: jest.fn(),
+}
+
+const storeCsvContent = (csvContent: string) => {
+  mockFileStorageService.readFile.mockResolvedValue(Buffer.from(csvContent))
+  mockFileStorageService.createReadStream.mockImplementation(() =>
+    Readable.from(Buffer.from(csvContent)),
+  )
 }
 
 describe("EvaluationExtractionDatasets - updateOne", () => {
@@ -78,7 +87,7 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
     authSubject = "oidc|123"
-    mockFileStorageService.readFile.mockResolvedValue(Buffer.from(CSV_CONTENT))
+    storeCsvContent(CSV_CONTENT)
   })
 
   afterAll(async () => {
@@ -186,6 +195,26 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
     const recordData = records.map((record) => record.data)
     expect(recordData).toContainEqual({ "col-q": "What is 1+1?", "col-a": "2" })
     expect(recordData).toContainEqual({ "col-q": "What is 2+2?", "col-a": "4" })
+  })
+
+  it.each([
+    ["with no final newline", "question,answer"],
+    ["with a final newline", "question,answer\n"],
+  ])("should refuse a file with a header and no data row, %s", async (_case, csvContent) => {
+    storeCsvContent(csvContent)
+    const { dataset } = await createContext()
+
+    const res = await subject({ payload: { name: "Dataset with no row", columns } })
+
+    expectResponse(res, 422, "CSV file has no data row")
+    // The dataset stays as it was: a person can still set it up from another file.
+    const unchangedDataset = await datasetRepository.findOneBy({ id: datasetId })
+    expect(unchangedDataset!.name).toBe(dataset.name)
+    expect(unchangedDataset!.schemaMapping).toEqual(dataset.schemaMapping)
+    expect(unchangedDataset!.evaluationExtractionDatasetDocumentId).toBeNull()
+    expect(
+      await recordRepository.count({ where: { evaluationExtractionDatasetId: datasetId } }),
+    ).toBe(0)
   })
 
   it("should reject an empty name", async () => {

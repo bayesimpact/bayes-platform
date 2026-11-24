@@ -337,6 +337,7 @@ export class EvaluationExtractionDatasetsService {
     }
 
     const document = await this.getFile({ connectScope, documentId })
+    await this.assertFileHasDataRow(document.storageRelativePath)
 
     Object.assign(dataset, {
       name,
@@ -474,6 +475,20 @@ export class EvaluationExtractionDatasetsService {
   }
 
   // CSV PARSING
+
+  /**
+   * Refuses a file with a header and no data row, before anything of the dataset changes: the
+   * dataset would hold no record, and a run on no record never ends. It reads the first row only.
+   */
+  private async assertFileHasDataRow(storageRelativePath: string): Promise<void> {
+    const columns = await this.parseCsvColumns({
+      storageRelativePath,
+      options: { header: true, preview: 1, skipEmptyLines: true },
+    })
+    if (columns.every((column) => column.values.length === 0)) {
+      throw new UnprocessableEntityException("CSV file has no data row")
+    }
+  }
 
   private parseCsvColumns({
     storageRelativePath,
