@@ -8,7 +8,7 @@ export type CsvColumnPreview = {
   /** An id of its own, new at each read: a file may name two columns alike. */
   id: string
   name: string
-  /** One value per row read; `undefined` where a row is shorter than the first one. */
+  /** One value per row read; `undefined` where a row is shorter than the header line. */
   values: unknown[]
 }
 
@@ -17,15 +17,16 @@ const DEFAULT_PREVIEW_ROW_COUNT = 5
 
 /**
  * The config of Papa's stream mode. Its typings leave `chunk` out of that mode, but the stream
- * mode runs it: the header-only case of the spec fails if that ever stops.
+ * mode runs it: every case of the spec fails if that ever stops.
  */
 type StreamParseConfig = Papa.ParseConfig & Pick<Papa.ParseLocalConfig, "chunk">
 
 /**
  * The columns of a CSV stream whose first line is its header, each with the values of its first
- * `previewRowCount` rows (5 by default). It reads the start of the stream only, then destroys it. The names are
- * those of the first row when there is one, and those of the header line for a file with no data
- * row. A stream with no header line answers 422.
+ * `previewRowCount` rows (5 by default). It reads the start of the stream only, then destroys it.
+ * The names are those of the header line, in its order, whatever the rows hold: a shorter row
+ * leaves values `undefined`, and what a longer row holds past the last column is left out. A
+ * stream with no header line answers 422.
  */
 export function readCsvColumns(
   sourceStream: Readable,
@@ -33,19 +34,17 @@ export function readCsvColumns(
 ): Promise<CsvColumnPreview[]> {
   return new Promise((resolve, reject) => {
     const previewRows: Record<string, unknown>[] = []
-    let fields: string[] | undefined
-    let headerFields: string[] | undefined
+    // Empty until a chunk holds the whole header line.
+    let headerFields: string[] = []
     let settled = false
 
     const buildColumns = () => {
-      // A file with a header and no data row emits no row: its header names its columns.
-      const columnNames = fields ?? headerFields
-      if (!columnNames || columnNames.length === 0) {
+      if (headerFields.length === 0) {
         reject(new UnprocessableEntityException("CSV file has no columns"))
         return
       }
       resolve(
-        columnNames.map((columnName) => ({
+        headerFields.map((columnName) => ({
           id: randomUUID(),
           name: columnName,
           values: previewRows.map((row) => row[columnName]),
@@ -60,24 +59,30 @@ export function readCsvColumns(
       settleWith()
     }
 
+    const settleOncePreviewIsRead = () => {
+      if (headerFields.length > 0 && previewRows.length >= previewRowCount) {
+        settle(buildColumns)
+      }
+    }
+
     // In the stream mode Papa keeps `step` and `complete` for itself: `chunk` is the one
-    // callback that gives the header, and it runs before the stream ends. A `data` event comes
-    // before it, so the header stays a fallback for a file with no row.
+    // callback that gives the header. Papa runs it once per chunk of the source, after the `data`
+    // events of that chunk's rows. So the rows asked for can be there before the header: the
+    // read stops at the end of the chunk that gave both, and reads no other chunk.
     const parseConfig: StreamParseConfig = {
       header: true,
       skipEmptyLines: true,
       chunk: (results) => {
-        headerFields = results.meta.fields
+        headerFields = results.meta.fields ?? []
+        settleOncePreviewIsRead()
       },
     }
     const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, parseConfig)
 
     parseStream.on("data", (row: Record<string, unknown>) => {
-      if (!fields) fields = Object.keys(row)
-      previewRows.push(row)
-      if (previewRows.length >= previewRowCount) {
-        settle(buildColumns)
-      }
+      // Papa parses a whole chunk at once: the rows past the count asked for are dropped.
+      if (previewRows.length < previewRowCount) previewRows.push(row)
+      settleOncePreviewIsRead()
     })
     parseStream.on("end", () => settle(buildColumns))
     parseStream.on("error", (error: Error) => settle(() => reject(error)))

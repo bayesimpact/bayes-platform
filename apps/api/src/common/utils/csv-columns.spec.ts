@@ -4,6 +4,21 @@ import { type CsvColumnPreview, readCsvColumns } from "./csv-columns"
 
 const streamOf = (csvContent: string) => Readable.from(Buffer.from(csvContent))
 
+/** A stream that gives one chunk at a time, and counts the chunks the reader asked for. */
+const streamOfChunks = (chunks: string[]) => {
+  const reading = { chunkCount: 0 }
+  function* readChunks() {
+    for (const chunk of chunks) {
+      reading.chunkCount += 1
+      yield Buffer.from(chunk)
+    }
+  }
+  return { sourceStream: Readable.from(readChunks()), reading }
+}
+
+/** Lets a stream that nobody stopped read on, so that a spec can tell it was stopped. */
+const nextTurnOfTheEventLoop = () => new Promise((resolve) => setImmediate(resolve))
+
 /** The columns without their ids, which are new at each read. */
 const withoutIds = (columns: CsvColumnPreview[]) =>
   columns.map((column) => ({ name: column.name, values: column.values }))
@@ -59,7 +74,7 @@ describe("readCsvColumns", () => {
     expect(withoutIds(columns)).toEqual([{ name: "title", values: ["First", "Second"] }])
   })
 
-  it("leaves a value undefined where a row is shorter than the first one", async () => {
+  it("leaves a value undefined where a row is shorter than the header", async () => {
     const columns = await readCsvColumns(streamOf("title,summary\nFirst,One\nSecond"), {
       previewRowCount: 5,
     })
@@ -67,6 +82,82 @@ describe("readCsvColumns", () => {
     expect(withoutIds(columns)).toEqual([
       { name: "title", values: ["First", "Second"] },
       { name: "summary", values: ["One", undefined] },
+    ])
+  })
+
+  it("keeps every column of the header when the first row is shorter", async () => {
+    const columns = await readCsvColumns(streamOf("title,summary,tag\nFirst\nSecond,Two,B"), {
+      previewRowCount: 5,
+    })
+
+    expect(withoutIds(columns)).toEqual([
+      { name: "title", values: ["First", "Second"] },
+      { name: "summary", values: [undefined, "Two"] },
+      { name: "tag", values: [undefined, "B"] },
+    ])
+  })
+
+  it("adds no column when the first row is longer than the header", async () => {
+    const columns = await readCsvColumns(streamOf("title,summary\nFirst,One,Extra\nSecond,Two"), {
+      previewRowCount: 5,
+    })
+
+    expect(withoutIds(columns)).toEqual([
+      { name: "title", values: ["First", "Second"] },
+      { name: "summary", values: ["One", "Two"] },
+    ])
+  })
+
+  it("keeps the order of the header for columns named with numbers", async () => {
+    const columns = await readCsvColumns(streamOf("2,1,title\nTwo,One,First"), {
+      previewRowCount: 5,
+    })
+
+    expect(withoutIds(columns)).toEqual([
+      { name: "2", values: ["Two"] },
+      { name: "1", values: ["One"] },
+      { name: "title", values: ["First"] },
+    ])
+  })
+
+  it("reads the start of a large file only", async () => {
+    const tailChunks = Array.from({ length: 1000 }, (_, index) => `tail${index}\n`)
+    const { sourceStream, reading } = streamOfChunks(["title\nrow1\nrow2\nrow3\n", ...tailChunks])
+
+    const columns = await readCsvColumns(sourceStream, { previewRowCount: 3 })
+    await nextTurnOfTheEventLoop()
+
+    expect(withoutIds(columns)).toEqual([{ name: "title", values: ["row1", "row2", "row3"] }])
+    expect(sourceStream.destroyed).toBe(true)
+    expect(reading.chunkCount).toBeLessThanOrEqual(3)
+  })
+
+  it("reads on when the first chunk holds fewer rows than asked, then stops", async () => {
+    const tailChunks = Array.from({ length: 1000 }, (_, index) => `tail${index}\n`)
+    const { sourceStream, reading } = streamOfChunks([
+      "title\nrow1\nrow2\nro",
+      "w3\nrow4\nrow5\nrow6\n",
+      ...tailChunks,
+    ])
+
+    const columns = await readCsvColumns(sourceStream, { previewRowCount: 5 })
+    await nextTurnOfTheEventLoop()
+
+    expect(withoutIds(columns)).toEqual([
+      { name: "title", values: ["row1", "row2", "row3", "row4", "row5"] },
+    ])
+    expect(sourceStream.destroyed).toBe(true)
+    expect(reading.chunkCount).toBeLessThanOrEqual(4)
+  })
+
+  it("reads a header line that comes in several chunks", async () => {
+    const { sourceStream } = streamOfChunks(["tit", "le,sum", "mary\nFirst,One\nSecond,Two\n"])
+
+    const columns = await readCsvColumns(sourceStream, { previewRowCount: 1 })
+
+    expect(withoutIds(columns)).toEqual([
+      { name: "title", values: ["First"] },
+      { name: "summary", values: ["One"] },
     ])
   })
 
