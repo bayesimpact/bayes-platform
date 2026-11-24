@@ -12,7 +12,6 @@ import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { getApiErrorMessage } from "@/common/utils/api-error"
 import { updateAgent } from "@/studio/features/agents/agents.thunks"
-import { selectCurrentAgentData } from "../agents.selectors"
 import type { AgentSettings } from "./agent-settings.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
@@ -160,23 +159,4 @@ export const updateAgentSettingsCategories = createAsyncThunk<
   ThunkConfig
 >("agentSettings/updateCategories", async ({ agentId, fields }, { dispatch }) => {
   await dispatch(updateAgentSettings({ agentId, fields })).unwrap()
-})
-
-export const getFillFormOutputJsonSchema = createAsyncThunk<
-  AgentSettings["outputJsonSchema"] | undefined,
-  void,
-  ThunkConfig
->("agents/getFillFormOutputJsonSchema", async (_, { extra: { services }, getState }) => {
-  const state = getState()
-  const agent = selectCurrentAgentData(state)
-  if (!agent.value) throw new Error("No agent selected")
-  const agentId = agent.value.id
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  // An agent that was never published has no form in live conversations yet.
-  const revision = agent.value.currentRevision?.number
-  if (revision === undefined) return undefined
-
-  const params = { organizationId, projectId, agentId, revision }
-  return await services.agentSettings.getFillFormOutputJsonSchema(params)
 })

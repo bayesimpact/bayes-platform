@@ -1,8 +1,6 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { AppDispatch, RootState } from "@/common/store"
-import { isStudioInterface } from "@/studio/routes/helpers"
-import { getFillFormOutputJsonSchema } from "../../agent-settings/agent-settings.thunks"
 import { agentSessionMessagesActions } from "../shared/agent-session-messages/agent-session-messages.slice"
 import { listMessages } from "../shared/agent-session-messages/agent-session-messages.thunks"
 import { conversationAgentSessionsActions } from "./conversation-agent-sessions.slice"
@@ -32,25 +30,17 @@ function registerListeners() {
       const agentSessionId = getCurrentId({ state, name: "agentSessionId" })
       await listenerApi.dispatch(listMessages(agentSessionId))
 
-      // The Studio session view surfaces form sub-agent results delegated by
-      // this conversation session. Other interfaces don't render them, so skip
-      // the extra fetch there.
-      if (isStudioInterface()) {
-        const agentId = getCurrentId({ state, name: "agentId" })
-        await listenerApi.dispatch(
-          conversationAgentSessionsActions.listSubSessions({ agentId, agentSessionId }),
-        )
-      } else {
-        await listenerApi.dispatch(getFillFormOutputJsonSchema())
-      }
+      // The session view surfaces the form results the sub-agents of this conversation produced.
+      const agentId = getCurrentId({ state, name: "agentId" })
+      await listenerApi.dispatch(
+        conversationAgentSessionsActions.listSubSessions({ agentId, agentSessionId }),
+      )
     },
   })
 
   listenerMiddleware.startListening({
     actionCreator: agentSessionMessagesActions.appendAssistantChunk,
     effect: async (_, listenerApi) => {
-      if (!isStudioInterface()) return
-
       // Collapse the burst of streaming chunks into a single refresh: cancel
       // any pending run and wait for the stream to settle before fetching.
       listenerApi.cancelActiveListeners()
@@ -58,10 +48,6 @@ function registerListeners() {
 
       const state = listenerApi.getState()
       const agentSessionId = getCurrentId({ state, name: "agentSessionId" })
-
-      // The Studio session view surfaces form sub-agent results delegated by
-      // this conversation session. Other interfaces don't render them, so skip
-      // the extra fetch there.
       const agentId = getCurrentId({ state, name: "agentId" })
       await listenerApi.dispatch(
         conversationAgentSessionsActions.listSubSessions({ agentId, agentSessionId }),

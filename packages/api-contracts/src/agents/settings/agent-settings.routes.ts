@@ -11,10 +11,6 @@ export const AgentSettingsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId/settings",
   }),
-  getFillFormOutputJsonSchema: defineRoute<ResponseData<AgentSettingsDto["outputJsonSchema"]>>({
-    method: "get",
-    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/settings/:revision/output-json-schema",
-  }),
   updateOne: defineRoute<
     ResponseData<SuccessResponseDTO>,
     RequestPayload<PartialUpdateAgentSettingsDto>

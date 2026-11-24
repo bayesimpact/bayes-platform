@@ -711,7 +711,11 @@ stays the target, and these parts wait for later changes:
   dropped the shape of the duality too: no session call carries a type, `buildType()` is gone, and
   the SPI of each session feature no longer declares the parameter. The session record still has
   its `type`, which the review campaign screens read, and the playground routes are now named in
-  one place, the `external/*.api.ts` of each feature.
+  one place, the `external/*.api.ts` of each feature. One more route went with that sweep:
+  `AgentSettingsRoutes.getFillFormOutputJsonSchema`, which the row of `GET
+  {agent}/conversations/:agentSessionId` below records as replaced. Only a dead `isStudioInterface()`
+  branch of the conversation middleware of `apps/web` still called it, and that branch, the state it
+  filled and its selector are gone too.
 
 ### 2.14 Serving and environments
 

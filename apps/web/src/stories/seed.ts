@@ -251,15 +251,6 @@ export const seed = {
     return { conversationAgentSessions: { data } }
   },
 
-  /** Form definition the session panel renders when the agent has the fillForm tool enabled. */
-  fillFormOutputJsonSchema(
-    outputJsonSchema: AgentSettings["outputJsonSchema"],
-  ): StoryPreloadedState {
-    return {
-      conversationAgentSessions: { fillFormOutputJsonSchema: ads.fulfilled(outputJsonSchema) },
-    }
-  },
-
   conversationSubSessions(
     subSessionsByParentSessionId: Record<string, ConversationSubSession[]>,
   ): StoryPreloadedState {
