@@ -25,7 +25,7 @@ export function ChatInput({
   }
 
   return (
-    <div className="max-h-40 overflow-y-auto">
+    <div className="max-h-40 min-w-0 flex-1 overflow-y-auto">
       <textarea
         ref={input.ref}
         data-slot="chat-input"
@@ -36,7 +36,9 @@ export function ChatInput({
         onKeyDown={handleKeyDown}
         disabled={input.disabled || props.disabled}
         className={cn(
-          "field-sizing-content w-full resize-none bg-transparent px-4 pt-3 text-sm text-gray-900 pointer-coarse:text-base placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          // One line is 48px high, like the row of buttons beside it: 20px of text and 28px of
+          // padding, or 24px and 24px on a touch screen.
+          "field-sizing-content block w-full resize-none bg-transparent py-3.5 pr-1 pl-4 pointer-coarse:py-3 text-sm text-gray-900 pointer-coarse:text-base placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           className,
         )}
         {...props}

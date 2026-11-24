@@ -11,6 +11,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- (beta) Embedded chat: the message box takes one line when empty and grows with the text.
+
 ### Fixed
 
 - Extraction evaluations: the dataset setup says when a CSV file has no data row.
