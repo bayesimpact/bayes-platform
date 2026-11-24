@@ -114,6 +114,17 @@ const PAGES = {
     Story: pageStories.CsvSetup,
     loaded: () => screen.findByRole("heading", { name: "articles.csv" }),
   },
+  CsvSetupOfHeaderOnlyFile: {
+    Story: pageStories.CsvSetupOfHeaderOnlyFile,
+    loaded: async () => {
+      await screen.findByRole("heading", { name: "header-only.csv" })
+      return screen.findByText("This file has no rows")
+    },
+  },
+  CsvSetupOfFileWithoutColumns: {
+    Story: pageStories.CsvSetupOfFileWithoutColumns,
+    loaded: () => screen.findByText("This file has no columns"),
+  },
   CsvRun: {
     Story: pageStories.CsvRun,
     loaded: () => screen.findByText("24 of 24 rows"),

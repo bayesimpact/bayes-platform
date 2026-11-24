@@ -120,6 +120,10 @@ msgstr "<0><1/><2/></0> pour aller à la ligne"
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Lire</0> : l’agent la lit. <1>Garder</1> : affichée à côté des résultats. <2>Ignorer</2> : laissée de côté."
 
+#: src/features/extraction/components/CsvFileWithoutColumns.tsx
+msgid "A CSV file needs a first line that names its columns. Add one, then upload the file again."
+msgstr "Un fichier CSV a besoin d’une première ligne qui nomme ses colonnes. Ajoutez cette ligne, puis déposez le fichier de nouveau."
+
 #: src/components/shared/NewReleaseBanner.tsx
 #: src/components/shared/RouteErrorState.tsx
 msgid "A new version of the Desk is available"
@@ -241,6 +245,10 @@ msgstr "Vérifiez votre connexion, puis réessayez."
 #: src/features/extraction/components/FileDropZone.tsx
 msgid "Choose a file"
 msgstr "Choisir un fichier"
+
+#: src/features/extraction/components/CsvFileUnusable.tsx
+msgid "Choose another file"
+msgstr "Choisir un autre fichier"
 
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Choose at least one column for the agent to read."
@@ -1141,6 +1149,10 @@ msgstr "L'agent retient"
 msgid "The agent remembers nothing about you."
 msgstr "L'agent ne retient rien à votre sujet."
 
+#: src/features/extraction/components/CsvFileWithoutRows.tsx
+msgid "The agent runs once per row, and this file only has its header line. Add rows, then upload the file again."
+msgstr "L’agent passe sur chaque ligne, et ce fichier ne contient que sa ligne d’en-tête. Ajoutez des lignes, puis déposez le fichier de nouveau."
+
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "The agent runs once per row. Choose what it reads in each one."
 msgstr "L’agent passe sur chaque ligne. Choisissez ce qu’il y lit."
@@ -1318,6 +1330,14 @@ msgstr "La connexion échoue à chaque fois"
 #: src/features/conversation/components/ToolSteps.tsx
 msgid "Thinking…"
 msgstr "Réflexion…"
+
+#: src/features/extraction/components/CsvFileWithoutColumns.tsx
+msgid "This file has no columns"
+msgstr "Ce fichier n’a aucune colonne"
+
+#: src/features/extraction/components/CsvFileWithoutRows.tsx
+msgid "This file has no rows"
+msgstr "Ce fichier n’a aucune ligne"
 
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."

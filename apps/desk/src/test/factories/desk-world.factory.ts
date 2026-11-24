@@ -449,6 +449,31 @@ export function buildCsvRunInProgressWorld(): DeskWorld {
 }
 
 /**
+ * A single extraction agent, with two more CSV files that hold no data row: `header-only.csv` has
+ * its header line, and `empty.csv` has no header, so no column.
+ */
+export function buildCsvFilesWithoutRowsWorld(): DeskWorld {
+  const world = buildExtractionAgentWorld()
+  const [reader] = world.agents
+  if (!reader) return world
+  const csvFile = (fileName: string, size: number) =>
+    buildExtractionDocument({ fileName, mimeType: "text/csv", size, content: null })
+  const headerOnly = csvFile("header-only.csv", 28)
+  const empty = csvFile("empty.csv", 2)
+  world.extractionDocuments[reader.id] = [
+    headerOnly,
+    empty,
+    ...(world.extractionDocuments[reader.id] ?? []),
+  ]
+  world.csvColumns[headerOnly.id] = buildCsvFileColumns().map((column) => ({
+    ...column,
+    values: [],
+  }))
+  world.csvColumns[empty.id] = []
+  return world
+}
+
+/**
  * The main case, where the person answered the first reply with notes on passages they quoted
  * from it, which their message shows as chips, and the agent replied.
  */

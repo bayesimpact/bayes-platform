@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto"
+import { Readable } from "node:stream"
 import { AgentCsvExtractionRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -89,6 +90,31 @@ describe("AgentCsvExtractionRuns - getFileColumns", () => {
     expect(response.body.data[0]?.values).toEqual(["Alice", "Bob"])
     expect(response.body.data[1]?.values).toEqual(["30", "40"])
     expect(mockFileStorageService.createReadStream).toHaveBeenCalledTimes(1)
+  })
+
+  it("returns the columns of a CSV with a header and no row, with no values", async () => {
+    await createContext()
+    mockFileStorageService.createReadStream.mockImplementationOnce(() =>
+      Readable.from(["name,age\n"]),
+    )
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual([
+      { id: expect.any(String), name: "name", values: [] },
+      { id: expect.any(String), name: "age", values: [] },
+    ])
+  })
+
+  it.each([
+    { file: "an empty CSV", content: "" },
+    { file: "a CSV of blank lines", content: "\n\n" },
+  ])("answers 422 for $file, which has no header", async ({ content }) => {
+    await createContext()
+    mockFileStorageService.createReadStream.mockImplementationOnce(() => Readable.from([content]))
+
+    expectResponse(await subject(), 422, "CSV file has no columns")
   })
 
   it("returns 404 when the document does not exist", async () => {

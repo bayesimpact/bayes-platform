@@ -34,6 +34,14 @@ export function toColumnSchema(
   )
 }
 
+/**
+ * Whether the file has no data row. Each column comes with one value per first row of the file,
+ * null for an empty cell: a file with rows gives its columns at least one value.
+ */
+export function hasNoRows(columns: CsvFileColumnOutputDto[]): boolean {
+  return columns.every((column) => column.values.length === 0)
+}
+
 /** Whether the agent reads at least one column: it has nothing to read otherwise. */
 export function readsAColumn(roles: ColumnRoles): boolean {
   return Object.values(roles).includes("input")

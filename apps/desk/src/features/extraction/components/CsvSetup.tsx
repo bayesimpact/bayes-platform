@@ -11,14 +11,17 @@ import { useStartCsvExtraction } from "../api/mutations"
 import { csvColumnsQueryOptions } from "../api/queries"
 import {
   type ColumnRoles,
+  hasNoRows,
   initialColumnRoles,
   type RowScope,
   readsAColumn,
   toColumnSchema,
 } from "../csv-setup"
 import { ColumnRoleRow } from "./ColumnRoleRow"
+import { CsvFileHeader } from "./CsvFileHeader"
+import { CsvFileWithoutColumns } from "./CsvFileWithoutColumns"
+import { CsvFileWithoutRows } from "./CsvFileWithoutRows"
 import { CsvRowScope } from "./CsvRowScope"
-import { FileKindIcon } from "./FileKindIcon"
 
 export type CsvSetupProps = {
   agent: AgentParamsDto
@@ -41,6 +44,8 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
   }))
   const startExtraction = useStartCsvExtraction(agent)
   const fileName = documents.find((document) => document.id === documentId)?.fileName ?? t`CSV file`
+  if (columns.length === 0) return <CsvFileWithoutColumns agent={agent} fileName={fileName} />
+  if (hasNoRows(columns)) return <CsvFileWithoutRows agent={agent} fileName={fileName} />
   const canStart = readsAColumn(setup.roles) && !startExtraction.isPending
   const rowCount = setup.scope.kind === "first" ? setup.scope.count : 0
 
@@ -72,15 +77,9 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-10 pb-16">
-      <header className="flex min-w-0 items-center gap-3">
-        <FileKindIcon kind="csv" variant="tile" />
-        <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="truncate text-xl font-semibold tracking-tight">{fileName}</h1>
-          <p className="text-sm text-muted-foreground">
-            <Trans>The agent runs once per row. Choose what it reads in each one.</Trans>
-          </p>
-        </div>
-      </header>
+      <CsvFileHeader fileName={fileName}>
+        <Trans>The agent runs once per row. Choose what it reads in each one.</Trans>
+      </CsvFileHeader>
 
       <section aria-labelledby={columnsHeadingId} className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
