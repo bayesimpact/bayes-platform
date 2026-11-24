@@ -73,7 +73,12 @@ describe("Desk CSV extractions - executeOne", () => {
 
   const createContext = async () => {
     const context = await createCsvExtractionRunContext({ repositories, authSubject })
-    const run = await createCsvExtractionRun({ repositories, context, status: "pending" })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "pending",
+      type: "live",
+    })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id

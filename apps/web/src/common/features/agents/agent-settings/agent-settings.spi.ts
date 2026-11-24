@@ -13,11 +13,6 @@ type BaseParams = {
 export interface IAgentSettingsSpi {
   // History
   getAllWithDraft: (params: BaseParams) => Promise<AgentSettings[]>
-  getFillFormOutputJsonSchema: (
-    params: BaseParams & {
-      revision: number
-    },
-  ) => Promise<AgentSettings["outputJsonSchema"] | undefined>
   updateOne: (
     params: BaseParams,
     payload: PartialUpdateAgentSettingsDto,

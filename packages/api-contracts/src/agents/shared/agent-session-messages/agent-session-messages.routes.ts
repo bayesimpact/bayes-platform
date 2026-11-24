@@ -75,7 +75,6 @@ function defineAgentSessionMessagesRoutes(type: ConversationAgentSessionTypeDto)
 }
 
 export const AgentSessionMessagesRoutes = {
-  live: defineAgentSessionMessagesRoutes("live"),
   playground: defineAgentSessionMessagesRoutes("playground"),
   review_campaign_tester: defineAgentSessionMessagesRoutes("review_campaign_tester"),
 }

@@ -1,30 +1,50 @@
 @import "tailwindcss";
 
-/* The dot-grid loader (chat/components/DotGrid.tsx): a wave runs across the grid from its
-   top-left corner, each dot growing and brightening in turn. */
-@keyframes embed-dot-wave {
-  0%,
-  70%,
-  100% {
-    transform: scale(0.65);
-    opacity: 0.35;
-  }
-  35% {
-    transform: scale(1.15);
-    opacity: 1;
-  }
-}
-
-.embed-dot-wave {
+/* The dot-grid loader (chat/components/DotGrid.tsx): runRandomStar() animates it. Without its
+   script, or for visitors who ask for reduced motion, the star shows still and faint. */
+.embed-star-dot {
   transform-box: fill-box;
   transform-origin: center;
-  animation: embed-dot-wave 1.3s ease-in-out infinite;
+}
+.embed-star-link {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  opacity: 0.3;
+}
+.embed-star--js .embed-star-link {
+  opacity: 0;
+}
+
+/* The label beside a loader: a light band slides across the text while the agent works. */
+.embed-shimmer {
+  /* The text fill goes transparent, not the colour: the gradient below paints currentColor. */
+  -webkit-text-fill-color: transparent;
+  background:
+    linear-gradient(
+      90deg,
+      currentColor 0 40%,
+      color-mix(in srgb, currentColor 25%, transparent) 50%,
+      currentColor 60% 100%
+    )
+    0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: embed-shimmer 2s linear infinite;
+}
+@keyframes embed-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .embed-dot-wave {
+  .embed-shimmer {
     animation: none;
-    opacity: 0.7;
+    -webkit-text-fill-color: currentColor;
+    background: none;
   }
 }
 

@@ -79,7 +79,7 @@ describe("AgentCsvExtractionRuns - getExportTemporaryUrl", () => {
 
   const subject = async () =>
     request({
-      route: AgentCsvExtractionRunsRoutes.live.getExportTemporaryUrl,
+      route: AgentCsvExtractionRunsRoutes.playground.getExportTemporaryUrl,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
       token: accessToken,
     })

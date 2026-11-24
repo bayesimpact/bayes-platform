@@ -3,7 +3,7 @@ import type {
   EmbedDisplayMode,
   EmbedPublicConfigDto,
 } from "@caseai-connect/api-contracts"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
 import { getEmbedConfig } from "./api/public-chat-api"
 import { shortConversation } from "./chat/chat.factory"
@@ -12,7 +12,8 @@ import { EmbedChat } from "./chat/EmbedChat"
 import type { PublicChatErrorKey } from "./hooks/usePublicChat"
 import { usePublicChat } from "./hooks/usePublicChat"
 import { createEmbedI18n, type SupportedLocale } from "./i18n"
-import { previewOf } from "./preview"
+import { readLinkTarget, sendLinksToParent } from "./open-link"
+import { latestReplyOf, previewOf } from "./preview"
 import { DEFAULT_PRIMARY_COLOR } from "./theme"
 
 // ─── URL param helpers ─────────────────────────────────────────────────────
@@ -58,6 +59,11 @@ export function App() {
   const embedToken = readParam("embedToken")
   const displayMode = readDisplayModeFromUrl()
   const hideHeader = readHideHeaderFromUrl()
+  const linkTarget = readLinkTarget(window.location.search)
+
+  useEffect(() => {
+    if (linkTarget === "parent") return sendLinksToParent()
+  }, [linkTarget])
 
   const handleClose = () => {
     window.parent.postMessage({ type: "agent-studio:close" }, "*")
@@ -130,8 +136,8 @@ function LiveChat({
   } = usePublicChat(embedToken)
 
   // Tell the launcher what to show next to its button while the chat is closed: the agent's
-  // opening message, as long as the visitor has not written anything, and nothing afterwards.
-  // The greeting is public text, which is why any parent origin may read it.
+  // opening message, as long as the visitor has not written anything. The greeting is public
+  // text, which is why any parent origin may read it.
   const preview = previewOf(messages)
   useEffect(() => {
     if (status !== "ready") return
@@ -144,6 +150,37 @@ function LiveChat({
       "*",
     )
   }, [status, preview, remoteConfig?.title, remoteConfig?.agentName])
+
+  // Once the visitor has written, the latest finished reply, so one that ends while the chat is
+  // closed shows next to the button with a badge. It is the visitor's conversation, so only its
+  // first words go, and only to the page that loaded the widget (its referrer); without one, the
+  // launcher gets nothing.
+  const reply = latestReplyOf(messages)
+  const replyId = reply?.id ?? null
+  const replyText = reply ? reply.text.slice(0, 200) : ""
+  const hostOrigin = useMemo(() => {
+    try {
+      return document.referrer ? new URL(document.referrer).origin : null
+    } catch {
+      return null
+    }
+  }, [])
+  // A reply already there when the chat loaded (a restored conversation) is not news.
+  const restoredReplyId = useRef<string | null | undefined>(undefined)
+  useEffect(() => {
+    if (status !== "ready") return
+    if (restoredReplyId.current === undefined) restoredReplyId.current = replyId
+    if (!replyId || !hostOrigin) return
+    window.parent.postMessage(
+      {
+        type: "agent-studio:reply",
+        id: replyId,
+        text: replyText,
+        isNew: replyId !== restoredReplyId.current,
+      },
+      hostOrigin,
+    )
+  }, [status, replyId, replyText, hostOrigin])
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
@@ -274,7 +311,7 @@ function SimulatedChat({
 function ChatLoadingShell({ theme, hideHeader }: { theme: EmbedChatTheme; hideHeader: boolean }) {
   const { t } = useTranslation("chat")
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white pointer-coarse:rounded-none">
       {!hideHeader && (
         <div
           className="chat-header flex h-16 shrink-0 items-center gap-3 px-5"
@@ -302,7 +339,7 @@ function ChatErrorShell({
 }) {
   const { t } = useTranslation("chat")
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white pointer-coarse:rounded-none">
       {!hideHeader && (
         <div
           className="chat-header flex h-16 shrink-0 items-center gap-3 px-5"

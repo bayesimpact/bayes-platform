@@ -17,9 +17,7 @@ import {
 } from "./agent-session-messages.slice"
 import { listMessages } from "./agent-session-messages.thunks"
 
-// The thunks module reaches the OIDC client and `window.location` transitively; neither exists
-// under vitest's node environment.
-vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
+// The thunks module reaches the OIDC client transitively, which needs `window`.
 vi.mock("./external/agent-session-messages-streaming", () => ({ streamChatResponse: vi.fn() }))
 
 const agentSessionId = "session-1"

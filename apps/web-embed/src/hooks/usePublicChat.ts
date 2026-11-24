@@ -366,10 +366,13 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
 
               case "end":
                 shouldHydrate = true
+                // The text is complete but the reply is not: its cards come with the re-read
+                // below, seconds later. Keep it streaming until then, so the visitor does not
+                // take it for finished and then see cards appear under it.
                 setMessages((prev) =>
                   prev.map((message) =>
                     message.id === realMessageId
-                      ? { ...message, content: event.fullContent, status: "completed" }
+                      ? { ...message, content: event.fullContent }
                       : message,
                   ),
                 )
@@ -405,7 +408,14 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
               setMessages(sessionData.messages.map(toDisplayMessage))
               void loadMcpAppHtml(session, sessionData.messages, nonce)
             } catch {
-              // Keep streamed text if the hydrate fetch fails
+              // Keep the streamed text, settled, if the re-read fails.
+              setMessages((prev) =>
+                prev.map((message) =>
+                  message.id === realMessageId && message.status === "streaming"
+                    ? { ...message, status: "completed" }
+                    : message,
+                ),
+              )
             }
           }
         } catch (err) {

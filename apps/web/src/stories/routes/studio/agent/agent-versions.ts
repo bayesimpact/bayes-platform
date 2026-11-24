@@ -127,8 +127,6 @@ export function buildAgentVersionsBackend(initial: { agent: Agent; versions: Age
 
   const agentSettings: IAgentSettingsSpi = {
     getAllWithDraft: async () => versions,
-    getFillFormOutputJsonSchema: async ({ revision }) =>
-      versions.find((version) => version.revision === revision)?.outputJsonSchema,
     setProduction: async ({ revision }) => {
       setProduction(revision)
       return { success: true }

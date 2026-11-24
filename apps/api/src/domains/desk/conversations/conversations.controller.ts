@@ -27,7 +27,7 @@ import {
 
 /**
  * The live conversations of the signed-in person with a conversation agent: the history, a new
- * conversation, and its deletion. A copy of `LiveConversationAgentSessionsController`.
+ * conversation, and its deletion. A copy of `ConversationAgentSessionsController`.
  */
 @Controller()
 export class DeskConversationsController {

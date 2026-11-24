@@ -78,7 +78,7 @@ describe("Desk CSV extractions - cancelOne", () => {
     status?: "pending" | "running" | "completed"
   } = {}) => {
     const context = await createCsvExtractionRunContext({ repositories, authSubject })
-    const run = await createCsvExtractionRun({ repositories, context, status })
+    const run = await createCsvExtractionRun({ repositories, context, status, type: "live" })
 
     // A still-running record so the cancel path has a pending job to remove.
     const runningRecord = await repositories.agentCsvExtractionRunRecordRepository.save(

@@ -88,7 +88,12 @@ describe("Desk CSV extractions - getOne", () => {
 
   it("returns the run", async () => {
     const context = await createContext()
-    const run = await createCsvExtractionRun({ repositories, context, status: "pending" })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "pending",
+      type: "live",
+    })
     agentCsvExtractionRunId = run.id
 
     const response = await subject()
@@ -108,7 +113,12 @@ describe("Desk CSV extractions - getOne", () => {
 
   it("returns an ended run with its summary and its export", async () => {
     const context = await createContext()
-    const run = await createCsvExtractionRun({ repositories, context, status: "completed" })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "completed",
+      type: "live",
+    })
     const summary = { total: 3, processed: 3, errors: 1, running: 0 }
     await repositories.agentCsvExtractionRunRepository.update(run.id, { summary })
     const exportDocument = await attachCsvExtractionRunExport({ repositories, context, run })
@@ -134,7 +144,12 @@ describe("Desk CSV extractions - getOne", () => {
   it("answers 404 for a colleague's run", async () => {
     const context = await createContext()
     const colleague = await repositories.userRepository.save(userFactory.build())
-    const run = await createCsvExtractionRun({ repositories, context, user: colleague })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      type: "live",
+      user: colleague,
+    })
     agentCsvExtractionRunId = run.id
 
     expectResponse(await subject(), 404)

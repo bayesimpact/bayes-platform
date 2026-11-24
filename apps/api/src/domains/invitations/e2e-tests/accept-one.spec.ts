@@ -356,10 +356,10 @@ describe("Invitations - acceptOne", () => {
       expectResponse(messagesResponse, 201)
       expect(messagesResponse.body.data).toEqual([])
 
-      // The tester routes are the only way in: the live routes check a role on the agent.
+      // The tester routes are the only way in: the playground routes check a role on the agent.
       expectResponse(
         await request({
-          route: ConversationAgentSessionsRoutes.live.createOne,
+          route: ConversationAgentSessionsRoutes.playground.createOne,
           pathParams: agentPathParams,
           token: "token",
         }),

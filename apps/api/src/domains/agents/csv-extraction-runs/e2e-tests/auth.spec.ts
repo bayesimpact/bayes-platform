@@ -52,7 +52,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   let agentId: string | null = randomUUID()
   let documentId: string = randomUUID()
   let agentCsvExtractionRunId: string | null = randomUUID()
-  let runType: BaseAgentSessionTypeDto = "live"
+  let runType: BaseAgentSessionTypeDto = "playground"
   let accessToken: string | null = "token"
   let authSubject = `oidc|${randomUUID()}`
 
@@ -83,7 +83,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     agentId = randomUUID()
     documentId = randomUUID()
     agentCsvExtractionRunId = randomUUID()
-    runType = "live"
+    runType = "playground"
     accessToken = "token"
     authSubject = `oidc|${randomUUID()}`
   })
@@ -98,7 +98,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   // the route set of that run's type unless told otherwise.
   const createContextForRole = async (
     role: ProjectRoleKey,
-    type: BaseAgentSessionTypeDto = "live",
+    type: BaseAgentSessionTypeDto = "playground",
   ) => {
     const context = await createCsvExtractionRunContext({ repositories, role, authSubject })
     const run = await createCsvExtractionRun({ repositories, context, status: "running", type })
@@ -191,30 +191,10 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it("allows a project member to create a run on their own upload", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 201)
-    })
-
-    it("forbids a project member on another agent of the project, where they hold no role", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToOtherAgentOfProject(context)
-      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-
     it("allows a project admin on every agent of the project", async () => {
       const context = await createContextForRole("project_admin")
       await switchToOtherAgentOfProject(context)
       expectResponse(await subject(), 201)
-    })
-
-    it.each(
-      CSV_DOCUMENTS_NOT_OWNED_BY_USER,
-    )("answers 404 to a project member who creates a run on a CSV they did not upload (%s)", async (origin) => {
-      const context = await createContextForRole("project_member")
-      await switchToCsvDocumentNotOwnedByUser(origin, context)
-      expectResponse(await subject(), 404)
-      expect(await repositories.agentCsvExtractionRunRepository.count()).toBe(1)
     })
 
     it("allows a project owner to create a playground run on a knowledge-base CSV", async () => {
@@ -274,11 +254,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("allows a project member to execute a run", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 201)
-    })
-
     it("forbids a plain member to execute a playground run", async () => {
       await createContextForRole("project_member", "playground")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -289,20 +264,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 201)
     })
 
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
-    })
-
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("project_owner")
       await switchToOtherAgentOfProject(context)
-      expectResponse(await subject(), 404)
-    })
-
-    it("answers 404 for a colleague's run to a plain member", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
 
@@ -338,11 +302,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("allows a project member to retry a run", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 201)
-    })
-
     it("forbids a plain member to retry a playground run", async () => {
       await createContextForRole("project_member", "playground")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -353,20 +312,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 201)
     })
 
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
-    })
-
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("project_owner")
       await switchToOtherAgentOfProject(context)
-      expectResponse(await subject(), 404)
-    })
-
-    it("answers 404 for a colleague's run to a plain member", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
 
@@ -402,11 +350,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("allows a project member to cancel a run", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 201)
-    })
-
     it("forbids a plain member to cancel a playground run", async () => {
       await createContextForRole("project_member", "playground")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -417,20 +360,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 201)
     })
 
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
-    })
-
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("project_owner")
       await switchToOtherAgentOfProject(context)
-      expectResponse(await subject(), 404)
-    })
-
-    it("answers 404 for a colleague's run to a plain member", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
 
@@ -466,11 +398,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("allows a project member to read a run", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 200)
-    })
-
     it("forbids a plain member to read a playground run", async () => {
       await createContextForRole("project_member", "playground")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -481,20 +408,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 200)
     })
 
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
-    })
-
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("project_owner")
       await switchToOtherAgentOfProject(context)
-      expectResponse(await subject(), 404)
-    })
-
-    it("answers 404 for a colleague's run to a plain member", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
 
@@ -502,12 +418,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       const context = await createContextForRole("project_owner")
       await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
-    })
-
-    it("allows a plain member to read a run created before ownership was tracked", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToRunCreatedBy(null, context)
-      expectResponse(await subject(), 200)
     })
 
     it("doesn't allow an organization admin without a project role to read a run", async () => {
@@ -528,7 +438,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     // The seeded run has an export, so an allowed caller gets a 200 rather than a 404.
     const createContextWithExport = async (
       role: ProjectRoleKey,
-      type: BaseAgentSessionTypeDto = "live",
+      type: BaseAgentSessionTypeDto = "playground",
     ) => {
       const context = await createContextForRole(role, type)
       const run = await repositories.agentCsvExtractionRunRepository.findOneByOrFail({
@@ -555,11 +465,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("allows a project member to download the export of a run", async () => {
-      await createContextWithExport("project_member")
-      expectResponse(await subject(), 200)
-    })
-
     it("forbids a plain member to download the export of a playground run", async () => {
       await createContextWithExport("project_member", "playground")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -568,11 +473,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     it("allows a project admin to download the export of a playground run", async () => {
       await createContextWithExport("project_admin", "playground")
       expectResponse(await subject(), 200)
-    })
-
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextWithExport("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
     })
 
     it("answers 404 for a run of another agent of the project", async () => {
@@ -613,11 +513,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it("allows a project member to list runs", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 200)
-    })
-
     it("forbids a plain member to list playground runs", async () => {
       await createContextForRole("project_member")
       expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -654,8 +549,8 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("allows a project member to list records", async () => {
-      await createContextForRole("project_member")
+    it("allows a project admin to list the records of a playground run", async () => {
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 200)
     })
 
@@ -664,20 +559,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
-    })
-
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("project_owner")
       await switchToOtherAgentOfProject(context)
-      expectResponse(await subject(), 404)
-    })
-
-    it("answers 404 for a colleague's run to a plain member", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
 
@@ -713,11 +597,6 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("allows a project member to delete a run", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 200)
-    })
-
     it("forbids a plain member to delete a playground run", async () => {
       await createContextForRole("project_member", "playground")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -728,20 +607,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 200)
     })
 
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
-    })
-
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("project_owner")
       await switchToOtherAgentOfProject(context)
-      expectResponse(await subject(), 404)
-    })
-
-    it("answers 404 for a colleague's run to a plain member", async () => {
-      const context = await createContextForRole("project_member")
-      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
 
@@ -771,17 +639,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it("allows a project member to read the columns of their own upload", async () => {
-      await createContextForRole("project_member")
+    it("allows a project admin to read the columns of their own upload", async () => {
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 200)
-    })
-
-    it.each(
-      CSV_DOCUMENTS_NOT_OWNED_BY_USER,
-    )("answers 404 to a project member who reads the columns of a CSV they did not upload (%s)", async (origin) => {
-      const context = await createContextForRole("project_member")
-      await switchToCsvDocumentNotOwnedByUser(origin, context)
-      expectResponse(await subject(), 404)
     })
 
     it("answers 404 to a project owner who reads the columns of a CSV of another organization on the playground routes", async () => {

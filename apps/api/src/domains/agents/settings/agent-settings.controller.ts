@@ -22,13 +22,9 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { canReadAgentSettings } from "@/domains/rbac/agent-settings-access"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { PermissionService } from "@/domains/rbac/permission.service"
 import {
-  AGENT_READ_PERMISSION,
   AGENT_SETTINGS_ARCHIVE_PERMISSION,
   AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
   AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
@@ -44,10 +40,7 @@ import { AgentSettingsService } from "./agent-settings.service"
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class AgentSettingsController {
-  constructor(
-    private readonly agentSettingsService: AgentSettingsService,
-    private readonly permissionService: PermissionService,
-  ) {}
+  constructor(private readonly agentSettingsService: AgentSettingsService) {}
 
   // History timeline of all revisions for the agent settings, including drafts and published revisions.
   @Get(AgentSettingsRoutes.getAllWithDraft.path)
@@ -69,34 +62,6 @@ export class AgentSettingsController {
         toAgentSettingsDto({ agent, agentSettings: settings }),
       ),
     }
-  }
-
-  // Output JSON schema of a given revision, used to render the fill form on the session side.
-  @Get(AgentSettingsRoutes.getFillFormOutputJsonSchema.path)
-  @CheckPermission(AGENT_READ_PERMISSION, "agent")
-  async getFillFormOutputJsonSchema(
-    @Req() request: EndpointRequestWithAgent,
-    @Param("revision") revisionParam: string,
-  ): Promise<typeof AgentSettingsRoutes.getFillFormOutputJsonSchema.response> {
-    const revision = parseRevision(revisionParam)
-    const connectScope = getRequiredConnectScope(request)
-    const agentId = request.agent.id
-
-    const agentSettings = await this.agentSettingsService.get({ connectScope, agentId, revision })
-    // A draft is settings still being written: its schema goes to the people who read the
-    // agent's settings only. Anyone else gets the answer of a missing revision.
-    const isHiddenDraft =
-      agentSettings?.isDraft === true &&
-      !(await canReadAgentSettings(this.permissionService, request.user.id, agentId))
-    if (!agentSettings || isHiddenDraft) {
-      throw new NotFoundException(`Revision ${revision} not found for agent with id ${agentId}`)
-    }
-
-    if (!agentSettings.fillFormEnabled) {
-      return { data: undefined }
-    }
-
-    return { data: agentSettings.outputJsonSchema ?? undefined }
   }
 
   @Post(AgentSettingsRoutes.restoreOne.path)

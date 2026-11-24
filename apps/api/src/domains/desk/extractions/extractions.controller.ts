@@ -38,8 +38,8 @@ const DOCUMENT_CONTEXT = [...AGENT_CONTEXT, "document"] as const
 
 /**
  * The live extraction runs of the signed-in person, and the documents they upload for them. A
- * copy of `LiveExtractionAgentSessionsController` and the handlers of
- * `ExtractionAgentSessionsController`, with the run type fixed to `live`.
+ * copy of the handlers of `ExtractionAgentSessionsController`, with the run type fixed to
+ * `live`.
  */
 @Controller()
 export class DeskExtractionsController {

@@ -96,7 +96,7 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
 
   const subject = async () =>
     request({
-      route: AgentCsvExtractionRunsRoutes.live.cancelOne,
+      route: AgentCsvExtractionRunsRoutes.playground.cancelOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
       token: accessToken,
     })

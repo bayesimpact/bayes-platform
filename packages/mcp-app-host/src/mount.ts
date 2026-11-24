@@ -22,6 +22,16 @@ const HOST_CONTEXT = { displayMode: "inline", platform: "web", theme: "light" } 
 /** The context of an app, in the person's language, which MCP Apps take from their host. */
 const hostContextOf = (locale: string): McpUiHostContext => ({ ...HOST_CONTEXT, locale })
 
+/**
+ * A random id for a sandbox. A page served over plain http, or framed by one, has no
+ * `crypto.randomUUID`: the id then comes from `crypto.getRandomValues`, which every page has.
+ */
+function newSandboxId(): string {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID()
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")
+}
+
 export type McpAppMountOptions = {
   /** The app's HTML, as its MCP server wrote it. */
   html: string
@@ -94,7 +104,7 @@ export function mountMcpApp(frame: HTMLIFrameElement, options: McpAppMountOption
   const { html, csp, hostInfo, getToolData, onMessage, onReady, onFailed } = options
   const controller = new AbortController()
   const timers: ReturnType<typeof setTimeout>[] = []
-  const sandboxId = crypto.randomUUID()
+  const sandboxId = newSandboxId()
   let locale = options.locale
   let isInitialized = false
   let hasResentAfterResize = false

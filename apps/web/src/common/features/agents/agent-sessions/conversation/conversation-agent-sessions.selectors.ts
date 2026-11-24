@@ -81,6 +81,3 @@ export const selectCurrentConversationAgentSessionData = createSelector(
     return { status: ADS.Fulfilled, value: agentSession, error: null }
   },
 )
-
-export const selectFillFormOutputJsonSchema = (state: RootState) =>
-  state.conversationAgentSessions.fillFormOutputJsonSchema

@@ -1,14 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { RootState } from "@/common/store"
 import type { Services } from "@/di/services"
-import { isStudioInterface } from "@/studio/routes/helpers"
 import { agentMemoryFactory } from "./agent-memories.factory"
 import { agentMemoriesInitialState, agentMemoriesSlice } from "./agent-memories.slice"
 import { listAgentMemories, resolveAgentMemoryProposals } from "./agent-memories.thunks"
-
-vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
-
-const mockedIsStudioInterface = vi.mocked(isStudioInterface)
 
 const getAll = vi.fn()
 const resolveProposals = vi.fn()
@@ -23,8 +18,7 @@ describe("agent memories thunks", () => {
     vi.clearAllMocks()
   })
 
-  it("lists the playground memory in Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
+  it("lists the playground memory", async () => {
     getAll.mockResolvedValue([])
 
     await listAgentMemories()(vi.fn(), () => state, extra)
@@ -37,24 +31,14 @@ describe("agent memories thunks", () => {
     })
   })
 
-  it("lists the live memory elsewhere (Desk)", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
-    getAll.mockResolvedValue([])
-
-    await listAgentMemories()(vi.fn(), () => state, extra)
-
-    expect(getAll).toHaveBeenCalledWith(expect.objectContaining({ sessionType: "live" }))
-  })
-
   it("sends the user's decisions on proposals", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
     resolveProposals.mockResolvedValue([])
     const decisions = [{ memoryId: "m-1", decision: "save" as const }]
 
     await resolveAgentMemoryProposals({ decisions })(vi.fn(), () => state, extra)
 
     expect(resolveProposals).toHaveBeenCalledWith(
-      expect.objectContaining({ agentId: "agent-1", sessionType: "live" }),
+      expect.objectContaining({ agentId: "agent-1", sessionType: "playground" }),
       decisions,
     )
   })

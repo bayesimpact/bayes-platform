@@ -71,7 +71,12 @@ describe("Desk CSV extractions - getRecords", () => {
 
   const createContext = async ({ recordCount = 0 }: { recordCount?: number } = {}) => {
     const context = await createCsvExtractionRunContext({ repositories, authSubject })
-    const run = await createCsvExtractionRun({ repositories, context, status: "completed" })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "completed",
+      type: "live",
+    })
     const buildRecord = agentCsvExtractionRunRecordFactory.transient({
       organization: context.organization,
       project: context.project,

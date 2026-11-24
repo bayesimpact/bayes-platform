@@ -31,7 +31,7 @@ export function McpAppPlaceholder({ className }: { className?: string }) {
       style={{ minHeight: INITIAL_IFRAME_HEIGHT_PX }}
     >
       <DotGridLoader />
-      <span className="animate-pulse">{t("message.loadingCard")}</span>
+      <span className="embed-shimmer">{t("message.loadingCard")}</span>
     </div>
   )
 }

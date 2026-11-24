@@ -16,7 +16,8 @@ export function Chat({
       data-slot="chat"
       className={cn(
         "relative flex h-full flex-col overflow-hidden bg-white",
-        displayMode === "modal" && "rounded-2xl",
+        // The launcher clips the window to its own corners, and on a phone it fills the screen.
+        displayMode === "modal" && "rounded-2xl pointer-coarse:rounded-none",
         className,
       )}
       style={

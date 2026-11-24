@@ -100,16 +100,41 @@ function EmbedChatInner({
   const scrollToEndInstant = useScrollToEnd(chatEndRef, "instant")
   const scrollToEndSmooth = useScrollToEnd(chatEndRef, "smooth")
 
-  // Scroll whenever the message list changes (new user message, streaming chunk,
-  // or session restore). Use smooth during streaming, instant otherwise.
-  // requestAnimationFrame inside useScrollToEnd ensures the DOM is painted first.
+  // Follow the conversation down as it grows: a new message, a streaming chunk, cards that load
+  // after the text. Content that grows by itself (a card's height, an image) sends no new
+  // messages, so a ResizeObserver watches the thread. A visitor who scrolled up to read is left
+  // where they are until they come back near the end.
+  const isFollowingRef = useRef(true)
   useEffect(() => {
-    if (isStreaming) {
-      scrollToEndSmooth()
-    } else {
-      scrollToEndInstant()
+    const end = chatEndRef.current
+    const thread = end?.parentElement
+    if (!thread) return
+    const onScroll = () => {
+      isFollowingRef.current = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80
     }
-  }, [isStreaming, scrollToEndInstant, scrollToEndSmooth])
+    thread.addEventListener("scroll", onScroll, { passive: true })
+    // Scroll the thread itself: scrollIntoView would also scroll the host page around the chat.
+    const observer = new ResizeObserver(() => {
+      if (isFollowingRef.current) thread.scrollTop = thread.scrollHeight
+    })
+    for (const child of Array.from(thread.children)) observer.observe(child)
+    const mutations = new MutationObserver(() => {
+      observer.disconnect()
+      for (const child of Array.from(thread.children)) observer.observe(child)
+    })
+    mutations.observe(thread, { childList: true })
+    return () => {
+      thread.removeEventListener("scroll", onScroll)
+      observer.disconnect()
+      mutations.disconnect()
+    }
+  }, [])
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs on each change to the thread
+  useEffect(() => {
+    if (!isFollowingRef.current) return
+    if (isStreaming) scrollToEndSmooth()
+    else scrollToEndInstant()
+  }, [messages, isStreaming, scrollToEndInstant, scrollToEndSmooth])
 
   const followUpIndex = followUpReplyIndex(messages)
 
@@ -121,11 +146,25 @@ function EmbedChatInner({
     ? () => (hasVisitorWritten ? setIsConfirmingNewConversation(true) : onNewConversation())
     : undefined
 
+  // The visitor can write while a reply is coming. What they send then waits, shown greyed in
+  // the thread, and goes out as one message once the reply is over.
+  const [queuedMessage, setQueuedMessage] = useState<string | null>(null)
   const handleSendMessage = (content: string) => {
     const trimmed = content.trim()
-    if (!trimmed || isStreaming) return
+    if (!trimmed) return
+    if (isStreaming) {
+      setQueuedMessage((queued) => (queued ? `${queued}\n\n${trimmed}` : trimmed))
+      return
+    }
+    isFollowingRef.current = true
     onSendMessage(trimmed)
   }
+  useEffect(() => {
+    if (isStreaming || !queuedMessage) return
+    setQueuedMessage(null)
+    isFollowingRef.current = true
+    onSendMessage(queuedMessage)
+  }, [isStreaming, queuedMessage, onSendMessage])
 
   return (
     <Chat primaryColor={theme?.primaryColor} displayMode={displayMode}>
@@ -144,6 +183,7 @@ function EmbedChatInner({
           onCancel={() => setIsConfirmingNewConversation(false)}
           onConfirm={() => {
             setIsConfirmingNewConversation(false)
+            setQueuedMessage(null)
             onNewConversation()
           }}
         />
@@ -169,17 +209,24 @@ function EmbedChatInner({
             }
           />
         ))}
+        {queuedMessage && (
+          <div data-slot="chat-queued-message" className="flex w-full flex-col items-end gap-1">
+            <div
+              className="max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-[var(--embed-on-primary)] text-sm opacity-50"
+              style={{ backgroundColor: "var(--embed-primary)" }}
+            >
+              {queuedMessage}
+            </div>
+            <span className="text-gray-500 text-xs">{t("message.queued")}</span>
+          </div>
+        )}
         <div ref={chatEndRef} />
       </ChatContent>
 
-      <ChatFooter focus={!isStreaming} onMessageSubmit={handleSendMessage}>
-        <ChatInput
-          placeholder={placeholder ?? t("input.placeholder")}
-          disabled={isStreaming}
-          className="resize-none"
-        />
+      <ChatFooter onMessageSubmit={handleSendMessage}>
+        <ChatInput placeholder={placeholder ?? t("input.placeholder")} className="resize-none" />
         <ChatActions>
-          <ChatSubmit aria-label={t("input.submitAriaLabel")} disabled={isStreaming} />
+          <ChatSubmit aria-label={t("input.submitAriaLabel")} />
         </ChatActions>
       </ChatFooter>
     </Chat>

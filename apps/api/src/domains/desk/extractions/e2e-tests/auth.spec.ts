@@ -401,6 +401,21 @@ describe("Desk extractions - Auth", () => {
     expect(mockBatchService.enqueueExecuteRun).not.toHaveBeenCalled()
   })
 
+  it("answers 404 when a member executes a knowledge-base document of the project", async () => {
+    // A run reads a file its caller uploaded for a run. The project's own documents sit behind
+    // `document.read`, which a member does not hold, so they are absent here.
+    const { organization, project } = await createContextForRole("project_member")
+    const projectDocument = await repositories.documentRepository.save(
+      documentFactory.transient({ organization, project }).build({ sourceType: "project" }),
+    )
+    documentId = projectDocument.id
+
+    expectResponse(await subjects.executeOne(), 404)
+    expect(await subjects.confirmDocument()).toMatchObject({ status: 404 })
+    expect(mockBatchService.enqueueExecuteRun).not.toHaveBeenCalled()
+    expect(await repositories.extractionAgentSessionRepository.count()).toBe(1)
+  })
+
   // Accepting an invitation to one agent gives project_member on the project and agent_member on
   // that agent. The routes check the agent, so the other agents of the project stay closed.
   describe("a person invited to one agent", () => {

@@ -46,7 +46,8 @@ import { AgentCsvExtractionRunStatusStreamService } from "./agent-csv-extraction
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.service"
 
-type Routes = (typeof AgentCsvExtractionRunsRoutes)[BaseAgentSessionType]
+/** The route sets the subclasses still serve: the live ones are gone, the Desk serves its own. */
+type Routes = (typeof AgentCsvExtractionRunsRoutes)["playground"]
 
 /**
  * Base of the live and playground CSV extraction run controllers. Each subclass serves one run

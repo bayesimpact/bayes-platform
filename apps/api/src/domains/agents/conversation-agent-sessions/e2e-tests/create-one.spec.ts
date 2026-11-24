@@ -136,26 +136,6 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     return messages[0]
   }
 
-  describe("creating a live session", () => {
-    it("should create a live session", async () => {
-      await createContext("project_member")
-
-      const response = await subject("live")
-
-      expectResponse(response, 201)
-      expect(response.body.data.id).toBeDefined()
-      expect(response.body.data.agentId).toBe(agentId)
-      expect(response.body.data.type).toBe("live")
-      expect(response.body.data.createdAt).toBeDefined()
-      expect(response.body.data.updatedAt).toBeDefined()
-
-      const createdSession = await repositories.conversationAgentSessionRepository.findOne({
-        where: { id: response.body.data.id },
-      })
-      expect(createdSession).not.toBeNull()
-      await expectActivityCreated("conversationAgentSession.create")
-    })
-  })
   describe("creating a playground session", () => {
     it("should create a playground session", async () => {
       await createContext("project_owner")
@@ -173,6 +153,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
         where: { id: response.body.data.id },
       })
       expect(createdSession).not.toBeNull()
+      await expectActivityCreated("conversationAgentSession.create")
     })
   })
 
@@ -184,7 +165,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
         greetingMessage: greeting,
       })
 
-      const response = await subject("live")
+      const response = await subject("playground")
 
       expectResponse(response, 201)
       const sessionId = response.body.data.id
@@ -199,7 +180,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await repositories.agentSettingsRepository.update(agentSettingsId, { greetingMessage: null })
 
-      const response = await subject("live")
+      const response = await subject("playground")
 
       expectResponse(response, 201)
       const messages = await repositories.agentMessageRepository.find({
@@ -238,29 +219,6 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       expect(greeting?.agentSettingsId).toBe(agentSettingsId)
     })
 
-    it("greets a live session with the published version even when a draft exists", async () => {
-      await createContext("project_member")
-      await seedRevision({ revision: 2, greetingMessage: "Draft greeting", isDraft: true })
-
-      const response = await subject("live")
-
-      expectResponse(response, 201)
-      const greeting = await findGreeting(response.body.data.id)
-      expect(greeting?.content).toBe("Published greeting")
-    })
-
-    it("rejects a version on a live session", async () => {
-      await createContext("project_member")
-
-      const response = await subject("live", 1)
-
-      expectResponse(
-        response,
-        403,
-        "Choosing a settings version is only available in the playground",
-      )
-    })
-
     it("rejects an unknown version", async () => {
       await createContext("project_owner")
 
@@ -293,7 +251,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await declareVariables()
 
-      const response = await subject("live")
+      const response = await subject("playground")
 
       expectResponse(response, 400, "Missing prompt variables: topic, audience")
       expect(response.body).toMatchObject({
@@ -311,7 +269,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await declareVariables({ topic: "the product tour" })
 
-      const response = await subject("live", undefined, { audience: "support agents" })
+      const response = await subject("playground", undefined, { audience: "support agents" })
 
       expectResponse(response, 201)
       const createdSession = await repositories.conversationAgentSessionRepository.findOne({
@@ -327,7 +285,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await declareVariables({ topic: "the product tour" })
 
-      const response = await subject("live", undefined, {
+      const response = await subject("playground", undefined, {
         topic: "the refund policy",
         audience: "support agents",
       })
@@ -346,7 +304,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await declareVariables()
 
-      const response = await subject("live", undefined, {
+      const response = await subject("playground", undefined, {
         topic: "the new pricing page",
         audience: "support agents",
       })
@@ -365,7 +323,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await declareVariables()
 
-      const response = await subject("live", undefined, {
+      const response = await subject("playground", undefined, {
         topic: "   ",
         audience: "support agents",
       })
@@ -381,7 +339,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await declareVariables({ topic: "the product tour" })
 
-      const response = await subject("live", undefined, {
+      const response = await subject("playground", undefined, {
         topic: "   ",
         audience: "support agents",
       })
@@ -400,7 +358,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       await createContext("project_owner")
       await declareVariables()
 
-      const response = await subject("live", undefined, {
+      const response = await subject("playground", undefined, {
         topic: "the new pricing page",
         audience: "support agents",
         extra: "dropped",

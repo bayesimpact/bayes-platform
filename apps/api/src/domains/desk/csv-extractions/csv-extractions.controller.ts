@@ -45,9 +45,9 @@ const RUN_CONTEXT = [...AGENT_CONTEXT, "agentCsvExtractionRun"] as const
 type RunRequest = EndpointRequestWithAgent & EndpointRequestWithAgentCsvExtractionRun
 
 /**
- * The live CSV extraction runs of the signed-in person. A copy of
- * `LiveAgentCsvExtractionRunsController` and the handlers of `AgentCsvExtractionRunsController`,
- * with the run type fixed to `live`. A live run runs on the settings in production.
+ * The live CSV extraction runs of the signed-in person. A copy of the handlers of
+ * `AgentCsvExtractionRunsController`, with the run type fixed to `live`. A live run runs on the
+ * settings in production.
  */
 @Controller()
 export class DeskCsvExtractionsController {

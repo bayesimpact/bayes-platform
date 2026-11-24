@@ -74,7 +74,12 @@ describe("Desk CSV extractions - deleteOne", () => {
 
   const createContext = async () => {
     const context = await createCsvExtractionRunContext({ repositories, authSubject })
-    const run = await createCsvExtractionRun({ repositories, context, status: "completed" })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "completed",
+      type: "live",
+    })
     await repositories.agentCsvExtractionRunRecordRepository.save(
       agentCsvExtractionRunRecordFactory
         .transient({

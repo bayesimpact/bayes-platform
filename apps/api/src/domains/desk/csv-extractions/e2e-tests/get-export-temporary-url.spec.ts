@@ -70,7 +70,12 @@ describe("Desk CSV extractions - getExportTemporaryUrl", () => {
 
   const createContext = async ({ withExport = true }: { withExport?: boolean } = {}) => {
     const context = await createCsvExtractionRunContext({ repositories, authSubject })
-    const run = await createCsvExtractionRun({ repositories, context, status: "completed" })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "completed",
+      type: "live",
+    })
     if (withExport) await attachCsvExtractionRunExport({ repositories, context, run })
     organizationId = context.organization.id
     projectId = context.project.id

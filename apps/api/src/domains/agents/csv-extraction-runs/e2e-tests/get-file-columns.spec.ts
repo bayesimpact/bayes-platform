@@ -75,7 +75,7 @@ describe("AgentCsvExtractionRuns - getFileColumns", () => {
 
   const subject = async () =>
     request({
-      route: AgentCsvExtractionRunsRoutes.live.getFileColumns,
+      route: AgentCsvExtractionRunsRoutes.playground.getFileColumns,
       pathParams: removeNullish({ organizationId, projectId, agentId, documentId }),
       token: accessToken,
     })

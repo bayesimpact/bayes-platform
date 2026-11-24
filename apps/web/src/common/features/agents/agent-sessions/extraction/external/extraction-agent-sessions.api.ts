@@ -19,45 +19,45 @@ import type { IExtractionAgentSessionsSpi } from "../extraction-agent-sessions.s
 import { streamExtractionAgentSessionStatus } from "./extraction-agent-sessions-streaming"
 
 const api: IExtractionAgentSessionsSpi = {
-  getAll: async ({ type, ...params }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof ExtractionAgentSessionsRoutes.live.getAll.response>(
-      ExtractionAgentSessionsRoutes[type].getAll.getPath(params),
-    )
-    return response.data.data.map(fromExtractionAgentSessionSummaryDto)
-  },
-  getOne: async ({ type, ...params }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof ExtractionAgentSessionsRoutes.live.getOne.response>(
-      ExtractionAgentSessionsRoutes[type].getOne.getPath(params),
-    )
-    return fromExtractionAgentSessionDto(response.data.data)
-  },
-  executeOne: async ({ documentId, type, agentSettingsRevision, ...params }) => {
+  getAll: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
-      typeof ExtractionAgentSessionsRoutes.live.executeOne.response
-    >(ExtractionAgentSessionsRoutes[type].executeOne.getPath(params), {
+      typeof ExtractionAgentSessionsRoutes.playground.getAll.response
+    >(ExtractionAgentSessionsRoutes.playground.getAll.getPath(params))
+    return response.data.data.map(fromExtractionAgentSessionSummaryDto)
+  },
+  getOne: async (params) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.playground.getOne.response
+    >(ExtractionAgentSessionsRoutes.playground.getOne.getPath(params))
+    return fromExtractionAgentSessionDto(response.data.data)
+  },
+  executeOne: async ({ documentId, agentSettingsRevision, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.playground.executeOne.response
+    >(ExtractionAgentSessionsRoutes.playground.executeOne.getPath(params), {
       payload: { documentId, agentSettingsRevision },
-    } satisfies typeof ExtractionAgentSessionsRoutes.live.executeOne.request)
+    } satisfies typeof ExtractionAgentSessionsRoutes.playground.executeOne.request)
     return fromExtractionAgentSessionResultDto(response.data.data)
   },
-  deleteOne: async ({ type, ...params }) => {
+  deleteOne: async (params) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof ExtractionAgentSessionsRoutes.live.deleteOne.response>(
-      ExtractionAgentSessionsRoutes[type].deleteOne.getPath(params),
-    )
+    const response = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.playground.deleteOne.response
+    >(ExtractionAgentSessionsRoutes.playground.deleteOne.getPath(params))
     return response.data.data
   },
   streamSessionStatus: async (params) => {
     await streamExtractionAgentSessionStatus(params)
   },
-  uploadDocument: async ({ file, type, ...params }) => {
+  uploadDocument: async ({ file, ...params }) => {
     const axios = getAxiosInstance()
 
     const presignResponse = await axios.post<
-      typeof ExtractionAgentSessionsRoutes.live.presignDocument.response
-    >(ExtractionAgentSessionsRoutes[type].presignDocument.getPath(params), {
+      typeof ExtractionAgentSessionsRoutes.playground.presignDocument.response
+    >(ExtractionAgentSessionsRoutes.playground.presignDocument.getPath(params), {
       payload: {
         file: {
           fileName: file.name,
@@ -65,30 +65,30 @@ const api: IExtractionAgentSessionsSpi = {
           size: file.size,
         },
       },
-    } satisfies typeof ExtractionAgentSessionsRoutes.live.presignDocument.request)
+    } satisfies typeof ExtractionAgentSessionsRoutes.playground.presignDocument.request)
     const presigned = presignResponse.data.data
 
     await putFileToSignedUrl({ uploadUrl: presigned.uploadUrl, file })
 
     const confirmResponse = await axios.post<
-      typeof ExtractionAgentSessionsRoutes.live.confirmDocument.response
-    >(ExtractionAgentSessionsRoutes[type].confirmDocument.getPath(params), {
+      typeof ExtractionAgentSessionsRoutes.playground.confirmDocument.response
+    >(ExtractionAgentSessionsRoutes.playground.confirmDocument.getPath(params), {
       payload: { documentId: presigned.documentId },
-    } satisfies typeof ExtractionAgentSessionsRoutes.live.confirmDocument.request)
+    } satisfies typeof ExtractionAgentSessionsRoutes.playground.confirmDocument.request)
     return fromDocumentDto(confirmResponse.data.data)
   },
-  listMyDocuments: async ({ type, ...params }) => {
+  listMyDocuments: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
-      typeof ExtractionAgentSessionsRoutes.live.listMyDocuments.response
-    >(ExtractionAgentSessionsRoutes[type].listMyDocuments.getPath(params))
+      typeof ExtractionAgentSessionsRoutes.playground.listMyDocuments.response
+    >(ExtractionAgentSessionsRoutes.playground.listMyDocuments.getPath(params))
     return response.data.data.map(fromDocumentDto)
   },
-  deleteMyDocument: async ({ type, ...params }) => {
+  deleteMyDocument: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
-      typeof ExtractionAgentSessionsRoutes.live.deleteMyDocument.response
-    >(ExtractionAgentSessionsRoutes[type].deleteMyDocument.getPath(params))
+      typeof ExtractionAgentSessionsRoutes.playground.deleteMyDocument.response
+    >(ExtractionAgentSessionsRoutes.playground.deleteMyDocument.getPath(params))
     return response.data.data
   },
 }

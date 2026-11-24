@@ -2,15 +2,15 @@ import * as React from "react"
 import { ChatFooterContext } from "../context"
 import { cn } from "../lib/cn"
 
+const isTouchScreen = () => window.matchMedia("(pointer: coarse)").matches
+
 export function ChatFooter({
   onMessageSubmit,
-  focus,
   className,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   onMessageSubmit: (value: string) => void
-  focus: boolean
 }) {
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
   const [inputValue, setInputValue] = React.useState("")
@@ -30,16 +30,21 @@ export function ChatFooter({
     }
   }, [])
 
+  // Ready to type when the chat appears, with a mouse and keyboard. Not on a touch screen: focus
+  // there opens the on-screen keyboard over the page, even while the chat is closed.
   React.useEffect(() => {
-    if (focus) inputRef.current?.focus()
-  }, [focus])
+    if (isTouchScreen()) return
+    inputRef.current?.focus({ preventScroll: true })
+  }, [])
 
   const handleSubmit = React.useCallback(
     (value: string) => {
       if (!value.trim()) return
       onMessageSubmit(value)
       setInputValue("")
-      inputRef.current?.focus()
+      // Back to the message box with a mouse and keyboard. A touch screen keeps what it had: the
+      // keyboard stays open if it was, and sending with it folded away does not bring it back.
+      if (!isTouchScreen()) inputRef.current?.focus({ preventScroll: true })
     },
     [onMessageSubmit],
   )
@@ -61,7 +66,11 @@ export function ChatFooter({
             isFocused ? "border-[var(--embed-accent)]" : "border-gray-200",
             className,
           )}
-          onClick={() => inputRef.current?.focus()}
+          onClick={(event) => {
+            // The frame around the message box focuses it, not the buttons it holds.
+            if ((event.target as HTMLElement).closest("button")) return
+            inputRef.current?.focus({ preventScroll: true })
+          }}
           {...props}
         >
           {children}

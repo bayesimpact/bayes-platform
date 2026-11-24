@@ -9,6 +9,7 @@ import {
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import { buildMockConversationAgentSessionsService } from "@/stories/conversation-agent-sessions/mock-service"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -175,7 +176,13 @@ export const Default: Story = {
           : []
 
         return {
-          services: { testCases: buildMockTestCasesService() },
+          services: {
+            testCases: buildMockTestCasesService(),
+            conversationAgentSessions: buildMockConversationAgentSessionsService({
+              sessions: [session],
+              subSessions,
+            }),
+          },
           state: mergeSeeds(
             baseSeeds,
             seed.studio.conversationDatasets(datasets),

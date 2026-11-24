@@ -612,7 +612,6 @@ stays the target, and these parts wait for later changes:
 * the check of stream events on the server, and the typed `error` event;
 * the source document read through the caller's own run, and feedback through the caller's own
   conversation;
-* the removal of the routes that only the Desk called;
 * a Desk route for the file of a library resource, which the Desk still links outside `desk/`.
 
 * The Desk is the first app with endpoints of its own, and the next apps follow the same pattern: a
@@ -703,8 +702,20 @@ stays the target, and these parts wait for later changes:
   with and without a membership on the agent, campaign testers and reviewers, and organization
   roles with no project role. The default factories give the member an agent membership, so the
   cases without one are built explicitly.
-* Existing routes stay. Removing the `live` routes that only the old Desk called is a separate
-  decision, after the cutover.
+* Existing routes stay, except the `live` ones. **Done (2026-11-23, after the first cut.)** Once
+  the Desk called its own endpoints, nothing called the `live` session, message, stream, extraction
+  and CSV routes: their five controllers and their route sets are gone, with their e2e cases moved
+  onto the playground or, where the Desk's own specs now cover them, deleted. `live` stays a
+  session type in the database, which the Desk writes. The one shared route of the set,
+  `streamSessionStatus`, serves the playground alone now, since the Desk polls. `apps/web` then
+  dropped the shape of the duality too: no session call carries a type, `buildType()` is gone, and
+  the SPI of each session feature no longer declares the parameter. The session record still has
+  its `type`, which the review campaign screens read, and the playground routes are now named in
+  one place, the `external/*.api.ts` of each feature. One more route went with that sweep:
+  `AgentSettingsRoutes.getFillFormOutputJsonSchema`, which the row of `GET
+  {agent}/conversations/:agentSessionId` below records as replaced. Only a dead `isStudioInterface()`
+  branch of the conversation middleware of `apps/web` still called it, and that branch, the state it
+  filled and its selector are gone too.
 
 ### 2.14 Serving and environments
 
@@ -866,8 +877,9 @@ part of it invalidates.
   status stream not filtered by owner, CSV columns and first rows read without an owner check, an
   attachment URL found anywhere in the project, and a document run whose source file opens through
   Studio's document URL, which answers 403 to project members.
-* The 42 endpoints of the first cut and their e2e specs are new code, and the API carries a second
-  family of routes for the same features until the `live` routes are retired.
+* The 42 endpoints of the first cut and their e2e specs are new code. The API carried a second
+  family of routes for the same features until the `live` routes were retired on 2026-11-23; the
+  Desk handlers are still copies of the abstract controllers that serve the playground.
 * The repo holds two frontend conventions, two translation libraries and two primitive libraries
   until the last app leaves `apps/web`: ADR 0011, i18next and Radix there, this ADR, Lingui and Base
   UI on the new stack. The skills scoped to

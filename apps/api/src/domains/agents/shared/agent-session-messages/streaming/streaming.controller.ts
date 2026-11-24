@@ -141,8 +141,9 @@ export abstract class StreamingController {
   }
 }
 
-type StreamPayload =
-  (typeof AgentSessionMessagesRoutes)[ConversationAgentSessionType]["stream"]["request"]["payload"]
+type StreamPayload = (typeof AgentSessionMessagesRoutes)[
+  | "playground"
+  | "review_campaign_tester"]["stream"]["request"]["payload"]
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)

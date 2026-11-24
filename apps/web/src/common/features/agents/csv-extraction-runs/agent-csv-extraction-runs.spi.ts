@@ -1,7 +1,4 @@
-import type {
-  AgentCsvExtractionRunColumnSchemaDto,
-  BaseAgentSessionTypeDto,
-} from "@caseai-connect/api-contracts"
+import type { AgentCsvExtractionRunColumnSchemaDto } from "@caseai-connect/api-contracts"
 import type {
   AgentCsvExtractionRun,
   AgentCsvExtractionRunStatusChangedEvent,
@@ -12,7 +9,6 @@ type BaseParams = {
   organizationId: string
   projectId: string
   agentId: string
-  type: BaseAgentSessionTypeDto
 }
 
 export interface IAgentCsvExtractionRunsSpi {

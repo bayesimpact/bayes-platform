@@ -14,13 +14,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import {
-  createOrganizationWithAgent,
-  createOrganizationWithAgentSession,
-} from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import {
@@ -107,7 +103,7 @@ describe("ExtractionAgentSessions - Auth", () => {
   // owned by the caller so the getOne and delete routes have a resolvable target.
   const createContextForRole = async (
     role: ProjectRoleKey,
-    type: BaseAgentSessionTypeDto = "live",
+    type: BaseAgentSessionTypeDto = "playground",
   ) => {
     const { organization, project, agent, agentSettings, document, agentSession, user } =
       await createOrganizationWithAgentSession({
@@ -170,39 +166,39 @@ describe("ExtractionAgentSessions - Auth", () => {
   const describeContextChecks = (
     subject: (type: BaseAgentSessionTypeDto) => ReturnType<Requester>,
   ) => {
-    describe.each([["live"], ["playground"]] as const)("on the %s routes", (type) => {
+    describe("on the playground routes", () => {
       it("requires an authentication token", async () => {
         accessToken = null
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+        expectResponse(await subject("playground"), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
       })
 
       it("requires a valid organization ID", async () => {
-        await createContextForRole("project_owner", type)
+        await createContextForRole("project_owner")
         organizationId = null
-        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+        expectResponse(await subject("playground"), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
       })
 
       it("requires a valid agent ID", async () => {
-        await createContextForRole("project_owner", type)
+        await createContextForRole("project_owner")
         agentId = randomUUID()
-        expectResponse(await subject(type), 404)
+        expectResponse(await subject("playground"), 404)
       })
 
       it("requires the user to be a member of the organization", async () => {
-        await createContextForRole("project_owner", type)
+        await createContextForRole("project_owner")
         authSubject = mockForeignAuthSubject()
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+        expectResponse(await subject("playground"), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
 
       it("forbids an organization admin who holds no project role", async () => {
-        const context = await createContextForRole("project_owner", type)
+        const context = await createContextForRole("project_owner")
         await switchToOrganizationAdminWithoutProjectRole(context)
-        expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+        expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       })
     })
   }
 
-  // Live routes are open to every project role, playground routes to owners and admins only.
+  // The playground routes are open to project owners and admins only.
   // `allowedStatus` is what the handler answers once the caller is let through.
   const describeRoleChecks = (
     subject: (type: BaseAgentSessionTypeDto) => ReturnType<Requester>,
@@ -211,28 +207,19 @@ describe("ExtractionAgentSessions - Auth", () => {
     it.each([
       ["project_owner"],
       ["project_admin"],
-      ["project_member"],
-    ] as const)("allows a project %s on the live routes", async (role) => {
-      await createContextForRole(role, "live")
-      expectResponse(await subject("live"), allowedStatus)
-    })
-
-    it.each([
-      ["project_owner"],
-      ["project_admin"],
     ] as const)("allows a project %s on the playground routes", async (role) => {
-      await createContextForRole(role, "playground")
+      await createContextForRole(role)
       expectResponse(await subject("playground"), allowedStatus)
     })
 
     it("forbids a plain member on the playground routes", async () => {
-      await createContextForRole("project_member", "playground")
+      await createContextForRole("project_member")
       expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   }
 
   describe("executeOne", () => {
-    // A live run reads only a file its caller uploaded for a run, so the seeded document is made
+    // A run reads only a file its caller uploaded for a run, so the seeded document is made
     // the seeded user's: only the permission check then stands between a caller and the route.
     const subject = async (type: BaseAgentSessionTypeDto) => {
       await repositories.documentRepository.update(
@@ -274,11 +261,6 @@ describe("ExtractionAgentSessions - Auth", () => {
     describeContextChecks(subject)
     describeRoleChecks(subject)
 
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
-    })
-
     it("answers 404 for a live run on the playground routes", async () => {
       await createContextForRole("project_owner", "live")
       expectResponse(await subject("playground"), 404)
@@ -299,12 +281,7 @@ describe("ExtractionAgentSessions - Auth", () => {
     it("answers 404 for an unknown run", async () => {
       await createContextForRole("project_owner")
       agentSessionId = randomUUID()
-      expectResponse(await subject("live"), 404)
-    })
-
-    it("answers 404 for a playground run on the live routes", async () => {
-      await createContextForRole("project_owner", "playground")
-      expectResponse(await subject("live"), 404)
+      expectResponse(await subject("playground"), 404)
     })
 
     it("answers 404 for a live run on the playground routes", async () => {
@@ -369,11 +346,12 @@ describe("ExtractionAgentSessions - Auth", () => {
     it("answers 404 for an unknown document", async () => {
       await createContextForRole("project_owner")
       documentId = randomUUID()
-      expectResponse(await subject("live"), 404)
+      expectResponse(await subject("playground"), 404)
     })
   })
 
-  // An allowed caller would hold the stream open, so only the refusals are checked here.
+  // The stream carries the caller's playground runs. An allowed caller would hold it open, so
+  // only the refusals are checked here.
   describe("streamSessionStatus", () => {
     const subject = async () =>
       request({
@@ -388,7 +366,7 @@ describe("ExtractionAgentSessions - Auth", () => {
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_member")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
@@ -399,50 +377,8 @@ describe("ExtractionAgentSessions - Auth", () => {
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
-    it("forbids a person invited to another agent of the project", async () => {
-      const { otherAgent } = await createInvitedAgentMemberContext()
-      agentId = otherAgent.id
-      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-  })
-
-  // Accepting an invitation on one agent gives project_member on the project and agent_member on
-  // that agent. The live routes check the agent, so the other agents of the project stay closed.
-  const createInvitedAgentMemberContext = async () => {
-    const { organization, project, agent, user } = await createOrganizationWithAgent(repositories, {
-      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-      organizationMembership: { roleKeys: ["org_member"] },
-      projectMembership: { roleKeys: ["project_member"] },
-      agentMembership: { roleKeys: ["agent_member"] },
-      agent: { type: "extraction" },
-    })
-    const otherAgent = await repositories.agentRepository.save(
-      agentFactory.transient({ organization, project }).build({ type: "extraction" }),
-    )
-    authSubject = user.authSubject!
-    organizationId = organization.id
-    projectId = project.id
-    accessToken = "token"
-    return { agent, otherAgent }
-  }
-
-  describe("a person invited to one agent", () => {
-    const subject = () =>
-      request({
-        route: ExtractionAgentSessionsRoutes.live.getAll,
-        pathParams: removeNullish({ organizationId, projectId, agentId }),
-        token: accessToken ?? undefined,
-      })
-
-    it("can list the runs of their agent", async () => {
-      const { agent } = await createInvitedAgentMemberContext()
-      agentId = agent.id
-      expectResponse(await subject(), 201)
-    })
-
-    it("cannot list the runs of another agent of the project", async () => {
-      const { otherAgent } = await createInvitedAgentMemberContext()
-      agentId = otherAgent.id
+    it("forbids a plain member, who holds no playground key", async () => {
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
