@@ -5,8 +5,6 @@ import { agentMemoryFactory } from "./agent-memories.factory"
 import { agentMemoriesInitialState, agentMemoriesSlice } from "./agent-memories.slice"
 import { listAgentMemories, resolveAgentMemoryProposals } from "./agent-memories.thunks"
 
-vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
-
 const getAll = vi.fn()
 const resolveProposals = vi.fn()
 const extra = { services: { agentMemories: { getAll, resolveProposals } } as unknown as Services }

@@ -1,7 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
-import { buildType } from "../shared/base-agent-session/base-agent-sessions.thunks"
 import type {
   ConversationAgentSession,
   ConversationSubSession,
@@ -20,7 +19,6 @@ const getAll = createAsyncThunk<ConversationAgentSession[], { agentId: string },
       organizationId,
       projectId,
       agentId,
-      type: buildType(),
     })
   },
 )
@@ -41,7 +39,6 @@ const listSubSessions = createAsyncThunk<
       projectId,
       agentId,
       agentSessionId,
-      type: buildType(),
     })
     return { agentSessionId, subSessions }
   },

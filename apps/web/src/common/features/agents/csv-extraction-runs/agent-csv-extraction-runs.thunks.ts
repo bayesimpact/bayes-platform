@@ -1,13 +1,8 @@
-import type {
-  AgentCsvExtractionRunColumnSchemaDto,
-  BaseAgentSessionTypeDto,
-} from "@caseai-connect/api-contracts"
+import type { AgentCsvExtractionRunColumnSchemaDto } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { buildType } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkConfig } from "@/common/store/types"
-import { isStudioInterface } from "@/studio/routes/helpers"
 import { patchRunStatus } from "./agent-csv-extraction-runs.actions"
 import type {
   AgentCsvExtractionRun,
@@ -22,10 +17,6 @@ function getAgentIds(state: RootState) {
     projectId: getCurrentId({ state, name: "projectId" }),
     agentId: getCurrentId({ state, name: "agentId" }),
   }
-}
-
-function getBaseParams(state: RootState) {
-  return { ...getAgentIds(state), type: buildType() }
 }
 
 const getRecords = createAsyncThunk<
@@ -47,7 +38,7 @@ const getRecords = createAsyncThunk<
     { extra: { services }, getState },
   ) => {
     return await services.agentCsvExtractionRuns.getRecords({
-      ...getBaseParams(getState()),
+      ...getAgentIds(getState()),
       agentCsvExtractionRunId,
       page,
       limit,
@@ -66,7 +57,7 @@ const getFileColumns = createAsyncThunk<
   "agentCsvExtractionRuns/getFileColumns",
   async ({ documentId }, { extra: { services }, getState }) => {
     return await services.agentCsvExtractionRuns.getFileColumns({
-      ...getBaseParams(getState()),
+      ...getAgentIds(getState()),
       documentId,
     })
   },
@@ -74,16 +65,15 @@ const getFileColumns = createAsyncThunk<
 
 const uploadCsvFile = createAsyncThunk<
   string,
-  { file: File; type: BaseAgentSessionTypeDto; onSuccess: (documentId: string) => void },
+  { file: File; onSuccess: (documentId: string) => void },
   ThunkConfig
 >(
   "agentCsvExtractionRuns/uploadCsvFile",
-  async ({ file, type, onSuccess }, { extra: { services }, getState }) => {
-    // Through the extraction agent, like any run document: a Desk member cannot use the project
-    // documents routes.
+  async ({ file, onSuccess }, { extra: { services }, getState }) => {
+    // Through the extraction agent, like any run document: the run documents are not project
+    // documents.
     const document = await services.extractionAgentSessions.uploadDocument({
       ...getAgentIds(getState()),
-      type,
       file,
     })
     onSuccess(document.id)
@@ -108,12 +98,10 @@ const createAndExecute = createAsyncThunk<
     { extra: { services }, getState },
   ) => {
     const state = getState()
-    const params = getBaseParams(state)
-    // Only Studio may name a version; the API rejects a revision from anyone who cannot manage
-    // the agent. `undefined` while the history is loading, so the API applies its own default.
-    const agentSettingsRevision = isStudioInterface()
-      ? selectPlaygroundRevision({ agentId: params.agentId })(state)
-      : undefined
+    const params = getAgentIds(state)
+    // The version the playground runs. `undefined` while the history is loading, so the API
+    // applies its own default.
+    const agentSettingsRevision = selectPlaygroundRevision({ agentId: params.agentId })(state)
 
     const run = await services.agentCsvExtractionRuns.createOne({
       ...params,
@@ -141,7 +129,7 @@ const retryOne = createAsyncThunk<
   "agentCsvExtractionRuns/retryOne",
   async ({ agentCsvExtractionRunId }, { extra: { services }, getState }) => {
     return await services.agentCsvExtractionRuns.retryOne({
-      ...getBaseParams(getState()),
+      ...getAgentIds(getState()),
       agentCsvExtractionRunId,
     })
   },
@@ -155,7 +143,7 @@ const cancelOne = createAsyncThunk<
   "agentCsvExtractionRuns/cancelOne",
   async ({ agentCsvExtractionRunId }, { extra: { services }, getState }) => {
     return await services.agentCsvExtractionRuns.cancelOne({
-      ...getBaseParams(getState()),
+      ...getAgentIds(getState()),
       agentCsvExtractionRunId,
     })
   },
@@ -165,7 +153,7 @@ const deleteOne = createAsyncThunk<void, { agentCsvExtractionRunId: string }, Th
   "agentCsvExtractionRuns/deleteOne",
   async ({ agentCsvExtractionRunId }, { extra: { services }, getState }) => {
     await services.agentCsvExtractionRuns.deleteOne({
-      ...getBaseParams(getState()),
+      ...getAgentIds(getState()),
       agentCsvExtractionRunId,
     })
   },
@@ -179,7 +167,7 @@ const getExportTemporaryUrl = createAsyncThunk<
   "agentCsvExtractionRuns/getExportTemporaryUrl",
   async ({ agentCsvExtractionRunId }, { extra: { services }, getState }) => {
     return await services.agentCsvExtractionRuns.getExportTemporaryUrl({
-      ...getBaseParams(getState()),
+      ...getAgentIds(getState()),
       agentCsvExtractionRunId,
     })
   },
@@ -188,7 +176,7 @@ const getExportTemporaryUrl = createAsyncThunk<
 const streamRunStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
   "agentCsvExtractionRuns/streamRunStatus",
   async (_, { extra: { services }, getState, dispatch, signal }) => {
-    const params = getBaseParams(getState())
+    const params = getAgentIds(getState())
     await services.agentCsvExtractionRuns.streamRunStatus({
       ...params,
       signal,

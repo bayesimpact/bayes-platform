@@ -19,21 +19,21 @@ import type { IExtractionAgentSessionsSpi } from "../extraction-agent-sessions.s
 import { streamExtractionAgentSessionStatus } from "./extraction-agent-sessions-streaming"
 
 const api: IExtractionAgentSessionsSpi = {
-  getAll: async ({ type, ...params }) => {
+  getAll: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ExtractionAgentSessionsRoutes.playground.getAll.response
     >(ExtractionAgentSessionsRoutes.playground.getAll.getPath(params))
     return response.data.data.map(fromExtractionAgentSessionSummaryDto)
   },
-  getOne: async ({ type, ...params }) => {
+  getOne: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ExtractionAgentSessionsRoutes.playground.getOne.response
     >(ExtractionAgentSessionsRoutes.playground.getOne.getPath(params))
     return fromExtractionAgentSessionDto(response.data.data)
   },
-  executeOne: async ({ documentId, type, agentSettingsRevision, ...params }) => {
+  executeOne: async ({ documentId, agentSettingsRevision, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ExtractionAgentSessionsRoutes.playground.executeOne.response
@@ -42,7 +42,7 @@ const api: IExtractionAgentSessionsSpi = {
     } satisfies typeof ExtractionAgentSessionsRoutes.playground.executeOne.request)
     return fromExtractionAgentSessionResultDto(response.data.data)
   },
-  deleteOne: async ({ type, ...params }) => {
+  deleteOne: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ExtractionAgentSessionsRoutes.playground.deleteOne.response
@@ -52,7 +52,7 @@ const api: IExtractionAgentSessionsSpi = {
   streamSessionStatus: async (params) => {
     await streamExtractionAgentSessionStatus(params)
   },
-  uploadDocument: async ({ file, type, ...params }) => {
+  uploadDocument: async ({ file, ...params }) => {
     const axios = getAxiosInstance()
 
     const presignResponse = await axios.post<
@@ -77,14 +77,14 @@ const api: IExtractionAgentSessionsSpi = {
     } satisfies typeof ExtractionAgentSessionsRoutes.playground.confirmDocument.request)
     return fromDocumentDto(confirmResponse.data.data)
   },
-  listMyDocuments: async ({ type, ...params }) => {
+  listMyDocuments: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ExtractionAgentSessionsRoutes.playground.listMyDocuments.response
     >(ExtractionAgentSessionsRoutes.playground.listMyDocuments.getPath(params))
     return response.data.data.map(fromDocumentDto)
   },
-  deleteMyDocument: async ({ type, ...params }) => {
+  deleteMyDocument: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ExtractionAgentSessionsRoutes.playground.deleteMyDocument.response

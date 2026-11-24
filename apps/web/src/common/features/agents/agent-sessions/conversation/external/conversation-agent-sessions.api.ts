@@ -4,14 +4,14 @@ import type { IConversationAgentSessionsSpi } from "../conversation-agent-sessio
 import { fromDto, fromSubSessionDto } from "./conversation-agent-sessions.mappers"
 
 export default {
-  getAll: async ({ type, ...params }) => {
+  getAll: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ConversationAgentSessionsRoutes.playground.getAll.response
     >(ConversationAgentSessionsRoutes.playground.getAll.getPath(params))
     return response.data.data.map(fromDto)
   },
-  createOne: async ({ type, agentSettingsRevision, variables, ...params }) => {
+  createOne: async ({ agentSettingsRevision, variables, ...params }) => {
     const axios = getAxiosInstance()
     const payload: typeof ConversationAgentSessionsRoutes.playground.createOne.request = {
       payload: { agentSettingsRevision, variables },
@@ -21,14 +21,14 @@ export default {
     >(ConversationAgentSessionsRoutes.playground.createOne.getPath(params), payload)
     return fromDto(response.data.data)
   },
-  deleteOne: async ({ type, ...params }) => {
+  deleteOne: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ConversationAgentSessionsRoutes.playground.deleteOne.response
     >(ConversationAgentSessionsRoutes.playground.deleteOne.getPath(params))
     return response.data.data
   },
-  listSubSessions: async ({ type, ...params }) => {
+  listSubSessions: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof ConversationAgentSessionsRoutes.playground.listSubSessions.response

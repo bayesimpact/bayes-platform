@@ -1,4 +1,4 @@
-import type { BaseAgentSessionTypeDto, SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type { SuccessResponseDTO } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -32,15 +32,12 @@ export const createAgentChatSession = createAsyncThunk<
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId }
-    const type = buildType()
     // The greeting comes from the version the playground runs. `undefined` while the history is
     // loading, which lets the API greet with the draft, its own playground default.
-    const agentSettingsRevision =
-      type === "playground" ? selectPlaygroundRevision({ agentId })(state) : undefined
+    const agentSettingsRevision = selectPlaygroundRevision({ agentId })(state)
     return services.conversationAgentSessions.createOne({
       ...params,
       agentId,
-      type,
       agentSettingsRevision,
       variables,
     })
@@ -69,13 +66,6 @@ export const deleteAgentSession = createAsyncThunk<
       ...params,
       agentId,
       agentSessionId,
-      type: buildType(),
     })
   },
 )
-
-// The live sessions of apps/web are gone: the Desk serves its own under `desk/`, and what is
-// left here is the playground. Dropping the parameter from every session call is a follow-up.
-export function buildType(): BaseAgentSessionTypeDto {
-  return "playground"
-}

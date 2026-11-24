@@ -7,19 +7,12 @@ import { projectFactory } from "@/common/features/projects/projects.factory"
 import type { RootState } from "@/common/store"
 import { ADS, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Services } from "@/di/services"
-import { isStudioInterface } from "@/studio/routes/helpers"
 import { listMessages, sendMessage } from "./agent-session-messages.thunks"
 import { streamChatResponse } from "./external/agent-session-messages-streaming"
 
-// `isStudioInterface` reads `window.location`, which doesn't exist under vitest's default node
-// environment. Mocking it (rather than `buildType` itself) keeps the real `buildType` — the
-// gate `sendMessage` actually depends on — in the test path.
-vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
-
-// The real module imports the OIDC client transitively, which also needs `window`.
+// The real module imports the OIDC client transitively, which needs `window`.
 vi.mock("./external/agent-session-messages-streaming", () => ({ streamChatResponse: vi.fn() }))
 
-const mockedIsStudioInterface = vi.mocked(isStudioInterface)
 const mockedStreamChatResponse = vi.mocked(streamChatResponse)
 
 const organizationId = "org-1"
@@ -80,7 +73,6 @@ beforeEach(() => {
 
 describe("sendMessage", () => {
   it("carries the chosen revision on a playground session", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
     const versions = [agentSettingsFactory.transient({ agent }).build({ revision: 2 })]
     const state = buildState({ history: { [agentId]: versions }, chosenRevision: 2 })
     const dispatch = vi.fn()
@@ -99,7 +91,6 @@ describe("sendMessage", () => {
   })
 
   it("forwards no revision on a live session even when one is chosen", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
     const versions = [agentSettingsFactory.transient({ agent }).build({ revision: 2 })]
     const state = buildState({ history: { [agentId]: versions }, chosenRevision: 2 })
     const dispatch = vi.fn()
@@ -118,7 +109,6 @@ describe("sendMessage", () => {
   })
 
   it("forwards no revision on a playground session whose history has not loaded", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
     const state = buildState()
     const dispatch = vi.fn()
 
@@ -137,7 +127,6 @@ describe("sendMessage", () => {
 
   it("records the sent revision on the optimistic assistant message", async () => {
     // The badge must name the version the request carried, not whatever the picker shows later.
-    mockedIsStudioInterface.mockReturnValue(true)
     const versions = [agentSettingsFactory.transient({ agent }).build({ revision: 2 })]
     const state = buildState({ history: { [agentId]: versions }, chosenRevision: 2 })
     const dispatch = vi.fn()
@@ -156,7 +145,6 @@ describe("sendMessage", () => {
   it("fails the assistant message when the stream ends with no terminal event", async () => {
     // A truncated stream used to leave the bubble streaming for good, which blocked every later
     // send and disabled the version picker until the page was reloaded.
-    mockedIsStudioInterface.mockReturnValue(true)
     const dispatch = vi.fn()
 
     const agentSession = {
@@ -176,7 +164,6 @@ describe("sendMessage", () => {
 
   it("resends with the original attachment instead of uploading again", async () => {
     // Resending an interrupted turn reuses the document the user already attached to it.
-    mockedIsStudioInterface.mockReturnValue(false)
     const dispatch = vi.fn()
 
     const agentSession = {
@@ -201,7 +188,6 @@ describe("sendMessage", () => {
 
   it("fails the turn when the attachment upload is refused", async () => {
     // The upload ran before the stream's error handling, so a refused one used to fail silently.
-    mockedIsStudioInterface.mockReturnValue(false)
     const dispatch = vi.fn()
     const uploadAttachmentDocument = vi
       .fn()
@@ -235,7 +221,6 @@ describe("sendMessage", () => {
   })
 
   it("leaves a completed stream alone", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
     mockedStreamChatResponse.mockImplementation(async ({ handlers }) => {
       handlers.onEnd({ type: "end", messageId: "persisted-1", fullContent: "Hello" })
     })
@@ -262,9 +247,7 @@ describe("listMessages", () => {
     return getAll.mock.calls[0]?.[0]
   }
 
-  it("reads a conversation on the playground routes", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
-
-    expect(await listWith()).toMatchObject({ payload: { type: "playground" } })
+  it("reads the conversation of the session it is given, in the current scope", async () => {
+    expect(await listWith()).toEqual({ organizationId, projectId, agentId, agentSessionId })
   })
 })

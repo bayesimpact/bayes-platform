@@ -7,14 +7,7 @@ import type { RootState } from "@/common/store"
 import { ADS } from "@/common/store/async-data-status"
 import type { Services } from "@/di/services"
 import { documentFactory } from "@/studio/features/documents/documents.factory"
-import { isStudioInterface } from "@/studio/routes/helpers"
 import { extractionAgentSessionsThunks } from "./extraction-agent-sessions.thunks"
-
-// `isStudioInterface` reads `window.location`, which doesn't exist under vitest's default node
-// environment.
-vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
-
-const mockedIsStudioInterface = vi.mocked(isStudioInterface)
 
 const organizationId = "org-1"
 const projectId = "project-1"
@@ -74,8 +67,7 @@ beforeEach(() => {
 })
 
 describe("executeOne", () => {
-  it("carries the chosen revision in Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
+  it("carries the chosen revision", async () => {
     // The draft sits at a different revision than the explicit choice below: if the thunk ignored
     // the choice and fell back to the draft-first default, it would send revision 3, not 1.
     const versions = [
@@ -85,13 +77,10 @@ describe("executeOne", () => {
 
     await run(buildState({ history: { [agentId]: versions }, chosenRevision: 1 }))
 
-    expect(executeOne).toHaveBeenCalledWith(
-      expect.objectContaining({ agentSettingsRevision: 1, type: "playground" }),
-    )
+    expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ agentSettingsRevision: 1 }))
   })
 
   it("defaults to the draft when no version was chosen", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
     const versions = [
       agentSettingsFactory.transient({ agent }).build({ revision: 2, isDraft: true }),
       agentSettingsFactory.transient({ agent }).build({ revision: 1 }),
@@ -102,20 +91,7 @@ describe("executeOne", () => {
     expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ agentSettingsRevision: 2 }))
   })
 
-  it("forwards no revision outside Studio even when one is chosen", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
-    const versions = [agentSettingsFactory.transient({ agent }).build({ revision: 2 })]
-
-    await run(buildState({ history: { [agentId]: versions }, chosenRevision: 2 }))
-
-    expect(executeOne).toHaveBeenCalledWith(
-      expect.objectContaining({ agentSettingsRevision: undefined, type: "live" }),
-    )
-  })
-
   it("forwards no revision while the settings history has not loaded", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
-
     await run(buildState())
 
     expect(executeOne).toHaveBeenCalledWith(
@@ -124,7 +100,6 @@ describe("executeOne", () => {
   })
 
   it("uploads a file through the extraction agent before running it", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
     const file = new File(["content"], "invoice.pdf", { type: "application/pdf" })
 
     await extractionAgentSessionsThunks.executeOne({ agentId, file, onSuccess: vi.fn() })(
@@ -137,17 +112,12 @@ describe("executeOne", () => {
       organizationId,
       projectId,
       agentId,
-      type: "live",
       file,
     })
-    expect(executeOne).toHaveBeenCalledWith(
-      expect.objectContaining({ documentId: document.id, type: "live" }),
-    )
+    expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ documentId: document.id }))
   })
 
   it("runs an already uploaded document without uploading again", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
-
     await run(buildState())
 
     expect(uploadDocument).not.toHaveBeenCalled()
@@ -156,14 +126,11 @@ describe("executeOne", () => {
 })
 
 describe("deleteMyDocuments", () => {
-  it("deletes each document through the extraction agent routes of the run type it is given", async () => {
-    // The project documents route is for owners and admins: a Desk member got a 403 there.
-    // The page URL says Desk while the caller asks for playground: the caller wins.
-    mockedIsStudioInterface.mockReturnValue(false)
-
+  it("deletes each document through the extraction agent routes", async () => {
+    // Not through the project documents route: a run document is not a project document, and
+    // that route is for owners and admins.
     const action = await extractionAgentSessionsThunks.deleteMyDocuments({
       documentIds: ["document-1", "document-2"],
-      type: "playground",
     })(vi.fn(), () => buildState(), extra)
 
     expect(action.meta.requestStatus).toBe("fulfilled")
@@ -172,14 +139,12 @@ describe("deleteMyDocuments", () => {
       organizationId,
       projectId,
       agentId,
-      type: "playground",
       documentId: "document-1",
     })
     expect(deleteMyDocument).toHaveBeenCalledWith({
       organizationId,
       projectId,
       agentId,
-      type: "playground",
       documentId: "document-2",
     })
   })

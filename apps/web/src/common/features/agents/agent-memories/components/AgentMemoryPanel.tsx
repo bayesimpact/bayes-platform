@@ -13,7 +13,6 @@ import { BrainIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
-import { buildType } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectAgentMemoriesData } from "../agent-memories.selectors"
@@ -51,8 +50,7 @@ export function AgentMemoryPanel() {
         <SheetHeader>
           <SheetTitle>{t("agentMemories:panel.title")}</SheetTitle>
           <SheetDescription>
-            {t("agentMemories:panel.description")}
-            {buildType() === "playground" && ` ${t("agentMemories:panel.playgroundDescription")}`}
+            {t("agentMemories:panel.description")} {t("agentMemories:panel.playgroundDescription")}
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-2 px-4">

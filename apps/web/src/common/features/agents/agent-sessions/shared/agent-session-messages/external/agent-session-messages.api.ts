@@ -7,28 +7,28 @@ import type { IAgentSessionMessagesSpi } from "../agent-session-messages.spi"
 import { fromDto } from "./agent-session-messages.mappers"
 
 export default {
-  getAll: async ({ payload, ...params }) => {
+  getAll: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof AgentSessionMessagesRoutes.playground.getAll.response>(
       AgentSessionMessagesRoutes.playground.getAll.getPath(params),
     )
     return response.data.data.map(fromDto)
   },
-  getOne: async ({ payload, ...params }) => {
+  getOne: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof AgentSessionMessagesRoutes.playground.getOne.response>(
       AgentSessionMessagesRoutes.playground.getOne.getPath(params),
     )
     return fromDto(response.data.data)
   },
-  getMcpAppHtml: async ({ payload, ...params }) => {
+  getMcpAppHtml: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof AgentSessionMessagesRoutes.playground.getMcpAppHtml.response
     >(AgentSessionMessagesRoutes.playground.getMcpAppHtml.getPath(params))
     return response.data.data
   },
-  uploadAttachmentDocument: async ({ file, payload, ...params }) => {
+  uploadAttachmentDocument: async ({ file, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof AgentSessionMessagesRoutes.playground.presignAttachmentDocument.response
@@ -52,7 +52,7 @@ export default {
 
     return { attachmentDocumentId: response.data.data.attachmentDocumentId }
   },
-  getAttachmentDocumentTemporaryUrl: async ({ payload, ...params }) => {
+  getAttachmentDocumentTemporaryUrl: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
       typeof AgentSessionMessagesRoutes.playground.getAttachmentDocumentTemporaryUrl.response

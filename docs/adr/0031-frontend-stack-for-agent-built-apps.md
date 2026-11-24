@@ -707,9 +707,11 @@ stays the target, and these parts wait for later changes:
   and CSV routes: their five controllers and their route sets are gone, with their e2e cases moved
   onto the playground or, where the Desk's own specs now cover them, deleted. `live` stays a
   session type in the database, which the Desk writes. The one shared route of the set,
-  `streamSessionStatus`, serves the playground alone now, since the Desk polls. What is left of the
-  duality in `apps/web` is a follow-up: `buildType()` answers `"playground"` and every session call
-  still carries the parameter.
+  `streamSessionStatus`, serves the playground alone now, since the Desk polls. `apps/web` then
+  dropped the shape of the duality too: no session call carries a type, `buildType()` is gone, and
+  the SPI of each session feature no longer declares the parameter. The session record still has
+  its `type`, which the review campaign screens read, and the playground routes are now named in
+  one place, the `external/*.api.ts` of each feature.
 
 ### 2.14 Serving and environments
 

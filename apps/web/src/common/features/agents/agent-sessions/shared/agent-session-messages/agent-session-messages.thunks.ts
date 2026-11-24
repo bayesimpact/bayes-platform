@@ -6,7 +6,6 @@ import type { RootState, ThunkExtraArg } from "@/common/store"
 import { generateId } from "@/common/utils/generate-id"
 import type { ConversationAgentSession } from "../../conversation/conversation-agent-sessions.models"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
-import { buildType } from "../base-agent-session/base-agent-sessions.thunks"
 import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
 import { selectStreaming } from "./agent-session-messages.selectors"
 import { agentSessionMessagesActions } from "./agent-session-messages.slice"
@@ -22,11 +21,7 @@ export const listMessages = createAsyncThunk<AgentSessionMessage[], string, Thun
     const projectId = getCurrentId({ state, name: "projectId" })
     const agentId = getCurrentId({ state, name: "agentId" })
     const params = { organizationId, projectId, agentId }
-    return services.agentSessionMessages.getAll({
-      ...params,
-      agentSessionId,
-      payload: { type: buildType() },
-    })
+    return services.agentSessionMessages.getAll({ ...params, agentSessionId })
   },
 )
 
@@ -39,11 +34,7 @@ export const getMessage = createAsyncThunk<AgentSessionMessage, string, ThunkCon
     const agentId = getCurrentId({ state, name: "agentId" })
     const agentSessionId = getCurrentId({ state, name: "agentSessionId" })
     const params = { organizationId, projectId, agentId, agentSessionId }
-    return services.agentSessionMessages.getOne({
-      ...params,
-      messageId,
-      payload: { type: buildType() },
-    })
+    return services.agentSessionMessages.getOne({ ...params, messageId })
   },
 )
 
@@ -63,7 +54,6 @@ export const listMcpAppHtml = createAsyncThunk<AgentSessionMcpAppHtml[], string,
       projectId,
       agentId,
       agentSessionId,
-      payload: { type: buildType() },
     })
   },
 )
@@ -84,7 +74,6 @@ export const getAttachmentDocumentTemporaryUrl = createAsyncThunk<
     return services.agentSessionMessages.getAttachmentDocumentTemporaryUrl({
       ...params,
       attachmentDocumentId,
-      payload: { type: buildType() },
     })
   },
 )
@@ -146,7 +135,6 @@ export const sendMessage = createAsyncThunk<
             agentId,
             agentSessionId,
             file,
-            payload: { type: buildType() },
           })
         ).attachmentDocumentId
       } catch (error) {
