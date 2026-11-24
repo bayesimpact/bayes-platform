@@ -211,6 +211,38 @@ describe("mountMcpApp", () => {
     expect(bridge.isClosed).toBe(true)
   })
 
+  it("fails once, without throwing, on a page the browser gives no randomUUID and no hash", async () => {
+    // What a page served over plain http, or framed by one, gets from the browser.
+    vi.stubGlobal("crypto", { getRandomValues: crypto.getRandomValues.bind(crypto) })
+    try {
+      const { onReady, onFailed } = mount({
+        sandbox: { template: "https://{label}.usercontent.example", key: "server-1" },
+      })
+
+      await vi.advanceTimersByTimeAsync(10)
+
+      expect(onReady).not.toHaveBeenCalled()
+      expect(onFailed).toHaveBeenCalledTimes(1)
+      expect(String(onFailed.mock.calls[0]?.[0])).toContain("https")
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it("runs an app that needs no origin of its own on such a page", async () => {
+    vi.stubGlobal("crypto", { getRandomValues: crypto.getRandomValues.bind(crypto) })
+    try {
+      const { onReady, onFailed } = mount()
+
+      await vi.advanceTimersByTimeAsync(10)
+
+      expect(onReady).toHaveBeenCalledTimes(1)
+      expect(onFailed).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it("ends itself when it fails, so its host has nothing left to free", async () => {
     appAnswers.value = false
     const { mounted, bridge, onFailed } = mount()
