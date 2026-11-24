@@ -15,6 +15,8 @@ import { EvalAgentsController } from "./agents/agents.controller"
 import { EvalDocumentsController } from "./documents/documents.controller"
 import { EvalConversationDatasetsController } from "./evaluations/conversation/datasets/datasets.controller"
 import { EvalConversationRunsController } from "./evaluations/conversation/runs/runs.controller"
+import { EvalExtractionDatasetsController } from "./evaluations/extraction/datasets/datasets.controller"
+import { EvalExtractionRunsController } from "./evaluations/extraction/runs/runs.controller"
 import { EvalInvitationsController } from "./invitations/invitations.controller"
 import { EvalOrganizationsController } from "./organizations/organizations.controller"
 import { EvalProjectsController } from "./projects/projects.controller"
@@ -46,6 +48,8 @@ import { EvalProjectsController } from "./projects/projects.controller"
     EvalDocumentsController,
     EvalConversationDatasetsController,
     EvalConversationRunsController,
+    EvalExtractionDatasetsController,
+    EvalExtractionRunsController,
   ],
 })
 export class EvalModule {}

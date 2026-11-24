@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { projectParamsSchema } from "../common/params.dto"
-import { columnFiltersSchema } from "../common/query.dto"
+import { columnFiltersSchema, queryNumberSchema } from "../common/query.dto"
 import { datasetNameInputSchema } from "./datasets.dto"
 
 /** The permissions of a project's extraction datasets, which only its evaluators hold. */
@@ -117,8 +117,8 @@ export type ExtractionDatasetRecordOutputDto = z.output<typeof extractionDataset
  * those whose columns hold a text, and sorts them by a column.
  */
 export const extractionDatasetRecordsQuerySchema = z.strictObject({
-  page: z.coerce.number<string>().int().min(0),
-  limit: z.coerce.number<string>().int().min(1).max(100),
+  page: queryNumberSchema(z.number().int().min(0)),
+  limit: queryNumberSchema(z.number().int().min(1).max(100)),
   /** The text each column must hold, by the column's id. */
   columnFilters: columnFiltersSchema.optional(),
   /** The id of the column the records are sorted by: the order of the file without it. */

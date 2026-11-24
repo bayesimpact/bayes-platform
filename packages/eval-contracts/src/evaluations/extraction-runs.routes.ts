@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { LEGACY_PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
+import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { successOutputSchema } from "../review-campaigns/review-campaigns.dto"
 import {
@@ -11,7 +11,7 @@ import {
   extractionRunRecordsQuerySchema,
 } from "./extraction-runs.dto"
 
-const RUNS_PATH = `${LEGACY_PROJECT_PATH}/evaluation-extraction-runs`
+const RUNS_PATH = `${PROJECT_PATH}/evaluation-extraction-runs`
 const RUN_PATH = `${RUNS_PATH}/:evaluationExtractionRunId`
 
 /** The extraction runs of a project, and their records, for who evaluates its agents. */

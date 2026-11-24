@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { LEGACY_PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
+import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { successOutputSchema } from "../review-campaigns/review-campaigns.dto"
 import { datasetNameInputSchema } from "./datasets.dto"
@@ -17,7 +17,7 @@ import {
   extractionDatasetSetupParamsSchema,
 } from "./extraction-datasets.dto"
 
-const DATASETS_PATH = `${LEGACY_PROJECT_PATH}/evaluation-extraction-datasets`
+const DATASETS_PATH = `${PROJECT_PATH}/evaluation-extraction-datasets`
 const DATASET_PATH = `${DATASETS_PATH}/:datasetId`
 const FILE_PATH = `${DATASETS_PATH}/files/:documentId`
 
