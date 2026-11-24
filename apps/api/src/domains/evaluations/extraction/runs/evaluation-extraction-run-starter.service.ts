@@ -21,6 +21,8 @@ import type {
   ExecuteEvaluationExtractionRunJobPayload,
   ProcessEvaluationExtractionRunRecordJobPayload,
 } from "./evaluation-extraction-run.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationExtractionRunProcessorService } from "./evaluation-extraction-run-processor.service"
 import { EvaluationExtractionRunRecord } from "./records/evaluation-extraction-run-record.entity"
 
 const BATCH_SIZE = 500
@@ -51,6 +53,7 @@ export class EvaluationExtractionRunStarterService {
     @InjectQueue(EVALUATION_EXTRACTION_RUN_QUEUE_NAME)
     private readonly queue: Queue<ProcessEvaluationExtractionRunRecordJobPayload>,
     private readonly projectRepository: ProjectRepository,
+    private readonly processorService: EvaluationExtractionRunProcessorService,
   ) {
     this.runConnectRepository = new ConnectRepository(runRepository, "evaluationExtractionRun")
     this.runRecordConnectRepository = new ConnectRepository(
@@ -181,6 +184,15 @@ export class EvaluationExtractionRunStarterService {
     }
     run.status = "running"
     await this.runConnectRepository.saveOne(run)
+
+    // A dataset with no record gives no run record. A finished record job is what ends a run, so
+    // this one would stay "running" for ever: end it now.
+    if (runRecords.length === 0) {
+      await this.processorService.recomputeSummaryAndMaybeComplete({
+        connectScope,
+        evaluationExtractionRunId: run.id,
+      })
+    }
   }
 }
 
