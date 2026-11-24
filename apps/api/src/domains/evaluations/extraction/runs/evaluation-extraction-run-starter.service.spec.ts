@@ -6,15 +6,23 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { ProjectRepository } from "@/domains/projects/project.repository"
+import { LlmModule } from "@/external/llm/llm.module"
 import { evaluationExtractionDatasetFactory } from "../datasets/evaluation-extraction-dataset.factory"
 import type { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
 import { EVALUATION_EXTRACTION_RUN_QUEUE_NAME } from "./evaluation-extraction-run.constants"
 import { evaluationExtractionRunFactory } from "./evaluation-extraction-run.factory"
+import { EvaluationExtractionRunCsvExportService } from "./evaluation-extraction-run-csv-export.service"
+import { EvaluationExtractionRunGraderService } from "./evaluation-extraction-run-grader.service"
+import { EvaluationExtractionRunProcessorService } from "./evaluation-extraction-run-processor.service"
 import { EvaluationExtractionRunStarterService } from "./evaluation-extraction-run-starter.service"
+import { EvaluationExtractionRunStatusNotifierService } from "./evaluation-extraction-run-status-notifier.service"
 
 const mockQueue = { addBulk: jest.fn() }
+const mockStatusNotifier = { notifyRunStatusChanged: jest.fn() }
+const mockCsvExport = { generateAndStoreDocument: jest.fn() }
 
 describe("EvaluationExtractionRunStarterService", () => {
   let service: EvaluationExtractionRunStarterService
@@ -23,8 +31,16 @@ describe("EvaluationExtractionRunStarterService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
+      additionalImports: [LlmModule],
       providers: [
         EvaluationExtractionRunStarterService,
+        // The real processor: it owns the end of a run, which a run on no record reaches at its
+        // start.
+        EvaluationExtractionRunProcessorService,
+        StructuredExtractionAgentRunLlmService,
+        EvaluationExtractionRunGraderService,
+        { provide: EvaluationExtractionRunStatusNotifierService, useValue: mockStatusNotifier },
+        { provide: EvaluationExtractionRunCsvExportService, useValue: mockCsvExport },
         { provide: getQueueToken(EVALUATION_EXTRACTION_RUN_QUEUE_NAME), useValue: mockQueue },
         ProjectRepository,
       ],
@@ -158,6 +174,36 @@ describe("EvaluationExtractionRunStarterService", () => {
       errors: 0,
       running: 1,
     })
+  })
+
+  it("startRun - completes at once the run of a dataset with no record", async () => {
+    const { organizationId, projectId, run } = await seedRunAndDatasetRecords(0)
+
+    await service.startRun({
+      evaluationExtractionRunId: run.id,
+      organizationId,
+      projectId,
+      recordLimit: null,
+    })
+
+    const updatedRun = await repositories.evaluationExtractionRunRepository.findOneByOrFail({
+      id: run.id,
+    })
+    // No record job will ever end this run: it must not stay "running".
+    expect(updatedRun.status).toBe("completed")
+    expect(updatedRun.summary).toEqual({
+      total: 0,
+      perfectMatches: 0,
+      mismatches: 0,
+      errors: 0,
+      running: 0,
+    })
+    expect(mockQueue.addBulk).not.toHaveBeenCalled()
+    // Like any completed run, it gets its export and tells its status to the people who watch it.
+    expect(mockCsvExport.generateAndStoreDocument).toHaveBeenCalledTimes(1)
+    expect(mockStatusNotifier.notifyRunStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ evaluationExtractionRunId: run.id, status: "completed" }),
+    )
   })
 
   it("startRun - should throws when run not found", async () => {

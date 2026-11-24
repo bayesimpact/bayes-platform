@@ -44,6 +44,7 @@ import {
 import { buildPricingRuns, type ConversationRunRecord } from "./conversation-runs.factory"
 import { buildConversationMessage, buildToolCall } from "./conversations.factory"
 import {
+  buildExtractionFile,
   buildSupportDatasets,
   type ExtractionDatasetEntry,
   type ExtractionFileEntry,
@@ -257,6 +258,27 @@ export function buildExtractionWorld(): EvalWorld {
       ...(largeDataset ? [buildLargeRun(project.id, agent.id, largeDataset)] : []),
     ],
   }
+}
+
+/** The name of the file of `buildFileWithoutRowsWorld`. */
+export const FILE_WITHOUT_ROWS_NAME = "messages-template.csv"
+
+/**
+ * The extraction case, with one more file: a template that holds its header line and no data
+ * row. The API reads its columns, and refuses to build a dataset from it.
+ */
+export function buildFileWithoutRowsWorld(): EvalWorld {
+  const world = buildExtractionWorld()
+  const [project] = world.projects
+  if (!project) throw new Error("The extraction world has no project.")
+  world.extractionFiles.unshift(
+    buildExtractionFile(
+      project.id,
+      { fileName: FILE_WITHOUT_ROWS_NAME, size: 34, createdAt: daysAgo(0) },
+      { header: ["message", "title", "category"], rows: [] },
+    ),
+  )
+  return world
 }
 
 /**

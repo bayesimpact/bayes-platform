@@ -3270,6 +3270,10 @@ msgstr "This dataset has no record."
 msgid "This file has no column. Choose another file."
 msgstr "This file has no column. Choose another file."
 
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "This file has no data row. Choose another file."
+msgstr "This file has no data row. Choose another file."
+
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."
 msgstr "This file is empty."

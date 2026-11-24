@@ -7,9 +7,8 @@ import * as extractionEvaluationStories from "./ExtractionEvaluations.stories"
 
 setProjectAnnotations(previewAnnotations)
 
-const { NewDataset, ChooseColumns, RunEvaluation, ...pageStories } = composeStories(
-  extractionEvaluationStories,
-)
+const { NewDataset, ChooseColumns, FileWithoutDataRows, RunEvaluation, ...pageStories } =
+  composeStories(extractionEvaluationStories)
 
 /** Each story of a page, and what it shows once that page loaded: every story is listed. */
 const PAGES = {
@@ -132,6 +131,25 @@ describe("the stories of the extraction evaluations", () => {
     expect(await screen.findByText("8 records")).toBeInTheDocument()
     expect(screen.getByRole("columnheader", { name: /category.*Target/ })).toBeInTheDocument()
     expect(screen.getByRole("columnheader", { name: /source.*Ignore/ })).toBeInTheDocument()
+  })
+
+  it("FileWithoutDataRows says that the file has no data row, and leads back to the files", async () => {
+    await FileWithoutDataRows.load()
+    render(<FileWithoutDataRows />)
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Use the file messages-template.csv" }),
+    )
+
+    // No form to fill in for a file that builds nothing.
+    expect(
+      await screen.findByText("This file has no data row. Choose another file."),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Build the dataset" })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole("button", { name: "Choose another file" }))
+    expect(
+      await screen.findByRole("button", { name: "Use the file support-messages.csv" }),
+    ).toBeInTheDocument()
   })
 
   it("LargeDataset pages, searches and sorts its records through the API", async () => {

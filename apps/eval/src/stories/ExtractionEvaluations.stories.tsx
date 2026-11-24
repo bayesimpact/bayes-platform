@@ -10,7 +10,9 @@ import {
 } from "@/test/eval-urls"
 import {
   buildExtractionWorld,
+  buildFileWithoutRowsWorld,
   buildSeveralProjectsWorld,
+  FILE_WITHOUT_ROWS_NAME,
 } from "@/test/factories/eval-world.factory"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { evaluation } from "@/test/msw/story-api"
@@ -64,6 +66,23 @@ export const ChooseColumns: Story = {
     const canvas = within(canvasElement)
     await userEvent.click(
       await canvas.findByRole("button", { name: "Use the file support-messages.csv" }),
+    )
+  },
+}
+
+/**
+ * The chosen file holds a header line and no data row: the step says so, and leads back to the
+ * files. The API would refuse to build the dataset from it.
+ */
+export const FileWithoutDataRows: Story = {
+  parameters: evaluation({
+    world: buildFileWithoutRowsWorld,
+    url: (world) => extractionDatasetUrlOf(world, "Product feedback"),
+  }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(
+      await canvas.findByRole("button", { name: `Use the file ${FILE_WITHOUT_ROWS_NAME}` }),
     )
   },
 }

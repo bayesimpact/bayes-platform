@@ -46,6 +46,12 @@ export type EvaluationExtractionDatasetFileColumn = {
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 900 // 15 minutes
 
+/**
+ * The config of Papa's stream mode. Its typings leave `chunk` out of that mode, but the stream
+ * mode runs it: the header-only case of the `getFileColumns` spec fails if that ever stops.
+ */
+type StreamParseConfig = Papa.ParseConfig & Pick<Papa.ParseLocalConfig, "chunk">
+
 @Injectable()
 export class EvaluationExtractionDatasetsService {
   private readonly logger = new Logger(EvaluationExtractionDatasetsService.name)
@@ -331,6 +337,7 @@ export class EvaluationExtractionDatasetsService {
     }
 
     const document = await this.getFile({ connectScope, documentId })
+    await this.assertFileHasDataRow(document.storageRelativePath)
 
     Object.assign(dataset, {
       name,
@@ -469,6 +476,20 @@ export class EvaluationExtractionDatasetsService {
 
   // CSV PARSING
 
+  /**
+   * Refuses a file with a header and no data row, before anything of the dataset changes: the
+   * dataset would hold no record, and a run on no record never ends. It reads the first row only.
+   */
+  private async assertFileHasDataRow(storageRelativePath: string): Promise<void> {
+    const columns = await this.parseCsvColumns({
+      storageRelativePath,
+      options: { header: true, preview: 1, skipEmptyLines: true },
+    })
+    if (columns.every((column) => column.values.length === 0)) {
+      throw new UnprocessableEntityException("CSV file has no data row")
+    }
+  }
+
   private parseCsvColumns({
     storageRelativePath,
     options,
@@ -485,15 +506,18 @@ export class EvaluationExtractionDatasetsService {
     return new Promise((resolve, reject) => {
       const previewRows: Record<string, unknown>[] = []
       let fields: string[] | undefined
+      let headerFields: string[] | undefined
       let settled = false
 
       const buildColumns = () => {
-        if (!fields || fields.length === 0) {
+        // A file with a header and no data row emits no row: its header names its columns.
+        const columnNames = fields ?? headerFields
+        if (!columnNames || columnNames.length === 0) {
           reject(new UnprocessableEntityException("CSV file has no columns"))
           return
         }
         resolve(
-          fields.map((fieldName) => ({
+          columnNames.map((fieldName) => ({
             id: v4(),
             name: fieldName,
             values: previewRows.map((row) => this.standardizedNulls(row[fieldName])),
@@ -508,10 +532,16 @@ export class EvaluationExtractionDatasetsService {
         fn()
       }
 
-      const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, {
+      // In the stream mode Papa keeps `step` and `complete` for itself: `chunk` is the one
+      // callback that gives the header, and it runs before the stream ends.
+      const parseConfig: StreamParseConfig = {
         header: options.header,
         skipEmptyLines: options.skipEmptyLines,
-      })
+        chunk: (results) => {
+          headerFields = results.meta.fields
+        },
+      }
+      const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, parseConfig)
 
       parseStream.on("data", (row: Record<string, unknown>) => {
         if (!fields) fields = Object.keys(row)

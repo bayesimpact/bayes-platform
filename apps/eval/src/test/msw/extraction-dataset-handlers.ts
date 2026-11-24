@@ -82,6 +82,8 @@ export function extractionDatasetHandlers(world: EvalWorld) {
       const entry = find(params.datasetId)
       const file = findFile(params.documentId)
       if (!entry || !file) return apiError(404)
+      // As the API does: a file with a header and no data row builds nothing.
+      if (file.rows.length === 0) return apiError(422, "CSV file has no data row")
       entry.dataset.name = payload.name
       entry.dataset.schemaMapping = Object.fromEntries(
         payload.columns.map((column) => [column.id, column]),

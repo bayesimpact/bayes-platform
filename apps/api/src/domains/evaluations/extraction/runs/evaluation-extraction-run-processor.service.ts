@@ -110,8 +110,10 @@ export class EvaluationExtractionRunProcessorService {
    * records table rather than mutated in place, so the result is idempotent even when a
    * record job is retried. Terminal transitions are guarded by `status = 'running'` so
    * they (and the CSV export) fire exactly once.
+   *
+   * The starter calls it too, for a run that starts with no record: no record job will.
    */
-  private async recomputeSummaryAndMaybeComplete({
+  async recomputeSummaryAndMaybeComplete({
     connectScope,
     evaluationExtractionRunId,
   }: {
