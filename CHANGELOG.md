@@ -13,7 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
-- Extraction evaluations: a CSV file with a header line and no data row shows its columns.
+- Extraction evaluations: the dataset setup says when a CSV file has no data row.
 - (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.
 - CSV extraction: a CSV file with no data row or no header line no longer shows "Page not found".
 

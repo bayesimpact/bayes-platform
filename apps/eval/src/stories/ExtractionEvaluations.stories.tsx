@@ -71,8 +71,8 @@ export const ChooseColumns: Story = {
 }
 
 /**
- * The chosen file holds a header line and no data row: its columns show, with no first row, and
- * the API refuses to build the dataset from it.
+ * The chosen file holds a header line and no data row: the step says so, and leads back to the
+ * files. The API would refuse to build the dataset from it.
  */
 export const FileWithoutDataRows: Story = {
   parameters: evaluation({

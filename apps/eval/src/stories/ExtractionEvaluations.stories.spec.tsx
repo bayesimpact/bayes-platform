@@ -133,27 +133,23 @@ describe("the stories of the extraction evaluations", () => {
     expect(screen.getByRole("columnheader", { name: /source.*Ignore/ })).toBeInTheDocument()
   })
 
-  it("FileWithoutDataRows shows the columns of the file, which builds no dataset", async () => {
+  it("FileWithoutDataRows says that the file has no data row, and leads back to the files", async () => {
     await FileWithoutDataRows.load()
     render(<FileWithoutDataRows />)
     await userEvent.click(
       await screen.findByRole("button", { name: "Use the file messages-template.csv" }),
     )
 
-    // Its columns show, with no first row under them.
+    // No form to fill in for a file that builds nothing.
     expect(
-      await screen.findByRole("combobox", { name: "Role of the column message" }),
+      await screen.findByText("This file has no data row. Choose another file."),
     ).toBeInTheDocument()
-    const preview = screen.getByRole("columnheader", { name: "category" }).closest("table")
-    expect(preview).not.toBeNull()
-    expect(within(preview as HTMLTableElement).getAllByRole("row")).toHaveLength(1)
+    expect(screen.queryByRole("button", { name: "Build the dataset" })).not.toBeInTheDocument()
 
-    // The API refuses the file: the dataset still waits for one.
-    await userEvent.click(screen.getByRole("button", { name: "Build the dataset" }))
+    await userEvent.click(screen.getByRole("button", { name: "Choose another file" }))
     expect(
-      await screen.findByText("The dataset could not be built. Try again."),
+      await screen.findByRole("button", { name: "Use the file support-messages.csv" }),
     ).toBeInTheDocument()
-    expect(screen.queryByText(/records?$/)).not.toBeInTheDocument()
   })
 
   it("LargeDataset pages, searches and sorts its records through the API", async () => {

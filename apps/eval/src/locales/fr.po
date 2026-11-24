@@ -3270,6 +3270,10 @@ msgstr "Ce jeu de données n'a aucun enregistrement."
 msgid "This file has no column. Choose another file."
 msgstr "Ce fichier n'a aucune colonne. Choisissez un autre fichier."
 
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "This file has no data row. Choose another file."
+msgstr "Ce fichier n'a aucune ligne de données. Choisissez un autre fichier."
+
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."
 msgstr "Ce fichier est vide."

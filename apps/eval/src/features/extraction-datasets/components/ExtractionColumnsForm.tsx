@@ -97,11 +97,17 @@ export function ExtractionColumnsForm({
       },
     ),
   )
-  if (fileColumns.length === 0) {
+  // A header line with no row under it: the API reads its columns, and builds no dataset from it.
+  const hasDataRow = fileColumns.some((column) => column.values.length > 0)
+  if (!hasDataRow) {
     return (
       <SectionCard title={<Trans>Columns of {fileName}</Trans>}>
         <p className="text-sm text-muted-foreground">
-          <Trans>This file has no column. Choose another file.</Trans>
+          {fileColumns.length === 0 ? (
+            <Trans>This file has no column. Choose another file.</Trans>
+          ) : (
+            <Trans>This file has no data row. Choose another file.</Trans>
+          )}
         </p>
         <div>
           <Button variant="outline" onClick={onChooseAnother}>
