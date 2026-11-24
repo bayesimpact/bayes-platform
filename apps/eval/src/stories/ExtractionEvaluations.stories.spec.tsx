@@ -7,9 +7,8 @@ import * as extractionEvaluationStories from "./ExtractionEvaluations.stories"
 
 setProjectAnnotations(previewAnnotations)
 
-const { NewDataset, ChooseColumns, RunEvaluation, ...pageStories } = composeStories(
-  extractionEvaluationStories,
-)
+const { NewDataset, ChooseColumns, FileWithoutDataRows, RunEvaluation, ...pageStories } =
+  composeStories(extractionEvaluationStories)
 
 /** Each story of a page, and what it shows once that page loaded: every story is listed. */
 const PAGES = {
@@ -132,6 +131,29 @@ describe("the stories of the extraction evaluations", () => {
     expect(await screen.findByText("8 records")).toBeInTheDocument()
     expect(screen.getByRole("columnheader", { name: /category.*Target/ })).toBeInTheDocument()
     expect(screen.getByRole("columnheader", { name: /source.*Ignore/ })).toBeInTheDocument()
+  })
+
+  it("FileWithoutDataRows shows the columns of the file, which builds no dataset", async () => {
+    await FileWithoutDataRows.load()
+    render(<FileWithoutDataRows />)
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Use the file messages-template.csv" }),
+    )
+
+    // Its columns show, with no first row under them.
+    expect(
+      await screen.findByRole("combobox", { name: "Role of the column message" }),
+    ).toBeInTheDocument()
+    const preview = screen.getByRole("columnheader", { name: "category" }).closest("table")
+    expect(preview).not.toBeNull()
+    expect(within(preview as HTMLTableElement).getAllByRole("row")).toHaveLength(1)
+
+    // The API refuses the file: the dataset still waits for one.
+    await userEvent.click(screen.getByRole("button", { name: "Build the dataset" }))
+    expect(
+      await screen.findByText("The dataset could not be built. Try again."),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/records?$/)).not.toBeInTheDocument()
   })
 
   it("LargeDataset pages, searches and sorts its records through the API", async () => {
