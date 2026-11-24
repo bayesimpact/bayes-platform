@@ -98,12 +98,19 @@ function registerAppAtPath(
   })
 }
 
-/** The headers of an entry page: never cached, so a release reaches the next load. */
+/**
+ * The headers of an entry page: never cached, so a release reaches the next load,
+ * and framed by pages of its own origin only, so another site cannot lay it under
+ * a hidden click. The files of a build carry no such header: the sandbox page of
+ * MCP App cards is one of them, and runs in a frame.
+ */
 const ENTRY_PAGE_HEADERS = {
   "Content-Type": "text/html; charset=utf-8",
   "Cache-Control": "no-store",
   "Permissions-Policy": "microphone=(self)",
   "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "SAMEORIGIN",
+  "Content-Security-Policy": "frame-ancestors 'self'",
 }
 
 /**
@@ -148,8 +155,8 @@ function buildSpaFallback(settings: WebAppSettings) {
       .status(200)
       .set({
         ...ENTRY_PAGE_HEADERS,
-        // The OAuth consent page must never sit in another site's frame, where a
-        // hidden click would approve a client (ADR 0028).
+        // The OAuth consent page must never sit in a frame at all, where a hidden
+        // click would approve a client (ADR 0028).
         ...(request.path.startsWith("/oauth/") && {
           "X-Frame-Options": "DENY",
           "Content-Security-Policy": "frame-ancestors 'none'",
