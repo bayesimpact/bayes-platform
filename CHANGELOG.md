@@ -9,6 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.11.4] - 2026-11-24
+
+### Added
+
 - (beta) Embedded chat: integrators can let the host page open the links of the chat.
 
 ### Changed
