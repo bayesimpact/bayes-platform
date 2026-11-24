@@ -1,0 +1,582 @@
+import { randomUUID } from "node:crypto"
+import { EvalReviewerRoutes } from "@caseai-connect/eval-contracts"
+import type { INestApplication } from "@nestjs/common"
+import type { App } from "supertest/types"
+import {
+  type AllRepositories,
+  clearTestDatabase,
+  setupE2eTestDatabase,
+  teardownE2eTestDatabase,
+} from "@/common/test/test-database"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { agentMessageAttachmentDocumentFactory } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.factory"
+import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
+import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import { userFactory } from "@/domains/users/user.factory"
+import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
+import { expectResponse } from "../../../../../../test/request"
+import {
+  expectSchemaResponse,
+  type SchemaRequester,
+  testSchemaRequester,
+} from "../../../../../../test/schema-request"
+import { EvalModule } from "../../../eval.module"
+
+describe("Evaluation reviewer - Reviewer session detail (blind redaction)", () => {
+  let app: INestApplication<App>
+  let request: SchemaRequester
+  let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
+  let repositories: AllRepositories
+
+  let organizationId: string = randomUUID()
+  let projectId: string = randomUUID()
+  let reviewCampaignId: string = randomUUID()
+  let sessionId: string = randomUUID()
+  let accessToken: string = "token"
+  let authSubject = `oidc|reviewer-${randomUUID()}`
+
+  beforeAll(async () => {
+    setup = await setupE2eTestDatabase({
+      additionalImports: [EvalModule],
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
+    })
+    await ensureRbacCatalog(setup.module)
+    repositories = setup.getAllRepositories()
+    app = setup.module.createNestApplication()
+    await app.init()
+    request = testSchemaRequester(app)
+  })
+
+  beforeEach(async () => {
+    await clearTestDatabase(setup.dataSource)
+    accessToken = "token"
+    authSubject = `oidc|reviewer-${randomUUID()}`
+  })
+
+  afterAll(async () => {
+    await teardownE2eTestDatabase(setup)
+    await app.close()
+  })
+
+  /**
+   * Seeds a campaign with:
+   *   - a tester per-session question flagged `isFactual` (rating type)
+   *   - a tester per-session question NOT flagged factual (free-text)
+   *   - a reviewer question
+   *   - a tester user with a submitted feedback including opinion + factual answers
+   *   - a conversation session stamped with the campaign + 2 messages
+   *   - the caller as reviewer
+   */
+  const seedCampaignAndSession = async ({
+    campaignStatus = "active" as "active" | "closed",
+  } = {}) => {
+    const {
+      organization,
+      project,
+      user: reviewer,
+    } = await createOrganizationWithProject(repositories, { user: { authSubject } })
+    const tester = await repositories.userRepository.save(
+      userFactory.build({ email: `tester-view-${randomUUID()}@example.com` }),
+    )
+    const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
+    await repositories.agentRepository.save(agent)
+
+    const agentSettings = agentSettingsFactory
+      .production()
+      .transient({ organization, project, agent })
+      .build()
+    await repositories.agentSettingsRepository.save(agentSettings)
+
+    const factory =
+      campaignStatus === "closed" ? reviewCampaignFactory.closed() : reviewCampaignFactory.active()
+    const campaign = factory.transient({ organization, project, agent, agentSettings }).build({
+      testerPerSessionQuestions: [
+        {
+          id: "q-factual",
+          prompt: "Did the agent escalate to a human?",
+          type: "single-choice",
+          required: true,
+          options: ["Yes", "No"],
+          isFactual: true,
+        },
+        {
+          id: "q-opinion-text",
+          prompt: "Anything else?",
+          type: "free-text",
+          required: false,
+        },
+        {
+          id: "q-opinion-rating",
+          prompt: "Was it helpful?",
+          type: "rating",
+          required: true,
+          // isFactual omitted → treated as opinion
+        },
+      ],
+    })
+    await repositories.reviewCampaignRepository.save(campaign)
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .withRoles("review_campaign_reviewer")
+        .transient({ organization, project, campaign, user: reviewer })
+        .build(),
+    })
+    const session = conversationAgentSessionFactory
+      .transient({ organization, project, agent, user: tester })
+      .build({ campaignId: campaign.id })
+    await repositories.conversationAgentSessionRepository.save(session)
+    await repositories.agentMessageRepository.save([
+      {
+        organizationId: organization.id,
+        projectId: project.id,
+        sessionId: session.id,
+        role: "user",
+        content: "hello",
+        agentSettingsId: agentSettings.id,
+      },
+      {
+        organizationId: organization.id,
+        projectId: project.id,
+        sessionId: session.id,
+        role: "assistant",
+        content: "hi",
+        agentSettingsId: agentSettings.id,
+        toolCalls: [
+          { id: "call-lookup", name: "lookup_knowledge_base", arguments: { query: "plans" } },
+          {
+            id: "call-sources",
+            name: "sources",
+            arguments: {
+              sources: [
+                {
+                  documentId: "11111111-1111-4111-8111-111111111111",
+                  documentTitle: "Pricing guide.pdf",
+                  chunks: [{ chunkId: "chunk-1", partialContent: "The Pro plan covers…" }],
+                },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        organizationId: organization.id,
+        projectId: project.id,
+        sessionId: session.id,
+        role: "tool",
+        content: '{"result": "internal"}',
+        agentSettingsId: agentSettings.id,
+      },
+    ])
+    await repositories.testerSessionFeedbackRepository.save({
+      organizationId: organization.id,
+      projectId: project.id,
+      campaignId: campaign.id,
+      sessionId: session.id,
+      agentType: "conversation",
+      overallRating: 2,
+      comment: "not great",
+      answers: [
+        { questionId: "q-factual", value: "Yes" },
+        { questionId: "q-opinion-text", value: "more context needed" },
+        { questionId: "q-opinion-rating", value: 2 },
+      ],
+    })
+
+    organizationId = organization.id
+    projectId = project.id
+    reviewCampaignId = campaign.id
+    sessionId = session.id
+
+    return { organization, project, agent, agentSettings, campaign, reviewer, tester, session }
+  }
+
+  const subject = async () =>
+    request({
+      route: EvalReviewerRoutes.getSession,
+      pathParams: { organizationId, projectId, reviewCampaignId, sessionId },
+      token: accessToken,
+    })
+
+  it("returns a blind payload when the caller has not yet submitted a review", async () => {
+    const { agent, tester, session } = await seedCampaignAndSession()
+
+    const response = await subject()
+    expectSchemaResponse(EvalReviewerRoutes.getSession, response, 200)
+    const data = response.body.data as Record<string, unknown>
+    expect(data.blind).toBe(true)
+    expect(data.sessionId).toBe(session.id)
+    expect(data.testerUserId).toBe(tester.id)
+    expect(data.agent).toMatchObject({ id: agent.id, name: agent.name, type: "conversation" })
+    expect(data.transcript).toHaveLength(2)
+    // A reply carries the tool calls the tester's chat received
+    expect(data.transcript).toEqual([
+      expect.objectContaining({ role: "user", toolCalls: [] }),
+      expect.objectContaining({
+        role: "assistant",
+        toolCalls: [
+          { id: "call-lookup", name: "lookup_knowledge_base", arguments: { query: "plans" } },
+          expect.objectContaining({ id: "call-sources", name: "sources" }),
+        ],
+      }),
+    ])
+    // Opinion/hidden fields must be absent in blind mode
+    expect(data.testerFeedback).toBeUndefined()
+    expect(data.myReview).toBeUndefined()
+    expect(data.otherReviews).toBeUndefined()
+    // Only the factual answer (rating/single-choice + isFactual) survives
+    expect(data.factualTesterAnswers).toEqual([{ questionId: "q-factual", value: "Yes" }])
+    // otherReviewerCount is 0 because no one has reviewed yet
+    expect(data.otherReviewerCount).toBe(0)
+  })
+
+  it("returns a session whose messages hold tool parts and an attachment", async () => {
+    const { organization, project, agentSettings, session } = await seedCampaignAndSession()
+    const attachmentDocument = await repositories.agentMessageAttachmentDocumentRepository.save(
+      agentMessageAttachmentDocumentFactory.transient({ organization, project }).build(),
+    )
+    const mcpServerId = randomUUID()
+    const askedAt = new Date("2030-01-01T10:00:00.000Z")
+    const answeredAt = new Date("2030-01-01T10:00:05.000Z")
+    const [question, reply] = await repositories.agentMessageRepository.save([
+      agentMessageFactory
+        .user()
+        .transient({ organization, project, session, agentSettings })
+        .build({
+          content: "Here is my file",
+          status: "completed",
+          createdAt: askedAt,
+          attachmentDocumentId: attachmentDocument.id,
+        }),
+      agentMessageFactory
+        .assistant()
+        .transient({ organization, project, session, agentSettings })
+        .build({
+          content: "I read your file.",
+          status: "completed",
+          createdAt: answeredAt,
+          startedAt: askedAt,
+          completedAt: answeredAt,
+          toolCalls: [
+            {
+              id: "call-export",
+              name: "export_pdf",
+              arguments: {},
+              result: { content: [{ type: "text", text: "Exported" }] },
+              mcpApp: { mcpServerId, resourceUri: "ui://pdf-export/mcp-app.html" },
+            },
+          ],
+        }),
+    ])
+    if (!question || !reply) throw new Error("messages not saved")
+
+    const response = await subject()
+
+    expectSchemaResponse(EvalReviewerRoutes.getSession, response, 200)
+    expect(response.body.data.transcript.slice(-2)).toStrictEqual([
+      {
+        id: question.id,
+        role: "user",
+        content: "Here is my file",
+        createdAt: askedAt.getTime(),
+        toolCalls: [],
+      },
+      {
+        id: reply.id,
+        role: "assistant",
+        content: "I read your file.",
+        createdAt: answeredAt.getTime(),
+        toolCalls: [
+          {
+            id: "call-export",
+            name: "export_pdf",
+            arguments: {},
+            result: { content: [{ type: "text", text: "Exported" }] },
+            mcpApp: { mcpServerId, resourceUri: "ui://pdf-export/mcp-app.html" },
+          },
+        ],
+      },
+    ])
+  })
+
+  it("answers 404 for an unknown session", async () => {
+    await seedCampaignAndSession()
+    sessionId = randomUUID()
+
+    expectResponse(await subject(), 404)
+  })
+
+  it("counts other reviewers but omits their content in blind mode", async () => {
+    const { organization, project, campaign, session } = await seedCampaignAndSession()
+    const otherReviewer = await repositories.userRepository.save(
+      userFactory.build({ email: `other-reviewer-${randomUUID()}@example.com` }),
+    )
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .withRoles("review_campaign_reviewer")
+        .transient({ organization, project, campaign, user: otherReviewer })
+        .build(),
+    })
+    await repositories.reviewerSessionReviewRepository.save({
+      organizationId: organization.id,
+      projectId: project.id,
+      campaignId: campaign.id,
+      sessionId: session.id,
+      agentType: "conversation",
+      reviewerUserId: otherReviewer.id,
+      overallRating: 4,
+      comment: "their hidden comment",
+      answers: [],
+      submittedAt: new Date(),
+    })
+
+    const response = await subject()
+    expectResponse(response, 200)
+    const data = response.body.data as Record<string, unknown>
+    expect(data.blind).toBe(true)
+    expect(data.otherReviewerCount).toBe(1)
+    expect(data.otherReviews).toBeUndefined()
+  })
+
+  it("switches to the full payload once the caller submits their review", async () => {
+    await seedCampaignAndSession()
+
+    const submit = await request({
+      route: EvalReviewerRoutes.createReview,
+      pathParams: { organizationId, projectId, reviewCampaignId, sessionId },
+      token: accessToken,
+      body: { payload: { overallRating: 5, comment: "mine", answers: [] } },
+    })
+    expectResponse(submit, 201)
+
+    const response = await subject()
+    expectResponse(response, 200)
+    const data = response.body.data as Record<string, unknown> & {
+      testerFeedback: { answers: unknown[] }
+    }
+    expect(data.blind).toBe(false)
+    expect(data.myReview).toMatchObject({ overallRating: 5, comment: "mine" })
+    expect(data.testerFeedback).toMatchObject({
+      overallRating: 2,
+      comment: "not great",
+    })
+    // Full payload exposes all tester answers, not just factual ones
+    expect(data.testerFeedback.answers).toHaveLength(3)
+    expect(data.otherReviews).toEqual([])
+    // `factualTesterAnswers` only exists on the blind variant
+    expect(data.factualTesterAnswers).toBeUndefined()
+  })
+
+  it("never returns free-text answers during blind, even if isFactual is true", async () => {
+    // Re-seed with a free-text question flagged isFactual (should still be hidden).
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { authSubject },
+        agent: { type: "conversation" },
+      },
+    )
+    const tester = await repositories.userRepository.save(
+      userFactory.build({ email: `tester-text-${randomUUID()}@example.com` }),
+    )
+    const campaign = reviewCampaignFactory
+      .active()
+      .transient({ organization, project, agent, agentSettings })
+      .build({
+        testerPerSessionQuestions: [
+          {
+            id: "q-factual-text",
+            prompt: "What was escalated?",
+            type: "free-text",
+            required: false,
+            // isFactual: true, but free-text is always opinion per spec
+            isFactual: true,
+          },
+        ],
+      })
+    await repositories.reviewCampaignRepository.save(campaign)
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .withRoles("review_campaign_reviewer")
+        .transient({
+          organization,
+          project,
+          campaign,
+          user: await repositories.userRepository.findOneByOrFail({ authSubject }),
+        })
+        .build(),
+    })
+    const session = conversationAgentSessionFactory
+      .transient({ organization, project, agent, user: tester })
+      .build({ campaignId: campaign.id })
+    await repositories.conversationAgentSessionRepository.save(session)
+    await repositories.testerSessionFeedbackRepository.save({
+      organizationId: organization.id,
+      projectId: project.id,
+      campaignId: campaign.id,
+      sessionId: session.id,
+      agentType: "conversation",
+      overallRating: 3,
+      comment: null,
+      answers: [{ questionId: "q-factual-text", value: "tool calls" }],
+    })
+    organizationId = organization.id
+    projectId = project.id
+    reviewCampaignId = campaign.id
+    sessionId = session.id
+
+    const response = await subject()
+    expectResponse(response, 200)
+    const data = response.body.data as Record<string, unknown>
+    expect(data.blind).toBe(true)
+    expect(data.factualTesterAnswers).toEqual([])
+  })
+
+  it("still serves the blind payload on a closed campaign (reviewers keep read access)", async () => {
+    await seedCampaignAndSession({ campaignStatus: "closed" })
+
+    const response = await subject()
+    expectResponse(response, 200)
+    expect(response.body.data.blind).toBe(true)
+  })
+
+  /**
+   * Seeds a campaign whose agent has fillForm enabled (outputJsonSchema +
+   * fillFormEnabled on the latest settings) and one conversation session
+   * whose form holds the given state (no form row when null). The caller is
+   * an accepted reviewer.
+   */
+  const seedFillFormCampaignAndSession = async (state: Record<string, unknown> | null) => {
+    const {
+      organization,
+      project,
+      agent: fillFormAgent,
+      agentSettings: fillFormAgentSettings,
+    } = await createOrganizationWithAgent(repositories, {
+      user: { authSubject },
+      agent: { type: "conversation" },
+      agentSettings: {
+        fillFormEnabled: true,
+        outputJsonSchema: {
+          type: "object",
+          properties: {
+            fullName: { type: "string", title: "Full name" },
+            email: { type: "string", title: "Email" },
+          },
+        },
+      },
+    })
+    const tester = await repositories.userRepository.save(
+      userFactory.build({ email: `tester-form-${randomUUID()}@example.com` }),
+    )
+
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({
+          organization,
+          project,
+          agent: fillFormAgent,
+          agentSettings: fillFormAgentSettings,
+        })
+        .build(),
+    )
+    const callerUser = await repositories.userRepository.findOneByOrFail({ authSubject })
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .withRoles("review_campaign_reviewer")
+        .transient({ organization, project, campaign, user: callerUser })
+        .build(),
+    })
+    const session = conversationAgentSessionFactory
+      .transient({ organization, project, agent: fillFormAgent, user: tester })
+      .build({ campaignId: campaign.id })
+    await repositories.conversationAgentSessionRepository.save(session)
+    if (state) {
+      await repositories.conversationFormRepository.save(
+        conversationFormFactory
+          .transient({
+            organization,
+            project,
+            agent: fillFormAgent,
+            agentSettings: fillFormAgentSettings,
+            session,
+          })
+          .build({ state }),
+      )
+    }
+
+    organizationId = organization.id
+    projectId = project.id
+    reviewCampaignId = campaign.id
+    sessionId = session.id
+  }
+
+  it("includes formResult for fillForm-enabled sessions (schema from settings, value from session)", async () => {
+    await seedFillFormCampaignAndSession({ fullName: "Jane Doe", email: "jane@example.com" })
+
+    const response = await subject()
+    expectResponse(response, 200)
+    const data = response.body.data
+    expect(data.formResult?.schema).toMatchObject({
+      type: "object",
+      properties: { fullName: { title: "Full name" } },
+    })
+    expect(data.formResult?.value).toEqual({
+      fullName: "Jane Doe",
+      email: "jane@example.com",
+    })
+  })
+
+  it("returns formResult with a null value when the form was abandoned (nothing written)", async () => {
+    await seedFillFormCampaignAndSession(null)
+
+    const response = await subject()
+    expectResponse(response, 200)
+    const data = response.body.data
+    expect(data.formResult?.schema).toMatchObject({ type: "object" })
+    expect(data.formResult?.value).toBeNull()
+  })
+
+  it("returns formResult: null when fillForm is not enabled on the agent", async () => {
+    await seedCampaignAndSession()
+    const response = await subject()
+    expectResponse(response, 200)
+    expect(response.body.data.formResult).toBeNull()
+  })
+
+  it("reads the revision in production, not a newer draft (#636)", async () => {
+    const { organization, project, agent, agentSettings } = await seedCampaignAndSession()
+    // The draft enables fillForm; the revision in production does not. The reviewer
+    // context must keep describing what the tester actually ran.
+    await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .draft()
+        .transient({ organization, project, agent })
+        .build({
+          revision: agentSettings.revision + 1,
+          fillFormEnabled: true,
+          outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
+        }),
+    )
+
+    const response = await subject()
+    expectResponse(response, 200)
+    expect(response.body.data.formResult).toBeNull()
+  })
+})

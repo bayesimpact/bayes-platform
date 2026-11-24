@@ -138,33 +138,33 @@ export const EvalCampaignInvitationsRoutes = {
 export const EvalReviewerRoutes = {
   getSessions: defineSchemaRoute({
     method: "get",
-    path: `${LEGACY_CAMPAIGN_PATH}/reviewer-sessions`,
+    path: `${CAMPAIGN_PATH}/reviewer-sessions`,
     params: reviewCampaignParamsSchema,
     response: reviewerSessionsOutputSchema,
   }),
   getSession: defineSchemaRoute({
     method: "get",
-    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view`,
+    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view`,
     params: campaignSessionParamsSchema,
     response: reviewerSessionOutputSchema,
   }),
   /** The current HTML of the MCP Apps the session's replies show, as the tester's chat reads it. */
   getSessionMcpAppHtml: defineSchemaRoute({
     method: "get",
-    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view/mcp-app-html`,
+    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view/mcp-app-html`,
     params: campaignSessionParamsSchema,
     response: z.array(mcpAppHtmlOutputSchema),
   }),
   createReview: defineSchemaRoute({
     method: "post",
-    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews`,
+    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews`,
     params: campaignSessionParamsSchema,
     body: ratedFeedbackInputSchema,
     response: reviewerReviewOutputSchema,
   }),
   updateReview: defineSchemaRoute({
     method: "patch",
-    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews/:reviewId`,
+    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews/:reviewId`,
     params: reviewerReviewParamsSchema,
     body: ratedFeedbackInputSchema,
     response: reviewerReviewOutputSchema,

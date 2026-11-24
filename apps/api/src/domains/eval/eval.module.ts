@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common"
 import { EvaluationContextModule } from "@/common/context/evaluation-context.module"
 import { ResourceContextModule } from "@/common/context/resource-context.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
+import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { EvaluationsModule } from "@/domains/evaluations/evaluations.module"
@@ -24,6 +25,7 @@ import { EvalProjectsController } from "./projects/projects.controller"
 import { EvalCampaignInvitationsController } from "./review-campaigns/campaigns/campaign-invitations.controller"
 import { EvalReviewCampaignsController } from "./review-campaigns/campaigns/campaigns.controller"
 import { EvalMyReviewCampaignsController } from "./review-campaigns/campaigns/my-campaigns.controller"
+import { EvalReviewerController } from "./review-campaigns/reviewer/reviewer.controller"
 
 /**
  * The evaluation app's own API: the routes of `@caseai-connect/eval-contracts`, each checked with
@@ -40,6 +42,7 @@ import { EvalMyReviewCampaignsController } from "./review-campaigns/campaigns/my
     OrganizationsModule,
     ProjectsModule,
     AgentsModule,
+    ConversationAgentSessionsModule,
     StorageModule,
     EvaluationsModule,
     ReviewCampaignsModule,
@@ -58,6 +61,7 @@ import { EvalMyReviewCampaignsController } from "./review-campaigns/campaigns/my
     EvalReviewCampaignsController,
     EvalMyReviewCampaignsController,
     EvalCampaignInvitationsController,
+    EvalReviewerController,
   ],
 })
 export class EvalModule {}
