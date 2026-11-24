@@ -9,6 +9,7 @@ import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { ReviewCampaignsModule } from "@/domains/review-campaigns/review-campaigns.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { EvalAccountController } from "./account/account.controller"
 import { EvalAgentsController } from "./agents/agents.controller"
@@ -20,6 +21,9 @@ import { EvalExtractionRunsController } from "./evaluations/extraction/runs/runs
 import { EvalInvitationsController } from "./invitations/invitations.controller"
 import { EvalOrganizationsController } from "./organizations/organizations.controller"
 import { EvalProjectsController } from "./projects/projects.controller"
+import { EvalCampaignInvitationsController } from "./review-campaigns/campaigns/campaign-invitations.controller"
+import { EvalReviewCampaignsController } from "./review-campaigns/campaigns/campaigns.controller"
+import { EvalMyReviewCampaignsController } from "./review-campaigns/campaigns/my-campaigns.controller"
 
 /**
  * The evaluation app's own API: the routes of `@caseai-connect/eval-contracts`, each checked with
@@ -38,6 +42,7 @@ import { EvalProjectsController } from "./projects/projects.controller"
     AgentsModule,
     StorageModule,
     EvaluationsModule,
+    ReviewCampaignsModule,
   ],
   controllers: [
     EvalAccountController,
@@ -50,6 +55,9 @@ import { EvalProjectsController } from "./projects/projects.controller"
     EvalConversationRunsController,
     EvalExtractionDatasetsController,
     EvalExtractionRunsController,
+    EvalReviewCampaignsController,
+    EvalMyReviewCampaignsController,
+    EvalCampaignInvitationsController,
   ],
 })
 export class EvalModule {}

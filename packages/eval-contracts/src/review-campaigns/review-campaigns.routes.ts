@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { LEGACY_PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
+import { LEGACY_PROJECT_PATH, PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { mcpAppHtmlOutputSchema } from "../conversations/conversations.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import {
@@ -40,8 +40,14 @@ import {
   testerSurveyOutputSchema,
 } from "./tester.dto"
 
-const CAMPAIGNS_PATH = `${LEGACY_PROJECT_PATH}/review-campaigns`
+const CAMPAIGNS_PATH = `${PROJECT_PATH}/review-campaigns`
 const CAMPAIGN_PATH = `${CAMPAIGNS_PATH}/:reviewCampaignId`
+
+/**
+ * The path of a campaign before the API served the Evaluation routes under `eval/`. The reviewer
+ * and tester routes keep it until they move.
+ */
+const LEGACY_CAMPAIGN_PATH = `${LEGACY_PROJECT_PATH}/review-campaigns/:reviewCampaignId`
 
 /** The campaigns of a project, for the people who manage them. */
 export const EvalReviewCampaignsRoutes = {
@@ -99,7 +105,7 @@ export const EvalReviewCampaignsRoutes = {
   /** The campaigns the signed-in person tests, or reviews. */
   getAllMine: defineSchemaRoute({
     method: "get",
-    path: "me/review-campaigns",
+    path: "eval/me/review-campaigns",
     query: myReviewCampaignsQuerySchema,
     response: myReviewCampaignsOutputSchema,
   }),
@@ -132,52 +138,53 @@ export const EvalCampaignInvitationsRoutes = {
 export const EvalReviewerRoutes = {
   getSessions: defineSchemaRoute({
     method: "get",
-    path: `${CAMPAIGN_PATH}/reviewer-sessions`,
+    path: `${LEGACY_CAMPAIGN_PATH}/reviewer-sessions`,
     params: reviewCampaignParamsSchema,
     response: reviewerSessionsOutputSchema,
   }),
   getSession: defineSchemaRoute({
     method: "get",
-    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view`,
+    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view`,
     params: campaignSessionParamsSchema,
     response: reviewerSessionOutputSchema,
   }),
   /** The current HTML of the MCP Apps the session's replies show, as the tester's chat reads it. */
   getSessionMcpAppHtml: defineSchemaRoute({
     method: "get",
-    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view/mcp-app-html`,
+    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-view/mcp-app-html`,
     params: campaignSessionParamsSchema,
     response: z.array(mcpAppHtmlOutputSchema),
   }),
   createReview: defineSchemaRoute({
     method: "post",
-    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews`,
+    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews`,
     params: campaignSessionParamsSchema,
     body: ratedFeedbackInputSchema,
     response: reviewerReviewOutputSchema,
   }),
   updateReview: defineSchemaRoute({
     method: "patch",
-    path: `${CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews/:reviewId`,
+    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions/:sessionId/reviewer-reviews/:reviewId`,
     params: reviewerReviewParamsSchema,
     body: ratedFeedbackInputSchema,
     response: reviewerReviewOutputSchema,
   }),
 }
 
+/** The path of a tester's session before the API served the Evaluation routes under `eval/`. */
 const TESTER_SESSION_PATH = `${LEGACY_PROJECT_PATH}/agent-sessions/:sessionId`
 
 /** What a tester does in a campaign. */
 export const EvalTesterRoutes = {
   getSessions: defineSchemaRoute({
     method: "get",
-    path: `${CAMPAIGN_PATH}/my-tester-sessions`,
+    path: `${LEGACY_CAMPAIGN_PATH}/my-tester-sessions`,
     params: reviewCampaignParamsSchema,
     response: testerSessionsOutputSchema,
   }),
   startSession: defineSchemaRoute({
     method: "post",
-    path: `${CAMPAIGN_PATH}/agent-sessions`,
+    path: `${LEGACY_CAMPAIGN_PATH}/agent-sessions`,
     params: reviewCampaignParamsSchema,
     body: startTesterSessionInputSchema,
     response: startTesterSessionOutputSchema,
@@ -197,20 +204,20 @@ export const EvalTesterRoutes = {
   }),
   getSurvey: defineSchemaRoute({
     method: "get",
-    path: `${CAMPAIGN_PATH}/tester-survey`,
+    path: `${LEGACY_CAMPAIGN_PATH}/tester-survey`,
     params: reviewCampaignParamsSchema,
     response: myTesterSurveyOutputSchema,
   }),
   createSurvey: defineSchemaRoute({
     method: "post",
-    path: `${CAMPAIGN_PATH}/tester-survey`,
+    path: `${LEGACY_CAMPAIGN_PATH}/tester-survey`,
     params: reviewCampaignParamsSchema,
     body: ratedFeedbackInputSchema,
     response: testerSurveyOutputSchema,
   }),
   updateSurvey: defineSchemaRoute({
     method: "patch",
-    path: `${CAMPAIGN_PATH}/tester-survey`,
+    path: `${LEGACY_CAMPAIGN_PATH}/tester-survey`,
     params: reviewCampaignParamsSchema,
     body: ratedFeedbackInputSchema,
     response: testerSurveyOutputSchema,

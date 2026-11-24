@@ -183,7 +183,7 @@ export const reviewCampaignMembershipParamsSchema = reviewCampaignParamsSchema.e
   membershipId: z.uuid(),
 })
 
-/** The query of `GET me/review-campaigns`: the campaigns where the person holds this role. */
+/** The query of `GET eval/me/review-campaigns`: the campaigns where the person holds this role. */
 export const myReviewCampaignsQuerySchema = z.strictObject({ role: reviewCampaignRoleSchema })
 
 /** A campaign the person takes part in, open or closed: a draft is not theirs to see yet. */
