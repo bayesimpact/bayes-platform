@@ -7,7 +7,7 @@ import type {
 } from "@caseai-connect/desk-contracts"
 import { DeskCsvExtractionsRoutes, DeskExtractionsRoutes } from "@caseai-connect/desk-contracts"
 import { keepPreviousData, queryOptions } from "@tanstack/react-query"
-import { apiRequest } from "@/lib/api-client"
+import { ApiError, apiRequest } from "@/lib/api-client"
 import { pollWhile } from "@/lib/polling"
 import type { CsvRecordsPage } from "../schemas"
 import { extractionKeys } from "./keys"
@@ -36,15 +36,27 @@ export const extractionRunQueryOptions = (agent: AgentParamsDto, runId: string) 
     ),
   })
 
-/** The columns of an uploaded CSV file, with their first values. */
+/** The status by which the API refuses a CSV file with no header line: the route's only 422. */
+const NO_COLUMNS_STATUS = 422
+
+/**
+ * The columns of an uploaded CSV file, with their first values. A file with no header line has
+ * none: the API's refusal reads here as an empty list, which the setup page explains.
+ */
 export const csvColumnsQueryOptions = (agent: AgentParamsDto, documentId: string) =>
   queryOptions({
     queryKey: extractionKeys.csvColumns(agent.agentId, documentId),
-    queryFn: ({ signal }) =>
-      apiRequest(DeskCsvExtractionsRoutes.getFileColumns, {
-        params: { ...agent, documentId },
-        signal,
-      }),
+    queryFn: async ({ signal }) => {
+      try {
+        return await apiRequest(DeskCsvExtractionsRoutes.getFileColumns, {
+          params: { ...agent, documentId },
+          signal,
+        })
+      } catch (error) {
+        if (error instanceof ApiError && error.status === NO_COLUMNS_STATUS) return []
+        throw error
+      }
+    },
     staleTime: Number.POSITIVE_INFINITY,
   })
 

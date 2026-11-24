@@ -94,9 +94,27 @@ describe("Desk CSV extractions - getFileColumns", () => {
     expect(mockFileStorageService.createReadStream).toHaveBeenCalledWith("documents/input.csv")
   })
 
-  it("answers 422 for a CSV with no columns", async () => {
+  it("returns the columns of a CSV with a header and no row, with no values", async () => {
     await createContext()
-    mockFileStorageService.createReadStream.mockImplementationOnce(() => Readable.from([""]))
+    mockFileStorageService.createReadStream.mockImplementationOnce(() =>
+      Readable.from(["name,age\n"]),
+    )
+
+    const response = await subject()
+
+    expectSchemaResponse(DeskCsvExtractionsRoutes.getFileColumns, response)
+    expect(response.body.data).toEqual([
+      { id: expect.any(String), name: "name", values: [] },
+      { id: expect.any(String), name: "age", values: [] },
+    ])
+  })
+
+  it.each([
+    { file: "an empty CSV", content: "" },
+    { file: "a CSV of blank lines", content: "\n\n" },
+  ])("answers 422 for $file, which has no header", async ({ content }) => {
+    await createContext()
+    mockFileStorageService.createReadStream.mockImplementationOnce(() => Readable.from([content]))
 
     expectResponse(await subject(), 422, "CSV file has no columns")
   })

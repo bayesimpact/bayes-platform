@@ -31,6 +31,8 @@ import type {
   ExecuteAgentCsvExtractionRunJobPayload,
   ProcessAgentCsvExtractionRunRecordJobPayload,
 } from "./agent-csv-extraction-run.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentCsvExtractionRunProcessorService } from "./agent-csv-extraction-run-processor.service"
 import { AgentCsvExtractionRunRecord } from "./agent-csv-extraction-run-record.entity"
 
 const BATCH_SIZE = 500
@@ -57,6 +59,7 @@ export class AgentCsvExtractionRunStarterService {
     private readonly queue: Queue<ProcessAgentCsvExtractionRunRecordJobPayload>,
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
+    private readonly processorService: AgentCsvExtractionRunProcessorService,
   ) {
     this.runConnectRepository = new ConnectRepository(runRepository, "agentCsvExtractionRun")
     this.runRecordConnectRepository = new ConnectRepository(
@@ -164,6 +167,15 @@ export class AgentCsvExtractionRunStarterService {
     }
     run.status = "running"
     await this.runConnectRepository.saveOne(run)
+
+    // A file with a header and no data row gives no record. A finished record job is what ends
+    // a run, so this one would stay "running" for ever: end it now.
+    if (runRecords.length === 0) {
+      await this.processorService.recomputeSummaryAndMaybeComplete({
+        connectScope,
+        agentCsvExtractionRunId: run.id,
+      })
+    }
   }
 
   private async parseCsvRows({

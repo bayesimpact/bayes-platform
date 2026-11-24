@@ -36,6 +36,18 @@ describe("a new extraction", () => {
     ).toBeInTheDocument()
   })
 
+  it("uploads a CSV file with no header line, then says that it has no columns", async () => {
+    const world = serveExtractionWorld()
+    const { router } = renderApp(extractionUrlsOf(world).newExtractionUrl)
+
+    await screen.findByRole("heading", { name: "What should Document Reader read?" })
+    await userEvent.upload(hiddenFileInput(), new File(["\n"], "empty.csv", { type: "text/csv" }))
+
+    expect(await screen.findByText("This file has no columns")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "empty.csv" })).toBeInTheDocument()
+    expect(router.state.location.pathname).toMatch(/\/extraction\/csv\//)
+  })
+
   it("refuses a file it cannot read, and says why", async () => {
     const world = serveExtractionWorld()
     renderApp(extractionUrlsOf(world).newExtractionUrl)

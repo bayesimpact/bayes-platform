@@ -8,6 +8,12 @@ import type { IFileStorage } from "@/domains/documents/storage/file-storage.inte
 const PREVIEW_ROW_COUNT = 5
 
 /**
+ * The config of Papa's stream mode. Its typings leave `chunk` out of that mode, but the stream
+ * mode runs it: the header-only case of the `getFileColumns` specs fails if that ever stops.
+ */
+type StreamParseConfig = Papa.ParseConfig & Pick<Papa.ParseLocalConfig, "chunk">
+
+/**
  * The columns of a stored CSV file, each with the values of its first rows. It reads only the
  * first rows of the stream. A copy of the `parseCsvColumns` of `AgentCsvExtractionRunsController`.
  */
@@ -23,15 +29,18 @@ export function parseCsvColumns({
   return new Promise((resolve, reject) => {
     const previewRows: Record<string, unknown>[] = []
     let fields: string[] | undefined
+    let headerFields: string[] | undefined
     let settled = false
 
     const buildColumns = () => {
-      if (!fields || fields.length === 0) {
+      // A file with a header and no data row emits no row: its header names its columns.
+      const columnNames = fields ?? headerFields
+      if (!columnNames || columnNames.length === 0) {
         reject(new UnprocessableEntityException("CSV file has no columns"))
         return
       }
       resolve(
-        fields.map((fieldName) => ({
+        columnNames.map((fieldName) => ({
           id: randomUUID(),
           name: fieldName,
           values: previewRows.map((row) => row[fieldName] ?? null),
@@ -46,10 +55,16 @@ export function parseCsvColumns({
       settleWith()
     }
 
-    const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, {
+    // In the stream mode Papa keeps `step` and `complete` for itself: `chunk` is the one
+    // callback that gives the header, and it runs before the stream ends.
+    const parseConfig: StreamParseConfig = {
       header: true,
       skipEmptyLines: true,
-    })
+      chunk: (results) => {
+        headerFields = results.meta.fields
+      },
+    }
+    const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, parseConfig)
 
     parseStream.on("data", (row: Record<string, unknown>) => {
       if (!fields) fields = Object.keys(row)

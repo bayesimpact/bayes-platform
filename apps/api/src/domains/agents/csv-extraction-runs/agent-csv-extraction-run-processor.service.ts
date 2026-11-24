@@ -124,8 +124,11 @@ export class AgentCsvExtractionRunProcessorService {
    * records table rather than mutated in place, so the result is idempotent even when a
    * record job is retried. The terminal transition is guarded by `status = 'running'` so
    * it (and the CSV export) fires exactly once.
+   *
+   * A finished record job calls it. So does the start of a run that has no record, since no
+   * record job will ever end that run.
    */
-  private async recomputeSummaryAndMaybeComplete({
+  async recomputeSummaryAndMaybeComplete({
     connectScope,
     agentCsvExtractionRunId,
   }: {

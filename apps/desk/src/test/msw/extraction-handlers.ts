@@ -33,7 +33,8 @@ const MAX_ROWS = 30
 
 /**
  * The extraction routes on a world: uploads, runs that read their document for a few seconds, CSV
- * runs that advance a few rows per poll. A file whose name holds "fail" fails, to show it.
+ * runs that advance a few rows per poll. A file whose name holds "fail" fails, to show it, and a
+ * CSV file whose name starts with "empty" has no column.
  */
 export function extractionHandlers(world: DeskWorld) {
   const presigned = new Map<
@@ -121,7 +122,11 @@ export function extractionHandlers(world: DeskWorld) {
         content: null,
       })
       documentsOf(params.agentId).unshift(document)
-      if (file.mimeType === "text/csv") world.csvColumns[document.id] = buildCsvFileColumns()
+      if (file.mimeType === "text/csv") {
+        world.csvColumns[document.id] = file.fileName?.startsWith("empty")
+          ? []
+          : buildCsvFileColumns()
+      }
       return document
     }),
     mockRoute(DeskExtractionsRoutes.getMyDocuments, ({ params }) => documentsOf(params.agentId)),
@@ -157,10 +162,13 @@ export function extractionHandlers(world: DeskWorld) {
       )
       return { success: true }
     }),
-    mockRoute(
-      DeskCsvExtractionsRoutes.getFileColumns,
-      ({ params }) => world.csvColumns[params.documentId] ?? apiError(404),
-    ),
+    mockRoute(DeskCsvExtractionsRoutes.getFileColumns, ({ params }) => {
+      const columns = world.csvColumns[params.documentId]
+      if (!columns) return apiError(404)
+      // A file with no header line has no column, which the API refuses.
+      if (columns.length === 0) return apiError(422, "CSV file has no columns")
+      return columns
+    }),
     mockRoute(DeskCsvExtractionsRoutes.createOne, ({ params, payload }) => {
       const run = buildCsvExtractionRun({
         csvDocumentId: payload.csvDocumentId,

@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { extractionUrlsOf } from "@/test/desk-urls"
 import {
+  buildCsvFilesWithoutRowsWorld,
   buildCsvRunInProgressWorld,
   buildExtractionAgentWorld,
   type DeskWorld,
@@ -89,6 +90,28 @@ export const CsvSetup: Story = {
   parameters: desk({
     world: buildExtractionAgentWorld,
     url: (world) => extractionUrlsOf(world).csvSetupUrl("articles.csv"),
+  }),
+}
+
+/**
+ * A CSV file with a header line and no data row has no row for the agent to run on: its page
+ * says so, and leads to another file.
+ */
+export const CsvSetupOfHeaderOnlyFile: Story = {
+  parameters: desk({
+    world: buildCsvFilesWithoutRowsWorld,
+    url: (world) => extractionUrlsOf(world).csvSetupUrl("header-only.csv"),
+  }),
+}
+
+/**
+ * A CSV file with no header line has no column to set up: its page says so, and leads to another
+ * file.
+ */
+export const CsvSetupOfFileWithoutColumns: Story = {
+  parameters: desk({
+    world: buildCsvFilesWithoutRowsWorld,
+    url: (world) => extractionUrlsOf(world).csvSetupUrl("empty.csv"),
   }),
 }
 

@@ -6,15 +6,22 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { ProjectRepository } from "@/domains/projects/project.repository"
+import { LlmModule } from "@/external/llm/llm.module"
 import { AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME } from "./agent-csv-extraction-run.constants"
 import { agentCsvExtractionRunFactory } from "./agent-csv-extraction-run.factory"
+import { AgentCsvExtractionRunCsvExportService } from "./agent-csv-extraction-run-csv-export.service"
+import { AgentCsvExtractionRunProcessorService } from "./agent-csv-extraction-run-processor.service"
 import { AgentCsvExtractionRunStarterService } from "./agent-csv-extraction-run-starter.service"
+import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extraction-run-status-notifier.service"
 
 const mockQueue = { addBulk: jest.fn() }
+const mockStatusNotifier = { notifyRunStatusChanged: jest.fn() }
+const mockCsvExport = { generateAndStoreDocument: jest.fn() }
 const mockFileStorage = {
   save: jest.fn(),
   readFile: jest.fn(),
@@ -31,8 +38,14 @@ describe("AgentCsvExtractionRunStarterService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
+      additionalImports: [LlmModule],
       providers: [
         AgentCsvExtractionRunStarterService,
+        // The real processor: it owns the end of a run, which a run on no row reaches at its start.
+        AgentCsvExtractionRunProcessorService,
+        StructuredExtractionAgentRunLlmService,
+        { provide: AgentCsvExtractionRunStatusNotifierService, useValue: mockStatusNotifier },
+        { provide: AgentCsvExtractionRunCsvExportService, useValue: mockCsvExport },
         { provide: getQueueToken(AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME), useValue: mockQueue },
         { provide: FILE_STORAGE_SERVICE, useValue: mockFileStorage },
         ProjectRepository,
@@ -136,6 +149,30 @@ describe("AgentCsvExtractionRunStarterService", () => {
       id: run.id,
     })
     expect(updatedRun.summary).toEqual({ total: 1, processed: 0, errors: 0, running: 1 })
+  })
+
+  it("startRun - completes at once the run of a file with a header and no data row", async () => {
+    const { organizationId, projectId, run } = await seedRun("name\n")
+
+    await service.startRun({
+      agentCsvExtractionRunId: run.id,
+      organizationId,
+      projectId,
+      recordLimit: null,
+    })
+
+    const updatedRun = await repositories.agentCsvExtractionRunRepository.findOneByOrFail({
+      id: run.id,
+    })
+    // No record job will ever end this run: it must not stay "running".
+    expect(updatedRun.status).toBe("completed")
+    expect(updatedRun.summary).toEqual({ total: 0, processed: 0, errors: 0, running: 0 })
+    expect(mockQueue.addBulk).not.toHaveBeenCalled()
+    // Like any completed run, it gets its export and tells its status to the people who watch it.
+    expect(mockCsvExport.generateAndStoreDocument).toHaveBeenCalledTimes(1)
+    expect(mockStatusNotifier.notifyRunStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ agentCsvExtractionRunId: run.id, status: "completed" }),
+    )
   })
 
   it("startRun - should throws when run not found", async () => {
