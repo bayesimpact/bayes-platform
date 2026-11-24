@@ -153,4 +153,56 @@ describe("EvaluationExtractionDatasets - getFileColumns", () => {
     const col1 = res.body.data.find((column: { name: string }) => column.name === "col1")
     expect(col1!.values).toEqual(["null", "null", "null"])
   })
+
+  const storeCsvContent = (csvContent: string) => {
+    mockFileStorageService.readFile.mockResolvedValue(Buffer.from(csvContent))
+    mockFileStorageService.createReadStream.mockImplementation(() =>
+      Readable.from(Buffer.from(csvContent)),
+    )
+  }
+
+  it.each([
+    ["with no final newline", "name,age,city"],
+    ["with a final newline", "name,age,city\n"],
+  ])("should return the columns of a file with a header and no data row, %s", async (_case, csvContent) => {
+    storeCsvContent(csvContent)
+    await createContext()
+
+    const res = await subject()
+
+    expectResponse(res)
+    expect(
+      res.body.data.map((column: { name: string; values: unknown[] }) => ({
+        name: column.name,
+        values: column.values,
+      })),
+    ).toEqual([
+      { name: "name", values: [] },
+      { name: "age", values: [] },
+      { name: "city", values: [] },
+    ])
+  })
+
+  it("should keep the first rows' values of a file with more rows than the preview", async () => {
+    storeCsvContent("name,age\nrow1,1\nrow2,2\nrow3,3\nrow4,4\nrow5,5\nrow6,6\nrow7,7")
+    await createContext()
+
+    const res = await subject()
+
+    expectResponse(res)
+    const nameColumn = res.body.data.find((column: { name: string }) => column.name === "name")
+    expect(nameColumn!.values).toEqual(["row1", "row2", "row3", "row4", "row5"])
+  })
+
+  it.each([
+    ["an empty file", ""],
+    ["a file of blank lines", "\n\n\n"],
+  ])("should answer 422 for %s", async (_case, csvContent) => {
+    storeCsvContent(csvContent)
+    await createContext()
+
+    const res = await subject()
+
+    expectResponse(res, 422, "CSV file has no columns")
+  })
 })
