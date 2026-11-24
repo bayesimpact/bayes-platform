@@ -15,6 +15,7 @@ import type { Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { readCsvColumns } from "@/common/utils/csv-columns"
 import {
   extractFileExtension,
   normalizeUploadedFileName,
@@ -45,12 +46,6 @@ export type EvaluationExtractionDatasetFileColumn = {
 }
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 900 // 15 minutes
-
-/**
- * The config of Papa's stream mode. Its typings leave `chunk` out of that mode, but the stream
- * mode runs it: the header-only case of the `getFileColumns` spec fails if that ever stops.
- */
-type StreamParseConfig = Papa.ParseConfig & Pick<Papa.ParseLocalConfig, "chunk">
 
 @Injectable()
 export class EvaluationExtractionDatasetsService {
@@ -178,18 +173,12 @@ export class EvaluationExtractionDatasetsService {
   async getFileColumns({
     connectScope,
     documentId,
-    options = { header: true, preview: 5, skipEmptyLines: true },
   }: {
     connectScope: RequiredConnectScope
     documentId: string
-    options?: {
-      header: boolean
-      preview: number
-      skipEmptyLines: boolean
-    }
   }): Promise<EvaluationExtractionDatasetFileColumn[]> {
     const document = await this.getFile({ connectScope, documentId })
-    return this.parseCsvColumns({ storageRelativePath: document.storageRelativePath, options })
+    return this.parseCsvColumns({ storageRelativePath: document.storageRelativePath })
   }
 
   private async getFile({
@@ -481,80 +470,28 @@ export class EvaluationExtractionDatasetsService {
    * dataset would hold no record, and a run on no record never ends. It reads the first row only.
    */
   private async assertFileHasDataRow(storageRelativePath: string): Promise<void> {
-    const columns = await this.parseCsvColumns({
-      storageRelativePath,
-      options: { header: true, preview: 1, skipEmptyLines: true },
-    })
+    const columns = await this.parseCsvColumns({ storageRelativePath, previewRowCount: 1 })
     if (columns.every((column) => column.values.length === 0)) {
       throw new UnprocessableEntityException("CSV file has no data row")
     }
   }
 
-  private parseCsvColumns({
+  /** The columns of a stored CSV file, each with the values of its first rows. */
+  private async parseCsvColumns({
     storageRelativePath,
-    options,
+    previewRowCount,
   }: {
     storageRelativePath: string
-    options: {
-      header: boolean
-      preview: number
-      skipEmptyLines: boolean
-    }
+    previewRowCount?: number
   }): Promise<EvaluationExtractionDatasetFileColumn[]> {
-    const sourceStream = this.fileStorageService.createReadStream(storageRelativePath)
-
-    return new Promise((resolve, reject) => {
-      const previewRows: Record<string, unknown>[] = []
-      let fields: string[] | undefined
-      let headerFields: string[] | undefined
-      let settled = false
-
-      const buildColumns = () => {
-        // A file with a header and no data row emits no row: its header names its columns.
-        const columnNames = fields ?? headerFields
-        if (!columnNames || columnNames.length === 0) {
-          reject(new UnprocessableEntityException("CSV file has no columns"))
-          return
-        }
-        resolve(
-          columnNames.map((fieldName) => ({
-            id: v4(),
-            name: fieldName,
-            values: previewRows.map((row) => this.standardizedNulls(row[fieldName])),
-          })),
-        )
-      }
-
-      const settle = (fn: () => void) => {
-        if (settled) return
-        settled = true
-        sourceStream.destroy()
-        fn()
-      }
-
-      // In the stream mode Papa keeps `step` and `complete` for itself: `chunk` is the one
-      // callback that gives the header, and it runs before the stream ends.
-      const parseConfig: StreamParseConfig = {
-        header: options.header,
-        skipEmptyLines: options.skipEmptyLines,
-        chunk: (results) => {
-          headerFields = results.meta.fields
-        },
-      }
-      const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, parseConfig)
-
-      parseStream.on("data", (row: Record<string, unknown>) => {
-        if (!fields) fields = Object.keys(row)
-        previewRows.push(row)
-        if (previewRows.length >= options.preview) {
-          settle(buildColumns)
-        }
-      })
-      parseStream.on("end", () => settle(buildColumns))
-      parseStream.on("error", (error) => settle(() => reject(error)))
-      sourceStream.on("error", (error) => settle(() => reject(error)))
-      sourceStream.pipe(parseStream)
-    })
+    const columns = await readCsvColumns(
+      this.fileStorageService.createReadStream(storageRelativePath),
+      { previewRowCount },
+    )
+    return columns.map((column) => ({
+      ...column,
+      values: column.values.map((value) => this.standardizedNulls(value)),
+    }))
   }
 
   private standardizedNulls(value: unknown): unknown {

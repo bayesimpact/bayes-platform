@@ -11,6 +11,7 @@ import type {
   SchemaRouteInput,
   SchemaRouteResponse,
 } from "@/common/schema-route/schema-route.types"
+import { readCsvColumns } from "@/common/utils/csv-columns"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunCsvExportService } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-csv-export.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -31,7 +32,6 @@ import {
   CSV_EXTRACTION_RUN_READ_PERMISSION,
   CSV_EXTRACTION_RUN_UPDATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
-import { parseCsvColumns } from "./csv-columns"
 import {
   type CsvExtractionRunRecord,
   toCsvExtractionRecordDto,
@@ -88,11 +88,15 @@ export class DeskCsvExtractionsController {
     @RouteInput() { params }: SchemaRouteInput<typeof DeskCsvExtractionsRoutes.getFileColumns>,
   ): Promise<SchemaRouteResponse<typeof DeskCsvExtractionsRoutes.getFileColumns>> {
     const document = await this.getRunCsvDocument(request, params.documentId)
-    const columns = await parseCsvColumns({
-      fileStorageService: this.fileStorageService,
-      storageRelativePath: document.storageRelativePath,
-    })
-    return { data: columns }
+    const columns = await readCsvColumns(
+      this.fileStorageService.createReadStream(document.storageRelativePath),
+    )
+    return {
+      data: columns.map((column) => ({
+        ...column,
+        values: column.values.map((value) => value ?? null),
+      })),
+    }
   }
 
   @SchemaRoute(DeskCsvExtractionsRoutes.createOne, {
