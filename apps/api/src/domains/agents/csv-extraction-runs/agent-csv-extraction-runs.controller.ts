@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import type {
   AgentCsvExtractionRunDto,
   AgentCsvExtractionRunRecordDto,
@@ -13,7 +12,6 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common"
-import * as Papa from "papaparse"
 import type { Observable } from "rxjs"
 import { filter, map } from "rxjs/operators"
 import type {
@@ -22,6 +20,7 @@ import type {
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { readCsvColumns } from "@/common/utils/csv-columns"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -335,10 +334,15 @@ export abstract class AgentCsvExtractionRunsController {
     }
 
     const document = await this.getRunCsvDocument(request, docId)
-    const columns = await this.parseCsvColumns({
-      storageRelativePath: document.storageRelativePath,
-    })
-    return { data: columns }
+    const columns = await readCsvColumns(
+      this.fileStorageService.createReadStream(document.storageRelativePath),
+    )
+    return {
+      data: columns.map((column) => ({
+        ...column,
+        values: column.values.map((value) => value ?? null),
+      })),
+    }
   }
 
   /**
@@ -373,75 +377,7 @@ export abstract class AgentCsvExtractionRunsController {
     if (!isRunOpenTo(agentCsvExtractionRun, request.user.id)) throw new NotFoundException()
     return agentCsvExtractionRun
   }
-
-  private parseCsvColumns({
-    storageRelativePath,
-  }: {
-    storageRelativePath: string
-  }): Promise<{ id: string; name: string; values: unknown[] }[]> {
-    const sourceStream = this.fileStorageService.createReadStream(storageRelativePath)
-
-    return new Promise((resolve, reject) => {
-      const previewRows: Record<string, unknown>[] = []
-      let fields: string[] | undefined
-      let headerFields: string[] | undefined
-      let settled = false
-      const preview = 5
-
-      const buildColumns = () => {
-        // A file with a header and no data row emits no row: its header names its columns.
-        const columnNames = fields ?? headerFields
-        if (!columnNames || columnNames.length === 0) {
-          reject(new UnprocessableEntityException("CSV file has no columns"))
-          return
-        }
-        resolve(
-          columnNames.map((fieldName) => ({
-            id: randomUUID(),
-            name: fieldName,
-            values: previewRows.map((row) => row[fieldName] ?? null),
-          })),
-        )
-      }
-
-      const settle = (fn: () => void) => {
-        if (settled) return
-        settled = true
-        sourceStream.destroy()
-        fn()
-      }
-
-      // In the stream mode Papa keeps `step` and `complete` for itself: `chunk` is the one
-      // callback that gives the header, and it runs before the stream ends.
-      const parseConfig: StreamParseConfig = {
-        header: true,
-        skipEmptyLines: true,
-        chunk: (results) => {
-          headerFields = results.meta.fields
-        },
-      }
-      const parseStream = Papa.parse(Papa.NODE_STREAM_INPUT, parseConfig)
-
-      parseStream.on("data", (row: Record<string, unknown>) => {
-        if (!fields) fields = Object.keys(row)
-        previewRows.push(row)
-        if (previewRows.length >= preview) {
-          settle(buildColumns)
-        }
-      })
-      parseStream.on("end", () => settle(buildColumns))
-      parseStream.on("error", (error: Error) => settle(() => reject(error)))
-      sourceStream.on("error", (error: Error) => settle(() => reject(error)))
-      sourceStream.pipe(parseStream as unknown as NodeJS.WritableStream)
-    })
-  }
 }
-
-/**
- * The config of Papa's stream mode. Its typings leave `chunk` out of that mode, but the stream
- * mode runs it: the header-only case of the `getFileColumns` specs fails if that ever stops.
- */
-type StreamParseConfig = Papa.ParseConfig & Pick<Papa.ParseLocalConfig, "chunk">
 
 /**
  * A run is open to its creator only, whatever the caller's project role. A run created before
