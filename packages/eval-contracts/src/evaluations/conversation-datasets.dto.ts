@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { projectParamsSchema } from "../common/params.dto"
+import { queryNumberSchema } from "../common/query.dto"
 
 /** The permissions of a project's conversation datasets, which only its evaluators hold. */
 export const EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION =
@@ -52,8 +53,8 @@ export type ConversationDatasetRecordOutputDto = z.output<
 
 /** The page of a dataset's records to read: pages count from 0. */
 export const conversationDatasetRecordsQuerySchema = z.strictObject({
-  page: z.coerce.number<string>().int().min(0),
-  limit: z.coerce.number<string>().int().min(1).max(100),
+  page: queryNumberSchema(z.number().int().min(0)),
+  limit: queryNumberSchema(z.number().int().min(1).max(100)),
 })
 
 /** A page of the records of a dataset, in the order they were added. */

@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { documentsRagModeSchema } from "../agents/agents.dto"
 import { projectParamsSchema } from "../common/params.dto"
+import { queryNumberSchema } from "../common/query.dto"
 
 /** The permissions of a project's conversation runs, which only its evaluators hold. */
 export const EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION =
@@ -101,8 +102,8 @@ export type ConversationRunRecordOutputDto = z.output<typeof conversationRunReco
 
 /** A page of a run's records: `page` counts from 0. */
 export const conversationRunRecordsQuerySchema = z.strictObject({
-  page: z.coerce.number<string>().int().min(0),
-  limit: z.coerce.number<string>().int().min(1).max(100),
+  page: queryNumberSchema(z.number().int().min(0)),
+  limit: queryNumberSchema(z.number().int().min(1).max(100)),
 })
 
 export const conversationRunRecordsOutputSchema = z.object({

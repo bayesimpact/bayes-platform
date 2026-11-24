@@ -130,6 +130,8 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationConversationDatasetsService,
     EvaluationExtractionDatasetsService,
     EvaluationConversationRunsService,
+    // The Evaluation module's cancel handler announces the new status of a run.
+    EvaluationConversationRunStatusNotifierService,
     EvaluationExtractionRunsService,
   ],
 })

@@ -8,3 +8,10 @@ export const columnFiltersSchema = z.codec(z.string(), z.record(z.string(), z.st
   decode: (text) => JSON.parse(text),
   encode: (filters) => JSON.stringify(filters),
 })
+
+/** A whole number of the query, sent as text. An empty text is refused: `Number("")` is 0. */
+export const queryNumberSchema = (numberSchema: z.ZodNumber) =>
+  z.codec(z.string().trim().min(1), numberSchema, {
+    decode: (text) => Number(text),
+    encode: (value) => String(value),
+  })

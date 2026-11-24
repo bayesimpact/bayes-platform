@@ -4,6 +4,7 @@ import { ResourceContextModule } from "@/common/context/resource-context.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
+import { EvaluationsModule } from "@/domains/evaluations/evaluations.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ProjectsModule } from "@/domains/projects/projects.module"
@@ -12,6 +13,8 @@ import { UsersModule } from "@/domains/users/users.module"
 import { EvalAccountController } from "./account/account.controller"
 import { EvalAgentsController } from "./agents/agents.controller"
 import { EvalDocumentsController } from "./documents/documents.controller"
+import { EvalConversationDatasetsController } from "./evaluations/conversation/datasets/datasets.controller"
+import { EvalConversationRunsController } from "./evaluations/conversation/runs/runs.controller"
 import { EvalInvitationsController } from "./invitations/invitations.controller"
 import { EvalOrganizationsController } from "./organizations/organizations.controller"
 import { EvalProjectsController } from "./projects/projects.controller"
@@ -32,6 +35,7 @@ import { EvalProjectsController } from "./projects/projects.controller"
     ProjectsModule,
     AgentsModule,
     StorageModule,
+    EvaluationsModule,
   ],
   controllers: [
     EvalAccountController,
@@ -40,6 +44,8 @@ import { EvalProjectsController } from "./projects/projects.controller"
     EvalProjectsController,
     EvalAgentsController,
     EvalDocumentsController,
+    EvalConversationDatasetsController,
+    EvalConversationRunsController,
   ],
 })
 export class EvalModule {}
