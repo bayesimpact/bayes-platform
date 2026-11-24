@@ -1151,7 +1151,7 @@ msgstr "L'agent ne retient rien à votre sujet."
 
 #: src/features/extraction/components/CsvFileWithoutRows.tsx
 msgid "The agent runs once per row, and this file only has its header line. Add rows, then upload the file again."
-msgstr "L’agent s’exécute une fois par ligne, et ce fichier ne contient que sa ligne d’en-tête. Ajoutez des lignes, puis déposez le fichier de nouveau."
+msgstr "L’agent passe sur chaque ligne, et ce fichier ne contient que sa ligne d’en-tête. Ajoutez des lignes, puis déposez le fichier de nouveau."
 
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "The agent runs once per row. Choose what it reads in each one."
