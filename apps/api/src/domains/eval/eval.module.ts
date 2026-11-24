@@ -3,6 +3,8 @@ import { EvaluationContextModule } from "@/common/context/evaluation-context.mod
 import { ResourceContextModule } from "@/common/context/resource-context.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { AgentMessageFeedbackModule } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
+import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { EvaluationsModule } from "@/domains/evaluations/evaluations.module"
@@ -14,6 +16,8 @@ import { ReviewCampaignsModule } from "@/domains/review-campaigns/review-campaig
 import { UsersModule } from "@/domains/users/users.module"
 import { EvalAccountController } from "./account/account.controller"
 import { EvalAgentsController } from "./agents/agents.controller"
+import { EvalConversationMessagesController } from "./conversations/conversation-messages.controller"
+import { EvalConversationReplyController } from "./conversations/conversation-reply.controller"
 import { EvalDocumentsController } from "./documents/documents.controller"
 import { EvalConversationDatasetsController } from "./evaluations/conversation/datasets/datasets.controller"
 import { EvalConversationRunsController } from "./evaluations/conversation/runs/runs.controller"
@@ -26,6 +30,7 @@ import { EvalCampaignInvitationsController } from "./review-campaigns/campaigns/
 import { EvalReviewCampaignsController } from "./review-campaigns/campaigns/campaigns.controller"
 import { EvalMyReviewCampaignsController } from "./review-campaigns/campaigns/my-campaigns.controller"
 import { EvalReviewerController } from "./review-campaigns/reviewer/reviewer.controller"
+import { EvalTesterController } from "./review-campaigns/tester/tester.controller"
 
 /**
  * The evaluation app's own API: the routes of `@caseai-connect/eval-contracts`, each checked with
@@ -43,6 +48,8 @@ import { EvalReviewerController } from "./review-campaigns/reviewer/reviewer.con
     ProjectsModule,
     AgentsModule,
     ConversationAgentSessionsModule,
+    StreamingModule,
+    AgentMessageFeedbackModule,
     StorageModule,
     EvaluationsModule,
     ReviewCampaignsModule,
@@ -62,6 +69,9 @@ import { EvalReviewerController } from "./review-campaigns/reviewer/reviewer.con
     EvalMyReviewCampaignsController,
     EvalCampaignInvitationsController,
     EvalReviewerController,
+    EvalTesterController,
+    EvalConversationMessagesController,
+    EvalConversationReplyController,
   ],
 })
 export class EvalModule {}

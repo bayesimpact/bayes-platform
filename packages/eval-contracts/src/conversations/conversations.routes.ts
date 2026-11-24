@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { LEGACY_AGENT_PATH, LEGACY_PROJECT_PATH } from "../common/params.dto"
+import { AGENT_PATH, PROJECT_PATH } from "../common/params.dto"
 import { defineSchemaRoute, defineStreamRoute } from "../define-schema-route"
 import {
   attachmentParamsSchema,
@@ -15,7 +15,7 @@ import {
   temporaryUrlOutputSchema,
 } from "./conversations.dto"
 
-const sessionPath = `${LEGACY_AGENT_PATH}/agent-sessions/review_campaign_tester/:agentSessionId`
+const sessionPath = `${AGENT_PATH}/agent-sessions/review_campaign_tester/:agentSessionId`
 const messagesPath = `${sessionPath}/messages`
 
 /**
@@ -56,7 +56,7 @@ export const EvalConversationsRoutes = {
   /** Gives a thumbs-up to one of the agent's replies, or reports a problem with it. */
   createMessageFeedback: defineSchemaRoute({
     method: "post",
-    path: `${LEGACY_PROJECT_PATH}/agent-messages/:agentMessageId/feedbacks`,
+    path: `${PROJECT_PATH}/agent-messages/:agentMessageId/feedbacks`,
     params: messageParamsSchema,
     body: messageFeedbackInputSchema,
     response: z.object({ success: z.boolean() }),
