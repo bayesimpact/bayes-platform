@@ -93,7 +93,10 @@ export const CsvSetup: Story = {
   }),
 }
 
-/** A CSV file with a header line and no data row: its columns show, with no first values. */
+/**
+ * A CSV file with a header line and no data row has no row for the agent to run on: its page
+ * says so, and leads to another file.
+ */
 export const CsvSetupOfHeaderOnlyFile: Story = {
   parameters: desk({
     world: buildCsvFilesWithoutRowsWorld,

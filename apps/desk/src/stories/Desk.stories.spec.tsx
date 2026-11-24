@@ -118,8 +118,7 @@ const PAGES = {
     Story: pageStories.CsvSetupOfHeaderOnlyFile,
     loaded: async () => {
       await screen.findByRole("heading", { name: "header-only.csv" })
-      const [firstColumn] = screen.getAllByText("No values in the first rows")
-      return firstColumn
+      return screen.findByText("This file has no rows")
     },
   },
   CsvSetupOfFileWithoutColumns: {

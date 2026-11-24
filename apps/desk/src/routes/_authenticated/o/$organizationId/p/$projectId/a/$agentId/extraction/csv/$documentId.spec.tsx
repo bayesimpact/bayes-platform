@@ -44,6 +44,21 @@ describe("the setup of a CSV file", () => {
     expect(router.state.location.pathname).toMatch(/\/extraction\/csv-runs\//)
   })
 
+  it("says that a file with a header line and no data row has no rows, and leads to another file", async () => {
+    const world = serveExtractionWorld(buildCsvFilesWithoutRowsWorld)
+    const { router } = renderApp(extractionUrlsOf(world).csvSetupUrl("header-only.csv"))
+
+    expect(await screen.findByText("This file has no rows")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "header-only.csv" })).toBeInTheDocument()
+    // The agent runs once per row: with no row, there is no column to set up and no run to start.
+    expect(screen.queryByRole("heading", { name: "Columns" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Extract every row" })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole("link", { name: "Choose another file" }))
+
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/\/extraction$/))
+  })
+
   it("says that a file with no header line has no column, and leads to another file", async () => {
     const world = serveExtractionWorld(buildCsvFilesWithoutRowsWorld)
     const { router } = renderApp(extractionUrlsOf(world).csvSetupUrl("empty.csv"))

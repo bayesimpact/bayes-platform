@@ -11,6 +11,7 @@ import { useStartCsvExtraction } from "../api/mutations"
 import { csvColumnsQueryOptions } from "../api/queries"
 import {
   type ColumnRoles,
+  hasNoRows,
   initialColumnRoles,
   type RowScope,
   readsAColumn,
@@ -19,6 +20,7 @@ import {
 import { ColumnRoleRow } from "./ColumnRoleRow"
 import { CsvFileHeader } from "./CsvFileHeader"
 import { CsvFileWithoutColumns } from "./CsvFileWithoutColumns"
+import { CsvFileWithoutRows } from "./CsvFileWithoutRows"
 import { CsvRowScope } from "./CsvRowScope"
 
 export type CsvSetupProps = {
@@ -43,6 +45,7 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
   const startExtraction = useStartCsvExtraction(agent)
   const fileName = documents.find((document) => document.id === documentId)?.fileName ?? t`CSV file`
   if (columns.length === 0) return <CsvFileWithoutColumns agent={agent} fileName={fileName} />
+  if (hasNoRows(columns)) return <CsvFileWithoutRows agent={agent} fileName={fileName} />
   const canStart = readsAColumn(setup.roles) && !startExtraction.isPending
   const rowCount = setup.scope.kind === "first" ? setup.scope.count : 0
 

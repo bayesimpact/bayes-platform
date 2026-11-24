@@ -246,7 +246,7 @@ msgstr "Vérifiez votre connexion, puis réessayez."
 msgid "Choose a file"
 msgstr "Choisir un fichier"
 
-#: src/features/extraction/components/CsvFileWithoutColumns.tsx
+#: src/features/extraction/components/CsvFileUnusable.tsx
 msgid "Choose another file"
 msgstr "Choisir un autre fichier"
 
@@ -1149,6 +1149,10 @@ msgstr "L'agent retient"
 msgid "The agent remembers nothing about you."
 msgstr "L'agent ne retient rien à votre sujet."
 
+#: src/features/extraction/components/CsvFileWithoutRows.tsx
+msgid "The agent runs once per row, and this file only has its header line. Add rows, then upload the file again."
+msgstr "L’agent s’exécute une fois par ligne, et ce fichier ne contient que sa ligne d’en-tête. Ajoutez des lignes, puis déposez le fichier de nouveau."
+
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "The agent runs once per row. Choose what it reads in each one."
 msgstr "L’agent passe sur chaque ligne. Choisissez ce qu’il y lit."
@@ -1330,6 +1334,10 @@ msgstr "Réflexion…"
 #: src/features/extraction/components/CsvFileWithoutColumns.tsx
 msgid "This file has no columns"
 msgstr "Ce fichier n’a aucune colonne"
+
+#: src/features/extraction/components/CsvFileWithoutRows.tsx
+msgid "This file has no rows"
+msgstr "Ce fichier n’a aucune ligne"
 
 #: src/features/conversation/hooks/use-attachment.ts
 msgid "This file is empty."

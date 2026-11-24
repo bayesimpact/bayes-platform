@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { initialColumnRoles, readsAColumn, sampleOf, toColumnSchema } from "./csv-setup"
+import { hasNoRows, initialColumnRoles, readsAColumn, sampleOf, toColumnSchema } from "./csv-setup"
 
 const columns = [
   { id: "c1", name: "title", values: ["Alpha", "Beta"] },
@@ -21,5 +21,13 @@ describe("csv setup", () => {
     expect(sampleOf(["Alpha", "", null, "Beta\n two", "Gamma", "Delta"])).toBe(
       "Alpha, Beta two, Gamma",
     )
+  })
+
+  it("knows a file with no data row: none of its columns has a value of a first row", () => {
+    const headerOnly = columns.map((column) => ({ ...column, values: [] }))
+    expect(hasNoRows(headerOnly)).toBe(true)
+    // A row with an empty cell still gives its column a value: null.
+    expect(hasNoRows([{ id: "c1", name: "title", values: [null] }])).toBe(false)
+    expect(hasNoRows(columns)).toBe(false)
   })
 })
