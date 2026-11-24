@@ -1,8 +1,8 @@
-import type { AnySchemaRoute } from "@caseai-connect/desk-contracts"
 import type { INestApplication } from "@nestjs/common/interfaces"
 import request from "supertest"
 import type { App } from "supertest/types"
 import type { z } from "zod"
+import type { AnySchemaRoute } from "@/common/schema-route/schema-route.types"
 
 // Helper function to call a route declared with `defineSchemaRoute` in tests
 export const testSchemaRequester =
