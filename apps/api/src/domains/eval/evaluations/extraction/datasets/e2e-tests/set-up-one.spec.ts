@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto"
+import { Readable } from "node:stream"
 import { EvalExtractionDatasetsRoutes } from "@caseai-connect/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -34,10 +35,18 @@ import { EvalModule } from "../../../../eval.module"
 
 const mockFileStorageService = {
   readFile: jest.fn(),
+  createReadStream: jest.fn(),
   save: jest.fn(),
   getTemporaryUrl: jest.fn(),
   generateSignedUploadUrl: jest.fn(),
   buildStorageRelativePath: jest.fn(),
+}
+
+const storeCsvContent = (csvContent: string) => {
+  mockFileStorageService.readFile.mockResolvedValue(Buffer.from(csvContent))
+  mockFileStorageService.createReadStream.mockImplementation(() =>
+    Readable.from(Buffer.from(csvContent)),
+  )
 }
 
 describe("Evaluation extraction datasets - setUpOne", () => {
@@ -70,7 +79,7 @@ describe("Evaluation extraction datasets - setUpOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     authSubject = `oidc|${randomUUID()}`
-    mockFileStorageService.readFile.mockResolvedValue(Buffer.from(SIMPLE_CSV_CONTENT))
+    storeCsvContent(SIMPLE_CSV_CONTENT)
   })
 
   afterAll(async () => {
@@ -131,6 +140,29 @@ describe("Evaluation extraction datasets - setUpOne", () => {
     expect(records.map((record) => record.data)).toEqual(expect.arrayContaining(SIMPLE_CSV_ROWS))
     expect(records).toHaveLength(SIMPLE_CSV_ROWS.length)
     await expectActivityCreated("evaluationExtractionDataset.update", { organizationId, projectId })
+  })
+
+  it.each([
+    ["with no final newline", "question,answer"],
+    ["with a final newline", "question,answer\n"],
+  ])("answers 422 for a file with a header and no data row, %s", async (_case, csvContent) => {
+    storeCsvContent(csvContent)
+    const { dataset, file } = await createDatasetAndFile()
+
+    const response = await subject(
+      { datasetId: dataset.id, documentId: file.id },
+      { name: "Dataset with no row", columns: SIMPLE_CSV_COLUMNS },
+    )
+
+    expectResponse(response, 422, "CSV file has no data row")
+    // The dataset stays as it was: a person can still set it up from another file.
+    const unchanged = await repositories.evaluationExtractionDatasetRepository.findOneByOrFail({
+      id: dataset.id,
+    })
+    expect(unchanged.name).toBe(dataset.name)
+    expect(unchanged.schemaMapping).toEqual(dataset.schemaMapping)
+    expect(unchanged.evaluationExtractionDatasetDocumentId).toBeNull()
+    expect(await repositories.evaluationExtractionDatasetRecordRepository.count()).toBe(0)
   })
 
   it("answers 404 for a file of another project and changes nothing", async () => {
