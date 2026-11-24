@@ -29,6 +29,7 @@ API_PATHS := \
 	apps/api/requirements-docling.txt \
 	packages/api-contracts \
 	packages/desk-contracts \
+	packages/eval-contracts \
 	package.json \
 	package-lock.json \
 	turbo.json
