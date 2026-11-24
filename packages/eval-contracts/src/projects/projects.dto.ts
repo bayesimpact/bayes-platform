@@ -9,7 +9,7 @@ export const EVALUATION_UI_READ_PERMISSION = "evaluation.ui.read" as const
 /** The permission to open the Studio of a project, where its agents are set up. */
 export const STUDIO_UI_READ_PERMISSION = "studio.ui.read" as const
 
-/** A project the signed-in person can read, as `GET projects/mine` returns it. */
+/** A project the signed-in person can read, as `GET eval/projects/mine` returns it. */
 export const myProjectOutputSchema = z.object({
   id: z.uuid(),
   name: z.string(),

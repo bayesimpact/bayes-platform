@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-/** The signed-in person, as `GET me` returns them. The app reads only these fields. */
+/** The signed-in person, as `GET eval/me` returns them. The app reads only these fields. */
 export const meUserOutputSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -20,7 +20,7 @@ export type MeUserOutputDto = z.output<typeof meUserOutputSchema>
 export type MeOutputDto = z.output<typeof meOutputSchema>
 
 /**
- * Why the API refused a first sign-in: the `message` of its 401 on any route, `GET me` first. Signing in again
+ * Why the API refused a first sign-in: the `message` of its 401 on any route, `GET eval/me` first. Signing in again
  * would fail the same way, so the app explains instead. The texts are the API's own
  * (packages/api-contracts/src/me/sign-in-errors.ts), which the app cannot import.
  */

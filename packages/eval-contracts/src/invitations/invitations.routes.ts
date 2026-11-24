@@ -9,18 +9,18 @@ import {
 export const EvalMyInvitationsRoutes = {
   getMine: defineSchemaRoute({
     method: "get",
-    path: "me/invitations",
+    path: "eval/me/invitations",
     response: myInvitationsOutputSchema,
   }),
   acceptOne: defineSchemaRoute({
     method: "post",
-    path: "me/invitations/:invitationId/accept",
+    path: "eval/me/invitations/:invitationId/accept",
     params: invitationParamsSchema,
     response: invitationAnswerOutputSchema,
   }),
   declineOne: defineSchemaRoute({
     method: "post",
-    path: "me/invitations/:invitationId/decline",
+    path: "eval/me/invitations/:invitationId/decline",
     params: invitationParamsSchema,
     response: invitationAnswerOutputSchema,
   }),

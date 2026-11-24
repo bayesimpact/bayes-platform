@@ -125,6 +125,8 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationExtractionRunsController,
   ],
   exports: [
+    // The context resolver of a dataset document reads it, in `EvaluationContextModule`.
+    EvaluationExtractionDatasetDocumentRepository,
     EvaluationConversationDatasetsService,
     EvaluationExtractionDatasetsService,
     EvaluationConversationRunsService,

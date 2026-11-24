@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
+import { LEGACY_PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { successOutputSchema } from "../review-campaigns/review-campaigns.dto"
 import {
@@ -13,7 +13,7 @@ import {
 } from "./conversation-datasets.dto"
 import { datasetNameInputSchema } from "./datasets.dto"
 
-const DATASETS_PATH = `${PROJECT_PATH}/evaluation-conversation-datasets`
+const DATASETS_PATH = `${LEGACY_PROJECT_PATH}/evaluation-conversation-datasets`
 const DATASET_PATH = `${DATASETS_PATH}/:datasetId`
 
 /** The conversation datasets of a project, and their records, for who evaluates its agents. */

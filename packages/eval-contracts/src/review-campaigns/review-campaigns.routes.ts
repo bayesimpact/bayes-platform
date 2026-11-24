@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
+import { LEGACY_PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { mcpAppHtmlOutputSchema } from "../conversations/conversations.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import {
@@ -40,7 +40,7 @@ import {
   testerSurveyOutputSchema,
 } from "./tester.dto"
 
-const CAMPAIGNS_PATH = `${PROJECT_PATH}/review-campaigns`
+const CAMPAIGNS_PATH = `${LEGACY_PROJECT_PATH}/review-campaigns`
 const CAMPAIGN_PATH = `${CAMPAIGNS_PATH}/:reviewCampaignId`
 
 /** The campaigns of a project, for the people who manage them. */
@@ -165,7 +165,7 @@ export const EvalReviewerRoutes = {
   }),
 }
 
-const TESTER_SESSION_PATH = `${PROJECT_PATH}/agent-sessions/:sessionId`
+const TESTER_SESSION_PATH = `${LEGACY_PROJECT_PATH}/agent-sessions/:sessionId`
 
 /** What a tester does in a campaign. */
 export const EvalTesterRoutes = {
