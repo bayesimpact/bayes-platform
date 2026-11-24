@@ -24,8 +24,6 @@ import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_SETTINGS_ARCHIVE_PERMISSION,
   AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
@@ -42,10 +40,7 @@ import { AgentSettingsService } from "./agent-settings.service"
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class AgentSettingsController {
-  constructor(
-    private readonly agentSettingsService: AgentSettingsService,
-    readonly _permissionService: PermissionService,
-  ) {}
+  constructor(private readonly agentSettingsService: AgentSettingsService) {}
 
   // History timeline of all revisions for the agent settings, including drafts and published revisions.
   @Get(AgentSettingsRoutes.getAllWithDraft.path)
