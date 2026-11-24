@@ -117,15 +117,9 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
     return settings
   }
 
-  const subject = async ({
-    type = "playground",
-    agentSettingsRevision,
-  }: {
-    type?: "playground" | "live"
-    agentSettingsRevision?: number
-  } = {}) =>
+  const subject = async ({ agentSettingsRevision }: { agentSettingsRevision?: number } = {}) =>
     request({
-      route: ExtractionAgentSessionsRoutes[type].executeOne,
+      route: ExtractionAgentSessionsRoutes.playground.executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request: { payload: { documentId, agentSettingsRevision } },
@@ -183,23 +177,6 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
     await seedRevision({ revision: 2, isArchived: true })
 
     expectResponse(await subject({ agentSettingsRevision: 2 }), 422)
-  })
-
-  it("returns 403 when a live run asks for a revision", async () => {
-    await createContext()
-    await seedRevision({ revision: 2, isDraft: true })
-
-    expectResponse(await subject({ type: "live", agentSettingsRevision: 2 }), 403)
-  })
-
-  it("keeps a live run with no revision on the published version", async () => {
-    const { agentSettings } = await createContext()
-    await seedRevision({ revision: 2, isDraft: true })
-
-    const response = await subject({ type: "live" })
-
-    expectResponse(response, 201)
-    expect(await findRunSettingsId(response.body.data.runId)).toBe(agentSettings.id)
   })
 
   it("rejects a revision that is not an integer", async () => {

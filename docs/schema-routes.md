@@ -217,8 +217,8 @@ no schemas for the decorator to read.
 - The events of a stream are not checked on the server.
 - When the response check fails, the handler already ran: the action is done, the answer is a 500,
   and no activity is recorded.
-- A Desk handler holds a copy of the logic of the endpoint the Desk called before. Nothing links
-  the two: until the old routes go, a change to one goes to the other.
+- A Desk handler holds a copy of the logic of an abstract controller of the `agents` domain, which
+  now serves the playground. Nothing links the two: a change to one goes to the other.
 - In a worktree environment, run `bayes wt up` after a change to a contracts package. After a
   rebase, check that the API runs (`/api/me` answers 401) and run `bayes wt restart api` when it
   does not.

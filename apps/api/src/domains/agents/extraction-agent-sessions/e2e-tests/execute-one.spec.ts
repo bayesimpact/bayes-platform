@@ -14,6 +14,7 @@ import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
+import { extractionAgentSessionFactory } from "../extraction-agent-session.factory"
 
 const mockLlmProvider = {
   streamChatResponse: jest.fn(),
@@ -70,18 +71,21 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
   }: {
     agentType?: "conversation" | "extraction"
   } = {}) => {
-    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      agent: {
-        type: agentType,
-      },
-      agentSettings: {
-        outputJsonSchema: {
-          type: "object",
-          properties: { fullName: { type: "string" } },
-          required: ["fullName"],
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: {
+          type: agentType,
+        },
+        agentSettings: {
+          outputJsonSchema: {
+            type: "object",
+            properties: { fullName: { type: "string" } },
+            required: ["fullName"],
+          },
         },
       },
-    })
+    )
 
     const document = documentFactory.transient({ organization, project }).build({
       sourceType: "extraction",
@@ -95,6 +99,7 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     agentId = agent.id
     documentId = document.id
     authSubject = user.authSubject!
+    return { user, organization, project, agent, agentSettings, document }
   }
 
   const subjectExecutePlayground = async (
@@ -107,26 +112,9 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
       request: payload ?? { payload: { documentId } },
     })
 
-  const subjectExecuteLive = async (
-    payload?: typeof ExtractionAgentSessionsRoutes.live.executeOne.request,
-  ) =>
-    request({
-      route: ExtractionAgentSessionsRoutes.live.executeOne,
-      pathParams: removeNullish({ organizationId, projectId, agentId }),
-      token: accessToken,
-      request: payload ?? { payload: { documentId } },
-    })
-
   const subjectGetAllPlayground = async () =>
     request({
       route: ExtractionAgentSessionsRoutes.playground.getAll,
-      pathParams: removeNullish({ organizationId, projectId, agentId }),
-      token: accessToken,
-    })
-
-  const subjectGetAllLive = async () =>
-    request({
-      route: ExtractionAgentSessionsRoutes.live.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
     })
@@ -191,24 +179,23 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     expectResponse(response, 422)
   })
 
-  it("should isolate playground runs from live runs", async () => {
-    await createContext()
+  // The live runs belong to the Desk, which serves them on its own routes.
+  it("should keep live runs out of the playground history", async () => {
+    const { user, organization, project, agent, agentSettings, document } = await createContext()
     mockLlmProvider.generateStructuredOutput.mockResolvedValue({ fullName: "Jane Doe" })
 
     const playgroundResponse = await subjectExecutePlayground()
     expectResponse(playgroundResponse, 201)
-
-    const liveResponse = await subjectExecuteLive()
-    expectResponse(liveResponse, 201)
+    await repositories.extractionAgentSessionRepository.save(
+      extractionAgentSessionFactory
+        .transient({ organization, project, agent, agentSettings, user, document })
+        .live()
+        .build(),
+    )
 
     const playgroundRunsResponse = await subjectGetAllPlayground()
     expectResponse(playgroundRunsResponse, 200)
     expect(playgroundRunsResponse.body.data).toHaveLength(1)
     expect(playgroundRunsResponse.body.data[0]!.type).toBe("playground")
-
-    const liveRunsResponse = await subjectGetAllLive()
-    expectResponse(liveRunsResponse, 200)
-    expect(liveRunsResponse.body.data).toHaveLength(1)
-    expect(liveRunsResponse.body.data[0]!.type).toBe("live")
   })
 })

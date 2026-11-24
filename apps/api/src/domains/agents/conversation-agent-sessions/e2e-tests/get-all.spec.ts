@@ -11,7 +11,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -57,18 +56,13 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
 
   const createContext = async () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+    // The playground routes are open to project owners and admins only.
     const { addedUser } = await addMemberByEmailToProject({
       repositories,
       organization,
       project,
-      user: { email: "member@example.com", authSubject: "oidc|member" },
-    })
-    // A plain member opens sessions through a role on the agent, as an invitation to it gives.
-    await addUserToAgent({
-      repositories,
-      agent,
-      user: addedUser,
-      membership: { roleKeys: ["agent_member"] },
+      user: { email: "owner@example.com", authSubject: "oidc|owner" },
+      projectMembership: { roleKeys: ["project_owner"] },
     })
     const { addedUser: anotherUser } = await addMemberByEmailToProject({
       repositories,
@@ -78,33 +72,10 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
         email: "another-user@caseai.test",
         authSubject: "oidc|another-user",
       },
+      projectMembership: { roleKeys: ["project_owner"] },
     })
 
-    const oldestAppSession = conversationAgentSessionFactory
-      .transient({
-        organization,
-        project,
-        user: addedUser,
-        agent,
-      })
-      .live()
-      .build({
-        createdAt: new Date("2024-01-01T10:00:00.000Z"),
-      })
-
-    const newestAppSession = conversationAgentSessionFactory
-      .transient({
-        organization,
-        project,
-        user: addedUser,
-        agent,
-      })
-      .live()
-      .build({
-        createdAt: new Date("2024-01-01T12:00:00.000Z"),
-      })
-
-    const playgroundSession = conversationAgentSessionFactory
+    const oldestPlaygroundSession = conversationAgentSessionFactory
       .transient({
         organization,
         project,
@@ -112,23 +83,48 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
         agent,
       })
       .playground()
+      .build({
+        createdAt: new Date("2024-01-01T10:00:00.000Z"),
+      })
+
+    const newestPlaygroundSession = conversationAgentSessionFactory
+      .transient({
+        organization,
+        project,
+        user: addedUser,
+        agent,
+      })
+      .playground()
+      .build({
+        createdAt: new Date("2024-01-01T12:00:00.000Z"),
+      })
+
+    // A session of the Desk, which the playground never lists.
+    const liveSession = conversationAgentSessionFactory
+      .transient({
+        organization,
+        project,
+        user: addedUser,
+        agent,
+      })
+      .live()
       .build()
 
-    const anotherUserAppSession = conversationAgentSessionFactory
+    const anotherUserPlaygroundSession = conversationAgentSessionFactory
       .transient({
         organization,
         project,
         user: anotherUser,
         agent,
       })
-      .live()
+      .playground()
       .build()
 
     await repositories.conversationAgentSessionRepository.save([
-      oldestAppSession,
-      newestAppSession,
-      playgroundSession,
-      anotherUserAppSession,
+      oldestPlaygroundSession,
+      newestPlaygroundSession,
+      liveSession,
+      anotherUserPlaygroundSession,
     ])
 
     organizationId = organization.id
@@ -137,8 +133,8 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
     authSubject = addedUser.authSubject!
 
     return {
-      oldestAppSession,
-      newestAppSession,
+      oldestPlaygroundSession,
+      newestPlaygroundSession,
     }
   }
 
@@ -149,17 +145,17 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       token: accessToken,
     })
 
-  it("should return only live sessions for authenticated user sorted by newest first", async () => {
-    const { oldestAppSession, newestAppSession } = await createContext()
+  it("should return only the caller's playground sessions sorted by newest first", async () => {
+    const { oldestPlaygroundSession, newestPlaygroundSession } = await createContext()
 
-    const response = await subject("live")
+    const response = await subject("playground")
 
     expectResponse(response, 201)
     const sessions = response.body.data
     expect(sessions).toHaveLength(2)
-    expect(sessions[0]?.id).toBe(newestAppSession.id)
-    expect(sessions[1]?.id).toBe(oldestAppSession.id)
-    expect(sessions.every((session) => session.type === "live")).toBeTruthy()
+    expect(sessions[0]?.id).toBe(newestPlaygroundSession.id)
+    expect(sessions[1]?.id).toBe(oldestPlaygroundSession.id)
+    expect(sessions.every((session) => session.type === "playground")).toBeTruthy()
     expect(sessions.every((session) => session.agentId === agentId)).toBeTruthy()
   })
 })

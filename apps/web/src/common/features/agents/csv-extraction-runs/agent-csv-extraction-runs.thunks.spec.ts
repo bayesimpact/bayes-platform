@@ -8,12 +8,7 @@ import type { RootState } from "@/common/store"
 import { ADS } from "@/common/store/async-data-status"
 import type { Services } from "@/di/services"
 import { documentFactory } from "@/studio/features/documents/documents.factory"
-import { isStudioInterface } from "@/studio/routes/helpers"
 import { agentCsvExtractionRunsThunks } from "./agent-csv-extraction-runs.thunks"
-
-vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
-
-const mockedIsStudioInterface = vi.mocked(isStudioInterface)
 
 const organizationId = "org-1"
 const projectId = "project-1"
@@ -88,23 +83,21 @@ beforeEach(() => {
 describe("uploadCsvFile", () => {
   const file = new File(["title,summary\nFirst,One\n"], "sample.csv", { type: "text/csv" })
 
-  it("uploads through the extraction agent routes of the run type it is given", async () => {
-    // The project documents routes are for owners and admins: a Desk member got a 403 there.
-    // The page URL says Desk while the caller asks for playground: the caller wins.
-    mockedIsStudioInterface.mockReturnValue(false)
+  it("uploads through the extraction agent routes", async () => {
+    // Not through the project documents routes: a run document is not a project document, and
+    // those routes are for owners and admins.
     const onSuccess = vi.fn()
 
-    const action = await agentCsvExtractionRunsThunks.uploadCsvFile({
-      file,
-      type: "playground",
-      onSuccess,
-    })(vi.fn(), () => buildState(), extra)
+    const action = await agentCsvExtractionRunsThunks.uploadCsvFile({ file, onSuccess })(
+      vi.fn(),
+      () => buildState(),
+      extra,
+    )
 
     expect(uploadDocument).toHaveBeenCalledWith({
       organizationId,
       projectId,
       agentId,
-      type: "playground",
       file,
     })
     expect(action.payload).toBe("document-csv")
@@ -113,28 +106,20 @@ describe("uploadCsvFile", () => {
 })
 
 describe("createAndExecute", () => {
-  it("creates a playground run in Studio", async () => {
-    // Each surface calls its own route set, so the Desk app never lists Studio experiments and
-    // vice versa.
-    mockedIsStudioInterface.mockReturnValue(true)
-
+  it("creates the run on the current agent", async () => {
+    // The Desk creates its live runs through its own endpoints, so what is left here is the
+    // playground: a Studio experiment never shows up in the Desk.
     await run(buildState())
 
-    expect(createOne).toHaveBeenCalledWith(expect.objectContaining({ type: "playground" }))
-    expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ type: "playground" }))
+    expect(createOne).toHaveBeenCalledWith(
+      expect.objectContaining({ organizationId, projectId, agentId }),
+    )
+    expect(executeOne).toHaveBeenCalledWith(
+      expect.objectContaining({ agentCsvExtractionRunId: "run-1" }),
+    )
   })
 
-  it("creates a live run outside Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
-
-    await run(buildState())
-
-    expect(createOne).toHaveBeenCalledWith(expect.objectContaining({ type: "live" }))
-    expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ type: "live" }))
-  })
-
-  it("carries the chosen revision in Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
+  it("carries the chosen revision", async () => {
     // The draft sits at a different revision than the explicit choice below: if the thunk ignored
     // the choice and fell back to the draft-first default, it would send revision 3, not 1.
     const versions = [
@@ -152,7 +137,6 @@ describe("createAndExecute", () => {
   })
 
   it("defaults to the draft when no version was chosen", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
     const versions = [
       agentSettingsFactory.transient({ agent }).build({ revision: 2, isDraft: true }),
       agentSettingsFactory.transient({ agent }).build({ revision: 1 }),
@@ -167,22 +151,7 @@ describe("createAndExecute", () => {
     )
   })
 
-  it("forwards no revision outside Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(false)
-    const versions = [agentSettingsFactory.transient({ agent }).build({ revision: 2 })]
-
-    await run(buildState({ history: { [agentId]: versions }, chosenRevision: 2 }))
-
-    expect(createOne).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payload: expect.objectContaining({ agentSettingsRevision: undefined }),
-      }),
-    )
-  })
-
   it("forwards no revision while the settings history has not loaded", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
-
     await run(buildState())
 
     expect(createOne).toHaveBeenCalledWith(

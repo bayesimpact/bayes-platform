@@ -1,12 +1,8 @@
-import {
-  AgentSessionMessagesRoutes,
-  type ConversationAgentSessionTypeDto,
-} from "@caseai-connect/api-contracts"
+import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
 
 /**
  * The stream is a POST: the URL holds ids only and the message travels in the body, so a long
- * message never hits a proxy's URL limit and never lands in an access log. Each session type has
- * its own stream route, so `type` must be the session's own.
+ * message never hits a proxy's URL limit and never lands in an access log.
  *
  * The conditional spread on `agentSettingsRevision` keeps the object honest for anything reading
  * it here; it makes no difference on the wire, since `JSON.stringify` drops `undefined` values
@@ -14,7 +10,6 @@ import {
  */
 export function buildStreamRequest({
   baseURL,
-  type,
   organizationId,
   projectId,
   agentId,
@@ -24,7 +19,6 @@ export function buildStreamRequest({
   agentSettingsRevision,
 }: {
   baseURL: string
-  type: ConversationAgentSessionTypeDto
   organizationId: string
   projectId: string
   agentId: string
@@ -32,15 +26,15 @@ export function buildStreamRequest({
   content: string
   attachmentDocumentId?: string
   agentSettingsRevision?: number
-}): { url: string; body: typeof AgentSessionMessagesRoutes.live.stream.request } {
+}): { url: string; body: typeof AgentSessionMessagesRoutes.playground.stream.request } {
   const body = {
     payload: {
       content,
       attachmentDocumentId,
       ...(agentSettingsRevision !== undefined && { agentSettingsRevision }),
     },
-  } satisfies typeof AgentSessionMessagesRoutes.live.stream.request
-  const path = AgentSessionMessagesRoutes[type].stream.getPath({
+  } satisfies typeof AgentSessionMessagesRoutes.playground.stream.request
+  const path = AgentSessionMessagesRoutes.playground.stream.getPath({
     organizationId,
     projectId,
     agentId,

@@ -1,4 +1,4 @@
-import type { BaseAgentSessionTypeDto, SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type { SuccessResponseDTO } from "@caseai-connect/api-contracts"
 import type { Document } from "@/studio/features/documents/documents.models"
 import type {
   ExtractionAgentSession,
@@ -11,7 +11,6 @@ type BaseParams = {
   organizationId: string
   projectId: string
   agentId: string
-  type: BaseAgentSessionTypeDto
 }
 export interface IExtractionAgentSessionsSpi {
   getAll: (params: BaseParams) => Promise<ExtractionAgentSessionSummary[]>

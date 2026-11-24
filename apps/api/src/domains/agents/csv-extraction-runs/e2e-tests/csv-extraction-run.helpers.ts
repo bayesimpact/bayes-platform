@@ -87,15 +87,15 @@ export async function createCsvDocumentNotOwnedByUser({
 }
 
 /**
- * Creates and persists a run (defaulting to "pending" and "live") in the given scope, owned by
- * the context user unless another `user` is given (`null` = a legacy row from before ownership
- * was tracked).
+ * Creates and persists a run (defaulting to "pending" and "playground") in the given scope, owned
+ * by the context user unless another `user` is given (`null` = a legacy row from before ownership
+ * was tracked). The Desk serves live runs, so its specs ask for `type: "live"`.
  */
 export async function createCsvExtractionRun({
   repositories,
   context,
   status = "pending",
-  type = "live",
+  type = "playground",
   user = context.user,
 }: {
   repositories: AllRepositories

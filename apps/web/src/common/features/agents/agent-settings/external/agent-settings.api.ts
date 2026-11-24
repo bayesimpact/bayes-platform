@@ -40,13 +40,6 @@ export default {
     )
     return response.data.data
   },
-  getFillFormOutputJsonSchema: async (params) => {
-    const axios = getAxiosInstance()
-    const response = await axios.get<
-      typeof AgentSettingsRoutes.getFillFormOutputJsonSchema.response
-    >(AgentSettingsRoutes.getFillFormOutputJsonSchema.getPath(sanitizeParams(params)))
-    return response.data.data
-  },
 } satisfies IAgentSettingsSpi
 
 function sanitizeParams(params: {

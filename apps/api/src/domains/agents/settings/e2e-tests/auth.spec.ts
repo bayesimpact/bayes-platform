@@ -184,56 +184,6 @@ describe("Agent Settings - Auth", () => {
     })
   })
 
-  describe("AgentSettingsRoutes.getFillFormOutputJsonSchema", () => {
-    const subject = async () =>
-      request({
-        route: AgentSettingsRoutes.getFillFormOutputJsonSchema,
-        pathParams: removeNullish({ organizationId, projectId, agentId, revision: "1" }),
-        token: accessToken ?? undefined,
-      })
-
-    it("requires an authentication token", async () => {
-      accessToken = null
-      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-    it("requires a valid organization ID", async () => {
-      await createContextForRole("project_owner")
-      organizationId = null
-      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
-    })
-    it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
-      projectId = randomUUID()
-      expectResponse(await subject(), 404)
-    })
-    it("requires a valid agent ID", async () => {
-      await createContextForRole("project_owner")
-      agentId = randomUUID()
-      expectResponse(await subject(), 404)
-    })
-    it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
-      authSubject = mockForeignAuthSubject()
-      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-    })
-    it("requires the agent to be part of the project", async () => {
-      const { organization } = await createContextForRole("project_owner")
-      const project2 = await repositories.projectRepository.save(
-        projectFactory.transient({ organization }).build(),
-      )
-      projectId = project2.id
-      expectResponse(await subject(), 404) //exception thrown by guard
-    })
-    it("allows a simple member of the agent to read the form schema, as the session side needs it", async () => {
-      await createContextForRole("project_member")
-      expectResponse(await subject(), 200)
-    })
-    it("allows an owner to read the form schema of a revision", async () => {
-      await createContextForRole("project_owner")
-      expectResponse(await subject(), 200)
-    })
-  })
-
   describe("AgentSettingsRoutes.restoreOne", () => {
     const subject = async () =>
       request({
@@ -471,13 +421,6 @@ describe("Agent Settings - Auth", () => {
         token: "token",
       })
 
-    const getFillFormOutputJsonSchema = async () =>
-      request({
-        route: AgentSettingsRoutes.getFillFormOutputJsonSchema,
-        pathParams: revisionPathParams(),
-        token: "token",
-      })
-
     const updateOne = async () =>
       request({
         route: AgentSettingsRoutes.updateOne,
@@ -543,30 +486,6 @@ describe("Agent Settings - Auth", () => {
     it.each<AgentRoleKey>([
       "agent_owner",
       "agent_admin",
-      "agent_member",
-    ])("lets an agent %s read the form schema, even as a project member", async (role) => {
-      await createContextForRoles({ projectRole: "project_member", agentRole: role })
-      expectResponse(await getFillFormOutputJsonSchema(), 200)
-    })
-
-    it.each<ProjectRoleKey>([
-      "project_owner",
-      "project_admin",
-    ])("lets a project %s read the form schema without an agent role", async (role) => {
-      await createContextForRoles({ projectRole: role, agentRole: "agent_member" })
-      await removeAgentMemberships()
-      expectResponse(await getFillFormOutputJsonSchema(), 200)
-    })
-
-    it("doesn't let a project member without an agent role read the form schema", async () => {
-      await createContextForRoles({ projectRole: "project_member", agentRole: "agent_member" })
-      await removeAgentMemberships()
-      expectForbidden(await getFillFormOutputJsonSchema())
-    })
-
-    it.each<AgentRoleKey>([
-      "agent_owner",
-      "agent_admin",
     ])("lets an agent %s change the settings, even as a project member", async (role) => {
       await createContextForRoles({ projectRole: "project_member", agentRole: role })
       expectAllowed(await updateOne())
@@ -592,7 +511,6 @@ describe("Agent Settings - Auth", () => {
       })
       await switchToOrganizationAdminWithoutProjectMembership(organization)
       expectForbidden(await getAll())
-      expectForbidden(await getFillFormOutputJsonSchema())
       expectForbidden(await updateOne())
       expectForbidden(await restoreOne())
       expectForbidden(await createOne())

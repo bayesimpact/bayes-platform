@@ -34,7 +34,8 @@ import { ExtractionAgentSessionStatusStreamService } from "./extraction-agent-se
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ExtractionAgentSessionsService } from "./extraction-agent-sessions.service"
 
-type Routes = (typeof ExtractionAgentSessionsRoutes)[BaseAgentSessionType]
+/** The route sets the subclasses still serve: the live ones are gone, the Desk serves its own. */
+type Routes = (typeof ExtractionAgentSessionsRoutes)["playground"]
 
 /**
  * Base of the live and playground extraction session controllers. Each subclass serves one run

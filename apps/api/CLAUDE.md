@@ -185,7 +185,7 @@ The Desk (`apps/desk`) calls only the routes of `@caseai-connect/desk-contracts`
 5. `src/domains/desk/` imports no `*.entity.ts` of another domain, type imports included (dependency-cruiser). Specs and factories are excepted. Type a record from the return type of the service that gives it, or from `src/common/context/request.interface.ts`. The context resolvers come from `ResourceContextModule` (`src/common/context/`). A provider the Desk needs is exported by its feature module.
 6. E2e specs in the `e2e-tests/` folder beside the controller: an `auth.spec.ts` for all the routes of the folder and one spec per action, with `testSchemaRequester(app)` and `expectSchemaResponse(route, response, status)` from `test/schema-request.ts`. A stream is requested with supertest at `route.getPath(params)`. `src/domains/desk/routes.spec.ts` checks that every route of the contracts has a handler.
 
-Each Desk handler holds a copy of the logic of the endpoint the Desk called before, such as a `live` handler of the `agents` domain. Nothing links the two. Until the old routes go, a change to a `live` handler the Desk copies goes to the Desk handler too.
+Each Desk handler holds a copy of the logic of an abstract controller of the `agents` domain (`ConversationAgentSessionsController`, `AgentMessagesController`, `StreamingController`, `ExtractionAgentSessionsController`, `AgentCsvExtractionRunsController`), which serves the playground and, for messages and streams, the review campaign tester. Nothing links the two, so a change to one of those handlers goes to the Desk handler too.
 
 In a worktree environment, run `bayes wt up` after a change to the contracts: the `api` container can miss new exports and keep serving the old code.
 

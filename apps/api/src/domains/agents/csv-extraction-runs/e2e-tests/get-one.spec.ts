@@ -77,7 +77,7 @@ describe("AgentCsvExtractionRuns - getOne", () => {
 
   const subject = async () =>
     request({
-      route: AgentCsvExtractionRunsRoutes.live.getOne,
+      route: AgentCsvExtractionRunsRoutes.playground.getOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
       token: accessToken,
     })

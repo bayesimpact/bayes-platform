@@ -1,7 +1,4 @@
-import type {
-  ConversationAgentSessionTypeDto,
-  PresignAgentSessionMessageAttachmentDocumentResponseDto,
-} from "@caseai-connect/api-contracts"
+import type { PresignAgentSessionMessageAttachmentDocumentResponseDto } from "@caseai-connect/api-contracts"
 import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
 
 type BaseParams = {
@@ -11,26 +8,15 @@ type BaseParams = {
   agentSessionId: string
 }
 export interface IAgentSessionMessagesSpi {
-  getAll: (
-    params: BaseParams & { payload: { type: ConversationAgentSessionTypeDto } },
-  ) => Promise<AgentSessionMessage[]>
-  getOne: (
-    params: BaseParams & { messageId: string } & {
-      payload: { type: ConversationAgentSessionTypeDto }
-    },
-  ) => Promise<AgentSessionMessage>
-  getMcpAppHtml: (
-    params: BaseParams & { payload: { type: ConversationAgentSessionTypeDto } },
-  ) => Promise<AgentSessionMcpAppHtml[]>
+  getAll: (params: BaseParams) => Promise<AgentSessionMessage[]>
+  getOne: (params: BaseParams & { messageId: string }) => Promise<AgentSessionMessage>
+  getMcpAppHtml: (params: BaseParams) => Promise<AgentSessionMcpAppHtml[]>
   uploadAttachmentDocument: (
-    params: BaseParams & { file: File; payload: { type: ConversationAgentSessionTypeDto } },
+    params: BaseParams & { file: File },
   ) => Promise<
     Pick<PresignAgentSessionMessageAttachmentDocumentResponseDto, "attachmentDocumentId">
   >
   getAttachmentDocumentTemporaryUrl: (
-    params: BaseParams & {
-      attachmentDocumentId: string
-      payload: { type: ConversationAgentSessionTypeDto }
-    },
+    params: BaseParams & { attachmentDocumentId: string },
   ) => Promise<{ url: string }>
 }

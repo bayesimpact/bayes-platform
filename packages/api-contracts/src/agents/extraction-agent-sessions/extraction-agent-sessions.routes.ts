@@ -67,9 +67,9 @@ function defineExtractionAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
 }
 
 export const ExtractionAgentSessionsRoutes = {
-  live: defineExtractionAgentSessionsRoutes("live"),
   playground: defineExtractionAgentSessionsRoutes("playground"),
-  // One stream for both run types: it carries status changes only, never results.
+  // The status of the caller's own playground runs: it carries status changes only, never
+  // results. The Desk polls its own endpoints for its live runs.
   streamSessionStatus: defineRoute<ExtractionAgentSessionStatusChangedEventDto>({
     method: "get",
     path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions/status/stream",

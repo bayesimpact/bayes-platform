@@ -8,7 +8,7 @@ import type {
   PaginatedConversationReviewSessionsDto,
 } from "./conversation-agent-sessions.dto"
 
-/** Live and playground sessions each get their own route set, so each has its own permissions. */
+/** The Desk serves its own sessions under `desk/`; only the playground is left here. */
 function defineConversationAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
   const prefix = `/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-agent-sessions/${type}`
 
@@ -53,7 +53,6 @@ function defineConversationAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
 }
 
 export const ConversationAgentSessionsRoutes = {
-  live: defineConversationAgentSessionsRoutes("live"),
   playground: defineConversationAgentSessionsRoutes("playground"),
 }
 

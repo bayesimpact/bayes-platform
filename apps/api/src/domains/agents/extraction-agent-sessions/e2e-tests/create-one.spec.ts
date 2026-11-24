@@ -13,7 +13,10 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import type { Document } from "@/domains/documents/document.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -115,9 +118,9 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     authSubject = user.authSubject!
   }
 
-  const subject = async (type: "playground" | "live" = "playground") =>
+  const subject = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes[type].executeOne,
+      route: ExtractionAgentSessionsRoutes.playground.executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request: { payload: { documentId } },
@@ -140,35 +143,34 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
   })
 
   describe("the document a run reads", () => {
-    it("runs live on a file the caller uploaded for a run", async () => {
-      await createContext()
-
-      expectResponse(await subject("live"), 201)
-      expect(mockBatchService.enqueueExecuteRun).toHaveBeenCalledTimes(1)
-    })
-
-    it.each([
-      { case: "a file a colleague uploaded for a run", uploadedBy: "colleague" },
-      { case: "a document of the project", sourceType: "project" },
-    ] as const)("answers 404 for a live run on $case", async (document) => {
-      await createContext(document)
-
-      expectResponse(await subject("live"), 404, `Document ${documentId} not found`)
-      expect(mockBatchService.enqueueExecuteRun).not.toHaveBeenCalled()
-      expect(await repositories.extractionAgentSessionRepository.count()).toBe(0)
-    })
-
     it("lets a playground run read any document of the project", async () => {
       await createContext({ sourceType: "project", uploadedBy: "colleague" })
 
-      expectResponse(await subject("playground"), 201)
+      expectResponse(await subject(), 201)
+      expect(mockBatchService.enqueueExecuteRun).toHaveBeenCalledTimes(1)
+    })
+
+    it("answers 404 for a document of another project", async () => {
+      await createContext()
+      const { organization: otherOrganization, project: otherProject } =
+        await createOrganizationWithProject(repositories)
+      const otherDocument = await repositories.documentRepository.save(
+        documentFactory
+          .transient({ organization: otherOrganization, project: otherProject })
+          .build({ sourceType: "extraction" }),
+      )
+      documentId = otherDocument.id
+
+      expectResponse(await subject(), 404, `Document ${documentId} not found`)
+      expect(mockBatchService.enqueueExecuteRun).not.toHaveBeenCalled()
+      expect(await repositories.extractionAgentSessionRepository.count()).toBe(0)
     })
 
     it("answers 404 for a document that does not exist", async () => {
       await createContext()
       documentId = randomUUID()
 
-      expectResponse(await subject("playground"), 404, `Document ${documentId} not found`)
+      expectResponse(await subject(), 404, `Document ${documentId} not found`)
       expect(mockBatchService.enqueueExecuteRun).not.toHaveBeenCalled()
     })
   })

@@ -24,7 +24,8 @@ import { AgentMessageAttachmentDocumentsService } from "./agent-message-attachme
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "./mcp-app-html.service"
 
-type Routes = (typeof AgentSessionMessagesRoutes)[ConversationAgentSessionType]
+/** The route sets the subclasses still serve: the live ones are gone, the Desk serves its own. */
+type Routes = (typeof AgentSessionMessagesRoutes)["playground" | "review_campaign_tester"]
 
 /**
  * Base of the live and playground session message controllers. Each subclass serves one session

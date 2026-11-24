@@ -10,9 +10,8 @@ import {
 } from "./agent-session-messages.slice"
 import { getMessage, listMcpAppHtml, listMessages } from "./agent-session-messages.thunks"
 
-// The thunks module reaches the OIDC client and `window.location` transitively; neither exists
-// under vitest's node environment, and the reducer under test needs only the action creators.
-vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
+// The thunks module reaches the OIDC client transitively, which needs `window`; the reducer
+// under test needs only the action creators.
 vi.mock("./external/agent-session-messages-streaming", () => ({ streamChatResponse: vi.fn() }))
 
 const reducer = agentSessionMessagesSlice.reducer

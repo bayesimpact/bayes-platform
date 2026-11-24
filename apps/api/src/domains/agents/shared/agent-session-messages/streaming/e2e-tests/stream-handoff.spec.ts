@@ -93,7 +93,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     const session = await repositories.conversationAgentSessionRepository.save(
       conversationAgentSessionFactory
         .transient({ organization, project, agent, user })
-        .live()
+        .playground()
         .build(),
     )
     organizationId = organization.id
@@ -109,7 +109,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
   const subject = (content: string) =>
     request(app.getHttpServer())
       .post(
-        AgentSessionMessagesRoutes.live.stream.getPath({
+        AgentSessionMessagesRoutes.playground.stream.getPath({
           organizationId,
           projectId,
           agentId,
@@ -360,7 +360,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     const session = await repositories.conversationAgentSessionRepository.save(
       conversationAgentSessionFactory
         .transient({ organization, project, agent, user })
-        .live()
+        .playground()
         .build(),
     )
     organizationId = organization.id
@@ -680,7 +680,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     const session = await repositories.conversationAgentSessionRepository.save(
       conversationAgentSessionFactory
         .transient({ organization, project, agent, user })
-        .live()
+        .playground()
         .build(),
     )
     organizationId = organization.id

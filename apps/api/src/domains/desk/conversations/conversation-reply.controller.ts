@@ -21,9 +21,9 @@ import { AGENT_CONVERSATION_SESSION_CREATE_PERMISSION } from "@/domains/rbac/rba
 
 /**
  * Sends a message to a live conversation and streams the replies, as server-sent events. A copy
- * of `LiveStreamingController`. The schema checks the body before the stream starts: an empty
+ * of `StreamingController`. The schema checks the body before the stream starts: an empty
  * message answers 400. A check made in the handler comes back as an SSE error frame, as on the
- * live route.
+ * playground route.
  */
 @Controller()
 export class DeskConversationReplyController {

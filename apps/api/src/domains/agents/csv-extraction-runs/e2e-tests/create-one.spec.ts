@@ -110,7 +110,10 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     },
   } as const
 
-  const subject = async (agentSettingsRevision?: number, type: BaseAgentSessionTypeDto = "live") =>
+  const subject = async (
+    agentSettingsRevision?: number,
+    type: BaseAgentSessionTypeDto = "playground",
+  ) =>
     request({
       route: AgentCsvExtractionRunsRoutes[type].createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
@@ -129,7 +132,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     expect(response.body.data.csvDocumentId).toBe(csvDocumentId)
     expect(response.body.data.agentId).toBe(agentId)
     expect(response.body.data.columnSchema).toEqual(columnSchema)
-    expect(response.body.data.type).toBe("live")
+    expect(response.body.data.type).toBe("playground")
     expect(response.body.data.summary).toBeNull()
     expect(response.body.data.csvExportDocumentId).toBeNull()
 
@@ -138,6 +141,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     })
     expect(persisted).not.toBeNull()
     expect(persisted?.status).toBe("pending")
+    expect(persisted?.type).toBe("playground")
 
     await expectActivityCreated("agentCsvExtractionRun.create")
   })
@@ -152,20 +156,6 @@ describe("AgentCsvExtractionRuns - createOne", () => {
       where: { id: response.body.data.id },
     })
     expect(persisted?.userId).toBe(context.user.id)
-  })
-
-  it("stores the playground type on a run created on the playground routes", async () => {
-    await createContext()
-
-    const response = await subject(undefined, "playground")
-
-    expectResponse(response, 201)
-    expect(response.body.data.type).toBe("playground")
-
-    const persisted = await repositories.agentCsvExtractionRunRepository.findOne({
-      where: { id: response.body.data.id },
-    })
-    expect(persisted?.type).toBe("playground")
   })
 
   it("pins the run to the draft when an admin asks for its revision", async () => {
@@ -188,40 +178,6 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     expectResponse(response, 201)
     expect(response.body.data.agentSettingsId).toBe(context.agentSettings.id)
     expect(response.body.data.agentRevision).toBe(context.agentSettings.revision)
-  })
-
-  it("returns 403 when a plain member asks for a revision", async () => {
-    // Only the roles that can list the versions may choose one. A member creating a run keeps
-    // getting the published version.
-    await createContext("project_member")
-    await seedRevision({ revision: 2, isDraft: true })
-
-    expectResponse(await subject(2, "playground"), 403)
-  })
-
-  it("returns 403 when a live run asks for a revision, even from an owner", async () => {
-    // A live run always runs the version in production: only the playground names another one.
-    await createContext()
-    await seedRevision({ revision: 2, isDraft: true })
-
-    expectResponse(
-      await subject(2),
-      403,
-      "Choosing a settings version is only available in the playground",
-    )
-  })
-
-  it("lets a plain member create a run when asking for no revision", async () => {
-    // Positive control for the case above: project members hold `csv_extraction_run.create`, so a
-    // plain member can create a run as long as they don't choose a version.
-    // Without this, a grant change that quietly blocked members here would go unnoticed while
-    // the 403 test above kept passing.
-    await createContext("project_member")
-
-    const response = await subject()
-
-    expectResponse(response, 201)
-    expect(response.body.data.agentSettingsId).toBe(context.agentSettings.id)
   })
 
   it("rejects a revision outside the Postgres integer range", async () => {
@@ -249,12 +205,12 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     await createContext()
 
     const response = await request({
-      route: AgentCsvExtractionRunsRoutes.live.createOne,
+      route: AgentCsvExtractionRunsRoutes.playground.createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request: {
         payload: { csvDocumentId, columnSchema, agentSettingsRevision: "2" },
-      } as unknown as typeof AgentCsvExtractionRunsRoutes.live.createOne.request,
+      } as unknown as typeof AgentCsvExtractionRunsRoutes.playground.createOne.request,
     })
 
     expectResponse(response, 403)

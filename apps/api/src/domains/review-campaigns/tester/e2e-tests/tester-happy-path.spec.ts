@@ -320,7 +320,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expect(greeting.content).toBe("Hello from the campaign's version")
   })
 
-  it("a tester's campaign conversations stay out of their App conversation list", async () => {
+  it("a tester's campaign conversations stay out of their playground conversation list", async () => {
     const { agent } = await seedActiveCampaignWithTester("conversation")
     const startResponse = await request({
       route: ReviewCampaignsRoutes.startTesterSession,
@@ -331,7 +331,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expectResponse(startResponse, 201)
 
     const listResponse = await request({
-      route: ConversationAgentSessionsRoutes.live.getAll,
+      route: ConversationAgentSessionsRoutes.playground.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId: agent.id }),
       token: accessToken,
     })

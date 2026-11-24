@@ -1,12 +1,9 @@
-import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { Document } from "@/studio/features/documents/documents.models"
-import { isStudioInterface } from "@/studio/routes/helpers"
 import type { AgentCsvExtractionRun } from "../../csv-extraction-runs/agent-csv-extraction-runs.models"
-import { buildType } from "../shared/base-agent-session/base-agent-sessions.thunks"
 import { patchExtractionSessionStatus } from "./extraction-agent-sessions.actions"
 import type {
   ExtractionAgentSession,
@@ -30,15 +27,9 @@ const getAll = createAsyncThunk<
   const projectId = getCurrentId({ state, name: "projectId" })
   const params = { organizationId, projectId, agentId }
 
-  const others = await services.extractionAgentSessions.getAll({
-    ...params,
-    type: buildType(),
-  })
+  const others = await services.extractionAgentSessions.getAll(params)
 
-  const csvSessions = await services.agentCsvExtractionRuns.getAll({
-    ...params,
-    type: buildType(),
-  })
+  const csvSessions = await services.agentCsvExtractionRuns.getAll(params)
 
   return { csvSessions, others }
 })
@@ -54,7 +45,6 @@ const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
       organizationId,
       projectId,
       agentId,
-      type: buildType(),
     })
   },
 )
@@ -68,9 +58,6 @@ const executeOne = createAsyncThunk<
   ThunkConfig
 >("extractionAgentSessions/executeOne", async (params, { extra: { services }, getState }) => {
   const state = getState()
-  const isStudio = isStudioInterface()
-  const type = isStudio ? "playground" : "live"
-
   const organizationId = getCurrentId({ state, name: "organizationId" })
   const projectId = getCurrentId({ state, name: "projectId" })
   const agentId = getCurrentId({ state, name: "agentId" })
@@ -81,21 +68,19 @@ const executeOne = createAsyncThunk<
           organizationId,
           projectId,
           agentId,
-          type,
           file: params.file,
         })
       : params.document
 
-  // Only Studio may name a version; a Desk run is a live run and the API rejects a revision on
-  // one. `undefined` while the history is loading, which lets the API apply its own default.
-  const agentSettingsRevision = isStudio ? selectPlaygroundRevision({ agentId })(state) : undefined
+  // The version the playground runs. `undefined` while the history is loading, which lets the
+  // API apply its own default.
+  const agentSettingsRevision = selectPlaygroundRevision({ agentId })(state)
 
   return await services.extractionAgentSessions.executeOne({
     organizationId,
     projectId,
     agentId,
     documentId: document.id,
-    type,
     agentSettingsRevision,
   })
 })
@@ -126,20 +111,15 @@ const streamSessionStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
   },
 )
 
-const deleteMyDocuments = createAsyncThunk<
-  void,
-  { documentIds: string[]; type: BaseAgentSessionTypeDto },
-  ThunkConfig
->(
+const deleteMyDocuments = createAsyncThunk<void, { documentIds: string[] }, ThunkConfig>(
   "extractionAgentSessions/deleteMyDocuments",
-  async ({ documentIds, type }, { extra: { services }, getState }) => {
+  async ({ documentIds }, { extra: { services }, getState }) => {
     const state = getState()
-    // Through the extraction agent: a Desk member cannot use the project documents route.
+    // Through the extraction agent, like the upload: the run documents are not project documents.
     const params = {
       organizationId: getCurrentId({ state, name: "organizationId" }),
       projectId: getCurrentId({ state, name: "projectId" }),
       agentId: getCurrentId({ state, name: "agentId" }),
-      type,
     }
     await Promise.all(
       documentIds.map((documentId) =>
@@ -153,16 +133,11 @@ const getOne = createAsyncThunk<ExtractionAgentSession, { agentSessionId: string
   "extractionAgentSessions/getOne",
   async ({ agentSessionId }, { extra: { services }, getState }) => {
     const state = getState()
-    const isStudio = isStudioInterface()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const agentId = getCurrentId({ state, name: "agentId" })
     const params = { organizationId, projectId, agentId }
-    return await services.extractionAgentSessions.getOne({
-      ...params,
-      agentSessionId,
-      type: isStudio ? "playground" : "live",
-    })
+    return await services.extractionAgentSessions.getOne({ ...params, agentSessionId })
   },
 )
 

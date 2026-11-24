@@ -77,7 +77,12 @@ describe("Desk CSV extractions - retryOne", () => {
 
   const createContext = async () => {
     context = await createCsvExtractionRunContext({ repositories, authSubject })
-    const run = await createCsvExtractionRun({ repositories, context, status: "failed" })
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "failed",
+      type: "live",
+    })
     await repositories.agentCsvExtractionRunRecordRepository.save(
       agentCsvExtractionRunRecordFactory
         .transient({

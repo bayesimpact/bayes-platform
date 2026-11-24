@@ -1,7 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type { AgentSettings } from "../../agent-settings/agent-settings.models"
-import { getFillFormOutputJsonSchema } from "../../agent-settings/agent-settings.thunks"
 import type { Agent } from "../../agents.models"
 import { listAgents } from "../../agents.thunks"
 import { createAgentChatSession } from "../shared/base-agent-session/base-agent-sessions.thunks"
@@ -17,13 +15,11 @@ type SubSessionsType = Record<string, AsyncData<ConversationSubSession[]>>
 type State = {
   data: DataType
   subSessions: SubSessionsType
-  fillFormOutputJsonSchema: AsyncData<AgentSettings["outputJsonSchema"]>
 }
 
 const initialState: State = {
   data: {},
   subSessions: {},
-  fillFormOutputJsonSchema: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -102,25 +98,6 @@ const slice = createSlice({
           status: ADS.Error,
           value: null,
           error: action.error.message || "Failed to load sub-sessions",
-        }
-      })
-
-    builder
-      .addCase(getFillFormOutputJsonSchema.pending, (state) => {
-        state.fillFormOutputJsonSchema = { status: ADS.Loading, value: null, error: null }
-      })
-      .addCase(getFillFormOutputJsonSchema.fulfilled, (state, action) => {
-        state.fillFormOutputJsonSchema = {
-          status: ADS.Fulfilled,
-          value: action.payload,
-          error: null,
-        }
-      })
-      .addCase(getFillFormOutputJsonSchema.rejected, (state, action) => {
-        state.fillFormOutputJsonSchema = {
-          status: ADS.Error,
-          value: null,
-          error: action.error.message || "Failed to load fill form output JSON schema",
         }
       })
   },

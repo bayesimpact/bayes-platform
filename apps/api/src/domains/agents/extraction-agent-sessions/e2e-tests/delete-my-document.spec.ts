@@ -73,10 +73,10 @@ describe("ExtractionAgentSessions - deleteMyDocument", () => {
     await app.close()
   })
 
-  // A plain project member: the role the project documents route turns away.
+  // A project owner, the role the playground routes let through.
   const createContext = async () => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      projectMembership: { roleKeys: ["project_member"] },
+      projectMembership: { roleKeys: ["project_owner"] },
       agent: { type: "extraction" },
       agentSettings: { model: AgentModel._Mock },
     })
@@ -95,7 +95,7 @@ describe("ExtractionAgentSessions - deleteMyDocument", () => {
 
   const subject = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes.live.deleteMyDocument,
+      route: ExtractionAgentSessionsRoutes.playground.deleteMyDocument,
       pathParams: removeNullish({ organizationId, projectId, agentId, documentId }),
       token: accessToken,
     })
@@ -103,7 +103,7 @@ describe("ExtractionAgentSessions - deleteMyDocument", () => {
   const isStillThere = async () =>
     (await repositories.documentRepository.findOne({ where: { id: documentId } })) !== null
 
-  it("deletes an extraction document the member uploaded, with its stored file", async () => {
+  it("deletes an extraction document the caller uploaded, with its stored file", async () => {
     const { user, organization, project } = await createContext()
     await saveDocument(
       documentFactory.transient({ organization, project }).build({
@@ -122,7 +122,7 @@ describe("ExtractionAgentSessions - deleteMyDocument", () => {
     await expectActivityCreated("extractionAgentSession.deleteDocument")
   })
 
-  it("answers 404 for an extraction document another member uploaded", async () => {
+  it("answers 404 for an extraction document a colleague uploaded", async () => {
     const { organization, project } = await createContext()
     const otherUser = await createSingleUser(repositories.userRepository)
     await saveDocument(
@@ -136,7 +136,7 @@ describe("ExtractionAgentSessions - deleteMyDocument", () => {
     expect(await isStillThere()).toBe(true)
   })
 
-  it("answers 404 for a knowledge-base document, even one the member uploaded", async () => {
+  it("answers 404 for a knowledge-base document, even one the caller uploaded", async () => {
     const { user, organization, project } = await createContext()
     await saveDocument(
       documentFactory.transient({ organization, project }).build({

@@ -11,7 +11,6 @@ import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-a
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { ActiveAgentScopeService } from "./active-agent-scope.service"
 import { AgentLlmModule } from "./agent-llm.module"
-import { LiveStreamingController } from "./live-streaming.controller"
 import { PlaygroundStreamingController } from "./playground-streaming.controller"
 import { ReviewCampaignTesterStreamingController } from "./review-campaign-tester-streaming.controller"
 import { StreamingLlmService } from "./streaming-llm.service"
@@ -26,11 +25,7 @@ import { StreamingLlmService } from "./streaming-llm.service"
     AgentSessionReviewCampaignContextModule,
   ],
   providers: [...moduleProviders, ActiveAgentScopeService, StreamingLlmService],
-  controllers: [
-    LiveStreamingController,
-    PlaygroundStreamingController,
-    ReviewCampaignTesterStreamingController,
-  ],
+  controllers: [PlaygroundStreamingController, ReviewCampaignTesterStreamingController],
   exports: [StreamingLlmService, ActiveAgentScopeService],
 })
 export class StreamingModule {}

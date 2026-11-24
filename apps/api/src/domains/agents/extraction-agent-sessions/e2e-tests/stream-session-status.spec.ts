@@ -80,7 +80,7 @@ describe("ExtractionAgentSessionsRoutes.streamSessionStatus", () => {
     organizationId,
     projectId,
     agentId,
-    runType: "live",
+    runType: "playground",
     userId,
     status: "success",
     updatedAt: 1_700_000_000_000,
@@ -138,7 +138,7 @@ describe("ExtractionAgentSessionsRoutes.streamSessionStatus", () => {
       request.on("error", (error) => finish(() => reject(error)))
     })
 
-  it("streams the status of the caller's run", async () => {
+  it("streams the status of the caller's playground run", async () => {
     await createContext()
 
     const event = buildEvent({ extractionAgentSessionId: "00000000-0000-0000-0000-000000000011" })
@@ -159,8 +159,8 @@ describe("ExtractionAgentSessionsRoutes.streamSessionStatus", () => {
       overrides: { userId: "00000000-0000-0000-0000-0000000000aa" },
     },
     {
-      case: "the playground",
-      overrides: { runType: "playground" },
+      case: "the Desk, which is live",
+      overrides: { runType: "live" },
     },
   ] as const)("does not stream a run of $case", async ({ overrides }) => {
     await createContext()
