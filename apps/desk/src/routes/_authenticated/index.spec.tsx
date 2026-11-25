@@ -214,13 +214,17 @@ describe("the Desk's home", () => {
     expect(await screen.findByRole("button", { name: "Reload" })).toBeInTheDocument()
   })
 
-  it("shows in French", async () => {
-    await activateLocale("fr")
+  it.each([
+    ["fr", "Comment puis-je vous aider aujourd'hui ?"],
+    ["de", "Wie kann ich Ihnen heute helfen?"],
+    ["it", "Come posso aiutarti oggi?"],
+    ["es", "¿En qué puedo ayudarle hoy?"],
+    ["pl", "W czym mogę Ci dziś pomóc?"],
+  ] as const)("shows in its other languages (%s)", async (locale, heading) => {
+    await activateLocale(locale)
     renderApp("/app/")
 
-    expect(
-      await screen.findByRole("heading", { name: "Comment puis-je vous aider aujourd'hui ?" }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: heading })).toBeInTheDocument()
   })
 
   it("switches to the language the person chooses, and keeps it for the next visit", async () => {
@@ -233,6 +237,33 @@ describe("the Desk's home", () => {
       await screen.findByRole("heading", { name: "Comment puis-je vous aider aujourd'hui ?" }),
     ).toBeInTheDocument()
     expect(detectLocale()).toBe("fr")
+  })
+
+  it("offers its languages in the user menu, each in its own name", async () => {
+    renderApp("/app/")
+
+    await userEvent.click(await screen.findByRole("button", { name: /menu of alex@example\.org$/ }))
+
+    const languages = await screen.findAllByRole("menuitemradio")
+    expect(languages.map((language) => language.textContent)).toEqual([
+      "English",
+      "Français",
+      "Deutsch",
+      "Italiano",
+      "Español",
+      "Polski",
+    ])
+  })
+
+  it("opens in the first of the browser's languages it speaks", () => {
+    const browserLanguages = vi.spyOn(navigator, "languages", "get")
+    browserLanguages.mockReturnValue(["nl-NL", "pl-PL", "en-US"])
+
+    try {
+      expect(detectLocale()).toBe("pl")
+    } finally {
+      browserLanguages.mockRestore()
+    }
   })
 
   it("is where an organization's URL leads", async () => {

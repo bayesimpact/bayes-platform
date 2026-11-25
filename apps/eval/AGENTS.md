@@ -60,7 +60,7 @@ Run them from the repository root.
 | `npm run storybook -w @caseai-connect/eval` | Storybook on port 6010: the whole app on the MSW handlers, with no API and no sign-in |
 | `npm run check -w @caseai-connect/eval` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/eval` | Vitest alone |
-| `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and `fr.po` |
+| `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/eval` | The production build, in `apps/eval/dist` |
 | `npm run preview -w @caseai-connect/eval` | Serves that build on port 5180 at `/eval/` |
 
@@ -322,8 +322,9 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   required answers.
 - A date in a table or under a title reads as how long ago it was, with the full date and time
   on hover: `TimeAgo` (`components/shared/`), which follows the clock by itself and words the time with
-  `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. The chat keeps the
-  Desk's `RelativeTime`, on `Intl`.
+  `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. Each language of
+  `LOCALES` has its date-fns locale there, which the typecheck requires. The chat keeps the Desk's
+  `RelativeTime`, on `Intl`.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts`, with one file of handlers per area beside it

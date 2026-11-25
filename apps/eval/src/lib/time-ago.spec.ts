@@ -14,7 +14,11 @@ describe("timeAgoOf", () => {
 
   it("speaks the person's language, and English for one it does not know", () => {
     expect(timeAgoOf(minutes(5), now, "fr")).toBe("il y a 5 minutes")
-    expect(timeAgoOf(minutes(5), now, "de")).toBe("5 minutes ago")
+    expect(timeAgoOf(minutes(5), now, "de")).toBe("vor 5 Minuten")
+    expect(timeAgoOf(minutes(5), now, "it")).toBe("5 minuti fa")
+    expect(timeAgoOf(minutes(5), now, "es")).toBe("hace 5 minutos")
+    expect(timeAgoOf(minutes(5), now, "pl")).toBe("5 minut temu")
+    expect(timeAgoOf(minutes(5), now, "nl")).toBe("5 minutes ago")
   })
 
   it("reads a moment after now as now", () => {

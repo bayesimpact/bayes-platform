@@ -1,10 +1,26 @@
 import { i18n } from "@lingui/core"
 
-export const LOCALES = ["en", "fr"] as const
+export const LOCALES = ["en", "fr", "de", "it", "es", "pl"] as const
 export type Locale = (typeof LOCALES)[number]
 
 /** The language of a person whose browser speaks none of the app's. */
 const DEFAULT_LOCALE: Locale = "en"
+
+/** A language in its own name, from the browser, capitalized as a menu item: "English", "Français". */
+export function languageNameOf(locale: Locale): string {
+  const name = new Intl.DisplayNames([locale], { type: "language" }).of(locale) ?? locale
+  return `${name.charAt(0).toLocaleUpperCase(locale)}${name.slice(1)}`
+}
+
+/** The speech language of each language of the app, which dictation listens in. */
+export const SPEECH_LANGUAGES: Record<Locale, string> = {
+  en: "en-US",
+  fr: "fr-FR",
+  de: "de-DE",
+  it: "it-IT",
+  es: "es-ES",
+  pl: "pl-PL",
+}
 
 const LOCALE_STORAGE_KEY = "eval.locale"
 

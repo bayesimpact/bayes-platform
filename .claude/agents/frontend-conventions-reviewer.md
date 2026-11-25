@@ -30,7 +30,8 @@ component it gives up on. Your job is the rest: the rules a person has to read t
    - a route without a `pendingComponent` shaped like the page or an `errorComponent` with retry;
    - a screen without its empty, loading and error states;
    - text shown to people outside a Lingui macro, a message with `{0}` placeholders, a missing
-     translator `comment` on a short ambiguous text;
+     translator `comment` on a short ambiguous text, a plural translated without every form its
+     language needs (Polish: `one`, `few`, `many`, `other`);
    - a type written by hand where the contracts or the router could infer it, an `as` without a
      comment that proves it safe;
    - a component over the size or with logic a hook should hold;
