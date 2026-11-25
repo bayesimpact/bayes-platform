@@ -1,0 +1,3736 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-25 16:22+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: pl\n"
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "“{removedPrompt}” leaves this list, with its settings."
+msgstr "Pytanie „{removedPrompt}” zniknie z tej listy wraz ze swoimi ustawieniami."
+
+#: src/components/shared/ExternalLink.tsx
+msgid "(opens in a new tab)"
+msgstr "(otwiera się w nowej karcie)"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
+msgstr "Agent {agentName} odpowiada na rekordy zbioru danych {datasetName}, a model oceniający ocenia każdą odpowiedź względem oczekiwanej odpowiedzi."
+
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "{agentName} reads the records of {datasetName}, and each field it returns is compared with the value expected."
+msgstr "Agent {agentName} czyta rekordy zbioru danych {datasetName}, a każde zwrócone przez niego pole jest porównywane z wartością oczekiwaną."
+
+#: src/features/conversation/components/Composer.tsx
+msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
+msgstr "{annotationCount, plural, one {# adnotacją} few {# adnotacjami} many {# adnotacjami} other {# adnotacji}}"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "{checkedCount, plural, one {# column selected} other {# columns selected}}"
+msgstr "{checkedCount, plural, one {Zaznaczono # kolumnę} few {Zaznaczono # kolumny} many {Zaznaczono # kolumn} other {Zaznaczono # kolumny}}"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{checkedCount, plural, one {# file selected} other {# files selected}}"
+msgstr "{checkedCount, plural, one {Zaznaczono # plik} few {Zaznaczono # pliki} many {Zaznaczono # plików} other {Zaznaczono # pliku}}"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{checkedCount, plural, one {Delete # file?} other {Delete # files?}}"
+msgstr "{checkedCount, plural, one {Usunąć # plik?} few {Usunąć # pliki?} many {Usunąć # plików?} other {Usunąć # pliku?}}"
+
+#. A filter of a table: a column and the text it must hold
+#: src/components/shared/ColumnFilters.tsx
+msgid "{columnName}: {filterText}"
+msgstr "{columnName}: {filterText}"
+
+#: src/components/shared/CompareRunsButton.tsx
+msgid "{comparedCount, plural, one {Compare # run} other {Compare # runs}}"
+msgstr "{comparedCount, plural, one {Porównaj # uruchomienie} few {Porównaj # uruchomienia} many {Porównaj # uruchomień} other {Porównaj # uruchomienia}}"
+
+#: src/features/invitations/components/InvitationsButton.tsx
+msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
+msgstr "{count, plural, one {# oczekujące zaproszenie} few {# oczekujące zaproszenia} many {# oczekujących zaproszeń} other {# oczekującego zaproszenia}}"
+
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "{count, plural, one {# review} other {# reviews}}"
+msgstr "{count, plural, one {# recenzja} few {# recenzje} many {# recenzji} other {# recenzji}}"
+
+#: src/features/conversation/components/SourcesList.tsx
+msgid "{count, plural, one {Used # source} other {Used # sources}}"
+msgstr "{count, plural, one {Użyto # źródła} few {Użyto # źródeł} many {Użyto # źródeł} other {Użyto # źródła}}"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "{count, plural, one {Used a tool} other {Used tools}}"
+msgstr "{count, plural, one {Użyto narzędzia} few {Użyto narzędzi} many {Użyto narzędzi} other {Użyto narzędzi}}"
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "{count} answers, {percent}"
+msgstr "Odpowiedzi: {count}, {percent}"
+
+#: src/components/shared/DatasetNameDialog.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "{DATASET_NAME_MIN_LENGTH, plural, one {Give the dataset a name of # character or more.} other {Give the dataset a name of # characters or more.}}"
+msgstr "{DATASET_NAME_MIN_LENGTH, plural, one {Nazwa zbioru danych musi mieć co najmniej # znak.} few {Nazwa zbioru danych musi mieć co najmniej # znaki.} many {Nazwa zbioru danych musi mieć co najmniej # znaków.} other {Nazwa zbioru danych musi mieć co najmniej # znaku.}}"
+
+#. Under the title of a run: the dataset it asked and the agent's version
+#. Under the title of a run: the dataset it asked and the agent's version
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+msgid "{datasetName} · {agentName}, version {revision}"
+msgstr "{datasetName} · {agentName}, wersja {revision}"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "{deletedEmail} will no longer be able to accept it."
+msgstr "Osoba {deletedEmail} nie będzie już mogła go zaakceptować."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "{feedbackCount, plural, one {# session feedback} other {# session feedbacks}}"
+msgstr "{feedbackCount, plural, one {# opinia o sesji} few {# opinie o sesjach} many {# opinii o sesjach} other {# opinii o sesji}}"
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "{field}, agent's value"
+msgstr "{field}, wartość agenta"
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "{field}, value expected"
+msgstr "{field}, wartość oczekiwana"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} could not be uploaded. Try again."
+msgstr "Nie udało się przesłać pliku {fileName}. Spróbuj ponownie."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} is not a CSV file."
+msgstr "Plik {fileName} nie jest plikiem CSV."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} is over {maxSize}."
+msgstr "Plik {fileName} przekracza {maxSize}."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "{fileName} was uploaded."
+msgstr "Przesłano plik {fileName}."
+
+#. A filter of a run's results and how many it keeps, such as: Errors (1)
+#: src/components/shared/ResultFilters.tsx
+msgid "{filterName} ({count})"
+msgstr "{filterName} ({count})"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "{finalCount, plural, one {# question} other {# questions}}"
+msgstr "{finalCount, plural, one {# pytanie} few {# pytania} many {# pytań} other {# pytania}}"
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "{foundCount, plural, =0 {No record passes the filters} one {# record passes the filters} other {# records pass the filters}}"
+msgstr "{foundCount, plural, =0 {Żaden rekord nie spełnia filtrów} one {# rekord spełnia filtry} few {# rekordy spełniają filtry} many {# rekordów spełnia filtry} other {# rekordu spełnia filtry}}"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{invalidCount, plural, one {Line {invalidList} has no input or no expected output.} other {Lines {invalidList} have no input or no expected output.}}"
+msgstr "{invalidCount, plural, one {Linia {invalidList} nie ma danych wejściowych lub oczekiwanej odpowiedzi.} few {Linie {invalidList} nie mają danych wejściowych lub oczekiwanej odpowiedzi.} many {Linie {invalidList} nie mają danych wejściowych lub oczekiwanej odpowiedzi.} other {Linie {invalidList} nie mają danych wejściowych lub oczekiwanej odpowiedzi.}}"
+
+#. Beside a record in the comparison of runs: its compared fields that match, out of all of them, such as 1 / 2 fields
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "{matched} / {scored} fields"
+msgstr "{matched} / {scored} pól"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "{name} (deprecated, non-EU)"
+msgstr "{name} (przestarzały, spoza UE)"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "{name} (deprecated)"
+msgstr "{name} (przestarzały)"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "{name} (non-EU)"
+msgstr "{name} (spoza UE)"
+
+#. The button of the person's menu, which shows their name
+#: src/features/account/components/UserMenu.tsx
+msgid "{name}, menu of {email}"
+msgstr "{name}, menu konta {email}"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "{otherCount, plural, one {# other reviewer reviewed this session.} other {# other reviewers reviewed this session.}}"
+msgstr "{otherCount, plural, one {Tę sesję zrecenzowała jeszcze # osoba.} few {Tę sesję zrecenzowały jeszcze # osoby.} many {Tę sesję zrecenzowało jeszcze # osób.} other {Tę sesję zrecenzowało jeszcze # osoby.}}"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "{pending, plural, one {# to review} other {# to review}}"
+msgstr "{pending, plural, one {# do recenzji} few {# do recenzji} many {# do recenzji} other {# do recenzji}}"
+
+#: src/components/shared/RunProgressNote.tsx
+msgid "{processed} of {total} records processed. This may take a few minutes."
+msgstr "Przetworzono {processed} z {total} rekordów. Może to potrwać kilka minut."
+
+#. A project and its organization, above its agents in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "{projectName} · {organizationName}"
+msgstr "{projectName} · {organizationName}"
+
+#: src/features/campaigns/components/FeedbackFormPreview.tsx
+msgid "{questionCount, plural, one {# question} other {# questions}}"
+msgstr "{questionCount, plural, one {# pytanie} few {# pytania} many {# pytań} other {# pytania}}"
+
+#: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "{recordCount, plural, =0 {No record} one {# record} other {# records}}"
+msgstr "{recordCount, plural, =0 {Brak rekordów} one {# rekord} few {# rekordy} many {# rekordów} other {# rekordu}}"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{recordCount, plural, one {Add # record} other {Add # records}}"
+msgstr "{recordCount, plural, one {Dodaj # rekord} few {Dodaj # rekordy} many {Dodaj # rekordów} other {Dodaj # rekordu}}"
+
+#: src/components/shared/RunScopeField.tsx
+msgid "{recordCount, plural, one {The # record of the dataset} other {All # records of the dataset}}"
+msgstr "{recordCount, plural, one {Jedyny rekord zbioru danych} few {Wszystkie # rekordy zbioru danych} many {Wszystkich # rekordów zbioru danych} other {Wszystkie rekordy zbioru danych (#)}}"
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "{remainingCount, plural, one {# record remaining} other {# records remaining}}"
+msgstr "{remainingCount, plural, one {Pozostał # rekord} few {Pozostały # rekordy} many {Pozostało # rekordów} other {Pozostało # rekordu}}"
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "{responseCount, plural, one {# answer} other {# answers}}"
+msgstr "{responseCount, plural, one {# odpowiedź} few {# odpowiedzi} many {# odpowiedzi} other {# odpowiedzi}}"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "{reviewCount, plural, one {# review} other {# reviews}}"
+msgstr "{reviewCount, plural, one {# recenzja} few {# recenzje} many {# recenzji} other {# recenzji}}"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "{reviewerCount, plural, one {# question} other {# questions}}"
+msgstr "{reviewerCount, plural, one {# pytanie} few {# pytania} many {# pytań} other {# pytania}}"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "{reviewerCount, plural, one {# reviewer} other {# reviewers}}"
+msgstr "{reviewerCount, plural, one {# recenzent} few {# recenzentów} many {# recenzentów} other {# recenzenta}}"
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "{revokedEmail} could not be revoked. Try again."
+msgstr "Nie udało się cofnąć dostępu osoby {revokedEmail}. Spróbuj ponownie."
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "{revokedEmail} was revoked."
+msgstr "Cofnięto dostęp osoby {revokedEmail}."
+
+#: src/components/shared/CompareRunsPageFrame.tsx
+msgid "{runCount, plural, =0 {No run of {datasetName} to compare} one {# run of {datasetName}} other {# runs of {datasetName}, side by side}}"
+msgstr "{runCount, plural, =0 {Brak uruchomień zbioru danych {datasetName} do porównania} one {# uruchomienie zbioru danych {datasetName}} few {# uruchomienia zbioru danych {datasetName}, obok siebie} many {# uruchomień zbioru danych {datasetName}, obok siebie} other {# uruchomienia zbioru danych {datasetName}, obok siebie}}"
+
+#: src/components/shared/RunsByStatus.tsx
+msgid "{runCount, plural, =0 {No run yet} one {# run} other {# runs}}"
+msgstr "{runCount, plural, =0 {Nie ma jeszcze uruchomień} one {# uruchomienie} few {# uruchomienia} many {# uruchomień} other {# uruchomienia}}"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "{sessionCount, plural, one {# question} other {# questions}}"
+msgstr "{sessionCount, plural, one {# pytanie} few {# pytania} many {# pytań} other {# pytania}}"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "{sessionCount, plural, one {# session} other {# sessions}}"
+msgstr "{sessionCount, plural, one {# sesja} few {# sesje} many {# sesji} other {# sesji}}"
+
+#. Under the name of a CSV file: its size, and when it was uploaded
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
+msgid "{size} · Uploaded <0/>"
+msgstr "{size} · Przesłano <0/>"
+
+#: src/components/shared/StarRatingInput.tsx
+msgid "{star, plural, one {# star} other {# stars}}"
+msgstr "{star, plural, one {# gwiazdka} few {# gwiazdki} many {# gwiazdek} other {# gwiazdki}}"
+
+#. A sub-tab of a dataset's runs: a status and how many runs stand at it
+#: src/components/shared/RunsByStatus.tsx
+msgid "{statusName} ({count})"
+msgstr "{statusName} ({count})"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "{taskCount, plural, one {# changed task} other {# changed tasks}}"
+msgstr "{taskCount, plural, one {# zmienionym zadaniem} few {# zmienionymi zadaniami} many {# zmienionymi zadaniami} other {# zmienionego zadania}}"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "{testerCount, plural, one {# tester} other {# testers}}"
+msgstr "{testerCount, plural, one {# tester} few {# testerów} many {# testerów} other {# testera}}"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "{tooLongCount, plural, one {Line {tooLongList} is over {maxLength} characters.} other {Lines {tooLongList} are over {maxLength} characters.}}"
+msgstr "{tooLongCount, plural, one {Linia {tooLongList} przekracza {maxLength} znaków.} few {Linie {tooLongList} przekraczają {maxLength} znaków.} many {Linie {tooLongList} przekraczają {maxLength} znaków.} other {Linie {tooLongList} przekraczają {maxLength} znaków.}}"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "{total, plural, =0 {No record yet} one {# record} other {# records}}"
+msgstr "{total, plural, =0 {Nie ma jeszcze rekordów} one {# rekord} few {# rekordy} many {# rekordów} other {# rekordu}}"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "{total, plural, one {# session} other {# sessions}}"
+msgstr "{total, plural, one {# sesja} few {# sesje} many {# sesji} other {# sesji}}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "<0/> to send"
+msgstr "<0/> aby wysłać"
+
+#. A section of the list that switches agent: where its agents are, then their type
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "<0>{place}</0> · {typeName}"
+msgstr "<0>{place}</0> · {typeName}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "<0><1/><2/></0> for a new line"
+msgstr "<0><1/><2/></0> aby przejść do nowej linii"
+
+#. Before the comment a person wrote in the Studio when they saved an answer as a test case
+#: src/features/conversation-datasets/components/conversation-record-columns.tsx
+msgid "<0>Comment:</0> {comment}"
+msgstr "<0>Komentarz:</0> {comment}"
+
+#: src/features/conversation-datasets/components/ConversationDatasetDialogs.tsx
+msgid "A dataset holds the questions an evaluation asks the agent."
+msgstr "Zbiór danych zawiera pytania, które ewaluacja zadaje agentowi."
+
+#: src/features/extraction-datasets/components/ExtractionDatasetDialogs.tsx
+msgid "A dataset holds the rows an evaluation gives the agent. Its records come from a CSV file, which you choose next."
+msgstr "Zbiór danych zawiera wiersze, które ewaluacja przekazuje agentowi. Jego rekordy pochodzą z pliku CSV, który wybierzesz w następnym kroku."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "A new version of Evaluation is available"
+msgstr "Dostępna jest nowa wersja aplikacji Ewaluacja"
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "A new version of Evaluation is available. Reload the page."
+msgstr "Dostępna jest nowa wersja aplikacji Ewaluacja. Odśwież stronę."
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "A new version of the app is available"
+msgstr "Dostępna jest nowa wersja aplikacji"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "A run evaluates a saved version, never the draft."
+msgstr "Uruchomienie ocenia zapisaną wersję, nigdy wersję roboczą."
+
+#. What the Target role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "A value the agent must find"
+msgstr "Wartość, którą agent musi znaleźć"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Accept"
+msgstr "Zaakceptuj"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Accept the invitation to {name}"
+msgstr "Zaakceptuj zaproszenie do: {name}"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Account already exists"
+msgstr "Konto już istnieje"
+
+#: src/components/shared/HeaderActionsMenu.tsx
+msgid "Actions of the page"
+msgstr "Akcje strony"
+
+#. Opens a review campaign to its testers and reviewers
+#. Opens a review campaign to its testers and reviewers
+#. Opens a review campaign to its testers and reviewers
+#. The setup step that opens a campaign
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Activate"
+msgstr "Aktywuj"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Activate “{name}”?"
+msgstr "Aktywować kampanię „{name}”?"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "Activate the campaign"
+msgstr "Aktywuj kampanię"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Activate the campaign to invite testers and reviewers: they can accept an invitation only once it is active."
+msgstr "Aktywuj kampanię, aby zaprosić testerów i recenzentów: mogą zaakceptować zaproszenie dopiero wtedy, gdy kampania jest aktywna."
+
+#. A review campaign open to its testers and reviewers
+#: src/lib/campaign-status.ts
+msgid "Active"
+msgstr "Aktywna"
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "Add a question"
+msgstr "Dodaj pytanie"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Add a record"
+msgstr "Dodaj rekord"
+
+#: src/features/conversation-datasets/components/ConversationDatasetPage.tsx
+msgid "Add a record first."
+msgstr "Najpierw dodaj rekord."
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Add records"
+msgstr "Dodaj rekordy"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Add the record"
+msgstr "Dodaj rekord"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "admin"
+msgstr "administrator"
+
+#. The setup step with the questions a tester answers after each session
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "After each session"
+msgstr "Po każdej sesji"
+
+#. The badge of a column that holds what the agent returned, in lower case
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+msgid "agent"
+msgstr "agent"
+
+#. The agent a run asked
+#. The tab of what a run used about its agent
+#. The tab of what a run used about its agent
+#. What an invitation gives access to
+#: src/components/shared/RunAgentFacts.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Agent"
+msgstr "Agent"
+
+#. The agent that fills in a form, when it has no name
+#: src/features/conversation/components/FormsPanel.tsx
+msgctxt "form"
+msgid "Agent"
+msgstr "Agent"
+
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Agent and fields"
+msgstr "Agent i pola"
+
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Agent and judge"
+msgstr "Agent i model oceniający"
+
+#. The saved version of the agent's settings a review campaign or an evaluation runs on
+#. The saved version of the agent's settings a review campaign runs on
+#: src/components/shared/AgentVersionPicker.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Agent version"
+msgstr "Wersja agenta"
+
+#. What the agent answered in a run
+#. What the agent answered in a run
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "Agent's answer"
+msgstr "Odpowiedź agenta"
+
+#. What the agent returned for a field
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "Agent's value"
+msgstr "Wartość agenta"
+
+#. The filter that shows every result of a run
+#. The filter that shows every result of a run
+#: src/features/conversation-runs/result-filters.ts
+#: src/features/extraction-runs/result-filters.ts
+msgid "All"
+msgstr "Wszystkie"
+
+#. An agent searches every document
+#: src/lib/document-search-labels.ts
+msgid "All the documents"
+msgstr "Wszystkie dokumenty"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
+msgstr "Dla Twojego adresu e-mail istnieje już konto, a ta platforma nie łączy nowych logowań z istniejącymi kontami."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
+msgstr "Na Twój adres e-mail czeka konto, ale Twój dostawca tożsamości jeszcze go nie zweryfikował."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "An archived version"
+msgstr "Wersja zarchiwizowana"
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "An evaluation sends the input to the agent, then grades its answer against the expected output."
+msgstr "Ewaluacja wysyła dane wejściowe do agenta, a następnie ocenia jego odpowiedź względem oczekiwanej odpowiedzi."
+
+#. Opens a note on the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Annotate"
+msgstr "Dodaj adnotację"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Annotate and press Enter to keep it"
+msgstr "Wpisz adnotację i naciśnij Enter, aby ją zachować"
+
+#: src/components/shared/QuestionField.tsx
+msgid "Answer this question."
+msgstr "Odpowiedz na to pytanie."
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Anything we should know about this session?"
+msgstr "Czy jest coś, co powinniśmy wiedzieć o tej sesji?"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "As {role}"
+msgstr "Jako {role}"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "As the file holds them, to tell what each column is."
+msgstr "W postaci zapisanej w pliku, aby było wiadomo, czym jest każda kolumna."
+
+#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+msgid "Ask this agent the questions of a dataset, and have a model grade its answers."
+msgstr "Zadaj temu agentowi pytania ze zbioru danych i zleć modelowi ocenę jego odpowiedzi."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Asked each time a tester ends a session with the agent."
+msgstr "Zadawane za każdym razem, gdy tester kończy sesję z agentem."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Asked once, when a tester finishes taking part."
+msgstr "Zadawane raz, gdy tester kończy swój udział."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Asked to a reviewer for each session they review."
+msgstr "Zadawane recenzentowi przy każdej recenzowanej sesji."
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Attach a file"
+msgstr "Załącz plik"
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "Attach a file of {maxSize} at most."
+msgstr "Załącz plik o rozmiarze do {maxSize}."
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "Attach a PDF, PNG or JPEG file."
+msgstr "Załącz plik PDF, PNG lub JPEG."
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "Attachment"
+msgstr "Załącznik"
+
+#. The average score of a run
+#. The average score of a run
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+msgid "Average score"
+msgstr "Średnia ocena"
+
+#. Goes to the step before, in a campaign's setup
+#. The link back to the campaign from one of its sessions
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+#: src/features/campaigns/components/SetupStepFooter.tsx
+msgid "Back"
+msgstr "Wstecz"
+
+#. Opens the platform's home, which lists the person's apps
+#: src/components/shared/AppLogo.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "Back to home"
+msgstr "Wróć do strony głównej"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Back to the app"
+msgstr "Wróć do aplikacji"
+
+#: src/components/shared/AgentVersionsSheet.tsx
+msgid "Browse and compare the saved versions of the agent, then choose one."
+msgstr "Przeglądaj i porównuj zapisane wersje agenta, a następnie wybierz jedną z nich."
+
+#: src/components/shared/AgentVersionsSheet.tsx
+msgid "Browse and compare the saved versions of the agent."
+msgstr "Przeglądaj i porównuj zapisane wersje agenta."
+
+#. Builds the records of a dataset from the chosen CSV file
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Build the dataset"
+msgstr "Zbuduj zbiór danych"
+
+#: src/features/extraction-datasets/components/ExtractionDatasetPage.tsx
+msgid "Build the dataset from a CSV file first."
+msgstr "Najpierw zbuduj zbiór danych z pliku CSV."
+
+#. Opens the dialog that adds several records to a dataset at once
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Bulk add"
+msgstr "Dodaj zbiorczo"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Bulk add records"
+msgstr "Dodaj rekordy zbiorczo"
+
+#. The setup step with a campaign's name
+#: src/features/campaigns/setup-steps.ts
+msgid "Campaign"
+msgstr "Kampania"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Campaign for {agentName}, {today}"
+msgstr "Kampania dla agenta {agentName}, {today}"
+
+#. The sidebar's menu of the review campaigns an agent's managers run
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+#: src/features/campaigns/components/CampaignsPage.tsx
+#: src/features/campaigns/components/NewCampaignPage.tsx
+#: src/routes/-components/AgentHubPage.tsx
+#: src/routes/-components/CampaignsMenu.tsx
+msgid "Campaigns"
+msgstr "Kampanie"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Can we switch plan later?, Yes, at any time, from the billing page."
+msgstr "Czy można później zmienić plan?, Tak, w dowolnej chwili, na stronie rozliczeń."
+
+#: src/components/shared/ConfirmDialog.tsx
+#: src/components/shared/DatasetNameDialog.tsx
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/conversation/components/FeedbackDialog.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "Cancel"
+msgstr "Anuluj"
+
+#. Stops a run under way
+#. Stops a run under way
+#: src/components/shared/RunPageHeader.tsx
+msgid "Cancel the run"
+msgstr "Anuluj uruchomienie"
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "Cancel this run?"
+msgstr "Anulować to uruchomienie?"
+
+#. A run that a person stopped
+#: src/lib/run-status.ts
+msgid "Cancelled"
+msgstr "Anulowano"
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "Captured form"
+msgstr "Zebrany formularz"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Changed fields:"
+msgstr "Zmienione pola:"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Changes in this version"
+msgstr "Zmiany w tej wersji"
+
+#. Opens a session of a tester with the agent, where they can still talk to it
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Chat"
+msgstr "Rozmawiaj"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Chat in the session of {started}"
+msgstr "Rozmawiaj w sesji z {started}"
+
+#: src/components/shared/RunsSection.tsx
+msgid "Check two runs or more to compare them."
+msgstr "Zaznacz co najmniej dwa uruchomienia, aby je porównać."
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Check your connection, then try again."
+msgstr "Sprawdź połączenie, a następnie spróbuj ponownie."
+
+#. The empty choice of the column a field of the agent is compared with
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Choose a column…"
+msgstr "Wybierz kolumnę…"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Choose a CSV file"
+msgstr "Wybierz plik CSV"
+
+#: src/components/shared/AgentVersionPicker.tsx
+msgid "Choose a version"
+msgstr "Wybierz wersję"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "Choose another file"
+msgstr "Wybierz inny plik"
+
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Choose the version the campaign runs on."
+msgstr "Wybierz wersję, na której działa kampania."
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "Choose the version the evaluation uses."
+msgstr "Wybierz wersję, której używa ewaluacja."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Close “{name}”?"
+msgstr "Zamknąć kampanię „{name}”?"
+
+#. Ends a review campaign
+#. Ends a review campaign
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Close the campaign"
+msgstr "Zamknij kampanię"
+
+#: src/components/shared/SidePanel.tsx
+msgid "Close the panel"
+msgstr "Zamknij panel"
+
+#. A review campaign that is over
+#: src/lib/campaign-status.ts
+msgid "Closed"
+msgstr "Zamknięta"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Closing ends the campaign for good: testers can no longer start sessions or give feedback, and reviewers can no longer submit reviews."
+msgstr "Zamknięcie kończy kampanię na dobre: testerzy nie mogą już rozpoczynać sesji ani przekazywać opinii, a recenzenci nie mogą już wysyłać recenzji."
+
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Column the field {field} is compared with"
+msgstr "Kolumna, z którą porównywane jest pole {field}"
+
+#: src/components/shared/ColumnFilters.tsx
+msgid "Column to filter"
+msgstr "Kolumna do filtrowania"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "Columns of {fileName}"
+msgstr "Kolumny pliku {fileName}"
+
+#: src/components/shared/RatedFeedbackForm.tsx
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+#: src/features/campaigns/components/FeedbackFormFields.tsx
+msgid "Comment"
+msgstr "Komentarz"
+
+#: src/components/shared/RunCompareAllCheckbox.tsx
+msgid "Compare all the runs of the table"
+msgstr "Porównaj wszystkie uruchomienia z tabeli"
+
+#. Opens the comparison of the runs picked in the list
+#: src/components/shared/CompareRunsButton.tsx
+#: src/components/shared/CompareRunsPageFrame.tsx
+msgid "Compare runs"
+msgstr "Porównaj uruchomienia"
+
+#: src/components/shared/RunCompareCheckbox.tsx
+msgid "Compare the run of {started}"
+msgstr "Porównaj uruchomienie z {started}"
+
+#: src/components/shared/RunAgentFacts.tsx
+#: src/components/shared/RunVersionButton.tsx
+msgid "Compare version {revision} with the others"
+msgstr "Porównaj wersję {revision} z pozostałymi"
+
+#. The label of the choice of what a version is compared with
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Compare with"
+msgstr "Porównaj z"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Compare with production"
+msgstr "Porównaj z wersją produkcyjną"
+
+#. How a run reads a field of the agent: compared with a column, named next
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Compared with"
+msgstr "Porównywane z"
+
+#. Under a field of an extraction run: the dataset's column it is compared with
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Compared with {columnName}"
+msgstr "Porównywane z kolumną {columnName}"
+
+#. A run that is over
+#: src/lib/run-status.ts
+msgid "Completed"
+msgstr "Zakończono"
+
+#: src/features/conversation/components/FormsButton.tsx
+msgid "Completed form"
+msgstr "Ukończony formularz"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Completing the form"
+msgstr "Uzupełnianie formularza"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Contact your administrator."
+msgstr "Skontaktuj się z administratorem."
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Conversation agents"
+msgstr "Agenci konwersacyjni"
+
+#: src/lib/agent-type-labels.ts
+msgid "Conversational agent"
+msgstr "Agent konwersacyjny"
+
+#. The copy button, once it copied its text
+#. The copy button, once it copied its text
+#: src/components/shared/CopyButton.tsx
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Copied"
+msgstr "Skopiowano"
+
+#. Copies the passage of a reply the person selected
+#: src/features/conversation/components/SelectionActions.tsx
+msgid "Copy"
+msgstr "Skopiuj"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "Copy the code"
+msgstr "Skopiuj kod"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Copy the invitation link"
+msgstr "Skopiuj link z zaproszeniem"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Copy the invitation link of {email}"
+msgstr "Skopiuj link z zaproszeniem dla {email}"
+
+#: src/features/conversation/components/ChatMessageView.tsx
+msgid "Copy the message"
+msgstr "Skopiuj wiadomość"
+
+#: src/features/conversation/components/AssistantMessageView.tsx
+msgid "Copy the reply"
+msgstr "Skopiuj odpowiedź"
+
+#: src/features/campaigns/components/CampaignsEmptyState.tsx
+msgid "Create a campaign so testers and reviewers can evaluate this agent."
+msgstr "Utwórz kampanię, aby testerzy i recenzenci mogli ocenić tego agenta."
+
+#: src/features/conversation-datasets/components/ConversationDatasetsPage.tsx
+msgid "Create a dataset, then add the questions to ask the agent."
+msgstr "Utwórz zbiór danych, a następnie dodaj pytania, które mają zostać zadane agentowi."
+
+#: src/features/extraction-datasets/components/ExtractionDatasetsPage.tsx
+msgid "Create a dataset, then build its records from a CSV file."
+msgstr "Utwórz zbiór danych, a następnie zbuduj jego rekordy z pliku CSV."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "Create dataset"
+msgstr "Utwórz zbiór danych"
+
+#. When a review campaign was created
+#: src/features/campaigns/components/campaign-columns.tsx
+msgid "Created"
+msgstr "Utworzono"
+
+#. When a review campaign was created, such as: Created 5 days ago
+#: src/components/shared/CampaignDescription.tsx
+msgid "Created <0/>"
+msgstr "Utworzono <0/>"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "CSV file to upload"
+msgstr "Plik CSV do przesłania"
+
+#. The Control key of a keyboard
+#. The Control key of a keyboard
+#: src/components/shared/ShortcutHint.tsx
+#: src/components/shared/SidebarToggle.tsx
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#. Marks the agent whose pages show, in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Current"
+msgstr "Bieżący"
+
+#. Under the name of a dataset: what the page shows, and when it last changed
+#: src/components/shared/DatasetPageFrame.tsx
+msgid "Dataset · Updated <0/>"
+msgstr "Zbiór danych · Zaktualizowano <0/>"
+
+#. The header of the column of the names, in the list of datasets
+#: src/components/shared/dataset-columns.tsx
+msgid "Dataset's name"
+msgstr "Nazwa zbioru danych"
+
+#. Above the datasets of a project, in the sidebar
+#: src/components/shared/DatasetSidebarLinks.tsx
+msgid "Datasets"
+msgstr "Zbiory danych"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Decline"
+msgstr "Odrzuć"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Decline the invitation to {name}"
+msgstr "Odrzuć zaproszenie do: {name}"
+
+#. Deletes a dataset
+#. Deletes a dataset
+#. Deletes a record of a dataset
+#. Deletes a run
+#. Deletes a run
+#. Deletes the files checked in a list
+#: src/components/shared/DatasetDialogs.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/DatasetRowActions.tsx
+#: src/components/shared/DeleteRunDialog.tsx
+#: src/components/shared/RunPageHeader.tsx
+#: src/components/shared/RunRowActions.tsx
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+#: src/features/campaigns/components/PendingInvitations.tsx
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Delete"
+msgstr "Usuń"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Delete “{name}”?"
+msgstr "Usunąć kampanię „{name}”?"
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "Delete {deletedName}?"
+msgstr "Usunąć zbiór danych {deletedName}?"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete the invitation"
+msgstr "Usuń zaproszenie"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete the invitation of {email}"
+msgstr "Usuń zaproszenie dla {email}"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Delete the session of {started}"
+msgstr "Usuń sesję z {started}"
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Delete this invitation?"
+msgstr "Usunąć to zaproszenie?"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Delete this record?"
+msgstr "Usunąć ten rekord?"
+
+#: src/components/shared/DeleteRunDialog.tsx
+msgid "Delete this run?"
+msgstr "Usunąć to uruchomienie?"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "Delete this session?"
+msgstr "Usunąć tę sesję?"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Describe the problem in a few words, up to {maxLength} characters."
+msgstr "Opisz problem w kilku słowach, maksymalnie {maxLength} znaków."
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "Description"
+msgstr "Opis"
+
+#. Lets go of the files checked in a list
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Deselect"
+msgstr "Odznacz"
+
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Details of {fileName}"
+msgstr "Szczegóły pliku {fileName}"
+
+#: src/features/conversation/components/DictationButton.tsx
+msgid "Dictate your message"
+msgstr "Podyktuj wiadomość"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Did the agent address your question?"
+msgstr "Czy agent odpowiedział na Twoje pytanie?"
+
+#. Which documents the agent searched in a run
+#. Which documents the agent searched in a run
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Document search"
+msgstr "Wyszukiwanie w dokumentach"
+
+#. Which documents of its project an agent searches
+#: src/lib/agent-version-diff.ts
+msgid "Documents used"
+msgstr "Źródło odpowiedzi"
+
+#. Ends a campaign's setup
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "Done"
+msgstr "Zakończ"
+
+#. Opens the results of a run as a CSV file
+#. Opens the results of a run as a CSV file
+#: src/features/campaign-report/components/DownloadReportButton.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "Download CSV"
+msgstr "Pobierz CSV"
+
+#. A review campaign being prepared
+#: src/lib/campaign-status.ts
+msgid "Draft"
+msgstr "Wersja robocza"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "e.g. Penalize answers that are not in the expected language"
+msgstr "np. Obniżaj ocenę odpowiedzi, które nie są w oczekiwanym języku"
+
+#: src/components/shared/DatasetNameDialog.tsx
+msgid "e.g. Pricing questions"
+msgstr "np. Pytania o cennik"
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+msgid "e.g. Support agent, spring review"
+msgstr "np. Agent wsparcia, wiosenna recenzja"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "e.g. Was the answer clear?"
+msgstr "np. Czy odpowiedź była jasna?"
+
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Each field the agent returns is compared with a target column of the dataset, or only shown beside the results."
+msgstr "Każde pole zwracane przez agenta jest porównywane z kolumną docelową zbioru danych albo tylko wyświetlane obok wyników."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Each new sign-in ended at once, so the app stopped starting new ones."
+msgstr "Każde nowe logowanie od razu się kończyło, więc aplikacja przestała rozpoczynać kolejne."
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Each person gets an invitation to accept. They must sign in with the address you write here."
+msgstr "Każda osoba otrzymuje zaproszenie do zaakceptowania. Musi się zalogować przy użyciu adresu, który tutaj wpiszesz."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "Each session's tester rating against its reviewers'. The spread is the highest reviewer rating minus the lowest: a high one means the reviewers disagree."
+msgstr "Ocena testera dla każdej sesji zestawiona z ocenami recenzentów. Rozpiętość to najwyższa ocena recenzenta minus najniższa: duża rozpiętość oznacza, że recenzenci się nie zgadzają."
+
+#. Changes a record of a dataset
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Edit"
+msgstr "Edytuj"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Edit annotation {number}"
+msgstr "Edytuj adnotację {number}"
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "Edit my survey"
+msgstr "Edytuj moją ankietę"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Edit the record"
+msgstr "Edytuj rekord"
+
+#. The email address of a participant
+#: src/features/campaigns/components/participant-columns.tsx
+msgid "Email"
+msgstr "E-mail"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Email address missing"
+msgstr "Brak adresu e-mail"
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "Email addresses, separated by commas or new lines"
+msgstr "Adresy e-mail oddzielone przecinkami lub nowymi liniami"
+
+#. The model an agent searches its documents with
+#: src/lib/agent-version-diff.ts
+msgid "Embedding model"
+msgstr "Model embeddingów"
+
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+msgid "End the session and give feedback"
+msgstr "Zakończ sesję i przekaż opinię"
+
+#. The keyboard key
+#: src/features/conversation/components/EnterKey.tsx
+msgid "Enter"
+msgstr "Enter"
+
+#. A record of a run an error stopped
+#. A record of a run an error stopped
+#. A record of a run an error stopped
+#. The title of the error that stopped a record of a run
+#. The title of the error that stopped a record of a run
+#: src/features/conversation-runs/components/RunRecordScore.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+msgid "Error"
+msgstr "Błąd"
+
+#. The header of the column of the errors that stopped records of a run
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "Error details"
+msgstr "Szczegóły błędu"
+
+#. How many records of a run an error stopped
+#. How many records of a run an error stopped
+#. How many records of a run an error stopped
+#. How many records of a run an error stopped
+#. How many records of a run an error stopped
+#. The filter of the results an error stopped
+#. The filter of the results an error stopped
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/result-filters.ts
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/result-filters.ts
+msgid "Errors"
+msgstr "Błędy"
+
+#. The Escape key of a keyboard
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Esc"
+msgstr "Esc"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Evaluate the agent's answers and share your feedback."
+msgstr "Oceń odpowiedzi agenta i podziel się opinią."
+
+#. The name of the app, next to the logo
+#: src/components/shared/AppLogo.tsx
+msgid "Evaluation"
+msgstr "Ewaluacja"
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "Evaluation could not reach the agent. Check your connection."
+msgstr "Aplikacja Ewaluacja nie mogła połączyć się z agentem. Sprawdź połączenie."
+
+#: src/features/conversation/hooks/use-dictation.ts
+msgid "Evaluation may not use your microphone. Allow it in your browser, then try again."
+msgstr "Aplikacja Ewaluacja nie ma dostępu do Twojego mikrofonu. Zezwól na dostęp w przeglądarce, a następnie spróbuj ponownie."
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "Evaluation opens to the evaluators and the admins of a project, and to the testers and reviewers of a review campaign. Ask a project admin to give you access."
+msgstr "Aplikacja Ewaluacja jest dostępna dla ewaluatorów i administratorów projektu oraz dla testerów i recenzentów kampanii recenzji. Poproś administratora projektu o dostęp."
+
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/DatasetsListPage.tsx
+#: src/routes/-components/AgentHubPage.tsx
+#: src/routes/-components/AgentSectionsNav.tsx
+msgid "Evaluations"
+msgstr "Ewaluacje"
+
+#. The value a field should have, with the name of its column
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "Expected ({columnName})"
+msgstr "Wartość oczekiwana ({columnName})"
+
+#. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
+#. The answer an evaluation expects from the agent
+#: src/features/conversation-datasets/components/conversation-record-columns.tsx
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "Expected output"
+msgstr "Oczekiwana odpowiedź"
+
+#: src/lib/agent-type-labels.ts
+msgid "Extraction agent"
+msgstr "Agent ekstrakcji"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Extraction agents"
+msgstr "Agenci ekstrakcji"
+
+#. A question about what happened in a session, not an opinion
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Factual"
+msgstr "Pytanie o fakty"
+
+#. A run that an error stopped
+#: src/lib/run-status.ts
+msgid "Failed"
+msgstr "Niepowodzenie"
+
+#. Whether the tester gave feedback on a session
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Feedback"
+msgstr "Opinia"
+
+#: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "Feedback given"
+msgstr "Opinia przekazana"
+
+#: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "Feedback to give"
+msgstr "Opinia do przekazania"
+
+#. The tab of the fields an extraction run reads
+#. The title of the fields of a record of an extraction run
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Fields"
+msgstr "Pola"
+
+#. The part of a run's form that pairs the agent's fields with the dataset's columns
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Fields to compare"
+msgstr "Pola do porównania"
+
+#. The header of the column of what the comparison measures
+#: src/components/shared/RunFiguresTable.tsx
+msgid "Figure"
+msgstr "Wskaźnik"
+
+#. The title of the figures of the runs compared
+#: src/components/shared/RunFiguresTable.tsx
+msgid "Figures"
+msgstr "Wskaźniki"
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "Fill the final survey"
+msgstr "Wypełnij ankietę końcową"
+
+#. The fields the agent filled while it answered a record of a run
+#. The fields the agent filled while it answered a record of a run
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "Filled form"
+msgstr "Wypełniony formularz"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Filling in the form"
+msgstr "Wypełnianie formularza"
+
+#. The button that adds a filter to a table: a column and the text it holds
+#: src/components/shared/ColumnFilters.tsx
+msgid "Filter"
+msgstr "Filtruj"
+
+#. The label of the filters of the table of a run's results
+#: src/components/shared/ResultFilters.tsx
+msgid "Filter the results"
+msgstr "Filtruj wyniki"
+
+#: src/components/shared/ColumnFilters.tsx
+msgid "Filters that apply"
+msgstr "Zastosowane filtry"
+
+#. The setup step with the questions a tester answers once, at the end
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaign-test/components/SurveyCard.tsx
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Final survey"
+msgstr "Ankieta końcowa"
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "Final surveys"
+msgstr "Ankiety końcowe"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "First rows of {fileName}"
+msgstr "Pierwsze wiersze pliku {fileName}"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "First version"
+msgstr "Pierwsza wersja"
+
+#. Whether an agent suggests follow-up questions
+#: src/lib/agent-version-diff.ts
+msgid "Follow-up suggestions"
+msgstr "Pytania uzupełniające"
+
+#. How many follow-up questions an agent suggests at most
+#: src/lib/agent-version-diff.ts
+msgid "Follow-up suggestions at most"
+msgstr "Maksymalna liczba pytań uzupełniających"
+
+#. How an agent writes its follow-up questions
+#: src/lib/agent-version-diff.ts
+msgid "Follow-up suggestions instructions"
+msgstr "Instrukcje dla pytań uzupełniających"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Forgetting what you asked"
+msgstr "Zapominanie na Twoją prośbę"
+
+#. The form an agent fills during a conversation
+#: src/lib/agent-version-diff.ts
+msgid "Form"
+msgstr "Formularz"
+
+#. Whether an agent fills a form during a conversation
+#: src/lib/agent-version-diff.ts
+msgid "Form filling"
+msgstr "Wypełnianie formularza"
+
+#: src/features/conversation/components/FormsButton.tsx
+msgid "Form in progress"
+msgstr "Formularz w toku"
+
+#. A question answered with a text
+#. A question answered with a text
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Free text"
+msgstr "Tekst dowolny"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "From the testers' final surveys."
+msgstr "Z ankiet końcowych testerów."
+
+#. The general settings of a review campaign
+#. The general settings of a review campaign
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "General"
+msgstr "Ogólne"
+
+#: src/components/shared/RunScopeField.tsx
+msgid "Give a number of records, 1 or more."
+msgstr "Podaj liczbę rekordów, co najmniej 1."
+
+#: src/components/shared/RatedFeedbackForm.tsx
+msgid "Give a rating from 1 to 5 stars."
+msgstr "Wystaw ocenę od 1 do 5 gwiazdek."
+
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "Give each compared field a column, or only show it."
+msgstr "Przypisz kolumnę każdemu porównywanemu polu albo tylko je wyświetlaj."
+
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "Give feedback"
+msgstr "Przekaż opinię"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "Give feedback on the session of {started}"
+msgstr "Przekaż opinię o sesji z {started}"
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+msgid "Give the campaign a name."
+msgstr "Nadaj kampanii nazwę."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Give the selection a role…"
+msgstr "Nadaj rolę zaznaczonym kolumnom…"
+
+#: src/features/extraction-datasets/components/ExtractionDatasetsPage.tsx
+msgid "Give this agent the rows of a dataset, and compare what it extracts with the values expected."
+msgstr "Przekaż temu agentowi wiersze zbioru danych i porównaj to, co wyodrębni, z wartościami oczekiwanymi."
+
+#. The thumbs-up button under a reply
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Good reply"
+msgstr "Dobra odpowiedź"
+
+#. How many records of a run are graded
+#. How many records of a run the judge graded
+#. How many records of a run the judge graded
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunPage.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+msgid "Graded"
+msgstr "Ocenione"
+
+#. A record of a run the judge graded
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
+msgctxt "record status"
+msgid "Graded"
+msgstr "Oceniony"
+
+#. The first message of an agent in a conversation
+#: src/lib/agent-version-diff.ts
+msgid "Greeting"
+msgstr "Powitanie"
+
+#. Before the first message an agent says in a new session
+#: src/features/campaign-context/components/CampaignAgentCard.tsx
+msgid "Greeting message:"
+msgstr "Powitanie:"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Handing the conversation back"
+msgstr "Przekazywanie rozmowy z powrotem"
+
+#: src/features/campaigns/components/CampaignsPage.tsx
+msgid "Have testers try this agent, and reviewers read their sessions."
+msgstr "Pozwól testerom wypróbować tego agenta, a recenzentom przeczytać ich sesje."
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Help center"
+msgstr "Centrum pomocy"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Hide the sidebar"
+msgstr "Ukryj pasek boczny"
+
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "High"
+msgstr "Wysoki"
+
+#. Opens the platform's home, which lists the person's apps, outside this app
+#: src/features/account/components/UserMenu.tsx
+msgid "Home"
+msgstr "Strona główna"
+
+#: src/features/conversation/components/ConversationView.tsx
+msgid "How can I help you today?"
+msgstr "W czym mogę Ci dziś pomóc?"
+
+#: src/components/shared/RunScopeField.tsx
+msgid "How many records"
+msgstr "Liczba rekordów"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "How satisfied are you with this agent overall?"
+msgstr "Jak ogólnie oceniasz tego agenta?"
+
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "How the run reads the field {field}"
+msgstr "Jak uruchomienie odczytuje pole {field}"
+
+#: src/features/campaign-test/components/SessionFeedbackDialog.tsx
+#: src/features/campaign-test/components/SessionFeedbackPanel.tsx
+msgid "How was this session?"
+msgstr "Jak przebiegła ta sesja?"
+
+#. The header of the column of the short ids of the runs
+#. The header of the column of the short ids of the runs
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+msgid "ID"
+msgstr "ID"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "If it keeps happening, contact your administrator with the message below."
+msgstr "Jeśli problem się powtarza, skontaktuj się z administratorem i przekaż mu poniższy komunikat."
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
+msgstr "Jeśli strona pozostaje pusta, jej witryna nie pozwala wyświetlać jej tutaj: otwórz ją w nowej karcie."
+
+#. The role of a dataset's column that is left out
+#: src/lib/extraction-columns.ts
+msgid "Ignore"
+msgstr "Pomiń"
+
+#. An image in a reply, which names none
+#: src/components/shared/Markdown.tsx
+msgid "Image"
+msgstr "Obraz"
+
+#. The version of an agent its live channels run with
+#: src/components/shared/ProductionBadge.tsx
+msgid "In production"
+msgstr "Produkcyjna"
+
+#. The badge of a column the agent read, in lower case
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+msgid "input"
+msgstr "dane wejściowe"
+
+#. The role of a dataset's column the agent reads
+#. What an evaluation sends to the agent
+#. What an evaluation sends to the agent
+#. What an evaluation sends to the agent
+#. What an evaluation sends to the agent
+#. What an evaluation sends to the agent
+#: src/features/conversation-datasets/components/conversation-record-columns.tsx
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/lib/extraction-columns.ts
+msgid "Input"
+msgstr "Dane wejściowe"
+
+#. The instructions of an agent
+#. The instructions of the agent in a run
+#. The instructions of the agent in a run
+#. The instructions of the judge of a run
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/lib/agent-version-diff.ts
+msgid "Instructions"
+msgstr "Instrukcje"
+
+#. A row of the comparison of runs: what each run told its judge
+#. The header of the column of the instructions a run gave its judge
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+msgid "Instructions for the judge"
+msgstr "Instrukcje dla modelu oceniającego"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "Instructions for the judge (optional)"
+msgstr "Instrukcje dla modelu oceniającego (opcjonalne)"
+
+#: src/features/conversation/components/McpAppCard.tsx
+msgid "Interactive card"
+msgstr "Interaktywna karta"
+
+#: src/features/invitations/components/InvitationsButton.tsx
+msgid "Invitations"
+msgstr "Zaproszenia"
+
+#. The setup step that invites testers and reviewers
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Invite"
+msgstr "Zaproś"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Invite participants"
+msgstr "Zaproś uczestników"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Invite people to try this agent, and others to review their conversations."
+msgstr "Zaproś osoby do wypróbowania tego agenta, a inne do recenzowania ich rozmów."
+
+#. When a person was invited, such as: Invited 5 minutes ago
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "Invited <0/>"
+msgstr "Zaproszono <0/>"
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "Its records and its runs keep their place."
+msgstr "Jego rekordy i uruchomienia pozostają na swoim miejscu."
+
+#. The tab of what a run used about its judge
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Judge"
+msgstr "Model oceniający"
+
+#. The model that graded a run
+#. The model that graded a run
+#. The model that grades the answers of an evaluation
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "Judge model"
+msgstr "Model oceniający"
+
+#. Something that happened less than a minute ago
+#: src/components/shared/RelativeTime.tsx
+msgid "just now"
+msgstr "przed chwilą"
+
+#. Gives up cancelling a run under way
+#: src/components/shared/RunPageHeader.tsx
+msgid "Keep it running"
+msgstr "Nie przerywaj"
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Language"
+msgstr "Język"
+
+#. Leaves a page whose changes are not saved
+#: src/features/campaigns/components/UnsavedChangesGuard.tsx
+msgid "Leave"
+msgstr "Opuść"
+
+#: src/features/campaigns/components/UnsavedChangesGuard.tsx
+msgid "Leave without saving?"
+msgstr "Opuścić stronę bez zapisywania?"
+
+#. What the Ignore role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "Left out of the dataset"
+msgstr "Pominięta w zbiorze danych"
+
+#. The sidebar's link to the table of all an agent's review campaigns
+#. The sidebar's link to the table of all the datasets of an agent's project
+#: src/components/shared/DatasetsSidebarEntries.tsx
+#: src/features/campaigns/components/CampaignsSidebarEntries.tsx
+msgid "List all"
+msgstr "Pokaż wszystkie"
+
+#: src/components/shared/DatasetsSidebarEntries.tsx
+msgid "List all datasets"
+msgstr "Pokaż wszystkie zbiory danych"
+
+#: src/features/conversation/components/McpAppPlaceholder.tsx
+msgid "Loading the interactive card…"
+msgstr "Wczytywanie interaktywnej karty…"
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "Loading the records…"
+msgstr "Wczytywanie rekordów…"
+
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "Loading the results…"
+msgstr "Wczytywanie wyników…"
+
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "Low"
+msgstr "Niski"
+
+#. The filter of the results the judge graded 2 out of 5 or less
+#: src/features/conversation-runs/result-filters.ts
+msgid "Low scores"
+msgstr "Niskie oceny"
+
+#. A field of a record that has the value expected
+#. A record of a run where every compared field has the value expected
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+msgid "Match"
+msgstr "Zgodność"
+
+#. The share of a run's records that match on every compared field
+#. The share of a run's records that match on every compared field
+#. The share of a run's records that match on every compared field
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Match rate"
+msgstr "Wskaźnik zgodności"
+
+#. How many records of a run match on every compared field
+#. How many records of a run match on every compared field
+#. How many records of a run match on every compared field, out of all of them
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Matches"
+msgstr "Zgodne"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "Mean final rating"
+msgstr "Średnia ocena końcowa"
+
+#: src/features/campaign-report/components/report-session-columns.tsx
+msgid "Mean reviewer"
+msgstr "Średnia recenzentów"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "Mean reviewer rating"
+msgstr "Średnia ocena recenzentów"
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "Mean tester rating"
+msgstr "Średnia ocena testerów"
+
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "Medium"
+msgstr "Średni"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "member"
+msgstr "członek"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Message to {agentName}"
+msgstr "Wiadomość do agenta {agentName}"
+
+#. How many messages a session holds
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Messages"
+msgstr "Wiadomości"
+
+#. A thinking level of a model
+#: src/features/conversation-runs/thinking-level.ts
+msgid "Minimal"
+msgstr "Minimalny"
+
+#. A field of a record that differs from the value expected
+#. A record of a run where a compared field differs from the value expected
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+msgid "Mismatch"
+msgstr "Niezgodność"
+
+#. How many records of a run have a field that differs from the value expected
+#. How many records of a run have a field that differs from the value expected
+#. The filter of the results where a field differs from the value expected
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+#: src/features/extraction-runs/result-filters.ts
+msgid "Mismatches"
+msgstr "Niezgodne"
+
+#. The language model of an agent
+#. The model of the agent in a run
+#. The model of the agent in a run
+#. The model of the agent in a run
+#. The model of the agent's version a run evaluated
+#. The model of the judge of a run
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/lib/agent-version-diff.ts
+msgid "Model"
+msgstr "Model"
+
+#. The options of an agent's model
+#: src/lib/agent-version-diff.ts
+msgid "Model options"
+msgstr "Opcje modelu"
+
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/RunPageHeader.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "More actions"
+msgstr "Więcej akcji"
+
+#: src/components/shared/DatasetRowActions.tsx
+msgid "More actions on {name}"
+msgstr "Więcej akcji dla zbioru danych {name}"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "More actions on the record"
+msgstr "Więcej akcji dla rekordu"
+
+#: src/components/shared/RunRowActions.tsx
+msgid "More actions on the run of {started}"
+msgstr "Więcej akcji dla uruchomienia z {started}"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Move question {position} down"
+msgstr "Przesuń pytanie {position} w dół"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Move question {position} up"
+msgstr "Przesuń pytanie {position} w górę"
+
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "My review"
+msgstr "Moja recenzja"
+
+#. The name of a dataset
+#. The name of a dataset
+#. The name of a review campaign
+#. The name of a review campaign
+#. The name of a review campaign
+#: src/components/shared/DatasetNameDialog.tsx
+#: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Name"
+msgstr "Nazwa"
+
+#: src/features/extraction-datasets/components/ExtractionColumnRow.tsx
+msgid "Name of the column {originalName} in the dataset"
+msgstr "Nazwa kolumny {originalName} w zbiorze danych"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Name of the dataset"
+msgstr "Nazwa zbioru danych"
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "Name the campaign, choose what testers and reviewers answer, then activate it and invite them."
+msgstr "Nazwij kampanię, wybierz, na co odpowiadają testerzy i recenzenci, a następnie ją aktywuj i ich zaproś."
+
+#. A person who was invited and never came
+#: src/features/campaigns/components/participant-columns.tsx
+msgid "Never signed in"
+msgstr "Brak logowania"
+
+#: src/features/campaigns/components/CampaignsPage.tsx
+#: src/features/campaigns/components/CampaignsSidebarEntries.tsx
+msgid "New campaign"
+msgstr "Nowa kampania"
+
+#: src/components/shared/DatasetDialogs.tsx
+#: src/components/shared/DatasetsListPage.tsx
+#: src/components/shared/DatasetsSidebarEntries.tsx
+msgid "New dataset"
+msgstr "Nowy zbiór danych"
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "New review campaign"
+msgstr "Nowa kampania recenzji"
+
+#. Goes to the step after, in a campaign's setup
+#: src/features/campaigns/components/SetupStepFooter.tsx
+msgid "Next"
+msgstr "Dalej"
+
+#: src/components/shared/TablePagination.tsx
+msgid "Next page"
+msgstr "Następna strona"
+
+#. A field an agent filled in with false
+#. An answer to: Did the agent address your question?
+#: src/features/campaigns/campaign-defaults.ts
+#: src/lib/field-text.ts
+msgid "No"
+msgstr "Nie"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "No agent matches this search."
+msgstr "Żaden agent nie pasuje do tego wyszukiwania."
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "No answer yet."
+msgstr "Nie ma jeszcze odpowiedzi."
+
+#. A record of a run with no answer from the agent
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "No answer."
+msgstr "Brak odpowiedzi."
+
+#: src/components/shared/DatasetsListPage.tsx
+msgid "No dataset yet"
+msgstr "Nie ma jeszcze zbiorów danych"
+
+#: src/components/shared/DatasetsTable.tsx
+msgid "No dataset yet."
+msgstr "Nie ma jeszcze zbiorów danych."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "No description"
+msgstr "Brak opisu"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "No differences"
+msgstr "Brak różnic"
+
+#. An agent searches no document
+#: src/lib/document-search-labels.ts
+msgid "No document"
+msgstr "Żadne dokumenty"
+
+#: src/components/shared/RunsByStatus.tsx
+msgid "No evaluation ran on this dataset yet."
+msgstr "Na tym zbiorze danych nie uruchomiono jeszcze żadnej ewaluacji."
+
+#. A record of a run whose agent filled no field of its form
+#: src/features/conversation-runs/components/FilledForm.tsx
+msgid "No fields filled"
+msgstr "Nie wypełniono żadnego pola"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "No model of this project can judge an evaluation. Ask an admin of the project to make one available."
+msgstr "Żaden model w tym projekcie nie może być modelem oceniającym w ewaluacji. Poproś administratora projektu o udostępnienie takiego modelu."
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "No participant yet."
+msgstr "Nie ma jeszcze uczestników."
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "No passage to show."
+msgstr "Brak fragmentu do wyświetlenia."
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "No question yet."
+msgstr "Nie ma jeszcze pytań."
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "No record passes these filters."
+msgstr "Żaden rekord nie spełnia tych filtrów."
+
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "No result passes these filters."
+msgstr "Żaden wynik nie spełnia tych filtrów."
+
+#: src/features/campaigns/components/CampaignsEmptyState.tsx
+msgid "No review campaign yet"
+msgstr "Nie ma jeszcze kampanii recenzji"
+
+#: src/features/campaigns/components/CampaignsTable.tsx
+msgid "No review campaign yet."
+msgstr "Nie ma jeszcze kampanii recenzji."
+
+#. Under a dataset in the sidebar, when no evaluation ran on it
+#: src/components/shared/RunSidebarLinks.tsx
+msgid "No run yet."
+msgstr "Nie ma jeszcze uruchomień."
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "No session to review yet."
+msgstr "Nie ma jeszcze sesji do recenzji."
+
+#: src/features/campaign-review/components/ReviewerSessionsTable.tsx
+msgid "No session yet: testers have not started any."
+msgstr "Nie ma jeszcze sesji: testerzy żadnej nie rozpoczęli."
+
+#: src/features/campaign-report/components/ReportSessionsTable.tsx
+msgid "No session yet: the table fills as testers start sessions."
+msgstr "Nie ma jeszcze sesji: tabela wypełnia się, gdy testerzy rozpoczynają sesje."
+
+#: src/features/campaign-test/components/TesterSessionLinks.tsx
+msgid "No session yet."
+msgstr "Nie ma jeszcze sesji."
+
+#: src/components/shared/AgentVersionPicker.tsx
+msgid "No version chosen yet."
+msgstr "Nie wybrano jeszcze wersji."
+
+#. A run whose judge got no instructions
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "None"
+msgstr "Brak"
+
+#. A thinking level of a model: it does not think
+#: src/features/conversation-runs/thinking-level.ts
+msgctxt "thinking level"
+msgid "None"
+msgstr "Brak"
+
+#: src/components/shared/AnswerList.tsx
+msgid "Not answered"
+msgstr "Bez odpowiedzi"
+
+#. A record of a run stopped before the agent answered it
+#. A record of a run stopped before the agent answered it
+#. A record of a run stopped before the agent answered it
+#. The filter of the results a cancelled run never asked
+#. The filter of the results a cancelled run never asked
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
+#: src/features/conversation-runs/result-filters.ts
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+#: src/features/extraction-runs/result-filters.ts
+msgid "Not asked"
+msgstr "Nie przetworzono"
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "Not collected"
+msgstr "Nie zebrano"
+
+#. Beside a field of a record that a run shows and does not compare
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Not compared"
+msgstr "Nieporównywane"
+
+#. A model with no thinking level set
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Not set"
+msgstr "Nie ustawiono"
+
+#: src/features/conversation/components/FormFields.tsx
+msgid "Nothing noted yet."
+msgstr "Nic jeszcze nie zanotowano."
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Nothing to open for this agent"
+msgstr "Nie ma nic do otwarcia dla tego agenta"
+
+#. A setting of an agent that is turned off, in a diff
+#: src/lib/agent-version-diff.ts
+msgid "Off"
+msgstr "Wyłączone"
+
+#. A setting of an agent that is turned on, in a diff
+#: src/lib/agent-version-diff.ts
+msgid "On"
+msgstr "Włączone"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Once active, the campaign's questions can no longer change, and its testers and reviewers can see it. You can still invite more people."
+msgstr "Po aktywacji kampanii nie można już zmieniać jej pytań, a jej testerzy i recenzenci ją widzą. Nadal możesz zapraszać kolejne osoby."
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "Once active, the questions can no longer change, and you can invite testers and reviewers."
+msgstr "Po aktywacji kampanii nie można już zmieniać pytań, a Ty możesz zapraszać testerów i recenzentów."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "One answer per review, across all sessions."
+msgstr "Jedna odpowiedź na każdą recenzję, ze wszystkich sesji."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "One answer per session a tester gave feedback on."
+msgstr "Jedna odpowiedź na każdą sesję, o której tester przekazał opinię."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "One answer per tester who filled the final survey."
+msgstr "Jedna odpowiedź na każdego testera, który wypełnił ankietę końcową."
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Only one version"
+msgstr "Tylko jedna wersja"
+
+#. How a run reads a field of the agent: shown, and compared with nothing
+#. Under a field of an extraction run that is shown and not compared
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "Only shown"
+msgstr "Tylko wyświetlane"
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "Only the campaign's managers read the free-text answers."
+msgstr "Odpowiedzi w formie tekstu dowolnego czytają tylko osoby zarządzające kampanią."
+
+#: src/components/shared/RunScopeField.tsx
+msgid "Only the first ones, to try"
+msgstr "Tylko pierwsze, na próbę"
+
+#. Opens a dataset from the list of datasets
+#. Opens a run from the list of runs
+#: src/components/shared/DatasetRowActions.tsx
+#: src/components/shared/RunRowActions.tsx
+msgid "Open"
+msgstr "Otwórz"
+
+#: src/components/shared/DatasetRowActions.tsx
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "Open {name}"
+msgstr "Otwórz: {name}"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Open {title}"
+msgstr "Otwórz źródło {title}"
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "Open in a new tab"
+msgstr "Otwórz w nowej karcie"
+
+#. A link to the page of the agent in the Studio, where it is set up
+#: src/components/shared/RunAgentFacts.tsx
+msgid "Open in Studio"
+msgstr "Otwórz w Studio"
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "Open on YouTube"
+msgstr "Otwórz w YouTube"
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "Open the record of row {rowNumber}"
+msgstr "Otwórz rekord z wiersza {rowNumber}"
+
+#: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "Open the result of: {input}"
+msgstr "Otwórz wynik dla: {input}"
+
+#: src/components/shared/RunRowActions.tsx
+msgid "Open the run of {started}"
+msgstr "Otwórz uruchomienie z {started}"
+
+#. A link to the trace of the agent's answer
+#. A link to the trace of the agent's answer
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "Open the trace"
+msgstr "Otwórz ślad"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
+msgstr "Otwórz wiadomość weryfikacyjną od dostawcy tożsamości i sprawdź folder spam. Kliknij zawarty w niej link, a następnie spróbuj ponownie."
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Options, separated by commas"
+msgstr "Opcje oddzielone przecinkami"
+
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "Other reviewers"
+msgstr "Inni recenzenci"
+
+#. The schema of what an extraction agent returns
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "Output schema"
+msgstr "Schemat wyniku"
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "Overall rating"
+msgstr "Ocena ogólna"
+
+#. The sidebar's link to the first page of an agent, which lists its sections
+#: src/routes/-components/AgentSectionsNav.tsx
+msgid "Overview"
+msgstr "Przegląd"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "owner"
+msgstr "właściciel"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Page not found"
+msgstr "Nie znaleziono strony"
+
+#: src/components/shared/TablePagination.tsx
+msgid "Pages of the table"
+msgstr "Strony tabeli"
+
+#. An answer to: Did the agent address your question?
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Partially"
+msgstr "Częściowo"
+
+#. How many people take part in a campaign
+#: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Participants"
+msgstr "Uczestnicy"
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "Paste one record per line: the input, a comma, then the expected output. Rows copied from a spreadsheet work too."
+msgstr "Wklej po jednym rekordzie w każdej linii: dane wejściowe, przecinek, a następnie oczekiwana odpowiedź. Wiersze skopiowane z arkusza kalkulacyjnego też działają."
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "Pending invitations"
+msgstr "Oczekujące zaproszenia"
+
+#: src/features/campaigns/components/ParticipantsPanel.tsx
+msgid "People invited to this campaign who have not answered yet."
+msgstr "Osoby zaproszone do tej kampanii, które jeszcze nie odpowiedziały."
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Picking useful resources"
+msgstr "Wybieranie przydatnych zasobów"
+
+#. The button that shows the forms testers and reviewers will fill
+#. The panel that shows the forms of a campaign
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "Preview"
+msgstr "Podgląd"
+
+#: src/components/shared/TablePagination.tsx
+msgid "Previous page"
+msgstr "Poprzednia strona"
+
+#. Whether an agent's calls to its model go first
+#: src/lib/agent-version-diff.ts
+msgid "Priority calls"
+msgstr "Wywołania priorytetowe"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Project"
+msgstr "Projekt"
+
+#. The default values of the variables of an agent's instructions
+#: src/lib/agent-version-diff.ts
+msgid "Prompt variables"
+msgstr "Zmienne promptu"
+
+#. The text of question number {position} of a campaign
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Question {position}"
+msgstr "Pytanie {position}"
+
+#: src/components/shared/StarRating.tsx
+msgid "Rated {rating} out of {maxRating}"
+msgstr "Ocena: {rating} z {maxRating}"
+
+#. A question answered with 1 to 5 stars
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "Rating"
+msgstr "Ocena"
+
+#. A question answered with 1 to 5 stars
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Rating (1–5)"
+msgstr "Ocena (1–5)"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "Read a session, then give your own rating. The tester's opinion stays hidden until you do."
+msgstr "Przeczytaj sesję, a następnie wystaw własną ocenę. Do tego czasu opinia testera pozostaje ukryta."
+
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "Reading the file…"
+msgstr "Odczytywanie pliku…"
+
+#: src/features/campaigns/components/ActivateStep.tsx
+msgid "Ready to open “{name}”?"
+msgstr "Otworzyć kampanię „{name}”?"
+
+#. The header of the column of the records compared
+#. The title of the sheet that shows one record of a dataset
+#: src/features/extraction-datasets/components/ExtractionDatasetRecordSheet.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "Record"
+msgstr "Rekord"
+
+#. The title of the records of the runs compared
+#. The title of the records of the runs compared
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "Record by record"
+msgstr "Rekord po rekordzie"
+
+#. How many records a dataset holds
+#. How many records a run asked
+#. How many records a run asked
+#. The pasted lines that become the records of a dataset
+#. The tab with the records of a dataset
+#. The title of the records of a dataset
+#. The title of the records of a dataset
+#: src/components/shared/dataset-columns.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Records"
+msgstr "Rekordy"
+
+#. How much of a dataset an evaluation asks
+#: src/components/shared/RunScopeField.tsx
+msgid "Records to ask"
+msgstr "Rekordy do uruchomienia"
+
+#. The role of a dataset's column shown beside the results, and not compared
+#: src/lib/extraction-columns.ts
+msgid "Reference"
+msgstr "Odniesienie"
+
+#: src/components/shared/NewReleaseBanner.tsx
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload"
+msgstr "Odśwież"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload the page to keep going."
+msgstr "Odśwież stronę, aby kontynuować."
+
+#: src/components/shared/NewReleaseBanner.tsx
+msgid "Reloading the page clears what you have not sent or saved."
+msgstr "Odświeżenie strony usuwa to, czego jeszcze nie wysłano ani nie zapisano."
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Remembering what matters"
+msgstr "Zapamiętywanie tego, co ważne"
+
+#. Removes a question from a campaign's list
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "Remove"
+msgstr "Usuń"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Remove {fileName}"
+msgstr "Usuń plik {fileName}"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Remove question {position}"
+msgstr "Usuń pytanie {position}"
+
+#: src/features/campaigns/components/QuestionListEditor.tsx
+msgid "Remove question {removedPosition}?"
+msgstr "Usunąć pytanie {removedPosition}?"
+
+#: src/components/shared/ColumnFilters.tsx
+msgid "Remove the filter on {columnName}"
+msgstr "Usuń filtr kolumny {columnName}"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Remove this annotation"
+msgstr "Usuń tę adnotację"
+
+#. Renames a dataset
+#. Renames a dataset
+#: src/components/shared/DatasetDialogs.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/DatasetRowActions.tsx
+msgid "Rename"
+msgstr "Zmień nazwę"
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "Rename the dataset"
+msgstr "Zmień nazwę zbioru danych"
+
+#. The tab with the full report of a campaign
+#. The tab with the full report of a campaign
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+msgid "Report"
+msgstr "Raport"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Report a problem"
+msgstr "Zgłoś problem"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Report a problem with this reply"
+msgstr "Zgłoś problem z tą odpowiedzią"
+
+#. A question that must be answered
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Required"
+msgstr "Wymagane"
+
+#: src/components/shared/SidePanel.tsx
+msgid "Resize the panel"
+msgstr "Zmień rozmiar panelu"
+
+#: src/components/shared/AppShell.tsx
+msgid "Resize the sidebar"
+msgstr "Zmień rozmiar paska bocznego"
+
+#. The title of the sheet that shows one result of a run
+#. The title of the sheet that shows one result of a run
+#. Where a record of an extraction run stands
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "Result"
+msgstr "Wynik"
+
+#. The title of the records of a run
+#. The title of the records of a run
+#: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "Results"
+msgstr "Wyniki"
+
+#. Asks again the records of a run that failed
+#: src/components/shared/RunPageHeader.tsx
+#: src/features/conversation/components/ConversationView.tsx
+msgid "Retry"
+msgstr "Ponów"
+
+#. The button that opens a session to review it
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Review"
+msgstr "Recenzuj"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Review campaign"
+msgstr "Kampania recenzji"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Review campaigns run on conversation agents. To evaluate this agent, ask an owner of its project for the evaluator role."
+msgstr "Kampanie recenzji dotyczą agentów konwersacyjnych. Aby przeprowadzić ewaluację tego agenta, poproś właściciela jego projektu o rolę ewaluatora."
+
+#: src/features/campaign-review/components/ReviewerSessionsTable.tsx
+msgid "Review session {id}"
+msgstr "Recenzuj sesję {id}"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "Reviewed"
+msgstr "Zrecenzowana"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "reviewer"
+msgstr "recenzent"
+
+#. A person who reviews the testers' sessions
+#. The sidebar's menu of the campaigns where the person reviews an agent's sessions
+#: src/features/campaigns/components/CampaignRoleLabel.tsx
+#: src/routes/-components/ParticipantSidebarMenus.tsx
+msgid "Reviewer"
+msgstr "Recenzent"
+
+#. Names a reviewer by the start of their id
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "Reviewer <0>{reviewerId}</0>"
+msgstr "Recenzent <0>{reviewerId}</0>"
+
+#. The ratings the reviewers gave a session
+#: src/features/campaign-report/components/report-session-columns.tsx
+msgid "Reviewers"
+msgstr "Recenzenci"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Reviewers see the answer before they submit their own review. An opinion stays hidden until then."
+msgstr "Recenzenci widzą odpowiedź, zanim wyślą własną recenzję. Odpowiedź wyrażająca opinię pozostaje do tego czasu ukryta."
+
+#. How many reviews a session got
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Reviews"
+msgstr "Recenzje"
+
+#. Takes a participant out of a review campaign
+#. Takes a participant out of a review campaign
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "Revoke"
+msgstr "Cofnij dostęp"
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "Revoke {email}"
+msgstr "Cofnij dostęp osoby {email}"
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "Revoke {revokedEmail}?"
+msgstr "Cofnąć dostęp osoby {revokedEmail}?"
+
+#. The role of a participant in a review campaign
+#. The role people get in a review campaign
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+#: src/features/campaigns/components/participant-columns.tsx
+msgid "Role"
+msgstr "Rola"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Role of each column"
+msgstr "Rola każdej kolumny"
+
+#: src/features/extraction-datasets/components/ExtractionColumnRow.tsx
+msgid "Role of the column {originalName}"
+msgstr "Rola kolumny {originalName}"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Role of the selected columns"
+msgstr "Rola zaznaczonych kolumn"
+
+#. Which rows of a table show, such as: Rows 11–20 of 42
+#: src/components/shared/TablePagination.tsx
+msgid "Rows {first}–{last} of {count}"
+msgstr "Wiersze {first}–{last} z {count}"
+
+#. Starts an evaluation
+#. Starts an evaluation
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "Run"
+msgstr "Uruchom"
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "Run {runId}"
+msgstr "Uruchomienie {runId}"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "Run an evaluation"
+msgstr "Uruchom ewaluację"
+
+#. Opens the page that starts an evaluation of the agent on a dataset
+#: src/components/shared/DatasetPageFrame.tsx
+msgid "Run evaluation"
+msgstr "Uruchom ewaluację"
+
+#. The title of a run's page, by when it started
+#: src/components/shared/RunPageHeader.tsx
+msgid "Run of {started}"
+msgstr "Uruchomienie z {started}"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Run this agent on datasets of conversations, and read how it answered."
+msgstr "Uruchom tego agenta na zbiorach danych z rozmowami i przeczytaj jego odpowiedzi."
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "Run this agent on datasets of documents, and read what it extracted."
+msgstr "Uruchom tego agenta na zbiorach danych z dokumentami i przeczytaj, co wyodrębnił."
+
+#. A run that asks the agent its records
+#: src/lib/run-status.ts
+msgid "Running"
+msgstr "W toku"
+
+#. The link back from a run to the runs of its dataset
+#. The link back from a run to the runs of its dataset
+#. The tab with the runs of a dataset
+#. The title of the runs of a dataset
+#: src/components/shared/CompareRunsPageFrame.tsx
+#: src/components/shared/DatasetPageFrame.tsx
+#: src/components/shared/RunPageHeader.tsx
+#: src/components/shared/RunsByStatus.tsx
+msgid "Runs"
+msgstr "Uruchomienia"
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "Save"
+msgstr "Zapisz"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Save changes"
+msgstr "Zapisz zmiany"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "Save your changes first."
+msgstr "Najpierw zapisz zmiany."
+
+#. When a version of an agent was saved, such as: Saved 5 days ago
+#. When a version of an agent was saved, such as: Saved 5 days ago
+#: src/components/shared/AgentVersionList.tsx
+#: src/components/shared/AgentVersionPicker.tsx
+msgid "Saved <0/>"
+msgstr "Zapisano <0/>"
+
+#. The average score of a run
+#. The score the judge gave an answer
+#. The score the judge gave an answer
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "Score"
+msgstr "Ocena"
+
+#: src/components/shared/DataTable.tsx
+msgid "Scroll sideways to see every column."
+msgstr "Przewiń w bok, aby zobaczyć wszystkie kolumny."
+
+#: src/features/conversation/components/ConversationView.tsx
+msgid "Scroll to the latest message"
+msgstr "Przewiń do najnowszej wiadomości"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent"
+msgstr "Szukaj agenta"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent by its name, its project or its organization."
+msgstr "Szukaj agenta według jego nazwy, projektu lub organizacji."
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Search an agent or a project…"
+msgstr "Szukaj agenta lub projektu…"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Searching the knowledge base"
+msgstr "Przeszukiwanie bazy wiedzy"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Searching the resources"
+msgstr "Przeszukiwanie zasobów"
+
+#: src/routes/-components/AgentSectionsNav.tsx
+msgid "Sections of {agentName}"
+msgstr "Sekcje agenta {agentName}"
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "Select all the columns"
+msgstr "Zaznacz wszystkie kolumny"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Select all the files"
+msgstr "Zaznacz wszystkie pliki"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Select files to delete them together"
+msgstr "Zaznacz pliki, aby usunąć je razem"
+
+#: src/features/extraction-datasets/components/ExtractionColumnRow.tsx
+msgid "Select the column {originalName}"
+msgstr "Zaznacz kolumnę {originalName}"
+
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
+msgid "Select the file {fileName}"
+msgstr "Zaznacz plik {fileName}"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Select this version"
+msgstr "Wybierz tę wersję"
+
+#. The version a review campaign runs on already
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Selected"
+msgstr "Wybrana"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send"
+msgstr "Wyślij"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Send the report"
+msgstr "Wyślij zgłoszenie"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {annotations}"
+msgstr "Wyślij z {annotations}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {annotations} and {tasks}"
+msgstr "Wyślij z {annotations} i {tasks}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {tasks}"
+msgstr "Wyślij z {tasks}"
+
+#. A tester's session with the agent
+#. A tester's session with the agent
+#: src/features/campaign-report/components/report-session-columns.tsx
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Session"
+msgstr "Sesja"
+
+#. The title of a session's page, with the start of its id
+#: src/features/campaign-review/components/ReviewerSessionPage.tsx
+msgid "Session <0>{sessionId}</0>"
+msgstr "Sesja <0>{sessionId}</0>"
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "Session facts"
+msgstr "Fakty o sesji"
+
+#. The setup step with the questions a reviewer answers
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaign-review/components/ReviewerSessionPage.tsx
+#: src/features/campaigns/components/ActivateStep.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+#: src/features/campaigns/setup-steps.ts
+msgid "Session review"
+msgstr "Recenzja sesji"
+
+#. How many sessions testers started in a campaign
+#. How many sessions testers started in a campaign
+#. The report's tab with each session's ratings
+#. The tab with a campaign's sessions, its first page for its participants
+#: src/features/campaign-context/components/ParticipantCampaignFrame.tsx
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "Sessions"
+msgstr "Sesje"
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "Sessions to review"
+msgstr "Sesje do recenzji"
+
+#. The tab with a campaign's name and questions
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+msgid "Setup"
+msgstr "Konfiguracja"
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Share your overall experience, so the team can evaluate this agent."
+msgstr "Podziel się ogólnymi wrażeniami, aby zespół mógł ocenić tego agenta."
+
+#. The keyboard key
+#: src/features/conversation/components/ShiftKey.tsx
+msgid "Shift"
+msgstr "Shift"
+
+#: src/features/conversation/components/CitedPassageBadges.tsx
+msgid "Show annotation {number} in its message"
+msgstr "Pokaż adnotację {number} w jej wiadomości"
+
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply"
+msgstr "Pokaż w odpowiedzi"
+
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply: {passage}"
+msgstr "Pokaż w odpowiedzi: {passage}"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+#: src/features/conversation/components/UserMessageText.tsx
+msgid "Show less"
+msgstr "Pokaż mniej"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+#: src/features/conversation/components/UserMessageText.tsx
+msgid "Show more"
+msgstr "Pokaż więcej"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Show the sidebar"
+msgstr "Pokaż pasek boczny"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "Showing changes from version {olderRevision} to version {newerRevision}."
+msgstr "Zmiany od wersji {olderRevision} do wersji {newerRevision}."
+
+#. What the Reference role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "Shown beside the results, and not compared"
+msgstr "Widoczna obok wyników, nieporównywana"
+
+#: src/components/shared/SignInProblemPage.tsx
+#: src/features/account/components/UserMenu.tsx
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "Sign out"
+msgstr "Wyloguj się"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in expired"
+msgstr "Logowanie wygasło"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in failed"
+msgstr "Logowanie nie powiodło się"
+
+#. A question answered by picking one option
+#. A question answered by picking one option
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Single choice"
+msgstr "Jednokrotny wybór"
+
+#. The size of a file
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Size"
+msgstr "Rozmiar"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Some files could not be deleted. Try again."
+msgstr "Nie udało się usunąć niektórych plików. Spróbuj ponownie."
+
+#. The highest reviewer rating minus the lowest
+#: src/features/campaign-report/components/report-session-columns.tsx
+msgid "Spread"
+msgstr "Rozpiętość"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "Start a session"
+msgstr "Rozpocznij sesję"
+
+#. The header of the column of when a run started
+#. The header of the column of when a run started
+#. When a session started
+#. When a session started
+#. When a session started
+#: src/features/campaign-report/components/report-session-columns.tsx
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+msgid "Started"
+msgstr "Rozpoczęto"
+
+#. A row of the comparison of runs: where each run stands
+#. A row of the comparison of runs: where each run stands
+#. Where a record of a run stands
+#. Where a review campaign stands
+#: src/features/campaigns/components/campaign-columns.tsx
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Status"
+msgstr "Status"
+
+#: src/features/campaigns/components/SetupStepper.tsx
+msgid "Steps of the setup"
+msgstr "Kroki konfiguracji"
+
+#: src/features/conversation/components/DictationButton.tsx
+msgid "Stop the dictation"
+msgstr "Zatrzymaj dyktowanie"
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Submit feedback"
+msgstr "Wyślij opinię"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Submit review"
+msgstr "Wyślij recenzję"
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Submit survey"
+msgstr "Wyślij ankietę"
+
+#. The reviewer gave their review of a session
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Submitted"
+msgstr "Wysłano"
+
+#: src/features/conversation/components/FollowUpQuestions.tsx
+msgid "Suggested questions"
+msgstr "Sugerowane pytania"
+
+#. The tab with the first figures of a closed campaign
+#: src/features/campaigns/components/CampaignPageFrame.tsx
+msgid "Summary"
+msgstr "Podsumowanie"
+
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Switch agent"
+msgstr "Zmień agenta"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Switch agent, current agent: {agentName}"
+msgstr "Zmień agenta, bieżący agent: {agentName}"
+
+#. The badge of a column that holds the value expected, in lower case
+#: src/features/extraction-runs/components/extraction-run-record-columns.tsx
+msgid "target"
+msgstr "cel"
+
+#. The role of a dataset's column that holds a value the agent must find
+#: src/lib/extraction-columns.ts
+msgid "Target"
+msgstr "Cel"
+
+#. The temperature of the agent's model in a run
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Temperature"
+msgstr "Temperatura"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "tester"
+msgstr "tester"
+
+#. A person who tests the agent in a review campaign
+#. The rating the tester gave a session
+#. The sidebar's menu of the campaigns where the person tests an agent
+#: src/features/campaign-report/components/report-session-columns.tsx
+#: src/features/campaigns/components/CampaignRoleLabel.tsx
+#: src/routes/-components/ParticipantSidebarMenus.tsx
+msgid "Tester"
+msgstr "Tester"
+
+#. Who started a session, by the start of their id, and when
+#: src/features/campaign-review/components/ReviewerSessionPage.tsx
+msgid "Tester {testerId}, started {started}"
+msgstr "Tester {testerId}, rozpoczęto {started}"
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "Tester feedback"
+msgstr "Opinia testera"
+
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "Testers chat with this version and reviewers read it, for the whole campaign."
+msgstr "Testerzy rozmawiają z tą wersją, a recenzenci czytają jej rozmowy, przez całą kampanię."
+
+#. The language of a code block that names none
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "text"
+msgstr "tekst"
+
+#: src/components/shared/ColumnFilters.tsx
+msgid "Text the column holds"
+msgstr "Tekst, który zawiera kolumna"
+
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Thank you for your feedback."
+msgstr "Dziękujemy za opinię."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Thank you. Your report was sent."
+msgstr "Dziękujemy. Zgłoszenie zostało wysłane."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The agent could not answer."
+msgstr "Agent nie mógł odpowiedzieć."
+
+#: src/features/conversation/components/Composer.tsx
+msgid "The agent is answering…"
+msgstr "Agent odpowiada…"
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "The agent's form has no field."
+msgstr "Formularz agenta nie ma żadnego pola."
+
+#: src/features/conversation/components/FormsPanel.tsx
+msgid "The answers the agent collected from the conversation, as it fills them in."
+msgstr "Odpowiedzi zebrane przez agenta w rozmowie, uzupełniane na bieżąco."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The app needs it to find your invitations. Contact your administrator."
+msgstr "Aplikacja potrzebuje go, aby znaleźć Twoje zaproszenia. Skontaktuj się z administratorem."
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "The campaign closed before you reviewed this session."
+msgstr "Kampanię zamknięto, zanim udało Ci się zrecenzować tę sesję."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign could not be activated. Try again."
+msgstr "Nie udało się aktywować kampanii. Spróbuj ponownie."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign could not be closed. Try again."
+msgstr "Nie udało się zamknąć kampanii. Spróbuj ponownie."
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "The campaign could not be created. Try again."
+msgstr "Nie udało się utworzyć kampanii. Spróbuj ponownie."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign could not be deleted. Try again."
+msgstr "Nie udało się usunąć kampanii. Spróbuj ponownie."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+msgid "The campaign could not be saved. Try again."
+msgstr "Nie udało się zapisać kampanii. Spróbuj ponownie."
+
+#: src/features/campaigns/components/CampaignSetupWizard.tsx
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign is active. You can invite its participants."
+msgstr "Kampania jest aktywna. Możesz zaprosić jej uczestników."
+
+#: src/features/campaign-review/components/ReviewerCampaignPage.tsx
+msgid "The campaign is closed: you can read the sessions and the reviews."
+msgstr "Kampania jest zamknięta: możesz czytać sesje i recenzje."
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign is closed."
+msgstr "Kampania jest zamknięta."
+
+#: src/features/campaigns/components/AgentVersionField.tsx
+msgid "The campaign runs on this version"
+msgstr "Kampania działa na tej wersji"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The campaign was deleted."
+msgstr "Usunięto kampanię."
+
+#: src/features/campaigns/components/UnsavedChangesGuard.tsx
+msgid "The changes to this step are not saved yet. They are lost if you leave."
+msgstr "Zmiany w tym kroku nie są jeszcze zapisane. Jeśli opuścisz stronę, zostaną utracone."
+
+#: src/features/extraction-runs/components/ExtractionRunPage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsSection.tsx
+msgid "The CSV file could not be opened. Try again."
+msgstr "Nie udało się otworzyć pliku CSV. Spróbuj ponownie."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "The dataset could not be built. Try again."
+msgstr "Nie udało się zbudować zbioru danych. Spróbuj ponownie."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "The dataset could not be created. Try again."
+msgstr "Nie udało się utworzyć zbioru danych. Spróbuj ponownie."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "The dataset could not be deleted. Try again."
+msgstr "Nie udało się usunąć zbioru danych. Spróbuj ponownie."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "The dataset could not be renamed. Try again."
+msgstr "Nie udało się zmienić nazwy zbioru danych. Spróbuj ponownie."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "The dataset was built from the file."
+msgstr "Zbudowano zbiór danych z pliku."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "The dataset was created."
+msgstr "Utworzono zbiór danych."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "The dataset was deleted."
+msgstr "Usunięto zbiór danych."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "The dataset was renamed."
+msgstr "Zmieniono nazwę zbioru danych."
+
+#: src/components/shared/DatasetDialogs.tsx
+msgid "The dataset, its records and its runs are deleted for good."
+msgstr "Zbiór danych, jego rekordy i jego uruchomienia zostaną trwale usunięte."
+
+#: src/features/conversation/hooks/use-dictation.ts
+msgid "The dictation stopped. Try again."
+msgstr "Dyktowanie zostało przerwane. Spróbuj ponownie."
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "The document could not be opened. Try again."
+msgstr "Nie udało się otworzyć dokumentu. Spróbuj ponownie."
+
+#. An agent searches the documents that carry its tags
+#: src/lib/document-search-labels.ts
+msgid "The documents of its tags"
+msgstr "Dokumenty z jego tagami"
+
+#: src/features/campaigns/components/CampaignStatusActions.tsx
+msgid "The draft and its questions are deleted for good. An active or closed campaign cannot be deleted."
+msgstr "Wersja robocza i jej pytania zostaną trwale usunięte. Aktywnej ani zamkniętej kampanii nie można usunąć."
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "The evaluation could not start. Try again."
+msgstr "Nie udało się uruchomić ewaluacji. Spróbuj ponownie."
+
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run failed."
+msgstr "Uruchomienie ewaluacji nie powiodło się."
+
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run is complete."
+msgstr "Uruchomienie ewaluacji zostało zakończone."
+
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run on {datasetName} failed."
+msgstr "Uruchomienie ewaluacji na zbiorze danych {datasetName} nie powiodło się."
+
+#: src/hooks/use-run-end-toasts.ts
+msgid "The evaluation run on {datasetName} is complete."
+msgstr "Uruchomienie ewaluacji na zbiorze danych {datasetName} zostało zakończone."
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "The evaluation started."
+msgstr "Uruchomiono ewaluację."
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "The evaluation uses this version"
+msgstr "Ewaluacja używa tej wersji"
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "The file could not be opened. Try again."
+msgstr "Nie udało się otworzyć pliku. Spróbuj ponownie."
+
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "The file could not be read. Choose another file, or try again."
+msgstr "Nie udało się odczytać pliku. Wybierz inny plik lub spróbuj ponownie."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The file could not be uploaded. Try again."
+msgstr "Nie udało się przesłać pliku. Spróbuj ponownie."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The files are deleted for good. The datasets already built from them keep their records."
+msgstr "Pliki zostaną trwale usunięte. Zbudowane już z nich zbiory danych zachowają swoje rekordy."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The files were deleted."
+msgstr "Usunięto pliki."
+
+#: src/features/conversation-datasets/components/BulkRecordsDialog.tsx
+msgid "The first comma of a line ends the input: the expected output keeps its own."
+msgstr "Pierwszy przecinek w linii kończy dane wejściowe: oczekiwana odpowiedź zachowuje swoje przecinki."
+
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "The forms testers and reviewers will fill, as the setup stands."
+msgstr "Formularze, które wypełnią testerzy i recenzenci, zgodnie z obecną konfiguracją."
+
+#: src/features/invitations/api/mutations.ts
+msgid "The invitation could not be answered. Try again."
+msgstr "Nie udało się odpowiedzieć na zaproszenie. Spróbuj ponownie."
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "The invitation could not be deleted. Try again."
+msgstr "Nie udało się usunąć zaproszenia. Spróbuj ponownie."
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "The invitation link was copied."
+msgstr "Skopiowano link z zaproszeniem."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "The invitations were sent by email."
+msgstr "Zaproszenia wysłano e-mailem."
+
+#: src/features/campaigns/components/PendingInvitations.tsx
+msgid "The link could not be copied."
+msgstr "Nie udało się skopiować linku."
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The mean of the ratings testers gave their sessions."
+msgstr "Średnia ocen, które testerzy wystawili swoim sesjom."
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "The message a person would send to the agent."
+msgstr "Wiadomość, którą użytkownik wysłałby do agenta."
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "The model that compares each answer with the expected output."
+msgstr "Model, który porównuje każdą odpowiedź z oczekiwaną odpowiedzią."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "The people could not be invited. Try again."
+msgstr "Nie udało się zaprosić osób. Spróbuj ponownie."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "The people were invited. Send them their invitation link."
+msgstr "Zaproszono osoby. Wyślij im ich linki z zaproszeniem."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "The people who run this agent read every report to improve it."
+msgstr "Osoby zarządzające tym agentem czytają każde zgłoszenie, aby go ulepszać."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The project has no CSV file yet. Upload one, or drop it here, to start."
+msgstr "Projekt nie ma jeszcze pliku CSV. Aby zacząć, prześlij plik lub upuść go tutaj."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record could not be added. Try again."
+msgstr "Nie udało się dodać rekordu. Spróbuj ponownie."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record could not be deleted. Try again."
+msgstr "Nie udało się usunąć rekordu. Spróbuj ponownie."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record could not be saved. Try again."
+msgstr "Nie udało się zapisać rekordu. Spróbuj ponownie."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record leaves the dataset for good."
+msgstr "Rekord zostanie trwale usunięty ze zbioru danych."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record was added."
+msgstr "Dodano rekord."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record was deleted."
+msgstr "Usunięto rekord."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The record was saved."
+msgstr "Zapisano rekord."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The records could not be added. Try again."
+msgstr "Nie udało się dodać rekordów. Spróbuj ponownie."
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "The records could not load."
+msgstr "Nie udało się wczytać rekordów."
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "The records not asked yet stay without an answer. The answers already graded are kept."
+msgstr "Rekordy, których jeszcze nie przetworzono, pozostają bez odpowiedzi. Ocenione już odpowiedzi zostają zachowane."
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "The records of the dataset come from the rows of a CSV file, whose first row names the columns. Choose a file of the project, or upload one, of {maxSize} at most."
+msgstr "Rekordy zbioru danych pochodzą z wierszy pliku CSV, którego pierwszy wiersz zawiera nazwy kolumn. Wybierz plik z projektu lub prześlij nowy, o rozmiarze do {maxSize}."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "The records were added."
+msgstr "Dodano rekordy."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The reply stopped before it finished."
+msgstr "Odpowiedź zatrzymała się przed zakończeniem."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "The report could not be sent. Try again."
+msgstr "Nie udało się wysłać zgłoszenia. Spróbuj ponownie."
+
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "The results could not load."
+msgstr "Nie udało się wczytać wyników."
+
+#: src/features/campaign-test/components/TesterSessionPage.tsx
+msgid "The reviewers of this campaign can read everything exchanged in this session."
+msgstr "Recenzenci tej kampanii mogą przeczytać wszystko, co zostanie napisane w tej sesji."
+
+#: src/components/shared/DeleteRunDialog.tsx
+msgid "The run and its results are deleted for good."
+msgstr "Uruchomienie i jego wyniki zostaną trwale usunięte."
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "The run could not be cancelled. Try again."
+msgstr "Nie udało się anulować uruchomienia. Spróbuj ponownie."
+
+#: src/components/shared/DeleteRunDialog.tsx
+msgid "The run could not be deleted. Try again."
+msgstr "Nie udało się usunąć uruchomienia. Spróbuj ponownie."
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "The run could not start again. Try again."
+msgstr "Nie udało się ponowić uruchomienia. Spróbuj ponownie."
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "The run started again."
+msgstr "Ponowiono uruchomienie."
+
+#: src/components/shared/RunAgentFacts.tsx
+#: src/components/shared/RunsSection.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "The run used this version"
+msgstr "Uruchomienie użyło tej wersji"
+
+#: src/components/shared/RunPageHeader.tsx
+msgid "The run was cancelled."
+msgstr "Anulowano uruchomienie."
+
+#: src/components/shared/DeleteRunDialog.tsx
+msgid "The run was deleted."
+msgstr "Usunięto uruchomienie."
+
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
+msgid "The score each run got on each record, the best one in green."
+msgstr "Ocena każdego uruchomienia dla każdego rekordu, najlepsza na zielono."
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "The session and its messages are deleted for good."
+msgstr "Sesja i jej wiadomości zostaną trwale usunięte."
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "The session could not be deleted. Try again."
+msgstr "Nie udało się usunąć sesji. Spróbuj ponownie."
+
+#: src/features/campaign-test/hooks/use-open-new-session.ts
+msgid "The session could not start. Try again."
+msgstr "Nie udało się rozpocząć sesji. Spróbuj ponownie."
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The sessions testers started."
+msgstr "Sesje rozpoczęte przez testerów."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The sign-in keeps failing"
+msgstr "Logowanie wciąż się nie udaje"
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The summary shows once the campaign is closed."
+msgstr "Podsumowanie pojawia się po zamknięciu kampanii."
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "The tester gave no feedback on this session."
+msgstr "Tester nie przekazał opinii o tej sesji."
+
+#: src/features/campaign-review/components/FormResultPanel.tsx
+msgid "The tester left before the agent produced a final value."
+msgstr "Tester opuścił sesję, zanim agent podał ostateczną wartość."
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "The tester's rating and comment stay hidden until you submit your own review, so your judgment stays independent."
+msgstr "Ocena i komentarz testera pozostają ukryte, dopóki nie wyślesz własnej recenzji, aby Twój osąd pozostał niezależny."
+
+#: src/features/campaigns/components/CampaignSummary.tsx
+msgid "The testers who filled the final survey."
+msgstr "Testerzy, którzy wypełnili ankietę końcową."
+
+#: src/features/extraction-datasets/components/ExtractionDatasetRecordSheet.tsx
+msgid "The value of each column of the dataset, for this row of its file."
+msgstr "Wartość każdej kolumny zbioru danych dla tego wiersza jego pliku."
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "These people already have access or an invitation."
+msgstr "Te osoby mają już dostęp lub zaproszenie."
+
+#: src/components/shared/CompareRunsPageFrame.tsx
+msgid "These runs are gone, or are not runs of this dataset."
+msgstr "Te uruchomienia już nie istnieją albo nie są uruchomieniami tego zbioru danych."
+
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "These runs did not ask the same number of records. Each run shows its own page: a dash can stand for a record the run shows on another page."
+msgstr "Te uruchomienia nie objęły tej samej liczby rekordów. Każde uruchomienie pokazuje własną stronę: kreska może oznaczać rekord, który uruchomienie pokazuje na innej stronie."
+
+#: src/features/conversation-runs/components/ConversationComparisonRecords.tsx
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "These runs have no record yet."
+msgstr "Te uruchomienia nie mają jeszcze rekordów."
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "These two versions have the same settings."
+msgstr "Te dwie wersje mają identyczne ustawienia."
+
+#. How much the agent's model thinks, in a run
+#: src/features/conversation-runs/components/RunSettingsPanel.tsx
+msgid "Thinking level"
+msgstr "Poziom rozumowania"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Thinking…"
+msgstr "Myślę…"
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "This agent has a single saved version: there is nothing to compare."
+msgstr "Ten agent ma tylko jedną zapisaną wersję: nie ma czego porównywać."
+
+#: src/features/campaigns/components/NewCampaignPage.tsx
+msgid "This agent has no published version yet. Publish it, then create the campaign."
+msgstr "Ten agent nie ma jeszcze opublikowanej wersji. Opublikuj go, a następnie utwórz kampanię."
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "This campaign asks its testers no factual question."
+msgstr "Ta kampania nie zadaje testerom żadnego pytania o fakty."
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+msgid "This campaign reviews the agent {agentName}."
+msgstr "Ta kampania dotyczy agenta {agentName}."
+
+#: src/features/conversation-datasets/components/ConversationRecordsSection.tsx
+msgid "This dataset has no record yet."
+msgstr "Ten zbiór danych nie ma jeszcze rekordów."
+
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "This dataset has no record yet. Who manages the datasets builds it from a CSV file."
+msgstr "Ten zbiór danych nie ma jeszcze rekordów. Osoba zarządzająca zbiorami danych buduje go z pliku CSV."
+
+#: src/features/extraction-datasets/components/ExtractionRecordsSection.tsx
+msgid "This dataset has no record."
+msgstr "Ten zbiór danych nie ma rekordów."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "This file has no column. Choose another file."
+msgstr "Ten plik nie ma kolumn. Wybierz inny plik."
+
+#: src/features/extraction-datasets/components/ExtractionColumnsForm.tsx
+msgid "This file has no data row. Choose another file."
+msgstr "Ten plik nie ma wierszy z danymi. Wybierz inny plik."
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "This file is empty."
+msgstr "Ten plik jest pusty."
+
+#: src/features/campaign-report/components/CampaignReportContent.tsx
+msgid "This form asks no question."
+msgstr "Ten formularz nie zawiera żadnego pytania."
+
+#: src/components/shared/AgentVersionCompare.tsx
+msgid "This is the first saved version of the agent: there is nothing before it to compare with."
+msgstr "To pierwsza zapisana wersja agenta: nie ma wcześniejszej, z którą można by ją porównać."
+
+#: src/components/shared/SidebarSection.tsx
+msgid "This list could not load."
+msgstr "Nie udało się wczytać tej listy."
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "This page could not load"
+msgstr "Nie udało się wczytać tej strony"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "This page does not exist, or you cannot open it."
+msgstr "Ta strona nie istnieje lub nie możesz jej otworzyć."
+
+#: src/features/campaigns/components/ParticipantsTable.tsx
+msgid "This person loses this role in the campaign. What they already submitted stays."
+msgstr "Ta osoba traci tę rolę w kampanii. To, co już wysłała, pozostaje."
+
+#: src/components/shared/QuestionField.tsx
+msgid "This question has no option yet."
+msgstr "To pytanie nie ma jeszcze opcji."
+
+#: src/features/conversation/components/AssistantMessageView.tsx
+msgid "This reply was interrupted before it finished."
+msgstr "Ta odpowiedź została przerwana przed zakończeniem."
+
+#: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "This run failed before it asked a record."
+msgstr "To uruchomienie nie powiodło się, zanim przetworzyło pierwszy rekord."
+
+#: src/features/conversation-runs/components/RunResultsSection.tsx
+#: src/features/extraction-runs/components/ExtractionResultsSection.tsx
+msgid "This run has no record yet."
+msgstr "To uruchomienie nie ma jeszcze rekordów."
+
+#: src/features/campaign-review/components/SessionTranscript.tsx
+msgid "This session has no message."
+msgstr "Ta sesja nie zawiera wiadomości."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
+msgstr "To logowanie rozpoczęto zbyt dawno lub inna karta rozpoczęła nowe, więc ta karta nie może go już dokończyć."
+
+#: src/features/extraction-runs/components/RunExtractionPanel.tsx
+msgid "This version has no output schema: it returns no field to compare."
+msgstr "Ta wersja nie ma schematu wyniku: nie zwraca żadnego pola do porównania."
+
+#: src/features/extraction-runs/components/KeyMappingField.tsx
+msgid "This version returns no field: it has no output schema."
+msgstr "Ta wersja nie zwraca żadnego pola: nie ma schematu wyniku."
+
+#: src/features/extraction-runs/components/ExtractionRunPanel.tsx
+msgid "This version was archived: its settings no longer show."
+msgstr "Ta wersja została zarchiwizowana: jej ustawienia nie są już wyświetlane."
+
+#: src/features/conversation/components/TaskChecksList.tsx
+msgid "Ticked: {text}"
+msgstr "Zaznaczono: {text}"
+
+#. The reviewer did not review a session yet
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "To do"
+msgstr "Do zrobienia"
+
+#. What the arrow keys do in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to move"
+msgstr "aby się poruszać"
+
+#. What the Enter key does in the list that switches agent
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "to open"
+msgstr "aby otworzyć"
+
+#: src/features/campaign-review/components/ReviewerSessionLinks.tsx
+msgid "To review"
+msgstr "Do recenzji"
+
+#. How long a run took, such as: Took 2 min 5 sec
+#: src/components/shared/RunPageHeader.tsx
+msgid "Took {took}"
+msgstr "Czas trwania: {took}"
+
+#. Reads again a file whose columns could not be read
+#: src/components/shared/RouteErrorState.tsx
+#: src/components/shared/SidebarSection.tsx
+#: src/components/shared/SignInProblemPage.tsx
+#: src/components/shared/TableLoadError.tsx
+#: src/features/extraction-datasets/components/ExtractionDatasetSetup.tsx
+msgid "Try again"
+msgstr "Spróbuj ponownie"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again in a moment. If this page comes back, sign out, then sign in again."
+msgstr "Spróbuj ponownie za chwilę. Jeśli ta strona wróci, wyloguj się, a następnie zaloguj się ponownie."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again to sign in. If this page comes back, close the other tabs of the app."
+msgstr "Spróbuj zalogować się ponownie. Jeśli ta strona wróci, zamknij inne karty aplikacji."
+
+#. The kind of agent a review campaign reviews
+#. The media type of a file, such as text/csv
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Type"
+msgstr "Typ"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Type of question {position}"
+msgstr "Typ pytania {position}"
+
+#: src/features/conversation/components/TaskChecksList.tsx
+msgid "Unticked: {text}"
+msgstr "Odznaczono: {text}"
+
+#. A question whose text is still empty
+#: src/components/shared/QuestionField.tsx
+msgid "Untitled"
+msgstr "Bez tytułu"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Untitled document"
+msgstr "Dokument bez tytułu"
+
+#. When a dataset last changed
+#. When a file last changed
+#: src/components/shared/dataset-columns.tsx
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Updated"
+msgstr "Zaktualizowano"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Upload a CSV file"
+msgstr "Prześlij plik CSV"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Upload one file at a time."
+msgstr "Przesyłaj jeden plik naraz."
+
+#. When a file was uploaded
+#: src/features/extraction-datasets/components/ExtractionFileDetails.tsx
+msgid "Uploaded"
+msgstr "Przesłano"
+
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Uploading {fileName}…"
+msgstr "Przesyłanie pliku {fileName}…"
+
+#. The button that uploads a file, while a file uploads
+#: src/features/extraction-datasets/components/ExtractionFilesSection.tsx
+msgid "Uploading…"
+msgstr "Przesyłanie…"
+
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
+msgid "Use the file {fileName}"
+msgstr "Użyj pliku {fileName}"
+
+#. Takes a CSV file as the source of a dataset
+#: src/features/extraction-datasets/components/ExtractionFileRow.tsx
+msgid "Use this file"
+msgstr "Użyj tego pliku"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Using a tool"
+msgstr "Korzystanie z narzędzia"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Verify your email"
+msgstr "Zweryfikuj adres e-mail"
+
+#. The version of the agent a run asked
+#. The version of the agent a run evaluated
+#. The version of the agent a run evaluated
+#. The version of the agent a run evaluated
+#. The version of the agent a run evaluated
+#: src/components/shared/RunAgentFacts.tsx
+#: src/features/conversation-runs/components/conversation-run-columns.tsx
+#: src/features/conversation-runs/components/ConversationRunsComparePage.tsx
+#: src/features/extraction-runs/components/extraction-run-columns.tsx
+#: src/features/extraction-runs/components/ExtractionRunsComparePage.tsx
+msgid "Version"
+msgstr "Wersja"
+
+#. A saved version of an agent's settings, by its number
+#. A version of an agent, by its number
+#: src/components/shared/AgentVersionTitle.tsx
+#: src/components/shared/RunAgentFacts.tsx
+msgid "Version {revision}"
+msgstr "Wersja {revision}"
+
+#. Under a run's id in a comparison: its agent's version, and how long ago it started
+#: src/components/shared/ComparedRunHead.tsx
+msgid "Version {revision} · <0/>"
+msgstr "Wersja {revision} · <0/>"
+
+#. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
+#: src/features/account/components/UserMenu.tsx
+msgid "Version {version}"
+msgstr "Wersja {version}"
+
+#: src/components/shared/AgentVersionsSheet.tsx
+msgid "Versions of {agentName}"
+msgstr "Wersje agenta {agentName}"
+
+#. Opens a session of a tester that is over, only to read it
+#. The button that opens a session the reviewer already reviewed
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+#: src/features/campaign-test/components/tester-session-columns.tsx
+msgid "View"
+msgstr "Wyświetl"
+
+#: src/features/campaign-review/components/ReviewerSessionsTable.tsx
+msgid "View session {id}"
+msgstr "Wyświetl sesję {id}"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "View the session of {started}"
+msgstr "Wyświetl sesję z {started}"
+
+#. A record of a run the agent has not answered yet
+#. A record of a run the agent has not answered yet
+#. A record of a run the agent has not answered yet
+#. A run that has not started yet
+#. The filter of the results the agent has not answered yet
+#. The filter of the results the agent has not answered yet
+#: src/features/conversation-runs/components/conversation-run-record-columns.tsx
+#: src/features/conversation-runs/components/RunRecordStatusBadge.tsx
+#: src/features/conversation-runs/result-filters.ts
+#: src/features/extraction-runs/components/RecordStatusBadge.tsx
+#: src/features/extraction-runs/result-filters.ts
+#: src/lib/run-status.ts
+msgid "Waiting"
+msgstr "Oczekuje"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Was the agent's answer clear?"
+msgstr "Czy odpowiedź agenta była jasna?"
+
+#: src/features/campaigns/campaign-defaults.ts
+msgid "Were the agent's answers factually correct?"
+msgstr "Czy odpowiedzi agenta były zgodne z faktami?"
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "What a good answer says."
+msgstr "Co mówi dobra odpowiedź."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "What a reviewer fills for each session."
+msgstr "Co recenzent wypełnia dla każdej sesji."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "What a tester fills when they end a session."
+msgstr "Co tester wypełnia, gdy kończy sesję."
+
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "What a tester fills when they finish taking part."
+msgstr "Co tester wypełnia, gdy kończy swój udział."
+
+#: src/features/campaigns/components/CampaignGeneralFields.tsx
+msgid "What should testers and reviewers evaluate?"
+msgstr "Co mają ocenić testerzy i recenzenci?"
+
+#: src/features/conversation-runs/components/RunRecordSheet.tsx
+msgid "What the agent got, what it should answer, and what it answered."
+msgstr "Co agent otrzymał, co powinien był odpowiedzieć i co odpowiedział."
+
+#: src/features/conversation/components/FormsPanel.tsx
+msgid "What the agent noted"
+msgstr "Co zanotował agent"
+
+#: src/features/extraction-runs/components/ExtractionRecordSheet.tsx
+msgid "What the agent read, and each field it returned beside the value expected."
+msgstr "Co agent przeczytał oraz każde zwrócone przez niego pole obok wartości oczekiwanej."
+
+#. What the Input role of a dataset's column means
+#: src/lib/extraction-columns.ts
+msgid "What the agent reads"
+msgstr "Co czyta agent"
+
+#: src/features/conversation-runs/components/RunEvaluationPanel.tsx
+msgid "What the judge is told, on top of the expected output."
+msgstr "Co otrzymuje model oceniający oprócz oczekiwanej odpowiedzi."
+
+#: src/features/campaign-review/components/TesterFeedbackPanel.tsx
+msgid "What the tester reported about what happened in this session."
+msgstr "Co tester zgłosił na temat przebiegu tej sesji."
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "What went well? What could be better?"
+msgstr "Co poszło dobrze? Co można poprawić?"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "What went wrong?"
+msgstr "Co poszło nie tak?"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "What worked, and what did not?"
+msgstr "Co zadziałało, a co nie?"
+
+#: src/routes/-components/AgentHubPage.tsx
+msgid "What you can do with this agent."
+msgstr "Co możesz zrobić z tym agentem."
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "When an agent is created in one of your projects, it appears here."
+msgstr "Gdy w jednym z Twoich projektów powstanie agent, pojawi się on tutaj."
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "When you are done testing, share an overall rating of the agent. It is optional: your feedback on each session already counts. You can still start sessions afterwards."
+msgstr "Po zakończeniu testów wystaw agentowi ocenę ogólną. Jest to opcjonalne: Twoje opinie o poszczególnych sesjach już się liczą. Potem nadal możesz rozpoczynać sesje."
+
+#: src/features/extraction-runs/components/ExtractionComparisonRecords.tsx
+msgid "Where each record stands in each run, with how many of its compared fields match."
+msgstr "Stan każdego rekordu w każdym uruchomieniu wraz z liczbą zgodnych pól spośród porównywanych."
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "Wrap long lines"
+msgstr "Zawijaj długie linie"
+
+#: src/features/campaigns/components/InviteParticipantsForm.tsx
+msgid "Write 1 to {maxEmails} valid email addresses."
+msgstr "Wpisz od 1 do {maxEmails} prawidłowych adresów e-mail."
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "Write the expected output."
+msgstr "Wpisz oczekiwaną odpowiedź."
+
+#: src/features/conversation-datasets/components/RecordDialog.tsx
+msgid "Write the input."
+msgstr "Wpisz dane wejściowe."
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Write the question."
+msgstr "Wpisz pytanie."
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Write two options at least."
+msgstr "Wpisz co najmniej dwie opcje."
+
+#. A field an agent filled in with true
+#. An answer to: Did the agent address your question?
+#: src/features/campaigns/campaign-defaults.ts
+#: src/lib/field-text.ts
+msgid "Yes"
+msgstr "Tak"
+
+#: src/features/campaigns/components/QuestionEditor.tsx
+msgid "Yes, No, Not sure"
+msgstr "Tak, Nie, Nie mam pewności"
+
+#: src/features/campaign-review/components/OtherReviews.tsx
+msgid "You are the only reviewer of this session so far."
+msgstr "Na razie tylko Ty recenzujesz tę sesję."
+
+#: src/features/invitations/api/mutations.ts
+msgid "You declined the invitation to {targetName}."
+msgstr "Odrzucono zaproszenie do: {targetName}."
+
+#: src/features/campaign-test/components/SurveyCard.tsx
+msgid "You filled the survey. Thank you for your feedback."
+msgstr "Ankieta wypełniona. Dziękujemy za opinię."
+
+#: src/features/agents/components/NoEvaluationAccessPage.tsx
+msgid "You have no access to Evaluation yet"
+msgstr "Nie masz jeszcze dostępu do aplikacji Ewaluacja"
+
+#: src/features/campaign-test/components/TesterSessionsTable.tsx
+msgid "You have not started a session yet. Your sessions show here, with the feedback you gave on each."
+msgstr "Nie masz jeszcze żadnej rozpoczętej sesji. Twoje sesje pojawią się tutaj wraz z opinią przekazaną o każdej z nich."
+
+#: src/features/invitations/api/mutations.ts
+msgid "You joined {targetName}."
+msgstr "Dołączono do: {targetName}."
+
+#. The section of the agents the person reaches through the campaigns they test or review
+#: src/features/agents/components/AgentCommandCenter.tsx
+msgid "Your campaigns"
+msgstr "Twoje kampanie"
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Your feedback could not be saved. Try again."
+msgstr "Nie udało się zapisać Twojej opinii. Spróbuj ponownie."
+
+#: src/features/conversation/components/GoodReplyButton.tsx
+msgid "Your feedback could not be sent. Try again."
+msgstr "Nie udało się wysłać opinii. Spróbuj ponownie."
+
+#: src/features/campaign-test/components/SessionFeedbackDialog.tsx
+#: src/features/campaign-test/components/SessionFeedbackPanel.tsx
+msgid "Your feedback ends the session and helps improve the agent. You cannot change it afterwards."
+msgstr "Twoja opinia kończy sesję i pomaga ulepszać agenta. Później nie można jej zmienić."
+
+#: src/features/campaign-test/components/SessionFeedbackForm.tsx
+msgid "Your feedback was saved."
+msgstr "Zapisano Twoją opinię."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider did not share your email address with the app."
+msgstr "Dostawca tożsamości nie udostępnił aplikacji Twojego adresu e-mail."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider refused the sign-in."
+msgstr "Dostawca tożsamości odrzucił logowanie."
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Your note on this passage"
+msgstr "Twoja notatka do tego fragmentu"
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "Your projects have no agent yet"
+msgstr "Twoje projekty nie mają jeszcze agentów"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+#: src/features/campaigns/components/CampaignSetupView.tsx
+#: src/features/campaigns/components/FeedbackPreview.tsx
+msgid "Your rating"
+msgstr "Twoja ocena"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Your review"
+msgstr "Twoja recenzja"
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Your review could not be saved. Try again."
+msgstr "Nie udało się zapisać Twojej recenzji. Spróbuj ponownie."
+
+#: src/features/campaign-review/components/ReviewPanel.tsx
+msgid "Your review was saved."
+msgstr "Zapisano Twoją recenzję."
+
+#. Marks a session the reviewer started as a tester
+#: src/features/campaign-review/components/reviewer-session-columns.tsx
+msgid "Your session"
+msgstr "Twoja sesja"
+
+#: src/features/campaign-test/components/TesterCampaignPage.tsx
+msgid "Your sessions"
+msgstr "Twoje sesje"
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Your survey could not be saved. Try again."
+msgstr "Nie udało się zapisać Twojej ankiety. Spróbuj ponownie."
+
+#: src/features/campaign-test/components/TesterSurveyPage.tsx
+msgid "Your survey was saved."
+msgstr "Zapisano Twoją ankietę."

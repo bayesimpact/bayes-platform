@@ -60,7 +60,7 @@ Run them from the repository root.
 | `npm run storybook -w @caseai-connect/eval` | Storybook on port 6010: the whole app on the MSW handlers, with no API and no sign-in |
 | `npm run check -w @caseai-connect/eval` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/eval` | Vitest alone |
-| `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and `fr.po` |
+| `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and to the catalog of each other language (`fr`, `de`, `it`, `es`, `pl`) |
 | `npm run build -w @caseai-connect/eval` | The production build, in `apps/eval/dist` |
 | `npm run preview -w @caseai-connect/eval` | Serves that build on port 5180 at `/eval/` |
 

@@ -1,7 +1,7 @@
 import "../src/styles/global.css"
 import type { Preview } from "@storybook/react-vite"
 import { INITIAL_VIEWPORTS } from "storybook/viewport"
-import { activateLocale, detectLocale, LOCALES, type Locale } from "@/app/i18n"
+import { activateLocale, detectLocale, LOCALES, type Locale, languageNameOf } from "@/app/i18n"
 import { StoryProviders } from "@/stories/StoryProviders"
 import { type EvalStoryParameters, serveStoryWorld } from "@/test/msw/story-api"
 
@@ -27,10 +27,7 @@ const preview: Preview = {
       description: "The language of the app",
       toolbar: {
         icon: "globe",
-        items: [
-          { value: "en", title: "English" },
-          { value: "fr", title: "Français" },
-        ],
+        items: LOCALES.map((locale) => ({ value: locale, title: languageNameOf(locale) })),
         dynamicTitle: true,
       },
     },
