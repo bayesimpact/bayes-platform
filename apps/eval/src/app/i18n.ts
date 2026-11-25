@@ -6,6 +6,9 @@ export type Locale = (typeof LOCALES)[number]
 /** The language of a person whose browser speaks none of the app's. */
 const DEFAULT_LOCALE: Locale = "en"
 
+/** The speech language of each language of the app, which dictation listens in. */
+export const SPEECH_LANGUAGES: Record<Locale, string> = { en: "en-US", fr: "fr-FR" }
+
 const LOCALE_STORAGE_KEY = "eval.locale"
 
 export function isLocale(value: unknown): value is Locale {

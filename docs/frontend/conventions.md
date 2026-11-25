@@ -47,7 +47,7 @@ where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no too
 | Validation | Zod 4, in the app's contracts package: the schemas of what it sends and reads |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
 | Tables | TanStack Table v8, rendered with the shadcn `Table` |
-| Text | Lingui: English in the components, French in a PO catalog |
+| Text | Lingui: English in the components, each other language in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
 | Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@caseai-connect/mcp-app-host` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only: any other extension waits for a human's go) |
 | Sign-in | `oidc-client-ts`, in the app's `lib/auth/` |
@@ -83,7 +83,7 @@ apps/<app>/
     hooks/                  hooks shared by features, such as `useNow`
     lib/                    api-client.ts, auth/, and code shared by features: `polling.ts`,
                             `not-found.ts`, `start-query.ts`, `agent-params.ts`, `has-own-key.ts`
-    locales/                en.po (source), fr.po
+    locales/                en.po (source), one catalog per other language
     stories/                stories of the whole app, one per state of its mocked world
     styles/global.css       Tailwind and the design tokens; shadcn.css, which shadcn needs
     test/                   setup, MSW handlers, fixture factories, render helpers
@@ -287,10 +287,15 @@ or editing the boundaries' configuration.
   [`useLingui`](https://lingui.dev/ref/react.md).
 - The same English with two meanings gets a `context`, and a `comment` tells the translator what a
   short text refers to. Zod messages shown in forms go through Lingui too.
-- After a text changes, run `npm run i18n:extract -w <app>` and write the new French entries of
-  `src/locales/fr.po` in the same change. The catalogs record each message's file and line, so a
-  change that only moves code needs an extract too. `i18n:check` (`lingui check sync` and
-  `lingui check missing`) fails the PR on a stale catalog or a missing French translation.
+- After a text changes, run `npm run i18n:extract -w <app>` and write the new entries of every
+  other catalog of `src/locales/` in the same change: French, and each language the app's
+  `lingui.config.ts` lists. A language with several plural forms gets them all (Polish: `one`,
+  `few`, `many` and `other`). The catalogs record each message's file and line, so a change that
+  only moves code needs an extract too. `i18n:check` (`lingui check sync` and
+  `lingui check missing`) fails the PR on a stale catalog or a translation missing in any language.
+- An app's languages are the `LOCALES` of its `src/app/i18n.ts`, which lists the same languages as
+  its `lingui.config.ts`. The user menu offers them, and the speech language of each one sits
+  beside them (`SPEECH_LANGUAGES`).
 - Lingui's agent skills (the `lingui` plugin of the `lingui/skills` marketplace, declared in
   `.claude/settings.json`) cover the macros, translator comments and text left outside a macro.
   When a skill and these rules disagree, these rules win.
@@ -423,7 +428,7 @@ typecheck proves the app reads the new types.
 
 **A feature**: its endpoint first when it is missing or must change, then keys, queries and
 mutations, components with their skeletons and their English text, `index.ts` with the strict
-minimum, the route with its loader, pending and error components, the French translations after
+minimum, the route with its loader, pending and error components, the translations after
 `i18n:extract`, tests and `check`. Last comes a look in the browser, in Storybook or the
 worktree environment, at desktop and phone widths, in French and English, with the loading, error
 and empty states.
@@ -433,9 +438,9 @@ and empty states.
 - `check` passes with no ignored warning, `npm run build -w <app>` works, and the build served under
   its base by `vite preview` loads and reloads a deep link.
 - Screens load through their loader and `useSuspenseQuery` with skeletons, each `useQuery` carries
-  its justification, error states offer a retry, empty states exist, every new text has its French
-  translation, every new behaviour has its spec and every new state its story, and the screen was
-  checked at desktop and phone widths.
+  its justification, error states offer a retry, empty states exist, every new text has its
+  translation in every catalog, every new behaviour has its spec and every new state its story,
+  and the screen was checked at desktop and phone widths.
 - No API type is written by hand, and there is no dead code, `console.log`, unflagged TODO or
   unjustified dependency.
 - The work ends with a summary of what was done, what remains, the decisions these rules did not

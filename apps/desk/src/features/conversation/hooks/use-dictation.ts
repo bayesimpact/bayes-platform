@@ -1,11 +1,8 @@
 import { useLingui } from "@lingui/react/macro"
 import { useRef } from "react"
 import { toast } from "sonner"
-import { LOCALES, type Locale } from "@/app/i18n"
+import { activeLocaleOf, SPEECH_LANGUAGES } from "@/app/i18n"
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
-
-/** The speech language of each language of the Desk. */
-const SPEECH_LANGUAGES: Record<Locale, string> = { fr: "fr-FR", en: "en-US" }
 
 type UseDictationOptions = {
   content: string
@@ -18,7 +15,7 @@ type UseDictationOptions = {
  */
 export function useDictation({ content, onContentChange }: UseDictationOptions) {
   const { t, i18n } = useLingui()
-  const locale = LOCALES.find((known) => known === i18n.locale) ?? "en"
+  const locale = activeLocaleOf(i18n.locale)
   // What the box held when the dictation started, which the spoken words follow.
   const prefixRef = useRef("")
   // Stopped by the person or a sent message: a late word must not write the box again.
