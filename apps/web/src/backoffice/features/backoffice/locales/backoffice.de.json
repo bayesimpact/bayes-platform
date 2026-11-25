@@ -1,0 +1,25 @@
+{
+  "backoffice": {
+    "notifications": {
+      "organizationCreated": "Organisation erstellt",
+      "organizationCreateError": "Organisation konnte nicht erstellt werden",
+      "projectUpdated": "Arbeitsbereich im Backoffice aktualisiert",
+      "projectUpdateError": "Arbeitsbereich konnte im Backoffice nicht aktualisiert werden",
+      "conversationReviewersUpdated": "Reviewer der Unterhaltungen aktualisiert",
+      "conversationReviewersUpdateError": "Reviewer der Unterhaltungen konnten nicht aktualisiert werden",
+      "globalRolesUpdated": "Globale Rollen aktualisiert",
+      "globalRolesUpdateError": "Globale Rollen konnten nicht aktualisiert werden",
+      "termsDocumentsSaved": "Dokumente der Nutzungsbedingungen gespeichert",
+      "termsDocumentsSaveError": "Dokumente der Nutzungsbedingungen konnten nicht gespeichert werden",
+      "appCreated": "App erstellt",
+      "appUpdated": "App aktualisiert",
+      "appDeleted": "App gelöscht",
+      "appCreateError": "App konnte nicht erstellt werden",
+      "appUpdateError": "App konnte nicht aktualisiert werden",
+      "appDeleteError": "App konnte nicht gelöscht werden",
+      "appOAuthClientError": "Der OAuth-Client der App konnte nicht geladen oder aktualisiert werden",
+      "maintenanceJobStarted": "Wartungsjob gestartet",
+      "maintenanceJobStartError": "Wartungsjob konnte nicht gestartet werden"
+    }
+  }
+}

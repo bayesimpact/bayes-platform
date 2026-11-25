@@ -1,0 +1,25 @@
+{
+  "backoffice": {
+    "notifications": {
+      "organizationCreated": "Organizzazione creata",
+      "organizationCreateError": "Creazione dell'organizzazione non riuscita",
+      "projectUpdated": "Progetto aggiornato nel backoffice",
+      "projectUpdateError": "Aggiornamento del progetto nel backoffice non riuscito",
+      "conversationReviewersUpdated": "Revisori delle conversazioni aggiornati",
+      "conversationReviewersUpdateError": "Impossibile aggiornare i revisori delle conversazioni",
+      "globalRolesUpdated": "Ruoli globali aggiornati",
+      "globalRolesUpdateError": "Impossibile aggiornare i ruoli globali",
+      "termsDocumentsSaved": "Documenti delle condizioni d'uso salvati",
+      "termsDocumentsSaveError": "Impossibile salvare i documenti delle condizioni d'uso",
+      "appCreated": "App creata",
+      "appUpdated": "App aggiornata",
+      "appDeleted": "App eliminata",
+      "appCreateError": "Creazione dell'app non riuscita",
+      "appUpdateError": "Aggiornamento dell'app non riuscito",
+      "appDeleteError": "Eliminazione dell'app non riuscita",
+      "appOAuthClientError": "Impossibile caricare o aggiornare il client OAuth dell'app",
+      "maintenanceJobStarted": "Job di manutenzione avviato",
+      "maintenanceJobStartError": "Impossibile avviare il job di manutenzione"
+    }
+  }
+}
