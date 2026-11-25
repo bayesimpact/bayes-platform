@@ -16,9 +16,10 @@ platforms:
   - web
 
 categories:
+  - application-development
   - knowledge-management
-  - customer-service-and-support
-  - document-management
+  - data-collection
+  - workflow-management
 
 developmentStatus: stable
 
