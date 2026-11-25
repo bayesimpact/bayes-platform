@@ -15,16 +15,16 @@ import type { McpAgentToolsService, McpCaller, McpResult } from "./mcp-agent-too
 import type { McpEvaluationToolsService } from "./mcp-evaluation-tools.service"
 
 export const MCP_SERVER_NAME = "agents"
-export const MCP_SERVER_VERSION = "1.2.0"
+export const MCP_SERVER_VERSION = "1.3.0"
 
 const MCP_SERVER_INSTRUCTIONS = [
   "Creates, updates, duplicates and evaluates agents on the platform for the signed-in user.",
   "Call list_projects first: an agent always belongs to a project. It lists the projects the user granted to this client, and only the ones with canCreateAgents set to true accept new agents.",
   "Then call create_agent with that project's id. It returns the agent's id and, when the platform knows its public URL, a link to the agent in the studio.",
-  "To change an existing agent, call list_agents with the project's id, then update_agent with the agent's id: only the agents with canUpdate set to true can be changed. update_agent edits the draft; the user publishes it in the studio.",
-  "To start a variant of an existing agent, call duplicate_agent with the agent's id from list_agents and a new name: only the agents with canDuplicate set to true can be copied. The copy is a new agent of the same project whose settings are a draft (published is false): nothing uses it until the user publishes it in the studio.",
+  "To change an existing agent, call list_agents with the project's id, then update_agent with the agent's id: only the agents with canUpdate set to true can be changed. update_agent edits the draft, and save_agent_version saves the draft as a version. Neither puts a version in production: the user does that in the studio.",
+  "To start a variant of an existing agent, call duplicate_agent with the agent's id from list_agents and a new name: only the agents with canDuplicate set to true can be copied. The copy is a new agent of the same project whose settings are a draft (published is false): nothing uses it until the user puts a version in production in the studio.",
   "Call get_agent before changing an agent: it returns the instructions of its published version and of its draft, and its versions.",
-  "To evaluate a conversation agent, put questions and expected answers in a dataset (list_evaluation_datasets, create_evaluation_dataset, add_dataset_records), then call run_evaluation. A run evaluates a published version only, never the draft: to evaluate changes made with update_agent, ask the user to publish the draft in the studio first. Pass agentRevision to compare published versions.",
+  "To evaluate a conversation agent, put questions and expected answers in a dataset (list_evaluation_datasets, create_evaluation_dataset, add_dataset_records), then call run_evaluation. A run evaluates a saved version only, never the draft: to evaluate changes made with update_agent, call save_agent_version first, then pass its savedRevision as agentRevision. Pass agentRevision to compare saved versions.",
   "A run is asynchronous: call get_evaluation_run until its status is completed, failed or cancelled, then read each answer and its score with list_evaluation_run_records. Read the answers, not only the average score: a low score says that an answer is wrong, the answer says why.",
 ].join(" ")
 
@@ -103,6 +103,22 @@ const duplicateAgentInputSchema = z.object({
   ),
 })
 
+const saveAgentVersionInputSchema = z.object({
+  agentId: z.uuid().describe("Id of the agent whose draft to save, from list_agents."),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .describe(
+      'Name of the version, shown in the studio\'s version list, for example "Shorter answers".',
+    ),
+  description: z
+    .string()
+    .trim()
+    .optional()
+    .describe("What changed in this version and why, shown in the studio's version list."),
+})
+
 const agentVersionSchema = z.looseObject({
   revision: z.number(),
   model: z.string(),
@@ -117,6 +133,7 @@ const agentDetailsSchema = agentSchema.extend({
     z.looseObject({
       revision: z.number(),
       isDraft: z.boolean(),
+      isProduction: z.boolean(),
       name: z.string().nullable(),
       updatedAt: z.string(),
     }),
@@ -202,7 +219,7 @@ const runEvaluationInputSchema = z.object({
     .positive()
     .optional()
     .describe(
-      "Published version of the agent to evaluate: a revision number from get_agent whose isDraft is false. The version in production when left out.",
+      "Saved version of the agent to evaluate: a revision number from get_agent whose isDraft is false, or the savedRevision of save_agent_version. The version in production when left out.",
     ),
   judgeModel: z
     .enum(AgentModel)
@@ -299,7 +316,7 @@ export function buildAgentCreationMcpServer({
     {
       title: "Update agent",
       description:
-        "Changes the draft settings of an agent (model, instructions, greeting). Only the given settings change. Nothing is published: the user reviews and publishes the draft in the studio, from the returned link.",
+        "Changes the draft settings of an agent (model, instructions, greeting). Only the given settings change. Nothing goes to production: save_agent_version saves the draft as a version, and the user puts a version in production in the studio, from the returned link.",
       inputSchema: updateAgentInputSchema,
       outputSchema: z.looseObject({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
       annotations: {
@@ -319,11 +336,35 @@ export function buildAgentCreationMcpServer({
   )
 
   server.registerTool(
+    "save_agent_version",
+    {
+      title: "Save agent version",
+      description:
+        "Saves the draft of an agent as a version, with a name and a description, so run_evaluation can evaluate it. The version is never put in production, even when the agent has none yet: the user chooses the version in production in the studio, from the returned link.",
+      inputSchema: saveAgentVersionInputSchema,
+      outputSchema: z.looseObject({
+        agent: agentSchema.extend({
+          savedRevision: z.number(),
+          savedRevisionIsProduction: z.literal(false),
+        }),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (input) =>
+      toolResult(await toolsService.saveAgentVersion(caller, input), (agent) => ({ agent })),
+  )
+
+  server.registerTool(
     "duplicate_agent",
     {
       title: "Duplicate agent",
       description:
-        "Copies an agent into a new agent of the same project, under a new name: its published settings (model, instructions, greeting, built-in tools), its MCP servers, its sub-agents, its documents and resource libraries, and its conversation categories. Conversations, analytics, members and the embed settings are not copied. The copy's settings are a draft: nothing is published, the user reviews and publishes it in the studio, from the returned link.",
+        "Copies an agent into a new agent of the same project, under a new name: its published settings (model, instructions, greeting, built-in tools), its MCP servers, its sub-agents, its documents and resource libraries, and its conversation categories. Conversations, analytics, members and the embed settings are not copied. The copy's settings are a draft: nothing is in production, the user reviews it and puts a version in production in the studio, from the returned link.",
       inputSchema: duplicateAgentInputSchema,
       outputSchema: z.looseObject({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
       annotations: {
@@ -452,7 +493,7 @@ export function buildAgentCreationMcpServer({
     {
       title: "Run evaluation",
       description:
-        "Evaluates a conversation agent on a dataset: the agent answers each record, then a judge model scores each answer from 1 to 5 against the expected one. The run starts at once and finishes in the background: follow it with get_evaluation_run. It calls language models for every record. It evaluates a published version, never the draft: the user publishes the draft in the studio before its changes can be evaluated.",
+        "Evaluates a conversation agent on a dataset: the agent answers each record, then a judge model scores each answer from 1 to 5 against the expected one. The run starts at once and finishes in the background: follow it with get_evaluation_run. It calls language models for every record. It evaluates a saved version, never the draft: call save_agent_version before its changes can be evaluated.",
       inputSchema: runEvaluationInputSchema,
       outputSchema: z.looseObject({ run: runSchema }),
       annotations: {

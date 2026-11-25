@@ -42,7 +42,7 @@
       },
       "agent_settings_draft_update": {
         "name": "Edycja wersji roboczych agentów",
-        "description": "Zmiana ustawień roboczych agentów, których jesteś właścicielem lub administratorem w wybranych projektach (model, instrukcje). Publikowanie pozostaje w Studio."
+        "description": "Zmiana ustawień roboczych agentów, których jesteś właścicielem lub administratorem w wybranych projektach (model, instrukcje) oraz zapisywanie wersji roboczej jako wersji. Wdrażanie wersji na produkcję pozostaje w Studio."
       },
       "evaluation_conversation_dataset_update": {
         "name": "Edycja zbiorów danych do ewaluacji",

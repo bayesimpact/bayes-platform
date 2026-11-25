@@ -27,6 +27,7 @@ import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import {
   AGENT_NOT_DUPLICABLE_ERROR,
   AGENT_NOT_FOUND_ERROR,
+  NO_DRAFT_TO_SAVE_ERROR,
   PROJECT_NOT_FOUND_ERROR,
 } from "../mcp-agent-tools.service"
 import { McpEndpointModule } from "../mcp-endpoint.module"
@@ -179,6 +180,7 @@ describe("MCP endpoint", () => {
         "list_evaluation_runs",
         "list_projects",
         "run_evaluation",
+        "save_agent_version",
         "update_agent",
       ])
       await client.close()
@@ -385,6 +387,152 @@ describe("MCP endpoint", () => {
         { type: "text", text: `Model ${AgentModel.Gemini25Flash} is no longer available` },
       ])
       await client.close()
+    })
+  })
+
+  describe("save_agent_version", () => {
+    const createTestAgent = async (client: Client, projectId: string) => {
+      const result = await client.callTool({
+        name: "create_agent",
+        arguments: {
+          projectId,
+          name: "Helpful Assistant",
+          instructions: "Answer questions about the product.",
+          model: AgentModel.Gemini35FlashLite,
+        },
+      })
+      return (result.structuredContent as { agent: { id: string } }).agent.id
+    }
+
+    const listRevisions = async (agentId: string) =>
+      (
+        await setup
+          .getRepository(AgentSettings)
+          .find({ where: { agentId }, order: { revision: "ASC" } })
+      ).map((revision) => [revision.revision, revision.isDraft, revision.isProduction])
+
+    it("saves the draft as a version, leaving the version in production", async () => {
+      const { project, user } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+      await client.callTool({
+        name: "update_agent",
+        arguments: { agentId, instructions: "Answer in two sentences." },
+      })
+
+      const result = await client.callTool({
+        name: "save_agent_version",
+        arguments: {
+          agentId,
+          name: "Shorter answers",
+          description: "Asks the agent to answer in two sentences",
+        },
+      })
+
+      expect(result.isError).toBeFalsy()
+      expect(result.structuredContent).toMatchObject({
+        agent: { id: agentId, published: true, savedRevision: 2, savedRevisionIsProduction: false },
+      })
+      expect(await listRevisions(agentId)).toEqual([
+        [1, false, true],
+        [2, false, false],
+      ])
+      const saved = await setup
+        .getRepository(AgentSettings)
+        .findOneByOrFail({ agentId, revision: 2 })
+      expect(saved).toMatchObject({
+        revisionName: "Shorter answers",
+        revisionDesc: "Asks the agent to answer in two sentences",
+      })
+      await expectActivityCreated("agentSettings.create", {
+        userId: user.id,
+        projectId: project.id,
+        entityId: agentId,
+        entityType: "agent",
+      })
+      const details = await client.callTool({ name: "get_agent", arguments: { agentId } })
+      expect(details.structuredContent).toMatchObject({
+        agent: {
+          publishedVersion: { revision: 1 },
+          draft: null,
+          revisions: [
+            { revision: 2, isDraft: false, isProduction: false, name: "Shorter answers" },
+            { revision: 1, isDraft: false, isProduction: true },
+          ],
+        },
+      })
+      await client.close()
+    })
+
+    it("never puts the first saved version of a copy in production", async () => {
+      const { project } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+      const duplicated = await client.callTool({
+        name: "duplicate_agent",
+        arguments: { agentId, name: "Helpful Assistant (copy)" },
+      })
+      const copyId = (duplicated.structuredContent as { agent: { id: string } }).agent.id
+
+      const result = await client.callTool({
+        name: "save_agent_version",
+        arguments: { agentId: copyId, name: "First version" },
+      })
+
+      expect(result.isError).toBeFalsy()
+      expect(result.structuredContent).toMatchObject({
+        agent: {
+          id: copyId,
+          published: false,
+          savedRevision: 1,
+          savedRevisionIsProduction: false,
+        },
+      })
+      expect(await listRevisions(copyId)).toEqual([[1, false, false]])
+      await client.close()
+    })
+
+    it("explains that there is no draft to save", async () => {
+      const { project } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+
+      const result = await client.callTool({
+        name: "save_agent_version",
+        arguments: { agentId, name: "Nothing new" },
+      })
+
+      expect(result.isError).toBe(true)
+      expect(result.content).toEqual([{ type: "text", text: NO_DRAFT_TO_SAVE_ERROR }])
+      expect(await listRevisions(agentId)).toEqual([[1, false, true]])
+      await client.close()
+    })
+
+    it("refuses without the agent.settings.draft.update grant", async () => {
+      const { project } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+      await client.callTool({
+        name: "update_agent",
+        arguments: { agentId, instructions: "Answer in two sentences." },
+      })
+      const restricted = await connect(
+        await grantAccess([project.id], ["project.read", "agent.create"]),
+      )
+
+      const result = await restricted.callTool({
+        name: "save_agent_version",
+        arguments: { agentId, name: "Shorter answers" },
+      })
+
+      expect(result.isError).toBe(true)
+      expect(result.content).toEqual([{ type: "text", text: AGENT_NOT_FOUND_ERROR }])
+      expect(await listRevisions(agentId)).toEqual([
+        [1, false, true],
+        [2, true, false],
+      ])
+      await client.close()
+      await restricted.close()
     })
   })
 

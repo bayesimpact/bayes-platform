@@ -42,7 +42,7 @@
       },
       "agent_settings_draft_update": {
         "name": "Agentenentwürfe bearbeiten",
-        "description": "Die Entwurfseinstellungen der Agenten ändern, die Sie in den ausgewählten Projekten besitzen oder verwalten (Modell, Anweisungen). Veröffentlicht wird weiterhin im Studio."
+        "description": "Die Entwurfseinstellungen der Agenten ändern, die Sie in den ausgewählten Projekten besitzen oder verwalten (Modell, Anweisungen), und den Entwurf als Version speichern. In Produktion gesetzt wird weiterhin im Studio."
       },
       "evaluation_conversation_dataset_update": {
         "name": "Evaluierungsdatensätze bearbeiten",

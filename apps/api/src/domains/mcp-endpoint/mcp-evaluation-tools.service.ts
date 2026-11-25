@@ -61,9 +61,9 @@ export const RUN_NOT_FOUND_ERROR =
 export const EVALUATED_AGENT_NOT_FOUND_ERROR =
   "Agent or version not found, or you are not allowed to evaluate it. Call get_agent to see the versions you can use."
 
-/** For a person who sees the draft: a run evaluates a published version only. */
+/** For a person who sees the draft: a run evaluates a saved version only. */
 export const EVALUATED_VERSION_IS_DRAFT_ERROR =
-  "This version is a draft, and a run evaluates a published version only. Ask the user to publish the draft in the studio, then run the evaluation again."
+  "This version is a draft, and a run evaluates a saved version only. Call save_agent_version to save the draft, then run the evaluation again with its savedRevision."
 
 export type McpEvaluationDataset = {
   id: string
