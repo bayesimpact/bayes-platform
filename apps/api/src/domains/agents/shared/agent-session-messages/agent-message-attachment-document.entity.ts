@@ -13,6 +13,13 @@ export class AgentMessageAttachmentDocument extends ConnectEntityBase {
   @JoinColumn({ name: "project_id" })
   project!: Relation<Project>
 
+  /**
+   * The conversation the file was uploaded for: only that conversation may attach it to a
+   * message. Null for the rows created before this column, which no conversation may attach.
+   */
+  @Column({ type: "uuid", name: "agent_session_id", nullable: true })
+  agentSessionId!: string | null
+
   @Column({ type: "varchar", name: "file_name" })
   fileName!: string
 

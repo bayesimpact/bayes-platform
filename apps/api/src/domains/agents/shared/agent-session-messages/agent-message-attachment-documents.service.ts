@@ -28,15 +28,19 @@ export class AgentMessageAttachmentDocumentsService {
 
   async createAttachmentDocument({
     attachmentDocumentId,
+    agentSessionId,
     connectScope,
     fields,
   }: {
     attachmentDocumentId: string
+    /** The conversation the file is uploaded for. */
+    agentSessionId: string
     connectScope: RequiredConnectScope
     fields: CreateAgentMessageAttachmentDocumentFields
   }): Promise<AgentMessageAttachmentDocument> {
     return this.attachmentDocumentConnectRepository.createAndSave(connectScope, {
       id: attachmentDocumentId,
+      agentSessionId,
       ...fields,
     })
   }
@@ -69,6 +73,7 @@ export class AgentMessageAttachmentDocumentsService {
       throw new NotFoundException(`Attachment document with ID ${attachmentDocumentId} not found`)
     }
     return this.attachmentDocumentConnectRepository.createAndSave(connectScope, {
+      agentSessionId: attachmentDocument.agentSessionId,
       fileName: attachmentDocument.fileName,
       mimeType: attachmentDocument.mimeType,
       size: attachmentDocument.size,

@@ -238,6 +238,7 @@ describe("StreamingLLMService", () => {
     const createdAttachmentDocument =
       await agentMessageAttachmentDocumentsService.createAttachmentDocument({
         attachmentDocumentId: "00000000-0000-4000-8000-000000000001",
+        agentSessionId: session.id,
         connectScope,
         fields: {
           fileName: "attachment.pdf",
@@ -273,6 +274,7 @@ describe("StreamingLLMService", () => {
     const createdAttachmentDocument =
       await agentMessageAttachmentDocumentsService.createAttachmentDocument({
         attachmentDocumentId: "00000000-0000-4000-8000-000000000001",
+        agentSessionId: session.id,
         connectScope,
         fields: {
           fileName: "attachment.jpg",
@@ -375,6 +377,7 @@ describe("StreamingLLMService", () => {
       const storageRelativePath = `${connectScope.organizationId}/${connectScope.projectId}/attachment.pdf`
       await agentMessageAttachmentDocumentsService.createAttachmentDocument({
         attachmentDocumentId,
+        agentSessionId: session.id,
         connectScope,
         fields: {
           fileName: "attachment.pdf",
@@ -422,6 +425,7 @@ describe("StreamingLLMService", () => {
       const attachmentDocumentId = "00000000-0000-4000-8000-000000000012"
       await agentMessageAttachmentDocumentsService.createAttachmentDocument({
         attachmentDocumentId,
+        agentSessionId: session.id,
         connectScope,
         fields: {
           fileName: "attachment.pdf",
@@ -452,6 +456,7 @@ describe("StreamingLLMService", () => {
       const storageRelativePath = `${connectScope.organizationId}/${connectScope.projectId}/attachment.pdf`
       await agentMessageAttachmentDocumentsService.createAttachmentDocument({
         attachmentDocumentId,
+        agentSessionId: session.id,
         connectScope,
         fields: {
           fileName: "attachment.pdf",

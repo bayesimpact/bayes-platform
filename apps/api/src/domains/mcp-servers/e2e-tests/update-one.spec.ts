@@ -29,6 +29,11 @@ const OAUTH_STATE = {
   authorizedAt: 1_700_000_000_000,
 }
 
+// The agent reads its servers through the outbound URL guard, which resolves
+// the host: every example name resolves to a public address.
+jest.mock("node:dns/promises", () => ({
+  lookup: jest.fn(async () => [{ address: "93.184.216.34", family: 4 }]),
+}))
 describe("McpServers - updateOne", () => {
   let app: INestApplication<App>
   let request: Requester

@@ -127,6 +127,7 @@ export class DeskConversationMessagesController {
 
     await this.agentMessageAttachmentDocumentsService.createAttachmentDocument({
       attachmentDocumentId,
+      agentSessionId: request.agentSession.id,
       connectScope,
       fields: {
         fileName: normalizedFileName,

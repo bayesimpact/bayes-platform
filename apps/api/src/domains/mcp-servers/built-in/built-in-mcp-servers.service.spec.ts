@@ -98,7 +98,7 @@ describe("BuiltInMcpServersService", () => {
       const listed = await mcpServersService.listMcpServers(project.id)
       expect(listed.map((mcpServer) => mcpServer.id)).toEqual([created.id])
       expect(await mcpServersService.getEnabledServersForAgent(agent.id)).toEqual([
-        { id: created.id, url: "https://pdf-converter.example.test/mcp" },
+        { id: created.id, url: "https://pdf-converter.example.test/mcp", followRedirects: true },
       ])
     })
 

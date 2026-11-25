@@ -30,6 +30,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Security
 
 - Studio, Desk and Evaluation pages: another site cannot display them in a frame.
+- Conversation attachments: a file is attached only in the conversation it was uploaded for.
+- (beta) MCP servers: a workspace's server is called only at a public https address or at an internal host the platform allows.
 
 ## [26.11.4] - 2026-11-24
 
