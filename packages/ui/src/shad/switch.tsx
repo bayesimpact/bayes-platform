@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 import * as SwitchPrimitive from "@radix-ui/react-switch"
 import type * as React from "react"
 

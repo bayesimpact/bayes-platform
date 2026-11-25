@@ -6,7 +6,7 @@ import {
   myProjectOutputSchema,
   PROJECT_READ_PERMISSION,
   SOURCES_TOOL_FEATURE_FLAG,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 
 /** An organization of `GET desk/organizations/mine`, checked against the contract. */
 export function buildMyOrganization(

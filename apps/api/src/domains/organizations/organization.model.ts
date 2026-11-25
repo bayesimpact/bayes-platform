@@ -1,4 +1,4 @@
-import type { OrganizationPermission, TimeType } from "@caseai-connect/api-contracts"
+import type { OrganizationPermission, TimeType } from "@bayes-platform/api-contracts"
 import { ModelWithPermissions } from "@/common/models/model-with-permissions"
 import type { Organization } from "./organization.entity"
 

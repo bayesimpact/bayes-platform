@@ -1,5 +1,5 @@
-import type { GlobalPermission, UserDto } from "@caseai-connect/api-contracts"
-import { buildNameFromEmail, MeRoutes, updateMeSchema } from "@caseai-connect/api-contracts"
+import type { GlobalPermission, UserDto } from "@bayes-platform/api-contracts"
+import { buildNameFromEmail, MeRoutes, updateMeSchema } from "@bayes-platform/api-contracts"
 import { Body, Controller, Get, Patch, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"

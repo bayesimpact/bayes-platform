@@ -2,7 +2,7 @@ import type {
   McpServerDto,
   McpServerInspectionDto,
   McpServerToolDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type McpServer = McpServerDto
 

@@ -1,4 +1,4 @@
-import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useState } from "react"

@@ -1,4 +1,4 @@
-import type { ExtractionAgentSessionStatus } from "@caseai-connect/api-contracts"
+import type { ExtractionAgentSessionStatus } from "@bayes-platform/api-contracts"
 import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"

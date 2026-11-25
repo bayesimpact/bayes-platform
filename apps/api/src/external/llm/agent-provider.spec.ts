@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
 
 describe("modelRequiresPdfAsImages", () => {

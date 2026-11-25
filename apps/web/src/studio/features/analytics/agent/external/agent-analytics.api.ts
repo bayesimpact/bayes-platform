@@ -2,7 +2,7 @@ import {
   AgentAnalyticsRoutes,
   type AnalyticsCategoryDailyPointDto,
   type AnalyticsDailyPointDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type {
   AnalyticsCategoryDailyPoint,

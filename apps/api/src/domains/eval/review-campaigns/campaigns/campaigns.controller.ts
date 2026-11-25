@@ -1,4 +1,4 @@
-import { EvalReviewCampaignsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalReviewCampaignsRoutes } from "@bayes-platform/eval-contracts"
 import { Controller, Req } from "@nestjs/common"
 import type {
   EndpointRequestWithProject,

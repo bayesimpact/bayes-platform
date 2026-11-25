@@ -1,4 +1,4 @@
-import type { TimeType } from "@caseai-connect/api-contracts"
+import type { TimeType } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"

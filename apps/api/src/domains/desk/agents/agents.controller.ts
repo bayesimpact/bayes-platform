@@ -1,4 +1,4 @@
-import { DeskAgentsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAgentsRoutes } from "@bayes-platform/desk-contracts"
 import { Controller, Req } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

@@ -1,7 +1,7 @@
 import type {
   ConversationAgentSessionDto,
   ConversationAgentSessionsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,

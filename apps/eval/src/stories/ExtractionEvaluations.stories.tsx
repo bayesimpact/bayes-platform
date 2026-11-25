@@ -1,4 +1,4 @@
-import { EvalExtractionRunsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalExtractionRunsRoutes } from "@bayes-platform/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import {

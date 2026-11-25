@@ -2,7 +2,7 @@ import type {
   CsvExtractionRecordOutputDto,
   CsvExtractionRunStatusDto,
   ExtractionRunStatusDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import type { RunState } from "@/lib/run-state"
 
 /** Where the extraction of a document stands, for each status the API sends. */

@@ -1,4 +1,4 @@
-import type { AgentMessageFeedbackRating } from "@caseai-connect/api-contracts"
+import type { AgentMessageFeedbackRating } from "@bayes-platform/api-contracts"
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"

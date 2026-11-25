@@ -1,4 +1,4 @@
-import { EvalMyInvitationsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalMyInvitationsRoutes } from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"

@@ -10,8 +10,8 @@ import {
   surfaceResourcesArgumentsSchema,
   TOOL_NAMES,
   type ToolName,
-} from "@caseai-connect/desk-contracts"
-import { isToolError } from "@caseai-connect/mcp-app-host"
+} from "@bayes-platform/desk-contracts"
+import { isToolError } from "@bayes-platform/mcp-app-host"
 import type { z } from "zod"
 
 /** A document a reply relied on, with the passages it cited. */

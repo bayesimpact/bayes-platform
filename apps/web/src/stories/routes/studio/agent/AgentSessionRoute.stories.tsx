@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"

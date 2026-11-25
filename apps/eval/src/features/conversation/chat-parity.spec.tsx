@@ -1,4 +1,4 @@
-import { TOOL_NAMES } from "@caseai-connect/eval-contracts"
+import { TOOL_NAMES } from "@bayes-platform/eval-contracts"
 import { prettyDOM, screen } from "@testing-library/react"
 import { useState } from "react"
 import { describe, expect, it } from "vitest"

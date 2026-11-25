@@ -1,4 +1,4 @@
-import { AnalyticsRoutes as Routes } from "@caseai-connect/api-contracts"
+import { AnalyticsRoutes as Routes } from "@bayes-platform/api-contracts"
 import {
   Controller,
   ForbiddenException,

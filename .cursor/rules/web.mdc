@@ -5,7 +5,7 @@ globs:
 alwaysApply: false
 ---
 
-# Cursor Agent Rules for CaseAI Connect - Web
+# Cursor Agent Rules for Bayes Platform - Web
 
 ## Redux & Feature Architecture
 
@@ -17,7 +17,7 @@ alwaysApply: false
 - All API calls must use Redux thunks (`createAsyncThunk`)
 - Thunks call `extra.services.{feature}` methods only (never `axios` / `fetch` directly)
 - Components dispatch thunks, never call API directly
-- API routes and DTOs come from `@caseai-connect/api-contracts`
+- API routes and DTOs come from `@bayes-platform/api-contracts`
 - The Axios client is centralized in `external/axios.ts`
 - The feature services registry is centralized in `external/axios.services.ts` and exposed via `di/services.ts`
 
@@ -46,7 +46,7 @@ alwaysApply: false
   - Declares the Service Provider Interface for the feature (`IMeSpi`)
   - Only exposes domain models (`Me`) in its API surface
 - `features/me/external/me.api.ts`
-  - Concrete implementation of the SPI using Axios + `@caseai-connect/api-contracts`
+  - Concrete implementation of the SPI using Axios + `@bayes-platform/api-contracts`
   - Uses `satisfies IMeSpi` to ensure the implementation matches the SPI contract
   - Performs DTO → domain mapping via small helpers (e.g. `fromDto(dto: MeResponseDto): Me`)
 - `external/axios.services.ts`
@@ -71,7 +71,7 @@ alwaysApply: false
   - The interface should expose domain models and hide transport details
   - For resource CRUD, SPI method names MUST match api-contracts route keys: `getAll`, `getOne`, `createOne`, `updateOne`, `deleteOne` (not `list` / `create` / domain-prefixed names). Non-CRUD methods may stay descriptive (`getMe`, `acceptTerms`).
 - Implement the SPI in `features/{domain}/external/{domain}.api.ts`
-  - Use `@caseai-connect/api-contracts` routes and DTOs
+  - Use `@bayes-platform/api-contracts` routes and DTOs
   - Call `{Domain}Routes.getAll` / `createOne` / etc. — same keys as the SPI
   - Perform DTO → domain mapping in small, explicit functions
   - Ensure the implementation `satisfies I{Domain}Spi`

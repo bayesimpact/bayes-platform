@@ -1,4 +1,4 @@
-import type { AgentSessionMessageDto } from "@caseai-connect/api-contracts"
+import type { AgentSessionMessageDto } from "@bayes-platform/api-contracts"
 import type { AgentSessionMessage } from "../agent-session-messages.models"
 
 // Pure mapper, kept apart from the API module so it can be tested without a

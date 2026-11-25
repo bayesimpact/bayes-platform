@@ -2,7 +2,7 @@ import {
   EXTRACTION_AGENT_SESSION_STATUS_CHANGED_CHANNEL_DTO,
   type ExtractionAgentSessionStatusChangedEventPayload,
   ExtractionAgentSessionsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { readSSEStream, type SSEStreamConfig } from "@/common/sse/sse-stream-reader"
 import type { ExtractionAgentSessionStatusChangedEvent } from "../extraction-agent-sessions.models"
 

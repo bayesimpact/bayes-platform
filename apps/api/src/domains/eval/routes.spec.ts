@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
-import type { AnySchemaRoute, AnyStreamRoute } from "@caseai-connect/eval-contracts"
-import * as evalContracts from "@caseai-connect/eval-contracts"
+import type { AnySchemaRoute, AnyStreamRoute } from "@bayes-platform/eval-contracts"
+import * as evalContracts from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import supertest from "supertest"
 import type { App } from "supertest/types"

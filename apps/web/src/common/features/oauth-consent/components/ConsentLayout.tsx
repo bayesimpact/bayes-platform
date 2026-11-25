@@ -1,8 +1,8 @@
-import { isLoopbackRedirectUri, oauthConsentSchema } from "@caseai-connect/api-contracts"
-import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@caseai-connect/ui/shad/card"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+import { isLoopbackRedirectUri, oauthConsentSchema } from "@bayes-platform/api-contracts"
+import { Alert, AlertDescription } from "@bayes-platform/ui/shad/alert"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Card, CardContent, CardFooter, CardHeader } from "@bayes-platform/ui/shad/card"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import {
   Field,
   FieldContent,
@@ -11,10 +11,10 @@ import {
   FieldLegend,
   FieldSet,
   FieldTitle,
-} from "@caseai-connect/ui/shad/field"
-import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@caseai-connect/ui/shad/item"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/field"
+import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@bayes-platform/ui/shad/item"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@bayes-platform/ui/shad/tooltip"
+import { cn } from "@bayes-platform/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   ArrowRightIcon,

@@ -3,7 +3,7 @@ import {
   type AgentTypeDto,
   type ProjectAgentOutputDto,
   SOURCES_TOOL_FEATURE_FLAG,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { notFound } from "@tanstack/react-router"
 import type { DeskProject } from "./desk-projects"
 

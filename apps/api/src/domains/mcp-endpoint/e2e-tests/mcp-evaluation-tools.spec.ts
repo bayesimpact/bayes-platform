@@ -2,7 +2,7 @@ import {
   AgentModel,
   EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
   type OAuthGrantablePermission,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import type { INestApplication } from "@nestjs/common"

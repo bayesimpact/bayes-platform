@@ -1,7 +1,7 @@
 import type {
   ReviewCampaignQuestionDto,
   ReviewerReviewOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { AnswerList } from "@/components/shared/AnswerList"
 import { PanelSection } from "@/components/shared/PanelSection"

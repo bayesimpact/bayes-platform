@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@bayes-platform/ui/shad/tooltip"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"

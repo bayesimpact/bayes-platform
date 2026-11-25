@@ -1,4 +1,4 @@
-import type { AgentTypeDto } from "@caseai-connect/eval-contracts"
+import type { AgentTypeDto } from "@bayes-platform/eval-contracts"
 import type { EvaluationWorkspace } from "./evaluation-agents"
 import { flattenEvaluationAgents } from "./evaluation-agents"
 import type { MyCampaign } from "./my-campaigns"

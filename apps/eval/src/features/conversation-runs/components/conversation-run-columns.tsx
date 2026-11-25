@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ConversationRunOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, ConversationRunOutputDto } from "@bayes-platform/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"

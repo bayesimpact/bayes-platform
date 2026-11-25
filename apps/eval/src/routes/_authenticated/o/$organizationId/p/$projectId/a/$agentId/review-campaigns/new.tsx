@@ -1,4 +1,4 @@
-import { PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION } from "@caseai-connect/eval-contracts"
+import { PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION } from "@bayes-platform/eval-contracts"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { hasProjectPermission } from "@/features/agents"

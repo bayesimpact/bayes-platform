@@ -3,15 +3,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
+} from "@bayes-platform/ui/shad/dropdown-menu"
 import {
   SidebarMenuAction,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@caseai-connect/ui/shad/sidebar"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/sidebar"
+import { cn } from "@bayes-platform/ui/utils"
 import { MessagesSquareIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

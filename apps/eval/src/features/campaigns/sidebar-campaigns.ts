@@ -1,4 +1,4 @@
-import type { ReviewCampaignStatusDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignStatusDto } from "@bayes-platform/eval-contracts"
 
 /** The order of the sidebar: what is under way first, then what is prepared, then what is over. */
 const STATUS_RANKS = {

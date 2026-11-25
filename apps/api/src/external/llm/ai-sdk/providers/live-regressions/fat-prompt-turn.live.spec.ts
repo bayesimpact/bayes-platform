@@ -1,5 +1,5 @@
 import "dotenv/config"
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import { PROVIDER_CASES } from "./provider-cases"
 import { FAT_AGENT_CATEGORY_NAMES, runFatPromptTurnScenario } from "./turn-classification-scenario"
 

@@ -1,8 +1,8 @@
 import {
   AGENT_SESSION_MESSAGE_ATTACHMENT_MAX_BYTES,
   agentSessionMessageAttachmentAllowedMimeTypesForFileUploader,
-} from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+} from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { PaperclipIcon } from "lucide-react"
 import { FileUploader } from "@/common/components/FileUploader"
 

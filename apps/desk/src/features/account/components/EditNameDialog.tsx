@@ -1,4 +1,4 @@
-import { USER_NAME_MAX_LENGTH, updateMeInputSchema } from "@caseai-connect/desk-contracts"
+import { USER_NAME_MAX_LENGTH, updateMeInputSchema } from "@bayes-platform/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"

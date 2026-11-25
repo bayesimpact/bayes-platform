@@ -1,4 +1,4 @@
-import { MyInvitationsRoutes } from "@caseai-connect/api-contracts"
+import { MyInvitationsRoutes } from "@bayes-platform/api-contracts"
 import { Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"

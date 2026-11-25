@@ -1,4 +1,4 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@bayes-platform/api-contracts"
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"

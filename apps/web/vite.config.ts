@@ -93,7 +93,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        "@caseai-connect/api-contracts": path.resolve(
+        "@bayes-platform/api-contracts": path.resolve(
           __dirname,
           "../../packages/api-contracts/src/index.ts",
         ),

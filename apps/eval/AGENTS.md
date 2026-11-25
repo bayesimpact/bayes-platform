@@ -10,7 +10,7 @@ file holds what is specific to Evaluation. It uses the same library versions as 
 
 - Served under `/eval/` (Vite's `base`, `appBasePath` in `src/app/config.ts`, the router's
   `basepath`), the path of the evaluation pages of apps/web, which this app replaces.
-- Contracts: `@caseai-connect/eval-contracts` (`packages/eval-contracts`), one folder per area,
+- Contracts: `@bayes-platform/eval-contracts` (`packages/eval-contracts`), one folder per area,
   with an `Eval{Area}Routes` object per area. It describes the API routes the app calls and the
   fields it reads. The API requires its CommonJS build and serves every route under `eval/`, in
   `apps/api/src/domains/eval/`, with the same schemas. The app calls only `eval/` endpoints,
@@ -56,13 +56,13 @@ Run them from the repository root.
 
 | Command | What it does |
 |---|---|
-| `npm run dev -w @caseai-connect/eval` | Dev server on port 5179 at `/eval/`, forwarding `/api` to the local API |
-| `npm run storybook -w @caseai-connect/eval` | Storybook on port 6010: the whole app on the MSW handlers, with no API and no sign-in |
-| `npm run check -w @caseai-connect/eval` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
-| `npm run test -w @caseai-connect/eval` | Vitest alone |
-| `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and `fr.po` |
-| `npm run build -w @caseai-connect/eval` | The production build, in `apps/eval/dist` |
-| `npm run preview -w @caseai-connect/eval` | Serves that build on port 5180 at `/eval/` |
+| `npm run dev -w @bayes-platform/eval` | Dev server on port 5179 at `/eval/`, forwarding `/api` to the local API |
+| `npm run storybook -w @bayes-platform/eval` | Storybook on port 6010: the whole app on the MSW handlers, with no API and no sign-in |
+| `npm run check -w @bayes-platform/eval` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
+| `npm run test -w @bayes-platform/eval` | Vitest alone |
+| `npm run i18n:extract -w @bayes-platform/eval` | Writes every message to `src/locales/en.po` and `fr.po` |
+| `npm run build -w @bayes-platform/eval` | The production build, in `apps/eval/dist` |
+| `npm run preview -w @bayes-platform/eval` | Serves that build on port 5180 at `/eval/` |
 
 In a worktree with an environment, never start `dev` or Storybook on the host: the `eval` and
 `storybook-eval` services of `infra/worktree/docker-compose.yaml` run them, at `<WT_ORIGIN>/eval/`
@@ -310,10 +310,10 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   in both apps, renders one conversation to a snapshot that check compares too. The reviewer's
   transcript shows each reply's sources with the same `SourcesList`. Its
   owner gives it the session's forms and loads them again when the agent fills one in.
-- MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
+- MCP Apps: a card runs in the sandbox of `@bayes-platform/mcp-app-host`
   (`packages/mcp-app-host`), one of the two packages the app shares with the Desk, `apps/web` and
   `apps/web-embed` (ADR 0031, section 2.4). The other is the permission catalog,
-  `@caseai-connect/permissions`, which the app reads only through the constants its contracts
+  `@bayes-platform/permissions`, which the app reads only through the constants its contracts
   re-export (section 2.12). The chat keeps what is its own, as the Desk does: the
   `useMcpApp` hook and `McpAppCard` in `features/conversation`, and the lookup of an app's HTML.
 - A rating, a comment and the answers to a campaign's questions go through one form,

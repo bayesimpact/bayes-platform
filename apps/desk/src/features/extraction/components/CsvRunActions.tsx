@@ -1,7 +1,7 @@
 import type {
   AgentParamsDto,
   CsvExtractionRunDetailOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { DownloadIcon, EllipsisIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"

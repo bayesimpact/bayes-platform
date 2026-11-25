@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
-import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/desk-contracts"
-import { defineSchemaRoute as defineEvalSchemaRoute } from "@caseai-connect/eval-contracts"
+import { defineSchemaRoute, defineStreamRoute } from "@bayes-platform/desk-contracts"
+import { defineSchemaRoute as defineEvalSchemaRoute } from "@bayes-platform/eval-contracts"
 import { Controller, HttpStatus, type INestApplication, Logger, Module, Req } from "@nestjs/common"
 import type { Request } from "express"
 import type { App } from "supertest/types"

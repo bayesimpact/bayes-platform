@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { RouteNames } from "./helpers"

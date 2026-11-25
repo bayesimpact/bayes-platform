@@ -1,4 +1,4 @@
-import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
+import { DocumentsRagMode, ToolName } from "@bayes-platform/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { addFeature } from "@/domains/organizations/organization.factory"

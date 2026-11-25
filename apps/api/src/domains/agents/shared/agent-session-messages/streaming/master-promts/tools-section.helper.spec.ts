@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { inlineCitationInstruction } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
 import { applyMcpAppToolDescription } from "@/external/mcp/mcp-app-tool-description"

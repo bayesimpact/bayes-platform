@@ -1,7 +1,7 @@
 import type {
   AnalyticsCategoryDailyPointDto,
   AnalyticsDailyPointDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type AnalyticsDailyPoint = AnalyticsDailyPointDto
 export type AnalyticsCategoryDailyPoint = AnalyticsCategoryDailyPointDto

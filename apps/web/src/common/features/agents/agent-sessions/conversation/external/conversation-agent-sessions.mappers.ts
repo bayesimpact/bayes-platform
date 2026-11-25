@@ -1,7 +1,7 @@
 import type {
   ConversationAgentSessionDto,
   ConversationSubSessionDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type {
   ConversationAgentSession,
   ConversationSubSession,

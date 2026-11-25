@@ -1,5 +1,5 @@
 {
-  "name": "@caseai-connect/pdf-converter",
+  "name": "@bayes-platform/pdf-converter",
   "private": true,
   "version": "0.0.0",
   "scripts": {

@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import { Plural } from "@lingui/react/macro"
 import {
   Trace,

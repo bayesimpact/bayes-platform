@@ -1,4 +1,4 @@
-import { BACKOFFICE_PROJECT_UPDATE_PERMISSION } from "@caseai-connect/api-contracts"
+import { BACKOFFICE_PROJECT_UPDATE_PERMISSION } from "@bayes-platform/api-contracts"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"

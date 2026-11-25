@@ -1,4 +1,4 @@
-import type { McpServerAuthMethod } from "@caseai-connect/api-contracts"
+import type { McpServerAuthMethod } from "@bayes-platform/api-contracts"
 
 export type McpServerConfig = {
   url: string

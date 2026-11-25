@@ -1,4 +1,4 @@
-import type { ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import type { ExtractionDocumentOutputDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon } from "lucide-react"
 import type { ReactNode } from "react"

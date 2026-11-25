@@ -1,7 +1,7 @@
 import type {
   ConversationFormOutputDto,
   ConversationParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"

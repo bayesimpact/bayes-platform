@@ -1,4 +1,4 @@
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import { UnprocessableEntityException } from "@nestjs/common"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { agentFactory } from "@/domains/agents/agent.factory"

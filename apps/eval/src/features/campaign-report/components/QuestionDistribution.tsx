@@ -1,4 +1,4 @@
-import type { CampaignReportDistributionOutputDto } from "@caseai-connect/eval-contracts"
+import type { CampaignReportDistributionOutputDto } from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"

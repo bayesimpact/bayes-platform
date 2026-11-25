@@ -1,12 +1,12 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/dropdown-menu"
+import { cn } from "@bayes-platform/ui/utils"
 import type { TFunction } from "i18next"
 import {
   ArrowRightIcon,

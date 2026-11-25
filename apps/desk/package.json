@@ -1,5 +1,5 @@
 {
-  "name": "@caseai-connect/desk",
+  "name": "@bayes-platform/desk",
   "private": true,
   "license": "MIT",
   "version": "0.0.0",
@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
-    "@caseai-connect/desk-contracts": "*",
-    "@caseai-connect/mcp-app-host": "*",
+    "@bayes-platform/desk-contracts": "*",
+    "@bayes-platform/mcp-app-host": "*",
     "@hookform/resolvers": "^5.2.2",
     "@lingui/core": "^6.10.0",
     "@lingui/react": "^6.10.0",

@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { MicIcon } from "lucide-react"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"

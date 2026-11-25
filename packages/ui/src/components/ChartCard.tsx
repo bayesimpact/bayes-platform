@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@caseai-connect/ui/shad/card"
+} from "@bayes-platform/ui/shad/card"
 import { useMemo } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import type { ValueType } from "recharts/types/component/DefaultTooltipContent"

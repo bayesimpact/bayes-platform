@@ -1,4 +1,4 @@
-import { messageFeedbackContentSchema } from "@caseai-connect/desk-contracts"
+import { messageFeedbackContentSchema } from "@bayes-platform/desk-contracts"
 import { z } from "zod"
 
 /**

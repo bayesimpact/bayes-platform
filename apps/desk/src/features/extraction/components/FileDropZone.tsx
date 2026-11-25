@@ -1,4 +1,4 @@
-import { EXTRACTION_MIME_TYPES } from "@caseai-connect/desk-contracts"
+import { EXTRACTION_MIME_TYPES } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { FileUpIcon, LoaderCircleIcon } from "lucide-react"

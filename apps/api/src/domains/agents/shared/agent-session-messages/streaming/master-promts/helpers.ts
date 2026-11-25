@@ -2,7 +2,7 @@ import {
   getOrderedPropertyEntries,
   outputJsonSchemaSchema,
   ToolName,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { lookupKnowledgeBaseInstruction } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"

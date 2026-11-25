@@ -1,4 +1,4 @@
-import type { AgentParamsDto, AgentTypeDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, AgentTypeDto } from "@bayes-platform/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"

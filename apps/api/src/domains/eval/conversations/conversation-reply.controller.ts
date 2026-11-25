@@ -1,5 +1,5 @@
-import type { StreamEvent } from "@caseai-connect/api-contracts"
-import { EvalConversationsRoutes } from "@caseai-connect/eval-contracts"
+import type { StreamEvent } from "@bayes-platform/api-contracts"
+import { EvalConversationsRoutes } from "@bayes-platform/eval-contracts"
 import { Controller, type MessageEvent, Req } from "@nestjs/common"
 import { Observable } from "rxjs"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

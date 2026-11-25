@@ -9,7 +9,7 @@ Run a local Trivy security scan matching the CI pipeline configuration.
 ## Steps
 
 1. Run `make trivy-scan` from the repo root using the Bash tool. This will:
-   - Build the Docker images (`caseai-connect/api:local`, `caseai-connect/cpu-workers:local`, and `caseai-connect/gpu-workers:local`)
+   - Build the Docker images (`bayes-platform/api:local`, `bayes-platform/cpu-workers:local`, and `bayes-platform/gpu-workers:local`)
    - Scan all three images with Trivy for CRITICAL and HIGH vulnerabilities
    - Apply `.trivyignore.yaml` exclusions
 

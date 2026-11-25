@@ -7,7 +7,7 @@ import {
   DOCUMENT_TAG_READ_PERMISSION,
   DOCUMENT_TAG_UPDATE_PERMISSION,
   updateAppDocumentTagSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   Body,

@@ -34,7 +34,7 @@ import type {
   PaginatedBackofficeUsersDto,
   ReviewCampaignMembershipRole,
   TimeType,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   type LegacyMembershipRole,
   toLegacyRole,

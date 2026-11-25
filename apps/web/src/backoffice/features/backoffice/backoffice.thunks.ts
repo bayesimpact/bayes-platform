@@ -1,4 +1,4 @@
-import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@bayes-platform/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { getApiErrorMessage } from "@/common/utils/api-error"

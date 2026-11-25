@@ -1,7 +1,7 @@
 import type {
   ConversationRunOutputDto,
   ConversationRunRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useMemo, useState } from "react"

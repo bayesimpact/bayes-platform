@@ -1,4 +1,4 @@
-import { EvalAgentsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalAgentsRoutes } from "@bayes-platform/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { screen } from "@testing-library/react"
 import { Suspense } from "react"

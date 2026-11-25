@@ -268,7 +268,7 @@ Reference: [studio/features/documents/](../../apps/web/src/studio/features/docum
 ### 5.1 `models.ts` — domain types, not DTOs
 
 ```ts
-import type { DocumentDto } from "@caseai-connect/api-contracts"
+import type { DocumentDto } from "@bayes-platform/api-contracts"
 export type Document = DocumentDto
 ```
 
@@ -314,7 +314,7 @@ const fromDto = (dto: DocumentDto): Document => ({ /* ... */ })
 
 **Rules**:
 - Default export, `satisfies IDocumentsSpi`. Don't annotate the object type directly — `satisfies` keeps each method's inference tight.
-- Route paths and DTO types come from `@caseai-connect/api-contracts`. Never hand-build a URL.
+- Route paths and DTO types come from `@bayes-platform/api-contracts`. Never hand-build a URL.
 - DTO ↔ model mapping (`fromDto` / `toCreateDto` / `toUpdateDto`) lives here. The slice / thunks / selectors never see a DTO.
 - Then wire the implementation in [external/axios.services.ts](../../apps/web/src/external/axios.services.ts) and add the SPI to the typed [di/services.ts](../../apps/web/src/di/services.ts) `Services` object. Forgetting either step is a typecheck error.
 

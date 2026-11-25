@@ -4,7 +4,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import { useTranslation } from "react-i18next"
 import type { CreateMcpServerFields } from "../mcp-servers.spi"
 import { McpServerForm, type McpServerFormDefaults } from "./McpServerForm"

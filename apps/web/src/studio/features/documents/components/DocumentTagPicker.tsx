@@ -1,5 +1,5 @@
-import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Command,
   CommandEmpty,
@@ -8,8 +8,8 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@caseai-connect/ui/shad/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+} from "@bayes-platform/ui/shad/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
 import { PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

@@ -1,4 +1,4 @@
-import { type AgentSessionToolCallDto, ToolName } from "@caseai-connect/api-contracts"
+import { type AgentSessionToolCallDto, ToolName } from "@bayes-platform/api-contracts"
 import { ChevronRightIcon, FileTextIcon, GlobeIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 

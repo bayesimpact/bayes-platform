@@ -1,5 +1,5 @@
-import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
-import { AgentCsvExtractionRunsRoutes } from "@caseai-connect/api-contracts"
+import type { BaseAgentSessionTypeDto } from "@bayes-platform/api-contracts"
+import { AgentCsvExtractionRunsRoutes } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"

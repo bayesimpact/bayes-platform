@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 import type * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 

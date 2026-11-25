@@ -1,7 +1,7 @@
 import {
   BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION,
   BackofficeRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"

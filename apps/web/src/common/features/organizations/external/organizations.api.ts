@@ -1,4 +1,4 @@
-import { type OrganizationDto, OrganizationsRoutes } from "@caseai-connect/api-contracts"
+import { type OrganizationDto, OrganizationsRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { Organization } from "../organizations.models"
 import type { IOrganizationsSpi } from "../organizations.spi"

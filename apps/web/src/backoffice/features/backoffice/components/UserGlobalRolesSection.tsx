@@ -3,16 +3,16 @@ import {
   type BackofficeGlobalRoleKey,
   type GrantBackofficeUserGlobalRoleRequestDto,
   grantBackofficeUserGlobalRoleSchema,
-} from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@caseai-connect/ui/shad/form"
+} from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@bayes-platform/ui/shad/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
+} from "@bayes-platform/ui/shad/select"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"

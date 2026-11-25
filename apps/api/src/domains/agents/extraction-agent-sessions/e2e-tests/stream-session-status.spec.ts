@@ -3,7 +3,7 @@ import {
   EXTRACTION_AGENT_SESSION_STATUS_CHANGED_CHANNEL_DTO,
   type ExtractionAgentSessionStatusChangedEventPayload,
   ExtractionAgentSessionsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import { Subject } from "rxjs"
 import type { App } from "supertest/types"

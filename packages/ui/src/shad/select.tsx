@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import type * as React from "react"

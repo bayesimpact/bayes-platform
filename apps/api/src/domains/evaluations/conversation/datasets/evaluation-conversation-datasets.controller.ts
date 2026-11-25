@@ -1,7 +1,7 @@
 import {
   type EvaluationConversationDatasetDto,
   EvaluationConversationDatasetsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Controller, Get, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

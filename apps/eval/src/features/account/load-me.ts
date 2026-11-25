@@ -1,4 +1,4 @@
-import type { MeOutputDto } from "@caseai-connect/eval-contracts"
+import type { MeOutputDto } from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { loaderStaleTime } from "@/lib/start-query"
 import { meQueryOptions } from "./api/queries"

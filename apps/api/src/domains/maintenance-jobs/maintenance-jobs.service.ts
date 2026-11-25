@@ -2,7 +2,7 @@ import type {
   BackofficeMaintenanceJobDto,
   BackofficeMaintenanceJobRunDto,
   BackofficeMaintenanceJobRunState,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { InjectQueue } from "@nestjs/bullmq"
 import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common"
 import type { Job, JobState, Queue } from "bullmq"

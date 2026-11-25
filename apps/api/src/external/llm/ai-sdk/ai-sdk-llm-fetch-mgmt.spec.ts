@@ -1,5 +1,5 @@
 import type { LanguageModelV3 } from "@ai-sdk/provider"
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import { Agent, fetch as undiciFetch } from "undici"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"

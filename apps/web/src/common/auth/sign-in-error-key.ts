@@ -1,4 +1,4 @@
-import { SIGN_IN_ERRORS } from "@caseai-connect/api-contracts"
+import { SIGN_IN_ERRORS } from "@bayes-platform/api-contracts"
 
 export type SignInErrorKey = "emailNotVerified" | "emailRequired" | "emailLinkingDisabled"
 

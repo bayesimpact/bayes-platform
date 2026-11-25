@@ -3,7 +3,7 @@ import {
   type MyProjectOutputDto,
   type ProjectAgentOutputDto,
   projectAgentOutputSchema,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 
 /**
  * An agent of `GET .../projects/:projectId/agents`, checked against the contract, which the person

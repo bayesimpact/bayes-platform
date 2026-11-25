@@ -1,4 +1,4 @@
-import type { McpAppHtmlOutputDto } from "@caseai-connect/desk-contracts"
+import type { McpAppHtmlOutputDto } from "@bayes-platform/desk-contracts"
 import type { ChatMcpApp } from "./chat-messages"
 
 /**

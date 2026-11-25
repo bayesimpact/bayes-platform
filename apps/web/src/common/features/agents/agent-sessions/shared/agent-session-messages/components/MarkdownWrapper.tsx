@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 import { ExternalLinkIcon } from "lucide-react"
 import Markdown, { type Components } from "react-markdown"
 import remarkBreaks from "remark-breaks"

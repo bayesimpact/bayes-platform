@@ -2,7 +2,7 @@ import {
   type DocumentDto,
   type MimeTypes,
   PUBLIC_DOCUMENTS_TAG_NAME,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { UnprocessableEntityException } from "@nestjs/common"
 import type { Document } from "./document.entity"
 

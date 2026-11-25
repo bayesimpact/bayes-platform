@@ -1,5 +1,5 @@
 import { createMCPClient } from "@ai-sdk/mcp"
-import { McpServersRoutes } from "@caseai-connect/api-contracts"
+import { McpServersRoutes } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import { type INestApplication, Logger } from "@nestjs/common"
 import type { App } from "supertest/types"

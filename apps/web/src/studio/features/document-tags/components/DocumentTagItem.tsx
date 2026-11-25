@@ -1,11 +1,11 @@
-import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@bayes-platform/api-contracts"
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@caseai-connect/ui/shad/breadcrumb"
+} from "@bayes-platform/ui/shad/breadcrumb"
 import {
   Item,
   ItemActions,
@@ -13,7 +13,7 @@ import {
   ItemDescription,
   ItemHeader,
   ItemTitle,
-} from "@caseai-connect/ui/shad/item"
+} from "@bayes-platform/ui/shad/item"
 import { TagIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useAppSelector } from "@/common/store/hooks"

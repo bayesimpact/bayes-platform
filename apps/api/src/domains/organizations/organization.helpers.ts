@@ -1,4 +1,4 @@
-import type { OrganizationDto } from "@caseai-connect/api-contracts"
+import type { OrganizationDto } from "@bayes-platform/api-contracts"
 import type { OrganizationModel } from "./organization.model"
 
 export function toDto(organization: OrganizationModel): OrganizationDto {

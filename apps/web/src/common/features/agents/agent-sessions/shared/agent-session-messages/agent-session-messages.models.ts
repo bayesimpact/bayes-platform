@@ -1,7 +1,7 @@
 import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type AgentSessionMessage = AgentSessionMessageDto
 

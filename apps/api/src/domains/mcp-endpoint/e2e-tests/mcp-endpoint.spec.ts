@@ -1,4 +1,4 @@
-import { AgentModel, type OAuthGrantablePermission } from "@caseai-connect/api-contracts"
+import { AgentModel, type OAuthGrantablePermission } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import type { INestApplication } from "@nestjs/common"

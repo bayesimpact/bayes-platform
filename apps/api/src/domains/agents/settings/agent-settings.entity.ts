@@ -3,7 +3,7 @@ import type {
   AgentModel,
   DocumentsRagMode,
   EmbeddingModel,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Column, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"

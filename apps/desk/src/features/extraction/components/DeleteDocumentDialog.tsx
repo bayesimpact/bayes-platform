@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, ExtractionDocumentOutputDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { toast } from "sonner"
 import {

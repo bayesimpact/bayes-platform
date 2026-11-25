@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Sheet,
   SheetContent,
@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@caseai-connect/ui/shad/sheet"
+} from "@bayes-platform/ui/shad/sheet"
 import { BrainIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

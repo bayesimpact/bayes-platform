@@ -3,12 +3,12 @@ import {
   DESK_UI_READ_PERMISSION,
   REVIEWER_UI_READ_PERMISSION,
   TESTER_UI_READ_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   EVALUATION_UI_READ_PERMISSION,
   EvalProjectsRoutes,
   STUDIO_UI_READ_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

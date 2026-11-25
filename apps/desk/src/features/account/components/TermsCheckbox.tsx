@@ -1,4 +1,4 @@
-import type { TermsDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import type { TermsDocumentOutputDto } from "@bayes-platform/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useId } from "react"
 import { ExternalLink } from "@/components/shared/ExternalLink"

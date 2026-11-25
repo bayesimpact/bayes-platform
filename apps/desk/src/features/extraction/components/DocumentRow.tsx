@@ -1,4 +1,4 @@
-import type { ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import type { ExtractionDocumentOutputDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon, Trash2Icon } from "lucide-react"
 import { RelativeTime } from "@/components/shared/RelativeTime"

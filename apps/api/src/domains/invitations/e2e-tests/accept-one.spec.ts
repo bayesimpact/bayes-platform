@@ -3,7 +3,7 @@ import {
   MeRoutes,
   MyInvitationsRoutes,
   ProjectInvitationsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"

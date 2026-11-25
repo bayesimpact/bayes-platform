@@ -4,7 +4,7 @@ import {
   AgentModelToAgentProvider,
   AgentProvider,
   type FeatureFlagKey,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { BadRequestException, Inject, Injectable } from "@nestjs/common"
 import { z } from "zod"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"

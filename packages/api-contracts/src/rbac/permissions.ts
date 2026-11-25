@@ -2,11 +2,11 @@ import {
   AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   APP_GRANTABLE_PERMISSIONS,
   type AppGrantablePermission,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 
-// The catalog lives in @caseai-connect/permissions, shared with the contracts of the Desk and
+// The catalog lives in @bayes-platform/permissions, shared with the contracts of the Desk and
 // Evaluation. The labels below are text the Studio shows, so they stay here.
-export * from "@caseai-connect/permissions"
+export * from "@bayes-platform/permissions"
 
 /** Product labels for the resource-type prefix of an App-grantable permission. */
 export const APP_GRANTABLE_RESOURCE_LABELS = {

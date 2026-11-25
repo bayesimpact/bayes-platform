@@ -1,4 +1,4 @@
-import type { SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type { SuccessResponseDTO } from "@bayes-platform/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"

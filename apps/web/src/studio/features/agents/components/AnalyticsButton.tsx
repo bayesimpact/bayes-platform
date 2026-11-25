@@ -1,4 +1,4 @@
-import { Item } from "@caseai-connect/ui/shad/item"
+import { Item } from "@bayes-platform/ui/shad/item"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"

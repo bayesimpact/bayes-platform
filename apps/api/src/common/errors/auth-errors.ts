@@ -1,4 +1,4 @@
-import { SIGN_IN_ERRORS } from "@caseai-connect/api-contracts"
+import { SIGN_IN_ERRORS } from "@bayes-platform/api-contracts"
 
 export const AUTH_ERRORS = {
   NO_ACCESS_TOKEN: "No access token provided",

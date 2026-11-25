@@ -3,7 +3,7 @@ import {
   CONVERSATION_DATASET_RECORD_MAX_LENGTH,
   type ConversationDatasetRecordInputDto,
   EvalConversationDatasetsRoutes,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"

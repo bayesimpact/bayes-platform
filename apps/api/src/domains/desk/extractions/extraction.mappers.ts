@@ -1,9 +1,9 @@
-import { MimeTypes } from "@caseai-connect/api-contracts"
+import { MimeTypes } from "@bayes-platform/api-contracts"
 import type {
   ExtractionDocumentOutputDto,
   ExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { UnprocessableEntityException } from "@nestjs/common"
 import type { ExtractionAgentSessionsService } from "@/domains/agents/extraction-agent-sessions/extraction-agent-sessions.service"
 import type { DocumentsService } from "@/domains/documents/documents.service"

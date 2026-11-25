@@ -1,7 +1,7 @@
 import type {
   CampaignReportDistributionOutputDto,
   CampaignReportOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { reportCsvOf } from "./report-csv"
 

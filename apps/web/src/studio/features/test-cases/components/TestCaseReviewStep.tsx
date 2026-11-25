@@ -1,7 +1,7 @@
-import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { DialogFooter } from "@caseai-connect/ui/shad/dialog"
+import { Alert, AlertDescription } from "@bayes-platform/ui/shad/alert"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { DialogFooter } from "@bayes-platform/ui/shad/dialog"
 import {
   Form,
   FormControl,
@@ -10,10 +10,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/ui/shad/toggle-group"
+} from "@bayes-platform/ui/shad/form"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
+import { ToggleGroup, ToggleGroupItem } from "@bayes-platform/ui/shad/toggle-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import type { TFunction } from "i18next"
 import { ThumbsDownIcon, ThumbsUpIcon, VenetianMaskIcon } from "lucide-react"

@@ -1,4 +1,4 @@
-import type { ConversationMessageOutputDto } from "@caseai-connect/eval-contracts"
+import type { ConversationMessageOutputDto } from "@bayes-platform/eval-contracts"
 import { NotFoundException } from "@nestjs/common"
 import type {
   EndpointRequestWithConversationAgentSession,

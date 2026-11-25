@@ -1,15 +1,15 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
+} from "@bayes-platform/ui/shad/dialog"
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@bayes-platform/ui/shad/field"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { PlusIcon, XIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

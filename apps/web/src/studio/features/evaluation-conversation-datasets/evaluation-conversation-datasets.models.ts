@@ -1,3 +1,3 @@
-import type { EvaluationConversationDatasetDto } from "@caseai-connect/api-contracts"
+import type { EvaluationConversationDatasetDto } from "@bayes-platform/api-contracts"
 
 export type EvaluationConversationDataset = EvaluationConversationDatasetDto

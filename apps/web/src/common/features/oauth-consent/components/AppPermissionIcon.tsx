@@ -1,4 +1,4 @@
-import type { AppGrantablePermission } from "@caseai-connect/api-contracts"
+import type { AppGrantablePermission } from "@bayes-platform/api-contracts"
 import {
   BotIcon,
   FilePlusIcon,

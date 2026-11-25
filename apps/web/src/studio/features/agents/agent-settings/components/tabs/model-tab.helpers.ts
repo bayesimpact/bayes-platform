@@ -1,4 +1,4 @@
-import type { UpdateAgentSettingsModelDto } from "@caseai-connect/api-contracts"
+import type { UpdateAgentSettingsModelDto } from "@bayes-platform/api-contracts"
 import { findAgentModelEntry } from "@/common/features/agents/agent-model.helpers"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { AgentModelsCatalog } from "@/common/features/agents/agents.models"

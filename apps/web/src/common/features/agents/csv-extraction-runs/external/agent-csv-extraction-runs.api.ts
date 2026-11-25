@@ -2,7 +2,7 @@ import {
   type AgentCsvExtractionRunDto,
   type AgentCsvExtractionRunRecordDto,
   AgentCsvExtractionRunsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type {
   AgentCsvExtractionRun,

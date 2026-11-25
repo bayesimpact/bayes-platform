@@ -2,7 +2,7 @@
 
 Source of truth in code:
 
-- Permission strings: `packages/permissions/src/index.ts`. This is the only declaration. The API imports them through `@caseai-connect/api-contracts`, and the contracts of the Desk and Evaluation import the ones they need.
+- Permission strings: `packages/permissions/src/index.ts`. This is the only declaration. The API imports them through `@bayes-platform/api-contracts`, and the contracts of the Desk and Evaluation import the ones they need.
 - Roles and grants: `apps/api/src/domains/rbac/rbac.constants.ts`. Role keys and which role receives which permission. It does not redeclare the strings.
 
 This document mirrors those files. Whenever a role or a role/permission grant changes, update the matching table here in the same PR (see `.cursor/rules/permission-matrix.mdc` and the `check-permission-matrix` Claude skill).

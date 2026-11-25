@@ -1,4 +1,4 @@
-import { BreadcrumbItem } from "@caseai-connect/ui/shad/breadcrumb"
+import { BreadcrumbItem } from "@bayes-platform/ui/shad/breadcrumb"
 import { useTranslation } from "react-i18next"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"

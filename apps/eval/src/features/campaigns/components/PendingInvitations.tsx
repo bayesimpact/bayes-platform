@@ -1,8 +1,8 @@
 import type {
   CampaignInvitationOutputDto,
   ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
-import { reviewCampaignRoleSchema } from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
+import { reviewCampaignRoleSchema } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CopyIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"

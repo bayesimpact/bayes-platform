@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { FeatureFlagKey } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"

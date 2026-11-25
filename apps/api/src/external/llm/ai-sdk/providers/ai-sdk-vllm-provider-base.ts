@@ -1,7 +1,7 @@
 import "../../open-telemetry-init" // !!!! first import !!!!
 import { createOpenAI } from "@ai-sdk/openai"
 import type { JSONSchema7, JSONSchema7Definition, LanguageModelV3 } from "@ai-sdk/provider"
-import type { AgentProvider } from "@caseai-connect/api-contracts"
+import type { AgentProvider } from "@bayes-platform/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import { asSchema, type ToolSet } from "ai"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"

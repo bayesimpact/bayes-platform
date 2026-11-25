@@ -3,7 +3,7 @@ import {
   AppsDocumentsRoutes,
   DOCUMENT_CREATE_PERMISSION,
   parseCreateAppDocumentRequest,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   Body,

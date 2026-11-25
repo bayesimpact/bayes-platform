@@ -1,4 +1,4 @@
-import { AppsRoutes } from "@caseai-connect/api-contracts"
+import { AppsRoutes } from "@bayes-platform/api-contracts"
 import { Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { Request } from "express"
 import { getOAuthAuthorizationEndpoint, getOAuthServerUrls } from "@/config/public-urls"

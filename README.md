@@ -5,7 +5,7 @@ As part of this work, we curate public and community resource datasets and make 
 
 # Bayes platform
 
-![Security](https://github.com/bayesimpact/caseai-connect/actions/workflows/security.yml/badge.svg)
+![Security](https://github.com/bayesimpact/bayes-platform/actions/workflows/security.yml/badge.svg)
 [![DOI](https://zenodo.org/badge/1198631787.svg?v=1)](https://doi.org/10.5281/zenodo.21533360)
 
 A SaaS platform for building multi-agent systems, built as a Turbo monorepo with a NestJS API and a React web frontend. Users sign in through any OpenID Connect provider (Keycloak, Auth0, Okta...).
@@ -656,7 +656,7 @@ npm run typecheck
 ## Project Structure
 
 ```
-caseai-connect/
+bayes-platform/
 ├── apps/
 │   ├── api/              # NestJS API
 │   ├── web/              # React web frontend

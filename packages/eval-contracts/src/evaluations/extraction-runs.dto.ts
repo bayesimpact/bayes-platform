@@ -8,7 +8,7 @@ export {
   EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 
 /** How many records of a run the app shows in a page: a run may hold thousands. */
 export const EXTRACTION_RUN_RECORDS_PAGE_SIZE = 50

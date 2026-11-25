@@ -1,7 +1,7 @@
 import {
   MEMORY_MAX_LENGTH,
   resolveMemoryProposalsInputSchema,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"

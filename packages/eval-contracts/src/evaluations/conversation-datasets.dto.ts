@@ -7,7 +7,7 @@ export {
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 
 /** The longest input, and the longest expected output, of a record, in characters. */
 export const CONVERSATION_DATASET_RECORD_MAX_LENGTH = 10_000

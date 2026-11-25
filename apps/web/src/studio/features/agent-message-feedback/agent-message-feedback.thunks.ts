@@ -1,4 +1,4 @@
-import type { AgentMessageFeedbackRating } from "@caseai-connect/api-contracts"
+import type { AgentMessageFeedbackRating } from "@bayes-platform/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"

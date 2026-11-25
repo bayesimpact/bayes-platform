@@ -2,7 +2,7 @@ import type {
   CsvColumnDto,
   CsvColumnRoleDto,
   CsvFileColumnOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 
 /** The rows a run reads: all of them, or the first ones, to try the setup first. */
 export type RowScope = { kind: "all" } | { kind: "first"; count: number }

@@ -1,4 +1,4 @@
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel } from "@bayes-platform/api-contracts"
 import { ConflictException, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import type { TransactionService } from "@/common/transaction/transaction.service"
 import type { EmbedderService } from "../embedders/embedder.service"

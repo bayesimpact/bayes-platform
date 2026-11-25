@@ -1,4 +1,4 @@
-import { Input } from "@caseai-connect/ui/shad/input"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { SearchIcon } from "lucide-react"
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"

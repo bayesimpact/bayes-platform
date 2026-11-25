@@ -3,7 +3,7 @@ import type {
   ExtractionDatasetFileOutputDto,
   ExtractionDatasetOutputDto,
   ExtractionDatasetRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { EvaluationExtractionDatasetsService } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-datasets.service"
 
 type ExtractionDatasetFile = Awaited<

@@ -1,7 +1,7 @@
 import {
   type AgentCsvExtractionRunStatusChangedEventDto,
   AgentCsvExtractionRunsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Get, Post, Query, Req, Sse, UseGuards } from "@nestjs/common"
 import type { Observable } from "rxjs"
 import type {

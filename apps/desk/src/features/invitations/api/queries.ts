@@ -1,4 +1,4 @@
-import { DeskInvitationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskInvitationsRoutes } from "@bayes-platform/desk-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { invitationKeys } from "./keys"

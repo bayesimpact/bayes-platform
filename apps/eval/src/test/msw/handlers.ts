@@ -4,7 +4,7 @@ import {
   EvalMyInvitationsRoutes,
   EvalOrganizationsRoutes,
   EvalProjectsRoutes,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { buildMe } from "../factories/account.factory"
 import { buildEvalWorld, type EvalWorld } from "../factories/eval-world.factory"
 import { agentVersionsOf, campaignHandlers } from "./campaign-handlers"

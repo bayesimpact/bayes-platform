@@ -1,4 +1,4 @@
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu } from "@caseai-connect/ui/shad/sidebar"
+import { SidebarGroup, SidebarGroupLabel, SidebarMenu } from "@bayes-platform/ui/shad/sidebar"
 
 export function Section({
   name,

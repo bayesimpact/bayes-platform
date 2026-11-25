@@ -2,7 +2,7 @@ import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
   AgentSessionToolCallDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { McpAppResource } from "@/external/mcp/mcp-app-resource"
 import type { AgentMessage, AgentMessageToolCall } from "./agent-message.entity"
 

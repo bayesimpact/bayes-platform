@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@bayes-platform/eval-contracts"
 
 export const evaluationAgentKeys = {
   all: ["evaluation-agents"] as const,

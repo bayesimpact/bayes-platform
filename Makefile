@@ -7,10 +7,10 @@ TEST_ADMIN_DATABASE_URL ?= postgresql://admin:passpass@localhost:5432/postgres
 TEST_MCP_ENCRYPTION_KEY ?= 0000000000000000000000000000000000000000000000000000000000000000
 
 # Local image tags (no GCP references)
-localApiImage = caseai-connect/api:local
-localCpuWorkersImage = caseai-connect/cpu-workers:local
-localGpuWorkersImage = caseai-connect/gpu-workers:local
-localPdfConverterImage = caseai-connect/pdf-converter:local
+localApiImage = bayes-platform/api:local
+localCpuWorkersImage = bayes-platform/cpu-workers:local
+localGpuWorkersImage = bayes-platform/gpu-workers:local
+localPdfConverterImage = bayes-platform/pdf-converter:local
 smokeComposeFile = infra/docker-compose.api-workers-smoke.yaml
 smokeEnv = API_IMAGE=${localApiImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage}
 

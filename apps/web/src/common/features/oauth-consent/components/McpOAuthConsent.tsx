@@ -1,6 +1,6 @@
-import type { oauthConsentSchema } from "@caseai-connect/api-contracts"
-import { CardContent } from "@caseai-connect/ui/shad/card"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+import type { oauthConsentSchema } from "@bayes-platform/api-contracts"
+import { CardContent } from "@bayes-platform/ui/shad/card"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import {
   Form,
   FormDescription,
@@ -8,8 +8,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/form"
+import { cn } from "@bayes-platform/ui/utils"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"

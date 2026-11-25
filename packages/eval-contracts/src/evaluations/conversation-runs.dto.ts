@@ -8,7 +8,7 @@ export {
   EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 
 /** The longest instructions a run gives its judge, in characters. */
 export const CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH = 4000

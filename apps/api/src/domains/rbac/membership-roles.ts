@@ -1,4 +1,4 @@
-import type { MembershipRoleDto } from "@caseai-connect/api-contracts"
+import type { MembershipRoleDto } from "@bayes-platform/api-contracts"
 import { CATALOG_ROLE_KEYS, type RoleScopeType } from "./rbac.constants"
 import type { RoleGrant } from "./role-grant.entity"
 

@@ -1,4 +1,4 @@
-import { type MeResponseDto, MeRoutes, type UserDto } from "@caseai-connect/api-contracts"
+import { type MeResponseDto, MeRoutes, type UserDto } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { Me, User } from "../me.models"
 import type { IMeSpi } from "../me.spi"

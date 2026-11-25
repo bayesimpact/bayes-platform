@@ -1,4 +1,4 @@
-import type { EmbeddingModel } from "@caseai-connect/api-contracts"
+import type { EmbeddingModel } from "@bayes-platform/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import { trace } from "@opentelemetry/api"

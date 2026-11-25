@@ -1,4 +1,4 @@
-import { type AgentModel, supportsServiceTiers } from "@caseai-connect/api-contracts"
+import { type AgentModel, supportsServiceTiers } from "@bayes-platform/api-contracts"
 import type { AgentModelEntry, AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import { buildDate } from "@/common/utils/build-date"

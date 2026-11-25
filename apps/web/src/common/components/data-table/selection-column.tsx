@@ -1,4 +1,4 @@
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import type { ColumnDef, Table } from "@tanstack/react-table"
 import { useTranslation } from "react-i18next"
 import type { DataTableColumnMeta } from "./DataTable"

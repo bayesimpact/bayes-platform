@@ -3,7 +3,7 @@ import {
   PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
   type ReviewCampaignDetailOutputDto,
   type ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { SectionCard } from "@/components/shared/SectionCard"

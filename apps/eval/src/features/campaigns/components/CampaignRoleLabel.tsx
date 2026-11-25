@@ -1,4 +1,4 @@
-import type { ReviewCampaignRoleDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignRoleDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 
 export type CampaignRoleLabelProps = {

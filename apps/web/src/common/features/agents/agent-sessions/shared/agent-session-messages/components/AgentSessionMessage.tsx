@@ -1,14 +1,14 @@
-import { type AgentSessionToolName, ToolName } from "@caseai-connect/api-contracts"
-import { Bubble, BubbleContent } from "@caseai-connect/ui/shad/bubble"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { type AgentSessionToolName, ToolName } from "@bayes-platform/api-contracts"
+import { Bubble, BubbleContent } from "@bayes-platform/ui/shad/bubble"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@caseai-connect/ui/shad/collapsible"
-import { Marker, MarkerContent, MarkerIcon } from "@caseai-connect/ui/shad/marker"
-import { Message, MessageContent, MessageFooter } from "@caseai-connect/ui/shad/message"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+} from "@bayes-platform/ui/shad/collapsible"
+import { Marker, MarkerContent, MarkerIcon } from "@bayes-platform/ui/shad/marker"
+import { Message, MessageContent, MessageFooter } from "@bayes-platform/ui/shad/message"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import type { TFunction } from "i18next"
 import { AlertCircleIcon, CheckIcon, ChevronRightIcon, CopyIcon, RotateCcwIcon } from "lucide-react"
 import { useContext, useEffect, useState } from "react"

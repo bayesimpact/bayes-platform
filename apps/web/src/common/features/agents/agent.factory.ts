@@ -4,7 +4,7 @@ import {
   AGENT_SCOPED_PERMISSIONS,
   AgentModel,
   AgentProvider,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"

@@ -1,7 +1,7 @@
 import {
   INVITATION_EMAIL_LANGUAGES,
   type InvitationEmailLanguageDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { MailMessage } from "@/common/mailer/mailer.service"
 import type { InvitationTargetType } from "./invitation.types"
 

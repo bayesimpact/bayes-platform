@@ -1,4 +1,4 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@bayes-platform/api-contracts"
 
 export function getAgentModelKey(model: string) {
   return Object.keys(AgentModel).find((key) => AgentModel[key as keyof typeof AgentModel] === model)

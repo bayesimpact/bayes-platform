@@ -7,7 +7,7 @@ import {
   FeatureFlags,
   grantBackofficeAgentConversationReviewerSchema,
   grantBackofficeUserGlobalRoleSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   Body,

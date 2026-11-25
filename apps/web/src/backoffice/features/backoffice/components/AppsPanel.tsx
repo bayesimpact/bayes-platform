@@ -2,10 +2,10 @@ import {
   appGrantablePermissionActionLabel,
   createAppManifestSchema,
   groupAppGrantablePermissions,
-} from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+} from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import {
   Form,
   FormControl,
@@ -22,12 +22,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
-import { Switch } from "@caseai-connect/ui/shad/switch"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
+import { Switch } from "@bayes-platform/ui/shad/switch"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
+import { cn } from "@bayes-platform/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { CheckIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"

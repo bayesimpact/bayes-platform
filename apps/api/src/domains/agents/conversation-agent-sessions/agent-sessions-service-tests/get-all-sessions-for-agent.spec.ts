@@ -1,4 +1,4 @@
-import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
+import type { BaseAgentSessionTypeDto } from "@bayes-platform/api-contracts"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"

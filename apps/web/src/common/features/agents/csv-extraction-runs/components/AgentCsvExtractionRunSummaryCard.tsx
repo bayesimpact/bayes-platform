@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@caseai-connect/ui/shad/card"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+} from "@bayes-platform/ui/shad/card"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import { useTranslation } from "react-i18next"
 import type { AgentCsvExtractionRun } from "../agent-csv-extraction-runs.models"
 

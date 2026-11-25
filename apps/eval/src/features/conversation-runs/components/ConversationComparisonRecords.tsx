@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ConversationRunOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, ConversationRunOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { cn } from "cn"

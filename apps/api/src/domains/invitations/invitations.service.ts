@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import type { InvitationDto, InvitationEmailLanguageDto } from "@caseai-connect/api-contracts"
+import type { InvitationDto, InvitationEmailLanguageDto } from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   ConflictException,

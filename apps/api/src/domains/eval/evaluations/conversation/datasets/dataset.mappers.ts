@@ -1,7 +1,7 @@
 import type {
   ConversationDatasetOutputDto,
   ConversationDatasetRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { EvaluationConversationDatasetsService } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-datasets.service"
 
 type ConversationDataset = Awaited<

@@ -1,4 +1,4 @@
-import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes } from "@bayes-platform/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fireEvent, userEvent, within } from "storybook/test"
 import { conversationUrlOf } from "@/test/desk-urls"

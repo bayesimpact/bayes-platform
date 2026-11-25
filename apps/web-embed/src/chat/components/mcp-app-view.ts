@@ -2,8 +2,8 @@ import type {
   AgentSessionMcpAppDto,
   AgentSessionMcpAppHtmlDto,
   AgentSessionToolCallDto,
-} from "@caseai-connect/api-contracts"
-import { isToolError, type McpAppCsp } from "@caseai-connect/mcp-app-host"
+} from "@bayes-platform/api-contracts"
+import { isToolError, type McpAppCsp } from "@bayes-platform/mcp-app-host"
 
 export type McpAppViewModel = {
   html: string

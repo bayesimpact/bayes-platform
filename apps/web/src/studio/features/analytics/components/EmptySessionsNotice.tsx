@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
 import { InfoIcon, TriangleAlertIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 

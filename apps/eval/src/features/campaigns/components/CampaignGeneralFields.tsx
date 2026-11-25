@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"

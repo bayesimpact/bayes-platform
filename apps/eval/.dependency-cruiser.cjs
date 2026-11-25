@@ -17,15 +17,15 @@ module.exports = {
       severity: "error",
       comment:
         "The app imports nothing from another app or from a package another app owns. Its " +
-        "workspace dependencies are @caseai-connect/eval-contracts and the one package no app " +
-        "owns, @caseai-connect/mcp-app-host (ADR 0031, section 2.4).",
+        "workspace dependencies are @bayes-platform/eval-contracts and the one package no app " +
+        "owns, @bayes-platform/mcp-app-host (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/eval.
           "^\\.\\./(?!\\.\\./|eval/)[^/]+/",
           "^\\.\\./\\.\\./packages/(?!(eval-contracts|mcp-app-host)/)",
-          "node_modules/@caseai-connect/(?!(eval-contracts|mcp-app-host)(/|$))",
+          "node_modules/@bayes-platform/(?!(eval-contracts|mcp-app-host)(/|$))",
           "node_modules/@repo/",
         ],
       },

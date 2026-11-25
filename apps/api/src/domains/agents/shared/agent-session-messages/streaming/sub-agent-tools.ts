@@ -33,7 +33,7 @@ import { type SubAgentToolInput, subAgentTool } from "./tools/sub-agent.tool"
 import { runTurnClassification, type TurnClassificationContext } from "./tools/turn-classification"
 
 const logger = new Logger("SubAgentTools")
-const tracer = trace.getTracer("caseai-sub-agent")
+const tracer = trace.getTracer("bayes-platform-sub-agent")
 
 export type BuiltTools = {
   tools: ToolSet | undefined

@@ -2,7 +2,7 @@ import {
   DOCUMENT_UPDATE_PERMISSION,
   EmbeddingModelCatalog,
   updateAgentSettingsModelSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Form,
   FormControl,
@@ -11,15 +11,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
+} from "@bayes-platform/ui/shad/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Switch } from "@caseai-connect/ui/shad/switch"
+} from "@bayes-platform/ui/shad/select"
+import { Switch } from "@bayes-platform/ui/shad/switch"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMemo } from "react"
 import { useForm } from "react-hook-form"

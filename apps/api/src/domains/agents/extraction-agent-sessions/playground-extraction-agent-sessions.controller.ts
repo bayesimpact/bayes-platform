@@ -1,7 +1,7 @@
 import {
   type ExtractionAgentSessionStatusChangedEventDto,
   ExtractionAgentSessionsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, Sse, UseGuards } from "@nestjs/common"
 import type { Observable } from "rxjs"
 import type {

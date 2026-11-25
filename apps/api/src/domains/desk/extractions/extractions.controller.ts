@@ -1,4 +1,4 @@
-import { DeskAgentSessionsRoutes, DeskExtractionsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAgentSessionsRoutes, DeskExtractionsRoutes } from "@bayes-platform/desk-contracts"
 import { Controller, HttpStatus, NotFoundException, Req } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,

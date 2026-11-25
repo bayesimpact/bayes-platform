@@ -2,11 +2,11 @@ import {
   EMBEDDING_MODELS,
   type EmbeddingModel,
   EmbeddingModelCatalog,
-} from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+} from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import { Settings2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

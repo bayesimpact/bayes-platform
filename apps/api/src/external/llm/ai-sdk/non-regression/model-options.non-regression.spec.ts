@@ -1,4 +1,4 @@
-import { type AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { type AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import type { LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import {

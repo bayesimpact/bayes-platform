@@ -10,7 +10,7 @@ import {
   type ExtractionRunOutputDto,
   extractionDocumentOutputSchema,
   extractionRunDetailOutputSchema,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { daysAgo } from "./agent-sessions.factory"
 
 /** The text read in a document, as a neutral sample. */

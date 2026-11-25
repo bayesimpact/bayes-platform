@@ -1,4 +1,4 @@
-import type { ApiRoute } from "@caseai-connect/api-contracts"
+import type { ApiRoute } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common/interfaces"
 import request from "supertest"
 import type { App } from "supertest/types"

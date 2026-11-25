@@ -1,4 +1,4 @@
-import type { AgentParamsDto, AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, AgentVersionOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { type ReactNode, useState } from "react"
 import type { RunSummary } from "@/lib/run-status"

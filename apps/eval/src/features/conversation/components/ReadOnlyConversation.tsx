@@ -1,7 +1,7 @@
 import type {
   ConversationMessageOutputDto,
   ConversationParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useState } from "react"
 import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { toChatMessages } from "../chat-messages"

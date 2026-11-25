@@ -1,5 +1,5 @@
-import type { ConversationParamsDto, DocumentParamsDto } from "@caseai-connect/desk-contracts"
-import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto, DocumentParamsDto } from "@bayes-platform/desk-contracts"
+import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@bayes-platform/desk-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { pollWhile } from "@/lib/polling"

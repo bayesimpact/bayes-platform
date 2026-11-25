@@ -1,7 +1,7 @@
 import type {
   CampaignContextOutputDto,
   ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { toast } from "sonner"
 import { RatedFeedbackForm } from "@/components/shared/RatedFeedbackForm"

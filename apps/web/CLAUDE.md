@@ -19,7 +19,7 @@ On one origin the SPA is served at `/`, the private API under `/api` (`runtimeCo
 - All API calls use `createAsyncThunk`
 - Thunks call `extra.services.{feature}` methods only
 - Components dispatch thunks, never call API directly
-- API routes and DTOs come from `@caseai-connect/api-contracts`
+- API routes and DTOs come from `@bayes-platform/api-contracts`
 
 **Structure**:
 ```
@@ -178,12 +178,12 @@ See [ADR 0012](../../docs/adr/0012-form-architecture.md) for full rationale. [Re
 
 ### Always use react-hook-form + Zod + the shared `Form` components
 
-**Rule**: Every form MUST use `useForm` (react-hook-form) for state, `zodResolver` with a schema from `@caseai-connect/api-contracts` for validation, and the `Form` / `FormField` / `FormItem` / `FormLabel` / `FormControl` / `FormDescription` / `FormMessage` components from [@caseai-connect/ui/shad/form](../../packages/ui/src/shad/form.tsx) for markup.
+**Rule**: Every form MUST use `useForm` (react-hook-form) for state, `zodResolver` with a schema from `@bayes-platform/api-contracts` for validation, and the `Form` / `FormField` / `FormItem` / `FormLabel` / `FormControl` / `FormDescription` / `FormMessage` components from [@bayes-platform/ui/shad/form](../../packages/ui/src/shad/form.tsx) for markup.
 
 ```tsx
-import { createResourceSchema } from "@caseai-connect/api-contracts"
+import { createResourceSchema } from "@bayes-platform/api-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@caseai-connect/ui/shad/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@bayes-platform/ui/shad/form"
 
 type FormValues = z.infer<typeof createResourceSchema>
 

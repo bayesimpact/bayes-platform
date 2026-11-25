@@ -1,21 +1,21 @@
-import { CONVERSATION_REVIEW_UNCATEGORIZED_CATEGORY } from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { CONVERSATION_REVIEW_UNCATEGORIZED_CATEGORY } from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
+} from "@bayes-platform/ui/shad/empty"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+} from "@bayes-platform/ui/shad/select"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import {
   Table,
   TableBody,
@@ -23,7 +23,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@caseai-connect/ui/shad/table"
+} from "@bayes-platform/ui/shad/table"
 import type { TFunction } from "i18next"
 import { ChevronLeftIcon, ChevronRightIcon, InboxIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"

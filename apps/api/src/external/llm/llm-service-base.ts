@@ -2,7 +2,7 @@ import {
   AgentModelToAgentProvider,
   supportsFlexTier,
   supportsServiceTiers,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import type {
   BuildLLMConfigParams,

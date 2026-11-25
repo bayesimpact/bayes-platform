@@ -1,4 +1,4 @@
-import { DeskAgentSessionsRoutes, DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAgentSessionsRoutes, DeskConversationsRoutes } from "@bayes-platform/desk-contracts"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"

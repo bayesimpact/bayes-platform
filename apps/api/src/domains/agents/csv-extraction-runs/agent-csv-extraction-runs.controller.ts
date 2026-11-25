@@ -3,7 +3,7 @@ import type {
   AgentCsvExtractionRunRecordDto,
   AgentCsvExtractionRunStatusChangedEventDto,
   AgentCsvExtractionRunsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   ForbiddenException,
   Inject,

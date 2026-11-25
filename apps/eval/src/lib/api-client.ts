@@ -4,7 +4,7 @@ import {
   type ErrorOutputDto,
   errorOutputSchema,
   signInRefusalOf,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { z } from "zod"
 import {
   AuthenticationRequiredError,

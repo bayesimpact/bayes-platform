@@ -6,7 +6,7 @@ import {
   type AgentMemoryToolItemDto,
   type ResolveAgentMemoryProposalsDto,
   type SaveMemoryToolResultDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI

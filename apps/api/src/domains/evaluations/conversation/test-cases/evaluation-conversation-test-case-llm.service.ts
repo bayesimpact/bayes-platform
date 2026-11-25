@@ -1,4 +1,4 @@
-import type { AgentModel } from "@caseai-connect/api-contracts"
+import type { AgentModel } from "@bayes-platform/api-contracts"
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"

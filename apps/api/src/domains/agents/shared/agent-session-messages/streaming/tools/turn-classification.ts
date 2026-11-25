@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import { Logger } from "@nestjs/common"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"

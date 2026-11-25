@@ -1,7 +1,7 @@
 import type {
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import type { ReactNode } from "react"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"

@@ -1,7 +1,7 @@
 import { createOpenResponses } from "@ai-sdk/open-responses"
 import { createOpenAI } from "@ai-sdk/openai"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
-import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@bayes-platform/api-contracts"
 import { Injectable, NotImplementedException } from "@nestjs/common"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"

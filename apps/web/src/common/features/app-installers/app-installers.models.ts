@@ -1,4 +1,4 @@
-import type { AppInstallerDto } from "@caseai-connect/api-contracts"
+import type { AppInstallerDto } from "@bayes-platform/api-contracts"
 
 /**
  * Who installed an app on a workspace, as the person looking sees them. A former member can no

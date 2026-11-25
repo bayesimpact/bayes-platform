@@ -4,7 +4,7 @@ import type {
   ReviewCampaignOutputDto,
   ReviewCampaignQuestionDto,
   ReviewCampaignQuestionInputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { type CampaignFormValues, parseOptions, type QuestionFormValues } from "./schemas"
 
 /** A question of a campaign, as the editor's form holds it. */

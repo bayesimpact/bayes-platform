@@ -1,4 +1,4 @@
-import { MimeTypes } from "@caseai-connect/api-contracts"
+import { MimeTypes } from "@bayes-platform/api-contracts"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { documentsServiceTestSetup } from "./test-setup"
 

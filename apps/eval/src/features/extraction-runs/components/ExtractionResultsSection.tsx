@@ -3,7 +3,7 @@ import {
   type ExtractionDatasetOutputDto,
   type ExtractionRunOutputDto,
   type ExtractionRunParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"

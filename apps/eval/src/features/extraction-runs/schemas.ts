@@ -1,4 +1,4 @@
-import { extractionRunKeyMappingEntryInputSchema } from "@caseai-connect/eval-contracts"
+import { extractionRunKeyMappingEntryInputSchema } from "@bayes-platform/eval-contracts"
 import { z } from "zod"
 import { isRunScopeValid, runScopeShape } from "@/lib/run-scope"
 import { isKeyMappingComplete } from "./key-mapping"

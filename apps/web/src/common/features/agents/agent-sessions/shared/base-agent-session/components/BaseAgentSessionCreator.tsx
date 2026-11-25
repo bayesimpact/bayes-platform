@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { SidebarMenuSubButton } from "@caseai-connect/ui/shad/sidebar"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { SidebarMenuSubButton } from "@bayes-platform/ui/shad/sidebar"
 import throttle from "lodash/throttle"
 import { PlusCircleIcon, PlusIcon } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"

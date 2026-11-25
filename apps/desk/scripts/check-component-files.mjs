@@ -4,7 +4,7 @@
 // and no other component. Biome's GritQL plugins cannot read a file's name, so this script checks
 // it. The components shadcn's CLI generates into `src/components/ui/` keep shadcn's own layout.
 //
-// Run it with `npm run check:components -w @caseai-connect/desk`, which `check` runs.
+// Run it with `npm run check:components -w @bayes-platform/desk`, which `check` runs.
 
 import { globSync, readFileSync } from "node:fs"
 import { basename, dirname, join } from "node:path"

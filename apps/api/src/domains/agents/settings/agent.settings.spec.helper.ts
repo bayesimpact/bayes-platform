@@ -1,4 +1,4 @@
-import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@bayes-platform/api-contracts"
 import type { AgentSettingsCreateFields, AgentSettingsUpdateFields } from "./agent.settings.types"
 
 // Typed as create fields so the required settings (instructions, model, …) stay non-optional and

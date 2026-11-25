@@ -1,5 +1,5 @@
-import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
-import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
+import { Item, ItemContent } from "@bayes-platform/ui/shad/item"
+import { ScrollArea } from "@bayes-platform/ui/shad/scroll-area"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 
 /** The answer being saved, scrollable so a long one does not push the form out of view. */

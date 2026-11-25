@@ -1,5 +1,5 @@
 {
-  "name": "@caseai-connect/web-embed",
+  "name": "@bayes-platform/web-embed",
   "private": true,
   "license": "MIT",
   "version": "0.0.0",
@@ -15,8 +15,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@caseai-connect/api-contracts": "*",
-    "@caseai-connect/mcp-app-host": "*",
+    "@bayes-platform/api-contracts": "*",
+    "@bayes-platform/mcp-app-host": "*",
     "@modelcontextprotocol/ext-apps": "^1.7.5",
     "@tailwindcss/vite": "^4.1.18",
     "clsx": "^2.1.1",

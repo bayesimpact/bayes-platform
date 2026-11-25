@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE } from "@caseai-connect/api-contracts"
+import { LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE } from "@bayes-platform/api-contracts"
 import { IsNull, Not } from "typeorm"
 import {
   type AllRepositories,

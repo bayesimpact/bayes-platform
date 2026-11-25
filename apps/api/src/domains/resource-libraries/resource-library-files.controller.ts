@@ -1,4 +1,4 @@
-import { ResourceLibrariesRoutes } from "@caseai-connect/api-contracts"
+import { ResourceLibrariesRoutes } from "@bayes-platform/api-contracts"
 import { Controller, Get, Inject, NotFoundException, Param, Res } from "@nestjs/common"
 import type { Response } from "express"
 import {

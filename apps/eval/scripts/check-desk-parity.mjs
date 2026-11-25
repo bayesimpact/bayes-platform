@@ -31,7 +31,7 @@ const SHARED_PATHS = [
 
 /** The names that differ by app only, written as Evaluation writes them. */
 const ALIGNED_NAMES = [
-  ["@caseai-connect/desk-contracts", "@caseai-connect/eval-contracts"],
+  ["@bayes-platform/desk-contracts", "@bayes-platform/eval-contracts"],
   [/\bDesk(\w*Routes)\b/g, "Eval$1"],
 ]
 

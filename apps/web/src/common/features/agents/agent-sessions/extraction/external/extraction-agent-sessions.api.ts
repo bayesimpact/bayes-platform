@@ -4,7 +4,7 @@ import {
   type ExtractionAgentSessionSummaryDto,
   ExtractionAgentSessionsRoutes,
   type PresignFileRequestItemDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import {
   fromDocumentDto,

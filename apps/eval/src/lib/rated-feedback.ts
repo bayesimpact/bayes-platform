@@ -3,7 +3,7 @@ import {
   type RatedFeedbackInputDto,
   type ReviewCampaignAnswerDto,
   type ReviewCampaignQuestionDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { z } from "zod"
 
 /** What a person fills to rate a session or a campaign: a rating, a comment and their answers. */

@@ -13,7 +13,7 @@ import {
   type TesterSessionOutputDto,
   TOOL_NAMES,
   testerSessionOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { agentVersionIdOf, PRODUCTION_REVISION } from "./agents.factory"
 import { buildToolCall } from "./conversations.factory"
 

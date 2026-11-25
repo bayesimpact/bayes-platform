@@ -2,7 +2,7 @@ import {
   AGENT_UPDATE_PERMISSION,
   type AgentEmbedConfigDto,
   AgentEmbedConfigsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Body, Controller, Get, Patch, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithAgent } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

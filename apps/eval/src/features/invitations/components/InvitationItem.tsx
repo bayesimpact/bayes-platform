@@ -1,4 +1,4 @@
-import type { InvitationOutputDto, InvitationTargetTypeDto } from "@caseai-connect/eval-contracts"
+import type { InvitationOutputDto, InvitationTargetTypeDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Button } from "@/components/ui/button"

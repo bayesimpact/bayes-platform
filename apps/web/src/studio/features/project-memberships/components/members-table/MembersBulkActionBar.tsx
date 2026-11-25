@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@bayes-platform/ui/shad/tooltip"
 import { ShieldPlusIcon, Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { DataTableBulkBar } from "@/common/components/data-table/DataTableBulkBar"

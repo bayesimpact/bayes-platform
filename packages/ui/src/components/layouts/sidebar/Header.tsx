@@ -1,4 +1,4 @@
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@caseai-connect/ui/shad/sidebar"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@bayes-platform/ui/shad/sidebar"
 import { type LucideIcon, PlugZap2Icon } from "lucide-react"
 import { Link } from "react-router-dom"
 import { cn } from "../../../lib/utils"
@@ -26,7 +26,7 @@ type HeaderButtonProps = {
   children?: React.ReactNode
 }
 export function HeaderButton({
-  name = "CaseAi",
+  name = "Bayes Platform",
   subname,
   subnameClassName,
   Icon = PlugZap2Icon,

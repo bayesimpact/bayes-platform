@@ -1,4 +1,4 @@
-import type { ConversationFormOutputDto } from "@caseai-connect/desk-contracts"
+import type { ConversationFormOutputDto } from "@bayes-platform/desk-contracts"
 import type { I18n } from "@lingui/core"
 import { fieldLabelOf, fieldTextOf } from "@/lib/field-text"
 import { hasOwnKey } from "@/lib/has-own-key"

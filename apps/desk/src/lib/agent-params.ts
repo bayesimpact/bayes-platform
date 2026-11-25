@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
 
 /**
  * The agent's params alone, out of a wider object such as a conversation's params or an agent of

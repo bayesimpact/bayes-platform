@@ -2,7 +2,7 @@ import {
   type AgentParamsDto,
   EXTRACTION_MAX_BYTES,
   type ExtractionDocumentOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"

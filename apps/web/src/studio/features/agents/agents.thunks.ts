@@ -1,4 +1,4 @@
-import type { CreateAgentDto, DuplicateAgentDto } from "@caseai-connect/api-contracts"
+import type { CreateAgentDto, DuplicateAgentDto } from "@bayes-platform/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { RootState, ThunkExtraArg } from "@/common/store"

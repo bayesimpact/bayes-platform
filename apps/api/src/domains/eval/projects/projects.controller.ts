@@ -1,4 +1,4 @@
-import { EvalProjectsRoutes, type MyProjectOutputDto } from "@caseai-connect/eval-contracts"
+import { EvalProjectsRoutes, type MyProjectOutputDto } from "@bayes-platform/eval-contracts"
 import { Controller, Req } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { SchemaRoute } from "@/common/schema-route/schema-route.decorator"

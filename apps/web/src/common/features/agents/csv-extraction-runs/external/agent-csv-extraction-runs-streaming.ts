@@ -2,7 +2,7 @@ import {
   AGENT_CSV_EXTRACTION_RUN_STATUS_CHANGED_CHANNEL_DTO,
   type AgentCsvExtractionRunStatusChangedEventPayload,
   AgentCsvExtractionRunsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { readSSEStream, type SSEStreamConfig } from "@/common/sse/sse-stream-reader"
 import type { AgentCsvExtractionRunStatusChangedEvent } from "../agent-csv-extraction-runs.models"
 

@@ -36,8 +36,8 @@ Then call `AskUserQuestion` once, with two **multi-select** questions (`multiSel
 
 - **CI checks**: `make ci-checks` (Biome, typecheck, boundaries)
 - **API tests**: `make tests-only-parallel`
-- **Web tests**: `npm run test -w @caseai-connect/web`
-- **Desk checks**: `npm run check -w @caseai-connect/desk`, then `npm run build -w @caseai-connect/desk`
+- **Web tests**: `npm run test -w @bayes-platform/web`
+- **Desk checks**: `npm run check -w @bayes-platform/desk`, then `npm run build -w @bayes-platform/desk`
 
 Pre-select:
 
@@ -61,7 +61,7 @@ Only if checked. Read [`docs/changelog.md`](../../../docs/changelog.md) in full:
 
 Only if checked. Dispatch the `frontend-conventions-reviewer` subagent (Agent tool, `subagent_type: "frontend-conventions-reviewer"`) on the current branch's diff. It reports what breaks the rules no tool checks, and edits nothing.
 
-- Fix each finding. The Desk checks of step 4 then run on the fixed code; if they are unchecked, run `npm run check -w @caseai-connect/desk` anyway.
+- Fix each finding. The Desk checks of step 4 then run on the fixed code; if they are unchecked, run `npm run check -w @bayes-platform/desk` anyway.
 - A finding you disagree with goes to the user with your reasoning; do not skip it silently.
 - Commit the fixes with the feature's other changes.
 
@@ -86,8 +86,8 @@ Run each checked option from the repository root, in the order of the form. When
 
 - **CI checks**: `make ci-checks`. When Biome reports formatting, `npm run biome:check` fixes it; run `make ci-checks` again.
 - **API tests**: `make tests-only-parallel`. It starts the test database if needed, runs the migrations on it, then the API suite in parallel. In a worktree with an environment, it uses that environment's test database (see "Working in a Worktree" in `CLAUDE.md`).
-- **Web tests**: `npm run test -w @caseai-connect/web`.
-- **Desk checks**: `npm run check -w @caseai-connect/desk`, then `npm run build -w @caseai-connect/desk`.
+- **Web tests**: `npm run test -w @bayes-platform/web`.
+- **Desk checks**: `npm run check -w @bayes-platform/desk`, then `npm run build -w @bayes-platform/desk`.
 
 ## 5. Create a PR
 

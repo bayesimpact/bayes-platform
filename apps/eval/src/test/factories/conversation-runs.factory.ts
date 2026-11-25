@@ -5,7 +5,7 @@ import {
   type ConversationRunRecordOutputDto,
   conversationRunOutputSchema,
   conversationRunRecordOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { ConversationDatasetRecord } from "./conversation-datasets.factory"
 import { daysAgo } from "./review-campaigns.factory"
 

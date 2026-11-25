@@ -2,7 +2,7 @@ import {
   type DocumentSourceType,
   DocumentsRoutes,
   type PresignFileRequestItemDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { Document } from "../documents.models"
 import type { IDocumentsSpi } from "../documents.spi"

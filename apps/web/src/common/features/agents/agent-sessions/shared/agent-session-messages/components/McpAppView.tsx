@@ -3,14 +3,14 @@ import {
   type McpAppCsp,
   type McpAppMount,
   mountMcpApp,
-} from "@caseai-connect/mcp-app-host"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/mcp-app-host"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
+import { cn } from "@bayes-platform/ui/utils"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { runtimeConfig } from "@/config/runtime-config"
 
-const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
+const HOST_INFO = { name: "bayes-platform", version: "1.0.0" }
 const INITIAL_IFRAME_HEIGHT_PX = 72
 
 /**
@@ -38,7 +38,7 @@ export function McpAppPlaceholder({ className }: { className?: string }) {
 
 /**
  * An MCP App card, run in the sandbox every app of the platform shares
- * (`@caseai-connect/mcp-app-host`): this component renders the frame, and the shared host does
+ * (`@bayes-platform/mcp-app-host`): this component renders the frame, and the shared host does
  * the handshake, hands the app its tool data and answers what it asks for.
  */
 export function McpAppView({

@@ -1,4 +1,4 @@
-import type { AppInstallerDto } from "@caseai-connect/api-contracts"
+import type { AppInstallerDto } from "@bayes-platform/api-contracts"
 import type { ResolvedAppInstaller } from "./app-installation.repository"
 
 /**

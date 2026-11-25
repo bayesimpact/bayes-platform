@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@caseai-connect/ui/shad/card"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+import { Card, CardContent, CardHeader, CardTitle } from "@bayes-platform/ui/shad/card"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import {
   type ColumnDef,
   type ColumnFiltersState,

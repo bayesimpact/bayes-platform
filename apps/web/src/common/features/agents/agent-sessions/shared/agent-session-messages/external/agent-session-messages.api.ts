@@ -1,7 +1,7 @@
 import {
   AgentSessionMessagesRoutes,
   type PresignAgentSessionMessageAttachmentDocumentRequestDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { IAgentSessionMessagesSpi } from "../agent-session-messages.spi"
 import { fromDto } from "./agent-session-messages.mappers"

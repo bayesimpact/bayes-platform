@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
 import { FlaskConicalIcon, PlusIcon } from "lucide-react"

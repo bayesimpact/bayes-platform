@@ -1,7 +1,7 @@
 import type {
   CampaignContextOutputDto,
   ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { orNotFound } from "@/lib/not-found"
 import { loaderStaleTime } from "@/lib/start-query"

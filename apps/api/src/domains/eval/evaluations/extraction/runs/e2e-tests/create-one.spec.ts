@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto"
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import {
   EvalExtractionRunsRoutes,
   type ExtractionRunInputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"

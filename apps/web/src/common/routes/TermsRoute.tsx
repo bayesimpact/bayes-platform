@@ -1,12 +1,12 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@caseai-connect/ui/shad/card"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+} from "@bayes-platform/ui/shad/card"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ExternalLinkIcon } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"

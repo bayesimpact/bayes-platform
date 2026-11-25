@@ -1,4 +1,4 @@
-import { type MeOutputDto, meOutputSchema } from "@caseai-connect/desk-contracts"
+import { type MeOutputDto, meOutputSchema } from "@bayes-platform/desk-contracts"
 
 /** A `GET desk/me` response, checked against the contract so a mock cannot drift from it. */
 export function buildMe(overrides: Partial<MeOutputDto["user"]> = {}): MeOutputDto {

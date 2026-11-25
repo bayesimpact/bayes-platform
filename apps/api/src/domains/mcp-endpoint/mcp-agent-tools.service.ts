@@ -5,7 +5,7 @@ import {
   DocumentsRagMode,
   type PartialUpdateAgentSettingsDto,
   partialUpdateAgentSettingsSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { getAppPublicUrl } from "@/config/app-public-url"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI

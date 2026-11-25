@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { ZapIcon } from "lucide-react"
 import { type FormEvent, type ReactNode, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"

@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Command,
   CommandEmpty,
@@ -6,8 +6,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@caseai-connect/ui/shad/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+} from "@bayes-platform/ui/shad/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
 import { PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

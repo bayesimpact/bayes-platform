@@ -1,5 +1,5 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
-import { DeskExtractionsRoutes, EXTRACTION_MAX_BYTES } from "@caseai-connect/desk-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
+import { DeskExtractionsRoutes, EXTRACTION_MAX_BYTES } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"

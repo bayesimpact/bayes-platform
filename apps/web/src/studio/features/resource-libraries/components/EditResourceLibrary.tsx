@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Field, FieldLabel } from "@bayes-platform/ui/shad/field"
 import { PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

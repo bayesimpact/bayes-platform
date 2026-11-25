@@ -1,4 +1,4 @@
-import type { AgentType } from "@caseai-connect/api-contracts"
+import type { AgentType } from "@bayes-platform/api-contracts"
 import {
   Column,
   JoinColumn,

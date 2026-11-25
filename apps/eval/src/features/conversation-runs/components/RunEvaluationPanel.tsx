@@ -2,7 +2,7 @@ import {
   type AgentParamsDto,
   CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
   type ConversationDatasetOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"

@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { UserPlusIcon } from "lucide-react"
 import { expect, fireEvent, fn, userEvent, within } from "storybook/test"

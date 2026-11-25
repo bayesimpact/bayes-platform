@@ -2,17 +2,17 @@ import {
   AGENT_CSV_EXTRACTION_RUN_COLUMN_ROLES,
   type AgentCsvExtractionRunColumnRoleDto,
   type AgentCsvExtractionRunColumnSchemaDto,
-} from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
-import { Label } from "@caseai-connect/ui/shad/label"
+} from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
+import { Label } from "@bayes-platform/ui/shad/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
+} from "@bayes-platform/ui/shad/select"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"

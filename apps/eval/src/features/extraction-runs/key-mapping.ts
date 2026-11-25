@@ -3,7 +3,7 @@ import type {
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
   ExtractionRunRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { hasOwnKey } from "@/lib/has-own-key"
 
 /** The fields a version of an extraction agent returns: the properties of its output schema. */

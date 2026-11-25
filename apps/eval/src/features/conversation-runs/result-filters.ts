@@ -1,4 +1,4 @@
-import type { ConversationRunRecordOutputDto } from "@caseai-connect/eval-contracts"
+import type { ConversationRunRecordOutputDto } from "@bayes-platform/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 

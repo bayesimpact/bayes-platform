@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskDocumentsRoutes } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"

@@ -1,7 +1,7 @@
 import {
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 import { z } from "zod"
 
 /** What an agent does: hold a conversation, or extract data from documents. */
@@ -10,7 +10,7 @@ export const agentTypeSchema = z.enum(["conversation", "extraction"])
 export type AgentTypeDto = z.output<typeof agentTypeSchema>
 
 /** Changes an agent's settings: the API lists it among the person's permissions on an agent. */
-export { AGENT_UPDATE_PERMISSION } from "@caseai-connect/permissions"
+export { AGENT_UPDATE_PERMISSION } from "@bayes-platform/permissions"
 
 /**
  * The permission that opens a live session with an agent of each type: a conversation, or an

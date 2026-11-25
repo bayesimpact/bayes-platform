@@ -1,7 +1,7 @@
 import type {
   MyReviewCampaignOutputDto,
   ReviewCampaignRoleDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 
 /** A review campaign the person takes part in, with every role they hold in it. */
 export type MyCampaign = MyReviewCampaignOutputDto & {

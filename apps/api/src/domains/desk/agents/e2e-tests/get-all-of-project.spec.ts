@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
-import { AGENT_SCOPED_PERMISSIONS } from "@caseai-connect/api-contracts"
-import { DeskAgentsRoutes } from "@caseai-connect/desk-contracts"
+import { AGENT_SCOPED_PERMISSIONS } from "@bayes-platform/api-contracts"
+import { DeskAgentsRoutes } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

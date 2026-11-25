@@ -1,4 +1,4 @@
-import type { MembershipRoleDto } from "@caseai-connect/api-contracts"
+import type { MembershipRoleDto } from "@bayes-platform/api-contracts"
 
 /** The owner / admin / member shorthand the studio screens still use for a single role. */
 export type LegacyMembershipRole = "owner" | "admin" | "member"

@@ -2,7 +2,7 @@ import {
   getOrderedPropertyEntries,
   type OutputJsonSchemaProperty,
   type outputJsonSchemaSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { z } from "zod"
 import { zNullableType } from "@/common/zod-helper"
 

@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Card,
   CardContent,
@@ -6,9 +6,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@caseai-connect/ui/shad/card"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
+} from "@bayes-platform/ui/shad/card"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"

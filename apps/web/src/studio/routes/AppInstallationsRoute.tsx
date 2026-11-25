@@ -1,7 +1,7 @@
 import {
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { useNavigate } from "react-router-dom"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import {

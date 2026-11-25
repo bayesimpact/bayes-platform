@@ -1,4 +1,4 @@
-import { CONVERSATION_RUN_MAX_SCORE } from "@caseai-connect/eval-contracts"
+import { CONVERSATION_RUN_MAX_SCORE } from "@bayes-platform/eval-contracts"
 
 /**
  * A score out of the best one, such as 4 / 5: the score of an answer, a whole number, or the

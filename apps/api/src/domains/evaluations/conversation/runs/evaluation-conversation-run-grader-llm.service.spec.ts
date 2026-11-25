@@ -1,4 +1,4 @@
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"

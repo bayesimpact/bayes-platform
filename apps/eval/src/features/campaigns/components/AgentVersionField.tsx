@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { type Control, Controller } from "react-hook-form"

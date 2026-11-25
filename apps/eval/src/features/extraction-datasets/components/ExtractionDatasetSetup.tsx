@@ -1,7 +1,7 @@
 import type {
   ExtractionDatasetOutputDto,
   ExtractionDatasetParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"

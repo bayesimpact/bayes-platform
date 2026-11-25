@@ -1,5 +1,5 @@
 import type { JSONValue } from "@ai-sdk/provider"
-import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import type { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import type { ModelMessage, ToolSet } from "ai"
 import type { ZodType } from "zod"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"

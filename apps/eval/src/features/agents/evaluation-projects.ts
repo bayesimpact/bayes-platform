@@ -3,7 +3,7 @@ import {
   type MyOrganizationOutputDto,
   type MyProjectOutputDto,
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 
 /** A project the app opens for the person, with its organization and what they hold on it. */
 export type EvaluationProject = Pick<MyProjectOutputDto, "id" | "name" | "permissions"> & {

@@ -1,4 +1,4 @@
-import { EvalDocumentsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalDocumentsRoutes } from "@bayes-platform/eval-contracts"
 import {
   Controller,
   ForbiddenException,

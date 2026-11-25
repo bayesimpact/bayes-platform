@@ -1,4 +1,4 @@
-import { type AgentEmbedConfigDto, AgentEmbedConfigsRoutes } from "@caseai-connect/api-contracts"
+import { type AgentEmbedConfigDto, AgentEmbedConfigsRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentEmbedConfig } from "../agent-embed-configs.models"
 import type { IAgentEmbedConfigsSpi } from "../agent-embed-configs.spi"

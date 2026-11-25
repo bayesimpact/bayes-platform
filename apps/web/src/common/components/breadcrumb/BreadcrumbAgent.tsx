@@ -1,13 +1,13 @@
-import { BreadcrumbItem, BreadcrumbLink } from "@caseai-connect/ui/shad/breadcrumb"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { BreadcrumbItem, BreadcrumbLink } from "@bayes-platform/ui/shad/breadcrumb"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/dropdown-menu"
+import { cn } from "@bayes-platform/ui/utils"
 import { CheckIcon, ChevronDownIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"

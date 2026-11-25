@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { FieldGroup } from "@caseai-connect/ui/shad/field"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { FieldGroup } from "@bayes-platform/ui/shad/field"
 import {
   Form,
   FormControl,
@@ -7,8 +7,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"

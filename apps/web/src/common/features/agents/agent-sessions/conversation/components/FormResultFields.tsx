@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Separator } from "@caseai-connect/ui/shad/separator"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Separator } from "@bayes-platform/ui/shad/separator"
 
 /**
  * Renders the key/value list for a form agent's output: every property declared

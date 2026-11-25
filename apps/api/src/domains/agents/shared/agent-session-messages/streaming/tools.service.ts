@@ -3,7 +3,7 @@ import {
   DocumentsRagMode,
   outputJsonSchemaSchema,
   ToolName,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { ToolSet } from "ai"

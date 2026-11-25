@@ -132,11 +132,11 @@ import {
   TESTER_UI_READ_PERMISSION,
   TRACE_READ_PERMISSION,
   USER_READ_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { PermissionResourceType } from "./permission.types"
 
 /**
- * Permission strings are declared in `@caseai-connect/api-contracts` and imported here.
+ * Permission strings are declared in `@bayes-platform/api-contracts` and imported here.
  * Role keys and which role receives which permission stay in this file.
  */
 export {

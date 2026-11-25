@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto"
 import {
   type CreateCampaignInvitationsInputDto,
   EvalCampaignInvitationsRoutes,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"

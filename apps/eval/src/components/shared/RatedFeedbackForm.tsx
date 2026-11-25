@@ -1,7 +1,7 @@
 import type {
   RatedFeedbackInputDto,
   ReviewCampaignQuestionDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans } from "@lingui/react/macro"
 import { type ReactNode, useId } from "react"

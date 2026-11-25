@@ -1,4 +1,4 @@
-import { Form } from "@caseai-connect/ui/shad/form"
+import { Form } from "@bayes-platform/ui/shad/form"
 import { Controller, useForm } from "react-hook-form"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { useAppDispatch } from "@/common/store/hooks"

@@ -11,7 +11,7 @@ import {
   PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
   ProjectsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

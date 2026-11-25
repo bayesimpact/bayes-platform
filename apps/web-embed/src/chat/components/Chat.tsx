@@ -1,4 +1,4 @@
-import type { EmbedDisplayMode } from "@caseai-connect/api-contracts"
+import type { EmbedDisplayMode } from "@bayes-platform/api-contracts"
 import type * as React from "react"
 import { themeVars } from "../../theme"
 import { cn } from "../lib/cn"

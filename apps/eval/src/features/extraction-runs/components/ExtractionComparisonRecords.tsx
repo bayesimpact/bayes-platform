@@ -2,7 +2,7 @@ import {
   type AgentParamsDto,
   EXTRACTION_RUN_RECORDS_PAGE_SIZE,
   type ExtractionRunOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { ComparedRunHead } from "@/components/shared/ComparedRunHead"

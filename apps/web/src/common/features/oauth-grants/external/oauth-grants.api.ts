@@ -1,4 +1,4 @@
-import { type OAuthGrantDto, OAuthRoutes } from "@caseai-connect/api-contracts"
+import { type OAuthGrantDto, OAuthRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { OAuthGrant } from "../oauth-grants.models"
 import type { IOAuthGrantsSpi } from "../oauth-grants.spi"

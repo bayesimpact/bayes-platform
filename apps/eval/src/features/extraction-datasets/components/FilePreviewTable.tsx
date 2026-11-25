@@ -1,4 +1,4 @@
-import type { ExtractionDatasetFileColumnOutputDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionDatasetFileColumnOutputDto } from "@bayes-platform/eval-contracts"
 import {
   Table,
   TableBody,

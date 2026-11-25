@@ -1,4 +1,4 @@
-import { type AppCatalogEntryDto, ProjectAppCatalogRoutes } from "@caseai-connect/api-contracts"
+import { type AppCatalogEntryDto, ProjectAppCatalogRoutes } from "@bayes-platform/api-contracts"
 import { Controller, ForbiddenException, Get, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"

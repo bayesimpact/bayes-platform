@@ -1,7 +1,7 @@
 import type {
   CampaignSessionParamsDto,
   ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { loadConversation } from "@/features/conversation"

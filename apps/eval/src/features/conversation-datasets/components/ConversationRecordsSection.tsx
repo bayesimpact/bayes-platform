@@ -1,7 +1,7 @@
 import type {
   ConversationDatasetParamsDto,
   ConversationDatasetRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"

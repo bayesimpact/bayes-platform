@@ -1,7 +1,7 @@
 import {
   type AppInstallationSummaryDto,
   ProjectAppInstallationsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Controller, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"

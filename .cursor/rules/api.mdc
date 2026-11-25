@@ -6,7 +6,7 @@ globs:
 alwaysApply: false
 ---
 
-# Cursor Agent Rules for CaseAI Connect - API
+# Cursor Agent Rules for Bayes Platform - API
 
 ## NestJS Dependency Injection
 
@@ -49,7 +49,7 @@ import { UsersService } from "@/users/users.service"
 - All DTOs for a domain MUST be consolidated into a single file: `packages/api-contracts/src/{domain}/{domain}.dto.ts` (e.g., `packages/api-contracts/src/projects/projects.dto.ts`, `packages/api-contracts/src/me/me.dto.ts`)
 - **DO NOT** create separate files for each DTO (e.g., `create-project.dto.ts`, `list-projects.dto.ts`, etc.)
 - All DTOs are exported from `packages/api-contracts/src/index.ts` for consumption by both API and frontend
-- Controllers and routes import DTOs from `@caseai-connect/api-contracts`
+- Controllers and routes import DTOs from `@bayes-platform/api-contracts`
 
 **Why this pattern?**
 - **Reduced file proliferation**: Avoids having many small DTO files that are hard to navigate
@@ -58,11 +58,11 @@ import { UsersService } from "@/users/users.service"
 - **Cohesion**: DTOs are tightly coupled to domain logic and API contracts
 - **Single source of truth**: DTOs live in a shared package accessible to all consumers
 - **No circular dependencies**: API-contracts is a separate package that API and frontend both depend on
-- **Frontend integration**: Frontend imports directly from `@caseai-connect/api-contracts`
+- **Frontend integration**: Frontend imports directly from `@bayes-platform/api-contracts`
 
 **Import Rules**:
-- **Within API**: Controllers and routes import DTOs from `@caseai-connect/api-contracts`
-- **For frontend**: Frontend imports from `@caseai-connect/api-contracts`
+- **Within API**: Controllers and routes import DTOs from `@bayes-platform/api-contracts`
+- **For frontend**: Frontend imports from `@bayes-platform/api-contracts`
 
 **Example - Creating DTOs**:
 
@@ -126,7 +126,7 @@ import type { RequestPayload, ResponseData } from "../generic"
 
 4. **Import in controllers** (`apps/api/src/projects/projects.controller.ts`):
 ```typescript
-import type { CreateProjectRequestDto } from "@caseai-connect/api-contracts"
+import type { CreateProjectRequestDto } from "@bayes-platform/api-contracts"
 ```
 
 ## Controller Guidelines
@@ -312,7 +312,7 @@ export const MeRoutes = {
 2. **Use in controller** (`apps/api/src/me/me.controller.ts`):
 ```typescript
 import { Controller, Get, Req } from "@nestjs/common"
-import { MeRoutes } from "@caseai-connect/api-contracts"
+import { MeRoutes } from "@bayes-platform/api-contracts"
 
 @Controller()
 export class MeController {
@@ -369,7 +369,7 @@ apps/api/src/domains/{domain}/
 Every e2e test file follows this structure:
 
 ```typescript
-import { DomainRoutes } from "@caseai-connect/api-contracts"
+import { DomainRoutes } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { clearTestDatabase } from "@/common/test/test-database"

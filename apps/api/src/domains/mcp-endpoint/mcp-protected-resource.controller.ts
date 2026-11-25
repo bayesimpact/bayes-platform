@@ -1,4 +1,4 @@
-import { OAUTH_GRANTABLE_PERMISSIONS } from "@caseai-connect/api-contracts"
+import { OAUTH_GRANTABLE_PERMISSIONS } from "@bayes-platform/api-contracts"
 import type { OAuthProtectedResourceMetadata } from "@modelcontextprotocol/server"
 import { Controller, Get, Header, Req } from "@nestjs/common"
 import type { Request } from "express"

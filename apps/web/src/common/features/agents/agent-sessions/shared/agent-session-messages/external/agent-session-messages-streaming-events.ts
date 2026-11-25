@@ -1,4 +1,4 @@
-import type { StreamEventPayload } from "@caseai-connect/api-contracts"
+import type { StreamEventPayload } from "@bayes-platform/api-contracts"
 
 /**
  * Parsing and dispatch of the chat SSE frames, kept apart from the reader so it can be tested

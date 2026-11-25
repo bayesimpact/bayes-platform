@@ -1,5 +1,5 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
-import { type AgentModelsOutputDto, EvalAgentsRoutes } from "@caseai-connect/eval-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
+import { type AgentModelsOutputDto, EvalAgentsRoutes } from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

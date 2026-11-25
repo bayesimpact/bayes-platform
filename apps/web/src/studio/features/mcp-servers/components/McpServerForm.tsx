@@ -1,5 +1,5 @@
-import type { McpServerAuthMethod } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import type { McpServerAuthMethod } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Form,
   FormControl,
@@ -8,10 +8,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
-import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
+import { RadioGroup, RadioGroupItem } from "@bayes-platform/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useId, useMemo } from "react"
 import { useForm } from "react-hook-form"

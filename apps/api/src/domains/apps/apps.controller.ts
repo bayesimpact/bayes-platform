@@ -3,7 +3,7 @@ import {
   AppsRoutes,
   createAppManifestSchema,
   updateAppManifestSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"

@@ -1,7 +1,7 @@
 import type {
   ReviewCampaignParamsDto,
   TesterSessionOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQueries } from "@tanstack/react-query"
 import { ArrowRightIcon } from "lucide-react"

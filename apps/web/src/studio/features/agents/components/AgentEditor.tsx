@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
 import {
   AlertTriangleIcon,
   BracesIcon,

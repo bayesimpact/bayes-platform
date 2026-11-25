@@ -4,7 +4,7 @@ import type {
   ReviewCampaignAnswerDto,
   TesterSessionOutputDto,
   TesterSurveyOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { SchemaRouteResponse } from "@/common/schema-route/schema-route.types"
 import type {
   MyTesterSessionSummary,

@@ -1,5 +1,5 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -7,8 +7,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+} from "@bayes-platform/ui/shad/dialog"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import type { TFunction } from "i18next"
 import { AlertCircleIcon } from "lucide-react"
 import { useRef, useState } from "react"

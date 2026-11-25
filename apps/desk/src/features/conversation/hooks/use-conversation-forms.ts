@@ -1,7 +1,7 @@
 import type {
   ConversationFormOutputDto,
   ConversationParamsDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { useQuery } from "@tanstack/react-query"
 import { conversationsQueryOptions } from "@/features/history"
 

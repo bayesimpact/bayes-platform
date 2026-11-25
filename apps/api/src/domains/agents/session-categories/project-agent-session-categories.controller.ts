@@ -1,4 +1,4 @@
-import { ProjectAgentSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
+import { ProjectAgentSessionCategoriesRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"

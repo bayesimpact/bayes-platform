@@ -1,4 +1,4 @@
-import { type AgentMembershipDto, AgentMembershipRoutes } from "@caseai-connect/api-contracts"
+import { type AgentMembershipDto, AgentMembershipRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentMembership } from "../agent-memberships.models"
 import type { IAgentMembershipsSpi } from "../agent-memberships.spi"

@@ -2,7 +2,7 @@ import {
   type AgentModel,
   type CreateAgentDto,
   DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { Agent } from "@/common/features/agents/agents.models"
 import {
   agentDefaultOutputJsonSchemaMap,

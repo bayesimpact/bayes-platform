@@ -1,4 +1,4 @@
-import type { CampaignContextOutputDto } from "@caseai-connect/eval-contracts"
+import type { CampaignContextOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import type { ReactNode } from "react"
 import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"

@@ -1,14 +1,14 @@
-import { updateOrganizationSchema } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { updateOrganizationSchema } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
+} from "@bayes-platform/ui/shad/dialog"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"

@@ -1,7 +1,7 @@
 import {
   type AgentMessageFeedbackDto,
   AgentMessageFeedbackRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentMessageFeedback } from "../agent-message-feedback.models"
 import type { IAgentMessageFeedbackSpi } from "../agent-message-feedback.spi"

@@ -1,4 +1,4 @@
-import { Item, ItemContent, ItemFooter, ItemHeader, ItemTitle } from "@caseai-connect/ui/shad/item"
+import { Item, ItemContent, ItemFooter, ItemHeader, ItemTitle } from "@bayes-platform/ui/shad/item"
 import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"

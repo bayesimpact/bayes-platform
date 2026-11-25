@@ -1,4 +1,4 @@
-import type { ExtractionRunRecordOutputDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionRunRecordOutputDto } from "@bayes-platform/eval-contracts"
 import { cellTextOf } from "@/lib/extraction-columns"
 
 /** A record of the dataset, in the comparison: what names it, and its record in each run. */

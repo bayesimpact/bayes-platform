@@ -1,7 +1,7 @@
 import {
   AgentModel,
   EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"

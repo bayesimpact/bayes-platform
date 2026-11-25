@@ -1,4 +1,4 @@
-import { SIGN_IN_ERRORS } from "@caseai-connect/api-contracts"
+import { SIGN_IN_ERRORS } from "@bayes-platform/api-contracts"
 import { describe, expect, it } from "vitest"
 import { signInErrorKey } from "./sign-in-error-key"
 

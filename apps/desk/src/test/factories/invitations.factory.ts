@@ -1,4 +1,4 @@
-import { type InvitationOutputDto, invitationOutputSchema } from "@caseai-connect/desk-contracts"
+import { type InvitationOutputDto, invitationOutputSchema } from "@bayes-platform/desk-contracts"
 import { daysAgo } from "./agent-sessions.factory"
 
 /** A pending invitation the person received, to an agent by default, checked against the contract. */

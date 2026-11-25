@@ -2,7 +2,7 @@ import {
   deleteProjectMembersSchema,
   type MemberResourceRolesDto,
   ProjectMembershipRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Body,
   Controller,

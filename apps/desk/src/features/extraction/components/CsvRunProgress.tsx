@@ -1,4 +1,4 @@
-import type { CsvExtractionRunDetailOutputDto } from "@caseai-connect/desk-contracts"
+import type { CsvExtractionRunDetailOutputDto } from "@bayes-platform/desk-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { Progress } from "@/components/ui/progress"
 import { isCsvRunLive } from "../api/queries"

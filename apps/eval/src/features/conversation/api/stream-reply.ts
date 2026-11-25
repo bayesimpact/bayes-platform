@@ -1,10 +1,10 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/eval-contracts"
 import {
   EvalConversationsRoutes,
   type ReplyStreamEventDto,
   replyStreamEventSchema,
   TOOL_NAMES,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import { apiStreamResponse } from "@/lib/api-client"

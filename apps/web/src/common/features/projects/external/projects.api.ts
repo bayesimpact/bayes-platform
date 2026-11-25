@@ -5,7 +5,7 @@ import {
   type ProjectDto,
   ProjectsRoutes,
   type RetentionSweepRunDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type {
   MyProject,

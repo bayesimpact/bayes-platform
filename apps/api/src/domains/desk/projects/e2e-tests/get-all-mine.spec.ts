@@ -2,12 +2,12 @@ import { randomUUID } from "node:crypto"
 import {
   REVIEWER_UI_READ_PERMISSION,
   TESTER_UI_READ_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   DESK_UI_READ_PERMISSION,
   DeskProjectsRoutes,
   SOURCES_TOOL_FEATURE_FLAG,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

@@ -1,4 +1,4 @@
-import { AGENT_SCOPED_PERMISSIONS, AgentsRoutes } from "@caseai-connect/api-contracts"
+import { AGENT_SCOPED_PERMISSIONS, AgentsRoutes } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"

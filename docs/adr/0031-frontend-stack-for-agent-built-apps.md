@@ -104,7 +104,7 @@ runtime.**
 | Routing | TanStack Router, file-based through its Vite plugin, base path `/app` |
 | Server state | TanStack Query |
 | API client | One `fetch` wrapper driven by the route objects and their schemas |
-| Validation | Zod 4, schemas shared with the API through `@caseai-connect/desk-contracts` |
+| Validation | Zod 4, schemas shared with the API through `@bayes-platform/desk-contracts` |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
 | Tables | TanStack Table v8 (section 2.3), rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog (section 2.10) |
@@ -119,11 +119,11 @@ allowed, for real global client state and with a human's go.
 ### 2.3 Versions and monorepo tooling
 
 The kit installs the latest versions with pnpm and TypeScript 7. The Desk joins the npm workspaces
-instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the root tooling
+instead, as `@bayes-platform/desk` (private, 0.0.0). The shared lockfile and the root tooling
 (Biome, turbo, CI) are the only ties it keeps with the other workspaces:
 
 * npm is the only package manager, and the root `package-lock.json` the only lockfile. Commands are
-  npm ones (`npm run <script> -w @caseai-connect/desk`, `npx`). No git hook: CI is the gate, as for
+  npm ones (`npm run <script> -w @bayes-platform/desk`, `npx`). No git hook: CI is the gate, as for
   the rest of the repo.
 * Runtime libraries keep one copy in the lockfile. The Desk's ranges admit the versions the
   monorepo resolves (React `^19.2.0`, Tailwind, React Hook Form and its resolvers, Vite, Vitest,
@@ -203,7 +203,7 @@ dependency-cruiser enforces the direction of imports between the folders of `src
 * `components/`, `hooks/` and `lib/` import neither `features/` nor `routes/`.
 * The Desk imports nothing from another app or from a package another app owns: `apps/web`,
   `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its workspace
-  dependencies are `@caseai-connect/desk-contracts` and `@caseai-connect/mcp-app-host`, the one
+  dependencies are `@bayes-platform/desk-contracts` and `@bayes-platform/mcp-app-host`, the one
   package no app owns (see below). Only `lib/auth/` imports `oidc-client-ts`.
 * No cycles.
 
@@ -216,7 +216,7 @@ the Desk shares no code with the other apps: what it needs lives in
 it, even where `apps/web` has its own version. Whether the apps of the new stack share code with each other is decided when the
 second one starts (section 7).
 
-**The one shared package.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
+**The one shared package.** `packages/mcp-app-host` (`@bayes-platform/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
 the Content Security Policy built from the domains an app declares, and the checks on the links
 and messages an app asks for. `apps/web`, `apps/web-embed` and the
@@ -463,7 +463,7 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 * `<Trans>` holds text in JSX, `t` from `useLingui()` text in attributes and toasts, `<Plural>` and
   `plural` counts, and `msg` text defined outside a component and translated where it renders.
   Variables and inline components go inside the message: `<Trans>Delete {title}?</Trans>`.
-* `npm run i18n:extract -w @caseai-connect/desk` (`lingui extract --clean`) writes every message to
+* `npm run i18n:extract -w @bayes-platform/desk` (`lingui extract --clean`) writes every message to
   `src/locales/fr.po`, with the file and line it comes from; `en.po` fills itself from the source.
   The agent that changes a text translates the new French entries in the same change.
 * `check` runs `lingui check sync` and `lingui check missing`, so a stale catalog or a missing
@@ -492,7 +492,7 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   Handlers live in `src/test/msw/`. Their fixtures come from factories whose output goes through the
   Desk response schemas, so a mock cannot drift from the contract. Stream handlers return a
   `ReadableStream`, since MSW's `sse()` only intercepts `EventSource`.
-* Storybook (`npm run storybook -w @caseai-connect/desk`) serves the Desk on the same handlers, to
+* Storybook (`npm run storybook -w @bayes-platform/desk`) serves the Desk on the same handlers, to
   build or check a screen without the API. Each story of `src/stories/` builds its own world of
   the handlers and opens the whole Desk at a page, with a memory history: the person navigates
   from there as in the Desk, so a story is both a state and the start of a journey. It takes the
@@ -510,7 +510,7 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   what it was asked. A change without its tests and stories is not done.
 * Every bug fix comes with the test that would have caught it. Ids in tests come from
   `randomUUID()`, since `z.uuid()` rejects the hand-written ids some existing specs use.
-* `npm run check -w @caseai-connect/desk` runs the typecheck, Biome, dependency-cruiser, knip, the
+* `npm run check -w @bayes-platform/desk` runs the typecheck, Biome, dependency-cruiser, knip, the
   translation checks and Vitest. It passes after each significant change, on top of the repo's
   completion criteria.
 * A rule a tool can check is checked by a tool, since an agent forgets a written rule and never a
@@ -528,13 +528,13 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 ### 2.12 The Desk contract
 
 Desk contracts live in a package of their own, `packages/desk-contracts`
-(`@caseai-connect/desk-contracts`), written the way `packages/api-contracts` is: one folder per area
+(`@bayes-platform/desk-contracts`), written the way `packages/api-contracts` is: one folder per area
 (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
 `invitations`, `memories`, `organizations`, `projects`, and `common` for the error body and the
 params every area extends), each with an `{area}.dto.ts` that
 holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
 CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
-object per area. It depends on Zod and `@caseai-connect/permissions` alone, and imports nothing from
+object per area. It depends on Zod and `@bayes-platform/permissions` alone, and imports nothing from
 `packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
 and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
@@ -543,7 +543,7 @@ import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
 (`desk.ui.read`, the session keys of an agent, the keys of Evaluation), and nothing checked that a
 copy still matched its source: a renamed key would have hidden a page or a button with no error.
 Since 2026-11-25 the catalog, `packages/permissions/src/index.ts`, is a package of its own,
-`@caseai-connect/permissions`, and its one declaration. `api-contracts` re-exports it, so the API and
+`@bayes-platform/permissions`, and its one declaration. `api-contracts` re-exports it, so the API and
 `apps/web` import it as before, and each contracts package re-exports the constants its app reads.
 Like the MCP App host, no app owns it, and it stays within limits that keep the apps closed worlds:
 no dependency and no import, strings, string unions and pure functions only, nothing a screen shows,
@@ -635,7 +635,7 @@ stays the target, and these parts wait for later changes:
   app's UI permission (`studio.ui.read`, `evaluation.ui.read` and so on).
 * Desk endpoints live in `apps/api/src/domains/desk/`, a cross-domain module in the read-model layer
   of ADR 0007 (still proposed), beside `me` and `analytics`, that also carries commands. It takes
-  its schemas from `@caseai-connect/desk-contracts`, maps domain records onto the Desk DTOs, and
+  its schemas from `@bayes-platform/desk-contracts`, maps domain records onto the Desk DTOs, and
   calls the exported services of the feature modules, never another domain's entities. Anything it
   persists itself goes through custom repositories (ADR 0020). The dependency-cruiser rules that
   list `me` and `analytics` list `desk` too. The context resolvers it needs come from a context

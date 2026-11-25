@@ -1,4 +1,4 @@
-import type { EmbeddingModel } from "@caseai-connect/api-contracts"
+import type { EmbeddingModel } from "@bayes-platform/api-contracts"
 
 export type ReembedProjectChunksJobPayload = {
   projectEmbeddingModelId: string

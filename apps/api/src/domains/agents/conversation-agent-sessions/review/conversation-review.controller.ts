@@ -4,7 +4,7 @@ import {
   type ConversationReviewMessageDto,
   ConversationReviewRoutes,
   type ConversationReviewSessionRowDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   Controller,

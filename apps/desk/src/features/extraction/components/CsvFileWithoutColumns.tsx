@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { Columns3Icon } from "lucide-react"
 import { CsvFileUnusable } from "./CsvFileUnusable"

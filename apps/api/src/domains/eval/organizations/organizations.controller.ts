@@ -1,7 +1,7 @@
 import {
   EvalOrganizationsRoutes,
   type MyOrganizationOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Controller, Req } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { SchemaRoute } from "@/common/schema-route/schema-route.decorator"

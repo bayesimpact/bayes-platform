@@ -1,4 +1,4 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@bayes-platform/api-contracts"
 import { afterAll, beforeAll } from "@jest/globals"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import { jsonSchema, tool } from "ai"

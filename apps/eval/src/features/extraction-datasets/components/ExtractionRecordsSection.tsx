@@ -2,7 +2,7 @@ import {
   EXTRACTION_DATASET_RECORDS_PAGE_SIZE,
   type ExtractionDatasetOutputDto,
   type ExtractionDatasetParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"

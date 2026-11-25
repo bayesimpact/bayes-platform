@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
-import { AgentModel } from "@caseai-connect/api-contracts"
-import { EvalConversationRunsRoutes } from "@caseai-connect/eval-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
+import { EvalConversationRunsRoutes } from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

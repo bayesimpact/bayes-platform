@@ -1,4 +1,4 @@
-import { DeskAccountRoutes, DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAccountRoutes, DeskProjectsRoutes } from "@bayes-platform/desk-contracts"
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { HttpResponse } from "msw"

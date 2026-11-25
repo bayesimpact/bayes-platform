@@ -1,4 +1,4 @@
-import type { SignInRefusal } from "@caseai-connect/desk-contracts"
+import type { SignInRefusal } from "@bayes-platform/desk-contracts"
 import { z } from "zod"
 
 /** Why the person cannot get in: a refusal of the API, a loop, a lost or a refused sign-in. */

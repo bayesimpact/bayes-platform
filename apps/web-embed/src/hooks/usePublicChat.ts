@@ -2,7 +2,7 @@ import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
   PublicSessionMessageDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ApiError,

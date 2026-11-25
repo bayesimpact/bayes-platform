@@ -1,4 +1,4 @@
-import { type AgentSessionToolCallDto, ToolName } from "@caseai-connect/api-contracts"
+import { type AgentSessionToolCallDto, ToolName } from "@bayes-platform/api-contracts"
 import { ResourceCard, type ResourceCardData } from "./ResourceCard"
 
 type SurfacedResource = ResourceCardData & { id: string }

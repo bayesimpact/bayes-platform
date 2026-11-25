@@ -1,4 +1,4 @@
-import { AgentSessionMessagesRoutes, type StreamEventPayload } from "@caseai-connect/api-contracts"
+import { AgentSessionMessagesRoutes, type StreamEventPayload } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"

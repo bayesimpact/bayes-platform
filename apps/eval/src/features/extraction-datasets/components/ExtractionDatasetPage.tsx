@@ -5,7 +5,7 @@ import {
   EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
   type ExtractionDatasetParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"

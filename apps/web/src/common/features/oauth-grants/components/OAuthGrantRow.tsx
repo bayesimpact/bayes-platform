@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { PlugIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { OAuthClientTrustBadge } from "@/common/features/oauth-consent/components/OAuthClientTrustBadge"

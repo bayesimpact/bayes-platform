@@ -3,7 +3,7 @@ import type {
   ConversationMessageOutputDto,
   ConversationParamsDto,
   ReviewerSessionOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { ReadOnlyConversation } from "@/features/conversation"

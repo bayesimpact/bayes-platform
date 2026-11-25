@@ -1,4 +1,4 @@
-import { DeskAgentSessionsRoutes, DeskCsvExtractionsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAgentSessionsRoutes, DeskCsvExtractionsRoutes } from "@bayes-platform/desk-contracts"
 import { act, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { delay } from "msw"

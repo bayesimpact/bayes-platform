@@ -1,17 +1,17 @@
 import {
   allowedDocumentUploadMimeTypesForFileUploader,
   DOCUMENT_UPLOAD_MAX_BYTES,
-} from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+} from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { FieldLabel } from "@caseai-connect/ui/shad/field"
+} from "@bayes-platform/ui/shad/dialog"
+import { FieldLabel } from "@bayes-platform/ui/shad/field"
 import { XIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"

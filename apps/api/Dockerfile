@@ -26,11 +26,11 @@ COPY packages/ui/package.json ./packages/ui/
 # Scope install to API + the contracts and the permissions they share so packages/ui's runtime deps (vite, tailwind, radix, react)
 # never enter node_modules/. Frontend workspaces are left on disk but their deps aren't installed.
 RUN npm ci \
-    --workspace=@caseai-connect/api \
-    --workspace=@caseai-connect/api-contracts \
-    --workspace=@caseai-connect/desk-contracts \
-    --workspace=@caseai-connect/eval-contracts \
-    --workspace=@caseai-connect/permissions \
+    --workspace=@bayes-platform/api \
+    --workspace=@bayes-platform/api-contracts \
+    --workspace=@bayes-platform/desk-contracts \
+    --workspace=@bayes-platform/eval-contracts \
+    --workspace=@bayes-platform/permissions \
     --include-workspace-root
 
 #
@@ -53,11 +53,11 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
 RUN npm ci --omit=dev \
-    --workspace=@caseai-connect/api \
-    --workspace=@caseai-connect/api-contracts \
-    --workspace=@caseai-connect/desk-contracts \
-    --workspace=@caseai-connect/eval-contracts \
-    --workspace=@caseai-connect/permissions \
+    --workspace=@bayes-platform/api \
+    --workspace=@bayes-platform/api-contracts \
+    --workspace=@bayes-platform/desk-contracts \
+    --workspace=@bayes-platform/eval-contracts \
+    --workspace=@bayes-platform/permissions \
     --include-workspace-root
 
 # `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
@@ -105,11 +105,11 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
 RUN npm ci \
-    --workspace=@caseai-connect/web \
-    --workspace=@caseai-connect/mcp-app-host \
-    --workspace=@caseai-connect/ui \
-    --workspace=@caseai-connect/api-contracts \
-    --workspace=@caseai-connect/permissions \
+    --workspace=@bayes-platform/web \
+    --workspace=@bayes-platform/mcp-app-host \
+    --workspace=@bayes-platform/ui \
+    --workspace=@bayes-platform/api-contracts \
+    --workspace=@bayes-platform/permissions \
     --include-workspace-root
 
 COPY apps/web ./apps/web
@@ -136,10 +136,10 @@ COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
-    --workspace=@caseai-connect/desk \
-    --workspace=@caseai-connect/desk-contracts \
-    --workspace=@caseai-connect/permissions \
-    --workspace=@caseai-connect/mcp-app-host \
+    --workspace=@bayes-platform/desk \
+    --workspace=@bayes-platform/desk-contracts \
+    --workspace=@bayes-platform/permissions \
+    --workspace=@bayes-platform/mcp-app-host \
     --include-workspace-root
 
 COPY apps/desk ./apps/desk
@@ -169,10 +169,10 @@ COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
-    --workspace=@caseai-connect/eval \
-    --workspace=@caseai-connect/eval-contracts \
-    --workspace=@caseai-connect/permissions \
-    --workspace=@caseai-connect/mcp-app-host \
+    --workspace=@bayes-platform/eval \
+    --workspace=@bayes-platform/eval-contracts \
+    --workspace=@bayes-platform/permissions \
+    --workspace=@bayes-platform/mcp-app-host \
     --include-workspace-root
 
 COPY apps/eval ./apps/eval

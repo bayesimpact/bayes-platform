@@ -1,4 +1,4 @@
-import { EXTRACTION_DATASET_FILE_MAX_SIZE } from "@caseai-connect/eval-contracts"
+import { EXTRACTION_DATASET_FILE_MAX_SIZE } from "@bayes-platform/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { csvFileProblemOf } from "./csv-file"
 

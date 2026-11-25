@@ -1,5 +1,5 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
-import { SidebarProvider } from "@caseai-connect/ui/shad/sidebar"
+import { AgentModel } from "@bayes-platform/api-contracts"
+import { SidebarProvider } from "@bayes-platform/ui/shad/sidebar"
 import { configureStore } from "@reduxjs/toolkit"
 import { renderToStaticMarkup } from "react-dom/server"
 import { Provider } from "react-redux"

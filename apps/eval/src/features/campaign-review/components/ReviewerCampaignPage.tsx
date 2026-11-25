@@ -1,4 +1,4 @@
-import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { SectionCard } from "@/components/shared/SectionCard"

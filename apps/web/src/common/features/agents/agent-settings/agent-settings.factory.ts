@@ -4,7 +4,7 @@ import {
   EmbeddingModel,
   FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX,
   type outputJsonSchemaSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { z } from "zod"

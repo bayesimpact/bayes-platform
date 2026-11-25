@@ -2,7 +2,7 @@ import type {
   AgentModelDto,
   AgentModelListDto,
   AgentWithDraftDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type Agent = AgentWithDraftDto
 

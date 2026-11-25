@@ -1,4 +1,4 @@
-import type { EmbeddingModel, ProjectEmbeddingModelStatus } from "@caseai-connect/api-contracts"
+import type { EmbeddingModel, ProjectEmbeddingModelStatus } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"

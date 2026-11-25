@@ -1,4 +1,4 @@
-import type { AgentParamsDto, CsvColumnRoleDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, CsvColumnRoleDto } from "@bayes-platform/desk-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, useNavigate } from "@tanstack/react-router"

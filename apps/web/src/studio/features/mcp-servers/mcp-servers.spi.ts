@@ -1,4 +1,4 @@
-import type { CreateMcpServerDto, UpdateMcpServerDto } from "@caseai-connect/api-contracts"
+import type { CreateMcpServerDto, UpdateMcpServerDto } from "@bayes-platform/api-contracts"
 import type { McpServer, McpServerInspection } from "./mcp-servers.models"
 
 type ProjectScope = { organizationId: string; projectId: string }

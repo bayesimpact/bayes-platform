@@ -1,4 +1,4 @@
-import { AppsRoutes, BackofficeRoutes } from "@caseai-connect/api-contracts"
+import { AppsRoutes, BackofficeRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import {
   toAppManifest,

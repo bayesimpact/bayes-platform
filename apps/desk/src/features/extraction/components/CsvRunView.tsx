@@ -1,4 +1,4 @@
-import type { AgentParamsDto, CsvExtractionRecordOutputDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, CsvExtractionRecordOutputDto } from "@bayes-platform/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"

@@ -1,5 +1,5 @@
-import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Command,
   CommandEmpty,
@@ -7,10 +7,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@caseai-connect/ui/shad/command"
-import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+} from "@bayes-platform/ui/shad/command"
+import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from "@bayes-platform/ui/shad/field"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronDownIcon, XIcon } from "lucide-react"
 import { useState } from "react"

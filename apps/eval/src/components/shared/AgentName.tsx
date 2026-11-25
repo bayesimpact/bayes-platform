@@ -1,4 +1,4 @@
-import type { AgentTypeDto } from "@caseai-connect/eval-contracts"
+import type { AgentTypeDto } from "@bayes-platform/eval-contracts"
 import { AgentTypeIcon } from "./AgentTypeIcon"
 
 export type AgentNameProps = {

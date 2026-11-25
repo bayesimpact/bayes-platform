@@ -1,4 +1,4 @@
-import type { ResourceDto } from "@caseai-connect/api-contracts"
+import type { ResourceDto } from "@bayes-platform/api-contracts"
 import { buildResourceLink } from "@/domains/resource-libraries/resource-library-link.helper"
 
 /**

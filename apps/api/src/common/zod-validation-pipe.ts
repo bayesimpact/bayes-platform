@@ -1,4 +1,4 @@
-import type { RequestPayload } from "@caseai-connect/api-contracts"
+import type { RequestPayload } from "@bayes-platform/api-contracts"
 import { type ArgumentMetadata, BadRequestException, type PipeTransform } from "@nestjs/common"
 import { ZodError, type ZodType } from "zod"
 

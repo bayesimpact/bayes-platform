@@ -3,8 +3,8 @@ import type {
   ConversationParamsDto,
   MessageFeedbackInputDto,
   MessageParamsDto,
-} from "@caseai-connect/desk-contracts"
-import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
+import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@bayes-platform/desk-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"

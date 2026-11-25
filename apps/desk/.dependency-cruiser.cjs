@@ -17,15 +17,15 @@ module.exports = {
       severity: "error",
       comment:
         "The Desk imports nothing from another app or from a package another app owns. Its " +
-        "workspace dependencies are @caseai-connect/desk-contracts and the one package no app " +
-        "owns, @caseai-connect/mcp-app-host (ADR 0031, section 2.4).",
+        "workspace dependencies are @bayes-platform/desk-contracts and the one package no app " +
+        "owns, @bayes-platform/mcp-app-host (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/desk.
           "^\\.\\./(?!\\.\\./|desk/)[^/]+/",
           "^\\.\\./\\.\\./packages/(?!(desk-contracts|mcp-app-host)/)",
-          "node_modules/@caseai-connect/(?!(desk-contracts|mcp-app-host)(/|$))",
+          "node_modules/@bayes-platform/(?!(desk-contracts|mcp-app-host)(/|$))",
           "node_modules/@repo/",
         ],
       },

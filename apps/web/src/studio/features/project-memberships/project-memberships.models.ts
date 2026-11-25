@@ -1,4 +1,4 @@
-import type { TimeType } from "@caseai-connect/api-contracts"
+import type { TimeType } from "@bayes-platform/api-contracts"
 
 /** A role of the RBAC catalog that can be held on a workspace, an agent or a review campaign. */
 export type ProjectRole = {

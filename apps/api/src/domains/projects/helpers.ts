@@ -6,7 +6,7 @@ import {
   type ProjectAgentSessionCategoryDto,
   type ProjectDto,
   type TimeType,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import type { ProjectModel } from "./project.model"
 

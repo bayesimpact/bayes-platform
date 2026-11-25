@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai"
-import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { z } from "zod"

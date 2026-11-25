@@ -1,5 +1,5 @@
-import { createResourceSchema, RESOURCE_FIELD_LIMITS } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { createResourceSchema, RESOURCE_FIELD_LIMITS } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Form,
   FormControl,
@@ -8,9 +8,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMemo } from "react"
 import { useForm } from "react-hook-form"

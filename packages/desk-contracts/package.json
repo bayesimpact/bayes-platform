@@ -1,5 +1,5 @@
 {
-  "name": "@caseai-connect/desk-contracts",
+  "name": "@bayes-platform/desk-contracts",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -21,7 +21,7 @@
     "./src/**"
   ],
   "dependencies": {
-    "@caseai-connect/permissions": "*",
+    "@bayes-platform/permissions": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

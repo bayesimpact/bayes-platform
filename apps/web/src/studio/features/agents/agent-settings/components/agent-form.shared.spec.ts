@@ -1,4 +1,4 @@
-import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@bayes-platform/api-contracts"
 import { describe, expect, it } from "vitest"
 import { type AgentCreationChoice, getDefaultFormValues } from "./agent-form.shared"
 

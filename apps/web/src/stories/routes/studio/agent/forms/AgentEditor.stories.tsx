@@ -1,4 +1,4 @@
-import { DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { DocumentsRagMode } from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { agentFactory } from "@/common/features/agents/agent.factory"

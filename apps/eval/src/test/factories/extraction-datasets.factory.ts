@@ -7,7 +7,7 @@ import {
   extractionDatasetFileOutputSchema,
   extractionDatasetOutputSchema,
   extractionDatasetRecordOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { daysAgo } from "./review-campaigns.factory"
 
 /** A CSV file of a project, whole: its header and its rows, which the handlers read columns from. */

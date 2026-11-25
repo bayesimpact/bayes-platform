@@ -3,7 +3,7 @@ import {
   type BaseAgentSessionTypeDto,
   ExtractionAgentSessionsRoutes,
   MimeTypes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"

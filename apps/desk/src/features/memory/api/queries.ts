@@ -1,5 +1,5 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
-import { DeskMemoriesRoutes } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
+import { DeskMemoriesRoutes } from "@bayes-platform/desk-contracts"
 import { type QueryClient, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { memoryKeys } from "./keys"

@@ -1,4 +1,4 @@
-import type { CsvColumnDto } from "@caseai-connect/desk-contracts"
+import type { CsvColumnDto } from "@bayes-platform/desk-contracts"
 import { hasOwnKey } from "@/lib/has-own-key"
 
 /** The columns of the file a run's results show beside the answers: the read and kept ones. */

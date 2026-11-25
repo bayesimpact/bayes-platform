@@ -1,12 +1,12 @@
-import { createBackofficeOrganizationSchema } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { createBackofficeOrganizationSchema } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import {
   Form,
   FormControl,
@@ -14,8 +14,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { PlusIcon } from "lucide-react"

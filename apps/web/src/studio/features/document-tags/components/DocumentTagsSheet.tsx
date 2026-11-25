@@ -1,16 +1,16 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@caseai-connect/ui/shad/collapsible"
+} from "@bayes-platform/ui/shad/collapsible"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@caseai-connect/ui/shad/sheet"
+} from "@bayes-platform/ui/shad/sheet"
 import { ChevronRight, TagsIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"

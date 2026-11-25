@@ -6,7 +6,7 @@ import {
   MimeTypes,
   type PresignFileRequestItemDto,
   type PresignFileResponseItemDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   Inject,

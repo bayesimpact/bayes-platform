@@ -1,4 +1,4 @@
-import type { TimeType } from "@caseai-connect/api-contracts"
+import type { TimeType } from "@bayes-platform/api-contracts"
 import {
   type FormatOptions,
   format,

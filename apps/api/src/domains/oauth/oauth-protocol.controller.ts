@@ -1,4 +1,4 @@
-import { OAuthRoutes } from "@caseai-connect/api-contracts"
+import { OAuthRoutes } from "@bayes-platform/api-contracts"
 import {
   Body,
   Controller,

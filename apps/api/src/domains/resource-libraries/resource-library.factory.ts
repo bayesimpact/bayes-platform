@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import type { ResourceDto } from "@caseai-connect/api-contracts"
+import type { ResourceDto } from "@bayes-platform/api-contracts"
 import { Factory } from "fishery"
 import type { Repository } from "typeorm"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"

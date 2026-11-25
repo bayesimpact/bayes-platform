@@ -1,4 +1,4 @@
-import type { DocumentSourceStatus } from "@caseai-connect/api-contracts"
+import type { DocumentSourceStatus } from "@bayes-platform/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI

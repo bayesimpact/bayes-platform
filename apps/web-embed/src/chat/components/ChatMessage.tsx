@@ -1,7 +1,7 @@
 import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { AlertCircleIcon, CheckIcon, CopyIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

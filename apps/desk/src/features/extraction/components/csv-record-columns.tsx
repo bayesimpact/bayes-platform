@@ -1,4 +1,4 @@
-import type { CsvColumnDto, CsvExtractionRecordOutputDto } from "@caseai-connect/desk-contracts"
+import type { CsvColumnDto, CsvExtractionRecordOutputDto } from "@bayes-platform/desk-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"

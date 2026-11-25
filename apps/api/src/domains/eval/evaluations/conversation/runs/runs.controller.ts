@@ -1,5 +1,5 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
-import { EvalConversationRunsRoutes } from "@caseai-connect/eval-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
+import { EvalConversationRunsRoutes } from "@bayes-platform/eval-contracts"
 import {
   Controller,
   Logger,

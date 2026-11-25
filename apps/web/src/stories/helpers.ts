@@ -1,4 +1,4 @@
-import { type FeatureFlagKey, FeatureFlags } from "@caseai-connect/api-contracts"
+import { type FeatureFlagKey, FeatureFlags } from "@bayes-platform/api-contracts"
 import { ROLES } from "@/common/features/me/me.models"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import type { Project } from "@/common/features/projects/projects.models"

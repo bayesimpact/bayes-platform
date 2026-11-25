@@ -1,5 +1,5 @@
-import type { ExtractionRunRecordOutputDto } from "@caseai-connect/eval-contracts"
-import { EvalExtractionRunsRoutes } from "@caseai-connect/eval-contracts"
+import type { ExtractionRunRecordOutputDto } from "@bayes-platform/eval-contracts"
+import { EvalExtractionRunsRoutes } from "@bayes-platform/eval-contracts"
 import type { EvalWorld } from "../factories/eval-world.factory"
 import { buildExtractionRun, buildExtractionRunRecord } from "../factories/extraction-runs.factory"
 import { apiError, mockRoute } from "./mock-route"

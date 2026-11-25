@@ -2,7 +2,7 @@ import {
   type CsvColumnRoleDto,
   type CsvFileColumnOutputDto,
   csvColumnRoleSchema,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"

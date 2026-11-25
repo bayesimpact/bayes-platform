@@ -1,13 +1,13 @@
-import type { McpServerAuthStatus } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import type { McpServerAuthStatus } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { ItemGroup } from "@caseai-connect/ui/shad/item"
+} from "@bayes-platform/ui/shad/dialog"
+import { ItemGroup } from "@bayes-platform/ui/shad/item"
 import { RefreshCwIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { McpServerConnection } from "../mcp-servers.models"

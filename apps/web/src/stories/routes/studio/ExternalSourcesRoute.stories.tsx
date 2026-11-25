@@ -2,7 +2,7 @@ import {
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { buildDecorator, render } from "@/stories/decorators"
 import {

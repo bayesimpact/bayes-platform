@@ -33,7 +33,7 @@ import { EvalReviewerController } from "./review-campaigns/reviewer/reviewer.con
 import { EvalTesterController } from "./review-campaigns/tester/tester.controller"
 
 /**
- * The evaluation app's own API: the routes of `@caseai-connect/eval-contracts`, each checked with
+ * The evaluation app's own API: the routes of `@bayes-platform/eval-contracts`, each checked with
  * the schemas of its route. The business code stays in the feature domains: a handler calls their
  * exported services.
  */

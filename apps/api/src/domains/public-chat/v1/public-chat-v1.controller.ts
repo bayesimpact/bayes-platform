@@ -1,5 +1,5 @@
-import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { PublicChatRoutes } from "@caseai-connect/api-contracts"
+import type { StreamEvent, StreamEventPayload } from "@bayes-platform/api-contracts"
+import { PublicChatRoutes } from "@bayes-platform/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
 import {
   BadRequestException,

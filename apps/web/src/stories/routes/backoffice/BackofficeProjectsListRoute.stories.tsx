@@ -1,7 +1,7 @@
 import {
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { backofficeRoutes } from "@/backoffice/routes/BackofficeRoutes"
 import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"

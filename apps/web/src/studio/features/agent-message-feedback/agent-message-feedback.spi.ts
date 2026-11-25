@@ -1,4 +1,4 @@
-import type { AgentMessageFeedbackRating, SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type { AgentMessageFeedbackRating, SuccessResponseDTO } from "@bayes-platform/api-contracts"
 import type { AgentMessageFeedback } from "./agent-message-feedback.models"
 
 export interface IAgentMessageFeedbackSpi {

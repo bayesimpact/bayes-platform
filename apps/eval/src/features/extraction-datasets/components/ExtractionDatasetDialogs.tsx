@@ -1,4 +1,4 @@
-import type { ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { ProjectParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { type DatasetAction, DatasetDialogs } from "@/components/shared/DatasetDialogs"
 import {

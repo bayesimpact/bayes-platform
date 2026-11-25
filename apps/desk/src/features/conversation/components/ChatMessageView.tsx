@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { CopyButton } from "@/components/shared/CopyButton"
 import { RelativeTime } from "@/components/shared/RelativeTime"

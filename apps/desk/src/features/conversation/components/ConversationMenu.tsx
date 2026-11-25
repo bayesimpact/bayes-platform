@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
 import { EllipsisIcon, Trash2Icon } from "lucide-react"

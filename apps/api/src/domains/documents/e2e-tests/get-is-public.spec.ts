@@ -1,4 +1,4 @@
-import { DocumentsRoutes, PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
+import { DocumentsRoutes, PUBLIC_DOCUMENTS_TAG_NAME } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

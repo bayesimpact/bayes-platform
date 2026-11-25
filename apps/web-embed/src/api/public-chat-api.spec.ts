@@ -1,4 +1,4 @@
-import type { PublicStreamEventPayload } from "@caseai-connect/api-contracts"
+import type { PublicStreamEventPayload } from "@bayes-platform/api-contracts"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { ApiError, streamReply } from "./public-chat-api"
 

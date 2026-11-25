@@ -1,4 +1,4 @@
-import { EvalConversationsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalConversationsRoutes } from "@bayes-platform/eval-contracts"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"

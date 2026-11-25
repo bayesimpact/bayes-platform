@@ -2,7 +2,7 @@ import {
   AgentModel,
   type StreamEvent,
   type StreamEventPayload,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { ImagePart, TextPart } from "ai"
 import { v4 } from "uuid"

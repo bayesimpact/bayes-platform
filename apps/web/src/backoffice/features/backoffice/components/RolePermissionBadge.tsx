@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
 
 export function RolePermissionBadge({
   role,

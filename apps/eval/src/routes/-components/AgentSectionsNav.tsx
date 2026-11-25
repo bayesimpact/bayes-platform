@@ -2,7 +2,7 @@ import {
   type AgentParamsDto,
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { FlaskConicalIcon, LayoutGridIcon } from "lucide-react"

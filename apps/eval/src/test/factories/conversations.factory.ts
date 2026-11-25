@@ -2,7 +2,7 @@ import {
   type ConversationMessageOutputDto,
   conversationMessageOutputSchema,
   toolCallOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { z } from "zod"
 
 type ToolCallOutputDto = z.output<typeof toolCallOutputSchema>

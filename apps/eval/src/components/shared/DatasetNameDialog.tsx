@@ -1,4 +1,4 @@
-import { DATASET_NAME_MIN_LENGTH, datasetNameInputSchema } from "@caseai-connect/eval-contracts"
+import { DATASET_NAME_MIN_LENGTH, datasetNameInputSchema } from "@bayes-platform/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { type ReactNode, useId } from "react"

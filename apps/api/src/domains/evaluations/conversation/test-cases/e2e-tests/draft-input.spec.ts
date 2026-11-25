@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto"
 import {
   type EvaluationConversationTestCaseInputMode,
   EvaluationConversationTestCasesRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { clearTestDatabase } from "@/common/test/test-database"

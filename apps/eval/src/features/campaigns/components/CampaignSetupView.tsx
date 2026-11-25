@@ -2,7 +2,7 @@ import type {
   AgentParamsDto,
   AgentTypeDto,
   ReviewCampaignDetailOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"

@@ -1,4 +1,4 @@
-import type { ExtractionRunRecordStatusDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionRunRecordStatusDto } from "@bayes-platform/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { useLingui } from "@lingui/react/macro"

@@ -1,4 +1,4 @@
-import { AppsV1Routes } from "@caseai-connect/api-contracts"
+import { AppsV1Routes } from "@bayes-platform/api-contracts"
 import { Controller, Get, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { AppGuard } from "./app.guard"

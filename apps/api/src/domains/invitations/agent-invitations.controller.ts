@@ -1,4 +1,4 @@
-import { AgentInvitationsRoutes } from "@caseai-connect/api-contracts"
+import { AgentInvitationsRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithAgent } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"

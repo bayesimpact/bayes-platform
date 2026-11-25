@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { useTranslation } from "react-i18next"
 
 /** Follow-up questions under a reply: a click sends the question as the next user message. */

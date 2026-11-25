@@ -1,4 +1,4 @@
-import { type InvitationOutputDto, invitationOutputSchema } from "@caseai-connect/eval-contracts"
+import { type InvitationOutputDto, invitationOutputSchema } from "@bayes-platform/eval-contracts"
 import { daysAgo } from "./review-campaigns.factory"
 
 /**

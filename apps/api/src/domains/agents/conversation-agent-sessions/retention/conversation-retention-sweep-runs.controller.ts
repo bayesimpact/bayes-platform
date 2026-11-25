@@ -2,7 +2,7 @@ import {
   ProjectsRoutes,
   type RetentionSweepRunDto,
   type TimeType,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Controller, Get, Req, UseGuards } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { parseExpression } from "cron-parser"

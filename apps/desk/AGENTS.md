@@ -10,7 +10,7 @@ holds what is specific to the Desk.
 - Served under `/app/` (Vite's `base`, `appBasePath` in `src/app/config.ts`, the router's
   `basepath`). The URLs of today's Desk stay: `/app/o/$organizationId/p/$projectId` and the agent
   pages below it. `/app` is the home, and `/app/o/$organizationId` redirects to it.
-- Contracts: `@caseai-connect/desk-contracts` (`packages/desk-contracts`), one folder per area
+- Contracts: `@bayes-platform/desk-contracts` (`packages/desk-contracts`), one folder per area
   (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
   `invitations`, `memories`, `organizations`, `projects`), with `common/` for the error body and
   the params every route extends (`AgentParamsDto`, `ConversationParamsDto`), and a
@@ -29,10 +29,10 @@ holds what is specific to the Desk.
   keeps the agents whose
   `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API
   also lists the agents a project evaluator only reads.
-- MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
+- MCP Apps: a card runs in the sandbox of `@bayes-platform/mcp-app-host`
   (`packages/mcp-app-host`), one of the two packages the Desk shares with `apps/web` and
   `apps/web-embed` (ADR 0031, section 2.4). The other is the permission catalog,
-  `@caseai-connect/permissions`, which the Desk reads only through the constants its contracts
+  `@bayes-platform/permissions`, which the Desk reads only through the constants its contracts
   re-export (section 2.12). The Desk keeps what is its own: the `useMcpApp` hook and `McpAppCard`
   in `features/conversation`, the placeholder, and the lookup of an app's HTML (`mcp-apps.ts`).
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
@@ -70,14 +70,14 @@ Run them from the repository root.
 
 | Command | What it does |
 |---|---|
-| `npm run dev -w @caseai-connect/desk` | Dev server on port 5177 at `/app/`, forwarding `/api` to the local API |
-| `npm run storybook -w @caseai-connect/desk` | Storybook on port 6009: the whole Desk on the MSW handlers, with no API and no sign-in, one story per state of its world |
-| `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
-| `npm run test -w @caseai-connect/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
-| `npm run check:desk-parity -w @caseai-connect/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
-| `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and `fr.po`, without line numbers, to translate in the same change |
-| `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
-| `npm run preview -w @caseai-connect/desk` | Serves that build on port 5178 at `/app/` |
+| `npm run dev -w @bayes-platform/desk` | Dev server on port 5177 at `/app/`, forwarding `/api` to the local API |
+| `npm run storybook -w @bayes-platform/desk` | Storybook on port 6009: the whole Desk on the MSW handlers, with no API and no sign-in, one story per state of its world |
+| `npm run check -w @bayes-platform/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
+| `npm run test -w @bayes-platform/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
+| `npm run check:desk-parity -w @bayes-platform/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
+| `npm run i18n:extract -w @bayes-platform/desk` | Writes every message to `src/locales/en.po` and `fr.po`, without line numbers, to translate in the same change |
+| `npm run build -w @bayes-platform/desk` | The production build, in `apps/desk/dist` |
+| `npm run preview -w @bayes-platform/desk` | Serves that build on port 5178 at `/app/` |
 
 In a worktree with an environment, never start `dev` on the host: the environment's `desk` service
 runs it, under the `desk` profile (`bayes wt up --with desk`), at `<WT_ORIGIN>/app/`. Its Storybook
@@ -85,7 +85,7 @@ runs under the `storybook-desk` profile (`bayes wt up --with storybook-desk`, or
 preset), at `<WT_SCHEME>://<name>-desk-storybook.<WT_TOOLS_DOMAIN>`, the link to share. The browser
 of Claude Desktop blocks the scripts of that public domain: open it there at
 `http://<name>-desk-storybook.connect.localhost:8800`, which the environment serves too. In the
-main checkout, `npm run storybook -w @caseai-connect/desk` serves it on port 6009, with its MCP
+main checkout, `npm run storybook -w @bayes-platform/desk` serves it on port 6009, with its MCP
 server at `/mcp` (`storybook-desk` in `.mcp.json`). The `storybook-screenshot` skill captures its
 stories, with `--base-url` for an environment's.
 
@@ -142,7 +142,7 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - Evaluation (`apps/eval`) holds a copy of the chat: `src/features/conversation/`, and `Markdown`,
   `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no code, so
   a change to one of these files goes to the copy too, in the same PR.
-  `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
+  `npm run check:desk-parity -w @bayes-platform/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
   of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
   one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a

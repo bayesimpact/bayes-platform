@@ -1,4 +1,4 @@
-import { DeskMemoriesRoutes, type MemoryOutputDto } from "@caseai-connect/desk-contracts"
+import { DeskMemoriesRoutes, type MemoryOutputDto } from "@bayes-platform/desk-contracts"
 import { Controller, HttpStatus, Req } from "@nestjs/common"
 import type { EndpointRequestWithAgent } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

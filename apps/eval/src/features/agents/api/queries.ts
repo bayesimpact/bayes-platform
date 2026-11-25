@@ -4,7 +4,7 @@ import {
   EvalOrganizationsRoutes,
   EvalProjectsRoutes,
   EvalReviewCampaignsRoutes,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { type EvaluationWorkspace, groupEvaluationAgents } from "../evaluation-agents"

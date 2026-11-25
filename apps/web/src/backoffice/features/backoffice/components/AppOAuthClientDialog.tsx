@@ -1,5 +1,5 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import { CheckIcon, CopyIcon, KeyRoundIcon } from "lucide-react"
 import { useState } from "react"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"

@@ -11,7 +11,7 @@ export {
   REVIEWER_UI_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
   TESTER_UI_READ_PERMISSION,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 
 /** A project the signed-in person can read, as `GET eval/projects/mine` returns it. */
 export const myProjectOutputSchema = z.object({

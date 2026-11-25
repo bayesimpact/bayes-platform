@@ -1,4 +1,4 @@
-import type { ConversationRunRecordOutputDto } from "@caseai-connect/eval-contracts"
+import type { ConversationRunRecordOutputDto } from "@bayes-platform/eval-contracts"
 
 /** A record of the dataset, in the comparison: what it asks, and its record in each run. */
 export type ConversationComparisonRow = {

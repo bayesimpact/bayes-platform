@@ -1,4 +1,4 @@
-import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentVersionOutputDto } from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { changedAgentVersionFields } from "@/lib/agent-version-diff"

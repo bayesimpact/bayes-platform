@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import type {
   LLMCallContext,
   LLMConfig,

@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { agentSessionMessagesActions } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"

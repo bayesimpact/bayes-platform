@@ -3,7 +3,7 @@ import type {
   ExtractionAgentSessionResultDto,
   ExtractionAgentSessionStatus,
   ExtractionAgentSessionSummaryDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { AgentCsvExtractionRun } from "../../csv-extraction-runs/agent-csv-extraction-runs.models"
 
 export type ExtractionAgentSession = ExtractionAgentSessionDto

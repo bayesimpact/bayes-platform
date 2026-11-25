@@ -4,8 +4,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/select"
+import { cn } from "@bayes-platform/ui/utils"
 import { TriangleAlertIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { selectStreaming } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"

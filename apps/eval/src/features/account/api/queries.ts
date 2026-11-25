@@ -1,4 +1,4 @@
-import { EvalAccountRoutes, TRACE_READ_PERMISSION } from "@caseai-connect/eval-contracts"
+import { EvalAccountRoutes, TRACE_READ_PERMISSION } from "@bayes-platform/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { accountKeys } from "./keys"

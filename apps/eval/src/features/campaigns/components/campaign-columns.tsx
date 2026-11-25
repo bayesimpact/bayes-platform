@@ -1,7 +1,7 @@
 import type {
   AgentParamsDto,
   ReviewCampaignListItemOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"

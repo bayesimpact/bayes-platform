@@ -1,4 +1,4 @@
-import { EvalExtractionDatasetsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalExtractionDatasetsRoutes } from "@bayes-platform/eval-contracts"
 import { Controller, HttpStatus, Req } from "@nestjs/common"
 import type {
   EndpointRequestWithEvaluationExtractionDataset,

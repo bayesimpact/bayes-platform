@@ -1,4 +1,4 @@
-import { EvalReviewerRoutes } from "@caseai-connect/eval-contracts"
+import { EvalReviewerRoutes } from "@bayes-platform/eval-contracts"
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"

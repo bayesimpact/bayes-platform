@@ -1,4 +1,4 @@
-import { OAuthRoutes } from "@caseai-connect/api-contracts"
+import { OAuthRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common"
 import { SkipThrottle, ThrottlerGuard } from "@nestjs/throttler"
 import type { Request } from "express"

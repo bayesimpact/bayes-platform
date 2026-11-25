@@ -1,12 +1,12 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Item, ItemTitle } from "@caseai-connect/ui/shad/item"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Item, ItemTitle } from "@bayes-platform/ui/shad/item"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@caseai-connect/ui/shad/sheet"
+} from "@bayes-platform/ui/shad/sheet"
 import { DownloadIcon, FileTextIcon, GlobeIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"

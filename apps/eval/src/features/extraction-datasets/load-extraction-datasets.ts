@@ -1,4 +1,4 @@
-import type { ExtractionDatasetParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionDatasetParamsDto, ProjectParamsDto } from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { isSetUp } from "@/lib/extraction-columns"

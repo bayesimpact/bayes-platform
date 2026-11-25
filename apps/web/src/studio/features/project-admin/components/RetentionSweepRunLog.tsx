@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@bayes-platform/ui/shad/tooltip"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { InfoIcon } from "lucide-react"

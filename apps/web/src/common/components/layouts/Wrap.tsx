@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 
 export function Wrap({ children, className }: { children: React.ReactNode; className?: string }) {
   return (

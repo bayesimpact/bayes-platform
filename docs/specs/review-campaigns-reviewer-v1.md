@@ -88,7 +88,7 @@ A user with both `tester` and `reviewer` roles on the same campaign is **prevent
 
 ## API
 
-All routes use `defineRoute` in `packages/@caseai-connect/api-contracts/src/review-campaigns/review-campaigns.routes.ts` (the same file introduced by the tester spec, extended here).
+All routes use `defineRoute` in `packages/@bayes-platform/api-contracts/src/review-campaigns/review-campaigns.routes.ts` (the same file introduced by the tester spec, extended here).
 
 ### Reviewer routes
 

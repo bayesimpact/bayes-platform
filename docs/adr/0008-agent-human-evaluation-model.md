@@ -3,7 +3,7 @@
 * **Status**: Accepted
 * **Date**: 2026-04-21
 * **Deciders**: Jérémie
-* **Scope**: A new domain (`review-campaigns`) for human evaluation of conversational agents, spanning `apps/api`, `apps/web`, and `packages/@caseai-connect/api-contracts`.
+* **Scope**: A new domain (`review-campaigns`) for human evaluation of conversational agents, spanning `apps/api`, `apps/web`, and `packages/@bayes-platform/api-contracts`.
 
 ---
 
@@ -226,6 +226,6 @@ Entities expected (names to be finalized in specs):
 * `TesterCampaignSurvey` — 1:1 per `(tester, campaign)`, submitted once at end of participation: overall stars, comment, end-of-phase question answers (see §2.11).
 * `ReviewerSessionReview` — N:1 with an agent session, unique per `(session, reviewer)`: overall stars, comment, reviewer-question answers.
 
-Per the project CLAUDE.md, DTOs for this domain will be consolidated in `packages/@caseai-connect/api-contracts/src/review-campaigns/review-campaigns.dto.ts`, and routes in `review-campaigns.routes.ts`. The NestJS module will live at `apps/api/src/domains/review-campaigns/`.
+Per the project CLAUDE.md, DTOs for this domain will be consolidated in `packages/@bayes-platform/api-contracts/src/review-campaigns/review-campaigns.dto.ts`, and routes in `review-campaigns.routes.ts`. The NestJS module will live at `apps/api/src/domains/review-campaigns/`.
 
 Completion gates (per CLAUDE.md): `npm run biome:check`, `npm run typecheck`, `npm run test` must pass for any PR derived from this ADR.

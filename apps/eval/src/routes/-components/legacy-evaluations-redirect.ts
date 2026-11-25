@@ -1,4 +1,4 @@
-import type { AgentTypeDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentTypeDto, ProjectParamsDto } from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound, redirect } from "@tanstack/react-router"
 import {

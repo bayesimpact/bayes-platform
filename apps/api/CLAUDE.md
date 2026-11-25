@@ -31,7 +31,7 @@ import { UsersService } from "@/users/users.service"
 
 - **DO NOT** create separate files per DTO (e.g., `create-project.dto.ts`)
 - All DTOs exported from `packages/api-contracts/src/index.ts`
-- Controllers and routes import DTOs from `@caseai-connect/api-contracts`
+- Controllers and routes import DTOs from `@bayes-platform/api-contracts`
 
 **Example**:
 
@@ -176,7 +176,7 @@ export class ExampleController {
 
 ### Schema routes, the Desk module and the Evaluation module
 
-The Desk (`apps/desk`) calls only the routes of `@caseai-connect/desk-contracts`, under `desk/`, except a library file link that `apps/desk/AGENTS.md` names. `src/domains/desk/` serves them, in a folder per area of the contracts, with two exceptions: the `agent-sessions` routes live by agent type in `conversations/`, `extractions/` and `csv-extractions/`, and `csv-extractions/` serves `DeskCsvExtractionsRoutes`, the second routes object of `extractions`. A folder may hold several controllers (`conversations/` has three). `src/common/schema-route/` holds the generic part, and [docs/schema-routes.md](../../docs/schema-routes.md) explains how it works, why it exists and how another app uses it. To add or change a Desk endpoint:
+The Desk (`apps/desk`) calls only the routes of `@bayes-platform/desk-contracts`, under `desk/`, except a library file link that `apps/desk/AGENTS.md` names. `src/domains/desk/` serves them, in a folder per area of the contracts, with two exceptions: the `agent-sessions` routes live by agent type in `conversations/`, `extractions/` and `csv-extractions/`, and `csv-extractions/` serves `DeskCsvExtractionsRoutes`, the second routes object of `extractions`. A folder may hold several controllers (`conversations/` has three). `src/common/schema-route/` holds the generic part, and [docs/schema-routes.md](../../docs/schema-routes.md) explains how it works, why it exists and how another app uses it. To add or change a Desk endpoint:
 
 1. Contract first: the Zod schemas in `packages/desk-contracts/src/{area}/{area}.dto.ts`, and the route in `{area}.routes.ts` with `defineSchemaRoute` (`defineStreamRoute` for a stream), on the `Desk{Area}Routes` object that `packages/desk-contracts/src/index.ts` exports. `src/domains/desk/routes.spec.ts` covers every exported object whose name ends in `Routes`, so a routes object keeps the `Desk{Area}Routes` name.
 2. The handler, in a `@Controller()` with no prefix and no guard of its own: `@SchemaRoute(route, { permission, context, activity, status })`. It sets the method and path, the guard chain (`JwtAuthGuard`, `UserGuard`, the input guard, then `ResourceContextGuard` and `CheckPermissionGuard`), the required contexts, the permission, the tracked activity, the status code and the response interceptor. `permission` is required: `{ key, on }`, or `"signed-in"` for a route open to any signed-in person. A scoped permission needs its `context` list, since the permission guard reads the resource the resolvers put on the request. `status` defaults to Nest's (201 for a POST). A stream answers 200 and records no activity.
@@ -187,7 +187,7 @@ The Desk (`apps/desk`) calls only the routes of `@caseai-connect/desk-contracts`
 
 Each Desk handler holds a copy of the logic of an abstract controller of the `agents` domain (`ConversationAgentSessionsController`, `AgentMessagesController`, `StreamingController`, `ExtractionAgentSessionsController`, `AgentCsvExtractionRunsController`), which serves the playground alone. Nothing links the two, so a change to one of those handlers goes to the Desk handler too.
 
-Evaluation (`apps/eval`) follows the same pattern. It calls only the routes of `@caseai-connect/eval-contracts`, under `eval/`, and `src/domains/eval/` (`EvalModule`) serves them, in a folder per area of the contracts: `account/`, `invitations/`, `organizations/`, `projects/`, `agents/`, `documents/`, `conversations/` (a tester's conversation and its reply stream), `evaluations/conversation/{datasets,runs}/`, `evaluations/extraction/{datasets,runs}/` and `review-campaigns/{campaigns,reviewer,tester}/`. A folder may hold several controllers. To add or change an Evaluation endpoint, follow the numbered steps above with these differences:
+Evaluation (`apps/eval`) follows the same pattern. It calls only the routes of `@bayes-platform/eval-contracts`, under `eval/`, and `src/domains/eval/` (`EvalModule`) serves them, in a folder per area of the contracts: `account/`, `invitations/`, `organizations/`, `projects/`, `agents/`, `documents/`, `conversations/` (a tester's conversation and its reply stream), `evaluations/conversation/{datasets,runs}/`, `evaluations/extraction/{datasets,runs}/` and `review-campaigns/{campaigns,reviewer,tester}/`. A folder may hold several controllers. To add or change an Evaluation endpoint, follow the numbered steps above with these differences:
 
 - The contract is in `packages/eval-contracts/src/{area}/`, on the `Eval{Area}Routes` object that `packages/eval-contracts/src/index.ts` exports, and its path starts with `eval/`.
 - The handler goes in the folder of its area in `src/domains/eval/`. Files drop the `eval-` prefix, and classes keep the `Eval` prefix (`EvalConversationRunsController`).

@@ -1,4 +1,4 @@
-import type { DocumentSourceStatus, TimeType } from "@caseai-connect/api-contracts"
+import type { DocumentSourceStatus, TimeType } from "@bayes-platform/api-contracts"
 
 export type DocumentSourceApp = {
   name: string

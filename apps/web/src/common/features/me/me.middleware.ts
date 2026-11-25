@@ -1,4 +1,4 @@
-import { isSignInError } from "@caseai-connect/api-contracts"
+import { isSignInError } from "@bayes-platform/api-contracts"
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { authActions } from "@/common/features/auth/auth.slice"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"

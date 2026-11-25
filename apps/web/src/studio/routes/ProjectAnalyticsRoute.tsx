@@ -1,13 +1,13 @@
-import ChartCard, { type DailyMetricPoint } from "@caseai-connect/ui/components/ChartCard"
-import { DateRangeCalendarWithPresetsPopover } from "@caseai-connect/ui/components/DateRangeCalendarWithPresets"
-import { getLast7DaysRange } from "@caseai-connect/ui/lib/date-range-presets"
+import ChartCard, { type DailyMetricPoint } from "@bayes-platform/ui/components/ChartCard"
+import { DateRangeCalendarWithPresetsPopover } from "@bayes-platform/ui/components/DateRangeCalendarWithPresets"
+import { getLast7DaysRange } from "@bayes-platform/ui/lib/date-range-presets"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
+} from "@bayes-platform/ui/shad/select"
 import { useCallback, useEffect, useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"

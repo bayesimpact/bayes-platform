@@ -1,4 +1,4 @@
-import { DeskAccountRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAccountRoutes } from "@bayes-platform/desk-contracts"
 import { screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { claimAutomaticSignIn } from "@/lib/auth/session"

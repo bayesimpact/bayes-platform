@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { PublicChatRoutes, type StreamEventPayload } from "@caseai-connect/api-contracts"
+import { PublicChatRoutes, type StreamEventPayload } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"

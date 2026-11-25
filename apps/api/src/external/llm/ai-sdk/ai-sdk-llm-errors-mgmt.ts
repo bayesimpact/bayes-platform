@@ -1,5 +1,5 @@
 import { APICallError } from "@ai-sdk/provider"
-import type { AgentProvider } from "@caseai-connect/api-contracts"
+import type { AgentProvider } from "@bayes-platform/api-contracts"
 import { context, trace } from "@opentelemetry/api"
 import { RetryError } from "ai"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"

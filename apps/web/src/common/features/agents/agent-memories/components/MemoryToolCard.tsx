@@ -1,4 +1,4 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
+import { Badge } from "@bayes-platform/ui/shad/badge"
 import {
   Questionnaire,
   QuestionnaireActions,
@@ -12,7 +12,7 @@ import {
   QuestionnaireSkip,
   QuestionnaireSubmit,
   QuestionnaireTitle,
-} from "@caseai-connect/ui/shad/questionnaire"
+} from "@bayes-platform/ui/shad/questionnaire"
 import { BrainIcon } from "lucide-react"
 import type { FormEvent } from "react"
 import { useTranslation } from "react-i18next"

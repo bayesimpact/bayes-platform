@@ -1,4 +1,4 @@
-import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
+import type { StreamEvent, StreamEventPayload } from "@bayes-platform/api-contracts"
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"

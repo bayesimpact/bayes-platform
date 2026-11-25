@@ -3,7 +3,7 @@ import {
   type AgentMemoryMode,
   type SaveMemoryToolResultDto,
   ToolName,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"

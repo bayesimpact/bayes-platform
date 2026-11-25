@@ -1,4 +1,4 @@
-import type { AgentMessageFeedbackRating } from "@caseai-connect/api-contracts"
+import type { AgentMessageFeedbackRating } from "@bayes-platform/api-contracts"
 import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { ConnectEntity } from "@/common/entities/connect-entity"

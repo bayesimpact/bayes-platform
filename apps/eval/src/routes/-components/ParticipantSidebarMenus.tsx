@@ -1,4 +1,4 @@
-import type { ReviewCampaignStatusDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignStatusDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link, useParams } from "@tanstack/react-router"
 import { ClipboardCheckIcon, MessagesSquareIcon } from "lucide-react"

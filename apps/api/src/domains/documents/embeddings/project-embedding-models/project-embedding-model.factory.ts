@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel } from "@bayes-platform/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { ProjectEmbeddingModel } from "./project-embedding-model.entity"

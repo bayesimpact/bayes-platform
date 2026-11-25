@@ -1,7 +1,7 @@
 import {
   type AgentParamsDto,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"

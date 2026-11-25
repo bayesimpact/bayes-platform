@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { DeskConversationsRoutes, TOOL_NAMES } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes, TOOL_NAMES } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

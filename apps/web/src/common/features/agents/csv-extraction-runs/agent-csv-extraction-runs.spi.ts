@@ -1,4 +1,4 @@
-import type { AgentCsvExtractionRunColumnSchemaDto } from "@caseai-connect/api-contracts"
+import type { AgentCsvExtractionRunColumnSchemaDto } from "@bayes-platform/api-contracts"
 import type {
   AgentCsvExtractionRun,
   AgentCsvExtractionRunStatusChangedEvent,

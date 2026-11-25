@@ -4,8 +4,8 @@ import {
   PUBLIC_DOCUMENTS_TAG_NAME,
   type UpdateAgentSettingsSourcesFormDto,
   updateAgentSettingsSourcesFormSchema,
-} from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
+} from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
 import {
   Form,
   FormControl,
@@ -13,15 +13,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
+} from "@bayes-platform/ui/shad/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+} from "@bayes-platform/ui/shad/select"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@bayes-platform/ui/shad/tooltip"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ExternalLinkIcon, XIcon } from "lucide-react"
 import { useForm, useWatch } from "react-hook-form"

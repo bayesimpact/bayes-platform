@@ -1,4 +1,4 @@
-import type { ReviewCampaignQuestionDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignQuestionDto } from "@bayes-platform/eval-contracts"
 import { describe, expect, it } from "vitest"
 import {
   ratedFeedbackFormSchema,

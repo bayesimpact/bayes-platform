@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { promptHelpers } from "./helpers"
 

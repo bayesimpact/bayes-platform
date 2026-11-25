@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 import { cva, type VariantProps } from "class-variance-authority"
 import type * as React from "react"
 import { Button } from "./button"

@@ -2,7 +2,7 @@ import {
   AGENT_SESSION_CREATE_PERMISSIONS,
   AGENT_UPDATE_PERMISSION,
   type ProjectAgentOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { describe, expect, it } from "vitest"
 import { chooseDefaultAgent, flattenDeskAgents, groupDeskAgents } from "./desk-agents"
 import type { DeskProject } from "./desk-projects"

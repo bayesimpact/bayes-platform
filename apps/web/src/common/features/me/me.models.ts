@@ -2,7 +2,7 @@ import type {
   CurrentTermsDto,
   GlobalPermission,
   TermsDocumentDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 
 type Role = LegacyMembershipRole

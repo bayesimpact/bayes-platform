@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import type { ImagePart, TextPart } from "ai"
 import { z } from "zod"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"

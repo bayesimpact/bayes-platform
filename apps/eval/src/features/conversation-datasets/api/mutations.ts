@@ -4,7 +4,7 @@ import {
   type DatasetNameInputDto,
   EvalConversationDatasetsRoutes,
   type ProjectParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { type QueryClient, useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { CONVERSATION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"

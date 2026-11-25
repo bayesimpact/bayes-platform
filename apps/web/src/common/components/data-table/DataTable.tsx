@@ -5,8 +5,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@caseai-connect/ui/shad/table"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/table"
+import { cn } from "@bayes-platform/ui/utils"
 import {
   type ColumnDef,
   defaultColumnSizing,

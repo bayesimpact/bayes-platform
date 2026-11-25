@@ -1,4 +1,4 @@
-import type { ExtractionRunOutputDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionRunOutputDto } from "@bayes-platform/eval-contracts"
 
 /**
  * The share of a run's records that match on every scored field, from 0 to 1: none before the

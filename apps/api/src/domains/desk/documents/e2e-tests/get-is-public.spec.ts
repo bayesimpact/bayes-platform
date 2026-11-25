@@ -1,5 +1,5 @@
-import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
-import { DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@bayes-platform/api-contracts"
+import { DeskDocumentsRoutes } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

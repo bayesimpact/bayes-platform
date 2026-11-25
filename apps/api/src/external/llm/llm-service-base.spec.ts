@@ -1,4 +1,4 @@
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import type {
   BuildLLMConfigParams,
   LLMConfig,

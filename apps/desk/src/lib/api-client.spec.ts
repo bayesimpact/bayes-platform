@@ -1,4 +1,4 @@
-import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/desk-contracts"
+import { defineSchemaRoute, defineStreamRoute } from "@bayes-platform/desk-contracts"
 import { HttpResponse, http } from "msw"
 import { setupServer } from "msw/node"
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"

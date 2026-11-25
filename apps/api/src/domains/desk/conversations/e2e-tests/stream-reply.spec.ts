@@ -1,4 +1,4 @@
-import { DeskConversationsRoutes, type ReplyStreamEventDto } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes, type ReplyStreamEventDto } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import supertest from "supertest"
 import type { App } from "supertest/types"

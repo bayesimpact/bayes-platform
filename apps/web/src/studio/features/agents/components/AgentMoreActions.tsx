@@ -1,10 +1,10 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
+} from "@bayes-platform/ui/shad/dropdown-menu"
 import { CopyIcon, EllipsisIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

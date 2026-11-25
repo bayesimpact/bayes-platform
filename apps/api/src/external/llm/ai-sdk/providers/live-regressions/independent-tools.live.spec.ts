@@ -1,5 +1,5 @@
 import "dotenv/config"
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import { runIndependentToolsScenario } from "./independent-tools-scenario"
 import { PROVIDER_CASES } from "./provider-cases"
 

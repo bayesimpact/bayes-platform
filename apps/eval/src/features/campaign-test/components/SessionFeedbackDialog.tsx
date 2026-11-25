@@ -1,7 +1,7 @@
 import type {
   CampaignContextOutputDto,
   ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import {
   Dialog,

@@ -4,7 +4,7 @@ import {
   OAUTH_MAX_REDIRECT_URIS,
   type OAuthClientRegistrationResponseDto,
   oauthClientRegistrationSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { z } from "zod"
 import type { AppManifestRecord } from "@/domains/apps/app-manifest.repository"

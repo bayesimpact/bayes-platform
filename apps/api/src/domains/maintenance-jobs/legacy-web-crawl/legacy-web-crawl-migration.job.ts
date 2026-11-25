@@ -1,4 +1,4 @@
-import { LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE } from "@caseai-connect/api-contracts"
+import { LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE } from "@bayes-platform/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI

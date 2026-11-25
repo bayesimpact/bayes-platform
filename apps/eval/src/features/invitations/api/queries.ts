@@ -1,4 +1,4 @@
-import { EvalMyInvitationsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalMyInvitationsRoutes } from "@bayes-platform/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { invitationKeys } from "./keys"

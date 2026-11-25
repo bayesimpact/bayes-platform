@@ -1,4 +1,4 @@
-import type { AgentSessionMessagesRoutes, StreamEvent } from "@caseai-connect/api-contracts"
+import type { AgentSessionMessagesRoutes, StreamEvent } from "@bayes-platform/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { Observable } from "rxjs"

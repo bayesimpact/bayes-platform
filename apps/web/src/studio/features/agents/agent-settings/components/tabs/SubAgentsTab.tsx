@@ -1,14 +1,14 @@
-import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import type { AgentSubAgentMode } from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
-import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
+} from "@bayes-platform/ui/shad/empty"
+import { Field, FieldGroup, FieldLabel } from "@bayes-platform/ui/shad/field"
 import {
   Item,
   ItemActions,
@@ -16,7 +16,7 @@ import {
   ItemGroup,
   ItemMedia,
   ItemTitle,
-} from "@caseai-connect/ui/shad/item"
+} from "@bayes-platform/ui/shad/item"
 import { BotIcon, PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"

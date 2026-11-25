@@ -2,10 +2,10 @@ import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
-} from "@caseai-connect/api-contracts"
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+} from "@bayes-platform/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { ArrowLeftIcon, ExternalLinkIcon, LockIcon } from "lucide-react"
 import { type ReactNode, useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"

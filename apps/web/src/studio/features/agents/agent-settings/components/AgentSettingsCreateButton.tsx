@@ -1,6 +1,6 @@
-import { agentSettingsCreateSchema } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+import { agentSettingsCreateSchema } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import {
   Form,
   FormControl,
@@ -18,9 +18,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { SaveIcon } from "lucide-react"
 import { useState } from "react"

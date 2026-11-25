@@ -1,7 +1,7 @@
 import type {
   ConversationRunOutputDto,
   ConversationRunRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { EndpointRequestWithEvaluationConversationRun } from "@/common/context/request.interface"
 import type { EvaluationConversationRunsService } from "@/domains/evaluations/conversation/runs/evaluation-conversation-runs.service"
 import { telemetryTraceUrl } from "@/external/llm/telemetry"

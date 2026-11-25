@@ -1,4 +1,4 @@
-import type { ResourceDto } from "@caseai-connect/api-contracts"
+import type { ResourceDto } from "@bayes-platform/api-contracts"
 import { Column, ManyToMany } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { Agent } from "@/domains/agents/agent.entity"

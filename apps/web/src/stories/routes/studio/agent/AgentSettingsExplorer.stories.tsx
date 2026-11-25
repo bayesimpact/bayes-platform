@@ -1,4 +1,4 @@
-import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import {

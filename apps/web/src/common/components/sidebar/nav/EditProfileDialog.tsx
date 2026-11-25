@@ -1,21 +1,21 @@
-import { updateMeSchema } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { updateMeSchema } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
+} from "@bayes-platform/ui/shad/dialog"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
+} from "@bayes-platform/ui/shad/select"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"

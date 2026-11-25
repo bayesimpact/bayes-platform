@@ -1,7 +1,7 @@
 import {
   OAUTH_GRANTABLE_PERMISSIONS,
   oauthAuthorizationRequestSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { OAuthAuthorizationRequest, OAuthConsentProject } from "./oauth-consent.models"
 
 /** Reads the authorization request from the page query string, null when it is malformed. */

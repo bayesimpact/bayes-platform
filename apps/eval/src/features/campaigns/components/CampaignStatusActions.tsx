@@ -3,7 +3,7 @@ import {
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   type ReviewCampaignDetailOutputDto,
   type ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
 import { EllipsisIcon, RocketIcon, Trash2Icon } from "lucide-react"

@@ -1,4 +1,4 @@
-import type { ExtractionRunParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionRunParamsDto, ProjectParamsDto } from "@bayes-platform/eval-contracts"
 import type { RecordsSearch } from "@/lib/records-search"
 import { EXTRACTION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"
 

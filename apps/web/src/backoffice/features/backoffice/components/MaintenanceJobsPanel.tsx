@@ -1,5 +1,5 @@
-import { Badge, type BadgeVariant } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Badge, type BadgeVariant } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { Loader2Icon, PlayIcon } from "lucide-react"
 import { useMemo, useState } from "react"

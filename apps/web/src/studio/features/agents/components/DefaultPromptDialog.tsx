@@ -1,6 +1,6 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
-import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Item, ItemContent } from "@bayes-platform/ui/shad/item"
+import { ScrollArea } from "@bayes-platform/ui/shad/scroll-area"
 import {
   Sheet,
   SheetContent,
@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@caseai-connect/ui/shad/sheet"
+} from "@bayes-platform/ui/shad/sheet"
 import { useTranslation } from "react-i18next"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 
