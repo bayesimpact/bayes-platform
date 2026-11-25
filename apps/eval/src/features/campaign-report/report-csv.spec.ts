@@ -73,7 +73,7 @@ describe("reportCsvOf", () => {
 
     expect(csv.split("\r\n")).toEqual([
       HEADER,
-      "11111111-1111-4111-8111-111111111111,22222222-2222-4222-8222-222222222222,2026-11-03T09:30:00.000Z,4,2,4,2,3;5",
+      '11111111-1111-4111-8111-111111111111,22222222-2222-4222-8222-222222222222,2026-11-03T09:30:00.000Z,4,2,4,2,"3;5"',
       "33333333-3333-4333-8333-333333333333,22222222-2222-4222-8222-222222222222,2026-11-04T14:00:00.000Z,,0,,,",
     ])
   })
@@ -125,7 +125,7 @@ describe("reportCsvOf", () => {
 
     expect(csv.split("\r\n")).toEqual([
       `${HEADER},After each session: Was the answer clear?,After each session: What was missing?,Final survey: What should we improve?,Session review: Was it correct?,Session review: What went wrong?`,
-      '11111111-1111-4111-8111-111111111111,22222222-2222-4222-8222-222222222222,2026-11-03T09:30:00.000Z,4,3,4,2,3;5;4,4,"The ""pricing"" page, and the FAQ",Speed,3;5;4,Wrong date;;Too long',
+      '11111111-1111-4111-8111-111111111111,22222222-2222-4222-8222-222222222222,2026-11-03T09:30:00.000Z,4,3,4,2,"3;5;4",4,"The ""pricing"" page, and the FAQ",Speed,"3;5;4","Wrong date;;Too long"',
       "33333333-3333-4333-8333-333333333333,44444444-4444-4444-8444-444444444444,2026-11-04T14:00:00.000Z,,1,2,,2,,,,2,",
     ])
   })
@@ -141,12 +141,12 @@ describe("reportCsvOf", () => {
           testerUserId: "22222222-2222-4222-8222-222222222222",
           startedAt: Date.UTC(2026, 10, 3, 9, 30),
           testerRating: null,
-          reviewerRatings: [3],
-          reviewerCount: 1,
-          meanReviewerRating: 3,
-          reviewerRatingSpread: null,
+          reviewerRatings: [3, 4],
+          reviewerCount: 2,
+          meanReviewerRating: 3.5,
+          reviewerRatingSpread: 1,
           testerAnswers: { note: '=HYPERLINK("http://example.com","Open")' },
-          reviewerAnswers: { issues: ["@SUM(A1:A2)"] },
+          reviewerAnswers: { issues: ["@SUM(A1:A2)", "Fine;=1+1"] },
           endOfPhaseAnswers: {},
         },
       ],
@@ -154,7 +154,10 @@ describe("reportCsvOf", () => {
 
     const [header, row] = csv.split("\r\n")
     expect(header?.endsWith(",After each session: =1+1,Session review: Any issue?")).toBe(true)
-    expect(row?.endsWith(`,"'=HYPERLINK(""http://example.com"",""Open"")",'@SUM(A1:A2)`)).toBe(true)
+    // Each part a semicolon starts is neutralized too, since a French spreadsheet splits on it.
+    expect(
+      row?.endsWith(`,"'=HYPERLINK(""http://example.com"",""Open"")","'@SUM(A1:A2);Fine;'=1+1"`),
+    ).toBe(true)
   })
 
   it("leaves a question's cell empty when an inherited key shares its id", () => {

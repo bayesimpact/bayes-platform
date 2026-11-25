@@ -25,14 +25,20 @@ type QuestionColumn = {
 }
 
 /**
- * A cell as RFC 4180 writes it: quoted when it holds a comma, a quote or a line break. A text that
- * a spreadsheet would run as a formula (it starts with `=`, `+`, `-`, `@`, a tab or a carriage
- * return) gets a leading apostrophe, since testers and reviewers write the answers.
+ * A character a spreadsheet reads as the start of a formula, at the start of a text or after a
+ * character it may split cells on: a French spreadsheet splits a CSV file on semicolons.
+ */
+const FORMULA_START = /(^|[,;\t\r\n])([=+\-@\t\r])/g
+
+/**
+ * A cell as RFC 4180 writes it: quoted when it holds a comma, a semicolon, a quote or a line break.
+ * Testers and reviewers write the answers, so each part of a text that a spreadsheet would run as a
+ * formula gets a leading apostrophe.
  */
 function cellOf(value: Cell): string {
   if (value === null) return ""
-  const text = typeof value === "string" && /^[=+\-@\t\r]/.test(value) ? `'${value}` : String(value)
-  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+  const text = typeof value === "string" ? value.replace(FORMULA_START, "$1'$2") : String(value)
+  return /[",;\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 
 function answerOf(answers: Record<string, string>, questionId: string): Cell {
