@@ -23,6 +23,7 @@ import {
 import { apiError, type MockStreamFrame, mockRoute, mockStreamRoute } from "./mock-route"
 
 const EMPTY_REPORT: CampaignReportOutputDto = {
+  showsAnswers: true,
   headline: {
     sessionCount: 0,
     testerFeedbackCount: 0,

@@ -244,12 +244,16 @@ export function buildReviewSession(
   }
 }
 
-/** A report with a few sessions and answers, checked against the contract. */
+/**
+ * A report with a few sessions and answers, checked against the contract. With `showsAnswers`
+ * false, it is the report a reviewer reads: the API withholds every answer from it.
+ */
 export function buildCampaignReport(
   overrides: Partial<CampaignReportOutputDto> = {},
 ): CampaignReportOutputDto {
   const testerUserId = crypto.randomUUID()
-  return campaignReportOutputSchema.parse({
+  const report = campaignReportOutputSchema.parse({
+    showsAnswers: true,
     headline: {
       sessionCount: 3,
       testerFeedbackCount: 2,
@@ -272,6 +276,7 @@ export function buildCampaignReport(
           { label: "4", count: 1 },
           { label: "5", count: 1 },
         ],
+        textAnswers: [],
       },
       {
         questionId: "addressed",
@@ -283,6 +288,7 @@ export function buildCampaignReport(
           { label: "Partially", count: 1 },
           { label: "No", count: 0 },
         ],
+        textAnswers: [],
       },
     ],
     testerEndOfPhaseDistributions: [
@@ -298,13 +304,18 @@ export function buildCampaignReport(
           { label: "4", count: 1 },
           { label: "5", count: 0 },
         ],
+        textAnswers: [],
       },
       {
         questionId: "improve",
         prompt: "What should we improve first?",
         type: "free-text",
-        responseCount: 1,
+        responseCount: 2,
         buckets: [],
+        textAnswers: [
+          "Show the sources of each answer.",
+          "Answer faster, and keep the answers shorter.",
+        ],
       },
     ],
     reviewerDistributions: [
@@ -320,6 +331,15 @@ export function buildCampaignReport(
           { label: "4", count: 2 },
           { label: "5", count: 0 },
         ],
+        textAnswers: [],
+      },
+      {
+        questionId: "mistakes",
+        prompt: "What did the agent get wrong?",
+        type: "free-text",
+        responseCount: 2,
+        buckets: [],
+        textAnswers: ["It quoted last year's prices.", "It missed the second question."],
       },
     ],
     sessionMatrix: [
@@ -332,6 +352,12 @@ export function buildCampaignReport(
         reviewerCount: 2,
         meanReviewerRating: 4,
         reviewerRatingSpread: 2,
+        testerAnswers: { clarity: "5", addressed: "Yes" },
+        reviewerAnswers: {
+          correct: ["3", "4"],
+          mistakes: ["It quoted last year's prices.", ""],
+        },
+        endOfPhaseAnswers: { satisfaction: "4", improve: "Show the sources of each answer." },
       },
       {
         sessionId: crypto.randomUUID(),
@@ -342,6 +368,9 @@ export function buildCampaignReport(
         reviewerCount: 1,
         meanReviewerRating: 3,
         reviewerRatingSpread: null,
+        testerAnswers: { clarity: "4", addressed: "Partially" },
+        reviewerAnswers: { correct: ["4"], mistakes: ["It missed the second question."] },
+        endOfPhaseAnswers: { satisfaction: "4", improve: "Show the sources of each answer." },
       },
       {
         sessionId: crypto.randomUUID(),
@@ -352,8 +381,26 @@ export function buildCampaignReport(
         reviewerCount: 0,
         meanReviewerRating: null,
         reviewerRatingSpread: null,
+        testerAnswers: {},
+        reviewerAnswers: {},
+        endOfPhaseAnswers: { improve: "Answer faster, and keep the answers shorter." },
       },
     ],
     ...overrides,
   })
+  if (report.showsAnswers) return report
+  const withoutTextAnswers = (distributions: CampaignReportOutputDto["reviewerDistributions"]) =>
+    distributions.map((distribution) => ({ ...distribution, textAnswers: [] }))
+  return {
+    ...report,
+    testerPerSessionDistributions: withoutTextAnswers(report.testerPerSessionDistributions),
+    testerEndOfPhaseDistributions: withoutTextAnswers(report.testerEndOfPhaseDistributions),
+    reviewerDistributions: withoutTextAnswers(report.reviewerDistributions),
+    sessionMatrix: report.sessionMatrix.map((session) => ({
+      ...session,
+      testerAnswers: {},
+      reviewerAnswers: {},
+      endOfPhaseAnswers: {},
+    })),
+  }
 }

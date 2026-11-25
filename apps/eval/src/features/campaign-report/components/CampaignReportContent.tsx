@@ -73,18 +73,21 @@ export function CampaignReportContent({ campaign }: CampaignReportContentProps) 
           <Distributions
             description={<Trans>One answer per session a tester gave feedback on.</Trans>}
             distributions={report.testerPerSessionDistributions}
+            showsAnswers={report.showsAnswers}
           />
         </TabsContent>
         <TabsContent value="final" className="pt-4">
           <Distributions
             description={<Trans>One answer per tester who filled the final survey.</Trans>}
             distributions={report.testerEndOfPhaseDistributions}
+            showsAnswers={report.showsAnswers}
           />
         </TabsContent>
         <TabsContent value="review" className="pt-4">
           <Distributions
             description={<Trans>One answer per review, across all sessions.</Trans>}
             distributions={report.reviewerDistributions}
+            showsAnswers={report.showsAnswers}
           />
         </TabsContent>
         <TabsContent value="sessions" className="flex flex-col gap-3 pt-4">
@@ -104,10 +107,11 @@ export function CampaignReportContent({ campaign }: CampaignReportContentProps) 
 type DistributionsProps = {
   description: ReactNode
   distributions: CampaignReportDistributionOutputDto[]
+  showsAnswers: boolean
 }
 
 /** The questions of one form with how their answers spread, or a word when it has none. */
-function Distributions({ description, distributions }: DistributionsProps) {
+function Distributions({ description, distributions, showsAnswers }: DistributionsProps) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-muted-foreground">{description}</p>
@@ -118,7 +122,11 @@ function Distributions({ description, distributions }: DistributionsProps) {
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {distributions.map((distribution) => (
-            <QuestionDistribution key={distribution.questionId} distribution={distribution} />
+            <QuestionDistribution
+              key={distribution.questionId}
+              distribution={distribution}
+              showsAnswers={showsAnswers}
+            />
           ))}
         </div>
       )}

@@ -246,6 +246,13 @@ describe("a reviewer's campaign", () => {
     expect(router.state.location.pathname).toBe(
       routerPathOf(`${campaignUrlOf(world, "Pricing questions")}/review/report`),
     )
+
+    // A reviewer reviews each session blind: the report holds no answer of the others.
+    await userEvent.click(screen.getByRole("tab", { name: "Final survey" }))
+    expect(
+      await screen.findByText("Only the campaign's managers read the free-text answers."),
+    ).toBeInTheDocument()
+    expect(screen.queryByText("Show the sources of each answer.")).not.toBeInTheDocument()
   })
 })
 
