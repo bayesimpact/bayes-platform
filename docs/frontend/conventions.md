@@ -50,7 +50,7 @@ where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no too
 | Text | Lingui: English in the components, French in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
 | Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@caseai-connect/mcp-app-host` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only: any other extension waits for a human's go) |
-| Sign-in | `oidc-client-ts`, in the app's `lib/auth/` |
+| Sign-in | `@caseai-connect/sign-in`, on `oidc-client-ts`, wrapped by the app's `lib/auth/session.ts` |
 | Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10, Playwright |
 | Quality | Biome, dependency-cruiser, knip |
 
@@ -97,9 +97,10 @@ exports and dependencies:
   code moves to `lib/` or `components/shared/`.
 - `components/` and `lib/` import neither `features/` nor `routes/`.
 - The app imports nothing from another app or from a package another app owns. Its workspace
-  dependencies are its contracts package and `@caseai-connect/mcp-app-host`, the sandbox of MCP
-  Apps, which no app owns and every app imports (ADR 0031, section 2.4). Only `lib/auth/` imports
-  `oidc-client-ts`.
+  dependencies are its contracts package and the packages no app owns and every app imports
+  (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps, and
+  `@caseai-connect/sign-in`, the sign-in. Only `lib/auth/` imports `@caseai-connect/sign-in`, and
+  no code of the app imports `oidc-client-ts`.
 - `src/test/` serves the tests and the stories only: no app code imports it.
 - No cycles.
 
@@ -453,7 +454,9 @@ and empty states.
 - An import from another app or from a package another app owns. In
   `packages/mcp-app-host`: React, a component, a style, a text shown to people, or an import of
   another workspace package. In `packages/permissions`: a dependency, an import, an enum, or a
-  text shown to people.
+  text shown to people. In `packages/sign-in`: React, a component, a style, a text shown to
+  people, a contract, a dependency beyond `oidc-client-ts` and Zod, or an import of another
+  workspace package.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.
