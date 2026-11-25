@@ -1306,10 +1306,6 @@ msgstr "Formulaire en cours"
 msgid "Free text"
 msgstr "Texte libre"
 
-#: src/features/campaign-report/components/QuestionDistribution.tsx
-msgid "Free-text answers are not summarized here: read them in each session."
-msgstr "Les réponses en texte libre ne sont pas résumées ici : lisez-les dans chaque session."
-
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "From the testers' final surveys."
 msgstr "Issue des questionnaires finaux des testeurs."

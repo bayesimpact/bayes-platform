@@ -346,7 +346,7 @@ describe("ReviewCampaigns - Report", () => {
     expect(tp2?.buckets.find((bucket) => bucket.label === "good")?.count).toBe(1)
   })
 
-  it("returns free-text questions with responseCount only (no buckets)", async () => {
+  it("returns free-text questions with their answers instead of buckets", async () => {
     await seedReportableCampaign()
     const response = await subject()
     expectResponse(response, 200)
@@ -356,11 +356,50 @@ describe("ReviewCampaigns - Report", () => {
       type: string
       responseCount: number
       buckets: unknown[]
+      textAnswers: string[]
     }>
     const rv2 = reviewerDist.find((entry) => entry.questionId === "rv-2")
     expect(rv2?.type).toBe("free-text")
     expect(rv2?.responseCount).toBe(1)
     expect(rv2?.buckets).toEqual([])
+    expect(rv2?.textAnswers).toEqual(["some concerns"])
+
+    const rv1 = reviewerDist.find((entry) => entry.questionId === "rv-1")
+    expect(rv1?.textAnswers).toEqual([])
+  })
+
+  it("returns each session's answers to every form, by question id", async () => {
+    const { session1, session2 } = await seedReportableCampaign()
+    const response = await subject()
+    expectResponse(response, 200)
+
+    const rows = response.body.data.sessionMatrix as Array<{
+      sessionId: string
+      reviewerRatings: number[]
+      testerAnswers: Record<string, string>
+      reviewerAnswers: Record<string, string[]>
+      endOfPhaseAnswers: Record<string, string>
+    }>
+    const row1 = rows.find((row) => row.sessionId === session1.id)
+    expect(row1?.testerAnswers).toEqual({ "tp-1": "4", "tp-2": "good" })
+    expect(row1?.endOfPhaseAnswers).toEqual({ "tp-end": "5" })
+    // One answer per review, lined up with the reviewer ratings: reviewer A rated 2, B rated 4.
+    const answersByRating = new Map(
+      row1?.reviewerRatings.map((rating, index) => [
+        rating,
+        {
+          accurate: row1.reviewerAnswers["rv-1"]?.[index],
+          issues: row1.reviewerAnswers["rv-2"]?.[index],
+        },
+      ]),
+    )
+    expect(answersByRating.get(2)).toEqual({ accurate: "3", issues: "some concerns" })
+    expect(answersByRating.get(4)).toEqual({ accurate: "4", issues: "" })
+
+    const row2 = rows.find((row) => row.sessionId === session2.id)
+    expect(row2?.testerAnswers).toEqual({ "tp-1": "2" })
+    expect(row2?.reviewerAnswers).toEqual({})
+    expect(row2?.endOfPhaseAnswers).toEqual({})
   })
 
   it("computes session-row reviewer ratings, mean, and spread", async () => {

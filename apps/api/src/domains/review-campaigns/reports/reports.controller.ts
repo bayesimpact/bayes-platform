@@ -66,5 +66,8 @@ function toSessionRowDto(row: CampaignReportSessionRow): CampaignReportSessionRo
     reviewerCount: row.reviewerCount,
     meanReviewerRating: row.meanReviewerRating,
     reviewerRatingSpread: row.reviewerRatingSpread,
+    testerAnswers: row.testerAnswers,
+    reviewerAnswers: row.reviewerAnswers,
+    endOfPhaseAnswers: row.endOfPhaseAnswers,
   }
 }
