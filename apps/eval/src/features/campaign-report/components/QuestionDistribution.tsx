@@ -5,10 +5,15 @@ import { Progress } from "@/components/ui/progress"
 
 export type QuestionDistributionProps = {
   distribution: CampaignReportDistributionOutputDto
+  /** Whether the report holds the answers, which the API withholds from a reviewer. */
+  showsAnswers: boolean
 }
 
-/** How the answers to one question spread: one bar per rating or option, with its count. */
-export function QuestionDistribution({ distribution }: QuestionDistributionProps) {
+/**
+ * How the answers to one question spread: one bar per rating or option, with its count, or the
+ * answers themselves for a free-text question, which only the campaign's managers read.
+ */
+export function QuestionDistribution({ distribution, showsAnswers }: QuestionDistributionProps) {
   const { t, i18n } = useLingui()
   const total = distribution.buckets.reduce((sum, bucket) => sum + bucket.count, 0)
   const responseCount = distribution.responseCount
@@ -24,9 +29,13 @@ export function QuestionDistribution({ distribution }: QuestionDistributionProps
         </span>
       </div>
       {distribution.type === "free-text" ? (
-        <p className="text-sm text-muted-foreground italic">
-          <Trans>Free-text answers are not summarized here: read them in each session.</Trans>
-        </p>
+        showsAnswers ? (
+          <FreeTextAnswers answers={distribution.textAnswers} />
+        ) : (
+          <p className="text-sm text-muted-foreground italic">
+            <Trans>Only the campaign's managers read the free-text answers.</Trans>
+          </p>
+        )
       ) : total === 0 ? (
         <p className="text-sm text-muted-foreground italic">
           <Trans>No answer yet.</Trans>
@@ -53,6 +62,31 @@ export function QuestionDistribution({ distribution }: QuestionDistributionProps
         </ul>
       )}
     </div>
+  )
+}
+
+type FreeTextAnswersProps = {
+  answers: string[]
+}
+
+/** The answers to a free-text question, each as it was written, in a list that scrolls. */
+function FreeTextAnswers({ answers }: FreeTextAnswersProps) {
+  if (answers.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground italic">
+        <Trans>No answer yet.</Trans>
+      </p>
+    )
+  }
+  return (
+    <ul className="flex max-h-80 flex-col gap-2 overflow-y-auto">
+      {answers.map((answer, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: answers have no id, may repeat a text, and never move.
+        <li key={index} className="rounded-md bg-muted px-3 py-2 text-sm whitespace-pre-wrap">
+          {answer}
+        </li>
+      ))}
+    </ul>
   )
 }
 

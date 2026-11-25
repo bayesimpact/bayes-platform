@@ -154,7 +154,7 @@ export class EvalReviewCampaignsController {
   async getReport(
     @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<SchemaRouteResponse<typeof EvalReviewCampaignsRoutes.getReport>> {
-    const report = await this.reportsService.computeReport(request.reviewCampaign)
+    const report = await this.reportsService.computeReport(request.reviewCampaign, request.user.id)
     return { data: toCampaignReportDto(report) }
   }
 

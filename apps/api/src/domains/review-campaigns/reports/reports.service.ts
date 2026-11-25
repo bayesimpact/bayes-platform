@@ -2,6 +2,9 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+import { PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
   ReviewCampaignAgentType,
@@ -33,6 +36,8 @@ export type CampaignReportQuestionDistribution = {
   type: ReviewCampaignQuestion["type"]
   responseCount: number
   buckets: CampaignReportBucket[]
+  /** The answers to a free-text question, empty for the other types and when withheld. */
+  textAnswers: string[]
 }
 
 export type CampaignReportSessionRow = {
@@ -45,10 +50,25 @@ export type CampaignReportSessionRow = {
   reviewerCount: number
   meanReviewerRating: number | null
   reviewerRatingSpread: number | null
+  /** The tester's answer to each question of the session feedback, by question id. */
+  testerAnswers: Record<string, string>
+  /**
+   * The reviewers' answers to each review question, by question id: one per review, in the
+   * order of `reviewerRatings`, empty when that review left the question blank.
+   */
+  reviewerAnswers: Record<string, string[]>
+  /** The tester's answer to each question of their final survey, by question id. */
+  endOfPhaseAnswers: Record<string, string>
 }
 
 export type CampaignReport = {
   campaignId: string
+  /**
+   * Whether the report holds the answers: the free-text answers of each question and each
+   * session's answers. Only who manages the campaign's project reads them. A reviewer reviews each
+   * session blind, so the report withholds them and its answer fields stay empty.
+   */
+  showsAnswers: boolean
   headline: CampaignReportHeadline
   testerPerSessionDistributions: CampaignReportQuestionDistribution[]
   testerEndOfPhaseDistributions: CampaignReportQuestionDistribution[]
@@ -74,10 +94,17 @@ export class ReportsService {
     private readonly testerSurveyRepository: Repository<TesterCampaignSurvey>,
     @InjectRepository(ReviewerSessionReview)
     private readonly reviewRepository: Repository<ReviewerSessionReview>,
+    private readonly permissionService: PermissionService,
   ) {}
 
-  async computeReport(campaign: ReviewCampaign): Promise<CampaignReport> {
+  /** The report of a campaign as this person may read it: with its answers for its managers only. */
+  async computeReport(campaign: ReviewCampaign, userId: string): Promise<CampaignReport> {
     const campaignId = campaign.id
+    const showsAnswers = await this.permissionService.has(
+      userId,
+      PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+      { type: "project", id: campaign.projectId },
+    )
 
     const [conversationSessions, feedbacks, surveys, reviews] = await Promise.all([
       this.conversationSessionRepository.find({
@@ -97,6 +124,7 @@ export class ReportsService {
     }))
 
     const feedbackBySessionId = new Map(feedbacks.map((feedback) => [feedback.sessionId, feedback]))
+    const surveyByUserId = new Map(surveys.map((survey) => [survey.userId, survey]))
     const reviewsBySessionId = groupBy(reviews, (review) => review.sessionId)
 
     const headline: CampaignReportHeadline = {
@@ -110,21 +138,34 @@ export class ReportsService {
     }
 
     const sessionMatrix = sessions
-      .map((session) => buildSessionRow(session, feedbackBySessionId, reviewsBySessionId))
+      .map((session) =>
+        buildSessionRow(session, feedbackBySessionId, reviewsBySessionId, surveyByUserId),
+      )
+      .map((row) => (showsAnswers ? row : withoutAnswers(row)))
       .sort((left, right) => right.startedAt.getTime() - left.startedAt.getTime())
+    const distributionsOf = (
+      questions: ReviewCampaignQuestion[],
+      answerSets: ReviewCampaignAnswer[][],
+    ) => {
+      const distributions = buildDistributions(questions, answerSets)
+      return showsAnswers
+        ? distributions
+        : distributions.map((distribution) => ({ ...distribution, textAnswers: [] }))
+    }
 
     return {
       campaignId,
+      showsAnswers,
       headline,
-      testerPerSessionDistributions: buildDistributions(
+      testerPerSessionDistributions: distributionsOf(
         campaign.testerPerSessionQuestions,
         feedbacks.map((feedback) => feedback.answers),
       ),
-      testerEndOfPhaseDistributions: buildDistributions(
+      testerEndOfPhaseDistributions: distributionsOf(
         campaign.testerEndOfPhaseQuestions,
         surveys.map((survey) => survey.answers),
       ),
-      reviewerDistributions: buildDistributions(
+      reviewerDistributions: distributionsOf(
         campaign.reviewerQuestions,
         reviews.map((review) => review.answers),
       ),
@@ -137,10 +178,10 @@ function buildSessionRow(
   session: SessionRef,
   feedbackBySessionId: Map<string, TesterSessionFeedback>,
   reviewsBySessionId: Map<string, ReviewerSessionReview[]>,
+  surveyByUserId: Map<string, TesterCampaignSurvey>,
 ): CampaignReportSessionRow {
-  const reviewerRatings = (reviewsBySessionId.get(session.id) ?? []).map(
-    (review) => review.overallRating,
-  )
+  const reviews = reviewsBySessionId.get(session.id) ?? []
+  const reviewerRatings = reviews.map((review) => review.overallRating)
   return {
     sessionId: session.id,
     agentType: session.agentType,
@@ -154,14 +195,46 @@ function buildSessionRow(
       reviewerRatings.length >= 2
         ? Math.max(...reviewerRatings) - Math.min(...reviewerRatings)
         : null,
+    testerAnswers: answerTextsOf(feedbackBySessionId.get(session.id)?.answers ?? []),
+    reviewerAnswers: reviewerAnswersOf(reviews),
+    endOfPhaseAnswers: answerTextsOf(surveyByUserId.get(session.userId)?.answers ?? []),
   }
+}
+
+/** A session row with no answer, for who may not read them. */
+function withoutAnswers(row: CampaignReportSessionRow): CampaignReportSessionRow {
+  return { ...row, testerAnswers: {}, reviewerAnswers: {}, endOfPhaseAnswers: {} }
+}
+
+/** Each answer as text, by question id. */
+function answerTextsOf(answers: ReviewCampaignAnswer[]): Record<string, string> {
+  return Object.fromEntries(
+    answers.map((answer) => [answer.questionId, answerToText(answer.value)]),
+  )
+}
+
+/**
+ * The answers of a session's reviews, by question id: one per review in the reviews' order, so
+ * they line up with the reviewer ratings, empty when a review left the question blank.
+ */
+function reviewerAnswersOf(reviews: ReviewerSessionReview[]): Record<string, string[]> {
+  const textsByReview = reviews.map((review) => answerTextsOf(review.answers))
+  const questionIds = new Set(textsByReview.flatMap((texts) => Object.keys(texts)))
+  return Object.fromEntries(
+    Array.from(questionIds, (questionId) => [
+      questionId,
+      textsByReview.map((texts) =>
+        Object.hasOwn(texts, questionId) ? (texts[questionId] ?? "") : "",
+      ),
+    ]),
+  )
 }
 
 /**
  * Computes the per-question distribution across a set of answer arrays.
  *
  * Rating / single-choice questions report a bucket per configured option (or
- * per rating 1–5). Free-text questions report only responseCount (no buckets).
+ * per rating 1–5). Free-text questions report their answers instead of buckets.
  * Missing answers are skipped — they don't pull the response count down and
  * don't show up as a bucket.
  */
@@ -181,6 +254,7 @@ export function buildDistributions(
         type: question.type,
         responseCount: matching.length,
         buckets: [],
+        textAnswers: matching.map((answer) => answerToText(answer.value)),
       }
     }
 
@@ -203,6 +277,7 @@ export function buildDistributions(
       type: question.type,
       responseCount: matching.length,
       buckets: labels.map((label) => ({ label, count: counts.get(label) ?? 0 })),
+      textAnswers: [],
     }
   })
 }
@@ -216,6 +291,10 @@ function bucketLabelsForQuestion(question: ReviewCampaignQuestion): string[] {
 function answerToLabels(value: ReviewCampaignAnswer["value"]): string[] {
   if (Array.isArray(value)) return value.map((entry) => String(entry))
   return [String(value)]
+}
+
+function answerToText(value: ReviewCampaignAnswer["value"]): string {
+  return answerToLabels(value).join(", ")
 }
 
 function mean(values: number[]): number | null {

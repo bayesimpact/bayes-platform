@@ -160,6 +160,7 @@ function toReportDistributionDto(
     type: distribution.type,
     responseCount: distribution.responseCount,
     buckets: distribution.buckets.map((bucket) => ({ label: bucket.label, count: bucket.count })),
+    textAnswers: distribution.textAnswers,
   }
 }
 
@@ -174,12 +175,16 @@ function toReportSessionDto(row: CampaignReportSessionRow): CampaignReportSessio
     reviewerCount: row.reviewerCount,
     meanReviewerRating: row.meanReviewerRating,
     reviewerRatingSpread: row.reviewerRatingSpread,
+    testerAnswers: row.testerAnswers,
+    reviewerAnswers: row.reviewerAnswers,
+    endOfPhaseAnswers: row.endOfPhaseAnswers,
   }
 }
 
 /** A copy of `toCampaignReportDto` of `ReportsController`, with the fields Evaluation reads. */
 export function toCampaignReportDto(report: CampaignReport): CampaignReportOutputDto {
   return {
+    showsAnswers: report.showsAnswers,
     headline: {
       sessionCount: report.headline.sessionCount,
       testerFeedbackCount: report.headline.testerFeedbackCount,

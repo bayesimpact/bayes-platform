@@ -1306,10 +1306,6 @@ msgstr "Form in progress"
 msgid "Free text"
 msgstr "Free text"
 
-#: src/features/campaign-report/components/QuestionDistribution.tsx
-msgid "Free-text answers are not summarized here: read them in each session."
-msgstr "Free-text answers are not summarized here: read them in each session."
-
 #: src/features/campaign-report/components/CampaignReportContent.tsx
 msgid "From the testers' final surveys."
 msgstr "From the testers' final surveys."
@@ -1992,6 +1988,10 @@ msgstr "Only one version"
 #: src/features/extraction-runs/components/KeyMappingField.tsx
 msgid "Only shown"
 msgstr "Only shown"
+
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "Only the campaign's managers read the free-text answers."
+msgstr "Only the campaign's managers read the free-text answers."
 
 #: src/components/shared/RunScopeField.tsx
 msgid "Only the first ones, to try"

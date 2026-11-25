@@ -10,9 +10,10 @@ import {
 } from "@/common/test/test-database"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import {
   expectSchemaResponse,
@@ -165,7 +166,7 @@ describe("Evaluation review campaigns - getReport", () => {
       answers: [{ questionId: "tp-end", value: 5 }],
       submittedAt: new Date(),
     })
-    return { campaign, firstTester, firstSession, secondSession }
+    return { organization, project, campaign, firstTester, firstSession, secondSession }
   }
 
   const subject = () =>
@@ -182,6 +183,7 @@ describe("Evaluation review campaigns - getReport", () => {
 
     expectSchemaResponse(EvalReviewCampaignsRoutes.getReport, response)
     const report = response.body.data
+    expect(report.showsAnswers).toBe(true)
     expect(report.headline).toStrictEqual({
       sessionCount: 2,
       testerFeedbackCount: 2,
@@ -221,6 +223,7 @@ describe("Evaluation review campaigns - getReport", () => {
       type: "free-text",
       responseCount: 2,
       buckets: [],
+      textAnswers: ["A summary", "A summary"],
     })
 
     const firstRow = report.sessionMatrix.find((row) => row.sessionId === firstSession.id)
@@ -233,7 +236,15 @@ describe("Evaluation review campaigns - getReport", () => {
       reviewerCount: 2,
       meanReviewerRating: 3,
       reviewerRatingSpread: 2,
+      testerAnswers: { "tp-1": "4", "tp-2": "Product" },
+      reviewerAnswers: {
+        "rv-1": expect.arrayContaining(["2", "4"]),
+        "rv-2": ["A summary", "A summary"],
+      },
+      endOfPhaseAnswers: { "tp-end": "5" },
     })
+    // Each review's answers line up with its rating.
+    expect(firstRow?.reviewerAnswers["rv-1"]).toEqual(firstRow?.reviewerRatings.map(String))
     const secondRow = report.sessionMatrix.find((row) => row.sessionId === secondSession.id)
     expect(secondRow).toMatchObject({
       testerRating: 3,
@@ -241,6 +252,41 @@ describe("Evaluation review campaigns - getReport", () => {
       reviewerCount: 0,
       meanReviewerRating: null,
       reviewerRatingSpread: null,
+      testerAnswers: { "tp-1": "2" },
+      reviewerAnswers: {},
+      endOfPhaseAnswers: {},
+    })
+  })
+
+  it("withholds the answers from a reviewer, who reviews each session blind", async () => {
+    const { organization, project, campaign, firstSession } = await seedReportableCampaign()
+    const reviewerAuthSubject = `oidc|${randomUUID()}`
+    await addUserToReviewCampaign({
+      repositories,
+      organization,
+      project,
+      campaign,
+      roleKeys: ["review_campaign_reviewer"],
+      user: { authSubject: reviewerAuthSubject, email: mockOidcEmailForSub(reviewerAuthSubject) },
+    })
+    authSubject = reviewerAuthSubject
+
+    const response = await subject()
+
+    expectSchemaResponse(EvalReviewCampaignsRoutes.getReport, response)
+    const report = response.body.data
+    expect(report.showsAnswers).toBe(false)
+    const freeTextQuestion = report.reviewerDistributions.find(
+      (distribution) => distribution.questionId === "rv-2",
+    )
+    expect(freeTextQuestion?.responseCount).toBe(2)
+    expect(freeTextQuestion?.textAnswers).toEqual([])
+    const firstRow = report.sessionMatrix.find((row) => row.sessionId === firstSession.id)
+    expect(firstRow).toMatchObject({
+      testerRating: 5,
+      testerAnswers: {},
+      reviewerAnswers: {},
+      endOfPhaseAnswers: {},
     })
   })
 

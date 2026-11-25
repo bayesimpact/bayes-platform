@@ -318,8 +318,10 @@ export type CampaignReportQuestionDistributionDto = {
   prompt: string
   type: ReviewCampaignQuestionType
   responseCount: number
-  /** Empty for `free-text` questions (only responseCount is meaningful). */
+  /** Empty for `free-text` questions, which carry `textAnswers` instead. */
   buckets: CampaignReportBucketDto[]
+  /** The answers to a `free-text` question, empty for the other types. */
+  textAnswers: string[]
 }
 
 export type CampaignReportSessionRowDto = {
@@ -333,10 +335,18 @@ export type CampaignReportSessionRowDto = {
   meanReviewerRating: number | null
   /** max(reviewerRatings) − min(reviewerRatings); null when < 2 reviewers. */
   reviewerRatingSpread: number | null
+  /** The tester's answer to each question of the session feedback, by question id. */
+  testerAnswers: Record<string, string>
+  /** One answer per review, in the order of `reviewerRatings`, empty when left blank. */
+  reviewerAnswers: Record<string, string[]>
+  /** The tester's answer to each question of their final survey, by question id. */
+  endOfPhaseAnswers: Record<string, string>
 }
 
 export type CampaignReportDto = {
   campaignId: string
+  /** Whether the report holds the answers: for who manages the campaign's project only. */
+  showsAnswers: boolean
   headline: CampaignReportHeadlineDto
   testerPerSessionDistributions: CampaignReportQuestionDistributionDto[]
   testerEndOfPhaseDistributions: CampaignReportQuestionDistributionDto[]

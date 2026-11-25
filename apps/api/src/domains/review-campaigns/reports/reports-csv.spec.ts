@@ -3,6 +3,7 @@ import { buildSessionMatrixCsv } from "./reports-csv"
 
 const baseReport: CampaignReport = {
   campaignId: "campaign-1",
+  showsAnswers: true,
   headline: {
     sessionCount: 0,
     testerFeedbackCount: 0,
@@ -40,6 +41,9 @@ describe("buildSessionMatrixCsv", () => {
           reviewerCount: 3,
           meanReviewerRating: 4,
           reviewerRatingSpread: 2,
+          testerAnswers: {},
+          reviewerAnswers: {},
+          endOfPhaseAnswers: {},
         },
       ],
     })
@@ -62,6 +66,9 @@ describe("buildSessionMatrixCsv", () => {
           reviewerCount: 0,
           meanReviewerRating: null,
           reviewerRatingSpread: null,
+          testerAnswers: {},
+          reviewerAnswers: {},
+          endOfPhaseAnswers: {},
         },
       ],
     })
@@ -85,6 +92,9 @@ describe("buildSessionMatrixCsv", () => {
           reviewerCount: 1,
           meanReviewerRating: 3,
           reviewerRatingSpread: null,
+          testerAnswers: {},
+          reviewerAnswers: {},
+          endOfPhaseAnswers: {},
         },
       ],
     })

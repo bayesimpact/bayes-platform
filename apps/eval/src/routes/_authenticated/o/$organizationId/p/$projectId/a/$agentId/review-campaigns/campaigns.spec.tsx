@@ -507,7 +507,11 @@ describe("a campaign's report", () => {
       screen.getByRole("heading", { name: "Did the agent address your question?" }),
     ).toBeInTheDocument()
     await userEvent.click(screen.getByRole("tab", { name: "Final survey" }))
-    expect(await screen.findByText(/Free-text answers are not summarized/)).toBeInTheDocument()
+    // A free-text question lists its answers.
+    expect(await screen.findByText("Show the sources of each answer.")).toBeInTheDocument()
+    expect(screen.getByText("Answer faster, and keep the answers shorter.")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("tab", { name: "Session review" }))
+    expect(await screen.findByText("It quoted last year's prices.")).toBeInTheDocument()
     await userEvent.click(screen.getByRole("tab", { name: "Sessions" }))
     expect(screen.getByRole("cell", { name: "3, 5" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Download CSV" })).toBeInTheDocument()

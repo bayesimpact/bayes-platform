@@ -10,14 +10,16 @@ export type DownloadReportButtonProps = {
   campaign: ReviewCampaignParamsDto
 }
 
-/** Saves the report's sessions as a CSV file, built from what the page already shows. */
+/**
+ * Saves the report's sessions as a CSV file, with each session's answers to every question, built
+ * from what the page already shows.
+ */
 export function DownloadReportButton({ campaign }: DownloadReportButtonProps) {
   const { data: report } = useSuspenseQuery(campaignReportQueryOptions(campaign))
-  const sessions = report.sessionMatrix
   const fileName = `campaign-report-${campaign.reviewCampaignId}`
   const handleDownload = () => {
     const url = URL.createObjectURL(
-      new Blob([reportCsvOf(sessions)], { type: "text/csv;charset=utf-8" }),
+      new Blob([reportCsvOf(report)], { type: "text/csv;charset=utf-8" }),
     )
     const link = document.createElement("a")
     link.href = url
