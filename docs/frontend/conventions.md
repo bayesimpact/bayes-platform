@@ -336,7 +336,7 @@ or editing the boundaries' configuration.
 
 Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`,
 Evaluation's is `packages/eval-contracts`), the routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
-Zod alone and imports nothing from `packages/api-contracts`. The app reads its source. When the app
+Zod and `@caseai-connect/permissions` alone, and imports nothing from `packages/api-contracts`. The app reads its source. When the app
 has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
 build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
@@ -351,7 +351,9 @@ build (`dist`) and serves its routes with the same schemas (see Endpoints). One 
 - Schemas are named by role (`createConversationInputSchema`, `meOutputSchema`), and their types
   take the `Dto` suffix: `z.input` for what a client sends, `z.output` for what it gets. A DTO is
   never written by hand.
-- The package defines its own enums and constants with `z.enum` and `as const` objects
+- The package defines its own enums and constants with `z.enum` and `as const` objects. A
+  permission string is never written there: the package re-exports the constant of
+  `@caseai-connect/permissions` (`packages/permissions`), the one declaration of the catalog
   (`DESK_UI_READ_PERMISSION`).
 - Response schemas use JSON types only, with no transform, pipe or codec. Dates are epoch
   milliseconds, as the API sends them. Ids are `z.uuid()`, enums `z.enum`, input objects
@@ -450,7 +452,8 @@ and empty states.
 - Code copied from one feature into another instead of moved to `lib/` or `components/shared/`.
 - An import from another app or from a package another app owns. In
   `packages/mcp-app-host`: React, a component, a style, a text shown to people, or an import of
-  another workspace package.
+  another workspace package. In `packages/permissions`: a dependency, an import, an enum, or a
+  text shown to people.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.

@@ -400,7 +400,7 @@ Access is one permission string, granted on roles, checked on the route, and use
 
 A new capability touches all of these in one change:
 
-1. Declare the string once in `packages/api-contracts/src/rbac/permissions.ts`. Add it to `GlobalPermission` when it has no resource id.
+1. Declare the string once in `packages/permissions/src/index.ts`. Add it to `GlobalPermission` when it has no resource id.
 2. Import it in `apps/api/src/domains/rbac/rbac.constants.ts`, grant it in `ORGANIZATION_ROLE_PERMISSIONS` / `PROJECT_ROLE_PERMISSIONS` / `AGENT_ROLE_PERMISSIONS` / `REVIEW_CAMPAIGN_ROLE_PERMISSIONS`, and describe it in `PERMISSION_DESCRIPTIONS`. Add it to `READ_PERMISSION_RESOURCE_TYPE_MAP` when it is used for listing, and to `RESOURCE_TYPE_PERMISSIONS_MAP` when a parent membership should pass it down to a child resource. A project key granted on a review campaign role also goes in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN`.
 3. Update the matching table in `docs/rbac-permission-matrix.md` and run the `check-permission-matrix` skill.
 4. Ship a data migration that inserts the `role_permission` rows, modelled on `src/migrations/1790269217250-analytics-read-permissions.ts` (`up` inserts with `ON CONFLICT DO NOTHING`, `down` deletes). `migration:generate` cannot emit it because there is no schema diff. The running app never re-reads the constants: tests and `seed:rbac` go through `RbacService`, production only knows the migration.
@@ -582,6 +582,6 @@ Before marking API work as completed:
 2. `npm run typecheck` — must pass
 3. `npm run test` — all tests must pass
 4. `npm run check:boundaries` (from `apps/api`) — must pass (regenerate baselines if new TypeORM relation cycles were introduced, see "Boundary Check Baselines" above)
-5. When `rbac.constants.ts` or `permissions.ts` changed, the `check-permission-matrix` skill reports no mismatch
+5. When `rbac.constants.ts` or `packages/permissions/src/index.ts` changed, the `check-permission-matrix` skill reports no mismatch
 
 Work is NOT complete until all applicable commands exit with code 0.

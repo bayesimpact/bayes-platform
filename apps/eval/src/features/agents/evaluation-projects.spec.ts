@@ -1,4 +1,8 @@
-import { EVALUATION_UI_READ_PERMISSION } from "@caseai-connect/eval-contracts"
+import {
+  DESK_UI_READ_PERMISSION,
+  EVALUATION_UI_READ_PERMISSION,
+  PROJECT_READ_PERMISSION,
+} from "@caseai-connect/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { listEvaluationProjects } from "./evaluation-projects"
 
@@ -8,7 +12,7 @@ const amber = { id: crypto.randomUUID(), name: "Amber organization" }
 const project = (
   name: string,
   organizationId: string,
-  permissions = ["project.read", EVALUATION_UI_READ_PERMISSION],
+  permissions: string[] = [PROJECT_READ_PERMISSION, EVALUATION_UI_READ_PERMISSION],
 ) => ({ id: crypto.randomUUID(), name, organizationId, permissions })
 
 describe("listEvaluationProjects", () => {
@@ -17,7 +21,7 @@ describe("listEvaluationProjects", () => {
       project("Reports", blue.id),
       project("Support", amber.id),
       project("Pricing", blue.id),
-      project("Billing", blue.id, ["project.read", "desk.ui.read"]),
+      project("Billing", blue.id, [PROJECT_READ_PERMISSION, DESK_UI_READ_PERMISSION]),
     ]
 
     const evaluationProjects = listEvaluationProjects(projects, [blue, amber])

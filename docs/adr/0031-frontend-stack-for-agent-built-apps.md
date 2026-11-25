@@ -5,6 +5,8 @@
 * **Deciders**: Alexis
 * **Amended**: 2026-11-16, by Didier: the sandbox of MCP Apps is one package every app imports
   (section 2.4, "The one shared package")
+* **Amended**: 2026-11-25, by Alexis: the permission catalog is a package of its own, which the
+  contracts packages import instead of copying its strings (section 2.12)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -48,8 +50,9 @@ skill only starts empty folders, so it is not run here: this ADR carries its rul
 Three constraints frame the work:
 
 * The Desk is an app of its own. It shares no code with `apps/web` or Studio: its code, its
-  packages, its endpoints and its DTOs are its own. One package is the exception: the sandbox of
-  MCP Apps (section 2.4).
+  packages, its endpoints and its DTOs are its own. Two packages are the exception: the sandbox of
+  MCP Apps (section 2.4), and the permission catalog, which it reads through its contracts
+  (section 2.12).
 * The NestJS API and `packages/api-contracts` keep their conventions, routes and DTOs. The Desk's
   endpoints sit next to the existing ones and call the same domain services.
 * Every Desk endpoint has a Zod schema for what it receives and for what it returns.
@@ -68,7 +71,7 @@ kit.
 **Every frontend is rebuilt, one app at a time, as an app of its own, on the stack and the rules
 below, chosen for coding agents. The Desk comes first: it becomes `apps/desk`, a Vite SPA served by
 the API at `/app`, which shares no code with `apps/web` but the sandbox of MCP Apps (section
-2.4). Its contracts live in
+2.4) and the permission catalog its contracts re-export (section 2.12). Its contracts live in
 `packages/desk-contracts`, and it calls only Desk endpoints. Each endpoint has Zod schemas for its
 params, query, body, response and stream events, and both the API and the Desk enforce them at
 runtime.**
@@ -208,7 +211,8 @@ knip reports unused files, exports and dependencies. Both tools run in the Desk'
 `check:boundaries` script, which CI already runs through turbo. They only see imports, so these
 boundaries can still be bypassed (section 6).
 
-Apart from the package below, the Desk shares no code with the other apps: what it needs lives in
+Apart from the package below and the permission catalog its contracts re-export (section 2.12),
+the Desk shares no code with the other apps: what it needs lives in
 it, even where `apps/web` has its own version. Whether the apps of the new stack share code with each other is decided when the
 second one starts (section 7).
 
@@ -530,10 +534,22 @@ Desk contracts live in a package of their own, `packages/desk-contracts`
 params every area extends), each with an `{area}.dto.ts` that
 holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
 CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
-object per area. It depends on Zod alone and imports nothing from `packages/api-contracts`. The
-Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
+object per area. It depends on Zod and `@caseai-connect/permissions` alone, and imports nothing from
+`packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
 and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
+
+**The permission catalog.** The contracts first held copies of the permission strings the apps read
+(`desk.ui.read`, the session keys of an agent, the keys of Evaluation), and nothing checked that a
+copy still matched its source: a renamed key would have hidden a page or a button with no error.
+Since 2026-11-25 the catalog, `packages/permissions/src/index.ts`, is a package of its own,
+`@caseai-connect/permissions`, and its one declaration. `api-contracts` re-exports it, so the API and
+`apps/web` import it as before, and each contracts package re-exports the constants its app reads.
+Like the MCP App host, no app owns it, and it stays within limits that keep the apps closed worlds:
+no dependency and no import, strings, string unions and pure functions only, nothing a screen shows,
+and the TypeScript options of the new stack (`erasableSyntaxOnly`, `verbatimModuleSyntax`). The apps
+reach it through their contracts only. As the contracts do, it has a CommonJS build the API
+requires, which the API image and the `contracts` service of a worktree environment build first.
 
 * A route is declared with `defineSchemaRoute`, a helper of the package. It takes the method, the
   path and the schemas of the params, query, body and response, and infers the request and
@@ -913,7 +929,8 @@ part of it invalidates.
 * The Desk depends on no other app's code. Its sign-in, components, tokens, theme files,
   contracts and translations are its own, and a change in Studio cannot break it. The sandbox of
   MCP Apps is the exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk,
-  `apps/web` and `apps/web-embed` at once, on purpose.
+  `apps/web` and `apps/web-embed` at once, on purpose. So does the permission catalog (section
+  2.12): a change to `packages/permissions` reaches every app and the API at once.
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic

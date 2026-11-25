@@ -10,7 +10,7 @@ export const meUserOutputSchema = z.object({
 })
 
 /** The permission to open the trace of an agent's answer: a global one. */
-export const TRACE_READ_PERMISSION = "trace.read" as const
+export { TRACE_READ_PERMISSION } from "@caseai-connect/permissions"
 
 export const meOutputSchema = z.object({
   user: meUserOutputSchema,

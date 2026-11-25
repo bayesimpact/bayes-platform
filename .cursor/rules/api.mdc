@@ -654,7 +654,7 @@ it("should return membership when user is a member", async () => {
 Access is one permission string, granted on roles, checked on the route, and used to list what the caller can see. How to add one: `.claude/skills/rbac/SKILL.md` and ADR 0019 (`docs/adr/0019-rbac-permission-catalog.md`). ADR 0004 and ADR 0013 are superseded: no role enum checks in services, no org-wide `project.read`.
 
 **Rules**:
-- Declare the permission string only in `packages/api-contracts/src/rbac/permissions.ts`. Grant it on a role in `apps/api/src/domains/rbac/rbac.constants.ts`. Mirror it in `docs/rbac-permission-matrix.md` in the same change (`.cursor/rules/permission-matrix.mdc`).
+- Declare the permission string only in `packages/permissions/src/index.ts`. Grant it on a role in `apps/api/src/domains/rbac/rbac.constants.ts`. Mirror it in `docs/rbac-permission-matrix.md` in the same change (`.cursor/rules/permission-matrix.mdc`).
 - Production learns a grant from a data migration inserting `role_permission` rows (pattern: `src/migrations/1790269217250-analytics-read-permissions.ts`). `migration:generate` cannot emit it.
 - Protect the route with `@CheckPermission(permission)` or `@CheckPermission(permission, "organization" | "project" | "agent")` and `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver that puts the resource id on the request.
 - A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository.

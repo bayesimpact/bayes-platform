@@ -4,12 +4,11 @@ import { projectParamsSchema } from "../common/params.dto"
 import { queryNumberSchema } from "../common/query.dto"
 
 /** The permissions of a project's conversation runs, which only its evaluators hold. */
-export const EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION =
-  "evaluation.conversation.run.create" as const
-export const EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION =
-  "evaluation.conversation.run.update" as const
-export const EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION =
-  "evaluation.conversation.run.delete" as const
+export {
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+} from "@caseai-connect/permissions"
 
 /** The longest instructions a run gives its judge, in characters. */
 export const CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH = 4000

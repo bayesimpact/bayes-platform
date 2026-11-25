@@ -14,6 +14,7 @@ This is a Turborepo monorepo with the following structure:
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
 - `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@caseai-connect/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
+- `packages/@caseai-connect/permissions` - The RBAC permission catalog (`src/index.ts`), the one place a permission string is declared. `api-contracts` re-exports it, and the Desk and Evaluation contracts re-export the constants their apps read; no app owns it
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -86,7 +87,7 @@ The routes under `PUBLIC_PATH_PREFIX` (`/public/...`) are a frozen contract with
 
 Decisions live in `docs/adr/`. Two of them apply to every API change, and each has a skill that walks through the steps:
 
-- **Authorization** follows [ADR 0019](docs/adr/0019-rbac-permission-catalog.md). A permission is one string declared in `api-contracts`, granted on a role in the RBAC catalog, checked on the route with `@CheckPermission`, and used through `PermissionService` to list what the caller can see. Use the `rbac` skill, then `check-permission-matrix`. ADR 0004 and ADR 0013 are superseded: do not implement the three membership tables, role checks inside services, or an org-wide `project.read` grant.
+- **Authorization** follows [ADR 0019](docs/adr/0019-rbac-permission-catalog.md). A permission is one string declared in `packages/permissions` (`@caseai-connect/permissions`, which `api-contracts` re-exports), granted on a role in the RBAC catalog, checked on the route with `@CheckPermission`, and used through `PermissionService` to list what the caller can see. Use the `rbac` skill, then `check-permission-matrix`. ADR 0004 and ADR 0013 are superseded: do not implement the three membership tables, role checks inside services, or an org-wide `project.read` grant.
 - **Persistence** follows [ADR 0020](docs/adr/0020-custom-repositories.md). A service never imports TypeORM. It calls a named method on an `{Entity}Repository` provider, and transactions come from `transactionService.run()` in the service. Use the `custom-repository` skill. Many existing services still inject `Repository<T>`. Do not copy them.
 
 ## Package Management

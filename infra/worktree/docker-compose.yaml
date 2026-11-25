@@ -296,6 +296,7 @@ services:
       - -b
       - --watch
       - --preserveWatchOutput
+      - packages/permissions/tsconfig.build.json
       - packages/api-contracts
       - packages/desk-contracts/tsconfig.build.json
       - packages/eval-contracts/tsconfig.build.json

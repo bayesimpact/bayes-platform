@@ -20,6 +20,7 @@ RUN npm ci \
     --workspace=@caseai-connect/web-embed \
     --workspace=@caseai-connect/api-contracts \
     --workspace=@caseai-connect/mcp-app-host \
+    --workspace=@caseai-connect/permissions \
     --include-workspace-root
 
 ENV VITE_API_URL=__VITE_API_URL__

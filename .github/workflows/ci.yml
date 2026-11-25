@@ -50,8 +50,8 @@ jobs:
             echo "web-tests=false" >> "$GITHUB_OUTPUT"
           fi
           # The Desk's tests, translation checks and build run when the Desk,
-          # its contracts, the MCP App host it shares or the dependencies changed.
-          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|packages/mcp-app-host/|package\.json$|package-lock\.json$)'; then
+          # its contracts, the permissions, the MCP App host it shares or the dependencies changed.
+          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|packages/permissions/|packages/mcp-app-host/|package\.json$|package-lock\.json$)'; then
             echo "desk-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "desk-tests=false" >> "$GITHUB_OUTPUT"
@@ -59,7 +59,7 @@ jobs:
           # Evaluation's checks run when Evaluation, its contracts or the dependencies changed,
           # and when the Desk's chat changed: Evaluation's chat is a copy of it, which
           # check:desk-parity compares.
-          if echo "$CHANGED" | grep -qE '^(apps/eval/|packages/eval-contracts/|apps/desk/src/features/conversation/|apps/desk/src/components/shared/(Markdown|HighlightedCodeBlock|InlineCode)\.tsx$|package\.json$|package-lock\.json$)'; then
+          if echo "$CHANGED" | grep -qE '^(apps/eval/|packages/eval-contracts/|packages/permissions/|apps/desk/src/features/conversation/|apps/desk/src/components/shared/(Markdown|HighlightedCodeBlock|InlineCode)\.tsx$|package\.json$|package-lock\.json$)'; then
             echo "eval-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "eval-tests=false" >> "$GITHUB_OUTPUT"
@@ -195,7 +195,7 @@ jobs:
     steps:
       - name: Skip, nothing the Desk checks exercise changed
         if: needs.changes.outputs.desk-tests == 'false'
-        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, packages/mcp-app-host, package.json or package-lock.json"
+        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, packages/permissions, packages/mcp-app-host, package.json or package-lock.json"
 
       - name: Checkout code
         if: needs.changes.outputs.desk-tests == 'true'
@@ -234,7 +234,7 @@ jobs:
     steps:
       - name: Skip, nothing Evaluation's checks exercise changed
         if: needs.changes.outputs.eval-tests == 'false'
-        run: echo "Skipping Evaluation's checks, no change under apps/eval, packages/eval-contracts, the Desk's chat, package.json or package-lock.json"
+        run: echo "Skipping Evaluation's checks, no change under apps/eval, packages/eval-contracts, packages/permissions, the Desk's chat, package.json or package-lock.json"
 
       - name: Checkout code
         if: needs.changes.outputs.eval-tests == 'true'

@@ -13,6 +13,7 @@ import type {
   TesterSurveyOutputDto,
 } from "@caseai-connect/eval-contracts"
 import {
+  DESK_UI_READ_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
@@ -26,6 +27,7 @@ import {
   EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
+  PROJECT_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
@@ -33,7 +35,9 @@ import {
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
   TOOL_NAMES,
 } from "@caseai-connect/eval-contracts"
 import { agentVersionIdOf, buildAgentVersions, buildProjectAgent } from "./agents.factory"
@@ -66,7 +70,7 @@ import {
 
 /** What a project's owner or admin holds for its review campaigns, beside evaluating its agents. */
 const MANAGER_PERMISSIONS = [
-  "project.read",
+  PROJECT_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
@@ -420,7 +424,7 @@ export function buildSeveralProjectsWorld(): EvalWorld {
   const onboarding = buildMyProject(operations, { name: "Onboarding" })
   const deskOnly = buildMyProject(operations, {
     name: "Help desk",
-    permissions: ["project.read", "desk.ui.read"],
+    permissions: [PROJECT_READ_PERMISSION, DESK_UI_READ_PERMISSION],
   })
   return {
     ...emptyCampaignData,
@@ -491,7 +495,7 @@ export function buildNoEvaluationAccessWorld(): EvalWorld {
   const organization = buildMyOrganization()
   const project = buildMyProject(organization, {
     name: "Support",
-    permissions: ["project.read", "desk.ui.read"],
+    permissions: [PROJECT_READ_PERMISSION, DESK_UI_READ_PERMISSION],
   })
   return {
     ...emptyCampaignData,
@@ -509,7 +513,7 @@ export function buildNoEvaluationAccessWorld(): EvalWorld {
 export function buildParticipantWorld(): EvalWorld {
   const organization = buildMyOrganization()
   const project = buildMyProject(organization, {
-    permissions: ["project.read", "tester.ui.read", "reviewer.ui.read"],
+    permissions: [PROJECT_READ_PERMISSION, TESTER_UI_READ_PERMISSION, REVIEWER_UI_READ_PERMISSION],
   })
   const agent = buildProjectAgent(project)
   const tested = buildReviewCampaign(agent, organization.id, { status: "active" })
@@ -648,7 +652,7 @@ export function buildProjectAndCampaignAgentWorld(): EvalWorld {
   const [organization] = world.organizations
   if (!organization) throw new Error("The main world has an organization")
   // Not among the person's projects: its agent is theirs through the campaign alone.
-  const otherProject = buildMyProject(organization, { permissions: ["project.read"] })
+  const otherProject = buildMyProject(organization, { permissions: [PROJECT_READ_PERMISSION] })
   const writer = buildProjectAgent(otherProject, { name: "Writing Helper" })
   const writingPilot = buildReviewCampaign(writer, organization.id, {
     name: "Writing pilot",

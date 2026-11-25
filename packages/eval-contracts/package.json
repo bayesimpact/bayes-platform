@@ -21,6 +21,7 @@
     "./src/**"
   ],
   "dependencies": {
+    "@caseai-connect/permissions": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

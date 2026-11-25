@@ -311,8 +311,10 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   transcript shows each reply's sources with the same `SourcesList`. Its
   owner gives it the session's forms and loads them again when the agent fills one in.
 - MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
-  (`packages/mcp-app-host`), the one package the app shares with the Desk, `apps/web` and
-  `apps/web-embed` (ADR 0031, section 2.4). The chat keeps what is its own, as the Desk does: the
+  (`packages/mcp-app-host`), one of the two packages the app shares with the Desk, `apps/web` and
+  `apps/web-embed` (ADR 0031, section 2.4). The other is the permission catalog,
+  `@caseai-connect/permissions`, which the app reads only through the constants its contracts
+  re-export (section 2.12). The chat keeps what is its own, as the Desk does: the
   `useMcpApp` hook and `McpAppCard` in `features/conversation`, and the lookup of an app's HTML.
 - A rating, a comment and the answers to a campaign's questions go through one form,
   `components/shared/RatedFeedbackForm.tsx` (`lib/rated-feedback.ts`), for the tester's feedback

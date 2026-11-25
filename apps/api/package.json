@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs main dist",
     "dev:workers-main": "node scripts/dev.mjs workers-main dist-workers",
-    "dev:workers-main-windows": "tsc -b ../../packages/api-contracts && tsc -p ../../packages/desk-contracts/tsconfig.build.json && tsc -p ../../packages/eval-contracts/tsconfig.build.json && node scripts/dev.mjs workers-main dist-workers",
+    "dev:workers-main-windows": "tsc -p ../../packages/permissions/tsconfig.build.json && tsc -b ../../packages/api-contracts && tsc -p ../../packages/desk-contracts/tsconfig.build.json && tsc -p ../../packages/eval-contracts/tsconfig.build.json && node scripts/dev.mjs workers-main dist-workers",
     "build": "swc src -d dist --strip-leading-paths --delete-dir-on-start",
     "build:test": "tsc -p tsconfig.build-test.json",
     "start": "npm run build && node --enable-source-maps dist/main",

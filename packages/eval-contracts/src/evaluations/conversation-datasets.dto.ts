@@ -3,12 +3,11 @@ import { projectParamsSchema } from "../common/params.dto"
 import { queryNumberSchema } from "../common/query.dto"
 
 /** The permissions of a project's conversation datasets, which only its evaluators hold. */
-export const EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION =
-  "evaluation.conversation.dataset.create" as const
-export const EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION =
-  "evaluation.conversation.dataset.update" as const
-export const EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION =
-  "evaluation.conversation.dataset.delete" as const
+export {
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+} from "@caseai-connect/permissions"
 
 /** The longest input, and the longest expected output, of a record, in characters. */
 export const CONVERSATION_DATASET_RECORD_MAX_LENGTH = 10_000

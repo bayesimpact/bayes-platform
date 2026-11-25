@@ -4,12 +4,11 @@ import { columnFiltersSchema, queryNumberSchema } from "../common/query.dto"
 import { conversationRunStatusSchema } from "./conversation-runs.dto"
 
 /** The permissions of a project's extraction runs, which only its evaluators hold. */
-export const EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION =
-  "evaluation.extraction.run.create" as const
-export const EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION =
-  "evaluation.extraction.run.update" as const
-export const EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION =
-  "evaluation.extraction.run.delete" as const
+export {
+  EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
+} from "@caseai-connect/permissions"
 
 /** How many records of a run the app shows in a page: a run may hold thousands. */
 export const EXTRACTION_RUN_RECORDS_PAGE_SIZE = 50
