@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- Review campaign report: it shows the free-text answers, and its CSV file holds the answers to each question.
 - (beta) Embedded chat: the message box takes one line when empty and grows with the text.
 
 ### Fixed
