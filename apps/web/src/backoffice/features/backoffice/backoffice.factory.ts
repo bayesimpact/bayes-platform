@@ -1,4 +1,8 @@
 import {
+  AgentModel,
+  AgentModelDisplayNames,
+  AgentModelToAgentProvider,
+  AgentProviderVendors,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
@@ -32,12 +36,15 @@ import type {
   BackofficeUserOrganizationMembership,
   BackofficeUserProjectMembership,
   BackofficeUserReviewCampaignMembership,
+  CustomModel,
+  CustomModelType,
   MaintenanceJob,
   MaintenanceJobRun,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
+  ProjectModel,
   TermsDocuments,
 } from "./backoffice.models"
 
@@ -707,3 +714,67 @@ export const maintenanceJobFactory = MaintenanceJobFactory.define(({ params, seq
   remainingSummary: params.remainingSummary ?? "8 records in 3 projects",
   lastRun: params.lastRun ? maintenanceJobRunFactory.build(params.lastRun) : null,
 }))
+
+const SELF_HOSTED_SAMPLE_MODELS: readonly string[] = [
+  AgentModel.Gemma4_26B,
+  AgentModel.Gemma4_31B,
+  AgentModel.MedGemma10_27B,
+  AgentModel.MistralSmall32_24B,
+  AgentModel.Qwen38_27B,
+]
+
+class ProjectModelFactory extends Factory<ProjectModel> {}
+
+/** A platform model in a workspace that follows the default: hosted on, self-hosted off. */
+export const projectModelFactory = ProjectModelFactory.define(({ params }) => {
+  const model = params.model ?? AgentModel.Gemini35Flash
+  const selfHosted = params.selfHosted ?? SELF_HOSTED_SAMPLE_MODELS.includes(model)
+  const provider = params.provider ?? AgentModelToAgentProvider[model as AgentModel] ?? "VERTEX-3"
+  return {
+    model,
+    name: params.name ?? AgentModelDisplayNames[model as AgentModel] ?? model,
+    vendor:
+      params.vendor ??
+      AgentProviderVendors[provider as keyof typeof AgentProviderVendors] ??
+      provider,
+    provider,
+    selfHosted,
+    enabled: params.enabled ?? !selfHosted,
+    customized: params.customized ?? false,
+    retirement:
+      params.retirement?.date && params.retirement.replacement
+        ? { date: params.retirement.date, replacement: params.retirement.replacement }
+        : null,
+  }
+})
+
+class CustomModelFactory extends Factory<CustomModel> {}
+
+export const customModelFactory = CustomModelFactory.define(({ params, sequence }) => {
+  const baseModel = params.baseModel ?? AgentModel.Gemma4_26B
+  return {
+    id: params.id ?? faker.string.uuid(),
+    name: params.name ?? `Sample model ${sequence}`,
+    baseModel,
+    provider: params.provider ?? AgentModelToAgentProvider[baseModel as AgentModel] ?? "GEMMA",
+    baseUrl: params.baseUrl ?? `https://vllm-${sequence}.example.org/v1`,
+    hasApiKey: params.hasApiKey ?? true,
+    servedModelName: params.servedModelName ?? null,
+    agentCount: params.agentCount ?? 0,
+    createdAt: (params.createdAt ?? faker.date.recent().getTime()) as TimeType,
+  }
+})
+
+class CustomModelTypeFactory extends Factory<CustomModelType> {}
+
+export const customModelTypeFactory = CustomModelTypeFactory.define(({ params }) => {
+  const model = params.model ?? AgentModel.Gemma4_26B
+  return {
+    model,
+    provider: params.provider ?? AgentModelToAgentProvider[model as AgentModel] ?? "GEMMA",
+  }
+})
+
+/** The self-hosted types of the code, as the backoffice offers them for a custom model. */
+export const buildCustomModelTypes = (): CustomModelType[] =>
+  SELF_HOSTED_SAMPLE_MODELS.map((model) => customModelTypeFactory.build({ model }))

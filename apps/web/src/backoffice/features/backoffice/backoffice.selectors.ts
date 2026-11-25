@@ -19,3 +19,5 @@ export const selectTermsDocuments = (state: RootState) => state.backoffice.terms
 export const selectAppManifests = (state: RootState) => state.backoffice.appManifests
 
 export const selectMaintenanceJobs = (state: RootState) => state.backoffice.maintenanceJobs
+export const selectProjectModels = (state: RootState) => state.backoffice.projectModels
+export const selectCustomModels = (state: RootState) => state.backoffice.customModels

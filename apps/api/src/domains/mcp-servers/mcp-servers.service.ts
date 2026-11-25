@@ -16,6 +16,8 @@ import { ConfigService } from "@nestjs/config"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, IsNull, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EncryptionService } from "@/common/encryption/encryption.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { isGoogleIamAuthEnabled } from "@/external/google-iam"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -26,8 +28,6 @@ import {
   isBuiltInMcpServer,
   PDF_EXPORT_PRESET_SLUG,
 } from "./built-in/built-in-mcp-servers"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpServerRepository } from "./mcp-server.repository"

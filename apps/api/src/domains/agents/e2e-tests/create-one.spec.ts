@@ -19,6 +19,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { projectEmbeddingModelFactory } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectModelFactory } from "@/external/llm/workspace-models/project-model.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -79,10 +80,8 @@ describe("Agents - createOne", () => {
       request: payload,
     })
 
-  const enableFeatureFlag = async (featureFlagKey: string) => {
-    await repositories.featureFlagRepository.save(
-      repositories.featureFlagRepository.create({ projectId, featureFlagKey, enabled: true }),
-    )
+  const enableModel = async (model: AgentModel) => {
+    await repositories.projectModelRepository.save(projectModelFactory.build({ projectId, model }))
   }
 
   const gemmaAgentPayload: typeof AgentsRoutes.createOne.request = {
@@ -169,7 +168,7 @@ describe("Agents - createOne", () => {
     expectResponse(await subject(vertex3AgentPayload({ temperature: 5 })), 400)
   })
 
-  it("rejects a model behind a feature flag the project lacks", async () => {
+  it("rejects a model the workspace has not enabled", async () => {
     await createContext()
 
     expectResponse(await subject(gemmaAgentPayload), 400)
@@ -185,9 +184,9 @@ describe("Agents - createOne", () => {
     )
   })
 
-  it("accepts a flagged provider's model once the project has its flag", async () => {
+  it("accepts a model once the workspace has it enabled", async () => {
     await createContext()
-    await enableFeatureFlag("gemma")
+    await enableModel(AgentModel.Gemma4_26B)
 
     expectResponse(await subject(gemmaAgentPayload), 201)
   })

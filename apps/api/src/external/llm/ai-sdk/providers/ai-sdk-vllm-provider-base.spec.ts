@@ -2,7 +2,7 @@ import type { JSONSchema7Definition, LanguageModelV3CallOptions } from "@ai-sdk/
 import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
 import { jsonSchema, type ToolSet, tool } from "ai"
 import { z } from "zod"
-import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
@@ -30,6 +30,9 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   modelEnvSettingsFor(model: string): { url: string; apiKey: string } {
     return this.getModelEnvSettings(model)
   }
+  endpointFor(callContext: LLMCallContext) {
+    return this.resolveEndpoint({ config, callContext })
+  }
 }
 
 const config: LLMConfig = {
@@ -38,6 +41,16 @@ const config: LLMConfig = {
   systemPrompt: "You are a helpful assistant.",
   serviceTier: undefined,
 }
+
+const callContext = {
+  traceId: "trace-1",
+  organizationId: "organization-1",
+  projectId: "project-1",
+  agentId: "agent-1",
+  revision: 2,
+  agentSessionId: "session-1",
+  currentTurn: 1,
+} as LLMCallContext
 
 function chatCompletionResponse(content: string): Response {
   return new Response(
@@ -72,6 +85,33 @@ describe("AISDKVllmProviderBase", () => {
       if (value === undefined) delete process.env[name]
       else process.env[name] = value
     }
+  })
+
+  describe("resolveEndpoint", () => {
+    it("has no endpoint without a resolver", async () => {
+      expect(await provider.endpointFor(callContext)).toBeUndefined()
+    })
+
+    it("asks the resolver with the call context and the model of the call", async () => {
+      const endpoint = {
+        url: "https://other-server.example.com/v1",
+        apiKey: null,
+        servedModelName: null,
+      }
+      const resolveEndpoint = jest.fn().mockResolvedValue(endpoint)
+      const providerWithResolver = new TestVllmProvider({ resolveEndpoint })
+
+      expect(await providerWithResolver.endpointFor(callContext)).toEqual(endpoint)
+      expect(resolveEndpoint).toHaveBeenCalledWith({ callContext, model: AgentModel.Gemma4_26B })
+    })
+
+    it("keeps the environment variables when the resolver has nothing", async () => {
+      const providerWithResolver = new TestVllmProvider({
+        resolveEndpoint: jest.fn().mockResolvedValue(null),
+      })
+
+      expect(await providerWithResolver.endpointFor(callContext)).toBeUndefined()
+    })
   })
 
   describe("getModelEnvSettings", () => {
@@ -128,6 +168,52 @@ describe("AISDKVllmProviderBase", () => {
       const [requestUrl, init] = fetchSpy.mock.calls[0] ?? []
       expect(String(requestUrl)).toBe("https://gemma.example.com/v1/chat/completions")
       expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer vllm-api-key")
+    })
+
+    it("calls the server of the endpoint, with the environment key when it has none", async () => {
+      const fetchSpy = jest
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(chatCompletionResponse("Hello"))
+      const model = provider.getLanguageModel({
+        config,
+        callOrigin: CallOrigin.generateText,
+        endpoint: {
+          url: "https://other-server.example.com/v1",
+          apiKey: null,
+          servedModelName: null,
+        },
+      })
+
+      await model.doGenerate({
+        prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
+      } as LanguageModelV3CallOptions)
+
+      const [requestUrl, init] = fetchSpy.mock.calls[0] ?? []
+      expect(String(requestUrl)).toBe("https://other-server.example.com/v1/chat/completions")
+      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer vllm-api-key")
+    })
+
+    it("sends the key and the served name of the endpoint when it has them", async () => {
+      const fetchSpy = jest
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(chatCompletionResponse("Hello"))
+      const model = provider.getLanguageModel({
+        config,
+        callOrigin: CallOrigin.generateText,
+        endpoint: {
+          url: "https://other-server.example.com/v1",
+          apiKey: "endpoint-key",
+          servedModelName: "gemma-on-new-server",
+        },
+      })
+
+      await model.doGenerate({
+        prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
+      } as LanguageModelV3CallOptions)
+
+      const [, init] = fetchSpy.mock.calls[0] ?? []
+      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer endpoint-key")
+      expect(JSON.parse(String(init?.body)).model).toBe("gemma-on-new-server")
     })
 
     it("names the model after the provider", () => {

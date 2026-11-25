@@ -19,7 +19,9 @@
       "appDeleteError": "App konnte nicht gelöscht werden",
       "appOAuthClientError": "Der OAuth-Client der App konnte nicht geladen oder aktualisiert werden",
       "maintenanceJobStarted": "Wartungsjob gestartet",
-      "maintenanceJobStartError": "Wartungsjob konnte nicht gestartet werden"
+      "maintenanceJobStartError": "Wartungsjob konnte nicht gestartet werden",
+      "modelEndpointSaved": "Modelleinstellungen gespeichert",
+      "modelEndpointSaveError": "Modelleinstellungen konnten nicht gespeichert werden"
     }
   }
 }

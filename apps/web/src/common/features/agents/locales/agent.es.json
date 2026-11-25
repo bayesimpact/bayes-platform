@@ -78,7 +78,18 @@
         "title": "ACCIÓN NECESARIA: {{model}} se retiró el {{date}}",
         "description": "Las ejecuciones con {{model}} ahora fallan. Actualice este agente a {{replacement}} y vuelva a probarlo."
       },
-      "unavailable": "Este modelo ya no está disponible. Seleccione un nuevo modelo de la lista."
+      "unavailable": "Este modelo ya no está disponible. Seleccione un nuevo modelo de la lista.",
+      "addedModelsGroup": "Modelos de este espacio de trabajo",
+      "tags": {
+        "recommended": "Recomendado",
+        "outsideEu": "Fuera de la UE",
+        "selfHosted": "Autoalojado",
+        "selfHostedBy": "Alojado por {{operator}}",
+        "priority": "Prioritario",
+        "reasoning": "Razonamiento ajustable",
+        "retiresOn": "Se retira el {{date}}",
+        "retiredOn": "Retirado el {{date}}"
+      }
     },
     "playground": "Entorno de pruebas",
     "notifications": {

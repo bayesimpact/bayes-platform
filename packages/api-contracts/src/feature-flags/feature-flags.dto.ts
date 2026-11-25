@@ -13,30 +13,6 @@ export const FeatureFlags = [
     description: "Access and utilize the sources tool.",
   }),
   featureFlag({
-    key: "gemma",
-    description: "Access and utilize gemma models.",
-  }),
-  featureFlag({
-    key: "medgemma",
-    description: "Access and utilize medgemma models.",
-  }),
-  featureFlag({
-    key: "mistral",
-    description: "(tests purpose only) Access and utilize mistral models.",
-  }),
-  featureFlag({
-    key: "qwen",
-    description: "Access and utilize qwen models.",
-  }),
-  featureFlag({
-    key: "anthropic",
-    description: "Access and utilize Claude models (Anthropic, served by Vertex AI in the EU).",
-  }),
-  featureFlag({
-    key: "openai",
-    description: "Access and utilize OpenAI models (served outside the EU).",
-  }),
-  featureFlag({
     key: "llm-priority-calls",
     description: "Access and set priority for Gemini 3.x and OpenAI models",
   }),

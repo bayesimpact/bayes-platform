@@ -6,7 +6,7 @@ import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { EncryptionService } from "../encryption.service"
+import { EncryptionService } from "@/common/encryption/encryption.service"
 import { McpServer } from "../mcp-server.entity"
 import type { McpServerConfig, McpServerOauthState } from "../mcp-server-config.types"
 import { discoverOauthConfiguration, registerOauthClient } from "./mcp-oauth-discovery"

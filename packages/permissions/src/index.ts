@@ -58,6 +58,13 @@ export const BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION = "backoffice.maintenance
 /** Grant or revoke a user's global roles from the backoffice user page. Superadmin only. */
 export const BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION = "backoffice.global_role.update" as const
 
+/**
+ * See and set, from the backoffice, the models of the code a workspace offers, and the models it
+ * adds on servers of its own. Superadmin only: such a server receives the conversations of the
+ * agents that use it.
+ */
+export const BACKOFFICE_PROJECT_MODEL_UPDATE_PERMISSION = "backoffice.project_model.update" as const
+
 export const DOCUMENT_READ_PERMISSION = "document.read" as const
 
 export const DOCUMENT_CREATE_PERMISSION = "document.create" as const
@@ -605,5 +612,6 @@ export type GlobalPermission =
   | typeof BACKOFFICE_APP_MANAGE_PERMISSION
   | typeof BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION
   | typeof BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION
+  | typeof BACKOFFICE_PROJECT_MODEL_UPDATE_PERMISSION
 
 export type OrganizationPermission = OrganizationScopedPermission

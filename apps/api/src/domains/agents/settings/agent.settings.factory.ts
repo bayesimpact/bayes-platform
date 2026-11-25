@@ -54,6 +54,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       outputJsonSchema: params.outputJsonSchema ?? null,
       fillFormEnabled: params.fillFormEnabled ?? false,
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
+      customModelId: params.customModelId ?? null,
       providerOptions: params.providerOptions ?? {},
       memoryMode: params.memoryMode || AgentMemoryMode.Off,
       followUpSuggestionsEnabled: params.followUpSuggestionsEnabled ?? false,

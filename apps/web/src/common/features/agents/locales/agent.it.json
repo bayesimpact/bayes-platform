@@ -78,7 +78,18 @@
         "title": "AZIONE RICHIESTA: {{model}} è stato ritirato il {{date}}",
         "description": "Le esecuzioni su {{model}} non funzionano più. Aggiorna questo agente a {{replacement}} e testalo di nuovo."
       },
-      "unavailable": "Questo modello non è più disponibile. Seleziona un nuovo modello dall'elenco."
+      "unavailable": "Questo modello non è più disponibile. Seleziona un nuovo modello dall'elenco.",
+      "addedModelsGroup": "Modelli di questo workspace",
+      "tags": {
+        "recommended": "Consigliato",
+        "outsideEu": "Fuori dall'UE",
+        "selfHosted": "Self-hosted",
+        "selfHostedBy": "Ospitato da {{operator}}",
+        "priority": "Prioritario",
+        "reasoning": "Ragionamento regolabile",
+        "retiresOn": "Ritirato il {{date}}",
+        "retiredOn": "Ritirato il {{date}}"
+      }
     },
     "playground": "Area di prova",
     "notifications": {

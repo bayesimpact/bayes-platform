@@ -187,6 +187,7 @@ describe("Agent Settings - getAllWithDraft", () => {
     expect(latest).toEqual({
       id: revision2.id,
       agentId: agent.id,
+      customModelId: null,
       revision: 2,
       name: "Second",
       description: "The second revision",

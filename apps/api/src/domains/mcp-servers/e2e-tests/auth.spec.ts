@@ -7,6 +7,7 @@ import { McpServersRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import { EncryptionService } from "@/common/encryption/encryption.service"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import {
   type AllRepositories,
@@ -29,7 +30,6 @@ import {
 } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { EncryptionService } from "../encryption.service"
 import { mcpServerFactory } from "../mcp-server.factory"
 import { McpServersModule } from "../mcp-servers.module"
 

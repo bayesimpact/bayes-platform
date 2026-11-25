@@ -100,6 +100,55 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
+    actionCreator: backofficeActions.workspaceModelsMount,
+    effect: async (_, listenerApi) => {
+      const projectId = listenerApi.getState().backoffice.projectDetail.value?.id
+      if (!projectId) return
+      listenerApi.dispatch(backofficeActions.listProjectModels(projectId))
+      listenerApi.dispatch(backofficeActions.listCustomModels(projectId))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    matcher: isAnyOf(
+      backofficeActions.setProjectModel.fulfilled,
+      backofficeActions.resetProjectModel.fulfilled,
+      backofficeActions.createCustomModel.fulfilled,
+      backofficeActions.updateCustomModel.fulfilled,
+      backofficeActions.deleteCustomModel.fulfilled,
+    ),
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "backoffice:notifications.modelEndpointSaved",
+          type: "success",
+        }),
+      )
+    },
+  })
+
+  for (const rejected of [
+    backofficeActions.setProjectModel.rejected,
+    backofficeActions.resetProjectModel.rejected,
+    backofficeActions.createCustomModel.rejected,
+    backofficeActions.updateCustomModel.rejected,
+    backofficeActions.deleteCustomModel.rejected,
+  ]) {
+    listenerMiddleware.startListening({
+      actionCreator: rejected,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "backoffice:notifications.modelEndpointSaveError",
+            description: action.error.message,
+            type: "error",
+          }),
+        )
+      },
+    })
+  }
+
+  listenerMiddleware.startListening({
     actionCreator: backofficeActions.runMaintenanceJob.fulfilled,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(

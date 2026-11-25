@@ -2,31 +2,28 @@ import {
   AgentModel,
   type AgentModelDeprecation,
   AgentModelToAgentProvider,
-  AgentProvider,
-  type FeatureFlagKey,
+  type AgentProvider,
 } from "@caseai-connect/api-contracts"
 import { BadRequestException, Inject, Injectable } from "@nestjs/common"
 import { z } from "zod"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import {
+  type AgentCustomModelView,
+  isSelfHostedModel,
+  WorkspaceModelsService,
+} from "@/external/llm/workspace-models/workspace-models.service"
 
 export const AGENT_DEFAULT_MODELS = {
   agent: AgentModel.Gemini35FlashLite,
   judge: AgentModel.Gemini35FlashLite,
 } as const satisfies AvailableModels["defaults"]
 
-const PROVIDERS_WITH_FEATURE_FLAGS: Partial<Record<AgentProvider, FeatureFlagKey>> = {
-  [AgentProvider.MedGemma]: "medgemma",
-  [AgentProvider.Gemma]: "gemma",
-  [AgentProvider.Mistral]: "mistral",
-  [AgentProvider.Qwen]: "qwen",
-  [AgentProvider.Anthropic]: "anthropic",
-  [AgentProvider.OpenAI]: "openai",
-}
-
 export type AgentModelData = {
   agentModel: AgentModel
   agentProvider: AgentProvider
   isAvailable: boolean
+  selfHosted: boolean
   agentModelDeprecation: AgentModelDeprecation | null
   servedOutsideEu: boolean
   optionsSchema: Record<string, unknown>
@@ -36,14 +33,28 @@ export type AgentModelData = {
 export type AvailableModels = {
   models: AgentModelData[]
   defaults: { agent: AgentModel; judge: AgentModel }
+  /** The models the workspace added on servers of its own. Never their server or key. */
+  customModels: AgentCustomModelView[]
+  /** Who runs the self-hosted models, for their badge. Null when not configured. */
+  selfHostedBy: string | null
 }
 
 @Injectable()
 export class AgentModelsService {
-  constructor(@Inject(LLM_PROVIDERS) private readonly llmProviders: LlmProviders) {}
+  constructor(
+    @Inject(LLM_PROVIDERS) private readonly llmProviders: LlmProviders,
+    private readonly workspaceModelsService: WorkspaceModelsService,
+  ) {}
 
-  getAvailableModelsForFeatures(features: FeatureFlagKey[]): AvailableModels {
-    const availableProviders = this.listAvailableProviders(features)
+  /**
+   * Every model of the code, marked available when the workspace offers it and it is not retired,
+   * and the models the workspace added.
+   */
+  async getAvailableModels(projectId: string): Promise<AvailableModels> {
+    const [enabledModels, customModels] = await Promise.all([
+      this.workspaceModelsService.listEnabledModels(projectId),
+      this.workspaceModelsService.listCustomModelsForAgents(projectId),
+    ])
     const availableModels = Object.values(AgentModel)
       .filter((agentModel) => agentModel !== AgentModel._Mock)
       .map((agentModel) => {
@@ -54,7 +65,8 @@ export class AgentModelsService {
           agentModel,
           agentProvider,
           isAvailable:
-            availableProviders.has(agentProvider) && !this.isModelRetired(modelInfos.deprecation),
+            enabledModels.has(agentModel) && !this.isModelRetired(modelInfos.deprecation),
+          selfHosted: isSelfHostedModel(agentModel),
           agentModelDeprecation: modelInfos.deprecation ?? null,
           servedOutsideEu: modelInfos.servedOutsideEu === true,
           optionsSchema: z.toJSONSchema(llmProvider.getModelOptionsSchema(agentModel)) as Record<
@@ -64,15 +76,41 @@ export class AgentModelsService {
           defaultOptions: llmProvider.getModelOptions(agentModel),
         }
       })
-    return { models: availableModels, defaults: AGENT_DEFAULT_MODELS }
+    return {
+      models: availableModels,
+      defaults: AGENT_DEFAULT_MODELS,
+      customModels,
+      selfHostedBy: this.workspaceModelsService.getSelfHostedOperator(),
+    }
   }
 
-  assertAvailable({ features, model }: { features: FeatureFlagKey[]; model: string }): void {
-    if ((model as AgentModel) === AgentModel._Mock) return
+  /**
+   * Checks the model an agent picks: a model of the code the workspace offers, or a model the
+   * workspace added (`customModelId`), which runs `model`.
+   */
+  async assertAvailable({
+    projectId,
+    model,
+    customModelId,
+  }: {
+    projectId: string
+    model: string
+    customModelId?: string | null
+  }): Promise<void> {
+    if ((model as AgentModel) === AgentModel._Mock && !customModelId) return
     const provider = AgentModelToAgentProvider[model as AgentModel]
     if (!provider) throw new BadRequestException(`Unknown model: ${model}`)
-    if (!this.listAvailableProviders(features).has(provider))
-      throw new BadRequestException(`Model ${model} is not available in this project`)
+    if (customModelId) {
+      await this.workspaceModelsService.assertCustomModelUsable({
+        projectId,
+        customModelId,
+        model,
+      })
+    } else {
+      const enabledModels = await this.workspaceModelsService.listEnabledModels(projectId)
+      if (!enabledModels.has(model as AgentModel))
+        throw new BadRequestException(`Model ${model} is not available in this workspace`)
+    }
     const llmProvider = this.llmProviders[provider]
     if (this.isModelRetired(llmProvider.getModelInfos(model as AgentModel).deprecation))
       throw new BadRequestException(`Model ${model} is no longer available`)
@@ -100,15 +138,5 @@ export class AgentModelsService {
   isModelRetired(deprecation: AgentModelDeprecation | undefined, now: Date = new Date()): boolean {
     if (!deprecation) return false
     return now.toISOString().slice(0, 10) > deprecation.deprecatedOn
-  }
-
-  private listAvailableProviders(features: FeatureFlagKey[]): Set<AgentProvider> {
-    return new Set(
-      Object.values(AgentProvider).filter((provider) => {
-        if (provider === AgentProvider._Mock) return false
-        const feature = PROVIDERS_WITH_FEATURE_FLAGS[provider]
-        return !feature || features.includes(feature)
-      }),
-    )
   }
 }

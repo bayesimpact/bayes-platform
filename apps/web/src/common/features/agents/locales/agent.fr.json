@@ -78,7 +78,18 @@
         "title": "ACTION REQUISE : {{model}} a été retiré le {{date}}",
         "description": "Les exécutions sur {{model}} échouent désormais. Mettez cet agent à jour vers {{replacement}} et testez-le."
       },
-      "unavailable": "Ce modèle n'est plus disponible. Sélectionnez un nouveau modèle dans la liste."
+      "unavailable": "Ce modèle n'est plus disponible. Sélectionnez un nouveau modèle dans la liste.",
+      "addedModelsGroup": "Modèles de ce workspace",
+      "tags": {
+        "recommended": "Recommandé",
+        "outsideEu": "Hors UE",
+        "selfHosted": "Auto-hébergé",
+        "selfHostedBy": "Hébergé par {{operator}}",
+        "priority": "Prioritaire",
+        "reasoning": "Raisonnement réglable",
+        "retiresOn": "Retiré le {{date}}",
+        "retiredOn": "Retiré depuis le {{date}}"
+      }
     },
     "playground": "Playground",
     "notifications": {

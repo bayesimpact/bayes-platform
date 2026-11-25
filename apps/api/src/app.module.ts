@@ -2,6 +2,7 @@ import { BullModule } from "@nestjs/bullmq"
 import { type MiddlewareConsumer, Module, type NestModule } from "@nestjs/common"
 import { ConfigModule, ConfigService } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { WorkspaceModelsModule } from "@/external/llm/workspace-models/workspace-models.module"
 import { getBullMqConnection } from "./bullmq.config"
 import { DiagnosticsModule } from "./common/diagnostics/diagnostics.module"
 import { HealthModule } from "./common/health/health.module"
@@ -56,6 +57,7 @@ import { UsersModule } from "./domains/users/users.module"
       useFactory: async (configService: ConfigService) => configService.get("typeorm")(),
     }),
     TransactionModule,
+    WorkspaceModelsModule,
     AgentEmbedConfigsManagementModule,
     AgentMessageFeedbackModule,
     AgentsAnalyticsModule,

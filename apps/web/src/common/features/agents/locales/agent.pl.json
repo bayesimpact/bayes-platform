@@ -78,7 +78,18 @@
         "title": "WYMAGANE DZIAŁANIE: model {{model}} został wycofany {{date}}",
         "description": "Uruchomienia na {{model}} kończą się teraz błędem. Przełącz tego agenta na {{replacement}} i przetestuj go ponownie."
       },
-      "unavailable": "Ten model nie jest już dostępny. Wybierz nowy model z listy."
+      "unavailable": "Ten model nie jest już dostępny. Wybierz nowy model z listy.",
+      "addedModelsGroup": "Modele tego obszaru roboczego",
+      "tags": {
+        "recommended": "Polecany",
+        "outsideEu": "Poza UE",
+        "selfHosted": "Hostowany samodzielnie",
+        "selfHostedBy": "Hostowany przez {{operator}}",
+        "priority": "Priorytet",
+        "reasoning": "Regulowane rozumowanie",
+        "retiresOn": "Wycofanie {{date}}",
+        "retiredOn": "Wycofany {{date}}"
+      }
     },
     "playground": "Playground",
     "notifications": {

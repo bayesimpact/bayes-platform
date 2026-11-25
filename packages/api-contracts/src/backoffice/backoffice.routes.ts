@@ -9,15 +9,21 @@ import type {
   BackofficeProjectDetailDto,
   BackofficeRbacCatalogDto,
   BackofficeUserDetailDto,
+  CreateBackofficeCustomModelRequestDto,
   CreateBackofficeOrganizationRequestDto,
   GrantBackofficeAgentConversationReviewerRequestDto,
   GrantBackofficeUserGlobalRoleRequestDto,
+  ListBackofficeCustomModelsResponseDto,
   ListBackofficeMaintenanceJobsResponseDto,
+  ListBackofficeProjectModelsResponseDto,
   ListTermsDocumentsResponseDto,
   PaginatedBackofficeAgentsDto,
   PaginatedBackofficeOrganizationsDto,
   PaginatedBackofficeProjectsDto,
   PaginatedBackofficeUsersDto,
+  ResetBackofficeProjectModelRequestDto,
+  SetBackofficeProjectModelRequestDto,
+  UpdateBackofficeCustomModelRequestDto,
   UpdateTermsDocumentsRequestDto,
 } from "./backoffice.dto"
 
@@ -116,5 +122,45 @@ export const BackofficeRoutes = {
   runMaintenanceJob: defineRoute<ResponseData<BackofficeMaintenanceJobDto>>({
     method: "post",
     path: "backoffice/maintenance-jobs/:jobKey/run",
+  }),
+  listProjectModels: defineRoute<ResponseData<ListBackofficeProjectModelsResponseDto>>({
+    method: "get",
+    path: "backoffice/projects/:projectId/models",
+  }),
+  setProjectModel: defineRoute<
+    ResponseData<ListBackofficeProjectModelsResponseDto>,
+    RequestPayload<SetBackofficeProjectModelRequestDto>
+  >({
+    method: "put",
+    path: "backoffice/projects/:projectId/models",
+  }),
+  resetProjectModel: defineRoute<
+    ResponseData<ListBackofficeProjectModelsResponseDto>,
+    RequestPayload<ResetBackofficeProjectModelRequestDto>
+  >({
+    method: "post",
+    path: "backoffice/projects/:projectId/models/reset",
+  }),
+  listCustomModels: defineRoute<ResponseData<ListBackofficeCustomModelsResponseDto>>({
+    method: "get",
+    path: "backoffice/projects/:projectId/custom-models",
+  }),
+  createCustomModel: defineRoute<
+    ResponseData<ListBackofficeCustomModelsResponseDto>,
+    RequestPayload<CreateBackofficeCustomModelRequestDto>
+  >({
+    method: "post",
+    path: "backoffice/projects/:projectId/custom-models",
+  }),
+  updateCustomModel: defineRoute<
+    ResponseData<ListBackofficeCustomModelsResponseDto>,
+    RequestPayload<UpdateBackofficeCustomModelRequestDto>
+  >({
+    method: "patch",
+    path: "backoffice/projects/:projectId/custom-models/:customModelId",
+  }),
+  deleteCustomModel: defineRoute<ResponseData<ListBackofficeCustomModelsResponseDto>>({
+    method: "delete",
+    path: "backoffice/projects/:projectId/custom-models/:customModelId",
   }),
 }

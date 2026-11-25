@@ -36,7 +36,7 @@ export function ModelOptionsFields({
   return (
     <>
       {fields.temperature && (
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="model-option-temperature">{t("agentSettings:props.temperature")}</Label>
           <Input
             id="model-option-temperature"
@@ -54,7 +54,7 @@ export function ModelOptionsFields({
       )}
 
       {fields.thinkingLevel && (
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="model-option-thinking-level">
             {t("agentSettings:props.thinkingLevel")}
           </Label>
