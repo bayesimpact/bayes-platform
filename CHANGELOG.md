@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - MCP: AI assistants save an agent's draft as a version to evaluate it, and never put it in production.
 - Desk languages: the Desk is available in German, Italian, Spanish and Polish.
+- Evaluation languages: Evaluation is available in German, Italian, Spanish and Polish.
 
 ### Changed
 

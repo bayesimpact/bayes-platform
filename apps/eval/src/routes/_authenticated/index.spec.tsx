@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+import { activateLocale, detectLocale } from "@/app/i18n"
 import { rememberLastAgent } from "@/features/agents"
 import {
   agentUrlOf,
@@ -185,6 +186,65 @@ describe("the app's home", () => {
       "href",
       "/onboarding",
     )
+  })
+})
+
+describe("the app's languages", () => {
+  it.each([
+    ["fr", "Vos projets n'ont pas encore d'agent"],
+    ["de", "Ihre Projekte haben noch keinen Agenten"],
+    ["it", "I tuoi progetti non hanno ancora agenti"],
+    ["es", "Sus proyectos aún no tienen ningún agente"],
+    ["pl", "Twoje projekty nie mają jeszcze agentów"],
+  ] as const)("shows in its other languages (%s)", async (locale, message) => {
+    await activateLocale(locale)
+    server.use(...worldHandlers(buildNoAgentWorld()))
+    renderApp("/eval/")
+
+    expect(await screen.findByText(message)).toBeInTheDocument()
+  })
+
+  it("offers its languages in the user menu, each in its own name", async () => {
+    server.use(...worldHandlers(buildEvalWorld()))
+    renderApp("/eval/")
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Alex Example, menu of alex@example.org" }),
+    )
+
+    const languages = await screen.findAllByRole("menuitemradio")
+    expect(languages.map((language) => language.textContent)).toEqual([
+      "English",
+      "Français",
+      "Deutsch",
+      "Italiano",
+      "Español",
+      "Polski",
+    ])
+  })
+
+  it("switches to the language the person chooses, and keeps it for the next visit", async () => {
+    server.use(...worldHandlers(buildNoAgentWorld()))
+    renderApp("/eval/")
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Alex Example, menu of alex@example.org" }),
+    )
+    await userEvent.click(await screen.findByRole("menuitemradio", { name: "Polski" }))
+
+    expect(await screen.findByText("Twoje projekty nie mają jeszcze agentów")).toBeInTheDocument()
+    expect(detectLocale()).toBe("pl")
+  })
+
+  it("opens in the first of the browser's languages it speaks", () => {
+    const browserLanguages = vi.spyOn(navigator, "languages", "get")
+    browserLanguages.mockReturnValue(["nl-NL", "es-ES", "en-US"])
+
+    try {
+      expect(detectLocale()).toBe("es")
+    } finally {
+      browserLanguages.mockRestore()
+    }
   })
 })
 
