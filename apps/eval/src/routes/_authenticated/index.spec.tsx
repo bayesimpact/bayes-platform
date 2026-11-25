@@ -227,7 +227,9 @@ describe("the app's languages", () => {
     server.use(...worldHandlers(buildNoAgentWorld()))
     renderApp("/eval/")
 
-    await userEvent.click(await screen.findByRole("button", { name: /menu of alex@example\.org$/ }))
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Alex Example, menu of alex@example.org" }),
+    )
     await userEvent.click(await screen.findByRole("menuitemradio", { name: "Polski" }))
 
     expect(await screen.findByText("Twoje projekty nie mają jeszcze agentów")).toBeInTheDocument()
@@ -238,9 +240,11 @@ describe("the app's languages", () => {
     const browserLanguages = vi.spyOn(navigator, "languages", "get")
     browserLanguages.mockReturnValue(["nl-NL", "es-ES", "en-US"])
 
-    expect(detectLocale()).toBe("es")
-
-    browserLanguages.mockRestore()
+    try {
+      expect(detectLocale()).toBe("es")
+    } finally {
+      browserLanguages.mockRestore()
+    }
   })
 })
 

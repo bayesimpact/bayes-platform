@@ -1,9 +1,10 @@
-import { formatDistanceStrict } from "date-fns"
+import { type Locale as DateFnsLocale, formatDistanceStrict } from "date-fns"
 import { de, enUS, es, fr, it, pl } from "date-fns/locale"
+import type { Locale } from "@/app/i18n"
 import { hasOwnKey } from "./has-own-key"
 
 /** The date-fns locale of each language of the app; English for any other. */
-const DATE_FNS_LOCALES = { en: enUS, fr, de, it, es, pl }
+const DATE_FNS_LOCALES = { en: enUS, fr, de, it, es, pl } satisfies Record<Locale, DateFnsLocale>
 
 /**
  * How long ago a moment was, in the person's language: "5 minutes ago", "3 days ago", "il y a 2
