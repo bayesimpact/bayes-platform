@@ -80,6 +80,8 @@
       },
       "unavailable": "Dieses Modell ist nicht mehr verfügbar. Wählen Sie ein neues Modell aus der Liste.",
       "addedModelsGroup": "Modelle dieses Workspace",
+      "searchPlaceholder": "Modell suchen",
+      "noResults": "Kein Modell gefunden",
       "tags": {
         "recommended": "Empfohlen",
         "outsideEu": "Außerhalb der EU",

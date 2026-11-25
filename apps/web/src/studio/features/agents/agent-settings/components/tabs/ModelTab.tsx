@@ -191,6 +191,8 @@ export function ModelTab({
                       })}
                       labels={{
                         placeholder: t("agentSettings:props.placeholders.model"),
+                        searchPlaceholder: t("agent:model.searchPlaceholder"),
+                        noResults: t("agent:model.noResults"),
                         tags: {
                           recommended: t("agent:model.tags.recommended"),
                           outsideEu: t("agent:model.tags.outsideEu"),

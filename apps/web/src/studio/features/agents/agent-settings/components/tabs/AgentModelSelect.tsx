@@ -1,15 +1,18 @@
 import { Badge, type BadgeVariant } from "@caseai-connect/ui/shad/badge"
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { BrainIcon, ZapIcon } from "lucide-react"
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@caseai-connect/ui/shad/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+import { cn } from "@caseai-connect/ui/utils"
+import { BrainIcon, CheckIcon, ChevronDownIcon, ZapIcon } from "lucide-react"
+import { useState } from "react"
+import { filterAgentModelOptions } from "./agent-model-select.helpers"
 
 /** What the badges of a model say, in the order they are shown. */
 export type AgentModelTag = "recommended" | "outsideEu" | "selfHosted" | "priority" | "reasoning"
@@ -33,6 +36,10 @@ export type AgentModelOption = {
 
 export type AgentModelSelectLabels = {
   placeholder: string
+  /** The placeholder of the search field at the top of the list. */
+  searchPlaceholder: string
+  /** Shown when no model matches the search. */
+  noResults: string
   tags: Record<AgentModelTag, string>
   /** The badge of a retiring or retired model, e.g. "Retires on Sep 30". */
   retires: (date: string, past: boolean) => string
@@ -48,7 +55,8 @@ const TAG_VARIANT: Record<AgentModelTag, BadgeVariant> = {
 
 /**
  * The model of an agent, grouped by vendor, then the models the workspace added on servers of its
- * own. Each line shows the readable name, the technical id, and what matters to pick it: the
+ * own. A search field at the top filters the list on the name, the technical id and the group.
+ * Each line shows the readable name, the technical id, and what matters to pick it: the
  * recommended one, where it is served, its retirement. A server URL is never shown here: only the
  * backoffice reads it.
  */
@@ -66,47 +74,92 @@ export function AgentModelSelect({
   labels: AgentModelSelectLabels
   defaultOpen?: boolean
 }) {
-  const groups = groupOptions(options)
+  const [open, setOpen] = useState(defaultOpen ?? false)
+  const [search, setSearch] = useState("")
+  const groups = groupOptions(filterAgentModelOptions(options, search))
   const selected = options.find((option) => option.value === value)
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (!nextOpen) setSearch("")
+  }
+
+  const handleSelect = (nextValue: string) => {
+    if (nextValue !== value) onChange(nextValue)
+    handleOpenChange(false)
+  }
+
   return (
-    <Select value={value} onValueChange={onChange} defaultOpen={defaultOpen}>
-      <SelectTrigger className="w-full py-2.5 data-[size=default]:h-auto">
-        <SelectValue placeholder={labels.placeholder}>
-          {selected && (
-            <span className="flex items-center gap-2 text-left">
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            "border-input focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50 flex w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2.5 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]",
+            !selected && "text-muted-foreground",
+          )}
+        >
+          {selected ? (
+            <span className="flex min-w-0 items-center gap-2 text-left">
               <GroupMark group={selected.group} />
-              <span className="flex flex-col">
+              <span className="flex min-w-0 flex-col">
                 <span className="font-medium">{selected.name}</span>
-                <span className="text-xs text-muted-foreground">{selected.modelId}</span>
+                <span className="truncate text-xs text-muted-foreground">{selected.modelId}</span>
               </span>
               {selected.tags.includes("priority") && <PriorityBadge labels={labels} />}
             </span>
+          ) : (
+            <span>{labels.placeholder}</span>
           )}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent className="max-h-[28rem] min-w-[28rem]">
-        {groups.map((group, groupIndex) => (
-          <SelectGroup key={group.name}>
-            {groupIndex > 0 && <SelectSeparator />}
-            <SelectLabel className="flex items-center gap-2">
-              <GroupMark group={group.name} />
-              {group.name}
-            </SelectLabel>
-            {group.options.map((option) => (
-              <SelectItem
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled}
-                className="py-2 *:[span]:last:w-full"
-              >
-                <ModelLine option={option} labels={labels} />
-              </SelectItem>
+          <ChevronDownIcon className="size-4 shrink-0 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-(--radix-popover-trigger-width) min-w-[28rem] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={labels.searchPlaceholder}
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList className="max-h-[24rem]">
+            <CommandEmpty>{labels.noResults}</CommandEmpty>
+            {groups.map((group, groupIndex) => (
+              <div key={group.name}>
+                {groupIndex > 0 && <CommandSeparator />}
+                <CommandGroup
+                  heading={
+                    <span className="flex items-center gap-2">
+                      <GroupMark group={group.name} />
+                      {group.name}
+                    </span>
+                  }
+                >
+                  {group.options.map((option) => (
+                    <CommandItem
+                      key={option.value}
+                      value={option.value}
+                      disabled={option.disabled}
+                      onSelect={() => handleSelect(option.value)}
+                      className="py-2"
+                    >
+                      <ModelLine option={option} labels={labels} />
+                      <CheckIcon
+                        className={cn(
+                          "size-4 shrink-0",
+                          option.value === value ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </div>
             ))}
-          </SelectGroup>
-        ))}
-      </SelectContent>
-    </Select>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }
 

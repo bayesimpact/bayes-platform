@@ -80,6 +80,8 @@
       },
       "unavailable": "Ten model nie jest już dostępny. Wybierz nowy model z listy.",
       "addedModelsGroup": "Modele tego obszaru roboczego",
+      "searchPlaceholder": "Szukaj modelu",
+      "noResults": "Nie znaleziono modelu",
       "tags": {
         "recommended": "Polecany",
         "outsideEu": "Poza UE",
