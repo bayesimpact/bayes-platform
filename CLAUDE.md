@@ -108,6 +108,7 @@ Any edit to `CHANGELOG.md` follows `docs/changelog.md`, whether or not a skill i
 - Use semantic commit messages consistent with the repo history: `feat: ...`, `fix: ...`, `chore: ...`.
 - Use scoped variants only when they match existing history and add clarity.
 - This repository is **public**. Never mention private GitHub repos (especially `bayesimpact/internal-issues`) in commits, PR titles/bodies, comments, docs, or `Closes`/`Refs`/`Fixes` trailers. Link public `bayes-platform` issues only, or omit the reference.
+- An issue or an issue comment on this repository is public too: it names no client, partner or confidential project, and it holds no internal URL, secret or client identifier. Describe the case in generic terms.
 
 ## Working in a Worktree (Claude Code)
 
