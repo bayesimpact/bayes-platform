@@ -19,7 +19,9 @@
       "appDeleteError": "No se pudo eliminar la aplicación",
       "appOAuthClientError": "No se pudo cargar o actualizar el cliente OAuth de la aplicación",
       "maintenanceJobStarted": "Tarea de mantenimiento iniciada",
-      "maintenanceJobStartError": "No se pudo iniciar la tarea de mantenimiento"
+      "maintenanceJobStartError": "No se pudo iniciar la tarea de mantenimiento",
+      "modelEndpointSaved": "Ajustes del modelo guardados",
+      "modelEndpointSaveError": "No se pudieron guardar los ajustes del modelo"
     }
   }
 }

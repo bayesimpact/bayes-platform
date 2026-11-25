@@ -2,28 +2,69 @@ import "../../open-telemetry-init" // !!!! first import !!!!
 import { createOpenAI } from "@ai-sdk/openai"
 import type { JSONSchema7, JSONSchema7Definition, LanguageModelV3 } from "@ai-sdk/provider"
 import type { AgentProvider } from "@caseai-connect/api-contracts"
-import { NotImplementedException } from "@nestjs/common"
+import { Inject, Injectable, NotImplementedException, Optional } from "@nestjs/common"
 import { asSchema, type ToolSet } from "ai"
-import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { getAgentModelKey } from "@/external/llm/agent-provider"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
+import {
+  MODEL_ENDPOINT_RESOLVER,
+  type ModelEndpointResolver,
+  type ModelEndpointSettings,
+} from "@/external/llm/workspace-models/model-endpoint.types"
 
 /**
- * A provider whose models we host on vLLM (Gemma, MedGemma, Mistral). Each
- * model is reached at the URL and API key of its `VLLM_<MODEL KEY>_URL` and
- * `VLLM_<MODEL KEY>_APIKEY` environment variables, through vLLM's
- * OpenAI-compatible API.
+ * A provider whose models we host on vLLM (Gemma, MedGemma, Mistral, Qwen).
+ * Each model is reached through vLLM's OpenAI-compatible API, at the server a
+ * workspace or the platform sets in the backoffice, or else at the URL and API
+ * key of its `VLLM_<MODEL KEY>_URL` and `VLLM_<MODEL KEY>_APIKEY` environment
+ * variables.
  */
+@Injectable()
 export abstract class AISDKVllmProviderBase<
   Provider extends AgentProvider,
 > extends AISDKLLMProviderBase<Provider> {
   /** Name shown in the traces and tags, e.g. "Gemma Provider". */
   protected abstract readonly providerName: string
 
+  /**
+   * The resolver is optional: a provider built with `new`, or in a test module
+   * without `ModelEndpointsModule`, always uses the environment variables.
+   */
+  constructor(
+    @Optional()
+    @Inject(MODEL_ENDPOINT_RESOLVER)
+    private readonly modelEndpointResolver?: ModelEndpointResolver,
+  ) {
+    super()
+  }
+
+  protected override async resolveEndpoint({
+    config,
+    callContext,
+  }: {
+    config: LLMConfig
+    callContext: LLMCallContext
+  }): Promise<ModelEndpointSettings | undefined> {
+    if (!this.modelEndpointResolver) return undefined
+    const endpoint = await this.modelEndpointResolver.resolveEndpoint({
+      callContext,
+      model: config.model,
+    })
+    return endpoint ?? undefined
+  }
+
   /** By default every call goes through the OpenAI-compatible chat API. */
-  getLanguageModel({ config }: { config: LLMConfig; callOrigin: CallOrigin }): LanguageModelV3 {
-    return this.createOpenAiCompatibleChatModel(config)
+  getLanguageModel({
+    config,
+    endpoint,
+  }: {
+    config: LLMConfig
+    callOrigin: CallOrigin
+    endpoint?: ModelEndpointSettings
+  }): LanguageModelV3 {
+    return this.createOpenAiCompatibleChatModel(config, endpoint)
   }
 
   /**
@@ -31,14 +72,39 @@ export abstract class AISDKVllmProviderBase<
    * `Authorization: Bearer` header, which is what vLLM checks when it runs
    * with `--api-key`.
    */
-  protected createOpenAiCompatibleChatModel(config: LLMConfig): LanguageModelV3 {
-    const { url, apiKey } = this.getModelEnvSettings(config.model)
+  protected createOpenAiCompatibleChatModel(
+    config: LLMConfig,
+    endpoint?: ModelEndpointSettings,
+  ): LanguageModelV3 {
+    const { url, apiKey, modelName } = this.getModelSettings(config.model, endpoint)
     return createOpenAI({
       name: this.providerName,
       baseURL: url,
       apiKey,
       fetch: this.fetchFor(config),
-    }).chat(config.model)
+    }).chat(modelName)
+  }
+
+  /**
+   * The URL, API key and model name of a call. On a server the workspace
+   * added: its URL, its key (else the environment's, else none, as a vLLM
+   * without `--api-key` takes any) and its served name (else the model id).
+   * Otherwise the environment variables of the model.
+   */
+  protected getModelSettings(
+    model: string,
+    endpoint?: ModelEndpointSettings,
+  ): { url: string; apiKey: string; modelName: string } {
+    if (!endpoint) return { ...this.getModelEnvSettings(model), modelName: model }
+    const agentModelKey = getAgentModelKey(model)
+    const envApiKey = agentModelKey
+      ? process.env[`VLLM_${agentModelKey.toUpperCase()}_APIKEY`]
+      : undefined
+    return {
+      url: endpoint.url,
+      apiKey: endpoint.apiKey ?? envApiKey ?? "<not used>",
+      modelName: endpoint.servedModelName ?? model,
+    }
   }
 
   protected getModelEnvSettings(model: string): { url: string; apiKey: string } {

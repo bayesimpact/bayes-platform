@@ -18,9 +18,12 @@ import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/m
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
+import { LlmModule } from "@/external/llm/llm.module"
+import { WorkspaceModelsModule } from "@/external/llm/workspace-models/workspace-models.module"
 import { BackofficeController } from "./backoffice.controller"
 import { BackofficeGuard } from "./backoffice.guard"
 import { BackofficeService } from "./backoffice.service"
+import { BackofficeWorkspaceModelsController } from "./backoffice-workspace-models.controller"
 
 @Module({
   imports: [
@@ -30,8 +33,10 @@ import { BackofficeService } from "./backoffice.service"
     AuthModule,
     RbacModule,
     AgentConversationReviewersModule,
+    WorkspaceModelsModule,
+    LlmModule,
   ],
-  controllers: [BackofficeController],
+  controllers: [BackofficeController, BackofficeWorkspaceModelsController],
   providers: [
     BackofficeService,
     BackofficeGuard,

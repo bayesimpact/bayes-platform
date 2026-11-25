@@ -2,6 +2,7 @@ import { BullModule } from "@nestjs/bullmq"
 import { Module, type Type } from "@nestjs/common"
 import { ConfigModule, ConfigService } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { WorkspaceModelsModule } from "@/external/llm/workspace-models/workspace-models.module"
 import { getBullMqConnection } from "./bullmq.config"
 import { TransactionModule } from "./common/transaction/transaction.module"
 import { WorkersHealthModule } from "./common/workers-health/workers-health.module"
@@ -113,6 +114,7 @@ const enabledWorkerModules = WORKER_MODULE_REGISTRY.filter((entry) =>
       }),
     }),
     TransactionModule,
+    WorkspaceModelsModule,
     ...enabledWorkerModules,
     StorageModule,
     WorkersHealthModule,

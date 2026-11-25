@@ -4,11 +4,13 @@ import type {
   BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  CustomModels,
   MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
+  ProjectModel,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
 import type { AgentMemory } from "@/common/features/agents/agent-memories/agent-memories.models"
@@ -565,6 +567,12 @@ export const seed = {
     },
     maintenanceJobs(maintenanceJobs: MaintenanceJob[]): StoryPreloadedState {
       return { backoffice: { maintenanceJobs: ads.fulfilled(maintenanceJobs) } }
+    },
+    projectModels(models: ProjectModel[]): StoryPreloadedState {
+      return { backoffice: { projectModels: ads.fulfilled(models) } }
+    },
+    customModels(customModels: CustomModels): StoryPreloadedState {
+      return { backoffice: { customModels: ads.fulfilled(customModels) } }
     },
   },
 }

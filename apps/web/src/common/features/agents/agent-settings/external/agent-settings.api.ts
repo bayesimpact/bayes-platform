@@ -65,6 +65,7 @@ function sanitizeParams(params: {
 
 const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   agentId: dto.agentId,
+  customModelId: dto.customModelId,
   createdAt: dto.createdAt,
   description: dto.description,
   documentsRagMode: dto.documentsRagMode,

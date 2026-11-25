@@ -19,7 +19,9 @@
       "appDeleteError": "Nie udało się usunąć aplikacji",
       "appOAuthClientError": "Nie udało się wczytać ani zaktualizować klienta OAuth aplikacji",
       "maintenanceJobStarted": "Uruchomiono zadanie konserwacyjne",
-      "maintenanceJobStartError": "Nie udało się uruchomić zadania konserwacyjnego"
+      "maintenanceJobStartError": "Nie udało się uruchomić zadania konserwacyjnego",
+      "modelEndpointSaved": "Zapisano ustawienia modelu",
+      "modelEndpointSaveError": "Nie udało się zapisać ustawień modelu"
     }
   }
 }

@@ -30,7 +30,7 @@ const decorator = buildDecorator<StoryArgs>(({ updatableProjects = "all", ...arg
     ...seededProjects,
     projects: seededProjects.projects.map((project, projectIndex) => ({
       ...project,
-      featureFlags: projectIndex % 3 === 0 ? ["gemma" as const] : project.featureFlags,
+      featureFlags: projectIndex % 3 === 0 ? ["agent-memory" as const] : project.featureFlags,
       permissions: canUpdate(updatableProjects, projectIndex)
         ? [BACKOFFICE_PROJECT_READ_PERMISSION, BACKOFFICE_PROJECT_UPDATE_PERMISSION]
         : [BACKOFFICE_PROJECT_READ_PERMISSION],

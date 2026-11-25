@@ -66,7 +66,7 @@ describe("Backoffice - get organization", () => {
     await addFeature({
       featureFlagRepository: repositories.featureFlagRepository,
       projectId: project.id,
-      featureFlagKey: "gemma",
+      featureFlagKey: "agent-memory",
     })
 
     const response = await request({
@@ -90,7 +90,7 @@ describe("Backoffice - get organization", () => {
       {
         id: project.id,
         name: project.name,
-        featureFlags: ["gemma"],
+        featureFlags: ["agent-memory"],
       },
     ])
     expect(agent).toBeDefined()

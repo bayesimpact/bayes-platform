@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, isAnyOf } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
   AppManifest,
@@ -7,11 +7,13 @@ import type {
   BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  CustomModels,
   MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
+  ProjectModel,
   TermsDocuments,
 } from "./backoffice.models"
 import { backofficeThunks } from "./backoffice.thunks"
@@ -39,6 +41,8 @@ interface State {
   termsDocuments: AsyncData<TermsDocuments>
   appManifests: AsyncData<AppManifest[]>
   maintenanceJobs: AsyncData<MaintenanceJob[]>
+  projectModels: AsyncData<ProjectModel[]>
+  customModels: AsyncData<CustomModels>
 }
 
 const defaultListQuery: ListQuery = { page: 0, limit: 10, search: "" }
@@ -60,6 +64,8 @@ const initialState: State = {
   termsDocuments: defaultAsyncData,
   appManifests: defaultAsyncData,
   maintenanceJobs: defaultAsyncData,
+  projectModels: defaultAsyncData,
+  customModels: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -83,6 +89,11 @@ const slice = createSlice({
     appsPanelUnmount: () => {},
     maintenanceJobsPanelMount: () => {},
     maintenanceJobsPanelUnmount: () => {},
+    workspaceModelsMount: () => {},
+    workspaceModelsUnmount: (state) => {
+      state.projectModels = defaultAsyncData
+      state.customModels = defaultAsyncData
+    },
     resetOrganizationDetail: (state) => {
       state.organizationDetail = defaultAsyncData
     },
@@ -405,6 +416,51 @@ const slice = createSlice({
           job.key === action.payload.key ? action.payload : job,
         )
       })
+
+    builder
+      .addCase(backofficeThunks.listProjectModels.pending, (state) => {
+        if (!ADS.isFulfilled(state.projectModels)) state.projectModels.status = ADS.Loading
+        state.projectModels.error = null
+      })
+      .addCase(backofficeThunks.listProjectModels.rejected, (state, action) => {
+        state.projectModels = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch models",
+          value: null,
+        }
+      })
+      .addCase(backofficeThunks.listCustomModels.pending, (state) => {
+        if (!ADS.isFulfilled(state.customModels)) state.customModels.status = ADS.Loading
+        state.customModels.error = null
+      })
+      .addCase(backofficeThunks.listCustomModels.rejected, (state, action) => {
+        state.customModels = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch added models",
+          value: null,
+        }
+      })
+      .addMatcher(
+        isAnyOf(
+          backofficeThunks.listProjectModels.fulfilled,
+          backofficeThunks.setProjectModel.fulfilled,
+          backofficeThunks.resetProjectModel.fulfilled,
+        ),
+        (state, action) => {
+          state.projectModels = { status: ADS.Fulfilled, error: null, value: action.payload }
+        },
+      )
+      .addMatcher(
+        isAnyOf(
+          backofficeThunks.listCustomModels.fulfilled,
+          backofficeThunks.createCustomModel.fulfilled,
+          backofficeThunks.updateCustomModel.fulfilled,
+          backofficeThunks.deleteCustomModel.fulfilled,
+        ),
+        (state, action) => {
+          state.customModels = { status: ADS.Fulfilled, error: null, value: action.payload }
+        },
+      )
   },
 })
 

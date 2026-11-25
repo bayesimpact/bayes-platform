@@ -14,6 +14,7 @@ export type AgentSettingsFields = Omit<
   | "projectId"
   | "agentId"
   | "agent"
+  | "customModel"
   | "revision"
   | "revisionName"
   | "revisionDesc"
@@ -40,6 +41,7 @@ export type AgentSettingsCreateFields = Pick<
       | "followUpSuggestionsMax"
       | "variables"
       | "embeddingModel"
+      | "customModelId"
     >
   >
 
@@ -61,5 +63,6 @@ export type AgentSettingsUpdateFields = Partial<
     | "followUpSuggestionsMax"
     | "variables"
     | "embeddingModel"
+    | "customModelId"
   >
 >

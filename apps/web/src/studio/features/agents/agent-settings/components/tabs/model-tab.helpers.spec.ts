@@ -67,6 +67,7 @@ describe("buildModelTabDefaultValues", () => {
 
     expect(buildModelTabDefaultValues(agentSettings)).toEqual({
       model: AgentModel.Gemini35Flash,
+      customModelId: null,
       providerOptions: { temperature: 0.4, ...thinkingOptions("low") },
       priorityCallsEnabled: true,
       embeddingModel: EmbeddingModel.GeminiEmbedding001,

@@ -14,6 +14,8 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { customModelFactory } from "@/external/llm/workspace-models/custom-model.factory"
+import { projectModelFactory } from "@/external/llm/workspace-models/project-model.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { AgentsModule } from "../agents.module"
@@ -49,15 +51,11 @@ describe("Agents - getAvailableModels", () => {
     await app.close()
   })
 
-  const createContext = async ({ featureFlags = [] }: { featureFlags?: string[] } = {}) => {
+  const createContext = async ({ enabledModels = [] }: { enabledModels?: AgentModel[] } = {}) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
-    for (const featureFlagKey of featureFlags) {
-      await repositories.featureFlagRepository.save(
-        repositories.featureFlagRepository.create({
-          projectId: project.id,
-          featureFlagKey,
-          enabled: true,
-        }),
+    for (const model of enabledModels) {
+      await repositories.projectModelRepository.save(
+        projectModelFactory.build({ projectId: project.id, model }),
       )
     }
     organizationId = organization.id
@@ -167,7 +165,7 @@ describe("Agents - getAvailableModels", () => {
     ).not.toHaveProperty("temperature")
   })
 
-  it("offers the vertex 3 and 4 models only, without any feature flag", async () => {
+  it("offers the vertex 3 and 4 models only, when no model is set for the workspace", async () => {
     await createContext()
 
     const { models } = await subject()
@@ -192,8 +190,8 @@ describe("Agents - getAvailableModels", () => {
     }
   })
 
-  it("offers a flagged provider's models once the project has its flag", async () => {
-    await createContext({ featureFlags: ["gemma"] })
+  it("offers a model once the workspace has it enabled", async () => {
+    await createContext({ enabledModels: [AgentModel.Gemma4_26B] })
 
     const { models } = await subject()
 
@@ -201,7 +199,57 @@ describe("Agents - getAvailableModels", () => {
     expect(entryOf(models, AgentModel.MistralSmall32_24B)?.isAvailable).toBe(false)
   })
 
-  it("offers the Gemini 4 models without a feature flag, carbon outside the EU", async () => {
+  it("ignores what another workspace turned on", async () => {
+    await createContext()
+    const otherWorkspace = await createOrganizationWithProject(repositories)
+    await repositories.projectModelRepository.save(
+      projectModelFactory.build({
+        projectId: otherWorkspace.project.id,
+        model: AgentModel.Qwen38_27B,
+      }),
+    )
+
+    const { models } = await subject()
+
+    expect(entryOf(models, AgentModel.Qwen38_27B)?.isAvailable).toBe(false)
+  })
+
+  it("hides a default model the workspace has turned off", async () => {
+    await createContext()
+    await repositories.projectModelRepository.save(
+      projectModelFactory.build({
+        projectId,
+        model: AgentModel.Gemini35Flash,
+        enabled: false,
+      }),
+    )
+
+    const { models } = await subject()
+
+    expect(entryOf(models, AgentModel.Gemini35Flash)?.isAvailable).toBe(false)
+  })
+
+  it("lists the models the workspace added, never their server or key", async () => {
+    await createContext()
+    const added = await repositories.customModelRepository.save(
+      customModelFactory.build({
+        projectId,
+        name: "Gemma on the new server",
+        baseModel: AgentModel.Gemma4_26B,
+        apiKeyEncrypted: "stored-key",
+      }),
+    )
+
+    const data = await subject()
+
+    expect(data.customModels).toEqual([
+      { id: added.id, name: "Gemma on the new server", baseModel: AgentModel.Gemma4_26B },
+    ])
+    expect(JSON.stringify(data)).not.toContain("203.0.113.10")
+    expect(JSON.stringify(data)).not.toContain("stored-key")
+  })
+
+  it("offers the Gemini 4 models by default, carbon outside the EU", async () => {
     await createContext()
 
     const { models } = await subject()

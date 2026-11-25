@@ -45,6 +45,7 @@ export function toAgentSettingsDto({
     embeddingModel: agentSettings.embeddingModel,
     fillFormEnabled: agentSettings.fillFormEnabled,
     priorityCallsEnabled: agentSettings.priorityCallsEnabled,
+    customModelId: agentSettings.customModelId ?? null,
     greetingMessage: agentSettings.greetingMessage ?? undefined,
     hasCategories,
     id: agentSettings.id,

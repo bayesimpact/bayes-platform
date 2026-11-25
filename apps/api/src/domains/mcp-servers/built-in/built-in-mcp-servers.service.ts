@@ -4,7 +4,7 @@ import { ConfigService } from "@nestjs/config"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { EncryptionService } from "../encryption.service"
+import { EncryptionService } from "@/common/encryption/encryption.service"
 import { McpServer } from "../mcp-server.entity"
 import type { McpServerConfig } from "../mcp-servers.service"
 import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "./built-in-mcp-servers"

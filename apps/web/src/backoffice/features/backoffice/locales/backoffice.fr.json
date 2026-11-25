@@ -19,7 +19,9 @@
       "appDeleteError": "La suppression de l'application a échoué",
       "appOAuthClientError": "Le client OAuth de l'application n'a pas pu être chargé ou mis à jour",
       "maintenanceJobStarted": "Job de maintenance lancé",
-      "maintenanceJobStartError": "Impossible de lancer le job de maintenance"
+      "maintenanceJobStartError": "Impossible de lancer le job de maintenance",
+      "modelEndpointSaved": "Réglages du modèle enregistrés",
+      "modelEndpointSaveError": "Échec de l'enregistrement des réglages du modèle"
     }
   }
 }

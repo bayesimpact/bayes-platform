@@ -1,4 +1,9 @@
 import { z } from "zod"
+import type {
+  AgentModel,
+  AgentModelDeprecation,
+  AgentProvider,
+} from "../agents/settings/agent-settings.dto"
 import type { FeatureFlagsDto } from "../feature-flags/feature-flags.dto"
 import type { TimeType } from "../generic"
 import type { MembershipRoleDto, RoleScopeTypeDto } from "../rbac/membership-role.dto"
@@ -331,3 +336,94 @@ export type BackofficeMaintenanceJobDto = {
 export type ListBackofficeMaintenanceJobsResponseDto = {
   jobs: BackofficeMaintenanceJobDto[]
 }
+
+/**
+ * A model of the code, as one workspace offers it. `customized` says the workspace set it; otherwise
+ * it follows the default of the code.
+ */
+export type BackofficeProjectModelDto = {
+  model: AgentModel
+  provider: AgentProvider
+  selfHosted: boolean
+  enabled: boolean
+  customized: boolean
+  /** Set when the provider retires the model: past that date, no agent can run on it. */
+  deprecation: AgentModelDeprecation | null
+  /** The provider serves the model outside the European Union. */
+  servedOutsideEu: boolean
+}
+
+export type ListBackofficeProjectModelsResponseDto = {
+  models: BackofficeProjectModelDto[]
+}
+
+export const setBackofficeProjectModelSchema = z
+  .object({
+    model: z.string().min(1),
+    enabled: z.boolean(),
+  })
+  .strict()
+
+export type SetBackofficeProjectModelRequestDto = z.infer<typeof setBackofficeProjectModelSchema>
+
+export const resetBackofficeProjectModelSchema = z
+  .object({
+    model: z.string().min(1),
+  })
+  .strict()
+
+export type ResetBackofficeProjectModelRequestDto = z.infer<
+  typeof resetBackofficeProjectModelSchema
+>
+
+/** A model a workspace added. The key is never sent back. Only the backoffice reads the URL. */
+export type BackofficeCustomModelDto = {
+  id: string
+  name: string
+  baseModel: AgentModel
+  provider: AgentProvider
+  baseUrl: string
+  hasApiKey: boolean
+  servedModelName: string | null
+  /** The agents with a revision on it. It cannot be deleted while there are any. */
+  agentCount: number
+  createdAt: TimeType
+}
+
+/** A self-hosted model of the code an added model can run. */
+export type BackofficeCustomModelTypeDto = {
+  model: AgentModel
+  provider: AgentProvider
+}
+
+export type ListBackofficeCustomModelsResponseDto = {
+  customModels: BackofficeCustomModelDto[]
+  types: BackofficeCustomModelTypeDto[]
+}
+
+/** A model a workspace adds next to the models of the code: a self-hosted type on its own server. */
+export const createBackofficeCustomModelSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    /** The self-hosted model of the code it runs: its options and behaviour apply. */
+    baseModel: z.string().min(1),
+    baseUrl: z.string().trim().min(1).max(2048),
+    /** Left out keeps the stored key, null removes it, a string replaces it. */
+    apiKey: z.string().max(4096).nullable().optional(),
+    /** The name the server knows the model by, when it differs from the base model's. */
+    servedModelName: z.string().trim().min(1).max(200).nullable(),
+  })
+  .strict()
+
+export type CreateBackofficeCustomModelRequestDto = z.infer<
+  typeof createBackofficeCustomModelSchema
+>
+
+/** The type cannot change: agents using the model keep the options of its type. */
+export const updateBackofficeCustomModelSchema = createBackofficeCustomModelSchema
+  .omit({ baseModel: true })
+  .strict()
+
+export type UpdateBackofficeCustomModelRequestDto = z.infer<
+  typeof updateBackofficeCustomModelSchema
+>

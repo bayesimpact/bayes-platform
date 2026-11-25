@@ -102,7 +102,7 @@ describe("Backoffice - list projects", () => {
     await repositories.featureFlagRepository.save(
       repositories.featureFlagRepository.create({
         projectId: project.id,
-        featureFlagKey: "gemma",
+        featureFlagKey: "agent-memory",
         enabled: true,
       }),
     )
@@ -114,7 +114,7 @@ describe("Backoffice - list projects", () => {
     const returned = response.body.data.projects.find(
       (listedProject: { id: string }) => listedProject.id === project.id,
     )
-    expect(returned?.featureFlags).toEqual(["gemma"])
+    expect(returned?.featureFlags).toEqual(["agent-memory"])
   })
 
   it("filters by project name", async () => {

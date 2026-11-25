@@ -50,6 +50,8 @@ import { TesterSessionFeedback } from "@/domains/review-campaigns/tester-session
 import { TermsAcceptance } from "@/domains/terms-compliance/terms-acceptance.entity"
 import { TermsDocument } from "@/domains/terms-compliance/terms-document.entity"
 import { User } from "@/domains/users/user.entity"
+import { CustomModel } from "@/external/llm/workspace-models/custom-model.entity"
+import { ProjectModel } from "@/external/llm/workspace-models/project-model.entity"
 import { AgentSettings } from "../../domains/agents/settings/agent-settings.entity"
 
 export type AllRepositories = {
@@ -90,6 +92,8 @@ export type AllRepositories = {
   oauthGrantRepository: Repository<OAuthGrant>
   invitationRepository: Repository<Invitation>
   mcpServerRepository: Repository<McpServer>
+  customModelRepository: Repository<CustomModel>
+  projectModelRepository: Repository<ProjectModel>
   organizationRepository: Repository<Organization>
   projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>
   projectRepository: Repository<Project>
@@ -152,6 +156,8 @@ export function buildAllRepositories(
     oauthGrantRepository: getRepository(OAuthGrant),
     invitationRepository: getRepository(Invitation),
     mcpServerRepository: getRepository(McpServer),
+    customModelRepository: getRepository(CustomModel),
+    projectModelRepository: getRepository(ProjectModel),
     organizationRepository: getRepository(Organization),
     projectAgentSessionCategoryRepository: getRepository(ProjectAgentSessionCategory),
     projectRepository: getRepository(Project),
