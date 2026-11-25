@@ -452,7 +452,8 @@ and empty states.
 - Code copied from one feature into another instead of moved to `lib/` or `components/shared/`.
 - An import from another app or from a package another app owns. In
   `packages/mcp-app-host`: React, a component, a style, a text shown to people, or an import of
-  another workspace package.
+  another workspace package. In `packages/permissions`: a dependency, an import, an enum, or a
+  text shown to people.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.

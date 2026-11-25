@@ -199,8 +199,13 @@ export const AGENT_SETTINGS_ARCHIVE_PERMISSION = "agent.settings.archive" as con
  */
 export const DESK_UI_READ_PERMISSION = "desk.ui.read" as const
 
+/** Opens the Studio of a project, where its agents are set up. */
 export const STUDIO_UI_READ_PERMISSION = "studio.ui.read" as const
 
+/**
+ * Opens a project's evaluations. The `project_evaluator` role grants it, never the organization:
+ * Evaluation opens for a person who holds it on at least one project.
+ */
 export const EVALUATION_UI_READ_PERMISSION = "evaluation.ui.read" as const
 
 /**
@@ -509,57 +514,6 @@ export const APP_GRANTABLE_PERMISSIONS = [
 ] as const
 
 export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
-
-/** Product labels for the resource-type prefix of an App-grantable permission. */
-export const APP_GRANTABLE_RESOURCE_LABELS = {
-  document: "Document",
-  document_source: "Document source",
-  document_tag: "Document tag",
-  project: "Workspace",
-  agent: "Agent",
-  organization: "Organization",
-} as const
-
-export type AppGrantableResourceType = keyof typeof APP_GRANTABLE_RESOURCE_LABELS
-
-export type AppGrantablePermissionGroup = {
-  resourceType: string
-  label: string
-  permissions: AppGrantablePermission[]
-}
-
-export function groupAppGrantablePermissions(
-  permissions: readonly AppGrantablePermission[] = APP_GRANTABLE_PERMISSIONS,
-): AppGrantablePermissionGroup[] {
-  const groups: AppGrantablePermissionGroup[] = []
-  for (const permission of permissions) {
-    const resourceType = permission.split(".")[0] ?? permission
-    const existingGroup = groups.find((group) => group.resourceType === resourceType)
-    if (existingGroup) {
-      existingGroup.permissions.push(permission)
-      continue
-    }
-    const label =
-      resourceType in APP_GRANTABLE_RESOURCE_LABELS
-        ? APP_GRANTABLE_RESOURCE_LABELS[resourceType as AppGrantableResourceType]
-        : resourceType
-    groups.push({ resourceType, label, permissions: [permission] })
-  }
-  return groups
-}
-
-/** Action labels that the permission key does not spell well on its own. */
-const APP_GRANTABLE_ACTION_LABELS: Partial<Record<AppGrantablePermission, string>> = {
-  [AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION]: "Chat for people outside Bayes",
-}
-
-export function appGrantablePermissionActionLabel(permission: AppGrantablePermission): string {
-  const label = APP_GRANTABLE_ACTION_LABELS[permission]
-  if (label) return label
-  const action = permission.slice(permission.indexOf(".") + 1)
-  if (!action) return permission
-  return action.charAt(0).toUpperCase() + action.slice(1)
-}
 
 /** See the users who are members of a resource you hold this permission on. */
 export const USER_READ_PERMISSION = "user.read" as const

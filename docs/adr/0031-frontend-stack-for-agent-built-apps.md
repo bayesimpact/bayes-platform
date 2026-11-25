@@ -50,8 +50,9 @@ skill only starts empty folders, so it is not run here: this ADR carries its rul
 Three constraints frame the work:
 
 * The Desk is an app of its own. It shares no code with `apps/web` or Studio: its code, its
-  packages, its endpoints and its DTOs are its own. One package is the exception: the sandbox of
-  MCP Apps (section 2.4).
+  packages, its endpoints and its DTOs are its own. Two packages are the exception: the sandbox of
+  MCP Apps (section 2.4), and the permission catalog, which it reads through its contracts
+  (section 2.12).
 * The NestJS API and `packages/api-contracts` keep their conventions, routes and DTOs. The Desk's
   endpoints sit next to the existing ones and call the same domain services.
 * Every Desk endpoint has a Zod schema for what it receives and for what it returns.
@@ -70,7 +71,7 @@ kit.
 **Every frontend is rebuilt, one app at a time, as an app of its own, on the stack and the rules
 below, chosen for coding agents. The Desk comes first: it becomes `apps/desk`, a Vite SPA served by
 the API at `/app`, which shares no code with `apps/web` but the sandbox of MCP Apps (section
-2.4). Its contracts live in
+2.4) and the permission catalog its contracts re-export (section 2.12). Its contracts live in
 `packages/desk-contracts`, and it calls only Desk endpoints. Each endpoint has Zod schemas for its
 params, query, body, response and stream events, and both the API and the Desk enforce them at
 runtime.**
@@ -210,7 +211,8 @@ knip reports unused files, exports and dependencies. Both tools run in the Desk'
 `check:boundaries` script, which CI already runs through turbo. They only see imports, so these
 boundaries can still be bypassed (section 6).
 
-Apart from the package below, the Desk shares no code with the other apps: what it needs lives in
+Apart from the package below and the permission catalog its contracts re-export (section 2.12),
+the Desk shares no code with the other apps: what it needs lives in
 it, even where `apps/web` has its own version. Whether the apps of the new stack share code with each other is decided when the
 second one starts (section 7).
 
@@ -927,7 +929,8 @@ part of it invalidates.
 * The Desk depends on no other app's code. Its sign-in, components, tokens, theme files,
   contracts and translations are its own, and a change in Studio cannot break it. The sandbox of
   MCP Apps is the exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk,
-  `apps/web` and `apps/web-embed` at once, on purpose.
+  `apps/web` and `apps/web-embed` at once, on purpose. So does the permission catalog (section
+  2.12): a change to `packages/permissions` reaches every app and the API at once.
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
