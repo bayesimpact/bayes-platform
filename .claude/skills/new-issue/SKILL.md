@@ -10,10 +10,22 @@ Turn a free-text description into a well-formed GitHub issue and post it.
 
 `bayesimpact/bayes-platform` is a **public** repository. Anything posted there (titles, bodies, comments, labels) is world-readable.
 
-- **NEVER mention the "Health" project** — or anything that identifies it — in any issue, body, or comment on bayes-platform. Strip it from the user's description and rephrase in neutral, generic terms.
+- **NEVER mention the "Health" project** — or anything that identifies it — in any issue, body, or comment on bayes-platform.
 - More broadly, never include client names, confidential project names, internal URLs, credentials, or private data in anything posted to a public repo.
 - **Never mention `bayesimpact/internal-issues` (or any other private repo) in bayes-platform** — not in issue text, PR bodies, commit messages, `Closes`/`Refs`/`Fixes` trailers, or docs. Private-tracker IDs stay in private trackers and in chat with the user only.
-- If the user's description leans on a confidential detail to make sense, genericize it (e.g. "a specific client deployment") rather than dropping the issue. If you cannot genericize it without losing the point, STOP and ask the user how to phrase it.
+
+### When the description contains a confidential detail: let the user choose
+
+If the user's description contains a confidential detail (a client name, a confidential project name, the "Health" project, an internal URL) and the target is bayes-platform, STOP before you search or post, and ask the user to choose:
+
+1. **Genericize and post on bayes-platform.** Strip the detail and rephrase in neutral terms (e.g. "a specific client deployment"). Show the user the genericized title before you post. If you cannot genericize without losing the point, say so: the choice is then option 2, or a wording the user gives.
+2. **Keep the detail and post on the private `bayesimpact/internal-issues` repo.** Use `--repo bayesimpact/internal-issues` for both the duplicate search and the creation. The client and the project may be named there.
+
+Name the detail you found when you ask, so that the user knows what the question is about. Do not choose for the user, and do not post anything until they answer.
+
+Do not ask when the target is already the private repo: the user named it in the invocation, or the issue is a security issue (see "Target repository").
+
+Credentials and private data go in no issue, on either repo.
 
 This guardrail overrides "Friction is the enemy" — when confidentiality is at stake, pause and check rather than post.
 
@@ -24,6 +36,8 @@ Default repo: `bayesimpact/bayes-platform`.
 Override only if the user explicitly names another repo in the invocation (e.g. `/new-issue --repo owner/name ...` or "sur le repo X"). Otherwise always use the default — do NOT infer the repo from the current working directory.
 
 **Security issues always go to the private `bayesimpact/internal-issues` repo**, never to bayes-platform, even when the user did not name a repo. This covers access-control gaps, permission bypasses, vulnerabilities, data exposure, and anything describing how to reach data a caller should not see. Use `--repo bayesimpact/internal-issues` for both the duplicate search and the creation. If you are unsure whether an issue is security-related, treat it as one.
+
+**An issue with a confidential detail goes to the repo the user chooses**: bayes-platform with the detail genericized, or `bayesimpact/internal-issues` with the detail kept. See "When the description contains a confidential detail" above.
 
 ## Inputs
 
