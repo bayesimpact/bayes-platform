@@ -1,37 +1,23 @@
 import { describe, expect, it, vi } from "vitest"
 
-vi.mock("@/lib/auth/session", () => ({
-  AuthenticationRequiredError: class AuthenticationRequiredError extends Error {},
-  SignInRefusedError: class SignInRefusedError extends Error {},
-  SignInLoopError: class SignInLoopError extends Error {},
+// The configuration needs a browser to load: the session the client reads uses a stand-in.
+vi.mock("@/app/config", () => ({
+  appBasePath: "/app/",
+  appConfig: { mode: "mock" },
+  isMockMode: true,
 }))
 
-const { ApiError, ContractMismatchError } = await import("@/lib/api-client")
-const { AuthenticationRequiredError, SignInLoopError, SignInRefusedError } = await import(
-  "@/lib/auth/session"
-)
+const { shouldRetryQuery } = await import("@/lib/api-client")
 const { createQueryClient } = await import("./query-client")
 
-const retry = createQueryClient().getDefaultOptions().queries?.retry
-const shouldRetry = (failureCount: number, error: Error) =>
-  typeof retry === "function" ? retry(failureCount, error) : retry
-
 describe("createQueryClient", () => {
-  it("retries a server error or a network failure, three times", () => {
-    expect(shouldRetry(0, new ApiError(503, null))).toBe(true)
-    expect(shouldRetry(0, new TypeError("Failed to fetch"))).toBe(true)
-    expect(shouldRetry(3, new ApiError(503, null))).toBe(false)
+  it("retries a query as the shared rule says, and never a mutation", () => {
+    const options = createQueryClient().getDefaultOptions()
+    expect(options.queries?.retry).toBe(shouldRetryQuery)
+    expect(options.mutations?.retry).toBe(false)
   })
 
-  it("never retries a 4xx, a broken contract, an ended session or a refused sign-in", () => {
-    expect(shouldRetry(0, new ApiError(404, null))).toBe(false)
-    expect(shouldRetry(0, new ContractMismatchError("GET /desk/projects/mine"))).toBe(false)
-    expect(shouldRetry(0, new AuthenticationRequiredError("gone"))).toBe(false)
-    expect(shouldRetry(0, new SignInRefusedError("emailRequired"))).toBe(false)
-    expect(shouldRetry(0, new SignInLoopError())).toBe(false)
-  })
-
-  it("never retries a mutation", () => {
-    expect(createQueryClient().getDefaultOptions().mutations?.retry).toBe(false)
+  it("retries no query in the tests and the stories", () => {
+    expect(createQueryClient({ isRetrying: false }).getDefaultOptions().queries?.retry).toBe(false)
   })
 })

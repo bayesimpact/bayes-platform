@@ -1,39 +1,24 @@
-import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/eval-contracts"
+import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/schema-route"
+import {
+  AuthenticationRequiredError,
+  SignInLoopError,
+  SignInRefusedError,
+} from "@caseai-connect/sign-in"
 import { HttpResponse, http } from "msw"
 import { setupServer } from "msw/node"
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { z } from "zod"
+import { ApiError, ContractMismatchError, createApiClient } from "./api-client"
 
-const session = vi.hoisted(() => ({
-  AuthenticationRequiredError: class AuthenticationRequiredError extends Error {},
-  SignInRefusedError: class SignInRefusedError extends Error {
-    readonly refusal: string
-    constructor(refusal: string) {
-      super(refusal)
-      this.refusal = refusal
-    }
-  },
-  SignInLoopError: class SignInLoopError extends Error {},
+/** The app's session, as `lib/auth/session.ts` gives it: only its effects are mocked. */
+const session = {
   claimAutomaticSignIn: vi.fn(() => true),
-  getAccessToken: vi.fn(),
-  endSession: vi.fn(),
-  signIn: vi.fn(),
-}))
-// The configuration needs a browser to load: a stand-in lets the real session module load, so
-// the API's refusals are read as the app reads them, and only the session's effects are mocked.
-vi.mock("@/app/config", () => ({
-  appBasePath: "/eval/",
-  appConfig: { mode: "mock" },
-  isMockMode: true,
-}))
-vi.mock("@/lib/auth/session", async (importOriginal) => ({
-  ...session,
-  signInRefusalOf: (await importOriginal<typeof import("@/lib/auth/session")>()).signInRefusalOf,
-}))
+  getAccessToken: vi.fn<(options: { forceRefresh: boolean }) => Promise<string>>(),
+  endSession: vi.fn(async () => {}),
+  signIn: vi.fn(async (_params: { returnTo: string }) => {}),
+}
 
-const { ApiError, ContractMismatchError, apiRequest, apiStreamResponse } = await import(
-  "./api-client"
-)
+const { apiRequest, apiStreamResponse } = createApiClient(session)
 
 const itemId = crypto.randomUUID()
 
@@ -65,7 +50,7 @@ const server = setupServer()
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }))
 beforeEach(() => {
   vi.stubGlobal("window", {
-    location: { origin: "http://eval.test", pathname: "/eval/o/1", search: "?tab=a", hash: "" },
+    location: { origin: "http://app.test", pathname: "/app/o/1", search: "?tab=a", hash: "" },
   })
   session.getAccessToken.mockReset().mockResolvedValue("first-token")
   session.endSession.mockReset()
@@ -81,7 +66,7 @@ describe("apiRequest", () => {
   it("calls /api on the page's origin with the bearer token, and returns the parsed data", async () => {
     let received: { url: string; authorization: string | null } | undefined
     server.use(
-      http.get("http://eval.test/api/test/items/:itemId", ({ request, params }) => {
+      http.get("http://app.test/api/test/items/:itemId", ({ request, params }) => {
         received = { url: request.url, authorization: request.headers.get("Authorization") }
         return HttpResponse.json({ data: { itemId: params.itemId, page: 2, internalNote: "x" } })
       }),
@@ -91,7 +76,7 @@ describe("apiRequest", () => {
 
     expect(item).toEqual({ itemId, page: 2 })
     expect(received).toEqual({
-      url: `http://eval.test/api/test/items/${itemId}?page=2`,
+      url: `http://app.test/api/test/items/${itemId}?page=2`,
       authorization: "Bearer first-token",
     })
   })
@@ -99,7 +84,7 @@ describe("apiRequest", () => {
   it("sends the body in its payload envelope", async () => {
     let body: unknown
     server.use(
-      http.post("http://eval.test/api/test/items", async ({ request }) => {
+      http.post("http://app.test/api/test/items", async ({ request }) => {
         body = await request.json()
         return HttpResponse.json({ data: { title: "Weekly report" } })
       }),
@@ -113,7 +98,7 @@ describe("apiRequest", () => {
   it("throws an ApiError with the body of a 400", async () => {
     const message = "ZodValidationError: found 1 issues\n  [Issue 1] title:\n Too small"
     server.use(
-      http.post("http://eval.test/api/test/items", () =>
+      http.post("http://app.test/api/test/items", () =>
         HttpResponse.json({ statusCode: 400, message, error: "Bad Request" }, { status: 400 }),
       ),
     )
@@ -129,7 +114,7 @@ describe("apiRequest", () => {
   it("throws a ContractMismatchError when the response breaks the contract", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {})
     server.use(
-      http.get("http://eval.test/api/test/items/:itemId", () =>
+      http.get("http://app.test/api/test/items/:itemId", () =>
         HttpResponse.json({ data: { itemId: "not-a-uuid", page: 2 } }),
       ),
     )
@@ -140,11 +125,11 @@ describe("apiRequest", () => {
   })
 
   it("refreshes the token once after a 401, then retries", async () => {
-    session.getAccessToken.mockImplementation(async (options?: { forceRefresh?: boolean }) =>
-      options?.forceRefresh ? "refreshed-token" : "revoked-token",
+    session.getAccessToken.mockImplementation(async (options) =>
+      options.forceRefresh ? "refreshed-token" : "revoked-token",
     )
     server.use(
-      http.get("http://eval.test/api/test/items/:itemId", ({ request }) =>
+      http.get("http://app.test/api/test/items/:itemId", ({ request }) =>
         request.headers.get("Authorization") === "Bearer refreshed-token"
           ? HttpResponse.json({ data: { itemId, page: 0 } })
           : new HttpResponse(null, { status: 401 }),
@@ -159,21 +144,21 @@ describe("apiRequest", () => {
   it("ends the session and signs in again, back to this page, when the API refuses the refreshed token", async () => {
     server.use(
       http.get(
-        "http://eval.test/api/test/items/:itemId",
+        "http://app.test/api/test/items/:itemId",
         () => new HttpResponse(null, { status: 401 }),
       ),
     )
 
     await expect(
       apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } }),
-    ).rejects.toBeInstanceOf(session.AuthenticationRequiredError)
+    ).rejects.toBeInstanceOf(AuthenticationRequiredError)
     expect(session.endSession).toHaveBeenCalled()
-    expect(session.signIn).toHaveBeenCalledWith({ returnTo: "/eval/o/1?tab=a" })
+    expect(session.signIn).toHaveBeenCalledWith({ returnTo: "/app/o/1?tab=a" })
   })
 
   it("explains a sign-in the API refuses, without a new sign-in that would fail the same", async () => {
     server.use(
-      http.get("http://eval.test/api/test/items/:itemId", () =>
+      http.get("http://app.test/api/test/items/:itemId", () =>
         HttpResponse.json(
           {
             statusCode: 401,
@@ -185,21 +170,21 @@ describe("apiRequest", () => {
     )
 
     const request = apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } })
-    await expect(request).rejects.toBeInstanceOf(session.SignInRefusedError)
+    await expect(request).rejects.toBeInstanceOf(SignInRefusedError)
     await expect(request).rejects.toHaveProperty("refusal", "emailRequired")
     expect(session.signIn).not.toHaveBeenCalled()
   })
 
   it("signs in again when the API's message only names a key every object inherits", async () => {
     server.use(
-      http.get("http://eval.test/api/test/items/:itemId", () =>
+      http.get("http://app.test/api/test/items/:itemId", () =>
         HttpResponse.json({ statusCode: 401, message: "constructor" }, { status: 401 }),
       ),
     )
 
     await expect(
       apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } }),
-    ).rejects.toBeInstanceOf(session.AuthenticationRequiredError)
+    ).rejects.toBeInstanceOf(AuthenticationRequiredError)
     expect(session.signIn).toHaveBeenCalled()
   })
 
@@ -207,14 +192,14 @@ describe("apiRequest", () => {
     session.claimAutomaticSignIn.mockReturnValueOnce(false)
     server.use(
       http.get(
-        "http://eval.test/api/test/items/:itemId",
+        "http://app.test/api/test/items/:itemId",
         () => new HttpResponse(null, { status: 401 }),
       ),
     )
 
     await expect(
       apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } }),
-    ).rejects.toBeInstanceOf(session.SignInLoopError)
+    ).rejects.toBeInstanceOf(SignInLoopError)
     expect(session.signIn).not.toHaveBeenCalled()
   })
 })
@@ -223,7 +208,7 @@ describe("apiStreamResponse", () => {
   it("posts the message in the body, and keeps it out of the URL", async () => {
     let received: { url: string; body: unknown; accept: string | null } | undefined
     server.use(
-      http.post("http://eval.test/api/test/items/:itemId/stream", async ({ request }) => {
+      http.post("http://app.test/api/test/items/:itemId/stream", async ({ request }) => {
         received = {
           url: request.url,
           body: await request.json(),
@@ -242,7 +227,7 @@ describe("apiStreamResponse", () => {
 
     expect(response.ok).toBe(true)
     expect(received).toEqual({
-      url: `http://eval.test/api/test/items/${itemId}/stream`,
+      url: `http://app.test/api/test/items/${itemId}/stream`,
       body: { payload: { content: "A private message" } },
       accept: "text/event-stream",
     })

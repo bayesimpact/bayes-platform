@@ -325,8 +325,9 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. Each language of
   `LOCALES` has its date-fns locale there, which the typecheck requires. The chat keeps the Desk's
   `RelativeTime`, on `Intl`.
-- The API client: `src/lib/api-client.ts`. The query client's retry rules:
-  `src/app/query-client.ts`.
+- The API client: `src/lib/api-client.ts`, which creates the client of
+  `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
+  `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).
 - The mocked API: `src/test/msw/handlers.ts`, with one file of handlers per area beside it
   (`campaign-handlers.ts`, `conversation-dataset-handlers.ts`, `conversation-run-handlers.ts`,
   `extraction-dataset-handlers.ts`, `extraction-run-handlers.ts`), written with `mockRoute`

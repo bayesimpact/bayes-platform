@@ -9,8 +9,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import { invalidateAgentHistory } from "@/features/history"
 import { invalidateMemories } from "@/features/memory"
-import { apiStreamResponse } from "@/lib/api-client"
-import { readServerSentEvents, type ServerSentEvent } from "@/lib/stream"
+import { apiStreamResponse, readServerSentEvents, type ServerSentEvent } from "@/lib/api-client"
 import {
   applyReplyEvent,
   type ChatMessage,

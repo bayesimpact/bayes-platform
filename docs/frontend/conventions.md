@@ -43,7 +43,7 @@ where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no too
 | App | React 19 with the React Compiler, Vite, TypeScript in strict mode |
 | Routing | TanStack Router, file-based through its Vite plugin |
 | Server state | TanStack Query |
-| API client | `lib/api-client.ts`, one `fetch` wrapper driven by the route objects and their schemas |
+| API client | `@caseai-connect/api-client`, one `fetch` wrapper driven by the route objects and their schemas, created in the app's `lib/api-client.ts` |
 | Validation | Zod 4, in the app's contracts package: the schemas of what it sends and reads |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
 | Tables | TanStack Table v8, rendered with the shadcn `Table` |
@@ -98,9 +98,11 @@ exports and dependencies:
 - `components/` and `lib/` import neither `features/` nor `routes/`.
 - The app imports nothing from another app or from a package another app owns. Its workspace
   dependencies are its contracts package and the packages no app owns and every app imports
-  (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps, and
-  `@caseai-connect/sign-in`, the sign-in. Only `lib/auth/` imports `@caseai-connect/sign-in`, and
-  no code of the app imports `oidc-client-ts`.
+  (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps,
+  `@caseai-connect/sign-in`, the sign-in, and `@caseai-connect/api-client`, the API client. Only
+  `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports `oidc-client-ts`, and
+  only `lib/api-client.ts` imports `@caseai-connect/api-client`: it creates the app's client with
+  the functions of `lib/auth/session.ts`, and the rest of the app imports it.
 - `src/test/` serves the tests and the stories only: no app code imports it.
 - No cycles.
 
@@ -466,7 +468,10 @@ and empty states.
   text shown to people. In `packages/sign-in`: React, a component, a style, a text shown to
   people, a contract, a dependency beyond `oidc-client-ts` and Zod, or an import of another
   workspace package. In `packages/schema-route`: a route, a schema of an app, React, a text shown
-  to people, a dependency beyond Zod, or an import of another workspace package.
+  to people, a dependency beyond Zod, or an import of another workspace package. In
+  `packages/api-client`: a route, React, a text shown to people, the app's session (it takes it
+  from the app), or a dependency beyond Zod, `@caseai-connect/schema-route` and
+  `@caseai-connect/sign-in`.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.
