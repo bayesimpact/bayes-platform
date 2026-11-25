@@ -737,19 +737,38 @@ called before: the same method, params, body and response, the same permission o
 resource, and the same status codes and tracked activities. Two things change: every schema refusal
 answers 400, and a response holds only the fields the contract declares. Two query schemas of the
 package changed so the API can check them: `page` and `limit` refuse an empty text, and a filter
-that is not JSON is a Zod issue. The old endpoints stay as they are, and the Studio and the MCP
-tools still use some of them. These parts wait for later changes:
+that is not JSON is a Zod issue. These parts wait for later changes:
 
-* the removal of the old endpoints that only Evaluation called;
 * the move of the entities, services, repositories and workers of `evaluations` and
   `review-campaigns` into the Evaluation module;
 * the Evaluation access guard on `evaluation.ui.read`;
 * the check of stream events on the server;
 * an Evaluation route for the file of a library resource, which Evaluation still links outside
   `eval/`;
-* the routes the app does not call: the status streams of evaluation runs, the CSV of a campaign
-  report, the CSV export of an extraction run, the test-case routes, `addMemberRole`,
-  `updateTesterFeedback` and the single-message `getOne`.
+* a stream of the status of the evaluation runs, if Evaluation needs one: it polls today.
+
+**The old evaluation endpoints are gone (2026-11-25).** Once Evaluation called its own endpoints,
+nothing called most of the routes of the `evaluations` and `review-campaigns` domains, the
+invitation routes of a campaign, and the message and stream routes of a campaign tester. Their
+handlers, their routes in `api-contracts` and the DTOs that nothing else read are gone. Eleven
+controller files went with them: the runs of both kinds of evaluation, the extraction datasets, the
+report, the three of the reviewer, the tester's, the invitations of a campaign, and the two of a
+tester's conversation. These routes stay, because the Studio calls them:
+`EvaluationConversationDatasetsRoutes.getAll` and the four test-case routes, to save a conversation
+as a test case, and `ReviewCampaignsRoutes.addMemberRole` and `revokeMembership`, for the member
+page. The abstract `AgentMessagesController` and `StreamingController` of the `agents` domain serve
+the playground alone. Four routes that no app called went too: the two status streams of the
+evaluation runs, the CSV of a campaign report, which Evaluation builds in the browser,
+`updateTesterFeedback`, and the single message of a tester's conversation. The services, the
+repositories, the entities and the workers did not change, so the MCP evaluation tools, the
+backoffice and the workers work as before. Three pieces of that code have no caller left and wait
+for the move of the business code: `EvaluationConversationRunStatusStreamService`,
+`EvaluationExtractionRunStatusStreamService` and `TesterService.updateFeedback`. One behaviour is
+no longer served over HTTP: the old `updateOne` of a campaign took an `agentId` to point a draft
+campaign at another agent, and the Evaluation schema refuses it. The service still holds that
+logic. An e2e case of a removed handler that the specs of `apps/api/src/domains/eval/` did not
+have was ported there before its spec was deleted. `apps/web` lost one dead branch: its invitation
+client no longer has a campaign target, since Evaluation manages the invitations to a campaign.
 
 ### 2.14 Serving and environments
 
