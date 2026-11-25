@@ -1,5 +1,5 @@
+import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
-import { defineSchemaRoute } from "../define-schema-route"
 import { myOrganizationOutputSchema } from "./organizations.dto"
 
 export const DeskOrganizationsRoutes = {

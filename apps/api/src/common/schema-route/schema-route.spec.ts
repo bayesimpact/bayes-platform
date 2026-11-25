@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/desk-contracts"
-import { defineSchemaRoute as defineEvalSchemaRoute } from "@caseai-connect/eval-contracts"
+import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/schema-route"
 import { Controller, HttpStatus, type INestApplication, Logger, Module, Req } from "@nestjs/common"
 import type { Request } from "express"
 import type { App } from "supertest/types"
@@ -38,13 +37,6 @@ const resetFixtureRoute = defineSchemaRoute({
   response: z.object({ id: z.uuid(), parsedId: z.uuid() }),
 })
 
-const getEvalFixtureRoute = defineEvalSchemaRoute({
-  method: "get",
-  path: "eval-fixtures/:fixtureId",
-  params: z.strictObject({ fixtureId: z.uuid() }),
-  response: z.object({ id: z.uuid() }),
-})
-
 /** Answers for the update route. A spec can make it return a response the schema rejects. */
 const answerUpdate = jest.fn((input: SchemaRouteInput<typeof updateFixtureRoute>): unknown => ({
   data: { id: input.params.fixtureId, secret: "not in the contract" },
@@ -75,13 +67,6 @@ class SchemaRouteFixtureController {
     @Req() request: Request,
   ): SchemaRouteResponse<typeof resetFixtureRoute> {
     return { data: { id: String(request.params.fixtureId), parsedId: input.params.fixtureId } }
-  }
-
-  @SchemaRoute(getEvalFixtureRoute, { permission: "signed-in" })
-  getEvalFixture(
-    @RouteInput() input: SchemaRouteInput<typeof getEvalFixtureRoute>,
-  ): SchemaRouteResponse<typeof getEvalFixtureRoute> {
-    return { data: { id: input.params.fixtureId } }
   }
 }
 
@@ -222,19 +207,6 @@ describe("SchemaRoute", () => {
 
     expectSchemaResponse(resetFixtureRoute, response, 201)
     expect(response.body.data).toEqual({ id: fixtureId, parsedId: fixtureId.toLowerCase() })
-  })
-
-  it("serves a route of the Evaluation contracts", async () => {
-    const fixtureId = randomUUID()
-
-    const response = await request({
-      route: getEvalFixtureRoute,
-      pathParams: { fixtureId },
-      token: accessToken,
-    })
-
-    expectSchemaResponse(getEvalFixtureRoute, response, 200)
-    expect(response.body.data).toEqual({ id: fixtureId })
   })
 
   it("strips a response field the schema does not declare", async () => {

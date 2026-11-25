@@ -1,6 +1,6 @@
+import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
-import { defineSchemaRoute } from "../define-schema-route"
 import { projectAgentOutputSchema } from "./agents.dto"
 
 export const DeskAgentsRoutes = {

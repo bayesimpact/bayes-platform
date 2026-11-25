@@ -9,6 +9,8 @@
   contracts packages import instead of copying its strings (section 2.12)
 * **Amended**: 2026-11-25, by Alexis: the sign-in module is a package every app of the stack
   imports, the question section 7 left for the second app (sections 2.4 and 2.9)
+* **Amended**: 2026-11-25, by Alexis: the route helper and the error body are a package every
+  contracts package and the API import, instead of a copy in each (sections 2.12 and 2.13)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -19,8 +21,8 @@
   apps in `apps/api/src/common/web-app/`, `apps/api/Dockerfile` and the Helm chart (the Desk's
   theme mount), `apps/api/.dependency-cruiser.cjs`, the link of agent invitations
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
-  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in` and the
-  `lib/auth/` of each app (since 2026-11-25), and `apps/web/src/desk/`
+  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in`, the
+  `lib/auth/` of each app and `packages/schema-route` (since 2026-11-25), and `apps/web/src/desk/`
   (deleted at the cutover).
 
 ---
@@ -197,6 +199,7 @@ apps/desk/
 packages/desk-contracts/    the Desk's routes and Zod schemas
 packages/mcp-app-host/      the sandbox of MCP Apps, which every app imports
 packages/sign-in/           the sign-in, which every app of the stack imports
+packages/schema-route/      the route helper and the error body of every contracts package
 ```
 
 dependency-cruiser enforces the direction of imports between the folders of `src/`:
@@ -216,11 +219,12 @@ knip reports unused files, exports and dependencies. Both tools run in the Desk'
 `check:boundaries` script, which CI already runs through turbo. They only see imports, so these
 boundaries can still be bypassed (section 6).
 
-Apart from the packages below and the permission catalog its contracts re-export (section 2.12),
+Apart from the packages below, and the permission catalog and the route helper its contracts
+re-export (section 2.12),
 the Desk shares no code with the other apps: what it needs lives in it, even where `apps/web` has
 its own version. Whether the apps of the new stack share code with each other was left for the
-second one (section 7). Evaluation answered it on 2026-11-25 for the sign-in alone ("The shared
-sign-in" below). Each app keeps its own design system, API client and other code.
+second one (section 7). Evaluation answered it on 2026-11-25 for the sign-in ("The shared
+sign-in" below) and the route helper of the contracts (section 2.12). Each app keeps its own design system, API client and other code.
 
 **The shared sandbox of MCP Apps.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
@@ -569,11 +573,12 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 Desk contracts live in a package of their own, `packages/desk-contracts`
 (`@caseai-connect/desk-contracts`), written the way `packages/api-contracts` is: one folder per area
 (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
-`invitations`, `memories`, `organizations`, `projects`, and `common` for the error body and the
-params every area extends), each with an `{area}.dto.ts` that
+`invitations`, `memories`, `organizations`, `projects`, and `common` for the params every area
+extends), each with an `{area}.dto.ts` that
 holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
 CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
-object per area. It depends on Zod and `@caseai-connect/permissions` alone, and imports nothing from
+object per area. It depends on Zod, `@caseai-connect/permissions` and `@caseai-connect/schema-route`
+alone, and imports nothing from
 `packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
 and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
@@ -590,7 +595,19 @@ and the TypeScript options of the new stack (`erasableSyntaxOnly`, `verbatimModu
 reach it through their contracts only. As the contracts do, it has a CommonJS build the API
 requires, which the API image and the `contracts` service of a worktree environment build first.
 
-* A route is declared with `defineSchemaRoute`, a helper of the package. It takes the method, the
+**The route helper.** Each contracts package first held its own `defineSchemaRoute` and error body,
+and the API declared the shape of a route a third time, so that a route of either package fit. The
+three copies had to keep one shape, and only the typecheck of the API's handlers checked it. Since
+2026-11-25, `packages/schema-route` (`@caseai-connect/schema-route`) holds `defineSchemaRoute`,
+`defineStreamRoute`, the types of a route and the error body. Each contracts package re-exports it,
+so the apps import it from their contracts as before, and the layer of the API takes its route
+types from it. No app owns it, and it stays within the limits of the permission catalog, with Zod
+as its one dependency: no import of another workspace package, no route, nothing a screen shows.
+It has a CommonJS build the API requires, which the API image and the `contracts` service of a
+worktree environment build first.
+
+* A route is declared with `defineSchemaRoute`, a helper of `@caseai-connect/schema-route` that the
+  package re-exports. It takes the method, the
   path and the schemas of the params, query, body and response, and infers the request and
   response types from them. A stream route is declared with `defineStreamRoute`, which takes an
   `event` schema in place of the response. `defineSchemaRoute` returns `path`, `getPath` and
@@ -787,7 +804,8 @@ Desk does not use come from `EvaluationContextModule` in `apps/api/src/common/co
 API requires the CommonJS build of `eval-contracts`, as it does for the Desk, and Jest maps the
 package to its source. The layer in `apps/api/src/common/schema-route/` now declares the shape of a
 route itself and imports no contracts package, so a route of either package fits. Each contracts
-package keeps its own `defineSchemaRoute`. Each Evaluation endpoint copies the endpoint the app
+package keeps its own `defineSchemaRoute`. Since 2026-11-25 both contracts packages and the layer
+take them from `@caseai-connect/schema-route` (section 2.12). Each Evaluation endpoint copies the endpoint the app
 called before: the same method, params, body and response, the same permission on the same
 resource, and the same status codes and tracked activities. Two things change: every schema refusal
 answers 400, and a response holds only the fields the contract declares. Two query schemas of the
@@ -970,7 +988,9 @@ part of it invalidates.
   exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk, `apps/web` and
   `apps/web-embed` at once, on purpose. So does the permission catalog (section 2.12): a change to
   `packages/permissions` reaches every app and the API at once. And so does the sign-in (section
-  2.4): a change to `packages/sign-in` reaches the Desk and Evaluation at once.
+  2.4): a change to `packages/sign-in` reaches the Desk and Evaluation at once. And so does the
+  route helper (section 2.12): a change to `packages/schema-route` reaches both contracts packages
+  and the API at once.
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
@@ -1052,8 +1072,8 @@ part of it invalidates.
 * The Desk's independence is not fully enforced yet. dependency-cruiser only sees imports: a copied
   file, a CSS import or an edit of its configuration can still bring code of `apps/web`,
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
-  has to be found. The same holds for `packages/mcp-app-host` and `packages/sign-in`: no tool
-  checks yet that they import no other workspace package.
+  has to be found. The same holds for `packages/mcp-app-host`, `packages/sign-in` and
+  `packages/schema-route`: no tool checks yet that they import no other workspace package.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to
   `PermissionService` as well?
@@ -1071,8 +1091,9 @@ part of it invalidates.
 
 * The second app joins the stack: whether the apps of the new stack share code with each other (a
   design system, a sign-in module, the API client) is decided then, and the conventions get tested
-  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in is shared (section 2.4), and
-  the design system and the API client stay in each app. Ask again when a third app joins.
+  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in and the route helper of the
+  contracts are shared (sections 2.4 and 2.12), and the design system and the API client stay in
+  each app. Ask again when a third app joins.
 * The API moves to NestJS 12, or TypeScript 7.1 ships a compiler API: a typecheck several times
   faster pays off with every agent run.
 * Parsing large transcripts shows in response times.

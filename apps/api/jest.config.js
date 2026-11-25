@@ -9,6 +9,8 @@ const deskContractsPath = resolve(__dirname, "../../packages/desk-contracts/src"
 const evalContractsPath = resolve(__dirname, "../../packages/eval-contracts/src")
 // Resolve path to the permissions package, which every contracts package imports
 const permissionsPath = resolve(__dirname, "../../packages/permissions/src")
+// Resolve path to the schema routes package, which the API and the Desk and Evaluation contracts import
+const schemaRoutePath = resolve(__dirname, "../../packages/schema-route/src")
 
 const nestConfig = {
   collectCoverage: false,
@@ -58,6 +60,7 @@ const nestConfig = {
     "^@caseai-connect/eval-contracts$": `${evalContractsPath}/index.ts`,
     "^@caseai-connect/eval-contracts/(.*)$": `${evalContractsPath}/$1`,
     "^@caseai-connect/permissions$": `${permissionsPath}/index.ts`,
+    "^@caseai-connect/schema-route$": `${schemaRoutePath}/index.ts`,
   },
   setupFilesAfterEnv: ["<rootDir>/../jest.setup.ts"],
 }
