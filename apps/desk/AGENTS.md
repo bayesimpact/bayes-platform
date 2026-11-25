@@ -12,8 +12,9 @@ holds what is specific to the Desk.
   pages below it. `/app` is the home, and `/app/o/$organizationId` redirects to it.
 - Contracts: `@caseai-connect/desk-contracts` (`packages/desk-contracts`), one folder per area
   (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
-  `invitations`, `memories`, `organizations`, `projects`), with `common/` for the error body and
-  the params every route extends (`AgentParamsDto`, `ConversationParamsDto`), and a
+  `invitations`, `memories`, `organizations`, `projects`), with `common/` for the params every
+  route extends (`AgentParamsDto`, `ConversationParamsDto`), the route helper and the error body
+  it re-exports from `@caseai-connect/schema-route` (`packages/schema-route`), and a
   `Desk{Area}Routes` object per area (`extractions` has two: documents and CSV files). It
   describes the `desk/` routes the Desk calls and the fields it reads, and the API serves these
   routes with the same schemas.
