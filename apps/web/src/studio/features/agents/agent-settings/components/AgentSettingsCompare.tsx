@@ -11,6 +11,10 @@ import {
 } from "../../../../../common/features/agents/agent-settings/agent-settings.functions"
 import { ProductionDot } from "./AgentRevisionStatusBadge"
 import { AgentSettingsCreateButton } from "./AgentSettingsCreateButton"
+import {
+  type AgentSettingsDeleteBlocker,
+  AgentSettingsDeleteButton,
+} from "./AgentSettingsDeleteButton"
 import { AgentSettingsFieldDiff, agentSettingsFieldDiffId } from "./AgentSettingsFieldDiff"
 import { AgentSettingsRestoreButton } from "./AgentSettingsRestoreButton"
 import { AgentSettingsSetProductionButton } from "./AgentSettingsSetProductionButton"
@@ -29,13 +33,14 @@ export type AgentSettingsCompareAvailability = Record<AgentSettingsCompareMode, 
 /**
  * Right pane of the version history: pick what the selected revision is compared against,
  * review the per-field diffs, and act on the selected revision: save the draft as a version, put
- * a saved revision in production, or restore an older revision.
+ * a saved revision in production, restore an older revision, or delete it (discard, for the draft).
  */
 export function AgentSettingsCompare({
   before,
   after,
   selected,
   isLatest,
+  deleteBlocker,
   hasDraft,
   availability,
   mode,
@@ -45,6 +50,8 @@ export function AgentSettingsCompare({
   after: AgentSettings
   selected: AgentSettings
   isLatest: boolean
+  /** Set when the selected revision cannot be deleted, with the reason shown on the button. */
+  deleteBlocker?: AgentSettingsDeleteBlocker
   /** Drives the third toggle: only offered when the agent has a pending draft. */
   hasDraft: boolean
   availability: AgentSettingsCompareAvailability
@@ -97,12 +104,24 @@ export function AgentSettingsCompare({
         {/* The draft is the newest revision: there is nothing to restore it from, and saving it
             as a version is the one thing left to do with it. */}
         {selected.isDraft ? (
-          <AgentSettingsCreateButton
-            agentSettings={selected}
-            buttonProps={{ size: "default", className: undefined }}
-          />
+          <div className="flex items-center gap-2">
+            <AgentSettingsDeleteButton
+              revision={selected.revision}
+              isDraft
+              blocker={deleteBlocker}
+            />
+            <AgentSettingsCreateButton
+              agentSettings={selected}
+              buttonProps={{ size: "default", className: undefined }}
+            />
+          </div>
         ) : (
           <div className="flex items-center gap-2">
+            <AgentSettingsDeleteButton
+              revision={selected.revision}
+              isDraft={false}
+              blocker={deleteBlocker}
+            />
             <AgentSettingsSetProductionButton selected={selected} />
             <AgentSettingsRestoreButton revision={selected.revision} disabled={isLatest} />
           </div>

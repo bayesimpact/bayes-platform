@@ -193,7 +193,21 @@
       "changedFields_one": "{{count}} champ modifié :",
       "changedFields_other": "{{count}} champs modifiés :",
       "advancedMode": "Mode avancé",
-      "advancedModeHint": "Vous comparez le brouillon avec la v{{revision}}, la dernière version enregistrée. Vos modifications vont dans le brouillon."
+      "advancedModeHint": "Vous comparez le brouillon avec la v{{revision}}, la dernière version enregistrée. Vos modifications vont dans le brouillon.",
+      "deleteBlocked": {
+        "production": "L'agent utilise cette version. Mettez d'abord une autre version en production.",
+        "latest": "C'est la version la plus récente : le prochain brouillon part d'elle. Enregistrez d'abord une version plus récente.",
+        "neverSaved": "Aucune version n'est encore enregistrée : le brouillon est les seuls paramètres de cet agent."
+      },
+      "deleteDialog": {
+        "title": "Supprimer la version {{revision}} ?",
+        "description": "La version {{revision}} quitte l'historique et ne peut plus être restaurée. Les conversations et extractions qui l'ont utilisée ne changent pas."
+      },
+      "discardDraft": "Abandonner le brouillon",
+      "discardDraftDialog": {
+        "title": "Abandonner le brouillon ?",
+        "description": "Toutes les modifications faites depuis la dernière version enregistrée sont perdues. L'éditeur revient à la dernière version enregistrée. La version en production ne change pas."
+      }
     },
     "version": {
       "ariaLabel": "Version des paramètres utilisée par les nouveaux messages",
@@ -323,7 +337,11 @@
       "subAgentsUpdated": "Sous-agents mis à jour avec succès",
       "subAgentsUpdateError": "La mise à jour des sous-agents a échoué",
       "productionSet": "La version {{revision}} est en production",
-      "productionSetError": "Impossible de changer la version en production"
+      "productionSetError": "Impossible de changer la version en production",
+      "versionDeleted": "Version de l'agent supprimée",
+      "versionDeleteError": "La version n'a pas pu être supprimée. Réessayez.",
+      "draftDiscarded": "Brouillon abandonné",
+      "draftDiscardError": "Le brouillon n'a pas pu être abandonné. Réessayez."
     },
     "sources": {
       "documents": {

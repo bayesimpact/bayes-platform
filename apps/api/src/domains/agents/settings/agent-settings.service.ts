@@ -376,15 +376,26 @@ export class AgentSettingsService {
     const found = await this.agentSettingsConnectRepository.find(connectScope, {
       where: { agentId, revision },
     })
-    if (!found || found.length !== 1) return { success: false }
-    if (!found[0] || found[0].isDraft) return { success: false }
-    if (found[0].isProduction) {
+    if (!found || found.length !== 1 || !found[0]) return { success: false }
+    const target = found[0]
+    if (target.isProduction) {
       throw new UnprocessableEntityException("The version in production cannot be archived")
     }
 
-    const last = await this.agentSettingsRepository.findLatest(connectScope, agentId)
-    if (last && last.revision === revision)
-      throw new UnprocessableEntityException("Cannot archive the last revision")
+    if (target.isDraft) {
+      // Archiving the draft discards it: the next change starts a new draft from the newest saved
+      // revision. An agent that never saved a version has nothing to go back to.
+      const latestSaved = await this.agentSettingsRepository.findLatestSaved(connectScope, agentId)
+      if (!latestSaved) {
+        throw new UnprocessableEntityException(
+          "The draft of an agent with no saved version cannot be discarded",
+        )
+      }
+    } else {
+      const last = await this.agentSettingsRepository.findLatest(connectScope, agentId)
+      if (last && last.revision === revision)
+        throw new UnprocessableEntityException("Cannot archive the last revision")
+    }
 
     return this.agentSettingsConnectRepository.updateOneById({
       connectScope,

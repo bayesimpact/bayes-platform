@@ -25,6 +25,13 @@ export default {
     )
     return response.data.data
   },
+  archiveOne: async (params) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof AgentSettingsRoutes.archiveOne.response>(
+      AgentSettingsRoutes.archiveOne.getPath(sanitizeParams(params)),
+    )
+    return response.data.data
+  },
   setProduction: async (params) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof AgentSettingsRoutes.setProduction.response>(

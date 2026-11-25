@@ -1,6 +1,7 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import {
   createAgentSettings,
+  deleteAgentSettings,
   listAgentSettingsWithDraft,
   restoreAgentSettings,
   setProductionAgentSettings,
@@ -83,6 +84,22 @@ function registerListeners() {
         notificationsActions.show({
           titleKey: "agentSettings:notifications.versionRestoreError",
           type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: deleteAgentSettings.fulfilled,
+    effect: async (action, listenerApi) => {
+      refresh({ listenerApi })
+
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: action.meta.arg.isDraft
+            ? "agentSettings:notifications.draftDiscarded"
+            : "agentSettings:notifications.versionDeleted",
+          type: "success",
         }),
       )
     },
