@@ -41,6 +41,7 @@ export function ProjectModelsTable({
               <span className="text-xs text-muted-foreground">{row.original.model}</span>
             </div>
             {row.original.retirement && <RetirementBadge retirement={row.original.retirement} />}
+            {row.original.servedOutsideEu && <Badge variant="warning">Outside the EU</Badge>}
             {row.original.selfHosted && <Badge variant="secondary">Self-hosted</Badge>}
           </div>
         ),

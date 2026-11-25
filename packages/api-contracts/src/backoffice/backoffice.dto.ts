@@ -349,6 +349,8 @@ export type BackofficeProjectModelDto = {
   customized: boolean
   /** Set when the provider retires the model: past that date, no agent can run on it. */
   deprecation: AgentModelDeprecation | null
+  /** The provider serves the model outside the European Union. */
+  servedOutsideEu: boolean
 }
 
 export type ListBackofficeProjectModelsResponseDto = {

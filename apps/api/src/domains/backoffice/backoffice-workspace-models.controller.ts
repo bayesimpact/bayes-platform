@@ -143,11 +143,14 @@ export class BackofficeWorkspaceModelsController {
     const models = await this.workspaceModelsService.listProjectModels(projectId)
     return {
       data: {
-        models: models.map((view) => ({
-          ...toProjectModelDto(view),
-          deprecation:
-            this.llmProviders[view.provider].getModelInfos(view.model).deprecation ?? null,
-        })),
+        models: models.map((view) => {
+          const modelInfos = this.llmProviders[view.provider].getModelInfos(view.model)
+          return {
+            ...toProjectModelDto(view),
+            deprecation: modelInfos.deprecation ?? null,
+            servedOutsideEu: modelInfos.servedOutsideEu === true,
+          }
+        }),
       },
     }
   }

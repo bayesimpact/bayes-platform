@@ -627,6 +627,8 @@ export type ProjectModel = {
   customized: boolean
   /** Set when the provider retires the model: the ISO date and the readable name of its successor. */
   retirement: { date: string; replacement: string } | null
+  /** The provider serves the model outside the European Union. */
+  servedOutsideEu: boolean
 }
 
 /** A model a workspace added next to the platform models: a self-hosted type on its server. */
@@ -666,6 +668,7 @@ export const toProjectModel = (dto: BackofficeProjectModelDto): ProjectModel => 
           dto.deprecation.recommendedReplacement,
       }
     : null,
+  servedOutsideEu: dto.servedOutsideEu,
 })
 
 export const toCustomModel = (dto: BackofficeCustomModelDto): CustomModel => ({

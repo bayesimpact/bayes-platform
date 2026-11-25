@@ -136,6 +136,7 @@ describe("Backoffice - workspace models", () => {
       enabled: true,
       customized: false,
       deprecation: null,
+      servedOutsideEu: false,
     })
     expect(entryOf(response.body.data.models, AgentModel.Gemini25Flash)?.deprecation).toEqual({
       deprecatedOn: expect.any(String),

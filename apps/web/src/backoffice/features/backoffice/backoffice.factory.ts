@@ -745,6 +745,7 @@ export const projectModelFactory = ProjectModelFactory.define(({ params }) => {
       params.retirement?.date && params.retirement.replacement
         ? { date: params.retirement.date, replacement: params.retirement.replacement }
         : null,
+    servedOutsideEu: params.servedOutsideEu ?? false,
   }
 })
 

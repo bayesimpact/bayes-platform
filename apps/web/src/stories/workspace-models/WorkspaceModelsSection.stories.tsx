@@ -24,7 +24,12 @@ const codeModels = [
     selfHosted: false,
     enabled: false,
   }),
-  projectModelFactory.build({ model: AgentModel.Gpt54, selfHosted: false, enabled: false }),
+  projectModelFactory.build({
+    model: AgentModel.Gpt54,
+    selfHosted: false,
+    enabled: false,
+    servedOutsideEu: true,
+  }),
 ]
 
 const meta = {
