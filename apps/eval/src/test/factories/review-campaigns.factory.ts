@@ -244,12 +244,16 @@ export function buildReviewSession(
   }
 }
 
-/** A report with a few sessions and answers, checked against the contract. */
+/**
+ * A report with a few sessions and answers, checked against the contract. With `showsAnswers`
+ * false, it is the report a reviewer reads: the API withholds every answer from it.
+ */
 export function buildCampaignReport(
   overrides: Partial<CampaignReportOutputDto> = {},
 ): CampaignReportOutputDto {
   const testerUserId = crypto.randomUUID()
-  return campaignReportOutputSchema.parse({
+  const report = campaignReportOutputSchema.parse({
+    showsAnswers: true,
     headline: {
       sessionCount: 3,
       testerFeedbackCount: 2,
@@ -384,4 +388,19 @@ export function buildCampaignReport(
     ],
     ...overrides,
   })
+  if (report.showsAnswers) return report
+  const withoutTextAnswers = (distributions: CampaignReportOutputDto["reviewerDistributions"]) =>
+    distributions.map((distribution) => ({ ...distribution, textAnswers: [] }))
+  return {
+    ...report,
+    testerPerSessionDistributions: withoutTextAnswers(report.testerPerSessionDistributions),
+    testerEndOfPhaseDistributions: withoutTextAnswers(report.testerEndOfPhaseDistributions),
+    reviewerDistributions: withoutTextAnswers(report.reviewerDistributions),
+    sessionMatrix: report.sessionMatrix.map((session) => ({
+      ...session,
+      testerAnswers: {},
+      reviewerAnswers: {},
+      endOfPhaseAnswers: {},
+    })),
+  }
 }

@@ -41,6 +41,11 @@ export const campaignReportSessionOutputSchema = z.object({
 export type CampaignReportSessionOutputDto = z.output<typeof campaignReportSessionOutputSchema>
 
 export const campaignReportOutputSchema = z.object({
+  /**
+   * Whether the report holds the answers: the free-text answers and each session's answers. Only
+   * who manages the campaign's project reads them: a reviewer reviews each session blind.
+   */
+  showsAnswers: z.boolean(),
   headline: z.object({
     sessionCount: z.number(),
     testerFeedbackCount: z.number(),

@@ -345,6 +345,8 @@ export type CampaignReportSessionRowDto = {
 
 export type CampaignReportDto = {
   campaignId: string
+  /** Whether the report holds the answers: for who manages the campaign's project only. */
+  showsAnswers: boolean
   headline: CampaignReportHeadlineDto
   testerPerSessionDistributions: CampaignReportQuestionDistributionDto[]
   testerEndOfPhaseDistributions: CampaignReportQuestionDistributionDto[]

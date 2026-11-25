@@ -184,6 +184,7 @@ function toReportSessionDto(row: CampaignReportSessionRow): CampaignReportSessio
 /** A copy of `toCampaignReportDto` of `ReportsController`, with the fields Evaluation reads. */
 export function toCampaignReportDto(report: CampaignReport): CampaignReportOutputDto {
   return {
+    showsAnswers: report.showsAnswers,
     headline: {
       sessionCount: report.headline.sessionCount,
       testerFeedbackCount: report.headline.testerFeedbackCount,

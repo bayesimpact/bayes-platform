@@ -30,7 +30,7 @@ export class ReportsController {
   async getCampaignReport(
     @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.getCampaignReport.response> {
-    const report = await this.reportsService.computeReport(request.reviewCampaign)
+    const report = await this.reportsService.computeReport(request.reviewCampaign, request.user.id)
     return { data: toCampaignReportDto(report) }
   }
 
@@ -39,7 +39,7 @@ export class ReportsController {
   @Header("Content-Type", "text/csv; charset=utf-8")
   @Header("Content-Disposition", 'attachment; filename="campaign-report.csv"')
   async getCampaignReportCsv(@Req() request: EndpointRequestWithReviewCampaign): Promise<string> {
-    const report = await this.reportsService.computeReport(request.reviewCampaign)
+    const report = await this.reportsService.computeReport(request.reviewCampaign, request.user.id)
     return buildSessionMatrixCsv(report)
   }
 }
@@ -47,6 +47,7 @@ export class ReportsController {
 function toCampaignReportDto(report: CampaignReport): CampaignReportDto {
   return {
     campaignId: report.campaignId,
+    showsAnswers: report.showsAnswers,
     headline: report.headline,
     testerPerSessionDistributions: report.testerPerSessionDistributions,
     testerEndOfPhaseDistributions: report.testerEndOfPhaseDistributions,

@@ -65,14 +65,12 @@ function questionColumnsOf(
 }
 
 /**
- * The sessions of a report as a CSV file, one row per session: the tester's rating against the
- * reviewers', whose ratings share one cell, separated by semicolons. Then one column per question
- * of each form, in the report's order: the tester's answer after the session, the tester's answer
- * in their final survey, the same on each of their sessions, and the reviewers' answers, which
- * share one cell as their ratings do.
+ * One column per question of each form, in the report's order: the tester's answer after the
+ * session, the tester's answer in their final survey, the same on each of their sessions, and the
+ * reviewers' answers, which share one cell as their ratings do.
  */
-export function reportCsvOf(report: CampaignReportOutputDto): string {
-  const questionColumns = [
+function answerColumnsOf(report: CampaignReportOutputDto): QuestionColumn[] {
+  return [
     ...questionColumnsOf(
       "After each session",
       report.testerPerSessionDistributions,
@@ -87,6 +85,15 @@ export function reportCsvOf(report: CampaignReportOutputDto): string {
       reviewerAnswersOf(session.reviewerAnswers, questionId),
     ),
   ]
+}
+
+/**
+ * The sessions of a report as a CSV file, one row per session: the tester's rating against the
+ * reviewers', whose ratings share one cell, separated by semicolons. Then the answers to each
+ * question, when the report holds them: the API withholds them from a reviewer.
+ */
+export function reportCsvOf(report: CampaignReportOutputDto): string {
+  const questionColumns = report.showsAnswers ? answerColumnsOf(report) : []
   const header = [...SESSION_HEADER, ...questionColumns.map((column) => column.header)]
   const rows = report.sessionMatrix.map((session) => [
     session.sessionId,

@@ -3,6 +3,7 @@ import { buildSessionMatrixCsv } from "./reports-csv"
 
 const baseReport: CampaignReport = {
   campaignId: "campaign-1",
+  showsAnswers: true,
   headline: {
     sessionCount: 0,
     testerFeedbackCount: 0,

@@ -314,6 +314,7 @@ describe("ReviewCampaigns - Report", () => {
 
     const data = response.body.data
     expect(data.campaignId).toBe(reviewCampaignId)
+    expect(data.showsAnswers).toBe(true)
     expect(data.headline.sessionCount).toBe(3)
     expect(data.headline.testerFeedbackCount).toBe(2)
     expect(data.headline.reviewerReviewCount).toBe(2)
@@ -440,7 +441,17 @@ describe("ReviewCampaigns - Report", () => {
 
     const response = await subject()
     expectResponse(response, 200)
-    expect(response.body.data.campaignId).toBe(reviewCampaignId)
+    const data = response.body.data
+    expect(data.campaignId).toBe(reviewCampaignId)
+    // A reviewer reviews each session blind: the report withholds every answer.
+    expect(data.showsAnswers).toBe(false)
+    const freeText = (
+      data.reviewerDistributions as Array<{ questionId: string; textAnswers: string[] }>
+    ).find((entry) => entry.questionId === "rv-2")
+    expect(freeText?.textAnswers).toEqual([])
+    for (const row of data.sessionMatrix as Array<Record<string, unknown>>) {
+      expect(row).toMatchObject({ testerAnswers: {}, reviewerAnswers: {}, endOfPhaseAnswers: {} })
+    }
   })
 
   it("rejects a user who isn't a member of the organization (401)", async () => {

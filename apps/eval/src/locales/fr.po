@@ -1989,6 +1989,10 @@ msgstr "Une seule version"
 msgid "Only shown"
 msgstr "Seulement affiché"
 
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "Only the campaign's managers read the free-text answers."
+msgstr "Seuls les gestionnaires de la campagne lisent les réponses en texte libre."
+
 #: src/components/shared/RunScopeField.tsx
 msgid "Only the first ones, to try"
 msgstr "Seulement les premiers, pour essayer"

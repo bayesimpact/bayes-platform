@@ -1989,6 +1989,10 @@ msgstr "Only one version"
 msgid "Only shown"
 msgstr "Only shown"
 
+#: src/features/campaign-report/components/QuestionDistribution.tsx
+msgid "Only the campaign's managers read the free-text answers."
+msgstr "Only the campaign's managers read the free-text answers."
+
 #: src/components/shared/RunScopeField.tsx
 msgid "Only the first ones, to try"
 msgstr "Only the first ones, to try"

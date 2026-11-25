@@ -9,6 +9,7 @@ const HEADER =
   "sessionId,testerUserId,startedAt,testerRating,reviewerCount,meanReviewerRating,reviewerRatingSpread,reviewerRatings"
 
 const emptyReport: CampaignReportOutputDto = {
+  showsAnswers: true,
   headline: {
     sessionCount: 0,
     testerFeedbackCount: 0,
@@ -158,6 +159,17 @@ describe("reportCsvOf", () => {
     expect(
       row?.endsWith(`,"'=HYPERLINK(""http://example.com"",""Open"")","'@SUM(A1:A2);Fine;'\t'=1+1"`),
     ).toBe(true)
+  })
+
+  it("adds no answer column to the report a reviewer reads, which holds no answer", () => {
+    const csv = reportCsvOf({
+      ...emptyReport,
+      showsAnswers: false,
+      testerPerSessionDistributions: [question("clarity", "Was the answer clear?", "rating")],
+      reviewerDistributions: [question("mistakes", "What went wrong?", "free-text")],
+    })
+
+    expect(csv).toBe(HEADER)
   })
 
   it("leaves a question's cell empty when an inherited key shares its id", () => {

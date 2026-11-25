@@ -2,6 +2,9 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+import { PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
   ReviewCampaignAgentType,
@@ -33,7 +36,7 @@ export type CampaignReportQuestionDistribution = {
   type: ReviewCampaignQuestion["type"]
   responseCount: number
   buckets: CampaignReportBucket[]
-  /** The answers to a free-text question, empty for the other types. */
+  /** The answers to a free-text question, empty for the other types and when withheld. */
   textAnswers: string[]
 }
 
@@ -60,6 +63,12 @@ export type CampaignReportSessionRow = {
 
 export type CampaignReport = {
   campaignId: string
+  /**
+   * Whether the report holds the answers: the free-text answers of each question and each
+   * session's answers. Only who manages the campaign's project reads them. A reviewer reviews each
+   * session blind, so the report withholds them and its answer fields stay empty.
+   */
+  showsAnswers: boolean
   headline: CampaignReportHeadline
   testerPerSessionDistributions: CampaignReportQuestionDistribution[]
   testerEndOfPhaseDistributions: CampaignReportQuestionDistribution[]
@@ -85,10 +94,17 @@ export class ReportsService {
     private readonly testerSurveyRepository: Repository<TesterCampaignSurvey>,
     @InjectRepository(ReviewerSessionReview)
     private readonly reviewRepository: Repository<ReviewerSessionReview>,
+    private readonly permissionService: PermissionService,
   ) {}
 
-  async computeReport(campaign: ReviewCampaign): Promise<CampaignReport> {
+  /** The report of a campaign as this person may read it: with its answers for its managers only. */
+  async computeReport(campaign: ReviewCampaign, userId: string): Promise<CampaignReport> {
     const campaignId = campaign.id
+    const showsAnswers = await this.permissionService.has(
+      userId,
+      PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+      { type: "project", id: campaign.projectId },
+    )
 
     const [conversationSessions, feedbacks, surveys, reviews] = await Promise.all([
       this.conversationSessionRepository.find({
@@ -125,20 +141,31 @@ export class ReportsService {
       .map((session) =>
         buildSessionRow(session, feedbackBySessionId, reviewsBySessionId, surveyByUserId),
       )
+      .map((row) => (showsAnswers ? row : withoutAnswers(row)))
       .sort((left, right) => right.startedAt.getTime() - left.startedAt.getTime())
+    const distributionsOf = (
+      questions: ReviewCampaignQuestion[],
+      answerSets: ReviewCampaignAnswer[][],
+    ) => {
+      const distributions = buildDistributions(questions, answerSets)
+      return showsAnswers
+        ? distributions
+        : distributions.map((distribution) => ({ ...distribution, textAnswers: [] }))
+    }
 
     return {
       campaignId,
+      showsAnswers,
       headline,
-      testerPerSessionDistributions: buildDistributions(
+      testerPerSessionDistributions: distributionsOf(
         campaign.testerPerSessionQuestions,
         feedbacks.map((feedback) => feedback.answers),
       ),
-      testerEndOfPhaseDistributions: buildDistributions(
+      testerEndOfPhaseDistributions: distributionsOf(
         campaign.testerEndOfPhaseQuestions,
         surveys.map((survey) => survey.answers),
       ),
-      reviewerDistributions: buildDistributions(
+      reviewerDistributions: distributionsOf(
         campaign.reviewerQuestions,
         reviews.map((review) => review.answers),
       ),
@@ -172,6 +199,11 @@ function buildSessionRow(
     reviewerAnswers: reviewerAnswersOf(reviews),
     endOfPhaseAnswers: answerTextsOf(surveyByUserId.get(session.userId)?.answers ?? []),
   }
+}
+
+/** A session row with no answer, for who may not read them. */
+function withoutAnswers(row: CampaignReportSessionRow): CampaignReportSessionRow {
+  return { ...row, testerAnswers: {}, reviewerAnswers: {}, endOfPhaseAnswers: {} }
 }
 
 /** Each answer as text, by question id. */

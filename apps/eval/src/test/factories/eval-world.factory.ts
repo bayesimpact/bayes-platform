@@ -535,7 +535,11 @@ export function buildParticipantWorld(): EvalWorld {
     projects: [project],
     agents: [agent],
     campaigns: [tested, reviewed, closed],
-    reports: { [reviewed.id]: buildCampaignReport(), [closed.id]: buildCampaignReport() },
+    // A reviewer reads the report without its answers.
+    reports: {
+      [reviewed.id]: buildCampaignReport({ showsAnswers: false }),
+      [closed.id]: buildCampaignReport({ showsAnswers: false }),
+    },
     myCampaignRoles: {
       [tested.id]: ["tester"],
       [reviewed.id]: ["reviewer"],
