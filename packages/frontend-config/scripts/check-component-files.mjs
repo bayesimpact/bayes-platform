@@ -4,13 +4,14 @@
 // and no other component. Biome's GritQL plugins cannot read a file's name, so this script checks
 // it. The components shadcn's CLI generates into `src/components/ui/` keep shadcn's own layout.
 //
-// Run it with `npm run check:components -w @caseai-connect/eval`, which `check` runs.
+// Each app of the stack runs it on its own folder, as `check-component-files`:
+// `npm run check:components -w <app>`, which the app's `check` runs.
 
 import { globSync, readFileSync } from "node:fs"
-import { basename, dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
+import { basename, join } from "node:path"
 
-const appRoot = join(dirname(fileURLToPath(import.meta.url)), "..")
+// npm runs a workspace's script in the workspace's folder: the app's root.
+const appRoot = process.cwd()
 // Component files are named in PascalCase.tsx; the test reads the name, since a glob ignores case
 // on macOS.
 const componentFiles = globSync("src/**/*.tsx", { cwd: appRoot }).filter(

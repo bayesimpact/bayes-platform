@@ -15,7 +15,7 @@
     "i18n:extract": "lingui extract --clean",
     "i18n:check": "lingui check sync && lingui check missing",
     "check:boundaries": "depcruise src && knip",
-    "check:components": "node scripts/check-component-files.mjs",
+    "check:components": "check-component-files",
     "check:desk-parity": "node scripts/check-desk-parity.mjs",
     "check": "npm run typecheck && biome check . && npm run check:components && npm run check:desk-parity && npm run check:boundaries && npm run i18n:check && npm run test"
   },
@@ -56,6 +56,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@caseai-connect/frontend-config": "*",
     "@lingui/babel-plugin-lingui-macro": "^6.10.0",
     "@lingui/cli": "^6.10.0",
     "@lingui/format-po": "^6.10.0",

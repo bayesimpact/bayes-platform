@@ -7,7 +7,8 @@ to it in its own `AGENTS.md`, and its `CLAUDE.md` imports both files. `apps/web`
 rules (ADR 0010, 0011 and 0012) until each of its apps is rebuilt here.
 
 A tool checks every rule it can. The app's `npm run check -w <app>` gives the verdict: the
-typecheck, Biome with the app's GritQL plugins (`biome-plugins/`), the component files check,
+typecheck, Biome with the GritQL plugins every app shares (`packages/frontend-config`), the
+component files check,
 dependency-cruiser, knip, the translation checks and Vitest. It passes after each significant
 change, on top of the repository's completion criteria. A plugin's false positive is silenced
 where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no tool sees goes to the
@@ -123,7 +124,7 @@ or editing the boundaries' configuration.
   match inherited keys such as `constructor`.
 - **Components.** One exported component per file, named like the file (`ProjectCard.tsx` exports
   `ProjectCard`), with named exports only; a default export is for config files
-  (`scripts/check-component-files.mjs` checks the files in `PascalCase.tsx`). A function stays
+  (`check-component-files`, from `packages/frontend-config`, checks the files in `PascalCase.tsx`). A function stays
   under 200 lines, blank lines aside (Biome's `noExcessiveLinesPerFunction`, specs excepted): a
   component beyond splits into sub-components or hooks. Presentational
   components take props and return JSX, and their logic lives in hooks. Props are typed by a
@@ -471,10 +472,12 @@ and empty states.
   to people, a dependency beyond Zod, or an import of another workspace package. In
   `packages/api-client`: a route, React, a text shown to people, the app's session (it takes it
   from the app), or a dependency beyond Zod, `@caseai-connect/schema-route` and
-  `@caseai-connect/sign-in`.
+  `@caseai-connect/sign-in`. In `packages/frontend-config`: a rule for one app only, or a
+  dependency.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.
-- Editing an `AGENTS.md`, this file, a tsconfig, the app's `biome.json`, or the dependency-cruiser,
-  knip, Lingui, Vitest or Playwright configuration without a human's go.
+- Editing an `AGENTS.md`, this file, a tsconfig, the app's `biome.json`, `packages/frontend-config`
+  (the Biome rules, the GritQL plugins and the component check of every app), or the
+  dependency-cruiser, knip, Lingui, Vitest or Playwright configuration without a human's go.
 - Disabling a lint rule, a type check, a translation check or a test to make `check` pass.
