@@ -6,4 +6,4 @@ export {
   InvalidRequestError,
 } from "./api-client"
 export { shouldRetryQuery } from "./query-retry"
-export { parseFrame, readServerSentEvents, type ServerSentEvent } from "./stream"
+export { readServerSentEvents, type ServerSentEvent } from "./stream"

@@ -11,8 +11,8 @@
   imports, the question section 7 left for the second app (sections 2.4 and 2.9)
 * **Amended**: 2026-11-25, by Alexis: the route helper and the error body are a package every
   contracts package and the API import, instead of a copy in each (sections 2.12 and 2.13)
-* **Amended**: 2026-11-26, by Alexis: the API client is a package every app of the stack imports,
-  instead of a copy in each (sections 2.4 and 2.7)
+* **Amended**: 2026-11-25, by Alexis: the API client is a package every app of the stack imports,
+  instead of a copy in each (sections 1, 2.4, 2.7, 2.11, 4, 6 and 7)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -24,8 +24,8 @@
   theme mount), `apps/api/.dependency-cruiser.cjs`, the link of agent invitations
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
   `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in`, the
-  `lib/auth/` of each app and `packages/schema-route` (since 2026-11-25), `packages/api-client`
-  (since 2026-11-26), and `apps/web/src/desk/`
+  `lib/auth/` of each app, `packages/schema-route` and `packages/api-client` (since 2026-11-25),
+  and `apps/web/src/desk/`
   (deleted at the cutover).
 
 ---
@@ -58,9 +58,10 @@ skill only starts empty folders, so it is not run here: this ADR carries its rul
 Three constraints frame the work:
 
 * The Desk is an app of its own. It shares no code with `apps/web` or Studio: its code, its
-  packages, its endpoints and its DTOs are its own. Three packages are the exception: the sandbox
-  of MCP Apps (section 2.4), the permission catalog, which it reads through its contracts
-  (section 2.12), and the sign-in, which it shares with the other apps of the stack (section 2.4).
+  packages, its endpoints and its DTOs are its own. A few packages are the exception: the sandbox
+  of MCP Apps (section 2.4), the permission catalog and the route helper, which it reads through
+  its contracts (section 2.12), and the sign-in and the API client, which it shares with the other
+  apps of the stack (section 2.4).
 * The NestJS API and `packages/api-contracts` keep their conventions, routes and DTOs. The Desk's
   endpoints sit next to the existing ones and call the same domain services.
 * Every Desk endpoint has a Zod schema for what it receives and for what it returns.
@@ -229,8 +230,8 @@ re-export (section 2.12),
 the Desk shares no code with the other apps: what it needs lives in it, even where `apps/web` has
 its own version. Whether the apps of the new stack share code with each other was left for the
 second one (section 7). Evaluation answered it on 2026-11-25 for the sign-in ("The shared
-sign-in" below) and the route helper of the contracts (section 2.12), and on 2026-11-26 for the API
-client ("The shared API client" below). Each app keeps its own design system and other code.
+sign-in" below), the route helper of the contracts (section 2.12) and the API client ("The shared
+API client" below). Each app keeps its own design system and other code.
 
 **The shared sandbox of MCP Apps.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
@@ -555,8 +556,9 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 
 ### 2.11 Tests and quality gate
 
-* Vitest runs two projects. Pure logic (the stream parser, the client, schemas) runs in node,
-  unlike the kit's single jsdom project. Components and hooks run in happy-dom with Testing Library
+* Vitest runs two projects. Pure logic (the app's sign-in wrapper, schemas) runs in node,
+  unlike the kit's single jsdom project, and the stream parser and the client are tested in
+  `packages/api-client`. Components and hooks run in happy-dom with Testing Library
   and user-event; a test checks what a person sees, queries by role and label (in English, the
   source text), and uses `data-testid` as a last resort. Test files sit next to the code.
 * The network is mocked with MSW only, never by mocking TanStack Query, `fetch` or the client.
@@ -1118,7 +1120,7 @@ part of it invalidates.
 
 * The second app joins the stack: whether the apps of the new stack share code with each other (a
   design system, a sign-in module, the API client) is decided then, and the conventions get tested
-  on a second app. Decided on 2026-11-25 and 2026-11-26, with Evaluation: the sign-in, the route
+  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in, the route
   helper of the contracts and the API client are shared (sections 2.4 and 2.12), and the design
   system stays in each app. Ask again when a third app joins.
 * The API moves to NestJS 12, or TypeScript 7.1 ships a compiler API: a typecheck several times

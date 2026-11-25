@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-// The configuration needs a browser to load: the session the client reads uses a stand-in.
+// The configuration needs a browser to load: a stand-in lets the app's session load in node.
 vi.mock("@/app/config", () => ({
   appBasePath: "/app/",
   appConfig: { mode: "mock" },

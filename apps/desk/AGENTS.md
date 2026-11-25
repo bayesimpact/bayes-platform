@@ -144,8 +144,8 @@ the conventions as they stand. When a rule changes, its reference file changes i
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
 - Evaluation (`apps/eval`) holds a copy of the chat: `src/features/conversation/`, and `Markdown`,
-  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no code, so
-  a change to one of these files goes to the copy too, in the same PR.
+  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no chat code,
+  so a change to one of these files goes to the copy too, in the same PR.
   `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
   of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
