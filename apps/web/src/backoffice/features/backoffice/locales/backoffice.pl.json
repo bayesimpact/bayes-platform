@@ -1,0 +1,25 @@
+{
+  "backoffice": {
+    "notifications": {
+      "organizationCreated": "Utworzono organizację",
+      "organizationCreateError": "Nie udało się utworzyć organizacji",
+      "projectUpdated": "Zaktualizowano przestrzeń roboczą w backoffice",
+      "projectUpdateError": "Nie udało się zaktualizować przestrzeni roboczej w backoffice",
+      "conversationReviewersUpdated": "Zaktualizowano recenzentów rozmów",
+      "conversationReviewersUpdateError": "Nie udało się zaktualizować recenzentów rozmów",
+      "globalRolesUpdated": "Zaktualizowano role globalne",
+      "globalRolesUpdateError": "Nie udało się zaktualizować ról globalnych",
+      "termsDocumentsSaved": "Zapisano dokumenty regulaminów",
+      "termsDocumentsSaveError": "Nie udało się zapisać dokumentów regulaminów",
+      "appCreated": "Utworzono aplikację",
+      "appUpdated": "Zaktualizowano aplikację",
+      "appDeleted": "Usunięto aplikację",
+      "appCreateError": "Nie udało się utworzyć aplikacji",
+      "appUpdateError": "Nie udało się zaktualizować aplikacji",
+      "appDeleteError": "Nie udało się usunąć aplikacji",
+      "appOAuthClientError": "Nie udało się wczytać ani zaktualizować klienta OAuth aplikacji",
+      "maintenanceJobStarted": "Uruchomiono zadanie konserwacyjne",
+      "maintenanceJobStartError": "Nie udało się uruchomić zadania konserwacyjnego"
+    }
+  }
+}

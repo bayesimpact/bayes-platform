@@ -46,9 +46,8 @@ To add translations for a new feature:
 2. Add translation files:
    - `your-feature.en.json`
    - `your-feature.fr.json`
-   - `your-feature.de.json`, `.it.json`, `.es.json`, `.pl.json` for features of the studio (and
-     `common`). Other apps (desk, eval, tester, reviewer, backoffice) are English and French only
-     for now: the other languages fall back to English there.
+   - `your-feature.de.json`, `.it.json`, `.es.json`, `.pl.json`: the studio, `common` and the
+     backoffice speak the six languages. A key missing in one of them falls back to English.
 3. No manual imports needed! The loader will discover them automatically.
 
 Example structure for a new feature:
