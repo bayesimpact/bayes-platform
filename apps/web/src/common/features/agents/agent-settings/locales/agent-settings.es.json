@@ -194,7 +194,21 @@
       "changedFields_one": "{{count}} campo modificado:",
       "changedFields_other": "{{count}} campos modificados:",
       "advancedMode": "Modo avanzado",
-      "advancedModeHint": "Compara el borrador con la v{{revision}}, la última versión guardada. Sus cambios van al borrador."
+      "advancedModeHint": "Compara el borrador con la v{{revision}}, la última versión guardada. Sus cambios van al borrador.",
+      "deleteBlocked": {
+        "production": "El agente funciona con esta versión. Ponga primero otra versión en producción.",
+        "latest": "Es la versión más reciente: el próximo borrador parte de ella. Guarde primero una versión más reciente.",
+        "neverSaved": "Aún no se ha guardado ninguna versión, así que el borrador es la única configuración de este agente."
+      },
+      "deleteDialog": {
+        "title": "¿Eliminar la versión {{revision}}?",
+        "description": "La versión {{revision}} sale del historial y no se puede restaurar. Las conversaciones y extracciones que la usaron no cambian."
+      },
+      "discardDraft": "Descartar el borrador",
+      "discardDraftDialog": {
+        "title": "¿Descartar el borrador?",
+        "description": "Se pierden todos los cambios hechos desde la última versión guardada. El editor vuelve a la última versión guardada. La versión en producción no cambia."
+      }
     },
     "version": {
       "ariaLabel": "Versión de la configuración que usan los nuevos mensajes",
@@ -325,7 +339,11 @@
       "subAgentsUpdated": "Subagentes actualizados correctamente",
       "subAgentsUpdateError": "No se pudieron actualizar los subagentes",
       "productionSet": "La versión {{revision}} está ahora en producción",
-      "productionSetError": "No se pudo cambiar la versión en producción"
+      "productionSetError": "No se pudo cambiar la versión en producción",
+      "versionDeleted": "Versión del agente eliminada",
+      "versionDeleteError": "No se pudo eliminar la versión. Inténtelo de nuevo.",
+      "draftDiscarded": "Borrador descartado",
+      "draftDiscardError": "No se pudo descartar el borrador. Inténtelo de nuevo."
     },
     "sources": {
       "documents": {

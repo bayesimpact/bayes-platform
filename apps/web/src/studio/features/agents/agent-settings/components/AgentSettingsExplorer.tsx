@@ -8,6 +8,7 @@ import {
   type AgentSettingsCompareAvailability,
   type AgentSettingsCompareMode,
 } from "./AgentSettingsCompare"
+import type { AgentSettingsDeleteBlocker } from "./AgentSettingsDeleteButton"
 import { AgentSettingsList } from "./AgentSettingsList"
 
 interface AgentVersionComparison {
@@ -15,6 +16,8 @@ interface AgentVersionComparison {
   selected: AgentSettings
   /** `selected` is the newest version, so there is nothing newer to restore from. */
   isLatest: boolean
+  /** Why `selected` cannot be deleted, if it cannot. The draft can be discarded once a version was saved. */
+  deleteBlocker?: AgentSettingsDeleteBlocker
   /** The agent has a pending draft, so the "draft" mode is offered as a third comparison. */
   hasDraft: boolean
   /** Which of the three comparisons are possible for `selected`. */
@@ -84,6 +87,15 @@ export function buildComparison(
   return {
     selected,
     isLatest: selected.revision === latest.revision,
+    deleteBlocker: selected.isDraft
+      ? versions.some((version) => !version.isDraft)
+        ? undefined
+        : "neverSaved"
+      : selected.isProduction
+        ? "production"
+        : selected.revision === latest.revision
+          ? "latest"
+          : undefined,
     hasDraft: draft !== undefined,
     availability,
     effectiveMode,
@@ -111,7 +123,16 @@ export function AgentSettingsExplorer({ initialRevision }: { initialRevision?: n
   )
   if (!comparison) return null
 
-  const { selected, before, after, isLatest, hasDraft, availability, effectiveMode } = comparison
+  const {
+    selected,
+    before,
+    after,
+    isLatest,
+    deleteBlocker,
+    hasDraft,
+    availability,
+    effectiveMode,
+  } = comparison
 
   return (
     <div className="flex min-h-0 flex-1">
@@ -125,6 +146,7 @@ export function AgentSettingsExplorer({ initialRevision }: { initialRevision?: n
         after={after}
         selected={selected}
         isLatest={isLatest}
+        deleteBlocker={deleteBlocker}
         hasDraft={hasDraft}
         availability={availability}
         mode={effectiveMode}

@@ -197,7 +197,21 @@
       "changedFields_few": "{{count}} zmienione pola:",
       "changedFields_many": "{{count}} zmienionych pól:",
       "advancedMode": "Tryb zaawansowany",
-      "advancedModeHint": "Porównujesz wersję roboczą z v{{revision}}, ostatnią zapisaną wersją. Twoje zmiany trafiają do wersji roboczej."
+      "advancedModeHint": "Porównujesz wersję roboczą z v{{revision}}, ostatnią zapisaną wersją. Twoje zmiany trafiają do wersji roboczej.",
+      "deleteBlocked": {
+        "production": "Agent działa na tej wersji. Najpierw wprowadź na produkcję inną wersję.",
+        "latest": "To najnowsza wersja: następna wersja robocza zaczyna się od niej. Najpierw zapisz nowszą wersję.",
+        "neverSaved": "Nie zapisano jeszcze żadnej wersji, więc wersja robocza to jedyne ustawienia tego agenta."
+      },
+      "deleteDialog": {
+        "title": "Usunąć wersję {{revision}}?",
+        "description": "Wersja {{revision}} zniknie z historii i nie będzie można jej przywrócić. Rozmowy i ekstrakcje, które jej używały, nie zmienią się."
+      },
+      "discardDraft": "Odrzuć wersję roboczą",
+      "discardDraftDialog": {
+        "title": "Odrzucić wersję roboczą?",
+        "description": "Wszystkie zmiany wprowadzone od ostatniej zapisanej wersji zostaną utracone. Edytor wróci do ostatniej zapisanej wersji. Wersja na produkcji się nie zmieni."
+      }
     },
     "version": {
       "ariaLabel": "Wersja ustawień dla nowych wiadomości",
@@ -329,7 +343,11 @@
       "subAgentsUpdated": "Zaktualizowano subagentów",
       "subAgentsUpdateError": "Nie udało się zaktualizować subagentów",
       "productionSet": "Wersja {{revision}} jest teraz produkcyjna",
-      "productionSetError": "Nie udało się zmienić wersji produkcyjnej"
+      "productionSetError": "Nie udało się zmienić wersji produkcyjnej",
+      "versionDeleted": "Wersja agenta usunięta",
+      "versionDeleteError": "Nie udało się usunąć wersji. Spróbuj ponownie.",
+      "draftDiscarded": "Wersja robocza odrzucona",
+      "draftDiscardError": "Nie udało się odrzucić wersji roboczej. Spróbuj ponownie."
     },
     "sources": {
       "documents": {

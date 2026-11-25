@@ -1,11 +1,13 @@
 import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { expect, userEvent, within } from "storybook/test"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import {
   agentOutputJsonSchemaFactory,
   agentSettingsFactory,
 } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
@@ -94,9 +96,43 @@ const schemaVersions: AgentSettings[] = [
   },
 ]
 
+/** Same history with a pending draft on top, saved automatically after an edit of the instructions. */
+const versionsWithDraft: AgentSettings[] = [
+  {
+    ...baseSettings,
+    revision: 5,
+    isDraft: true,
+    instructions:
+      "You are a helpful assistant.\nAnswer clearly and concisely.\nAlways cite your sources.\nKeep answers under 200 words.",
+    providerOptions: { temperature: 0.3 },
+    documentsRagMode: DocumentsRagMode.All,
+    updatedAt: Date.now() - 1000 * 60 * 5,
+  },
+  ...versions,
+]
+
+/**
+ * Only the delete call runs in these stories. The mock store has no listener middleware, so the
+ * history is not reloaded after a successful delete: the dialog closing is the visible outcome.
+ */
+function buildMockAgentSettingsService({ failDelete = false } = {}): IAgentSettingsSpi {
+  const notUsed = () => Promise.reject(new Error("Not used in this story"))
+  return {
+    getAllWithDraft: notUsed,
+    setProduction: notUsed,
+    updateOne: notUsed,
+    restoreOne: notUsed,
+    createOne: notUsed,
+    archiveOne: () =>
+      failDelete ? Promise.reject(new Error("Delete failed")) : Promise.resolve({ success: true }),
+  }
+}
+
 /** The explorer reads the current agent id from the store, so both must be seeded together. */
 function seedHistory(currentAgent: typeof agent, agentSettings: AgentSettings[]) {
   return mergeSeeds(
+    seed.organizations([organization]),
+    seed.projects([project]),
     seed.agents([currentAgent], { currentId: currentAgent.id }),
     seed.studio.agentHistory({ agentId: currentAgent.id, versions: agentSettings }),
   )
@@ -105,9 +141,9 @@ function seedHistory(currentAgent: typeof agent, agentSettings: AgentSettings[])
 const meta = {
   title: "routes/studio/project/agent/AgentSettingsExplorer",
   component: AgentSettingsExplorer,
-  render: () => (
+  render: (args) => (
     <div className="flex h-[600px] flex-col border">
-      <AgentSettingsExplorer />
+      <AgentSettingsExplorer {...args} />
     </div>
   ),
 } satisfies Meta<typeof AgentSettingsExplorer>
@@ -158,6 +194,76 @@ export const OlderVersionInProduction: Story = {
   decorators: [
     withRedux({
       state: seedHistory(agentWithOlderProduction, olderProductionVersions),
+    }),
+  ],
+}
+
+/** Version 3 is selected by default: an older published version, so it can be deleted. */
+export const DeleteOlderVersion: Story = {
+  decorators: [
+    withRedux({
+      state: seedHistory(agent, versions),
+      services: { agentSettings: buildMockAgentSettingsService() },
+    }),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: /delete/i }))
+    const dialog = within(canvasElement.ownerDocument.body)
+    await expect(await dialog.findByRole("dialog")).toBeInTheDocument()
+  },
+}
+
+export const DeleteFails: Story = {
+  decorators: [
+    withRedux({
+      state: seedHistory(agent, versions),
+      services: { agentSettings: buildMockAgentSettingsService({ failDelete: true }) },
+    }),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: /delete/i }))
+    const body = within(canvasElement.ownerDocument.body)
+    const dialog = within(await body.findByRole("dialog"))
+    await userEvent.click(dialog.getByRole("button", { name: /delete/i }))
+    await expect(await dialog.findByRole("alert")).toBeInTheDocument()
+  },
+}
+
+/** The version in production cannot be deleted: the button is disabled and says why. */
+export const DeleteBlockedProduction: Story = {
+  args: { initialRevision: 4 },
+  decorators: [
+    withRedux({
+      state: seedHistory(agent, versions),
+      services: { agentSettings: buildMockAgentSettingsService() },
+    }),
+  ],
+}
+
+/** The pending draft is selected by default: the button discards it and goes back to version 4. */
+export const DiscardDraft: Story = {
+  decorators: [
+    withRedux({
+      state: seedHistory(agent, versionsWithDraft),
+      services: { agentSettings: buildMockAgentSettingsService() },
+    }),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByRole("button", { name: /discard draft/i }))
+    const body = within(canvasElement.ownerDocument.body)
+    await expect(await body.findByRole("dialog")).toBeInTheDocument()
+  },
+}
+
+/** A copy of an agent starts with a draft only: discarding it would leave the agent without settings. */
+export const DiscardDraftNeverSaved: Story = {
+  decorators: [
+    withRedux({
+      state: seedHistory(agent, [{ ...baseSettings, revision: 1, isDraft: true }]),
+      services: { agentSettings: buildMockAgentSettingsService() },
     }),
   ],
 }
