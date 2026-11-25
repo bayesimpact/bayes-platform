@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Backoffice languages: the backoffice notifications are available in German, Italian, Spanish and Polish.
 - MCP: AI assistants save an agent's draft as a version to evaluate it, and never put it in production.
 
 ### Changed
