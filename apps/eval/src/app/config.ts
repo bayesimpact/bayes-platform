@@ -69,7 +69,6 @@ const mockModeConfigSchema = sharedConfigSchema.extend({ mode: z.literal("mock")
 const configSchema = z.discriminatedUnion("mode", [apiModeConfigSchema, mockModeConfigSchema])
 
 export type AppConfig = z.output<typeof configSchema>
-export type OidcConfig = z.output<typeof apiModeConfigSchema>
 
 /**
  * The app's configuration, read once at startup: `window.__CONFIG__`, which the API injects into

@@ -17,9 +17,9 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   with one exception: a resource card links to a library file at
   `organizations/.../resource-libraries/.../resources/.../file` (`src/lib/safe-url.ts`), outside
   `eval/` and the contracts, until an Evaluation route serves it.
-- Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
-  `lib/auth/session.ts`. It comes back to `<origin>/eval/auth/callback` (`<origin>/eval/` after
-  sign-out). It shares one session with every app of the origin (apps/web, the Desk): the user
+- Sign-in: `@bayes-platform/sign-in` (`packages/sign-in`), which the app shares with the Desk
+  (ADR 0031, section 2.4), wrapped by `src/lib/auth/session.ts`, the only file that imports it.
+  The sign-in comes back to `<origin>/eval/auth/callback` (`<origin>/eval/` after sign-out). It shares one session with every app of the origin (apps/web, the Desk): the user
   under `oidc.user:<authority>:<client>`, refreshed under the Web Lock `oidc-token-refresh`, and a
   sign-out or an account switch in another app ends this app's session too. Only the state of a
   sign-in it started stays its own, under `eval.oidc.`.

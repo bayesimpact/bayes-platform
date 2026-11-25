@@ -1,25 +1,39 @@
-import { appBasePath, isMockMode } from "@/app/config"
-import * as oidcClient from "./oidc-client"
-import { releaseAutomaticSignIn } from "./sign-in-problems"
+import { createOidcClient, createSignInGuards, type OidcConfig } from "@bayes-platform/sign-in"
+import { appBasePath, appConfig, isMockMode } from "@/app/config"
 
 /**
- * The app's session: the OIDC client's, or in mock mode a signed-in stand-in, since the mock mode
- * has no identity provider. Everything outside lib/auth goes through this file.
+ * The app's session: the OIDC client of @bayes-platform/sign-in, on the session every app of
+ * the origin shares, or in mock mode a signed-in stand-in, since the mock mode has no identity
+ * provider. Everything outside lib/auth goes through this file.
  */
 
-export { readLoginHint } from "./login-hint"
-export { AuthenticationRequiredError, onSessionEnded, takeTabReturnTo } from "./oidc-client"
 export {
-  claimAutomaticSignIn,
-  claimLostStateRetry,
-  releaseAutomaticSignIn,
+  AuthenticationRequiredError,
+  readLoginHint,
   type SignInCallbackSearch,
   SignInLoopError,
   type SignInProblem,
   SignInRefusedError,
   signInCallbackProblemOf,
   signInCallbackSearchSchema,
-} from "./sign-in-problems"
+  signInRefusalOf,
+} from "@bayes-platform/sign-in"
+
+function getOidcConfig(): OidcConfig {
+  if (appConfig.mode !== "api") throw new Error("The mock mode has no sign-in")
+  return appConfig
+}
+
+const oidcClient = createOidcClient({
+  basePath: appBasePath,
+  storageNamespace: "eval",
+  getConfig: getOidcConfig,
+})
+
+export const { claimAutomaticSignIn, claimLostStateRetry, releaseAutomaticSignIn } =
+  createSignInGuards("eval")
+
+export const { onSessionEnded, takeTabReturnTo } = oidcClient
 
 export function hasSession(): Promise<boolean> {
   return isMockMode ? Promise.resolve(true) : oidcClient.hasSession()

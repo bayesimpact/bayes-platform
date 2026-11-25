@@ -3,7 +3,6 @@ import {
   type AnyStreamRoute,
   type ErrorOutputDto,
   errorOutputSchema,
-  signInRefusalOf,
 } from "@bayes-platform/eval-contracts"
 import { z } from "zod"
 import {
@@ -14,6 +13,7 @@ import {
   SignInLoopError,
   SignInRefusedError,
   signIn,
+  signInRefusalOf,
 } from "@/lib/auth/session"
 
 /** An error response of the API, with its body when it matches the error schema. */

@@ -14,6 +14,7 @@ This is a Turborepo monorepo with the following structure:
 - `packages/@bayes-platform/api-contracts` - Shared API contracts and DTOs
 - `packages/@bayes-platform/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@bayes-platform/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
+- `packages/@bayes-platform/sign-in` - The sign-in of the apps of the ADR 0031 stack (the Desk, Evaluation): the OIDC client on the session every app of the origin shares, the guards against sign-in loops, and the API's sign-in refusals. No app owns it; each app wraps it in its `lib/auth/session.ts`
 - `packages/@bayes-platform/permissions` - The RBAC permission catalog (`src/index.ts`), the one place a permission string is declared. `api-contracts` re-exports it, and the Desk and Evaluation contracts re-export the constants their apps read; no app owns it
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@bayes-platform/ui` - Shared React component library

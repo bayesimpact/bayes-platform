@@ -123,7 +123,8 @@ RUN cd apps/web && npm run build
 # Builds apps/desk for its `/app/` base (vite.config.ts): the API serves the
 # result at /app, ahead of the web front. As for the web front, no VITE_* value
 # is baked in: the Desk reads the configuration the API injects into its
-# index.html. Only the Desk, its contracts, the permissions and the MCP App host are installed.
+# index.html. Only the Desk, its contracts, the permissions, the MCP App host and the sign-in are
+# installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
 
@@ -133,6 +134,7 @@ COPY apps/desk/package.json ./apps/desk/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
+COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
@@ -140,12 +142,14 @@ RUN npm ci \
     --workspace=@bayes-platform/desk-contracts \
     --workspace=@bayes-platform/permissions \
     --workspace=@bayes-platform/mcp-app-host \
+    --workspace=@bayes-platform/sign-in \
     --include-workspace-root
 
 COPY apps/desk ./apps/desk
 COPY packages/desk-contracts ./packages/desk-contracts
 COPY packages/permissions ./packages/permissions
 COPY packages/mcp-app-host ./packages/mcp-app-host
+COPY packages/sign-in ./packages/sign-in
 COPY packages/typescript-config ./packages/typescript-config
 
 RUN cd apps/desk && npm run build
@@ -156,7 +160,8 @@ RUN cd apps/desk && npm run build
 # Builds apps/eval for its `/eval/` base (vite.config.ts): the API serves the
 # result at /eval, ahead of the web front. As for the Desk, no VITE_* value is
 # baked in: the app reads the configuration the API injects into its
-# index.html. Only the app, its contracts, the permissions and the MCP App host are installed.
+# index.html. Only the app, its contracts, the permissions, the MCP App host and the sign-in are
+# installed.
 #
 FROM node:24.21.0-trixie-slim AS eval-build
 
@@ -166,6 +171,7 @@ COPY apps/eval/package.json ./apps/eval/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
+COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
@@ -173,12 +179,14 @@ RUN npm ci \
     --workspace=@bayes-platform/eval-contracts \
     --workspace=@bayes-platform/permissions \
     --workspace=@bayes-platform/mcp-app-host \
+    --workspace=@bayes-platform/sign-in \
     --include-workspace-root
 
 COPY apps/eval ./apps/eval
 COPY packages/eval-contracts ./packages/eval-contracts
 COPY packages/permissions ./packages/permissions
 COPY packages/mcp-app-host ./packages/mcp-app-host
+COPY packages/sign-in ./packages/sign-in
 COPY packages/typescript-config ./packages/typescript-config
 
 RUN cd apps/eval && npm run build
