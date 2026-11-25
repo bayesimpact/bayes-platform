@@ -4,10 +4,11 @@ import { z } from "zod"
  * Opens a project's evaluations. The `project_evaluator` role grants it, never the organization:
  * the app opens for a person who holds it on at least one project.
  */
-export const EVALUATION_UI_READ_PERMISSION = "evaluation.ui.read" as const
-
 /** The permission to open the Studio of a project, where its agents are set up. */
-export const STUDIO_UI_READ_PERMISSION = "studio.ui.read" as const
+export {
+  EVALUATION_UI_READ_PERMISSION,
+  STUDIO_UI_READ_PERMISSION,
+} from "@caseai-connect/permissions"
 
 /** A project the signed-in person can read, as `GET eval/projects/mine` returns it. */
 export const myProjectOutputSchema = z.object({

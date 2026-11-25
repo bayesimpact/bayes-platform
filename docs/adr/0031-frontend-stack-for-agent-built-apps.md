@@ -5,6 +5,8 @@
 * **Deciders**: Alexis
 * **Amended**: 2026-11-16, by Didier: the sandbox of MCP Apps is one package every app imports
   (section 2.4, "The one shared package")
+* **Amended**: 2026-11-25, by Alexis: the permission catalog is a package of its own, which the
+  contracts packages import instead of copying its strings (section 2.12)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -530,10 +532,22 @@ Desk contracts live in a package of their own, `packages/desk-contracts`
 params every area extends), each with an `{area}.dto.ts` that
 holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
 CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
-object per area. It depends on Zod alone and imports nothing from `packages/api-contracts`. The
-Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
+object per area. It depends on Zod and `@caseai-connect/permissions` alone, and imports nothing from
+`packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
 and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
+
+**The permission catalog.** The contracts first held copies of the permission strings the apps read
+(`desk.ui.read`, the session keys of an agent, the keys of Evaluation), and nothing checked that a
+copy still matched its source: a renamed key would have hidden a page or a button with no error.
+Since 2026-11-25 the catalog, `packages/permissions/src/index.ts`, is a package of its own,
+`@caseai-connect/permissions`, and its one declaration. `api-contracts` re-exports it, so the API and
+`apps/web` import it as before, and each contracts package re-exports the constants its app reads.
+Like the MCP App host, no app owns it, and it stays within limits that keep the apps closed worlds:
+no dependency and no import, strings, string unions and pure functions only, nothing a screen shows,
+and the TypeScript options of the new stack (`erasableSyntaxOnly`, `verbatimModuleSyntax`). The apps
+reach it through their contracts only. As the contracts do, it has a CommonJS build the API
+requires, which the API image and the `contracts` service of a worktree environment build first.
 
 * A route is declared with `defineSchemaRoute`, a helper of the package. It takes the method, the
   path and the schemas of the params, query, body and response, and infers the request and

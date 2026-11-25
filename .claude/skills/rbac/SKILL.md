@@ -15,7 +15,7 @@ This skill explains how to use the model. It does not replace:
 
 ## 1. Declare the permission
 
-In `packages/api-contracts/src/rbac/permissions.ts`, add one string constant. This file is the only place a permission string is declared.
+In `packages/permissions/src/index.ts`, add one string constant. This file is the only place a permission string is declared.
 
 ```typescript
 export const PROJECT_ARCHIVE_PERMISSION = "project.archive" as const
@@ -112,7 +112,7 @@ Reference: `apps/api/src/domains/backoffice/backoffice.service.ts` (`listResourc
 
 ## Checklist
 
-- [ ] Constant in `packages/api-contracts/src/rbac/permissions.ts` (and `GlobalPermission` when global)
+- [ ] Constant in `packages/permissions/src/index.ts` (and `GlobalPermission` when global)
 - [ ] Imported in `rbac.constants.ts`, granted on the role, described in `PERMISSION_DESCRIPTIONS`
 - [ ] `READ_PERMISSION_RESOURCE_TYPE_MAP` / `RESOURCE_TYPE_PERMISSIONS_MAP` updated when the key is listed or inherited
 - [ ] A project key granted on a campaign role is in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN`, and a route checking one of those keys on `"project"` is meant to let campaign testers or reviewers in

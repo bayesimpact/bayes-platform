@@ -4,12 +4,11 @@ import { columnFiltersSchema, queryNumberSchema } from "../common/query.dto"
 import { datasetNameInputSchema } from "./datasets.dto"
 
 /** The permissions of a project's extraction datasets, which only its evaluators hold. */
-export const EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION =
-  "evaluation.extraction.dataset.create" as const
-export const EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION =
-  "evaluation.extraction.dataset.update" as const
-export const EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION =
-  "evaluation.extraction.dataset.delete" as const
+export {
+  EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+} from "@caseai-connect/permissions"
 
 /** How many records of a dataset the app shows in a page: a dataset may hold thousands. */
 export const EXTRACTION_DATASET_RECORDS_PAGE_SIZE = 50

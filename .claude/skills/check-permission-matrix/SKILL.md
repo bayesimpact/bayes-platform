@@ -1,6 +1,6 @@
 ---
 name: check-permission-matrix
-description: Audit that docs/rbac-permission-matrix.md matches the RBAC catalog in code (roles, permissions, and grants in rbac.constants.ts and api-contracts permissions.ts). Reports every mismatch.
+description: Audit that docs/rbac-permission-matrix.md matches the RBAC catalog in code (roles, permissions, and grants in rbac.constants.ts and packages/permissions). Reports every mismatch.
 ---
 
 Verify that `docs/rbac-permission-matrix.md` is an exact mirror of the RBAC catalog in code.
@@ -8,7 +8,7 @@ Verify that `docs/rbac-permission-matrix.md` is an exact mirror of the RBAC cata
 ## Steps
 
 1. Read the two code sources of truth:
-   - `packages/api-contracts/src/rbac/permissions.ts` — permission string constants (the only declaration) and every member of the `GlobalPermission` union.
+   - `packages/permissions/src/index.ts` — permission string constants (the only declaration) and every member of the `GlobalPermission` union.
    - `apps/api/src/domains/rbac/rbac.constants.ts` — extract every role key and its granted permissions from every `*_ROLE_PERMISSIONS` map: `ORGANIZATION_ROLE_PERMISSIONS`, `PROJECT_ROLE_PERMISSIONS`, `AGENT_ROLE_PERMISSIONS` and `REVIEW_CAMPAIGN_ROLE_PERMISSIONS`. Search the file for `_ROLE_PERMISSIONS = {` so a new map is not missed. Also read `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` (the project keys a campaign role gives on the campaign's project), `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS` (the campaign statuses under which each campaign role gives them), `RESOURCE_TYPE_PERMISSIONS_MAP` (the keys a parent passes down to each child type) and `PARENT_RESOURCE_TYPE_MAP` (the parents of each type). Permission constants such as `TRACE_READ_PERMISSION` are imported from the contracts file; resolve them to their string values. The API file must not redeclare those strings.
 
 2. Read `docs/rbac-permission-matrix.md` and parse each table into (permission, role) → granted/not-granted pairs. A cell such as `✅ while active` is a grant with a campaign status condition.

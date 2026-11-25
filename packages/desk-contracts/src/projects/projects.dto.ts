@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 /** Opens a project's Desk: the projects that grant it are the ones the Desk's home lists. */
-export const DESK_UI_READ_PERMISSION = "desk.ui.read" as const
+export { DESK_UI_READ_PERMISSION } from "@caseai-connect/permissions"
 
 /** The feature of a project that shows the sources a reply relied on, under the reply. */
 export const SOURCES_TOOL_FEATURE_FLAG = "sources-tool" as const

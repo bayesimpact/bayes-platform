@@ -25,6 +25,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@caseai-connect/permissions": "*",
     "@nestjs/mapped-types": "*"
   },
   "devDependencies": {

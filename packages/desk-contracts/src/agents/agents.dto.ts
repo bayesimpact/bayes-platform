@@ -1,3 +1,7 @@
+import {
+  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
+} from "@caseai-connect/permissions"
 import { z } from "zod"
 
 /** What an agent does: hold a conversation, or extract data from documents. */
@@ -10,8 +14,8 @@ export type AgentTypeDto = z.output<typeof agentTypeSchema>
  * extraction of documents and CSV files.
  */
 export const AGENT_SESSION_CREATE_PERMISSIONS = {
-  conversation: "agent.conversation.session.create",
-  extraction: "agent.extraction.session.create",
+  conversation: AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  extraction: AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
 } as const satisfies Record<AgentTypeDto, string>
 
 /**

@@ -14,6 +14,7 @@ This is a Turborepo monorepo with the following structure:
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
 - `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@caseai-connect/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
+- `packages/@caseai-connect/permissions` - The RBAC permission catalog (`src/index.ts`), the one place a permission string is declared. `api-contracts` re-exports it, and the Desk and Evaluation contracts re-export the constants their apps read; no app owns it
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 

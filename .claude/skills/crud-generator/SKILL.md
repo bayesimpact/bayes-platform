@@ -165,7 +165,7 @@ Follow `.claude/skills/rbac/SKILL.md` and ADR 0019. There is no per-entity guard
 
 - Pick one permission key per route, named `{resource}.{action}` in snake case (e.g. `document_tag.create`): `create` for Create, `read` for GetAll and GetOne, `update` for Update, `delete` for Delete
 - Reuse an existing key from `apps/api/src/domains/rbac/rbac.constants.ts` when it already describes the capability
-- Otherwise the rbac skill adds the key in one change: the string in `packages/api-contracts/src/rbac/permissions.ts`, the role grants in `rbac.constants.ts`, the row in `docs/rbac-permission-matrix.md` and the data migration inserting the `role_permission` rows
+- Otherwise the rbac skill adds the key in one change: the string in `packages/permissions/src/index.ts`, the role grants in `rbac.constants.ts`, the row in `docs/rbac-permission-matrix.md` and the data migration inserting the `role_permission` rows
 - When unsure which role should hold a new key, ask the user before generating
 
 ### 4d. Backend — Controller

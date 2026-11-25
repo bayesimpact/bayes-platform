@@ -19,16 +19,18 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
+COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
-# Scope install to API + api-contracts + desk-contracts + eval-contracts so packages/ui's runtime deps (vite, tailwind, radix, react)
+# Scope install to API + the contracts and the permissions they share so packages/ui's runtime deps (vite, tailwind, radix, react)
 # never enter node_modules/. Frontend workspaces are left on disk but their deps aren't installed.
 RUN npm ci \
     --workspace=@caseai-connect/api \
     --workspace=@caseai-connect/api-contracts \
     --workspace=@caseai-connect/desk-contracts \
     --workspace=@caseai-connect/eval-contracts \
+    --workspace=@caseai-connect/permissions \
     --include-workspace-root
 
 #
@@ -46,6 +48,7 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
+COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
@@ -54,6 +57,7 @@ RUN npm ci --omit=dev \
     --workspace=@caseai-connect/api-contracts \
     --workspace=@caseai-connect/desk-contracts \
     --workspace=@caseai-connect/eval-contracts \
+    --workspace=@caseai-connect/permissions \
     --include-workspace-root
 
 # `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
@@ -76,6 +80,7 @@ COPY ./packages ./packages
 
 # Generate the production build. The build script compiles src/ to dist/ with SWC (.swcrc).
 RUN cd apps/api && npm run build
+RUN cd packages/permissions && npm run build
 RUN cd packages/api-contracts && npm run build
 RUN cd packages/desk-contracts && npm run build
 RUN cd packages/eval-contracts && npm run build
@@ -95,6 +100,7 @@ COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
+COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
@@ -103,6 +109,7 @@ RUN npm ci \
     --workspace=@caseai-connect/mcp-app-host \
     --workspace=@caseai-connect/ui \
     --workspace=@caseai-connect/api-contracts \
+    --workspace=@caseai-connect/permissions \
     --include-workspace-root
 
 COPY apps/web ./apps/web
@@ -116,7 +123,7 @@ RUN cd apps/web && npm run build
 # Builds apps/desk for its `/app/` base (vite.config.ts): the API serves the
 # result at /app, ahead of the web front. As for the web front, no VITE_* value
 # is baked in: the Desk reads the configuration the API injects into its
-# index.html. Only the Desk, its contracts and the MCP App host are installed.
+# index.html. Only the Desk, its contracts, the permissions and the MCP App host are installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
 
@@ -124,17 +131,20 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/desk/package.json ./apps/desk/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
+COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
     --workspace=@caseai-connect/desk \
     --workspace=@caseai-connect/desk-contracts \
+    --workspace=@caseai-connect/permissions \
     --workspace=@caseai-connect/mcp-app-host \
     --include-workspace-root
 
 COPY apps/desk ./apps/desk
 COPY packages/desk-contracts ./packages/desk-contracts
+COPY packages/permissions ./packages/permissions
 COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/typescript-config ./packages/typescript-config
 
@@ -146,7 +156,7 @@ RUN cd apps/desk && npm run build
 # Builds apps/eval for its `/eval/` base (vite.config.ts): the API serves the
 # result at /eval, ahead of the web front. As for the Desk, no VITE_* value is
 # baked in: the app reads the configuration the API injects into its
-# index.html. Only the app, its contracts and the MCP App host are installed.
+# index.html. Only the app, its contracts, the permissions and the MCP App host are installed.
 #
 FROM node:24.21.0-trixie-slim AS eval-build
 
@@ -154,17 +164,20 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/eval/package.json ./apps/eval/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
+COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
     --workspace=@caseai-connect/eval \
     --workspace=@caseai-connect/eval-contracts \
+    --workspace=@caseai-connect/permissions \
     --workspace=@caseai-connect/mcp-app-host \
     --include-workspace-root
 
 COPY apps/eval ./apps/eval
 COPY packages/eval-contracts ./packages/eval-contracts
+COPY packages/permissions ./packages/permissions
 COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/typescript-config ./packages/typescript-config
 
@@ -196,6 +209,7 @@ COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
 COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/packages/eval-contracts /app/packages/eval-contracts
+COPY --from=build /app/packages/permissions /app/packages/permissions
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:
@@ -320,6 +334,7 @@ COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
 COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/packages/eval-contracts /app/packages/eval-contracts
+COPY --from=build /app/packages/permissions /app/packages/permissions
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:

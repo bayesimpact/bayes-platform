@@ -18,17 +18,15 @@ export const REVIEW_CAMPAIGN_ROLE_KEYS = {
   review_campaign_reviewer: "reviewer",
 } as const satisfies Record<string, ReviewCampaignRoleDto>
 
-/** Sees the review campaigns of a project: the project's owners and admins hold it. */
-export const PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION = "project.review_campaign.read" as const
-export const PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION = "project.review_campaign.create" as const
-export const PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION = "project.review_campaign.update" as const
-export const PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION = "project.review_campaign.delete" as const
-/** Invites testers and reviewers, sees the pending invitations and revokes them. */
-export const PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION =
-  "project.review_campaign.member.invite" as const
-/** Removes a tester or a reviewer from a campaign. */
-export const PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION =
-  "project.review_campaign.member.delete" as const
+/** The permissions of a project's review campaigns, which its owners and admins hold. */
+export {
+  PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
+} from "@caseai-connect/permissions"
 
 export const reviewCampaignQuestionTypeSchema = z.enum(["rating", "single-choice", "free-text"])
 

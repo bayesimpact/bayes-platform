@@ -2,7 +2,7 @@ import { z } from "zod"
 import { reviewCampaignQuestionTypeSchema } from "./review-campaigns.dto"
 
 /** Reads a campaign's report: its reviewers, and the owners and admins of its project. */
-export const REVIEW_CAMPAIGN_REPORT_READ_PERMISSION = "review_campaign.report.read" as const
+export { REVIEW_CAMPAIGN_REPORT_READ_PERMISSION } from "@caseai-connect/permissions"
 
 /** How the answers to one question spread. A free-text question has its answers, not buckets. */
 export const campaignReportDistributionOutputSchema = z.object({
