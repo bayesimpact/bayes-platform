@@ -221,6 +221,7 @@ describe("Evaluation review campaigns - getReport", () => {
       type: "free-text",
       responseCount: 2,
       buckets: [],
+      textAnswers: ["A summary", "A summary"],
     })
 
     const firstRow = report.sessionMatrix.find((row) => row.sessionId === firstSession.id)
@@ -233,7 +234,15 @@ describe("Evaluation review campaigns - getReport", () => {
       reviewerCount: 2,
       meanReviewerRating: 3,
       reviewerRatingSpread: 2,
+      testerAnswers: { "tp-1": "4", "tp-2": "Product" },
+      reviewerAnswers: {
+        "rv-1": expect.arrayContaining(["2", "4"]),
+        "rv-2": ["A summary", "A summary"],
+      },
+      endOfPhaseAnswers: { "tp-end": "5" },
     })
+    // Each review's answers line up with its rating.
+    expect(firstRow?.reviewerAnswers["rv-1"]).toEqual(firstRow?.reviewerRatings.map(String))
     const secondRow = report.sessionMatrix.find((row) => row.sessionId === secondSession.id)
     expect(secondRow).toMatchObject({
       testerRating: 3,
@@ -241,6 +250,9 @@ describe("Evaluation review campaigns - getReport", () => {
       reviewerCount: 0,
       meanReviewerRating: null,
       reviewerRatingSpread: null,
+      testerAnswers: { "tp-1": "2" },
+      reviewerAnswers: {},
+      endOfPhaseAnswers: {},
     })
   })
 

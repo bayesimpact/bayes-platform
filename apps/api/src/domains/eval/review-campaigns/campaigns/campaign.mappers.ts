@@ -160,6 +160,7 @@ function toReportDistributionDto(
     type: distribution.type,
     responseCount: distribution.responseCount,
     buckets: distribution.buckets.map((bucket) => ({ label: bucket.label, count: bucket.count })),
+    textAnswers: distribution.textAnswers,
   }
 }
 
@@ -174,6 +175,9 @@ function toReportSessionDto(row: CampaignReportSessionRow): CampaignReportSessio
     reviewerCount: row.reviewerCount,
     meanReviewerRating: row.meanReviewerRating,
     reviewerRatingSpread: row.reviewerRatingSpread,
+    testerAnswers: row.testerAnswers,
+    reviewerAnswers: row.reviewerAnswers,
+    endOfPhaseAnswers: row.endOfPhaseAnswers,
   }
 }
 
