@@ -13,7 +13,7 @@ type ConversationRunRecord = Awaited<
 >["records"][number]
 
 /**
- * A copy of `toEvaluationConversationRunDto`, with the fields Evaluation reads. The run carries
+ * A run, with the fields Evaluation reads. The run carries
  * the version it pinned: the context resolver and `listRuns` load it.
  */
 export function toConversationRunDto(run: ConversationRun): ConversationRunOutputDto {
@@ -37,7 +37,7 @@ export function toConversationRunDto(run: ConversationRun): ConversationRunOutpu
   }
 }
 
-/** A copy of `toEvaluationConversationRunRecordDto`, with the fields Evaluation reads. */
+/** A record of a run, with the fields Evaluation reads. */
 export function toConversationRunRecordDto(
   record: ConversationRunRecord,
 ): ConversationRunRecordOutputDto {

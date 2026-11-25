@@ -32,7 +32,7 @@ function toAnswerDto(answer: ReviewerReview["answers"][number]): ReviewCampaignA
   return { questionId: answer.questionId, value: answer.value }
 }
 
-/** A copy of `toReviewerSessionListItemDto` of `ReviewerSessionsController`, with the fields Evaluation reads. */
+/** A session in the reviewer's list, with the fields Evaluation reads. */
 export function toReviewerSessionListItemDto(
   summary: ReviewerSessionSummary,
 ): ReviewerSessionListItemOutputDto {
@@ -46,7 +46,7 @@ export function toReviewerSessionListItemDto(
   }
 }
 
-/** A copy of `toReviewerSessionReviewDto` of `ReviewerSessionReviewController`, with the fields Evaluation reads. */
+/** A reviewer's review of a session, with the fields Evaluation reads. */
 export function toReviewerReviewDto(review: ReviewerReview): ReviewerReviewOutputDto {
   return {
     id: review.id,
@@ -68,7 +68,7 @@ function toTranscriptMessageDto(message: TranscriptMessage) {
   }
 }
 
-/** A copy of `toGetReviewerSessionResponseDto` of `ReviewerSessionDetailController`. */
+/** A session as its reviewer sees it: blind before the review, full after it. */
 export function toReviewerSessionDto(result: ReviewerSessionViewResult): ReviewerSessionOutputDto {
   const common = {
     sessionId: result.sessionId,

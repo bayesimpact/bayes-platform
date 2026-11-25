@@ -28,11 +28,9 @@ import {
 } from "./reviewer.mappers"
 
 /**
- * What a reviewer does in a campaign. The list of sessions copies the handler of
- * `ReviewerSessionsController`, the session and its MCP Apps those of
- * `ReviewerSessionDetailController`, and the reviews those of `ReviewerSessionReviewController`,
- * each with its permission and context. A route with a session reads the campaign from the
- * session and ignores `:reviewCampaignId`, as the routes it copies do.
+ * What a reviewer does in a campaign: the list of its sessions, a session with its MCP Apps, and
+ * the reviews. A route with a session reads the campaign from the session and ignores
+ * `:reviewCampaignId`.
  */
 @Controller()
 export class EvalReviewerController {

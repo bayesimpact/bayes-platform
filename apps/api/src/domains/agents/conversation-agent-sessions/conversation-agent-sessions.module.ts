@@ -1,6 +1,5 @@
 import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
-import { AgentSessionReviewCampaignContextModule } from "@/common/context/agent-session-review-campaign-context.module"
 import { AgentSettingsModule } from "@/domains/agents/settings/agent-settings.module"
 import { PdfPagesModule } from "@/domains/documents/pdf-pages/pdf-pages.module"
 import { McpServersModule } from "@/domains/mcp-servers/mcp-servers.module"
@@ -16,7 +15,6 @@ import { AgentConversationReviewersModule } from "../conversation-reviewers/agen
 import { AgentMessageAttachmentDocumentsService } from "../shared/agent-session-messages/agent-message-attachment-documents.service"
 import { McpAppHtmlService } from "../shared/agent-session-messages/mcp-app-html.service"
 import { PlaygroundAgentMessagesController } from "../shared/agent-session-messages/playground-agent-messages.controller"
-import { ReviewCampaignTesterAgentMessagesController } from "../shared/agent-session-messages/review-campaign-tester-agent-messages.controller"
 import { StreamingModule } from "../shared/agent-session-messages/streaming/streaming.module"
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
 import { PlaygroundConversationAgentSessionsController } from "./playground-conversation-agent-sessions.controller"
@@ -36,7 +34,6 @@ import { ConversationReviewService } from "./review/conversation-review.service"
     McpServersModule,
     PdfPagesModule,
     RbacModule,
-    AgentSessionReviewCampaignContextModule,
     AgentConversationReviewersModule,
   ],
   providers: [
@@ -52,7 +49,6 @@ import { ConversationReviewService } from "./review/conversation-review.service"
     ConversationReviewController,
     PlaygroundAgentMessagesController,
     PlaygroundConversationAgentSessionsController,
-    ReviewCampaignTesterAgentMessagesController,
   ],
   exports: [
     AgentMessageAttachmentDocumentsService,

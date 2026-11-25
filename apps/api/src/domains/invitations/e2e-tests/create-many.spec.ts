@@ -20,11 +20,6 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
-import {
-  reviewCampaignMembershipFactory,
-  saveReviewCampaignMembership,
-} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
-import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { buildServiceUserEmail } from "@/domains/users/service-user.helpers"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
@@ -33,7 +28,6 @@ import {
   findAgentMembershipRow,
   findOrganizationMembershipRow,
   findProjectMembershipRow,
-  findReviewCampaignMembershipRow,
 } from "../../../../test/membership-test.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -246,114 +240,6 @@ describe("Invitations - createMany", () => {
           projectId: project.id,
         }),
       ).toBeNull()
-    })
-  })
-
-  describe("review campaign target", () => {
-    const createCampaign = async (status: "active" | "draft") => {
-      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
-        repositories,
-        { user: { authSubject } },
-      )
-      const campaignFactory =
-        status === "active" ? reviewCampaignFactory.active() : reviewCampaignFactory.draft()
-      return repositories.reviewCampaignRepository.save(
-        campaignFactory.transient({ organization, project, agent, agentSettings }).build(),
-      )
-    }
-
-    it("stores the requested campaign role, without giving access yet", async () => {
-      const campaign = await createCampaign("active")
-
-      const response = await subject(
-        { reviewCampaign: campaign },
-        {
-          emails: ["reviewer@example.com"],
-          role: "reviewer",
-        },
-      )
-
-      expectResponse(response, 201)
-      expect(response.body.data.invitations).toEqual([
-        expect.objectContaining({ role: "reviewer", targetName: campaign.name }),
-      ])
-      const invitedUser = await repositories.userRepository.findOneOrFail({
-        where: { email: "reviewer@example.com" },
-      })
-      expect(
-        await findReviewCampaignMembershipRow(repositories, {
-          userId: invitedUser.id,
-          campaignId: campaign.id,
-          roleKey: "review_campaign_reviewer",
-        }),
-      ).toBeNull()
-    })
-
-    it("requires a valid campaign role", async () => {
-      const campaign = await createCampaign("active")
-
-      expectResponse(
-        await subject(
-          { reviewCampaign: campaign },
-          {
-            emails: ["reviewer@example.com"],
-          },
-        ),
-        400,
-      )
-      expectResponse(
-        await subject(
-          { reviewCampaign: campaign },
-          {
-            emails: ["reviewer@example.com"],
-            role: "owner",
-          },
-        ),
-        400,
-      )
-    })
-
-    it("skips someone who already holds the campaign role", async () => {
-      const campaign = await createCampaign("active")
-      const participant = await repositories.userRepository.save(
-        userFactory.build({ email: "participant@example.com" }),
-      )
-      const organization = await repositories.organizationRepository.findOneByOrFail({
-        id: campaign.organizationId,
-      })
-      const project = await repositories.projectRepository.findOneByOrFail({
-        id: campaign.projectId,
-      })
-      await saveReviewCampaignMembership({
-        repositories,
-        membership: reviewCampaignMembershipFactory
-          .withRoles("review_campaign_tester")
-          .transient({ organization, project, campaign, user: participant })
-          .build(),
-      })
-
-      const response = await subject(
-        { reviewCampaign: campaign },
-        { emails: [participant.email], role: "tester" },
-      )
-
-      expectResponse(response, 201)
-      expect(response.body.data.invitations).toEqual([])
-    })
-
-    it("refuses to invite members to a campaign that is not active", async () => {
-      const campaign = await createCampaign("draft")
-
-      expectResponse(
-        await subject(
-          { reviewCampaign: campaign },
-          {
-            emails: ["tester@example.com"],
-            role: "tester",
-          },
-        ),
-        409,
-      )
     })
   })
 

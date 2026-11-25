@@ -1,6 +1,6 @@
 import type { RequestPayload, ResponseData } from "../../../generic"
 import { defineRoute } from "../../../helpers"
-import type { ConversationAgentSessionTypeDto } from "../../conversation-agent-sessions/conversation-agent-sessions.dto"
+import type { BaseAgentSessionTypeDto } from "../../conversation-agent-sessions/conversation-agent-sessions.dto"
 import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
@@ -16,10 +16,10 @@ const agentSessionsPath =
   "organizations/:organizationId/projects/:projectId/agents/:agentId/agent-sessions"
 
 /**
- * Live, playground and review campaign tester sessions each get their own route set, so each has
- * its own permissions.
+ * The Desk serves the messages of its sessions under `desk/`, and Evaluation those of a review
+ * campaign tester under `eval/`. Only the playground is left here.
  */
-function defineAgentSessionMessagesRoutes(type: ConversationAgentSessionTypeDto) {
+function defineAgentSessionMessagesRoutes(type: BaseAgentSessionTypeDto) {
   const sessionPath = `${agentSessionsPath}/${type}/:agentSessionId`
   const prefix = `${sessionPath}/messages`
 
@@ -76,5 +76,4 @@ function defineAgentSessionMessagesRoutes(type: ConversationAgentSessionTypeDto)
 
 export const AgentSessionMessagesRoutes = {
   playground: defineAgentSessionMessagesRoutes("playground"),
-  review_campaign_tester: defineAgentSessionMessagesRoutes("review_campaign_tester"),
 }

@@ -4,7 +4,6 @@ import type {
   CreateInvitationsRequestDto,
   CreateInvitationsResponseDto,
   CreateProjectInvitationsRequestDto,
-  CreateReviewCampaignInvitationsRequestDto,
   ListInvitationsResponseDto,
   ListInviteeAccessResponseDto,
 } from "./invitations.dto"
@@ -57,28 +56,6 @@ export const AgentInvitationsRoutes = {
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
     path: `${PROJECT_PATH}/agents/:agentId/invitations/:invitationId`,
-  }),
-}
-
-/**
- * Invitations to a review campaign. Needs `project.review_campaign.member.invite` on its
- * project.
- */
-export const ReviewCampaignInvitationsRoutes = {
-  getAll: defineRoute<ResponseData<ListInvitationsResponseDto>>({
-    method: "get",
-    path: `${PROJECT_PATH}/review-campaigns/:reviewCampaignId/invitations`,
-  }),
-  createMany: defineRoute<
-    ResponseData<CreateInvitationsResponseDto>,
-    RequestPayload<CreateReviewCampaignInvitationsRequestDto>
-  >({
-    method: "post",
-    path: `${PROJECT_PATH}/review-campaigns/:reviewCampaignId/invitations`,
-  }),
-  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
-    method: "delete",
-    path: `${PROJECT_PATH}/review-campaigns/:reviewCampaignId/invitations/:invitationId`,
   }),
 }
 

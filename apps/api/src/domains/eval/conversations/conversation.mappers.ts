@@ -24,8 +24,7 @@ export type EndpointRequestWithTesterSession = EndpointRequestWithConversationAg
   Pick<EndpointRequestWithReviewCampaign, "reviewCampaign">
 
 /**
- * The routes serve tester sessions only: a session of another type answers 404, as on the routes
- * they copy.
+ * The routes serve tester sessions only: a session of another type answers 404.
  */
 export function assertTesterSession(request: EndpointRequestWithTesterSession): void {
   if (request.agentSession.type !== "review_campaign_tester") throw new NotFoundException()

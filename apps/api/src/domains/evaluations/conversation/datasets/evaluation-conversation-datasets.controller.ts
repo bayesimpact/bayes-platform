@@ -1,44 +1,25 @@
 import {
   type EvaluationConversationDatasetDto,
-  type EvaluationConversationDatasetRecordDto,
   EvaluationConversationDatasetsRoutes,
-  type PaginatedEvaluationConversationDatasetRecordsDto,
 } from "@caseai-connect/api-contracts"
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from "@nestjs/common"
-import type {
-  EndpointRequestWithEvaluationConversationDataset,
-  EndpointRequestWithProject,
-} from "@/common/context/request.interface"
+import { Controller, Get, Req, UseGuards } from "@nestjs/common"
+import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
+import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
-import {
-  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
-  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
-  EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
-  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
-} from "@/domains/rbac/rbac.constants"
+import { EVALUATION_CONVERSATION_DATASET_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { EvaluationConversationDataset } from "./evaluation-conversation-dataset.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationConversationDatasetsService } from "./evaluation-conversation-datasets.service"
-import type { EvaluationConversationDatasetRecord } from "./records/evaluation-conversation-dataset-record.entity"
 
+/**
+ * The list of the project's datasets, which the Studio reads to save a conversation as a test
+ * case. Evaluation serves every dataset route of its own under `eval/`.
+ */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
@@ -66,154 +47,6 @@ export class EvaluationConversationDatasetsController {
     )
     return { data: results }
   }
-
-  @Get(EvaluationConversationDatasetsRoutes.getRecords.path)
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_READ_PERMISSION, "project")
-  async getRecords(
-    @Req() request: EndpointRequestWithProject,
-    @Param("datasetId") datasetId: string,
-    @Query("page") pageParam?: string,
-    @Query("limit") limitParam?: string,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.getRecords.response> {
-    const page = Math.max(0, Number(pageParam) || 0)
-    const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
-
-    const { records, total } =
-      await this.evaluationConversationDatasetsService.listDatasetRecordsPaginated({
-        connectScope: getRequiredConnectScope(request),
-        datasetId,
-        page,
-        limit,
-      })
-
-    const data: PaginatedEvaluationConversationDatasetRecordsDto = {
-      records: records.map(toEvaluationConversationDatasetRecordDto),
-      total,
-      page,
-      limit,
-    }
-    return { data }
-  }
-
-  @Post(EvaluationConversationDatasetsRoutes.createOne.path)
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION, "project")
-  @TrackActivity({ action: "evaluationConversationDataset.create" })
-  async createOne(
-    @Req() request: EndpointRequestWithProject,
-    @Body()
-    { payload }: typeof EvaluationConversationDatasetsRoutes.createOne.request,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.createOne.response> {
-    await this.evaluationConversationDatasetsService.createDataset({
-      connectScope: getRequiredConnectScope(request),
-      name: payload.name,
-    })
-
-    return { data: { success: true } }
-  }
-
-  @Patch(EvaluationConversationDatasetsRoutes.renameOne.path)
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
-  @TrackActivity({ action: "evaluationConversationDataset.rename" })
-  async renameOne(
-    @Req() request: EndpointRequestWithProject,
-    @Body()
-    { payload: { name } }: typeof EvaluationConversationDatasetsRoutes.renameOne.request,
-    @Param("datasetId") datasetId: string,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.renameOne.response> {
-    await this.evaluationConversationDatasetsService.renameDataset({
-      connectScope: getRequiredConnectScope(request),
-      datasetId,
-      name,
-    })
-
-    return { data: { success: true } }
-  }
-
-  @Delete(EvaluationConversationDatasetsRoutes.deleteOne.path)
-  @AddContext("evaluationConversationDataset")
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION, "project")
-  @TrackActivity({ action: "evaluationConversationDataset.delete" })
-  async deleteOne(
-    @Req() request: EndpointRequestWithEvaluationConversationDataset,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.deleteOne.response> {
-    await this.evaluationConversationDatasetsService.deleteDataset({
-      connectScope: getRequiredConnectScope(request),
-      datasetId: request.evaluationConversationDataset.id,
-    })
-    return { data: { success: true } }
-  }
-
-  @Post(EvaluationConversationDatasetsRoutes.createRecord.path)
-  @AddContext("evaluationConversationDataset")
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
-  @TrackActivity({ action: "evaluationConversationDataset.createRecord" })
-  async createRecord(
-    @Req() request: EndpointRequestWithEvaluationConversationDataset,
-    @Body()
-    { payload }: typeof EvaluationConversationDatasetsRoutes.createRecord.request,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.createRecord.response> {
-    await this.evaluationConversationDatasetsService.createRecord({
-      connectScope: getRequiredConnectScope(request),
-      datasetId: request.evaluationConversationDataset.id,
-      fields: { input: payload.input, expectedOutput: payload.expectedOutput },
-    })
-
-    return { data: { success: true } }
-  }
-
-  @Post(EvaluationConversationDatasetsRoutes.createRecords.path)
-  @AddContext("evaluationConversationDataset")
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
-  @TrackActivity({ action: "evaluationConversationDataset.createRecords" })
-  async createRecords(
-    @Req() request: EndpointRequestWithEvaluationConversationDataset,
-    @Body()
-    { payload }: typeof EvaluationConversationDatasetsRoutes.createRecords.request,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.createRecords.response> {
-    await this.evaluationConversationDatasetsService.createRecords({
-      connectScope: getRequiredConnectScope(request),
-      datasetId: request.evaluationConversationDataset.id,
-      records: payload.records,
-    })
-
-    return { data: { success: true } }
-  }
-
-  @Patch(EvaluationConversationDatasetsRoutes.updateRecord.path)
-  @AddContext("evaluationConversationDataset")
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
-  @TrackActivity({ action: "evaluationConversationDataset.updateRecord" })
-  async updateRecord(
-    @Req() request: EndpointRequestWithEvaluationConversationDataset,
-    @Body()
-    { payload }: typeof EvaluationConversationDatasetsRoutes.updateRecord.request,
-    @Param("recordId") recordId: string,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.updateRecord.response> {
-    await this.evaluationConversationDatasetsService.updateRecord({
-      connectScope: getRequiredConnectScope(request),
-      datasetId: request.evaluationConversationDataset.id,
-      recordId,
-      fields: { input: payload.input, expectedOutput: payload.expectedOutput },
-    })
-
-    return { data: { success: true } }
-  }
-
-  @Delete(EvaluationConversationDatasetsRoutes.deleteRecord.path)
-  @AddContext("evaluationConversationDataset")
-  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
-  @TrackActivity({ action: "evaluationConversationDataset.deleteRecord" })
-  async deleteRecord(
-    @Req() request: EndpointRequestWithEvaluationConversationDataset,
-    @Param("recordId") recordId: string,
-  ): Promise<typeof EvaluationConversationDatasetsRoutes.deleteRecord.response> {
-    await this.evaluationConversationDatasetsService.deleteRecord({
-      connectScope: getRequiredConnectScope(request),
-      datasetId: request.evaluationConversationDataset.id,
-      recordId,
-    })
-    return { data: { success: true } }
-  }
 }
 
 function toEvaluationConversationDatasetDto({
@@ -230,18 +63,5 @@ function toEvaluationConversationDatasetDto({
     projectId: entity.projectId,
     recordCount,
     updatedAt: entity.updatedAt.getTime(),
-  }
-}
-
-function toEvaluationConversationDatasetRecordDto(
-  record: EvaluationConversationDatasetRecord,
-): EvaluationConversationDatasetRecordDto {
-  return {
-    comment: record.comment,
-    createdAt: record.createdAt.getTime(),
-    expectedOutput: record.expectedOutput,
-    id: record.id,
-    input: record.input,
-    updatedAt: record.updatedAt.getTime(),
   }
 }

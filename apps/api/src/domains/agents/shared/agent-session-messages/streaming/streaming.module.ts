@@ -1,6 +1,5 @@
 import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
-import { AgentSessionReviewCampaignContextModule } from "@/common/context/agent-session-review-campaign-context.module"
 import {
   moduleFeatures,
   moduleImports,
@@ -12,7 +11,6 @@ import { RbacModule } from "@/domains/rbac/rbac.module"
 import { ActiveAgentScopeService } from "./active-agent-scope.service"
 import { AgentLlmModule } from "./agent-llm.module"
 import { PlaygroundStreamingController } from "./playground-streaming.controller"
-import { ReviewCampaignTesterStreamingController } from "./review-campaign-tester-streaming.controller"
 import { StreamingLlmService } from "./streaming-llm.service"
 
 @Module({
@@ -22,10 +20,9 @@ import { StreamingLlmService } from "./streaming-llm.service"
     forwardRef(() => AgentLlmModule),
     forwardRef(() => ConversationAgentSessionsModule),
     RbacModule,
-    AgentSessionReviewCampaignContextModule,
   ],
   providers: [...moduleProviders, ActiveAgentScopeService, StreamingLlmService],
-  controllers: [PlaygroundStreamingController, ReviewCampaignTesterStreamingController],
+  controllers: [PlaygroundStreamingController],
   exports: [StreamingLlmService, ActiveAgentScopeService],
 })
 export class StreamingModule {}

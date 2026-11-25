@@ -20,37 +20,3 @@ export type EvaluationConversationDatasetDto = {
   recordCount: number
   updatedAt: TimeType
 }
-
-// DATASET RECORD
-export type EvaluationConversationDatasetRecordDto = {
-  /** Why the expected output is the reference, when the record was saved from an agent answer. */
-  comment: string | null
-  createdAt: TimeType
-  expectedOutput: string
-  id: string
-  input: string
-  updatedAt: TimeType
-}
-
-// Request DTOs
-export type CreateEvaluationConversationDatasetRecordRequestDto = {
-  expectedOutput: string
-  input: string
-}
-
-export type BulkCreateEvaluationConversationDatasetRecordsRequestDto = {
-  records: CreateEvaluationConversationDatasetRecordRequestDto[]
-}
-
-export type UpdateEvaluationConversationDatasetRecordRequestDto = {
-  expectedOutput: string
-  input: string
-}
-
-// PAGINATED RECORDS
-export type PaginatedEvaluationConversationDatasetRecordsDto = {
-  records: EvaluationConversationDatasetRecordDto[]
-  total: number
-  page: number
-  limit: number
-}

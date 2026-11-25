@@ -8,7 +8,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
@@ -80,32 +79,6 @@ describe("Invitations - listForTarget", () => {
         status: "pending",
         targetName: agent.name,
       }),
-    ])
-  })
-
-  it("lists the pending invitations of a review campaign", async () => {
-    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
-      repositories,
-      { user: { authSubject } },
-    )
-    const reviewCampaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory
-        .active()
-        .transient({ organization, project, agent, agentSettings })
-        .build(),
-    )
-    const invitedUser = await repositories.userRepository.save(
-      userFactory.build({ authSubject: null }),
-    )
-    const invitation = await repositories.invitationRepository.save(
-      invitationFactory.transient({ user: invitedUser, reviewCampaign }).build(),
-    )
-
-    const response = await subject({ reviewCampaign })
-
-    expectResponse(response, 200)
-    expect(response.body.data.invitations).toEqual([
-      expect.objectContaining({ id: invitation.id, targetName: reviewCampaign.name }),
     ])
   })
 

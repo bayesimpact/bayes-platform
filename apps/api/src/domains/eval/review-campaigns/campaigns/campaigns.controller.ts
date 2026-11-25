@@ -34,10 +34,10 @@ import {
 } from "./campaign.mappers"
 
 /**
- * The campaigns of a project. The routes for the people who manage them copy the handlers of
- * `ReviewCampaignsController`, the report the one of `ReportsController`, and the participants'
- * context `TesterController.getTesterContext`, each with its permission and context.
- * `addMemberRole` and the CSV of the report are not copied: Evaluation does not call them.
+ * The campaigns of a project: the routes for the people who manage them, the report and the
+ * participants' context. `ReviewCampaignsController` of the `review-campaigns` domain serves the
+ * Studio's member page: it gives a role without an invitation (`addMemberRole`) and has its own
+ * `revokeMembership`, so a change to one revoke handler goes to the other.
  */
 @Controller()
 export class EvalReviewCampaignsController {

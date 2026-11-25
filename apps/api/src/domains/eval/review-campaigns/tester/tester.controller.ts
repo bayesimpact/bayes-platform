@@ -31,10 +31,8 @@ const SESSION_CONTEXT = ["organization", "project", "agentSessionInCampaign"] as
 
 /**
  * What a tester does in a campaign: their sessions, their feedback on a session and their survey.
- * The routes under a campaign copy the handlers of `TesterController`, the routes under a session
- * those of `TesterSessionFeedbackController`, each with its permission and context. The service
- * checks that the campaign is active, that the session is the caller's (404 otherwise) and that a
- * feedback or a survey is given once (409).
+ * The service checks that the campaign is active, that the session is the caller's (404
+ * otherwise) and that a feedback or a survey is given once (409).
  */
 @Controller()
 export class EvalTesterController {

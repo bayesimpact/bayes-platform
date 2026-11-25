@@ -1,6 +1,5 @@
 import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
-import { AgentSessionInCampaignContextResolver } from "@/common/context/resolvers/agent-session-in-campaign-context.resolver"
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ReviewCampaignContextResolver } from "@/common/context/resolvers/review-campaign-context.resolver"
@@ -24,22 +23,13 @@ import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { ReviewCampaignMembershipRepository } from "./memberships/review-campaign-membership.repository"
 import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
-import { ReportsController } from "./reports/reports.controller"
 import { ReportsService } from "./reports/reports.service"
 import { ReviewCampaign } from "./review-campaign.entity"
 import { ReviewCampaignRepository } from "./review-campaign.repository"
 import { ReviewCampaignsController } from "./review-campaigns.controller"
 import { ReviewCampaignsService } from "./review-campaigns.service"
-import { ReviewerSessionReviewController } from "./reviewer/reviewer.controller"
 import { ReviewerService } from "./reviewer/reviewer.service"
-import { ReviewerSessionDetailController } from "./reviewer/reviewer-session-detail.controller"
-import { ReviewerSessionsController } from "./reviewer/reviewer-sessions.controller"
 import { ReviewerSessionReview } from "./reviewer-session-reviews/reviewer-session-review.entity"
-import {
-  TesterController,
-  TesterMeController,
-  TesterSessionFeedbackController,
-} from "./tester/tester.controller"
 import { TesterService } from "./tester/tester.service"
 import { TesterCampaignSurvey } from "./tester-campaign-surveys/tester-campaign-survey.entity"
 import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session-feedback.entity"
@@ -72,7 +62,6 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     RbacModule,
   ],
   providers: [
-    AgentSessionInCampaignContextResolver,
     OrganizationContextResolver,
     ProjectContextResolver,
     ReportsService,
@@ -85,16 +74,8 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ReviewerService,
     TesterService,
   ],
-  controllers: [
-    ReportsController,
-    ReviewCampaignsController,
-    ReviewerSessionDetailController,
-    ReviewerSessionReviewController,
-    ReviewerSessionsController,
-    TesterController,
-    TesterMeController,
-    TesterSessionFeedbackController,
-  ],
+  // Evaluation serves the campaign routes from `src/domains/eval/`. This one serves the Studio.
+  controllers: [ReviewCampaignsController],
   exports: [
     ReportsService,
     ReviewCampaignsService,

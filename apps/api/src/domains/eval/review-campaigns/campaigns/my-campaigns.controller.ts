@@ -12,9 +12,8 @@ import { TesterService } from "@/domains/review-campaigns/tester/tester.service"
 import { toMyCampaignDto } from "./campaign.mappers"
 
 /**
- * The campaigns the signed-in person tests or reviews, a copy of
- * `TesterMeController.getMyReviewCampaigns`. No permission check: the service only finds the
- * campaigns where the caller holds the role.
+ * The campaigns the signed-in person tests or reviews. No permission check: the service only
+ * finds the campaigns where the caller holds the role.
  */
 @Controller()
 export class EvalMyReviewCampaignsController {

@@ -29,8 +29,6 @@ import {
 
 /**
  * The extraction datasets of a project, the CSV files they are built from and their records.
- * Each handler copies the one of `EvaluationExtractionDatasetsController`, with its permission,
- * context, activity and status.
  */
 @Controller()
 export class EvalExtractionDatasetsController {

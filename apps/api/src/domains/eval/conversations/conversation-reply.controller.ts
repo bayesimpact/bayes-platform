@@ -26,13 +26,13 @@ import {
 
 /**
  * Sends a message to a tester's conversation in a review campaign and streams the replies, as
- * server-sent events. A copy of `ReviewCampaignTesterStreamingController` (the logic of
- * `StreamingController` with the session type fixed to `review_campaign_tester`). The reply runs
+ * server-sent events. A copy of the logic of the abstract `StreamingController` of the `agents`
+ * domain, with the session type fixed to `review_campaign_tester`. The reply runs
  * on the version of the agent's settings the campaign chose, not the one in production.
  *
  * The schema checks the body before the stream starts: an empty message or a settings version
  * answers 400. A check made in the handler (a closed campaign, a session of another type) comes
- * back as an SSE error frame, as on the route it copies.
+ * back as an SSE error frame, as on the playground's stream.
  */
 @Controller()
 export class EvalConversationReplyController {

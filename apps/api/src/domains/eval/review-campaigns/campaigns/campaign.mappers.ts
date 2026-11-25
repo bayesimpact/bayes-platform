@@ -45,7 +45,7 @@ function toQuestionDto(question: ReviewCampaignQuestion): ReviewCampaignQuestion
   }
 }
 
-/** A copy of `toReviewCampaignDto` of `ReviewCampaignsController`, with the fields Evaluation reads. */
+/** A campaign, with the fields Evaluation reads. */
 export function toReviewCampaignDto(campaign: ReviewCampaign): ReviewCampaignOutputDto {
   return {
     id: campaign.id,
@@ -65,8 +65,7 @@ export function toReviewCampaignDto(campaign: ReviewCampaign): ReviewCampaignOut
 }
 
 /**
- * A copy of `toReviewCampaignMembershipDtos` of `ReviewCampaignsController`: one entry per person,
- * with every role they hold on the campaign, each with its row id.
+ * One entry per person, with every role they hold on the campaign, each with its row id.
  */
 function toReviewCampaignMembershipDtos(
   memberships: ReviewCampaignMembership[],
@@ -95,7 +94,7 @@ function toReviewCampaignMembershipDtos(
   })
 }
 
-/** A copy of `toReviewCampaignDetailDto` of `ReviewCampaignsController`. */
+/** A campaign with its members and, once it is closed, its aggregates. */
 export function toReviewCampaignDetailDto({
   campaign,
   memberships,
@@ -114,7 +113,7 @@ export function toReviewCampaignDetailDto({
   }
 }
 
-/** A copy of `toMyCampaignDto` of `TesterMeController`. */
+/** A campaign the signed-in person tests or reviews. */
 export function toMyCampaignDto(campaign: ReviewCampaign): MyReviewCampaignOutputDto {
   return {
     id: campaign.id,
@@ -130,7 +129,7 @@ export function toMyCampaignDto(campaign: ReviewCampaign): MyReviewCampaignOutpu
   }
 }
 
-/** A copy of `toTesterContextDto` of `TesterController`, with the fields Evaluation reads. */
+/** What a participant needs to know of a campaign, with the fields Evaluation reads. */
 export function toCampaignContextDto(
   campaign: ReviewCampaign,
   { agent, agentSettings }: CampaignContext,
@@ -163,7 +162,7 @@ function toReportDistributionDto(
   }
 }
 
-/** A copy of `toSessionRowDto` of `ReportsController`, with the fields Evaluation reads. */
+/** A row of the report's session matrix, with the fields Evaluation reads. */
 function toReportSessionDto(row: CampaignReportSessionRow): CampaignReportSessionOutputDto {
   return {
     sessionId: row.sessionId,
@@ -177,7 +176,7 @@ function toReportSessionDto(row: CampaignReportSessionRow): CampaignReportSessio
   }
 }
 
-/** A copy of `toCampaignReportDto` of `ReportsController`, with the fields Evaluation reads. */
+/** The report of a campaign, with the fields Evaluation reads. */
 export function toCampaignReportDto(report: CampaignReport): CampaignReportOutputDto {
   return {
     headline: {

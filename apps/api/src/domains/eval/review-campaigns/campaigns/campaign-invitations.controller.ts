@@ -14,8 +14,8 @@ import { PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION } from "@/domains/rbac
 import { toCampaignInvitationDto } from "./campaign.mappers"
 
 /**
- * The pending invitations to a campaign. Each handler copies the one of
- * `ReviewCampaignInvitationsController`, with its permission, context and activity.
+ * The pending invitations to a campaign. The Studio manages the invitations to a workspace and
+ * to an agent with the controllers of the `invitations` domain.
  */
 @Controller()
 export class EvalCampaignInvitationsController {
