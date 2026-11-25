@@ -210,8 +210,7 @@ describe("Evaluation conversation runs - Auth", () => {
       }),
   }
 
-  // `evaluation.conversation.run.*` on the project, as `EvaluationConversationRunsController`
-  // checks: only an evaluator of the project holds them.
+  // `evaluation.conversation.run.*` on the project: only an evaluator of the project holds them.
   describe.each(ROUTE_NAMES)("EvalConversationRunsRoutes.%s", (routeName) => {
     const subject = () => subjects[routeName]()
 

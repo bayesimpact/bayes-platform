@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto"
-import { EvalMyInvitationsRoutes } from "@caseai-connect/eval-contracts"
+import { ConversationAgentSessionsRoutes } from "@caseai-connect/api-contracts"
+import {
+  EvalConversationsRoutes,
+  EvalMyInvitationsRoutes,
+  EvalTesterRoutes,
+} from "@caseai-connect/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
@@ -14,6 +20,8 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import { reviewCampaignStatusErrorMessage } from "@/domains/review-campaigns/review-campaign-status"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import {
@@ -22,7 +30,7 @@ import {
   findProjectMembershipRow,
 } from "../../../../../test/membership-test.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
-import { expectResponse } from "../../../../../test/request"
+import { expectResponse, testRequester } from "../../../../../test/request"
 import {
   expectSchemaResponse,
   type SchemaRequester,
@@ -126,6 +134,68 @@ describe("Evaluation invitations - acceptOne", () => {
       (await findAgentMembershipRow(repositories, { userId: invitee.id, agentId: agent.id }))
         ?.roleKeys,
     ).toEqual(["agent_member"])
+  })
+
+  it("lets an invited tester chat with the campaign's agent until the campaign closes", async () => {
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { user: { authSubject: `oidc|${randomUUID()}` }, agent: { type: "conversation" } },
+    )
+    const reviewCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    const invitee = await createInvitee()
+    const invitation = await repositories.invitationRepository.save(
+      invitationFactory.transient({ user: invitee, reviewCampaign }).build({ role: "tester" }),
+    )
+    expectSchemaResponse(EvalMyInvitationsRoutes.acceptOne, await subject(invitation.id), 201)
+    const agentPathParams = {
+      organizationId: organization.id,
+      projectId: project.id,
+      agentId: agent.id,
+    }
+
+    const sessionResponse = await request({
+      route: EvalTesterRoutes.startSession,
+      pathParams: {
+        organizationId: organization.id,
+        projectId: project.id,
+        reviewCampaignId: reviewCampaign.id,
+      },
+      token: "token",
+      body: { payload: {} },
+    })
+    expectSchemaResponse(EvalTesterRoutes.startSession, sessionResponse, 201)
+    const listMessages = () =>
+      request({
+        route: EvalConversationsRoutes.getMessages,
+        pathParams: { ...agentPathParams, agentSessionId: sessionResponse.body.data.id },
+        token: "token",
+      })
+    const messagesResponse = await listMessages()
+    expectSchemaResponse(EvalConversationsRoutes.getMessages, messagesResponse, 201)
+    expect(messagesResponse.body.data).toEqual([])
+
+    // The tester's routes are the only way in: the playground routes check a role on the agent.
+    expectResponse(
+      await testRequester(app)({
+        route: ConversationAgentSessionsRoutes.playground.createOne,
+        pathParams: agentPathParams,
+        token: "token",
+      }),
+      403,
+      AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+    )
+
+    await repositories.reviewCampaignRepository.update(
+      { id: reviewCampaign.id },
+      { status: "closed", closedAt: new Date() },
+    )
+
+    expectResponse(await listMessages(), 403, reviewCampaignStatusErrorMessage("closed"))
   })
 
   it("does nothing the second time", async () => {

@@ -122,6 +122,26 @@ describe("Evaluation conversation datasets - getRecords", () => {
     })
   })
 
+  it("sorts the records by the date they were added, whatever the order they were saved in", async () => {
+    const { organization, project, dataset } = await createContext()
+    const buildRecord = (fields: { input: string; createdAt: Date }) =>
+      evaluationConversationDatasetRecordFactory
+        .transient({ organization, project, evaluationConversationDataset: dataset })
+        .build(fields)
+    await repositories.evaluationConversationDatasetRecordRepository.save([
+      buildRecord({ input: "Newer question", createdAt: new Date("2024-06-01") }),
+      buildRecord({ input: "Older question", createdAt: new Date("2024-01-01") }),
+    ])
+
+    const response = await subject()
+
+    expectSchemaResponse(EvalConversationDatasetsRoutes.getRecords, response)
+    expect(response.body.data.records.map((record: { input: string }) => record.input)).toEqual([
+      "Older question",
+      "Newer question",
+    ])
+  })
+
   it("doesn't return the records of another dataset", async () => {
     const context = await createContext()
     await saveRecords(context, 1)

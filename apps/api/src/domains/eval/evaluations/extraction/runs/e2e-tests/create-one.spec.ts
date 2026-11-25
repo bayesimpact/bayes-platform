@@ -144,6 +144,24 @@ describe("Evaluation extraction runs - createOne", () => {
     expect(response.body.data.agentRevision).toBe(agentSettings.revision)
   })
 
+  it("pins the version in production when it is not the first one", async () => {
+    const { organization, project, agent, agentSettings, validPayload } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, { isProduction: false })
+    const versionInProduction = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .production()
+        .transient({ organization, project, agent })
+        .build({ revision: 2, instructions: "Newer helpful assistant instructions" }),
+    )
+
+    const response = await subject(validPayload)
+
+    expectSchemaResponse(EvalExtractionRunsRoutes.createOne, response, 201)
+    expect(response.body.data.agentRevision).toBe(2)
+    const runs = await repositories.evaluationExtractionRunRepository.find()
+    expect(runs[0]?.agentSettingsId).toBe(versionInProduction.id)
+  })
+
   it("pins the requested saved version", async () => {
     const { organization, project, agent, agentSettings, validPayload } = await createContext()
     await repositories.agentSettingsRepository.save(

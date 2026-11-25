@@ -112,6 +112,7 @@ describe("Evaluation extraction datasets - presignFile", () => {
       fileName: "dataset.csv",
       mimeType: "text/csv",
       size: 2048,
+      storageRelativePath: `evaluation-extraction-datasets/${documents[0]?.id}.csv`,
       uploadStatus: "pending",
     })
     expect(mockFileStorageService.generateSignedUploadUrl).toHaveBeenCalledWith({

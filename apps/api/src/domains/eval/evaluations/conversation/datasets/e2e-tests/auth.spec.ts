@@ -202,8 +202,8 @@ describe("Evaluation conversation datasets - Auth", () => {
       }),
   }
 
-  // `evaluation.conversation.dataset.*` on the project, as `EvaluationConversationDatasetsController`
-  // checks: only an evaluator of the project holds them.
+  // `evaluation.conversation.dataset.*` on the project: only an evaluator of the project holds
+  // them.
   describe.each(ROUTE_NAMES)("EvalConversationDatasetsRoutes.%s", (routeName) => {
     const subject = () => subjects[routeName]()
     const { status } = ROUTE_CASES[routeName]

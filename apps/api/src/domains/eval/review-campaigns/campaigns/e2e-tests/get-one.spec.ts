@@ -215,4 +215,90 @@ describe("Evaluation review campaigns - getOne", () => {
       ]),
     )
   })
+
+  it("gives no aggregates while the campaign is active, and computes them once it is closed", async () => {
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { user: { authSubject } },
+    )
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    const scope = {
+      organizationId: organization.id,
+      projectId: project.id,
+      campaignId: campaign.id,
+    }
+    for (const overallRating of [4, 5]) {
+      const session = await repositories.conversationAgentSessionRepository.save(
+        conversationAgentSessionFactory
+          .transient({ organization, project, agent, user })
+          .build({ campaignId: campaign.id }),
+      )
+      await repositories.testerSessionFeedbackRepository.save({
+        ...scope,
+        sessionId: session.id,
+        agentType: "conversation",
+        overallRating,
+        comment: null,
+        answers: [],
+      })
+    }
+    await repositories.testerCampaignSurveyRepository.save({
+      ...scope,
+      userId: user.id,
+      overallRating: 5,
+      comment: null,
+      answers: [],
+      submittedAt: new Date(),
+    })
+    organizationId = organization.id
+    projectId = project.id
+    reviewCampaignId = campaign.id
+
+    const activeResponse = await subject()
+    expectSchemaResponse(EvalReviewCampaignsRoutes.getOne, activeResponse)
+    expect(activeResponse.body.data.aggregates).toBeNull()
+
+    await repositories.reviewCampaignRepository.update(campaign.id, {
+      status: "closed",
+      closedAt: new Date(),
+    })
+
+    const closedResponse = await subject()
+    expectSchemaResponse(EvalReviewCampaignsRoutes.getOne, closedResponse)
+    expect(closedResponse.body.data.aggregates).toStrictEqual({
+      meanTesterRating: 4.5,
+      surveyCount: 1,
+      sessionCount: 2,
+    })
+  })
+
+  it("gives zeroed aggregates for a closed campaign that nobody tested", async () => {
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { user: { authSubject } },
+    )
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .closed()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    organizationId = organization.id
+    projectId = project.id
+    reviewCampaignId = campaign.id
+
+    const response = await subject()
+
+    expectSchemaResponse(EvalReviewCampaignsRoutes.getOne, response)
+    expect(response.body.data.aggregates).toStrictEqual({
+      meanTesterRating: null,
+      surveyCount: 0,
+      sessionCount: 0,
+    })
+  })
 })

@@ -107,9 +107,18 @@ describe("Evaluation conversation runs - retryOne", () => {
             })
             .build(
               [
-                { status: "error" as const, errorDetails: "The model did not answer" },
-                { status: "graded" as const, output: "An answer", score: 4 },
-                { status: "cancelled" as const },
+                {
+                  status: "error" as const,
+                  errorDetails: "The model did not answer",
+                  formState: { title: "Previous attempt" },
+                },
+                {
+                  status: "graded" as const,
+                  output: "An answer",
+                  score: 4,
+                  formState: { title: "Saved result" },
+                },
+                { status: "cancelled" as const, formState: { title: "Cancelled attempt" } },
               ][index],
             ),
         ),
@@ -141,22 +150,42 @@ describe("Evaluation conversation runs - retryOne", () => {
       id: evaluationConversationRunId,
     })
     expect(run.status).toBe("running")
+    expect(run.summary).toEqual({ total: 3, graded: 1, errors: 0, running: 2, averageScore: 4 })
     expect(mockRetryRunRecords).toHaveBeenCalledTimes(1)
     const retriedPayloads = mockRetryRunRecords.mock
       .calls[0]?.[0] as ProcessEvaluationConversationRunRecordJobPayload[]
     expect(retriedPayloads.map((payload) => payload.runRecordId).sort()).toEqual(
       [errorRecord.id, cancelledRecord.id].sort(),
     )
+    // A record that is asked again loses what its last attempt left.
+    for (const retriedRecordId of [errorRecord.id, cancelledRecord.id]) {
+      const retriedRecord =
+        await repositories.evaluationConversationRunRecordRepository.findOneByOrFail({
+          id: retriedRecordId,
+        })
+      expect(retriedRecord).toMatchObject({
+        status: "running",
+        output: null,
+        formState: null,
+        score: null,
+        errorDetails: null,
+        traceId: null,
+      })
+    }
     const untouchedRecord =
       await repositories.evaluationConversationRunRecordRepository.findOneByOrFail({
         id: gradedRecord.id,
       })
-    expect(untouchedRecord).toMatchObject({ status: "graded", score: 4 })
+    expect(untouchedRecord).toMatchObject({
+      status: "graded",
+      score: 4,
+      formState: { title: "Saved result" },
+    })
     await expectActivityCreated("evaluationConversationRun.retry", { organizationId, projectId })
   })
 
-  it("answers 422 and restores the run when the jobs cannot be queued", async () => {
-    const { errorRecord } = await createContext()
+  it("answers 422 and restores the run and its records when the jobs cannot be queued", async () => {
+    const { errorRecord, gradedRecord, cancelledRecord } = await createContext()
     mockRetryRunRecords.mockRejectedValueOnce(new Error("The queue is down"))
 
     expectResponse(await subject(), 422)
@@ -165,10 +194,44 @@ describe("Evaluation conversation runs - retryOne", () => {
       id: evaluationConversationRunId,
     })
     expect(run.status).toBe("failed")
-    const restoredRecord =
-      await repositories.evaluationConversationRunRecordRepository.findOneByOrFail({
-        id: errorRecord.id,
-      })
-    expect(restoredRecord.status).toBe("error")
+    // A record left "running" with no job could be neither asked again nor cancelled.
+    const runRecordRepository = repositories.evaluationConversationRunRecordRepository
+    expect(await runRecordRepository.findOneByOrFail({ id: errorRecord.id })).toMatchObject({
+      status: "error",
+      errorDetails: "The model did not answer",
+      formState: { title: "Previous attempt" },
+    })
+    expect(await runRecordRepository.findOneByOrFail({ id: cancelledRecord.id })).toMatchObject({
+      status: "cancelled",
+      formState: { title: "Cancelled attempt" },
+    })
+    expect(await runRecordRepository.findOneByOrFail({ id: gradedRecord.id })).toMatchObject({
+      status: "graded",
+    })
+
+    // A second try works on the restored records.
+    expectSchemaResponse(EvalConversationRunsRoutes.retryOne, await subject(), 201)
+    const retriedRun = await repositories.evaluationConversationRunRepository.findOneByOrFail({
+      id: evaluationConversationRunId,
+    })
+    expect(retriedRun.status).toBe("running")
+  })
+
+  it("queues nothing and leaves the run when no record is in error or cancelled", async () => {
+    const { errorRecord, cancelledRecord } = await createContext()
+    const runRecordRepository = repositories.evaluationConversationRunRecordRepository
+    await runRecordRepository.update({ id: errorRecord.id }, { status: "graded", score: 5 })
+    await runRecordRepository.update({ id: cancelledRecord.id }, { status: "graded", score: 5 })
+    await repositories.evaluationConversationRunRepository.update(evaluationConversationRunId, {
+      status: "completed",
+    })
+
+    expectSchemaResponse(EvalConversationRunsRoutes.retryOne, await subject(), 201)
+
+    expect(mockRetryRunRecords).not.toHaveBeenCalled()
+    const run = await repositories.evaluationConversationRunRepository.findOneByOrFail({
+      id: evaluationConversationRunId,
+    })
+    expect(run.status).toBe("completed")
   })
 })

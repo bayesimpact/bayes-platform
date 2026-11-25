@@ -148,8 +148,10 @@ describe("Evaluation conversation runs - cancelOne", () => {
     const { runningRecord } = await createContext()
     await setRunStatus("running")
 
-    expectSchemaResponse(EvalConversationRunsRoutes.cancelOne, await subject(), 201)
+    const response = await subject()
 
+    expectSchemaResponse(EvalConversationRunsRoutes.cancelOne, response, 201)
+    expect(response.body.data.status).toBe("cancelled")
     const record = await repositories.evaluationConversationRunRecordRepository.findOneByOrFail({
       id: runningRecord.id,
     })

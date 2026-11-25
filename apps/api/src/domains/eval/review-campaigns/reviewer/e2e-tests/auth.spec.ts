@@ -174,11 +174,12 @@ describe("Evaluation reviewer - Auth", () => {
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
+    it("forbids non-members (403)", async () => {
+      await seedReviewableSession({ callerRoleKey: null })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
     if (isRead) {
-      it("forbids non-members (403)", async () => {
-        await seedReviewableSession({ callerRoleKey: null })
-        expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      })
       it("forbids reviewers on draft campaigns (403)", async () => {
         await seedReviewableSession({ campaignStatus: "draft" })
         expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("draft"))

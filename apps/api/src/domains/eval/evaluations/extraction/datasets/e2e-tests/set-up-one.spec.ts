@@ -17,6 +17,7 @@ import {
   SIMPLE_CSV_COLUMNS,
   SIMPLE_CSV_CONTENT,
   SIMPLE_CSV_ROWS,
+  SIMPLE_CSV_SCHEMA_MAPPING,
 } from "@/domains/evaluations/extraction/runs/e2e-tests/csv-dataset.helpers"
 import {
   createOrganizationWithProject,
@@ -133,7 +134,7 @@ describe("Evaluation extraction datasets - setUpOne", () => {
       name: "Product records",
       evaluationExtractionDatasetDocumentId: file.id,
     })
-    expect(Object.keys(updated.schemaMapping).sort()).toEqual(["col-answer", "col-question"])
+    expect(updated.schemaMapping).toEqual(SIMPLE_CSV_SCHEMA_MAPPING)
     const records = await repositories.evaluationExtractionDatasetRecordRepository.findBy({
       evaluationExtractionDatasetId: dataset.id,
     })

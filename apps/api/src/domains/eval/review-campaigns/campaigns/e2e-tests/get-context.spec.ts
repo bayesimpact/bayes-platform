@@ -8,6 +8,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
@@ -55,10 +56,11 @@ describe("Evaluation review campaigns - getContext", () => {
     await app.close()
   })
 
-  /** A campaign of the given status, and a caller who tests it. */
+  /** A campaign of the given status, and a caller who tests it, or reviews it when asked. */
   const createContextAsTester = async (
     status: "draft" | "active" | "closed",
     agentSettingsFields: { greetingMessage?: string | null } = {},
+    roleKey: "review_campaign_tester" | "review_campaign_reviewer" = "review_campaign_tester",
   ) => {
     const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
@@ -92,12 +94,13 @@ describe("Evaluation review campaigns - getContext", () => {
       organization,
       project,
       campaign,
+      roleKeys: [roleKey],
       user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
     organizationId = organization.id
     projectId = project.id
     reviewCampaignId = campaign.id
-    return { agent, campaign }
+    return { organization, project, agent, campaign }
   }
 
   const subject = () =>
@@ -140,8 +143,31 @@ describe("Evaluation review campaigns - getContext", () => {
     expect(response.body.data.agent).not.toHaveProperty("greetingMessage")
   })
 
-  it("still answers on a closed campaign", async () => {
-    await createContextAsTester("closed")
+  it("gives the greeting of the version the campaign chose, not the one in production", async () => {
+    const { organization, project, agent, campaign } = await createContextAsTester("active", {
+      greetingMessage: "Hello from production",
+    })
+    const campaignVersion = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .transient({ organization, project, agent })
+        .build({ revision: 7, greetingMessage: "Hello from the campaign's version" }),
+    )
+    await repositories.reviewCampaignRepository.update(
+      { id: campaign.id },
+      { agentSettingsId: campaignVersion.id },
+    )
+
+    const response = await subject()
+
+    expectSchemaResponse(EvalReviewCampaignsRoutes.getContext, response)
+    expect(response.body.data.agent.greetingMessage).toBe("Hello from the campaign's version")
+  })
+
+  it.each([
+    "review_campaign_tester",
+    "review_campaign_reviewer",
+  ] as const)("still answers a participant with %s on a closed campaign", async (roleKey) => {
+    await createContextAsTester("closed", {}, roleKey)
     expectSchemaResponse(EvalReviewCampaignsRoutes.getContext, await subject())
   })
 

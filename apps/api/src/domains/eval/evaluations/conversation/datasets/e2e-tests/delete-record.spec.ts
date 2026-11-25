@@ -125,6 +125,7 @@ describe("Evaluation conversation datasets - deleteRecord", () => {
       evaluationConversationDatasetRecordId: null,
       status: "graded",
       input: record.input,
+      expectedOutput: record.expectedOutput,
     })
     await expectActivityCreated("evaluationConversationDataset.deleteRecord", {
       organizationId,

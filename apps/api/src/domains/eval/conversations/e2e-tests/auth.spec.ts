@@ -248,8 +248,8 @@ describe("Evaluation conversations - Auth", () => {
   }
 
   /**
-   * The handler refuses a closed campaign. The stream's handler answers it with an SSE error frame,
-   * as the route it copies does (`stream-reply.spec.ts` compares the two).
+   * The handler refuses a closed campaign. The stream's handler answers it with an SSE error frame
+   * (`stream-reply.spec.ts` checks its status).
    */
   const expectClosedCampaignRefused = async (routeName: SessionRouteName) => {
     const messageCountBefore = await countSessionMessages()
@@ -368,7 +368,7 @@ describe("Evaluation conversations - Auth", () => {
   })
 
   // The handlers serve tester sessions only: a live session of the caller in the same campaign
-  // answers 404, as on the routes they copy.
+  // answers 404.
   describe.each<SessionRouteName>([
     "getMessages",
     "getMcpAppsHtml",
