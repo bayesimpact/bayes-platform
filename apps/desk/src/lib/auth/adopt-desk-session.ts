@@ -6,7 +6,7 @@ import { appStorePrefix, sessionStorageKey } from "@caseai-connect/sign-in"
  * would otherwise stay in the browser, unused.
  */
 export function adoptDeskSession(
-  settings: { authority: string; client_id: string },
+  settings: Parameters<typeof sessionStorageKey>[0],
   store: Storage = window.localStorage,
 ): void {
   const sharedKey = sessionStorageKey(settings)

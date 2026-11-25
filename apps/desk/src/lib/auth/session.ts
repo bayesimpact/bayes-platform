@@ -3,9 +3,9 @@ import { appBasePath, appConfig, isMockMode } from "@/app/config"
 import { adoptDeskSession } from "./adopt-desk-session"
 
 /**
- * The Desk's session: the OIDC client of @caseai-connect/sign-in, on the session every app of the origin
- * shares, or in mock mode a signed-in stand-in, since the mock mode has no identity provider.
- * Everything outside lib/auth goes through this file.
+ * The Desk's session: the OIDC client of @caseai-connect/sign-in, on the session every app of
+ * the origin shares, or in mock mode a signed-in stand-in, since the mock mode has no identity
+ * provider. Everything outside lib/auth goes through this file.
  */
 
 export {

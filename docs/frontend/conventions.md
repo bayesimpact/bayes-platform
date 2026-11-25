@@ -305,7 +305,8 @@ or editing the boundaries' configuration.
   spec that checks it, a new state of a screen (empty, loading, error, a role, a long list) with
   its story, and a changed screen updates its specs and stories in the same change. They show what
   a change breaks, on purpose or not, so a change without them is not done.
-- Vitest runs two projects: `*.spec.ts` in node for pure logic (the client, the sign-in, schemas),
+- Vitest runs two projects: `*.spec.ts` in node for pure logic (the client, the app's sign-in
+  wrapper, schemas; the sign-in itself is tested in `packages/sign-in`),
   and `*.spec.tsx` in happy-dom for components and routes. A test checks what a person sees,
   queries by role and label in English, and uses `data-testid` as a last resort.
 - The network is mocked with MSW only, never by mocking TanStack Query, `fetch` or the client.

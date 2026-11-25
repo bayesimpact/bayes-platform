@@ -36,9 +36,9 @@ holds what is specific to the Desk.
   re-export (section 2.12). The Desk keeps what is its own: the `useMcpApp` hook and `McpAppCard`
   in `features/conversation`, the placeholder, and the lookup of an app's HTML (`mcp-apps.ts`).
 - Sign-in: `@caseai-connect/sign-in` (`packages/sign-in`), which the Desk shares with Evaluation
-  (ADR 0031, section 2.4), wrapped by `src/lib/auth/session.ts`, the only file that imports it.
-  `lib/auth/` also keeps the move of the session the Desk held on its own before every app shared
-  one (`adopt-desk-session.ts`). It signs in with the install's client and comes back to
+  (ADR 0031, section 2.4). Only `src/lib/auth/` imports it: `session.ts`, which the rest of the
+  Desk reads, and `adopt-desk-session.ts`, the move of the session the Desk held on its own before
+  every app shared one. The sign-in uses the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its session is the one every app
   of the origin shares: the stored user under apps/web's key (`oidc.user:`), refreshed under the
   same Web Lock (`oidc-token-refresh`), and followed when another app signs out or switches

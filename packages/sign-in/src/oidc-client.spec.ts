@@ -306,3 +306,24 @@ describe("signing out", () => {
     unsubscribe()
   })
 })
+
+describe("preparing the storage", () => {
+  it("runs once on the settings, before the client first reads the session", async () => {
+    const steps: string[] = []
+    userManagerMock.getUser.mockImplementation(async () => {
+      steps.push("read the session")
+      return freshUser
+    })
+    const prepared = createOidcClient({
+      basePath: "/app/",
+      storageNamespace: "desk",
+      getConfig: () => ({ oidcAuthority: "https://idp.example.org", oidcClientId: "platform-web" }),
+      prepareStorage: (settings) => steps.push(`prepare ${settings.client_id}`),
+    })
+
+    await prepared.hasSession()
+    await prepared.hasSession()
+
+    expect(steps).toEqual(["prepare platform-web", "read the session", "read the session"])
+  })
+})

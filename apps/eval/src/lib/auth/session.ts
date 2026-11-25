@@ -2,9 +2,9 @@ import { createOidcClient, createSignInGuards, type OidcConfig } from "@caseai-c
 import { appBasePath, appConfig, isMockMode } from "@/app/config"
 
 /**
- * The app's session: the OIDC client of @caseai-connect/sign-in, on the session every app of the origin
- * shares, or in mock mode a signed-in stand-in, since the mock mode has no identity provider.
- * Everything outside lib/auth goes through this file.
+ * The app's session: the OIDC client of @caseai-connect/sign-in, on the session every app of
+ * the origin shares, or in mock mode a signed-in stand-in, since the mock mode has no identity
+ * provider. Everything outside lib/auth goes through this file.
  */
 
 export {

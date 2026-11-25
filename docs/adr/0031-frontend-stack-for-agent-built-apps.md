@@ -195,6 +195,7 @@ apps/desk/
   .storybook/               Storybook on the MSW handlers
 packages/desk-contracts/    the Desk's routes and Zod schemas
 packages/mcp-app-host/      the sandbox of MCP Apps, which every app imports
+packages/sign-in/           the sign-in, which every app of the stack imports
 ```
 
 dependency-cruiser enforces the direction of imports between the folders of `src/`:
@@ -963,11 +964,12 @@ part of it invalidates.
 
 ## 4. Consequences
 
-* The Desk depends on no other app's code. Its sign-in, components, tokens, theme files,
-  contracts and translations are its own, and a change in Studio cannot break it. The sandbox of
-  MCP Apps is the exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk,
-  `apps/web` and `apps/web-embed` at once, on purpose. So does the permission catalog (section
-  2.12): a change to `packages/permissions` reaches every app and the API at once.
+* The Desk depends on no other app's code. Its components, tokens, theme files, contracts and
+  translations are its own, and a change in Studio cannot break it. The sandbox of MCP Apps is the
+  exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk, `apps/web` and
+  `apps/web-embed` at once, on purpose. So does the permission catalog (section 2.12): a change to
+  `packages/permissions` reaches every app and the API at once. And so does the sign-in (section
+  2.4): a change to `packages/sign-in` reaches the Desk and Evaluation at once.
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
@@ -1049,8 +1051,8 @@ part of it invalidates.
 * The Desk's independence is not fully enforced yet. dependency-cruiser only sees imports: a copied
   file, a CSS import or an edit of its configuration can still bring code of `apps/web`,
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
-  has to be found. The same holds for `packages/mcp-app-host`: no tool checks yet that it imports
-  no other workspace package.
+  has to be found. The same holds for `packages/mcp-app-host` and `packages/sign-in`: no tool
+  checks yet that they import no other workspace package.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to
   `PermissionService` as well?

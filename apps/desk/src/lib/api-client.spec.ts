@@ -18,7 +18,9 @@ const session = vi.hoisted(() => ({
   getAccessToken: vi.fn(),
   endSession: vi.fn(),
   signIn: vi.fn(),
-  // The one refusal these tests send. @caseai-connect/sign-in checks the others.
+  // A stand-in for the one refusal these tests send: session.ts reads the app's configuration,
+  // which needs a browser, so the real function cannot load here. @caseai-connect/sign-in
+  // checks every refusal against the API's texts.
   signInRefusalOf: (message: unknown) =>
     message === "The identity provider did not return an email for this user"
       ? "emailRequired"
