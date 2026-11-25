@@ -22,23 +22,18 @@ vi.mock("oidc-client-ts", async (importOriginal) => ({
     return userManagerMock
   }),
 }))
-vi.mock("@/app/config", () => ({ appConfig: { mode: "api" }, appBasePath: "/eval/" }))
-vi.mock("./oidc-settings", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("./oidc-settings")>()),
-  buildOidcSettings: () => ({ authority: "https://idp.example.org", client_id: "platform-web" }),
-}))
+const { AuthenticationRequiredError, createOidcClient } = await import("./oidc-client")
 
-const {
-  AuthenticationRequiredError,
-  completeSignIn,
-  endSession,
-  getAccessToken,
-  hasSession,
-  onSessionEnded,
-  signIn,
-  signOut,
-  takeTabReturnTo,
-} = await import("./oidc-client")
+/** A new client per test, as a fresh page of the Desk at `/app/` would make. */
+let client: ReturnType<typeof createOidcClient>
+const getAccessToken = (options?: { forceRefresh?: boolean }) => client.getAccessToken(options)
+const hasSession = () => client.hasSession()
+const signIn = (params: { returnTo: string; loginHint?: string }) => client.signIn(params)
+const completeSignIn = () => client.completeSignIn()
+const takeTabReturnTo = () => client.takeTabReturnTo()
+const onSessionEnded = (listener: () => void) => client.onSessionEnded(listener)
+const endSession = () => client.endSession()
+const signOut = () => client.signOut()
 
 const expiredUser = { expired: true, expires_in: -5, access_token: "old", refresh_token: "r" }
 const freshUser = { expired: false, expires_in: 3600, access_token: "fresh" }
@@ -54,7 +49,8 @@ const storageListeners: StorageListener[] = []
 const stubWindow = () => {
   const storage = new Map<string, string>()
   vi.stubGlobal("window", {
-    location: { origin: "https://eval.test", assign: vi.fn() },
+    location: { origin: "https://desk.test", assign: vi.fn() },
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
     addEventListener: (type: string, listener: StorageListener) => {
       if (type === "storage") storageListeners.push(listener)
     },
@@ -68,6 +64,13 @@ const stubWindow = () => {
 
 beforeEach(() => {
   stubWindow()
+  storageListeners.length = 0
+  userManagerMock.events.addAccessTokenExpiring.mockReset()
+  client = createOidcClient({
+    basePath: "/app/",
+    storageNamespace: "desk",
+    getConfig: () => ({ oidcAuthority: "https://idp.example.org", oidcClientId: "platform-web" }),
+  })
   userManagerMock.getUser.mockReset()
   userManagerMock.signinSilent.mockReset()
   userManagerMock.signinRedirect.mockReset()
@@ -166,7 +169,7 @@ describe("hasSession", () => {
 
 describe("background renewal", () => {
   const renewBeforeExpiry = () => {
-    const listener = userManagerMock.events.addAccessTokenExpiring.mock.calls[0]?.[0]
+    const listener = userManagerMock.events.addAccessTokenExpiring.mock.calls.at(-1)?.[0]
     if (typeof listener !== "function") throw new Error("No expiring listener registered")
     listener()
   }
@@ -174,6 +177,7 @@ describe("background renewal", () => {
   it("refreshes a token about to expire, once even if the event fires twice", async () => {
     userManagerMock.getUser.mockResolvedValue({ expired: false, expires_in: 30, access_token: "x" })
     userManagerMock.signinSilent.mockResolvedValue({ access_token: "renewed" })
+    await hasSession()
 
     renewBeforeExpiry()
     renewBeforeExpiry()
@@ -185,6 +189,7 @@ describe("background renewal", () => {
     const reportError = vi.spyOn(console, "error").mockImplementation(() => {})
     userManagerMock.getUser.mockResolvedValue({ expired: false, expires_in: 30, access_token: "x" })
     userManagerMock.signinSilent.mockRejectedValue(new TypeError("Failed to fetch"))
+    await hasSession()
 
     renewBeforeExpiry()
     await vi.waitFor(() => expect(reportError).toHaveBeenCalledTimes(1))
@@ -202,16 +207,16 @@ describe("background renewal", () => {
 
 describe("signing in and coming back", () => {
   it("sends the page to return to in the OIDC state, with the login hint", async () => {
-    await signIn({ returnTo: "/eval/o/1/p/2?tab=agents", loginHint: "user@example.org" })
+    await signIn({ returnTo: "/app/o/1/p/2?tab=agents", loginHint: "user@example.org" })
     expect(userManagerMock.signinRedirect).toHaveBeenCalledWith({
-      state: { returnTo: "/eval/o/1/p/2?tab=agents" },
+      state: { returnTo: "/app/o/1/p/2?tab=agents" },
       login_hint: "user@example.org",
     })
   })
 
   it("opens the page of the state once the sign-in completes", async () => {
-    userManagerMock.signinRedirectCallback.mockResolvedValue({ state: { returnTo: "/eval/o/1" } })
-    await expect(completeSignIn()).resolves.toBe("/eval/o/1")
+    userManagerMock.signinRedirectCallback.mockResolvedValue({ state: { returnTo: "/app/o/1" } })
+    await expect(completeSignIn()).resolves.toBe("/app/o/1")
   })
 
   it("opens the home for a page on another origin, of another app, or no state", async () => {
@@ -221,17 +226,17 @@ describe("signing in and coming back", () => {
       undefined,
     ]) {
       userManagerMock.signinRedirectCallback.mockResolvedValue({ state })
-      await expect(completeSignIn()).resolves.toBe("/eval/")
+      await expect(completeSignIn()).resolves.toBe("/app/")
     }
   })
 
   it("keeps the page of the tab's last sign-in, once, until the sign-in completes", async () => {
-    await signIn({ returnTo: "/eval/o/1" })
-    expect(takeTabReturnTo()).toBe("/eval/o/1")
+    await signIn({ returnTo: "/app/o/1" })
+    expect(takeTabReturnTo()).toBe("/app/o/1")
     expect(takeTabReturnTo()).toBeNull()
 
-    await signIn({ returnTo: "/eval/o/1" })
-    userManagerMock.signinRedirectCallback.mockResolvedValue({ state: { returnTo: "/eval/o/1" } })
+    await signIn({ returnTo: "/app/o/1" })
+    userManagerMock.signinRedirectCallback.mockResolvedValue({ state: { returnTo: "/app/o/1" } })
     await completeSignIn()
     expect(takeTabReturnTo()).toBeNull()
   })
@@ -277,13 +282,12 @@ describe("the end of a session", () => {
     const unsubscribe = onSessionEnded(listener)
 
     changeSharedSession(sessionKey, storedUser("first"), storedUser("first"))
-    changeSharedSession("eval.oidc.user:https://idp.example.org:platform-web", "x", null)
+    changeSharedSession("desk.oidc.user:https://idp.example.org:platform-web", "x", null)
     expect(listener).not.toHaveBeenCalled()
     unsubscribe()
   })
 })
 
-// Last: signing out lasts until the page leaves, which a test's page never does.
 describe("signing out", () => {
   it("reads no session until the page leaves, so nothing starts a new sign-in", async () => {
     userManagerMock.getUser.mockResolvedValue(freshUser)

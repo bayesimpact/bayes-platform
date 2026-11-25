@@ -18,6 +18,11 @@ const session = vi.hoisted(() => ({
   getAccessToken: vi.fn(),
   endSession: vi.fn(),
   signIn: vi.fn(),
+  // The one refusal these tests send. @caseai-connect/sign-in checks the others.
+  signInRefusalOf: (message: unknown) =>
+    message === "The identity provider did not return an email for this user"
+      ? "emailRequired"
+      : null,
 }))
 vi.mock("@/lib/auth/session", () => session)
 

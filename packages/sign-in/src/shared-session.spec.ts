@@ -1,9 +1,10 @@
 import { User } from "oidc-client-ts"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { createOidcClient } from "./oidc-client"
 
 /**
- * Two apps of one origin, each with its own OIDC client, on the real oidc-client-ts: this app at
- * `/eval/` and the app at `/app/`, which signs in the same way. They share the browser's
+ * Two apps of one origin, each with its own OIDC client, on the real oidc-client-ts: the Desk at
+ * `/app/` and Evaluation at `/eval/`. They share the browser's
  * storage and its Web Locks, and the provider rotates the refresh token on every refresh.
  */
 
@@ -87,20 +88,13 @@ const storeExpiredSession = (storage: Storage) => {
   storage.setItem(sessionKey, user.toStorageString())
 }
 
-/** One app's sign-in module, loaded apart from the other's, as two apps' bundles are. */
-const loadApp = async (appBasePath: string) => {
-  vi.resetModules()
-  vi.doMock("@/app/config", () => ({
-    appConfig: {
-      mode: "api",
-      oidcAuthority: authority,
-      oidcClientId: clientId,
-      oidcAuthorizationParams: {},
-    },
-    appBasePath,
-  }))
-  return await import("./oidc-client")
-}
+/** One app's OIDC client, apart from the other's, as two apps' bundles keep theirs. */
+const loadApp = (basePath: string) =>
+  createOidcClient({
+    basePath,
+    storageNamespace: basePath.replaceAll("/", ""),
+    getConfig: () => ({ oidcAuthority: authority, oidcClientId: clientId }),
+  })
 
 let storage: Storage
 let provider: ReturnType<typeof rotatingProvider>
@@ -120,7 +114,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
-  vi.doUnmock("@/app/config")
 })
 
 describe("one session shared by the apps of an origin", () => {
@@ -134,7 +127,7 @@ describe("one session shared by the apps of an origin", () => {
         profile: { sub: "person", iss: authority, aud: clientId, exp: 0, iat: 0 },
       }).toStorageString(),
     )
-    const desk = await loadApp("/app/")
+    const desk = loadApp("/app/")
 
     await expect(desk.hasSession()).resolves.toBe(true)
     await expect(desk.getAccessToken()).resolves.toBe("signed-in-elsewhere")
@@ -142,8 +135,8 @@ describe("one session shared by the apps of an origin", () => {
 
   it("is refreshed once when two apps refresh it at the same time", async () => {
     storeExpiredSession(storage)
-    const desk = await loadApp("/app/")
-    const evaluation = await loadApp("/eval/")
+    const desk = loadApp("/app/")
+    const evaluation = loadApp("/eval/")
 
     const tokens = await Promise.all([
       desk.getAccessToken(),

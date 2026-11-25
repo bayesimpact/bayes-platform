@@ -28,10 +28,10 @@ const config = {
 }
 
 describe("buildOidcSettings", () => {
-  const appUrl = "https://platform.example.org/app/"
+  const app = { appUrl: "https://platform.example.org/app/", storageNamespace: "desk" }
 
   it("comes back to the app's callback after sign-in and to its home after sign-out", () => {
-    const settings = buildOidcSettings(config, appUrl, memoryStorage())
+    const settings = buildOidcSettings(config, app, memoryStorage())
 
     expect(settings).toMatchObject({
       authority: "https://idp.example.org/realms/acme",
@@ -47,7 +47,7 @@ describe("buildOidcSettings", () => {
 
   it("keeps its session under the key apps/web uses, and its sign-in state apart", async () => {
     const storage = memoryStorage()
-    const settings = buildOidcSettings(config, appUrl, storage)
+    const settings = buildOidcSettings(config, app, storage)
 
     await settings.userStore?.set("user:https://idp.example.org/realms/acme:platform-web", "user")
     await settings.stateStore?.set("state-id", "state")
@@ -56,7 +56,7 @@ describe("buildOidcSettings", () => {
     expect(storage.getItem("oidc.user:https://idp.example.org/realms/acme:platform-web")).toBe(
       "user",
     )
-    expect(storage.getItem("eval.oidc.state-id")).toBe("state")
+    expect(storage.getItem("desk.oidc.state-id")).toBe("state")
   })
 
   it("sends the audience, the authorization parameters and a custom scope when configured", () => {
@@ -67,7 +67,7 @@ describe("buildOidcSettings", () => {
         oidcScope: "openid email",
         oidcAuthorizationParams: { organization: "org_123" },
       },
-      appUrl,
+      app,
       memoryStorage(),
     )
 

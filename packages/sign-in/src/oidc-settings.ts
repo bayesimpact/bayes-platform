@@ -1,5 +1,13 @@
 import { type UserManagerSettings, WebStorageStateStore } from "oidc-client-ts"
-import type { OidcConfig } from "@/app/config"
+
+/** The install's OpenID Connect client, as an app reads it from its configuration. */
+export type OidcConfig = {
+  oidcAuthority: string
+  oidcClientId: string
+  oidcAudience?: string | undefined
+  oidcScope?: string | undefined
+  oidcAuthorizationParams?: Record<string, string> | undefined
+}
 
 /** `offline_access` asks for a refresh token, so a session outlives its access token. */
 export const DEFAULT_OIDC_SCOPE = "openid profile email offline_access"
@@ -12,10 +20,13 @@ export const DEFAULT_OIDC_SCOPE = "openid profile email offline_access"
 const SESSION_STORE_PREFIX = "oidc."
 
 /**
- * The prefix of what only this app keeps in the browser: the state of a sign-in it started, and the
- * page to return to. A sign-in comes back to the redirect URI of the app that started it.
+ * The prefix of what only one app keeps in the browser, such as `desk.oidc.`: the state of a
+ * sign-in it started, and the page to return to. A sign-in comes back to the redirect URI of the
+ * app that started it.
  */
-export const EVAL_STORE_PREFIX = "eval.oidc."
+export function appStorePrefix(storageNamespace: string): string {
+  return `${storageNamespace}.oidc.`
+}
 
 /** The key of the session every app shares: the one oidc-client-ts gives the stored user. */
 export function sessionStorageKey({
@@ -25,13 +36,10 @@ export function sessionStorageKey({
   return `${SESSION_STORE_PREFIX}user:${authority}:${client_id}`
 }
 
-/** The OpenID Connect client of the app: authorization code with PKCE, renewed by oidc-client.ts. */
+/** The OpenID Connect client of an app: authorization code with PKCE, renewed by oidc-client.ts. */
 export function buildOidcSettings(
-  config: Pick<
-    OidcConfig,
-    "oidcAuthority" | "oidcClientId" | "oidcAudience" | "oidcScope" | "oidcAuthorizationParams"
-  >,
-  appUrl: string,
+  config: OidcConfig,
+  { appUrl, storageNamespace }: { appUrl: string; storageNamespace: string },
   store: Storage = window.localStorage,
 ): UserManagerSettings {
   const extraQueryParams = {
@@ -50,7 +58,7 @@ export function buildOidcSettings(
     // oidc-client.ts renews the token itself, under a lock shared by every app and tab.
     automaticSilentRenew: false,
     userStore: new WebStorageStateStore({ store, prefix: SESSION_STORE_PREFIX }),
-    stateStore: new WebStorageStateStore({ store, prefix: EVAL_STORE_PREFIX }),
+    stateStore: new WebStorageStateStore({ store, prefix: appStorePrefix(storageNamespace) }),
     ...(Object.keys(extraQueryParams).length > 0 ? { extraQueryParams } : {}),
   }
 }
