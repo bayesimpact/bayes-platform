@@ -45,6 +45,11 @@ export type {
   McpServerOauthTokens,
 } from "./mcp-server-config.types"
 
+/** A built-in or operator-seeded server: it belongs to no project, so no project member set its URL. */
+function isConfiguredByPlatform(mcpServer: McpServer): boolean {
+  return mcpServer.projectId === null
+}
+
 @Injectable()
 export class McpServersService {
   private readonly logger = new Logger(McpServersService.name)
@@ -84,6 +89,13 @@ export class McpServersService {
    */
   private async toEnabledServerIfUsable(mcpServer: McpServer): Promise<EnabledMcpServer | null> {
     const { oauth, ...config } = this.decryptConfig(mcpServer)
+    const disallowedUrlReason = await this.findDisallowedUrlReason(mcpServer, config.url)
+    if (disallowedUrlReason) {
+      this.logger.warn(
+        `Skipping MCP server "${mcpServer.name}" (${mcpServer.id}): ${disallowedUrlReason}`,
+      )
+      return null
+    }
     const usesOauth = oauth !== undefined || config.authMethod === "oauth"
     if (!usesOauth) return this.toEnabledServer(mcpServer, config)
 
@@ -225,24 +237,17 @@ export class McpServersService {
     const checkedAt = Date.now()
     const { oauth, ...config } = this.decryptConfig(mcpServer)
 
-    const usesOauth = oauth !== undefined || config.authMethod === "oauth"
-    if (usesOauth) {
-      // Same rule as the OAuth discovery, which is the only flow that guards
-      // the server URL: an access token only goes to a public https host. A
-      // server with a key or no auth is called as an agent turn calls it.
-      try {
-        await assertAllowedOutboundUrl(config.url)
-      } catch (error) {
-        if (!(error instanceof DisallowedOutboundUrlError)) throw error
-        return {
-          status: "failed",
-          tools: [],
-          error: { code: "urlNotAllowed", httpStatus: null, detail: error.message },
-          checkedAt,
-        }
+    const disallowedUrlReason = await this.findDisallowedUrlReason(mcpServer, config.url)
+    if (disallowedUrlReason) {
+      return {
+        status: "failed",
+        tools: [],
+        error: { code: "urlNotAllowed", httpStatus: null, detail: disallowedUrlReason },
+        checkedAt,
       }
     }
 
+    const usesOauth = oauth !== undefined || config.authMethod === "oauth"
     let apiKey = config.apiKey
     if (usesOauth) {
       const accessToken = oauth
@@ -327,8 +332,46 @@ export class McpServersService {
     return {
       id: mcpServer.id,
       ...config,
+      ...(isConfiguredByPlatform(mcpServer) ? { followRedirects: true } : {}),
       ...(usesGoogleIam ? { googleIamAudience: new URL(config.url).origin } : {}),
     }
+  }
+
+  /**
+   * A server a project configured is called from the platform's own network,
+   * so its URL must be public https whatever its authentication method. The
+   * servers of no project are configured by the platform and run inside it.
+   */
+  private async findDisallowedUrlReason(mcpServer: McpServer, url: string): Promise<string | null> {
+    if (isConfiguredByPlatform(mcpServer)) return null
+    if (this.isAllowedInternalHost(url)) return null
+    try {
+      await assertAllowedOutboundUrl(url)
+      return null
+    } catch (error) {
+      if (!(error instanceof DisallowedOutboundUrlError)) throw error
+      return error.message
+    }
+  }
+
+  /**
+   * An internal MCP service the operator deploys beside the platform (a
+   * Kubernetes service, for example) is listed by host name in
+   * MCP_ALLOWED_INTERNAL_HOSTS. The deployment sets the list, never a project.
+   */
+  private isAllowedInternalHost(url: string): boolean {
+    let parsed: URL
+    try {
+      parsed = new URL(url)
+    } catch {
+      return false
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false
+    const allowedHosts = (this.configService.get<string>("MCP_ALLOWED_INTERNAL_HOSTS") ?? "")
+      .split(",")
+      .map((host) => host.trim().toLowerCase())
+      .filter((host) => host.length > 0)
+    return allowedHosts.includes(parsed.hostname.toLowerCase())
   }
 
   private decryptConfig(mcpServer: McpServer): McpServerConfig {

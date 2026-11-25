@@ -514,9 +514,8 @@ export class StreamingLlmService extends LlmServiceBase {
   /**
    * An attachment row is attached to exactly one message (unique column). Sending an interrupted
    * turn again reuses the attachment the user already uploaded, so when the row is taken by an
-   * earlier message of this same conversation the new turn gets a copy of it. An attachment
-   * taken by another conversation is not reusable: only the conversation that uploaded a file
-   * may attach it again.
+   * earlier message of this same conversation the new turn gets a copy of it. Only the
+   * conversation a file was uploaded for may attach it, whether or not a message carries it yet.
    */
   private async attachmentForTurn({
     connectScope,
@@ -527,6 +526,16 @@ export class StreamingLlmService extends LlmServiceBase {
     sessionId: string
     attachmentDocumentId: string
   }): Promise<string> {
+    const attachmentDocument = await this.attachmentDocumentsService.findById({
+      connectScope,
+      attachmentDocumentId,
+    })
+    if (!attachmentDocument || attachmentDocument.agentSessionId !== sessionId) {
+      throw new UnprocessableEntityException(
+        `Attachment document with ID ${attachmentDocumentId} belongs to another conversation`,
+      )
+    }
+
     const [attachedTo] = await this.agentMessageConnectRepository.find(connectScope, {
       where: { attachmentDocumentId },
       select: { id: true, sessionId: true },
