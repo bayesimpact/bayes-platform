@@ -12,14 +12,18 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   `basepath`), the path of the evaluation pages of apps/web, which this app replaces.
 - Contracts: `@caseai-connect/eval-contracts` (`packages/eval-contracts`), one folder per area,
   with an `Eval{Area}Routes` object per area. It describes the API routes the app calls and the
-  fields it reads; the API does not import it.
+  fields it reads. The API requires its CommonJS build and serves every route under `eval/`, in
+  `apps/api/src/domains/eval/`, with the same schemas. The app calls only `eval/` endpoints,
+  with one exception: a resource card links to a library file at
+  `organizations/.../resource-libraries/.../resources/.../file` (`src/lib/safe-url.ts`), outside
+  `eval/` and the contracts, until an Evaluation route serves it.
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It comes back to `<origin>/eval/auth/callback` (`<origin>/eval/` after
   sign-out). It shares one session with every app of the origin (apps/web, the Desk): the user
   under `oidc.user:<authority>:<client>`, refreshed under the Web Lock `oidc-token-refresh`, and a
   sign-out or an account switch in another app ends this app's session too. Only the state of a
   sign-in it started stays its own, under `eval.oidc.`.
-- The layout of every signed-in page (`src/routes/_authenticated.tsx`) waits for `GET me`
+- The layout of every signed-in page (`src/routes/_authenticated.tsx`) waits for `GET eval/me`
   (`features/account`), so a sign-in the API refuses shows before any page.
 - Access: the app opens to a person it holds something for (`EvaluationAccessGate` in
   `features/agents`, `NoEvaluationAccessPage` for anyone else). It checks permissions, never a
@@ -28,7 +32,7 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   - `project.review_campaign.read` on a project, held by its owners and admins: its agents show,
     with their review campaigns. Creating, updating, deleting, inviting and revoking each check
     their own `project.review_campaign.*` permission, and the report `review_campaign.report.read`.
-  - a tester or reviewer role in a review campaign (`GET me/review-campaigns`, once per role):
+  - a tester or reviewer role in a review campaign (`GET eval/me/review-campaigns`, once per role):
     that campaign shows, and nothing else. A campaign page checks the role it needs.
   The API checks every route on its own.
 - Configuration: the API will inject `window.__CONFIG__` when it serves the app; in dev, the
@@ -78,13 +82,13 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   (`components/shared/`) holds the sidebar: the current agent at the top, which opens the command center (`AgentSidebarHeader` in
   `features/agents`), the person's menu at the bottom (`CurrentUserMenu` in `features/account`, the
   Desk's without the name edit), with the envelope of their pending invitations beside it
-  (`InvitationsButton` in `features/invitations`, the Desk's, on `GET me/invitations` every
+  (`InvitationsButton` in `features/invitations`, the Desk's, on `GET eval/me/invitations` every
   minute). An accepted invitation loads the workspace again, so a campaign joins the person's.
   Once hidden, the sidebar peeks over the page, below the bar, while the pointer rests on its
   button or on it (`useSidebarPeek` in `hooks/`), as in Claude Desktop; a click pins it.
-- The workspace: `features/agents` reads `GET projects/mine`, `GET organizations/mine` and
-  `GET me/review-campaigns` for both roles, keeps the projects the app opens, then reads each
-  one's `GET .../agents`, the agents with a version in production, since an evaluation and a
+- The workspace: `features/agents` reads `GET eval/projects/mine`, `GET eval/organizations/mine` and
+  `GET eval/me/review-campaigns` for both roles, keeps the projects the app opens, then reads each
+  one's `GET eval/.../agents`, the agents with a version in production, since an evaluation and a
   campaign run a saved version and never a draft, under one query
   (`evaluationWorkspaceQueryOptions`).
 - The app is the door to several features, and a person may hold one of them or several: the
@@ -109,7 +113,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
     its sessions under it, on the side its page shows (`ReviewerSessionLinks` in
     `features/campaign-review`, those to review first; `TesterSessionLinks` in
     `features/campaign-test`), each by a short date with where it stands. A sub-menu with no campaign does not show. Each campaign of
-    `GET me/review-campaigns` names its agent. Only the sub-menu that holds the current page opens
+    `GET eval/me/review-campaigns` names its agent. Only the sub-menu that holds the current page opens
     at first, and both on a page neither holds (`useOpenSidebarMenu` in `src/routes/-components/`).
 - A campaign's pages for its participants keep the sidebar of its agent, as on the agent's own
   pages, where the campaign shows in the Reviewer or Tester sub-menu of Campaigns. A person who
@@ -169,7 +173,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   dataset's page, opens a side panel of the dataset's page, which the `run` search param shows
   (`RunEvaluationPanel`): the version of the agent, picked with the shared
   `AgentVersionPicker` (the one in production first, never the draft), the judge model, among the
-  project's available ones (`GET .../agent-models`, on the shadcn `native-select`), optional
+  project's available ones (`GET eval/.../agent-models`, on the shadcn `native-select`), optional
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
   then opens its page. The Runs tab (`ConversationRunsSection`) lists the agent's runs of the dataset (a run
   of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). Each run shows by its short id, which opens it, and how long ago it started, the
@@ -284,7 +288,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   `TextDiff`, the Studio's library), and a button that selects it. The picker, the sheet and
   their parts live in `components/shared/`, since a run picks and shows a version too; they take
   the versions, which `agentVersionsQueryOptions` of `features/agents` reads from
-  `GET .../agents/:agentId/settings` (`agent.settings.read`, which a campaign's managers hold).
+  `GET eval/.../agents/:agentId/settings` (`agent.settings.read`, which a campaign's managers hold).
   The General card of `CampaignSetupView` names the version of a campaign that no longer changes.
 - Any other campaign shows in tabs (`CampaignEditor`): its Setup tab reads as the campaign's forms
   (`CampaignSetupView`), its General card then one sub-tab per form, as the report does. A form's

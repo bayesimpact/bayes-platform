@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 /** The path of a project, which the paths of its routes start with. */
-export const PROJECT_PATH = "organizations/:organizationId/projects/:projectId"
+export const PROJECT_PATH = "eval/organizations/:organizationId/projects/:projectId"
 
 /** The path of an agent, which the paths of its routes start with. */
 export const AGENT_PATH = `${PROJECT_PATH}/agents/:agentId`

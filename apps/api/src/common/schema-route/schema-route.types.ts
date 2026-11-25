@@ -1,9 +1,27 @@
-import type { AnySchemaRoute, AnyStreamRoute } from "@caseai-connect/desk-contracts"
 import type { z } from "zod"
 import type { ContextResource } from "@/common/context/require-context.decorator"
 import type { TrackActivityOptions } from "@/domains/activities/track-activity.decorator"
 import type { PermissionResourceType } from "@/domains/rbac/permission.types"
 import type { CatalogPermission } from "@/domains/rbac/rbac.constants"
+
+export type SchemaRouteMethod = "get" | "post" | "put" | "patch" | "delete"
+
+type RouteBase = {
+  path: string
+  getPath: (params?: Record<string, string>) => string
+}
+
+/** A route declared with the `defineSchemaRoute` of any contracts package. */
+export type AnySchemaRoute = RouteBase & {
+  method: SchemaRouteMethod
+  schemas: { params: z.ZodObject; query: z.ZodObject; body: z.ZodObject; response: z.ZodObject }
+}
+
+/** A route declared with the `defineStreamRoute` of any contracts package. */
+export type AnyStreamRoute = RouteBase & {
+  method: "get" | "post"
+  schemas: { params: z.ZodObject; query: z.ZodObject; body: z.ZodObject; event: z.ZodType }
+}
 
 /** The metadata key under which `@SchemaRoute` stores the route of a handler. */
 export const SCHEMA_ROUTE_METADATA_KEY = "schema_route"
@@ -39,7 +57,11 @@ export type SchemaRouteResponse<TRoute extends AnySchemaRoute> = z.input<
   TRoute["schemas"]["response"]
 >
 
-/** A request after the input guard ran. */
+/** A request after the input guard ran. The route is not known there, so the payload is not typed. */
 export type RequestWithSchemaRouteInput = {
-  [SCHEMA_ROUTE_INPUT_REQUEST_KEY]?: SchemaRouteInput<AnySchemaRoute | AnyStreamRoute>
+  [SCHEMA_ROUTE_INPUT_REQUEST_KEY]?: {
+    params: unknown
+    query: unknown
+    payload: unknown
+  }
 }

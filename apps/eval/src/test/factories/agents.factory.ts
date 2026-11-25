@@ -6,7 +6,7 @@ import {
   projectAgentOutputSchema,
 } from "@caseai-connect/eval-contracts"
 
-/** An agent of `GET .../projects/:projectId/agents`, checked against the contract. */
+/** An agent of `GET eval/.../projects/:projectId/agents`, checked against the contract. */
 export function buildProjectAgent(
   project: MyProjectOutputDto,
   overrides: Partial<ProjectAgentOutputDto> = {},

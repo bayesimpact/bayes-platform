@@ -9,9 +9,11 @@ This is a Turborepo monorepo with the following structure:
 - `apps/api` - NestJS backend application (runs on port 3000)
 - `apps/pdf-converter` - Go service rendering PDFs to PNG page images in the platform bucket (S3-compatible) for image-only LLMs (Gemma, MedGemma), runs on port 3002 and serves the PDF export MCP endpoint at `/mcp`; `npm run dev` starts it when Go is installed and `apps/pdf-converter/.env` exists
 - `apps/desk` - The Desk, rebuilt on the frontend stack of ADR 0031 (Vite, TanStack Router and Query, shadcn on Base UI, Lingui), runs on port 5177 at `/app/`; see `apps/desk/AGENTS.md`
+- `apps/eval` - Evaluation, rebuilt on the same frontend stack of ADR 0031, runs on port 5179 at `/eval/`; see `apps/eval/AGENTS.md`
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
 - `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
+- `packages/@caseai-connect/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -55,6 +57,11 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `desk/` (one exception, a library file link, is named in `apps/desk/AGENTS.md`), which `apps/api/src/domains/desk/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/desk/AGENTS.md`
 - Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
+
+### Evaluation Application
+- The second app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `eval/` (one exception, a library file link, is named in `apps/eval/AGENTS.md`), which `apps/api/src/domains/eval/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
+- Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/eval/AGENTS.md`
+- Its gate: `npm run check -w @caseai-connect/eval`, on top of the completion criteria below
 
 ### Web Application
 - Vite + React (SPA) with React Compiler enabled via `babel-plugin-react-compiler`
@@ -144,6 +151,7 @@ Before marking any work as completed, run and verify:
 2. `npm run typecheck` — no TypeScript errors
 3. `npm run test` — all tests must pass (API work)
 4. `npm run check -w @caseai-connect/desk` — when the Desk or its contracts changed
+5. `npm run check -w @caseai-connect/eval`: when Evaluation or its contracts changed
 
 Work is NOT complete until all applicable commands pass with exit code 0.
 

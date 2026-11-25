@@ -125,10 +125,18 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationExtractionRunsController,
   ],
   exports: [
+    // The context resolver of a dataset document reads it, in `EvaluationContextModule`.
+    EvaluationExtractionDatasetDocumentRepository,
     EvaluationConversationDatasetsService,
     EvaluationExtractionDatasetsService,
     EvaluationConversationRunsService,
+    // The Evaluation module's cancel handler announces the new status of a run.
+    EvaluationConversationRunStatusNotifierService,
     EvaluationExtractionRunsService,
+    // The Evaluation module's cancel handler exports the results of a cancelled run, and
+    // announces its new status.
+    EvaluationExtractionRunCsvExportService,
+    EvaluationExtractionRunStatusNotifierService,
   ],
 })
 export class EvaluationsModule {}

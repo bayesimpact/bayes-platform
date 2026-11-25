@@ -1,4 +1,3 @@
-import type { AnySchemaRoute } from "@caseai-connect/desk-contracts"
 import {
   type CallHandler,
   type ExecutionContext,
@@ -10,7 +9,7 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { Reflector } from "@nestjs/core"
 import { map, type Observable } from "rxjs"
-import { SCHEMA_ROUTE_METADATA_KEY } from "./schema-route.types"
+import { type AnySchemaRoute, SCHEMA_ROUTE_METADATA_KEY } from "./schema-route.types"
 
 /**
  * Parses the handler's answer with the response schema of its route before it leaves. Keys the

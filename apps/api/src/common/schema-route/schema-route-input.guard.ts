@@ -1,4 +1,3 @@
-import type { AnySchemaRoute, AnyStreamRoute } from "@caseai-connect/desk-contracts"
 import {
   BadRequestException,
   type CanActivate,
@@ -10,6 +9,8 @@ import { Reflector } from "@nestjs/core"
 import type { Request } from "express"
 import type { z } from "zod"
 import {
+  type AnySchemaRoute,
+  type AnyStreamRoute,
   type RequestWithSchemaRouteInput,
   SCHEMA_ROUTE_INPUT_REQUEST_KEY,
   SCHEMA_ROUTE_METADATA_KEY,

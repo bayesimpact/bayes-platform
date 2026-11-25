@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { projectParamsSchema } from "../common/params.dto"
-import { columnFiltersSchema } from "../common/query.dto"
+import { columnFiltersSchema, queryNumberSchema } from "../common/query.dto"
 import { conversationRunStatusSchema } from "./conversation-runs.dto"
 
 /** The permissions of a project's extraction runs, which only its evaluators hold. */
@@ -111,8 +111,8 @@ export type ExtractionRunRecordOutputDto = z.output<typeof extractionRunRecordOu
  * (`agent_<field>`).
  */
 export const extractionRunRecordsQuerySchema = z.strictObject({
-  page: z.coerce.number<string>().int().min(0),
-  limit: z.coerce.number<string>().int().min(1).max(100),
+  page: queryNumberSchema(z.number().int().min(0)),
+  limit: queryNumberSchema(z.number().int().min(1).max(100)),
   /** The text each of those must hold, by its key. */
   columnFilters: columnFiltersSchema.optional(),
   /** The key the records are sorted by: the order of the dataset without it. */

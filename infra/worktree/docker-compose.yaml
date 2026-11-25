@@ -298,6 +298,7 @@ services:
       - --preserveWatchOutput
       - packages/api-contracts
       - packages/desk-contracts/tsconfig.build.json
+      - packages/eval-contracts/tsconfig.build.json
     labels:
       <<: *labels
       dev.worktree.service: contracts

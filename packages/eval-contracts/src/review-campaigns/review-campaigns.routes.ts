@@ -99,7 +99,7 @@ export const EvalReviewCampaignsRoutes = {
   /** The campaigns the signed-in person tests, or reviews. */
   getAllMine: defineSchemaRoute({
     method: "get",
-    path: "me/review-campaigns",
+    path: "eval/me/review-campaigns",
     query: myReviewCampaignsQuerySchema,
     response: myReviewCampaignsOutputSchema,
   }),
@@ -165,6 +165,7 @@ export const EvalReviewerRoutes = {
   }),
 }
 
+/** The path of a tester's session, which names no campaign: the session has one. */
 const TESTER_SESSION_PATH = `${PROJECT_PATH}/agent-sessions/:sessionId`
 
 /** What a tester does in a campaign. */

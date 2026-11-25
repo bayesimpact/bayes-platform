@@ -24,6 +24,7 @@ import { DeskModule } from "./domains/desk/desk.module"
 import { DocumentsModule } from "./domains/documents/documents.module"
 import { StorageModule } from "./domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "./domains/documents/tags/document-tags.module"
+import { EvalModule } from "./domains/eval/eval.module"
 import { EvaluationsModule } from "./domains/evaluations/evaluations.module"
 import { InvitationsModule } from "./domains/invitations/invitations.module"
 import { MaintenanceJobsModule } from "./domains/maintenance-jobs/maintenance-jobs.module"
@@ -67,6 +68,7 @@ import { UsersModule } from "./domains/users/users.module"
     MaintenanceJobsModule,
     ConversationAgentSessionsModule,
     DeskModule,
+    EvalModule,
     DiagnosticsModule,
     HealthModule,
     DocumentsModule,

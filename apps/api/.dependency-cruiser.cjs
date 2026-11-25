@@ -77,10 +77,30 @@ module.exports = {
     },
 
     {
+      name: "no-imports-between-app-modules",
+      severity: "error",
+      comment:
+        "Each app's module is a closed world: `src/domains/desk/` and " +
+        "`src/domains/eval/` never import each other. A mapper both need is copied.",
+      from: { path: "^src/domains/desk/" },
+      to: { path: "^src/domains/eval/" },
+    },
+
+    {
+      name: "no-imports-between-app-modules-reverse",
+      severity: "error",
+      comment:
+        "Each app's module is a closed world: `src/domains/desk/` and " +
+        "`src/domains/eval/` never import each other. A mapper both need is copied.",
+      from: { path: "^src/domains/eval/" },
+      to: { path: "^src/domains/desk/" },
+    },
+
+    {
       name: "no-feature-imports-cross-domain",
       severity: "error",
       comment:
-        "Cross-domain read-model modules (me, analytics, invitations, desk) sit " +
+        "Cross-domain read-model modules (me, analytics, invitations, desk, eval) sit " +
         "*above* feature domains in the topology (ADR 0007 §2.1). Feature " +
         "domains must never import them — the dependency only flows the other " +
         "way.",
@@ -91,6 +111,7 @@ module.exports = {
           "^src/domains/agents/(?!shared/memberships/)",
           "^src/domains/documents/",
           "^src/domains/evaluations/",
+          "^src/domains/review-campaigns/",
           "^src/domains/mcp-servers/",
           "^src/domains/activities/",
           "^src/domains/feature-flags/",
@@ -105,6 +126,7 @@ module.exports = {
           "^src/domains/analytics/",
           "^src/domains/backoffice/",
           "^src/domains/desk/",
+          "^src/domains/eval/",
           "^src/domains/agents/shared/memberships/",
         ],
       },
@@ -115,7 +137,7 @@ module.exports = {
       severity: "error",
       comment:
         "workers-app.module.ts and its transitive closure must not reach " +
-        "cross-domain read-models (me, analytics, invitations, desk). Importing them " +
+        "cross-domain read-models (me, analytics, invitations, desk, eval). Importing them " +
         "into a worker is the 'importing DocumentsModule pulls half the app' " +
         "pathology described in ADR 0007 §1.",
       from: {
@@ -131,6 +153,7 @@ module.exports = {
           "^src/domains/analytics/",
           "^src/domains/backoffice/",
           "^src/domains/desk/",
+          "^src/domains/eval/",
           "^src/domains/agents/shared/memberships/",
         ],
       },

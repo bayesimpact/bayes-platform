@@ -174,7 +174,7 @@ export class ExampleController {
 }
 ```
 
-### Schema routes and the Desk module
+### Schema routes, the Desk module and the Evaluation module
 
 The Desk (`apps/desk`) calls only the routes of `@caseai-connect/desk-contracts`, under `desk/`, except a library file link that `apps/desk/AGENTS.md` names. `src/domains/desk/` serves them, in a folder per area of the contracts, with two exceptions: the `agent-sessions` routes live by agent type in `conversations/`, `extractions/` and `csv-extractions/`, and `csv-extractions/` serves `DeskCsvExtractionsRoutes`, the second routes object of `extractions`. A folder may hold several controllers (`conversations/` has three). `src/common/schema-route/` holds the generic part, and [docs/schema-routes.md](../../docs/schema-routes.md) explains how it works, why it exists and how another app uses it. To add or change a Desk endpoint:
 
@@ -186,6 +186,16 @@ The Desk (`apps/desk`) calls only the routes of `@caseai-connect/desk-contracts`
 6. E2e specs in the `e2e-tests/` folder beside the controller: an `auth.spec.ts` for all the routes of the folder and one spec per action, with `testSchemaRequester(app)` and `expectSchemaResponse(route, response, status)` from `test/schema-request.ts`. A stream is requested with supertest at `route.getPath(params)`. `src/domains/desk/routes.spec.ts` checks that every route of the contracts has a handler.
 
 Each Desk handler holds a copy of the logic of an abstract controller of the `agents` domain (`ConversationAgentSessionsController`, `AgentMessagesController`, `StreamingController`, `ExtractionAgentSessionsController`, `AgentCsvExtractionRunsController`), which serves the playground and, for messages and streams, the review campaign tester. Nothing links the two, so a change to one of those handlers goes to the Desk handler too.
+
+Evaluation (`apps/eval`) follows the same pattern. It calls only the routes of `@caseai-connect/eval-contracts`, under `eval/`, and `src/domains/eval/` (`EvalModule`) serves them, in a folder per area of the contracts: `account/`, `invitations/`, `organizations/`, `projects/`, `agents/`, `documents/`, `conversations/` (a tester's conversation and its reply stream), `evaluations/conversation/{datasets,runs}/`, `evaluations/extraction/{datasets,runs}/` and `review-campaigns/{campaigns,reviewer,tester}/`. A folder may hold several controllers. To add or change an Evaluation endpoint, follow the numbered steps above with these differences:
+
+- The contract is in `packages/eval-contracts/src/{area}/`, on the `Eval{Area}Routes` object that `packages/eval-contracts/src/index.ts` exports, and its path starts with `eval/`.
+- The handler goes in the folder of its area in `src/domains/eval/`. Files drop the `eval-` prefix, and classes keep the `Eval` prefix (`EvalConversationRunsController`).
+- `src/domains/eval/routes.spec.ts` checks that every route of the Evaluation contracts has a handler.
+- The context resolvers come from `ResourceContextModule` and from `EvaluationContextModule` (`src/common/context/`), which gives the contexts of evaluations and review campaigns. `src/domains/eval/` imports no `*.entity.ts` of another domain and no file of `src/domains/desk/`, and the Desk imports nothing from it.
+- The business code (entities, services, repositories, workers) stays in `domains/evaluations/` and `domains/review-campaigns/`. A handler calls their exported services.
+
+Each Evaluation handler holds a copy of the logic of the endpoint the app called before. Most of them come from `domains/evaluations/` and `domains/review-campaigns/`. The others come from the domains of the shared areas: `MeController`, `MyInvitationsController`, `ReviewCampaignInvitationsController`, `OrganizationsController`, `ProjectsController`, `AgentsController`, `AgentSettingsController`, `DocumentsController` (with its download permission check) and `AgentMessageFeedbackController`. The handlers of a tester's conversation copy the abstract `AgentMessagesController` and `StreamingController` of the `agents` domain. Nothing links a copy to its source, so a change to one goes to the other.
 
 In a worktree environment, run `bayes wt up` after a change to the contracts: the `api` container can miss new exports and keep serving the old code.
 

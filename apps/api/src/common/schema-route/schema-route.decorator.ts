@@ -1,8 +1,3 @@
-import type {
-  AnySchemaRoute,
-  AnyStreamRoute,
-  SchemaRouteMethod,
-} from "@caseai-connect/desk-contracts"
 import {
   applyDecorators,
   type CanActivate,
@@ -27,7 +22,13 @@ import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import { SCHEMA_ROUTE_METADATA_KEY, type SchemaRouteOptions } from "./schema-route.types"
+import {
+  type AnySchemaRoute,
+  type AnyStreamRoute,
+  SCHEMA_ROUTE_METADATA_KEY,
+  type SchemaRouteMethod,
+  type SchemaRouteOptions,
+} from "./schema-route.types"
 import { SchemaRouteInputGuard } from "./schema-route-input.guard"
 import { SchemaRouteResponseInterceptor } from "./schema-route-response.interceptor"
 
@@ -44,7 +45,7 @@ function isStreamRoute(route: AnySchemaRoute | AnyStreamRoute): route is AnyStre
 }
 
 /**
- * Serves a route of `@caseai-connect/desk-contracts` on one handler. It sets the HTTP method and
+ * Serves a route of a contracts package on one handler. It sets the HTTP method and
  * path, the status code, the guard chain (`JwtAuthGuard`, `UserGuard`, the input guard, then
  * `ResourceContextGuard` and `CheckPermissionGuard` when the options ask for them), the required
  * contexts, the permission, the tracked activity and the response interceptor. A stream route
