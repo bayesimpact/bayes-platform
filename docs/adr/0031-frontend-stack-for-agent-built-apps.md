@@ -4,9 +4,11 @@
 * **Date**: 2026-10-20
 * **Deciders**: Alexis
 * **Amended**: 2026-11-16, by Didier: the sandbox of MCP Apps is one package every app imports
-  (section 2.4, "The one shared package")
+  (section 2.4, "The shared sandbox of MCP Apps")
 * **Amended**: 2026-11-25, by Alexis: the permission catalog is a package of its own, which the
   contracts packages import instead of copying its strings (section 2.12)
+* **Amended**: 2026-11-25, by Alexis: the sign-in module is a package every app of the stack
+  imports, the question section 7 left for the second app (sections 2.4 and 2.9)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -17,7 +19,8 @@
   apps in `apps/api/src/common/web-app/`, `apps/api/Dockerfile` and the Helm chart (the Desk's
   theme mount), `apps/api/.dependency-cruiser.cjs`, the link of agent invitations
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
-  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, and `apps/web/src/desk/`
+  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in` and the
+  `lib/auth/` of each app (since 2026-11-25), and `apps/web/src/desk/`
   (deleted at the cutover).
 
 ---
@@ -50,9 +53,9 @@ skill only starts empty folders, so it is not run here: this ADR carries its rul
 Three constraints frame the work:
 
 * The Desk is an app of its own. It shares no code with `apps/web` or Studio: its code, its
-  packages, its endpoints and its DTOs are its own. Two packages are the exception: the sandbox of
-  MCP Apps (section 2.4), and the permission catalog, which it reads through its contracts
-  (section 2.12).
+  packages, its endpoints and its DTOs are its own. Three packages are the exception: the sandbox
+  of MCP Apps (section 2.4), the permission catalog, which it reads through its contracts
+  (section 2.12), and the sign-in, which it shares with the other apps of the stack (section 2.4).
 * The NestJS API and `packages/api-contracts` keep their conventions, routes and DTOs. The Desk's
   endpoints sit next to the existing ones and call the same domain services.
 * Every Desk endpoint has a Zod schema for what it receives and for what it returns.
@@ -109,7 +112,7 @@ runtime.**
 | Tables | TanStack Table v8 (section 2.3), rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog (section 2.10) |
 | UI | Tailwind CSS v4 and shadcn/ui components on Base UI, generated into the Desk, `cva`, `cn()`, lucide-react, sonner |
-| Sign-in | `oidc-client-ts`, in the Desk's own sign-in module (section 2.9) |
+| Sign-in | `oidc-client-ts`, in `@caseai-connect/sign-in`, which every app of the stack imports (sections 2.4 and 2.9) |
 | Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10 (section 2.11), Playwright |
 | Quality | Biome, dependency-cruiser, knip |
 
@@ -193,6 +196,7 @@ apps/desk/
   .storybook/               Storybook on the MSW handlers
 packages/desk-contracts/    the Desk's routes and Zod schemas
 packages/mcp-app-host/      the sandbox of MCP Apps, which every app imports
+packages/sign-in/           the sign-in, which every app of the stack imports
 ```
 
 dependency-cruiser enforces the direction of imports between the folders of `src/`:
@@ -203,20 +207,22 @@ dependency-cruiser enforces the direction of imports between the folders of `src
 * `components/`, `hooks/` and `lib/` import neither `features/` nor `routes/`.
 * The Desk imports nothing from another app or from a package another app owns: `apps/web`,
   `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its workspace
-  dependencies are `@caseai-connect/desk-contracts` and `@caseai-connect/mcp-app-host`, the one
-  package no app owns (see below). Only `lib/auth/` imports `oidc-client-ts`.
+  dependencies are `@caseai-connect/desk-contracts` and the packages no app owns (see below):
+  `@caseai-connect/mcp-app-host` and `@caseai-connect/sign-in`. Only `lib/auth/` imports
+  `@caseai-connect/sign-in`, and no code of the app imports `oidc-client-ts`.
 * No cycles.
 
 knip reports unused files, exports and dependencies. Both tools run in the Desk's
 `check:boundaries` script, which CI already runs through turbo. They only see imports, so these
 boundaries can still be bypassed (section 6).
 
-Apart from the package below and the permission catalog its contracts re-export (section 2.12),
-the Desk shares no code with the other apps: what it needs lives in
-it, even where `apps/web` has its own version. Whether the apps of the new stack share code with each other is decided when the
-second one starts (section 7).
+Apart from the packages below and the permission catalog its contracts re-export (section 2.12),
+the Desk shares no code with the other apps: what it needs lives in it, even where `apps/web` has
+its own version. Whether the apps of the new stack share code with each other was left for the
+second one (section 7). Evaluation answered it on 2026-11-25 for the sign-in alone ("The shared
+sign-in" below). Each app keeps its own design system, API client and other code.
 
-**The one shared package.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
+**The shared sandbox of MCP Apps.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
 the Content Security Policy built from the domains an app declares, and the checks on the links
 and messages an app asks for. `apps/web`, `apps/web-embed` and the
@@ -256,7 +262,39 @@ written through `srcdoc` has an opaque origin that only a random id can stand fo
 * Without a template, or for an app whose server is unknown, the host writes the page itself, as
   before. Local development, the tests and Storybook run that way.
 
-No other package is shared on these grounds. A second one needs its own decision.
+**The shared sign-in.** `packages/sign-in` (`@caseai-connect/sign-in`) is the sign-in of the apps
+of the stack: the OIDC client on `oidc-client-ts` (section 2.9), the guards that keep an app from
+sending the person to the provider in a loop, the reading of the provider's refusals and of the
+API's (`SIGN_IN_REFUSALS`, a copy of `SIGN_IN_ERRORS` in `api-contracts`, which it cannot import),
+and the `login_hint` of an invitation's link. The Desk held it in `lib/auth/`, and Evaluation
+started from a copy of it, so the two copies had the same ten files, about 650 lines with their
+specs, and differed only in names. Three reasons make it one package:
+
+* The apps share one session on the origin. Their copies must agree on the key of the stored user,
+  the name of the refresh lock and the reading of another app's sign-out. A copy that drifts on
+  one of them breaks the session of every app, with no error in the one that changed.
+* It is security code: PKCE, the check of the path a sign-in returns to, the refresh under a lock,
+  the end of a session the provider refuses to renew. A fix made in one copy left the other
+  exposed, as the three copies of the MCP App host had shown.
+* Every app rebuilt on the stack after Evaluation (Studio, the review campaigns, the conversation
+  apps) would copy it once more.
+
+It stays within the limits of the MCP App host, which keep each app a closed world:
+
+* No app owns it, and it holds nothing of an app: no React, no component, no style, no text a
+  screen shows, no contract. Each app keeps its own `lib/auth/session.ts` around it, with its mock
+  mode, the callback route, the pages that explain a sign-in problem and their texts.
+* An app makes its client with `createOidcClient` and its guards with `createSignInGuards`, and
+  passes what is its own: its base path (`/app/`), its storage namespace (`desk`, which keeps its
+  sign-in states under `desk.oidc.`), and its configuration, read when the session is first used.
+  The Desk adds the move of the session it kept on its own before every app shared one
+  (`adoptDeskSession`), which only it needs.
+* It depends on `oidc-client-ts` and Zod alone, and imports no other workspace package.
+* It follows the TypeScript options of the new stack, resolves through its `exports` with no build,
+  and has its own specs, among them the two apps that refresh one session at once. CI runs them in
+  the Desk's job.
+
+No other package is shared on these grounds. Another one needs its own decision.
 
 ### 2.5 Code conventions
 
@@ -388,10 +426,11 @@ edits the conversation's query.
 ### 2.9 Sign-in, home, runtime configuration and UI
 
 * **Sign-in.** The Desk signs in with OpenID Connect (authorization code with PKCE) through
-  `oidc-client-ts`. Its sign-in module, `lib/auth/`, starts as a copy of the one in `apps/web`
+  `oidc-client-ts`. Its sign-in module started as a copy of the one in `apps/web`
   (`src/external/oidcClient.ts`, `src/config/oidc.config.ts`, the `login_hint` and return-path
-  helpers, and their specs), wired to the Desk's configuration. From then on it is Desk code, which
-  changes with the Desk and never in step with `apps/web`. It uses the identity provider and client
+  helpers, and their specs), wired to the Desk's configuration, and never changes in step with
+  `apps/web`. Since 2026-11-25 it is `@caseai-connect/sign-in`, which every app of the stack
+  imports (section 2.4), and the Desk's `lib/auth/session.ts` wraps it. It uses the identity provider and client
   of the install with redirect URIs of its own (`<origin>/app/auth/callback` after sign-in,
   `<origin>/app/` after sign-out). Every app of an origin shares one session: the stored user sits
   under the key `apps/web` uses (`oidc.user:<authority>:<client>`), so a person signed in to one
@@ -404,7 +443,7 @@ edits the conversation's query.
   that waited for it reads the token the other one stored. Sign-out clears the QueryClient and
   invalidates the router, and so does a failed refresh, or another app or tab that signs out or
   switches account (the `storage` event of the shared key, compared by `sub`). `apps/web` reloads
-  its page on the same event. The two copies of the sign-in module can drift in everything but the
+  its page on the same event. `apps/web`'s module and the package can drift in everything but the
   storage key and the lock name, which their specs pin.
 * **Home, invitations, access and terms.** `/app` shows the caller's pending agent invitations, to
   accept or decline, and the projects where they hold `desk.ui.read`. In phase 1, `/app` opens the
@@ -926,11 +965,12 @@ part of it invalidates.
 
 ## 4. Consequences
 
-* The Desk depends on no other app's code. Its sign-in, components, tokens, theme files,
-  contracts and translations are its own, and a change in Studio cannot break it. The sandbox of
-  MCP Apps is the exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk,
-  `apps/web` and `apps/web-embed` at once, on purpose. So does the permission catalog (section
-  2.12): a change to `packages/permissions` reaches every app and the API at once.
+* The Desk depends on no other app's code. Its components, tokens, theme files, contracts and
+  translations are its own, and a change in Studio cannot break it. The sandbox of MCP Apps is the
+  exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk, `apps/web` and
+  `apps/web-embed` at once, on purpose. So does the permission catalog (section 2.12): a change to
+  `packages/permissions` reaches every app and the API at once. And so does the sign-in (section
+  2.4): a change to `packages/sign-in` reaches the Desk and Evaluation at once.
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
@@ -1012,8 +1052,8 @@ part of it invalidates.
 * The Desk's independence is not fully enforced yet. dependency-cruiser only sees imports: a copied
   file, a CSS import or an edit of its configuration can still bring code of `apps/web`,
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
-  has to be found. The same holds for `packages/mcp-app-host`: no tool checks yet that it imports
-  no other workspace package.
+  has to be found. The same holds for `packages/mcp-app-host` and `packages/sign-in`: no tool
+  checks yet that they import no other workspace package.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to
   `PermissionService` as well?
@@ -1031,7 +1071,8 @@ part of it invalidates.
 
 * The second app joins the stack: whether the apps of the new stack share code with each other (a
   design system, a sign-in module, the API client) is decided then, and the conventions get tested
-  on a second app.
+  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in is shared (section 2.4), and
+  the design system and the API client stay in each app. Ask again when a third app joins.
 * The API moves to NestJS 12, or TypeScript 7.1 ships a compiler API: a typecheck several times
   faster pays off with every agent run.
 * Parsing large transcripts shows in response times.

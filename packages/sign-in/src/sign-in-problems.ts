@@ -1,11 +1,11 @@
-import type { SignInRefusal } from "@caseai-connect/desk-contracts"
 import { z } from "zod"
+import type { SignInRefusal } from "./sign-in-refusals"
 
 /** Why the person cannot get in: a refusal of the API, a loop, a lost or a refused sign-in. */
 export type SignInProblem = SignInRefusal | "loop" | "lostState" | "providerRefused"
 
 /**
- * The API refused the person's first sign-in, and would refuse a new one the same way: the Desk
+ * The API refused the person's first sign-in, and would refuse a new one the same way: the app
  * explains why instead of sending them back to the provider.
  */
 export class SignInRefusedError extends Error {
@@ -18,7 +18,7 @@ export class SignInRefusedError extends Error {
   }
 }
 
-/** New sign-ins keep ending without a working session: the Desk stops starting them. */
+/** New sign-ins keep ending without a working session: the app stops starting them. */
 export class SignInLoopError extends Error {
   constructor() {
     super("The sign-in keeps failing: no new one starts on its own.")
@@ -26,10 +26,7 @@ export class SignInLoopError extends Error {
   }
 }
 
-const AUTOMATIC_SIGN_IN_KEY = "desk.automaticSignInAt"
-const LOST_STATE_RETRY_KEY = "desk.lostStateRetryAt"
-
-/** A new sign-in the Desk starts on its own, at most this often. */
+/** A new sign-in the app starts on its own, at most this often. */
 const AUTOMATIC_SIGN_IN_WINDOW_IN_MILLISECONDS = 30 * 1000
 /** A lost sign-in state is tried again on its own at most this often. */
 const LOST_STATE_RETRY_WINDOW_IN_MILLISECONDS = 60 * 1000
@@ -42,22 +39,41 @@ function claimOnce(key: string, windowInMilliseconds: number): boolean {
     window.sessionStorage.setItem(key, String(Date.now()))
     return true
   } catch {
-    // No session storage: the Desk cannot tell a loop, and stops rather than risk one.
+    // No session storage: the app cannot tell a loop, and stops rather than risk one.
     return false
   }
 }
 
-/**
- * Whether the Desk may start a new sign-in on its own now: once per 30 s at most, so a session
- * that ends at once, again and again, cannot send the person to the provider in a loop.
- */
-export function claimAutomaticSignIn(): boolean {
-  return claimOnce(AUTOMATIC_SIGN_IN_KEY, AUTOMATIC_SIGN_IN_WINDOW_IN_MILLISECONDS)
+/** What keeps an app from sending the person to the provider in a loop, in this tab's storage. */
+export type SignInGuards = {
+  /**
+   * Whether the app may start a new sign-in on its own now: once per 30 s at most, so a session
+   * that ends at once, again and again, cannot send the person to the provider in a loop.
+   */
+  claimAutomaticSignIn: () => boolean
+  /** Whether a lost sign-in state may be tried again on its own now: once a minute at most. */
+  claimLostStateRetry: () => boolean
+  /** Lets the app start a new sign-in at once, when the person asks for one themselves. */
+  releaseAutomaticSignIn: () => void
 }
 
-/** Whether a lost sign-in state may be tried again on its own now: once a minute at most. */
-export function claimLostStateRetry(): boolean {
-  return claimOnce(LOST_STATE_RETRY_KEY, LOST_STATE_RETRY_WINDOW_IN_MILLISECONDS)
+/** The guards of one app, under its own keys: `desk.automaticSignInAt` for the Desk. */
+export function createSignInGuards(storageNamespace: string): SignInGuards {
+  const automaticSignInKey = `${storageNamespace}.automaticSignInAt`
+  const lostStateRetryKey = `${storageNamespace}.lostStateRetryAt`
+  return {
+    claimAutomaticSignIn: () =>
+      claimOnce(automaticSignInKey, AUTOMATIC_SIGN_IN_WINDOW_IN_MILLISECONDS),
+    claimLostStateRetry: () =>
+      claimOnce(lostStateRetryKey, LOST_STATE_RETRY_WINDOW_IN_MILLISECONDS),
+    releaseAutomaticSignIn: () => {
+      try {
+        window.sessionStorage.removeItem(automaticSignInKey)
+      } catch {
+        // No session storage: nothing was kept.
+      }
+    },
+  }
 }
 
 /**
@@ -101,13 +117,4 @@ export function signInCallbackProblemOf(
     search.error ??
     (error instanceof Error ? error.message : String(error))
   return { problem: "providerRefused", detail }
-}
-
-/** Lets the Desk start a new sign-in at once, when the person asks for one themselves. */
-export function releaseAutomaticSignIn(): void {
-  try {
-    window.sessionStorage.removeItem(AUTOMATIC_SIGN_IN_KEY)
-  } catch {
-    // No session storage: nothing was kept.
-  }
 }

@@ -19,7 +19,17 @@ const session = vi.hoisted(() => ({
   endSession: vi.fn(),
   signIn: vi.fn(),
 }))
-vi.mock("@/lib/auth/session", () => session)
+// The configuration needs a browser to load: a stand-in lets the real session module load, so
+// the API's refusals are read as the app reads them, and only the session's effects are mocked.
+vi.mock("@/app/config", () => ({
+  appBasePath: "/eval/",
+  appConfig: { mode: "mock" },
+  isMockMode: true,
+}))
+vi.mock("@/lib/auth/session", async (importOriginal) => ({
+  ...session,
+  signInRefusalOf: (await importOriginal<typeof import("@/lib/auth/session")>()).signInRefusalOf,
+}))
 
 const { ApiError, ContractMismatchError, apiRequest, apiStreamResponse } = await import(
   "./api-client"

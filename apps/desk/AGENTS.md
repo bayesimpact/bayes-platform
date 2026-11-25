@@ -35,8 +35,10 @@ holds what is specific to the Desk.
   `@caseai-connect/permissions`, which the Desk reads only through the constants its contracts
   re-export (section 2.12). The Desk keeps what is its own: the `useMcpApp` hook and `McpAppCard`
   in `features/conversation`, the placeholder, and the lookup of an app's HTML (`mcp-apps.ts`).
-- Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
-  `lib/auth/session.ts`. It signs in with the install's client and comes back to
+- Sign-in: `@caseai-connect/sign-in` (`packages/sign-in`), which the Desk shares with Evaluation
+  (ADR 0031, section 2.4). Only `src/lib/auth/` imports it: `session.ts`, which the rest of the
+  Desk reads, and `adopt-desk-session.ts`, the move of the session the Desk held on its own before
+  every app shared one. The sign-in uses the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its session is the one every app
   of the origin shares: the stored user under apps/web's key (`oidc.user:`), refreshed under the
   same Web Lock (`oidc-token-refresh`), and followed when another app signs out or switches
@@ -115,8 +117,9 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - The layout of every signed-in page, with the session check and the terms to accept:
   `src/routes/_authenticated.tsx`. The sidebar's footer, with the user menu and the invitations:
   `src/routes/-components/DeskSidebarFooter.tsx` (the router ignores `-` folders). The sign-in
-  callback: `src/routes/auth/callback.tsx`, whose problems `lib/auth/sign-in-problems.ts` tells
-  apart and `components/shared/SignInCallbackErrorPage.tsx` explains.
+  callback: `src/routes/auth/callback.tsx`, whose problems `signInCallbackProblemOf`
+  (`@caseai-connect/sign-in`) tells apart and `components/shared/SignInCallbackErrorPage.tsx`
+  explains.
 - An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, with
   a conversation (`features/conversation`) or, for an extraction agent, `extraction/` and its
   document runs, CSV setups and CSV runs (`features/extraction`). The sidebar's history is

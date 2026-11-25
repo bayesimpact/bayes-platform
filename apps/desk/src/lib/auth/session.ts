@@ -1,25 +1,41 @@
-import { appBasePath, isMockMode } from "@/app/config"
-import * as oidcClient from "./oidc-client"
-import { releaseAutomaticSignIn } from "./sign-in-problems"
+import { createOidcClient, createSignInGuards, type OidcConfig } from "@caseai-connect/sign-in"
+import { appBasePath, appConfig, isMockMode } from "@/app/config"
+import { adoptDeskSession } from "./adopt-desk-session"
 
 /**
- * The Desk's session: the OIDC client's, or in mock mode a signed-in stand-in, since the mock mode
- * has no identity provider. Everything outside lib/auth goes through this file.
+ * The Desk's session: the OIDC client of @caseai-connect/sign-in, on the session every app of
+ * the origin shares, or in mock mode a signed-in stand-in, since the mock mode has no identity
+ * provider. Everything outside lib/auth goes through this file.
  */
 
-export { readLoginHint } from "./login-hint"
-export { AuthenticationRequiredError, onSessionEnded, takeTabReturnTo } from "./oidc-client"
 export {
-  claimAutomaticSignIn,
-  claimLostStateRetry,
-  releaseAutomaticSignIn,
+  AuthenticationRequiredError,
+  readLoginHint,
   type SignInCallbackSearch,
   SignInLoopError,
   type SignInProblem,
   SignInRefusedError,
   signInCallbackProblemOf,
   signInCallbackSearchSchema,
-} from "./sign-in-problems"
+  signInRefusalOf,
+} from "@caseai-connect/sign-in"
+
+function getOidcConfig(): OidcConfig {
+  if (appConfig.mode !== "api") throw new Error("The mock mode has no sign-in")
+  return appConfig
+}
+
+const oidcClient = createOidcClient({
+  basePath: appBasePath,
+  storageNamespace: "desk",
+  getConfig: getOidcConfig,
+  prepareStorage: adoptDeskSession,
+})
+
+export const { claimAutomaticSignIn, claimLostStateRetry, releaseAutomaticSignIn } =
+  createSignInGuards("desk")
+
+export const { onSessionEnded, takeTabReturnTo } = oidcClient
 
 export function hasSession(): Promise<boolean> {
   return isMockMode ? Promise.resolve(true) : oidcClient.hasSession()

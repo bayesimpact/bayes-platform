@@ -17,15 +17,15 @@ module.exports = {
       severity: "error",
       comment:
         "The Desk imports nothing from another app or from a package another app owns. Its " +
-        "workspace dependencies are @caseai-connect/desk-contracts and the one package no app " +
-        "owns, @caseai-connect/mcp-app-host (ADR 0031, section 2.4).",
+        "workspace dependencies are @caseai-connect/desk-contracts and the packages no app " +
+        "owns: @caseai-connect/mcp-app-host and @caseai-connect/sign-in (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/desk.
           "^\\.\\./(?!\\.\\./|desk/)[^/]+/",
-          "^\\.\\./\\.\\./packages/(?!(desk-contracts|mcp-app-host)/)",
-          "node_modules/@caseai-connect/(?!(desk-contracts|mcp-app-host)(/|$))",
+          "^\\.\\./\\.\\./packages/(?!(desk-contracts|mcp-app-host|sign-in)/)",
+          "node_modules/@caseai-connect/(?!(desk-contracts|mcp-app-host|sign-in)(/|$))",
           "node_modules/@repo/",
         ],
       },
@@ -54,11 +54,15 @@ module.exports = {
       to: { path: "^src/(features|routes)/" },
     },
     {
-      name: "only-lib-auth-imports-oidc-client-ts",
+      name: "only-lib-auth-imports-sign-in",
       severity: "error",
-      comment: "The sign-in module, lib/auth/, is the only one that knows the OIDC client.",
+      comment:
+        "lib/auth/session.ts is the app's sign-in: the rest of the app reads it, never " +
+        "@caseai-connect/sign-in or the OIDC client that package wraps.",
       from: { path: "^src/", pathNot: "^src/lib/auth/" },
-      to: { path: "node_modules/oidc-client-ts/" },
+      to: {
+        path: ["node_modules/oidc-client-ts/", "(node_modules/@caseai-connect|packages)/sign-in/"],
+      },
     },
     {
       name: "test-code-stays-in-tests",
