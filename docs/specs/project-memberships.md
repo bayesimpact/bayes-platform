@@ -298,7 +298,7 @@ This extends the request type chain: `EndpointRequest → EndpointRequestWithUse
 
 ### 4.3 Permissions
 
-The routes check permissions declared in `packages/api-contracts/src/rbac/permissions.ts` and granted in `apps/api/src/domains/rbac/rbac.constants.ts`:
+The routes check permissions declared in `packages/permissions/src/index.ts` and granted in `apps/api/src/domains/rbac/rbac.constants.ts`:
 
 - **`project.member.read`**: list the project's members.
 - **`project.member.invite`**: invite people to the project.

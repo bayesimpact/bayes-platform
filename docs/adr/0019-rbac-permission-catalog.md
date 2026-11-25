@@ -3,8 +3,11 @@
 * **Status**: Accepted (supersedes the rights model in ADR 0004, including its rejection of a permissions table)
 * **Date**: 2026-09-29
 * **Deciders**: engineering
-* **Scope**: `packages/api-contracts/src/rbac/permissions.ts`, `apps/api/src/domains/rbac/`, `docs/rbac-permission-matrix.md`
+* **Scope**: `packages/permissions/src/index.ts` (in `packages/api-contracts/src/rbac/permissions.ts` until 2026-11-25), `apps/api/src/domains/rbac/`, `docs/rbac-permission-matrix.md`
 * **Amended by**: [ADR 0032](0032-several-roles-per-resource.md) (a person can hold several roles on one resource)
+* **Amended**: 2026-11-25: the catalog moved to a package of its own, `@caseai-connect/permissions`,
+  which `api-contracts` and the contracts of the Desk and Evaluation re-export
+  ([ADR 0031](0031-frontend-stack-for-agent-built-apps.md), section 2.12)
 
 ---
 
@@ -20,7 +23,7 @@ The code no longer matches either description. Access is a permission string gra
 
 ### 2.1 Catalog
 
-* Permission strings are declared only in `packages/api-contracts/src/rbac/permissions.ts`. `GlobalPermission` lists the strings that are not tied to a resource id.
+* Permission strings are declared only in `packages/permissions/src/index.ts`. `GlobalPermission` lists the strings that are not tied to a resource id.
 * Every permission string has an exported constant named after it: `project.update` is `PROJECT_UPDATE_PERMISSION`, `agent.settings.read` is `AGENT_SETTINGS_READ_PERMISSION`. Code always uses the constant, in `@CheckPermission`, in role grants and maps, and in `PermissionService` calls. It never writes the string itself, so a typo fails the typecheck instead of silently denying access. Literals such as `"project.update"` or `"agent.read"` that remain in older code are replaced by their constant when that code changes.
 * Role keys and which role receives which permission live in `apps/api/src/domains/rbac/rbac.constants.ts`: `ORGANIZATION_ROLE_PERMISSIONS` (org roles plus `platform_staff` and `platform_superadmin`), `PROJECT_ROLE_PERMISSIONS`, and `AGENT_ROLE_PERMISSIONS`. The API file imports the strings. It does not declare them again.
 * `docs/rbac-permission-matrix.md` mirrors that catalog and changes in the same commit. `.cursor/rules/permission-matrix.mdc` and the `check-permission-matrix` skill keep the mirror honest.
