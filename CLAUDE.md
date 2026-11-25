@@ -143,6 +143,8 @@ projects.map((project) => project.name)
 
 Mirror the user's language. When replying in French, use simplified technical French: short sentences, simple words, active voice, one idea per sentence — no nominal chains, no nested clauses. When replying in English, use Simplified Technical English (STE): the same plain, short, active style.
 
+This rule is for replies in the conversation. Write GitHub issues and their comments in English, whatever language the user writes in.
+
 ## Completion Criteria
 
 Before marking any work as completed, run and verify:

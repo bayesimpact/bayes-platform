@@ -33,7 +33,7 @@ If the arguments are empty, ask the user for a one-line description before doing
 
 ## Steps
 
-1. **Always write the issue in English.** Regardless of the language the user used in their description (they typically write in French), the title AND body of the issue must be written in English. Translate the user's intent into clear, natural English — do not transliterate.
+1. **Always write the issue in English.** Regardless of the language the user used in their description (they typically write in French), and whatever the target repo, everything you write to the issue must be in English: the title, the body, a comment on an existing issue, and any later edit. Translate the user's intent into clear, natural English — do not transliterate.
 
 2. **Check for an existing issue first (avoid duplicates).** Before drafting anything, search the target repo for open AND closed issues that might already cover this. Derive 2–3 keyword queries from the user's description (e.g. a symbol name, the feature noun) and run:
 
@@ -48,7 +48,7 @@ If the arguments are empty, ask the user for a one-line description before doing
 
    A closed issue that matches is still worth surfacing — the problem may have regressed or been previously declined.
 
-3. **Draft the title.** Concise, specific, imperative or descriptive — no trailing period. Good: "Upload PDF échoue au-delà de 10 Mo". Bad: "bug upload".
+3. **Draft the title.** Concise, specific, imperative or descriptive — no trailing period. Good: "PDF upload fails above 10 MB". Bad: "upload bug".
 
 4. **Draft the body** using this structure, omitting any section that would be empty rather than padding it:
 
