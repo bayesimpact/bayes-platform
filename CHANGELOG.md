@@ -16,6 +16,9 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Knowledge base: several lookups in one reply no longer exceed the model's limit.
+- Knowledge base: a lookup returns the section around a matching passage, or the nearby passages of a long section.
+- Chat: a reply that is too long for the model shows a readable message instead of the provider's error.
 - Extraction evaluations: the dataset setup says when a CSV file has no data row.
 - CSV extraction and extraction evaluations: a file's columns are those of its header line, whatever its first row holds.
 - (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.
@@ -284,8 +287,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 - Sign-in: a sign-in left open for a long time now completes on its own and returns to the last page.
 - (beta) MCP App cards: a stray punctuation mark no longer shows up as a reply next to a card.
-- Knowledge base: a lookup now returns a bounded amount of text, so several lookups in one reply no longer exceed the model's limit.
-- Chat: when a reply is still too long for the model, the chat shows a readable message instead of the provider's error.
 
 ### Security
 

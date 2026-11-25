@@ -1,4 +1,5 @@
 import { InternalServerErrorException } from "@nestjs/common"
+import { readPositiveIntEnv } from "@/config/positive-int-env"
 
 const toNonEmptyValue = (value: string | undefined): string | undefined => {
   const trimmedValue = value?.trim()
@@ -79,3 +80,15 @@ export const resolveMaxVertexEmbeddingBatchSize = (): number => {
 
   return parsedBatchSize
 }
+
+const DEFAULT_MAX_RETRIEVED_CHUNK_CHARACTERS = 8000
+
+/**
+ * The most text one knowledge base hit gives the model. A section above it is replaced by the
+ * matching passage and its neighbours, so one long section cannot fill the lookup.
+ */
+export const resolveMaxRetrievedChunkCharacters = (): number =>
+  readPositiveIntEnv("DOCUMENT_RETRIEVAL_MAX_CHUNK_CHARS", {
+    defaultValue: DEFAULT_MAX_RETRIEVED_CHUNK_CHARACTERS,
+    unitWord: "characters",
+  })
