@@ -79,7 +79,13 @@ jobs:
           git fetch origin main
           git checkout -b "$BRANCH" origin/main
           cp /tmp/CHANGELOG.md CHANGELOG.md
-          git add CHANGELOG.md
+          # publiccode.yml (EU OSS Catalogue) carries the version and date of the last release
+          DATE=$(date +%Y-%m-%d)
+          sed -i -E \
+            -e "s/^softwareVersion: .*/softwareVersion: \"${VERSION}\"/" \
+            -e "s/^releaseDate: .*/releaseDate: \"${DATE}\"/" \
+            publiccode.yml
+          git add CHANGELOG.md publiccode.yml
           git commit -m "chore: promote changelog for v${VERSION}"
           git push origin "$BRANCH"
           echo "branch_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
