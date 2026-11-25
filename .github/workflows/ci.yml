@@ -227,6 +227,11 @@ jobs:
         if: needs.changes.outputs.desk-tests == 'true'
         run: npm run test --workspace=@caseai-connect/desk
 
+      # The typecheck, Biome and check:boundaries run in ci-checks, through turbo.
+      - name: Check the Desk's component files
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run check:components --workspace=@caseai-connect/desk
+
       # The sign-in the Desk and Evaluation share.
       - name: Run sign-in tests
         if: needs.changes.outputs.desk-tests == 'true'

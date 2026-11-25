@@ -15,7 +15,7 @@
   instead of a copy in each (sections 1, 2.4, 2.7, 2.11, 4, 6 and 7)
 * **Amended**: 2026-11-25, by Alexis: the Biome configuration, the GritQL plugins and the
   component files check are a package every app of the stack uses, instead of a copy in each
-  (sections 2.3, 2.11, 4 and 7)
+  (sections 2.3, 2.4, 2.11, 4 and 7)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -173,14 +173,14 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   alias.
 * The root Biome configuration stays. `apps/desk/biome.json` extends it, adds the kit's stricter
   rules for Desk code (no enum, no non-null assertion, no default export outside config files, no
-  `console.log`) and ignores the generated `routeTree.gen.ts`, as knip does. Since 2026-11-25 those
-  rules and the GritQL plugins are in `packages/frontend-config/biome.app.json`, which every app of
-  the stack shares, and an app's `biome.json` extends the root configuration and that file, by
-  path (`"root": false`, `"extends": ["../../biome.json",
-  "../../packages/frontend-config/biome.app.json"]`). Biome 2.3 accepts `"//"` only alone, and
-  does not follow an `extends` inside an extended file. The shared file is not named `biome.json`,
-  so its folder keeps the root configuration. That file is committed, so CI can typecheck without
-  running Vite.
+  `console.log`) and ignores the generated `routeTree.gen.ts`, as knip does. `routeTree.gen.ts` is
+  committed, so CI can typecheck without running Vite. Since 2026-11-25 those rules and the GritQL
+  plugins are in `packages/frontend-config/biome.app.json`, which every app of the stack shares,
+  and an app's `biome.json` extends the root configuration and that file, by path
+  (`"root": false`,
+  `"extends": ["../../biome.json", "../../packages/frontend-config/biome.app.json"]`).
+  Biome 2.3 accepts `"//"` only alone, and does not follow an `extends` inside an extended file.
+  The shared file is not named `biome.json`, so its folder keeps the root configuration.
 
 ### 2.4 Folders and boundaries
 
@@ -597,8 +597,7 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   completion criteria.
 * A rule a tool can check is checked by a tool, since an agent forgets a written rule and never a
   failing check. Biome's GritQL plugins (`packages/frontend-config/biome-plugins/`, which every app
-  of the stack shares) hold the rules a syntax
-  pattern shows, such as an unjustified `useQuery`, an effect that only sets a state, or a
+  of the stack shares) hold the rules a syntax pattern shows, such as an unjustified `useQuery`, an effect that only sets a state, or a
   `useReactTable` without `"use no memo"`; a script checks that a component file exports one
   component, named like the file. The React Compiler fails the dev server, Storybook and the tests
   on any component it gives up on (`panicThreshold`): it leaves such a component unmemoized without
@@ -1132,9 +1131,9 @@ part of it invalidates.
 
 * The second app joins the stack: whether the apps of the new stack share code with each other (a
   design system, a sign-in module, the API client) is decided then, and the conventions get tested
-  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in, the route
-  helper of the contracts, the API client and the Biome configuration with its checks are shared
-  (sections 2.3, 2.4 and 2.12), and the design system stays in each app. Ask again when a third app joins.
+  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in, the route helper of the
+  contracts, the API client and the Biome configuration with its checks are shared (sections 2.3,
+  2.4 and 2.12), and the design system stays in each app. Ask again when a third app joins.
 * The API moves to NestJS 12, or TypeScript 7.1 ships a compiler API: a typecheck several times
   faster pays off with every agent run.
 * Parsing large transcripts shows in response times.

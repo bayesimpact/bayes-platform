@@ -17,6 +17,13 @@ const appRoot = process.cwd()
 const componentFiles = globSync("src/**/*.tsx", { cwd: appRoot }).filter(
   (file) => /^[A-Z]\w*\.tsx$/.test(basename(file)) && !file.startsWith("src/components/ui/"),
 )
+// Run outside an app, the check would find nothing and pass: it fails instead.
+if (componentFiles.length === 0) {
+  console.error(
+    `No component file under ${join(appRoot, "src")}: run the check from an app's root.`,
+  )
+  process.exit(1)
+}
 // A component is a PascalCase function or constant, which leaves SCREAMING_CASE constants out.
 const exportedComponent = /^export (?:async )?(?:function|const|class) ([A-Z][a-z]\w*)/gm
 

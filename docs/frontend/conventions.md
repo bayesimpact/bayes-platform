@@ -8,8 +8,7 @@ rules (ADR 0010, 0011 and 0012) until each of its apps is rebuilt here.
 
 A tool checks every rule it can. The app's `npm run check -w <app>` gives the verdict: the
 typecheck, Biome with the GritQL plugins every app shares (`packages/frontend-config`), the
-component files check,
-dependency-cruiser, knip, the translation checks and Vitest. It passes after each significant
+component files check, dependency-cruiser, knip, the translation checks and Vitest. It passes after each significant
 change, on top of the repository's completion criteria. A plugin's false positive is silenced
 where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no tool sees goes to the
 `frontend-conventions-reviewer` agent, which the `end-feature` skill runs before the PR.
@@ -124,8 +123,8 @@ or editing the boundaries' configuration.
   match inherited keys such as `constructor`.
 - **Components.** One exported component per file, named like the file (`ProjectCard.tsx` exports
   `ProjectCard`), with named exports only; a default export is for config files
-  (`check-component-files`, from `packages/frontend-config`, checks the files in `PascalCase.tsx`). A function stays
-  under 200 lines, blank lines aside (Biome's `noExcessiveLinesPerFunction`, specs excepted): a
+  (`check-component-files`, from `packages/frontend-config`, checks the files in
+  `PascalCase.tsx`). A function stays under 200 lines, blank lines aside (Biome's `noExcessiveLinesPerFunction`, specs excepted): a
   component beyond splits into sub-components or hooks. Presentational
   components take props and return JSX, and their logic lives in hooks. Props are typed by a
   `ProjectCardProps` type declared just above the component. No `useEffect` to derive state, to
