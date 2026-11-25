@@ -110,3 +110,27 @@ export function isAgentModelChoiceAvailable(
     return catalog.customModels.some((customModel) => customModel.id === choice.customModelId)
   return findAgentModelEntry(catalog, choice.model)?.isAvailable === true
 }
+
+/** Lower case, without accents, so "génération" matches "generation". */
+function normalizeForSearch(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+}
+
+/**
+ * The options that match a search: each word of the search must appear in the name, the
+ * technical id or the group of the option. An empty search keeps every option.
+ */
+export function filterAgentModelOptions(
+  options: AgentModelOption[],
+  search: string,
+): AgentModelOption[] {
+  const words = normalizeForSearch(search).split(/\s+/).filter(Boolean)
+  if (words.length === 0) return options
+  return options.filter((option) => {
+    const text = normalizeForSearch(`${option.name} ${option.modelId} ${option.group}`)
+    return words.every((word) => text.includes(word))
+  })
+}

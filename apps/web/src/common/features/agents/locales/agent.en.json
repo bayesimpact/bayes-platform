@@ -80,6 +80,8 @@
       },
       "unavailable": "This model is no longer available. Select a new model from the list.",
       "addedModelsGroup": "Models of this workspace",
+      "searchPlaceholder": "Search a model",
+      "noResults": "No model found",
       "tags": {
         "recommended": "Recommended",
         "outsideEu": "Outside the EU",

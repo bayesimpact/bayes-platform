@@ -1,6 +1,6 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { fn } from "storybook/test"
+import { fn, userEvent, within } from "storybook/test"
 import {
   type AgentModelOption,
   AgentModelSelect,
@@ -101,6 +101,8 @@ const meta = {
     options: codeModels,
     labels: {
       placeholder: "Pick a model",
+      searchPlaceholder: "Search a model",
+      noResults: "No model found",
       tags: {
         recommended: "Recommended",
         outsideEu: "Outside the EU",
@@ -124,6 +126,17 @@ export const CodeModelsOnly: Story = {}
 /** The models the workspace added come last. Their server is never shown outside the backoffice. */
 export const WithAddedModels: Story = {
   args: { options: [...codeModels, ...addedModels] },
+}
+
+/** A search keeps the models whose name, technical id or vendor matches every word. */
+export const Searching: Story = {
+  args: { options: [...codeModels, ...addedModels], defaultOpen: false },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("combobox"))
+    // The list opens in a portal, outside the story's canvas.
+    const page = within(document.body)
+    await userEvent.type(await page.findByPlaceholderText("Search a model"), "qwen")
+  },
 }
 
 /** The agent calls its model with the priority tier: the badge shows on that model only. */
