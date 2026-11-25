@@ -42,7 +42,7 @@
       },
       "agent_settings_draft_update": {
         "name": "Editar borradores de agentes",
-        "description": "Cambiar la configuración en borrador de los agentes de los que es propietario o administrador en los proyectos seleccionados (modelo, instrucciones). La publicación se sigue haciendo en Studio."
+        "description": "Cambiar la configuración en borrador de los agentes de los que es propietario o administrador en los proyectos seleccionados (modelo, instrucciones), y guardar el borrador como versión. La puesta en producción se sigue haciendo en Studio."
       },
       "evaluation_conversation_dataset_update": {
         "name": "Modificar conjuntos de datos de evaluación",

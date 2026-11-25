@@ -42,7 +42,7 @@
       },
       "agent_settings_draft_update": {
         "name": "Modificare le bozze degli agenti",
-        "description": "Modificare le impostazioni in bozza degli agenti di cui sei proprietario o amministratore nei progetti selezionati (modello, istruzioni). La pubblicazione resta nello studio."
+        "description": "Modificare le impostazioni in bozza degli agenti di cui sei proprietario o amministratore nei progetti selezionati (modello, istruzioni), e salvare la bozza come versione. La messa in produzione resta nello studio."
       },
       "evaluation_conversation_dataset_update": {
         "name": "Modificare i dataset di valutazione",

@@ -1,0 +1,93 @@
+# publiccode.yml for Bayes Platform
+# Standard: https://publiccodeyml.github.io/v0/ (key reference: schema.core.html)
+# The release workflow (.github/workflows/release.yml) updates softwareVersion
+# and releaseDate with the CHANGELOG at each release.
+
+publiccodeYmlVersion: "0"
+
+name: Bayes Platform
+url: "https://github.com/bayesimpact/bayes-platform"
+landingURL: "https://www.bayesimpact.org"
+
+softwareVersion: "26.11.4"
+releaseDate: "2026-11-24"
+
+platforms:
+  - web
+
+categories:
+  - application-development
+  - knowledge-management
+  - data-collection
+  - workflow-management
+
+developmentStatus: stable
+
+softwareType: "standalone/web"
+
+organisation:
+  uri: "https://www.bayesimpact.org"
+  name: Bayes Impact
+
+intendedAudience:
+  countries:
+    - FR
+    - TG
+  scope:
+    - healthcare
+    - employment
+    - welfare
+    - local-authorities
+    - society
+
+description:
+  en:
+    shortDescription: >-
+      Open-source platform to build, evaluate and run AI agents grounded in
+      your own documents.
+
+    longDescription: |
+      Bayes Platform is an open-source platform for building multi-agent AI systems, developed by Bayes Impact, a technology nonprofit. Teams use it to create AI agents that answer from their own documents, for their staff or for the people they serve.
+
+      The platform is released under the MIT licence. You can deploy it on your own infrastructure, modify it, and keep it if Bayes Impact disappears: there is no licence fee and no per-use cost. Development is pooled, so an improvement funded by one organisation is available to the next.
+
+      Technically, it is a Turbo monorepo with a NestJS API and a React web front end, backed by PostgreSQL with pgvector. Users sign in through any OpenID Connect provider (Keycloak, Auth0, Okta…).
+
+      To reuse it, clone the repository and follow the README to install and run it; agents are then created and configured from the web interface.
+
+      Source code: https://github.com/bayesimpact/bayes-platform
+
+    documentation: "https://github.com/bayesimpact/bayes-platform#readme"
+
+    features:
+      - Conversation agents grounded in the workspace's documents, with the sources cited in each answer
+      - Document import from PDFs and other formats, website crawling, and tags to scope each agent
+      - Form agents that guide a user through a form and collect structured answers
+      - Extraction agents that turn documents and CSV files into structured data
+      - "Multi-agent orchestration: an agent delegates parts of a conversation to sub-agents"
+      - "Agent versions: draft and published settings, history, and a choice of the version in production"
+      - "Evaluation: test datasets, LLM-judged runs compared side by side, human reviews and user feedback"
+      - Chat on any website through an embeddable widget or a public page, and a versioned public chat API
+      - "Built to be driven by AI agents: assistants (over MCP) and apps plug securely into a workspace"
+      - "Model choice: self-hosted open models (Gemma, MedGemma, Qwen), Gemini, Mistral, Anthropic, OpenAI"
+      - Analytics per agent and per category, and conversation retention set per workspace
+      - Workspaces with role-based permissions, invitations, and sign-in through any OpenID Connect provider
+      - Self-hosting with one Docker image or a Helm chart, and any S3-compatible storage
+      - Interface in English and French, and the studio also in German, Italian, Spanish and Polish
+      - Agents use tools from external MCP servers, connected per workspace and enabled per agent
+
+legal:
+  license: MIT
+  mainCopyrightOwner: Bayes Impact
+
+maintenance:
+  type: "internal"
+  contacts:
+    - name: Jérémie Doucy
+      affiliation: Bayes Impact
+
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - en
+    - fr

@@ -42,7 +42,7 @@
       },
       "agent_settings_draft_update": {
         "name": "Modifier les brouillons d'agents",
-        "description": "Changer les réglages en brouillon des agents que vous possédez ou administrez dans les projets sélectionnés (modèle, instructions). La publication reste dans le studio."
+        "description": "Changer les réglages en brouillon des agents que vous possédez ou administrez dans les projets sélectionnés (modèle, instructions), et sauvegarder le brouillon en version. La mise en production reste dans le studio."
       },
       "evaluation_conversation_dataset_update": {
         "name": "Modifier les datasets d'évaluation",

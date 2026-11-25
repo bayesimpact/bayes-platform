@@ -371,6 +371,60 @@ describe("AgentSettings", () => {
       })
       expect(published).toBeUndefined()
     })
+
+    it("saveDraft should save the draft as a version, leaving production on its version", async () => {
+      const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+
+      const saved = await service.saveDraft({
+        connectScope,
+        agentId: agent.id,
+        revisionName: "Shorter answers",
+        revisionDesc: "Asks the agent to answer in two sentences",
+      })
+
+      expect(saved).toMatchObject({
+        revision: 3,
+        isDraft: false,
+        isProduction: false,
+        revisionName: "Shorter answers",
+        revisionDesc: "Asks the agent to answer in two sentences",
+      })
+      const stored = await service.get({ connectScope, agentId: agent.id, revision: 3 })
+      expect(stored?.isDraft).toBe(false)
+      expect((await service.getProduction({ connectScope, agentId: agent.id })).revision).toBe(1)
+    })
+
+    it("saveDraft should leave an agent that was never published without a version in production", async () => {
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+        agentSettings: { ...agentSettingsValuesRev1, isDraft: true },
+      })
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+
+      const saved = await service.saveDraft({ connectScope, agentId: agent.id })
+
+      expect(saved).toMatchObject({ revision: 1, isDraft: false, isProduction: false })
+      expect(await service.findProduction({ connectScope, agentId: agent.id })).toBeUndefined()
+    })
+
+    it("saveDraft should return undefined when the agent has no draft", async () => {
+      const { organization, project, agent } = await createAgentWithSettings(
+        setup,
+        repositories,
+        true,
+      )
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+
+      expect(await service.saveDraft({ connectScope, agentId: agent.id })).toBeUndefined()
+      const settings = await service.getAll({
+        connectScope,
+        agentId: agent.id,
+        includesDraft: true,
+      })
+      expect(settings.map((revision) => [revision.revision, revision.isProduction])).toEqual([
+        [1, true],
+      ])
+    })
   })
 
   describe("Settings revisions", () => {

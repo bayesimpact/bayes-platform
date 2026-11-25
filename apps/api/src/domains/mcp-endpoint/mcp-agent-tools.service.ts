@@ -27,6 +27,7 @@ import {
   AGENT_CREATE_PERMISSION,
   AGENT_DUPLICATE_PERMISSION,
   AGENT_READ_PERMISSION,
+  AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
   AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
@@ -57,7 +58,7 @@ export type McpCreateAgentResult =
   | { ok: true; agent: McpCreatedAgent }
   | { ok: false; error: string }
 
-/** The grantable permission behind update_agent (ADR 0028). */
+/** The grantable permission behind update_agent and save_agent_version (ADR 0028). */
 export const MCP_AGENT_SETTINGS_PERMISSION = "agent.settings.draft.update"
 
 export type McpAgent = {
@@ -80,6 +81,15 @@ export type McpAgentSettingsFields = Pick<
 /** The draft revision the change went into: the published version does not change. */
 export type McpUpdatedAgent = McpAgent & { draftRevision: number }
 
+/**
+ * The version save_agent_version made from the draft. It is never in production: a person
+ * chooses that version in the studio.
+ */
+export type McpSavedAgent = McpAgent & {
+  savedRevision: number
+  savedRevisionIsProduction: false
+}
+
 /** A stored version of an agent's settings, as the agents domain returns it. */
 type AgentSettingsRecord = Awaited<ReturnType<AgentSettingsService["getById"]>>
 
@@ -94,6 +104,7 @@ export type McpAgentVersion = {
 export type McpAgentRevision = {
   revision: number
   isDraft: boolean
+  isProduction: boolean
   name: string | null
   updatedAt: string
 }
@@ -127,6 +138,9 @@ export type McpCaller = {
 /** Same answer for a missing agent, one outside the grant and one the caller cannot change. */
 export const AGENT_NOT_FOUND_ERROR =
   "Agent not found, or you are not allowed to change it. Call list_agents to see the agents you can use."
+
+export const NO_DRAFT_TO_SAVE_ERROR =
+  "This agent has no draft to save. Change it with update_agent first."
 
 /** Same answer for a missing agent, one outside the grant and one the caller cannot copy. */
 export const AGENT_NOT_DUPLICABLE_ERROR =
@@ -344,6 +358,7 @@ export class McpAgentToolsService {
         revisions: revisions.map((settings) => ({
           revision: settings.revision,
           isDraft: settings.isDraft,
+          isProduction: settings.isProduction,
           name: settings.revisionName ?? null,
           updatedAt: settings.updatedAt.toISOString(),
         })),
@@ -423,6 +438,60 @@ export class McpAgentToolsService {
       // Business rules (an extraction agent without a JSON schema...) come
       // back as HTTP exceptions with a readable message.
       return { ok: false, error: error instanceof Error ? error.message : String(error) }
+    }
+  }
+
+  /**
+   * Saves the agent's draft as a version with a name and a description, like the studio's Save
+   * action, so a run can evaluate it. It never puts the version in production, even the first
+   * saved version of an agent: that stays a decision made in the studio.
+   */
+  async saveAgentVersion(
+    caller: McpCaller,
+    input: { agentId: string; name: string; description?: string },
+  ): Promise<McpResult<McpSavedAgent>> {
+    const { agentId } = input
+    const agent = await this.agentRepository.findSummaryWithScopeById(agentId)
+    if (
+      !agent ||
+      !(await this.canSaveAgentVersion(caller, { projectId: agent.projectId, agentId }))
+    ) {
+      return { ok: false, error: AGENT_NOT_FOUND_ERROR }
+    }
+
+    const connectScope = { organizationId: agent.organizationId, projectId: agent.projectId }
+    const saved = await this.agentSettingsService.saveDraft({
+      connectScope,
+      agentId,
+      revisionName: input.name,
+      revisionDesc: input.description,
+    })
+    if (!saved) return { ok: false, error: NO_DRAFT_TO_SAVE_ERROR }
+
+    await this.activitiesService.createActivity({
+      action: "agentSettings.create",
+      userId: caller.userId,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      entityId: agentId,
+      entityType: "agent",
+    })
+    const target = { ...connectScope, agentId }
+    return {
+      ok: true,
+      value: {
+        id: agentId,
+        name: agent.name,
+        type: agent.type,
+        model: saved.model,
+        published:
+          (await this.agentSettingsService.findProduction({ connectScope, agentId })) !== undefined,
+        savedRevision: saved.revision,
+        savedRevisionIsProduction: false,
+        canUpdate: true,
+        canDuplicate: await this.canDuplicateAgent(caller, target),
+        studioUrl: buildStudioAgentUrl(target),
+      },
     }
   }
 
@@ -511,6 +580,18 @@ export class McpAgentToolsService {
     if (!caller.projectIds.includes(target.projectId)) return false
     if (!caller.permissions.includes(MCP_AGENT_SETTINGS_PERMISSION)) return false
     return this.permissionService.has(caller.userId, AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION, {
+      type: "agent",
+      id: target.agentId,
+    })
+  }
+
+  /** Allowed to edit the draft through the grant, and to save it as a version, as in the studio. */
+  private async canSaveAgentVersion(
+    caller: McpCaller,
+    target: { projectId: string; agentId: string },
+  ): Promise<boolean> {
+    if (!(await this.canUpdateAgent(caller, target))) return false
+    return this.permissionService.has(caller.userId, AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION, {
       type: "agent",
       id: target.agentId,
     })
