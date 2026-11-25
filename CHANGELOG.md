@@ -9,6 +9,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- MCP: AI assistants save an agent's draft as a version to evaluate it, and never put it in production.
+
 ### Changed
 
 - Review campaign report: the campaign's managers read the free-text answers, and the CSV file holds every answer.

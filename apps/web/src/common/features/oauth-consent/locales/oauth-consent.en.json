@@ -42,7 +42,7 @@
       },
       "agent_settings_draft_update": {
         "name": "Edit agent drafts",
-        "description": "Change the draft settings of the agents you own or administer in the selected projects (model, instructions). Publishing stays in the studio."
+        "description": "Change the draft settings of the agents you own or administer in the selected projects (model, instructions), and save the draft as a version. Putting a version in production stays in the studio."
       },
       "evaluation_conversation_dataset_update": {
         "name": "Edit evaluation datasets",

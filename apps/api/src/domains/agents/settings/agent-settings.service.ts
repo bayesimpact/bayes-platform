@@ -304,6 +304,37 @@ export class AgentSettingsService {
     })
   }
 
+  /**
+   * Saves the agent's draft as a version and never puts it in production, even when the agent
+   * has no version in production yet: a person chooses that version in the studio. Returns
+   * undefined when the agent has no draft.
+   */
+  async saveDraft({
+    connectScope,
+    agentId,
+    revisionName,
+    revisionDesc,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    revisionName?: string
+    revisionDesc?: string
+  }): Promise<AgentSettings | undefined> {
+    return this.transactionService.run(async () => {
+      const draft = await this.agentSettingsRepository.findLatest(connectScope, agentId)
+      if (!draft?.isDraft || draft.isArchived) return undefined
+
+      const fields = { revisionName, revisionDesc, isDraft: false }
+      const updated = await this.agentSettingsConnectRepository.updateOneById({
+        connectScope,
+        id: draft.id,
+        fields,
+      })
+      if (!updated) return undefined
+      return { ...draft, ...fields }
+    })
+  }
+
   /** Puts a saved version in production. Every live channel runs it from the next session on. */
   async setProduction({
     connectScope,
