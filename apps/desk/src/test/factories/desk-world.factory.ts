@@ -16,7 +16,7 @@ import type {
   MyProjectOutputDto,
   ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
-import { TOOL_NAMES } from "@caseai-connect/desk-contracts"
+import { PROJECT_READ_PERMISSION, TOOL_NAMES } from "@caseai-connect/desk-contracts"
 import { composeMessage } from "@/features/conversation/annotation"
 import { taskCheckLine } from "@/features/conversation/task-checks"
 import { LONG_CONVERSATION_EXCHANGES, LONG_CONVERSATION_TITLE } from "../fixtures/long-conversation"
@@ -275,7 +275,10 @@ export function buildDeskWorld(): DeskWorld {
   const world = emptyWorld()
   const product = buildMyOrganization({ name: "Product" })
   const support = buildMyProject(product, { name: "Support" })
-  const billing = buildMyProject(product, { name: "Billing", permissions: ["project.read"] })
+  const billing = buildMyProject(product, {
+    name: "Billing",
+    permissions: [PROJECT_READ_PERMISSION],
+  })
   const assistant = buildProjectAgent(support, { name: "Helpful Assistant" })
   world.organizations = [product]
   world.projects = [support, billing]

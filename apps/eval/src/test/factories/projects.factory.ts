@@ -4,6 +4,7 @@ import {
   type MyProjectOutputDto,
   myOrganizationOutputSchema,
   myProjectOutputSchema,
+  PROJECT_READ_PERMISSION,
 } from "@caseai-connect/eval-contracts"
 
 /** An organization of `GET eval/organizations/mine`, checked against the contract. */
@@ -26,7 +27,7 @@ export function buildMyProject(
     id: crypto.randomUUID(),
     name: "Pricing",
     organizationId: organization.id,
-    permissions: ["project.read", EVALUATION_UI_READ_PERMISSION],
+    permissions: [PROJECT_READ_PERMISSION, EVALUATION_UI_READ_PERMISSION],
     ...overrides,
   })
 }

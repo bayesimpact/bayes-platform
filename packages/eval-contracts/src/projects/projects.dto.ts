@@ -1,9 +1,16 @@
 import { z } from "zod"
 
-/** The permissions that open a project's evaluations and its Studio (see the catalog). */
+/**
+ * The permissions that read a project and open its apps: its evaluations, its Studio, the Desk,
+ * and the tester's and reviewer's pages of its review campaigns (see the catalog).
+ */
 export {
+  DESK_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
+  PROJECT_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
 } from "@caseai-connect/permissions"
 
 /** A project the signed-in person can read, as `GET eval/projects/mine` returns it. */

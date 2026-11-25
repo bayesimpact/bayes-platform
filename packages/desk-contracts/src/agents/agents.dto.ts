@@ -9,6 +9,9 @@ export const agentTypeSchema = z.enum(["conversation", "extraction"])
 
 export type AgentTypeDto = z.output<typeof agentTypeSchema>
 
+/** Changes an agent's settings: the API lists it among the person's permissions on an agent. */
+export { AGENT_UPDATE_PERMISSION } from "@caseai-connect/permissions"
+
 /**
  * The permission that opens a live session with an agent of each type: a conversation, or an
  * extraction of documents and CSV files.

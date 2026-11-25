@@ -1,3 +1,4 @@
+import { DESK_UI_READ_PERMISSION, PROJECT_READ_PERMISSION } from "@caseai-connect/desk-contracts"
 import { describe, expect, it } from "vitest"
 import { listDeskProjects } from "./desk-projects"
 
@@ -7,7 +8,7 @@ const amber = { id: crypto.randomUUID(), name: "Amber organization" }
 const project = (
   name: string,
   organizationId: string,
-  permissions = ["project.read", "desk.ui.read"],
+  permissions = [PROJECT_READ_PERMISSION, DESK_UI_READ_PERMISSION],
 ) => ({
   id: crypto.randomUUID(),
   name,
@@ -22,7 +23,7 @@ describe("listDeskProjects", () => {
       project("Reports", blue.id),
       project("Support", amber.id),
       project("Pricing", blue.id),
-      project("Billing", blue.id, ["project.read"]),
+      project("Billing", blue.id, [PROJECT_READ_PERMISSION]),
     ]
 
     const deskProjects = listDeskProjects(projects, [blue, amber])

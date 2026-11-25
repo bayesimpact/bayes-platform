@@ -1,5 +1,6 @@
 import {
   AGENT_SESSION_CREATE_PERMISSIONS,
+  AGENT_UPDATE_PERMISSION,
   type ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
 import { describe, expect, it } from "vitest"
@@ -64,7 +65,7 @@ describe("groupDeskAgents", () => {
           {
             ...agent("Form Reader", support),
             type: "extraction",
-            permissions: ["agent.update", AGENT_SESSION_CREATE_PERMISSIONS.extraction],
+            permissions: [AGENT_UPDATE_PERMISSION, AGENT_SESSION_CREATE_PERMISSIONS.extraction],
           },
         ],
       ],
