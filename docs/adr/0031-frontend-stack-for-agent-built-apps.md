@@ -224,7 +224,8 @@ re-export (section 2.12),
 the Desk shares no code with the other apps: what it needs lives in it, even where `apps/web` has
 its own version. Whether the apps of the new stack share code with each other was left for the
 second one (section 7). Evaluation answered it on 2026-11-25 for the sign-in ("The shared
-sign-in" below) and the route helper of the contracts (section 2.12). Each app keeps its own design system, API client and other code.
+sign-in" below) and the route helper of the contracts (section 2.12). Each app keeps its own
+design system, API client and other code.
 
 **The shared sandbox of MCP Apps.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
@@ -574,11 +575,10 @@ Desk contracts live in a package of their own, `packages/desk-contracts`
 (`@caseai-connect/desk-contracts`), written the way `packages/api-contracts` is: one folder per area
 (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
 `invitations`, `memories`, `organizations`, `projects`, and `common` for the params every area
-extends), each with an `{area}.dto.ts` that
-holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
-CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
-object per area. It depends on Zod, `@caseai-connect/permissions` and `@caseai-connect/schema-route`
-alone, and imports nothing from
+extends), each with an `{area}.dto.ts` that holds the Zod schemas and an `{area}.routes.ts`, the
+`{ payload }` and `{ data }` envelopes, the CRUD keys `getAll`, `getOne`, `createOne`, `updateOne`
+and `deleteOne`, and one `Desk{Area}Routes` object per area. It depends on Zod,
+`@caseai-connect/permissions` and `@caseai-connect/schema-route` alone, and imports nothing from
 `packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
 and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
@@ -601,14 +601,13 @@ three copies had to keep one shape, and only the typecheck of the API's handlers
 2026-11-25, `packages/schema-route` (`@caseai-connect/schema-route`) holds `defineSchemaRoute`,
 `defineStreamRoute`, the types of a route and the error body. Each contracts package re-exports it,
 so the apps import it from their contracts as before, and the layer of the API takes its route
-types from it. No app owns it, and it stays within the limits of the permission catalog, with Zod
-as its one dependency: no import of another workspace package, no route, nothing a screen shows.
-It has a CommonJS build the API requires, which the API image and the `contracts` service of a
+types from it. No app owns it, and it stays within limits that keep the apps closed worlds: Zod as
+its one dependency, no import of another workspace package, no route, no schema of an app, no
+React, nothing a screen shows, and the TypeScript options of the new stack. It has a CommonJS build the API requires, which the API image and the `contracts` service of a
 worktree environment build first.
 
 * A route is declared with `defineSchemaRoute`, a helper of `@caseai-connect/schema-route` that the
-  package re-exports. It takes the method, the
-  path and the schemas of the params, query, body and response, and infers the request and
+  package re-exports. It takes the method, the path and the schemas of the params, query, body and response, and infers the request and
   response types from them. A stream route is declared with `defineStreamRoute`, which takes an
   `event` schema in place of the response. `defineSchemaRoute` returns `path`, `getPath` and
   `method`, as `defineRoute` does, plus a `schemas` property, with no phantom
@@ -802,11 +801,11 @@ Desk does not use come from `EvaluationContextModule` in `apps/api/src/common/co
 `ResourceContextModule`, so the module registers no entity of another domain. The code of the
 `evaluations` and `review-campaigns` domains stays where it is: only the controllers are new. The
 API requires the CommonJS build of `eval-contracts`, as it does for the Desk, and Jest maps the
-package to its source. The layer in `apps/api/src/common/schema-route/` now declares the shape of a
-route itself and imports no contracts package, so a route of either package fits. Each contracts
-package keeps its own `defineSchemaRoute`. Since 2026-11-25 both contracts packages and the layer
-take them from `@caseai-connect/schema-route` (section 2.12). Each Evaluation endpoint copies the endpoint the app
-called before: the same method, params, body and response, the same permission on the same
+package to its source. The layer in `apps/api/src/common/schema-route/` then declared the shape of
+a route itself and imported no contracts package, so a route of either package fit, and each
+contracts package kept its own `defineSchemaRoute`. Since 2026-11-25 both contracts packages
+re-export the helper from `@caseai-connect/schema-route`, and the layer takes its route types from
+it (section 2.12). Each Evaluation endpoint copies the endpoint the app called before: the same method, params, body and response, the same permission on the same
 resource, and the same status codes and tracked activities. Two things change: every schema refusal
 answers 400, and a response holds only the fields the contract declares. Two query schemas of the
 package changed so the API can check them: `page` and `limit` refuse an empty text, and a filter

@@ -1,6 +1,6 @@
-// Account
-
+// Route helper and error body
 export * from "@caseai-connect/schema-route"
+// Account
 export * from "./account/account.dto"
 export { EvalAccountRoutes } from "./account/account.routes"
 // Agents

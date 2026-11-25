@@ -344,14 +344,15 @@ or editing the boundaries' configuration.
 
 Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`,
 Evaluation's is `packages/eval-contracts`), the routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
-Zod, `@caseai-connect/permissions` and `@caseai-connect/schema-route` alone, and imports nothing from `packages/api-contracts`. The app reads its source. When the app
+Zod, `@caseai-connect/permissions` and `@caseai-connect/schema-route` alone, and imports nothing
+from `packages/api-contracts`. The app reads its source. When the app
 has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
 build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
 - A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`,
   which the package re-exports from `@caseai-connect/schema-route` (`packages/schema-route`) with
-  the error body. It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its `schemas`, with no
-  phantom `request` and `response`. It refuses at compile time a `params` schema whose keys
+  the error body. It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its
+  `schemas`, with no phantom `request` and `response`. It refuses at compile time a `params` schema whose keys
   differ from the path's `:name` segments, and adds the `{ payload }` and `{ data }` envelopes.
 - A response schema declares the fields the app reads, and only those: `z.object` strips the
   others, so the app never depends on a field it does not declare. On an endpoint of the app's own,

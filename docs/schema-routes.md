@@ -197,9 +197,9 @@ The layer in `src/common/schema-route/` is generic. An app that gets endpoints o
 
 1. **A contracts package** that depends on `@caseai-connect/schema-route` and re-exports it, as
    `packages/desk-contracts` and `packages/eval-contracts` do, so the app imports the helper and
-   the error body from its own contracts. The package holds one `defineSchemaRoute`, and the layer
-   in `src/common/schema-route/` takes `AnySchemaRoute` and `AnyStreamRoute` from it, so a route of
-   any contracts package type-checks. The layer imports no contracts package.
+   the error body from its own contracts. `@caseai-connect/schema-route` holds the one
+   `defineSchemaRoute`, and the layer in `src/common/schema-route/` takes `AnySchemaRoute` and
+   `AnyStreamRoute` from it, so a route of any contracts package type-checks. The layer imports no contracts package.
 2. **A CommonJS build that the API requires.** Do what was done for the Desk contracts: a
    `tsconfig.build.json` and the `build` and `dev` scripts, `main` and a `require` entry in
    `exports`, the dependency in `apps/api/package.json` and `package-lock.json`, the
