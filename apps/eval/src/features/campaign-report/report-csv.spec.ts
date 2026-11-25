@@ -146,7 +146,7 @@ describe("reportCsvOf", () => {
           meanReviewerRating: 3.5,
           reviewerRatingSpread: 1,
           testerAnswers: { note: '=HYPERLINK("http://example.com","Open")' },
-          reviewerAnswers: { issues: ["@SUM(A1:A2)", "Fine;=1+1"] },
+          reviewerAnswers: { issues: ["@SUM(A1:A2)", "Fine;\t=1+1"] },
           endOfPhaseAnswers: {},
         },
       ],
@@ -154,9 +154,9 @@ describe("reportCsvOf", () => {
 
     const [header, row] = csv.split("\r\n")
     expect(header?.endsWith(",After each session: =1+1,Session review: Any issue?")).toBe(true)
-    // Each part a semicolon starts is neutralized too, since a French spreadsheet splits on it.
+    // Each part a semicolon or a tab starts is neutralized too: a spreadsheet may split on them.
     expect(
-      row?.endsWith(`,"'=HYPERLINK(""http://example.com"",""Open"")","'@SUM(A1:A2);Fine;'=1+1"`),
+      row?.endsWith(`,"'=HYPERLINK(""http://example.com"",""Open"")","'@SUM(A1:A2);Fine;'\t'=1+1"`),
     ).toBe(true)
   })
 
