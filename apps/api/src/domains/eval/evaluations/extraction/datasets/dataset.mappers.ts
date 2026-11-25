@@ -22,7 +22,7 @@ type ExtractionDatasetRecord = Awaited<
   ReturnType<EvaluationExtractionDatasetsService["listDatasetRecordsPaginated"]>
 >["records"][number]
 
-/** A copy of `toEvaluationExtractionDatasetFileDto`, with the fields Evaluation reads. */
+/** A file a dataset is built from, with the fields Evaluation reads. */
 export function toExtractionDatasetFileDto(
   file: ExtractionDatasetFile,
 ): ExtractionDatasetFileOutputDto {
@@ -37,8 +37,8 @@ export function toExtractionDatasetFileDto(
 }
 
 /**
- * A copy of `toEvaluationExtractionDatasetFileColumnDto`. A row shorter than the header gives no
- * value, which the old response sent as `null`.
+ * A column of a file, with its first values. A row shorter than the header gives no value, which
+ * the old response sent as `null`.
  */
 export function toExtractionDatasetFileColumnDto(
   column: ExtractionDatasetFileColumn,
@@ -53,7 +53,7 @@ export function toExtractionDatasetFileColumnDto(
   }
 }
 
-/** A copy of `toEvaluationExtractionDatasetDto`, with the fields Evaluation reads. */
+/** A dataset, with the fields Evaluation reads. */
 export function toExtractionDatasetDto({
   dataset,
   recordCount,
@@ -70,7 +70,7 @@ export function toExtractionDatasetDto({
   }
 }
 
-/** A copy of `toEvaluationExtractionDatasetRecordRowDto`. */
+/** A record of a dataset. */
 export function toExtractionDatasetRecordDto(
   record: ExtractionDatasetRecord,
 ): ExtractionDatasetRecordOutputDto {

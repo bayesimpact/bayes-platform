@@ -13,7 +13,7 @@ type ExtractionRunRecord = Awaited<
 >["records"][number]
 
 /**
- * A copy of `toEvaluationExtractionRunDto`, with the fields Evaluation reads. The run carries the
+ * A run, with the fields Evaluation reads. The run carries the
  * version it pinned: the context resolver and `listRuns` load it.
  */
 export function toExtractionRunDto(run: ExtractionRun): ExtractionRunOutputDto {
@@ -31,7 +31,7 @@ export function toExtractionRunDto(run: ExtractionRun): ExtractionRunOutputDto {
   }
 }
 
-/** A copy of `toEvaluationExtractionRunRecordDto`, with the fields Evaluation reads. */
+/** A record of a run, with the fields Evaluation reads. */
 export function toExtractionRunRecordDto(
   record: ExtractionRunRecord,
 ): ExtractionRunRecordOutputDto {

@@ -1,11 +1,5 @@
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
-import { AgentContextResolver } from "@/common/context/resolvers/agent-context.resolver"
-import { EvaluationConversationDatasetContextResolver } from "@/common/context/resolvers/evaluation-conversation-dataset-context.resolver"
-import { EvaluationConversationRunContextResolver } from "@/common/context/resolvers/evaluation-conversation-run-context.resolver"
-import { EvaluationExtractionDatasetContextResolver } from "@/common/context/resolvers/evaluation-extraction-dataset-context.resolver"
-import { EvaluationExtractionDatasetDocumentContextResolver } from "@/common/context/resolvers/evaluation-extraction-dataset-document-context.resolver"
-import { EvaluationExtractionRunContextResolver } from "@/common/context/resolvers/evaluation-extraction-run-context.resolver"
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
@@ -34,7 +28,6 @@ import { EvaluationConversationRunBatchModule } from "./conversation/runs/evalua
 import { EvaluationConversationRunGraderLlmService } from "./conversation/runs/evaluation-conversation-run-grader-llm.service"
 import { EvaluationConversationRunStatusNotifierService } from "./conversation/runs/evaluation-conversation-run-status-notifier.service"
 import { EvaluationConversationRunStatusStreamService } from "./conversation/runs/evaluation-conversation-run-status-stream.service"
-import { EvaluationConversationRunsController } from "./conversation/runs/evaluation-conversation-runs.controller"
 import { EvaluationConversationRunsService } from "./conversation/runs/evaluation-conversation-runs.service"
 import { EvaluationConversationRunRecord } from "./conversation/runs/records/evaluation-conversation-run-record.entity"
 import { EvaluationConversationRunRecordRepository } from "./conversation/runs/records/evaluation-conversation-run-record.repository"
@@ -44,7 +37,6 @@ import { EvaluationConversationTestCasesService } from "./conversation/test-case
 import { EvaluationExtractionDataset } from "./extraction/datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetDocument } from "./extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { EvaluationExtractionDatasetDocumentRepository } from "./extraction/datasets/evaluation-extraction-dataset-document.repository"
-import { EvaluationExtractionDatasetsController } from "./extraction/datasets/evaluation-extraction-datasets.controller"
 import { EvaluationExtractionDatasetsService } from "./extraction/datasets/evaluation-extraction-datasets.service"
 import { EvaluationExtractionDatasetRecord } from "./extraction/datasets/records/evaluation-extraction-dataset-record.entity"
 import { EvaluationExtractionRun } from "./extraction/runs/evaluation-extraction-run.entity"
@@ -53,7 +45,6 @@ import { EvaluationExtractionRunCsvExportService } from "./extraction/runs/evalu
 import { EvaluationExtractionRunGraderService } from "./extraction/runs/evaluation-extraction-run-grader.service"
 import { EvaluationExtractionRunStatusNotifierService } from "./extraction/runs/evaluation-extraction-run-status-notifier.service"
 import { EvaluationExtractionRunStatusStreamService } from "./extraction/runs/evaluation-extraction-run-status-stream.service"
-import { EvaluationExtractionRunsController } from "./extraction/runs/evaluation-extraction-runs.controller"
 import { EvaluationExtractionRunsService } from "./extraction/runs/evaluation-extraction-runs.service"
 import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluation-extraction-run-record.entity"
 
@@ -87,15 +78,12 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     AuthModule,
   ],
   providers: [
-    AgentContextResolver,
     // Provided here rather than exported by the conversation sessions module, which sits in
     // forwardRef cycles with the agents module.
     AgentMessageRepository,
-    EvaluationConversationDatasetContextResolver,
     EvaluationConversationDatasetRecordRepository,
     EvaluationConversationDatasetRepository,
     EvaluationConversationDatasetsService,
-    EvaluationConversationRunContextResolver,
     EvaluationConversationRunGraderLlmService,
     EvaluationConversationRunStatusNotifierService,
     EvaluationConversationRunStatusStreamService,
@@ -103,11 +91,8 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationConversationRunRecordRepository,
     EvaluationConversationTestCaseLlmService,
     EvaluationConversationTestCasesService,
-    EvaluationExtractionDatasetContextResolver,
-    EvaluationExtractionDatasetDocumentContextResolver,
     EvaluationExtractionDatasetDocumentRepository,
     EvaluationExtractionDatasetsService,
-    EvaluationExtractionRunContextResolver,
     EvaluationExtractionRunCsvExportService,
     EvaluationExtractionRunGraderService,
     EvaluationExtractionRunStatusNotifierService,
@@ -117,12 +102,10 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     ProjectContextResolver,
     ResourceContextGuard,
   ],
+  // Evaluation serves its own routes from `src/domains/eval/`. These two serve the Studio.
   controllers: [
     EvaluationConversationDatasetsController,
-    EvaluationExtractionDatasetsController,
-    EvaluationConversationRunsController,
     EvaluationConversationTestCasesController,
-    EvaluationExtractionRunsController,
   ],
   exports: [
     // The context resolver of a dataset document reads it, in `EvaluationContextModule`.

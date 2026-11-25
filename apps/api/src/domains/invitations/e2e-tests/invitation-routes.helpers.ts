@@ -1,21 +1,11 @@
-import {
-  AgentInvitationsRoutes,
-  ProjectInvitationsRoutes,
-  ReviewCampaignInvitationsRoutes,
-} from "@caseai-connect/api-contracts"
+import { AgentInvitationsRoutes, ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
 
 type ProjectLike = { id: string; organizationId: string }
 type ScopedLike = { id: string; organizationId: string; projectId: string }
 
-export type InvitationRouteTarget =
-  | { project: ProjectLike }
-  | { agent: ScopedLike }
-  | { reviewCampaign: ScopedLike }
+export type InvitationRouteTarget = { project: ProjectLike } | { agent: ScopedLike }
 
-type InvitationRoutes =
-  | typeof ProjectInvitationsRoutes
-  | typeof AgentInvitationsRoutes
-  | typeof ReviewCampaignInvitationsRoutes
+type InvitationRoutes = typeof ProjectInvitationsRoutes | typeof AgentInvitationsRoutes
 
 /** The admin invitation routes of a target, with the path params they need. */
 export function invitationRoutesFor(target: InvitationRouteTarget): {
@@ -31,22 +21,12 @@ export function invitationRoutesFor(target: InvitationRouteTarget): {
       },
     }
   }
-  if ("agent" in target) {
-    return {
-      routes: AgentInvitationsRoutes,
-      pathParams: {
-        organizationId: target.agent.organizationId,
-        projectId: target.agent.projectId,
-        agentId: target.agent.id,
-      },
-    }
-  }
   return {
-    routes: ReviewCampaignInvitationsRoutes,
+    routes: AgentInvitationsRoutes,
     pathParams: {
-      organizationId: target.reviewCampaign.organizationId,
-      projectId: target.reviewCampaign.projectId,
-      reviewCampaignId: target.reviewCampaign.id,
+      organizationId: target.agent.organizationId,
+      projectId: target.agent.projectId,
+      agentId: target.agent.id,
     },
   }
 }

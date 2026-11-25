@@ -166,7 +166,7 @@ describe("Evaluation review campaigns - getReport", () => {
       answers: [{ questionId: "tp-end", value: 5 }],
       submittedAt: new Date(),
     })
-    return { organization, project, campaign, firstTester, firstSession, secondSession }
+    return { organization, project, agent, campaign, firstTester, firstSession, secondSession }
   }
 
   const subject = () =>
@@ -198,6 +198,7 @@ describe("Evaluation review campaigns - getReport", () => {
       (distribution) => distribution.questionId === "tp-1",
     )
     expect(ratingQuestion?.responseCount).toBe(2)
+    expect(ratingQuestion?.textAnswers).toEqual([])
     expect(ratingQuestion?.buckets).toStrictEqual([
       { label: "1", count: 0 },
       { label: "2", count: 1 },
@@ -208,10 +209,11 @@ describe("Evaluation review campaigns - getReport", () => {
     const choiceQuestion = report.testerPerSessionDistributions.find(
       (distribution) => distribution.questionId === "tp-2",
     )
-    expect(choiceQuestion?.buckets.map((bucket) => bucket.label)).toEqual([
-      "Product",
-      "Pricing",
-      "Support",
+    expect(choiceQuestion?.responseCount).toBe(1)
+    expect(choiceQuestion?.buckets).toStrictEqual([
+      { label: "Product", count: 1 },
+      { label: "Pricing", count: 0 },
+      { label: "Support", count: 0 },
     ])
     expect(report.testerEndOfPhaseDistributions).toHaveLength(1)
     const freeTextQuestion = report.reviewerDistributions.find(
@@ -287,6 +289,31 @@ describe("Evaluation review campaigns - getReport", () => {
       testerAnswers: {},
       reviewerAnswers: {},
       endOfPhaseAnswers: {},
+    })
+  })
+
+  it("lists a session with no feedback and no review, with no rating", async () => {
+    const { organization, project, agent, campaign, firstTester } = await seedReportableCampaign()
+    const sessionWithoutFeedback = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent, user: firstTester })
+        .build({ campaignId: campaign.id }),
+    )
+
+    const response = await subject()
+
+    expectSchemaResponse(EvalReviewCampaignsRoutes.getReport, response)
+    const report = response.body.data
+    expect(report.headline.sessionCount).toBe(3)
+    expect(report.sessionMatrix).toHaveLength(3)
+    expect(
+      report.sessionMatrix.find((row) => row.sessionId === sessionWithoutFeedback.id),
+    ).toMatchObject({
+      testerRating: null,
+      reviewerRatings: [],
+      reviewerCount: 0,
+      meanReviewerRating: null,
+      reviewerRatingSpread: null,
     })
   })
 

@@ -118,7 +118,7 @@ describe("Evaluation review campaigns - createOne", () => {
     const persisted = await repositories.reviewCampaignRepository.findOneByOrFail({
       id: response.body.data.id,
     })
-    expect(persisted.status).toBe("draft")
+    expect(persisted).toMatchObject({ status: "draft", activatedAt: null, closedAt: null })
   })
 
   it("runs on the version in production when no version is given", async () => {
@@ -139,6 +139,10 @@ describe("Evaluation review campaigns - createOne", () => {
     )
     expectSchemaResponse(EvalReviewCampaignsRoutes.createOne, response, 201)
     expect(response.body.data.agentSettingsId).toBe(olderVersion.id)
+    const persisted = await repositories.reviewCampaignRepository.findOneByOrFail({
+      id: response.body.data.id,
+    })
+    expect(persisted.agentSettingsId).toBe(olderVersion.id)
   })
 
   it("refuses the agent's draft", async () => {

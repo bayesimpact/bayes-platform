@@ -40,9 +40,8 @@ type AgentVersion = Awaited<ReturnType<AgentSettingsService["getProduction"]>>
 const MAX_REVISION = 2147483647
 
 /**
- * The extraction runs of a project and their records. Each handler copies the one of
- * `EvaluationExtractionRunsController`, with its permission, context and activity. The CSV export
- * and `streamRunStatus` are not copied: Evaluation does not call them.
+ * The extraction runs of a project and their records. No route streams the status of the runs:
+ * Evaluation polls.
  */
 @Controller()
 export class EvalExtractionRunsController {
@@ -140,7 +139,7 @@ export class EvalExtractionRunsController {
   }
 
   /**
-   * A copy of `EvaluationExtractionRunsController.resolveAgentSettings`. The schema takes any
+   * The version a run pins: the requested one, or the one in production. The schema takes any
    * whole number as a revision: the range stays a check of the handler.
    */
   private async resolveAgentSettings({

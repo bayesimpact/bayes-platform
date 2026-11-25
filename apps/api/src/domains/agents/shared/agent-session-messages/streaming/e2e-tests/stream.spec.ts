@@ -1,4 +1,3 @@
-import type { ConversationAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { AgentSessionMessagesRoutes, type StreamEventPayload } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -17,14 +16,12 @@ import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.f
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
-import {
-  reviewCampaignMembershipFactory,
-  saveReviewCampaignMembership,
-} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
-import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../../test/rbac-test.helpers"
 import { StreamingModule } from "../streaming.module"
+
+/** The session types the stream route still serves: the playground. */
+type StreamSessionType = keyof typeof AgentSessionMessagesRoutes
 
 describe("AgentSessionMessagesRoutes.stream", () => {
   let app: INestApplication<App>
@@ -35,7 +32,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   let projectId: string
   let agentId: string
   let agentSessionId: string
-  let agentSessionType: ConversationAgentSessionTypeDto = "playground"
+  let agentSessionType: StreamSessionType = "playground"
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
 
@@ -66,7 +63,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   const createContext = async ({
     sessionType = "playground",
   }: {
-    sessionType?: ConversationAgentSessionTypeDto
+    sessionType?: StreamSessionType
   } = {}) => {
     const { user, organization, project, agent, agentSession, agentSettings } =
       await createOrganizationWithAgentSession({
@@ -74,25 +71,6 @@ describe("AgentSessionMessagesRoutes.stream", () => {
         agentType: "conversation",
         params: { agentSession: { type: sessionType } },
       })
-    // The tester route checks the caller's tester role on the session's campaign, which is active.
-    if (sessionType === "review_campaign_tester") {
-      const campaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory
-          .active()
-          .transient({ organization, project, agent, agentSettings })
-          .build(),
-      )
-      await saveReviewCampaignMembership({
-        repositories,
-        membership: reviewCampaignMembershipFactory
-          .transient({ organization, project, campaign, user })
-          .build({ roleKeys: ["review_campaign_tester"] }),
-      })
-      await repositories.conversationAgentSessionRepository.update(
-        { id: agentSession.id },
-        { campaignId: campaign.id },
-      )
-    }
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
@@ -320,45 +298,6 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
       expect(response.text).toContain("event: error")
       expect(errorData(response.text)).toContain("Invalid request body")
-    })
-
-    it("runs its campaign's version, which starts as the published one", async () => {
-      const { organization, project, agent, agentSettings } = await createContext({
-        sessionType: "review_campaign_tester",
-      })
-      await seedRevision({ organization, project, agent, revision: 2, isDraft: true })
-
-      const response = await subject("Hello")
-
-      expect(response.text).not.toContain("event: error")
-      expect(await findAssistantMessageSettingsId()).toBe(agentSettings.id)
-    })
-
-    it("runs the version its campaign chose, not the one in production", async () => {
-      const { organization, project, agent } = await createContext({
-        sessionType: "review_campaign_tester",
-      })
-      const campaignVersion = await seedRevision({ organization, project, agent, revision: 2 })
-      await repositories.reviewCampaignRepository.update(
-        { agentId: agent.id },
-        { agentSettingsId: campaignVersion.id },
-      )
-
-      const response = await subject("Hello")
-
-      expect(response.text).not.toContain("event: error")
-      expect(await findAssistantMessageSettingsId()).toBe(campaignVersion.id)
-    })
-
-    it("rejects a revision on a review campaign tester session", async () => {
-      const { organization, project, agent } = await createContext({
-        sessionType: "review_campaign_tester",
-      })
-      await seedRevision({ organization, project, agent, revision: 2, isDraft: true })
-
-      const response = await subject("Hello", 2)
-
-      expect(errorData(response.text)).toContain("playground")
     })
   })
 })

@@ -43,9 +43,8 @@ function isAgentModel(model: string): model is AgentModel {
 }
 
 /**
- * The conversation runs of a project and their records. Each handler copies the one of
- * `EvaluationConversationRunsController`, with its permission, context and activity.
- * `streamRunStatus` is not copied: Evaluation does not call it.
+ * The conversation runs of a project and their records. No route streams the status of the runs:
+ * Evaluation polls.
  */
 @Controller()
 export class EvalConversationRunsController {
@@ -143,7 +142,7 @@ export class EvalConversationRunsController {
     return { data: toConversationRunDto(run) }
   }
 
-  /** A copy of `EvaluationConversationRunsController.resolveAgentSettings`. */
+  /** The version a run pins: the requested one, or the one in production. */
   private async resolveAgentSettings({
     connectScope,
     agentId,

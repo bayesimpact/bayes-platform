@@ -13,6 +13,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -55,7 +56,8 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
   })
 
   const createContext = async () => {
-    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const { organization, project, agent, agentSettings } =
+      await createOrganizationWithAgent(repositories)
     // The playground routes are open to project owners and admins only.
     const { addedUser } = await addMemberByEmailToProject({
       repositories,
@@ -110,6 +112,23 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       .live()
       .build()
 
+    // A tester's session of a review campaign, which the playground never lists either.
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    const campaignSession = conversationAgentSessionFactory
+      .transient({
+        organization,
+        project,
+        user: addedUser,
+        agent,
+      })
+      .reviewCampaignTester()
+      .build({ campaignId: campaign.id })
+
     const anotherUserPlaygroundSession = conversationAgentSessionFactory
       .transient({
         organization,
@@ -124,6 +143,7 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       oldestPlaygroundSession,
       newestPlaygroundSession,
       liveSession,
+      campaignSession,
       anotherUserPlaygroundSession,
     ])
 

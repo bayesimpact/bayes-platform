@@ -1,5 +1,3 @@
-import { z } from "zod"
-import { AgentModel, type DocumentsRagMode } from "../agents/settings/agent-settings.dto"
 import type { TimeType } from "../generic"
 
 export const EVALUATION_CONVERSATION_RUN_STATUS_CHANGED_CHANNEL_DTO =
@@ -23,84 +21,6 @@ export type EvaluationConversationRunSummaryDto = {
   graded: number
   running: number
   total: number
-}
-
-// Snapshot of the agent-settings revision pinned on a run at creation time.
-export type EvaluationConversationRunAgentSettingsDto = {
-  documentsRagMode: DocumentsRagMode
-  instructions: string
-  model: AgentModel
-  revision: number
-  /** The options of the model (its temperature, its thinking level...), as the revision set them. */
-  providerOptions: Record<string, unknown>
-}
-
-// DTOs
-export type EvaluationConversationRunDto = {
-  id: string
-  evaluationConversationDatasetId: string
-  agentId: string
-  agentSettings: EvaluationConversationRunAgentSettingsDto
-  status: EvaluationConversationRunStatusDto
-  // LLM judge model used to grade this run's records.
-  judgeModel: AgentModel
-  // Optional extra instructions injected into the judge's grading prompt.
-  judgeInstructions: string | null
-  summary: EvaluationConversationRunSummaryDto | null
-  projectId: string
-  createdAt: TimeType
-  updatedAt: TimeType
-}
-
-export type EvaluationConversationRunRecordDto = {
-  id: string
-  evaluationConversationRunId: string
-  // Null when the source dataset record has been deleted; the run record keeps
-  // its own input/expectedOutput snapshot.
-  evaluationConversationDatasetRecordId: string | null
-  status: EvaluationConversationRunRecordStatusDto
-  input: string
-  expectedOutput: string
-  output: string | null
-  /** Filled fields; {} when none were filled, null when no form was collected. */
-  formState: Record<string, unknown> | null
-  score: number | null
-  errorDetails: string | null
-  traceUrl: string | null
-  createdAt: TimeType
-  updatedAt: TimeType
-}
-
-// Request DTOs
-export const createEvaluationConversationRunSchema = z.object({
-  agentId: z.string(),
-  // Saved agent-settings revision to pin on the run; null pins the revision in production.
-  agentSettingsRevision: z.number().int().nullable(),
-  datasetId: z.string(),
-  // LLM judge model used to grade this run's records.
-  judgeModel: z.enum(AgentModel),
-  // Optional extra instructions injected into the judge's grading prompt.
-  judgeInstructions: z
-    .string()
-    .trim()
-    .max(EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH)
-    .nullable(),
-})
-
-export type CreateEvaluationConversationRunRequestDto = z.infer<
-  typeof createEvaluationConversationRunSchema
->
-
-export type ExecuteEvaluationConversationRunRequestDto = {
-  recordLimit: number | null
-}
-
-// Paginated response
-export type PaginatedEvaluationConversationRunRecordsDto = {
-  records: EvaluationConversationRunRecordDto[]
-  total: number
-  page: number
-  limit: number
 }
 
 // SSE Event DTOs

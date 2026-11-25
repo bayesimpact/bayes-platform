@@ -153,13 +153,16 @@ describe("Evaluation campaign invitations - createMany", () => {
     )
   })
 
-  it("answers 400 for a role that is not a campaign role", async () => {
+  it.each([
+    ["a role that is not a campaign role", { role: "owner" }],
+    ["no role", {}],
+  ])("answers 400 for %s", async (_case, roleFields) => {
     await createCampaign("active")
     expectResponse(
       await request({
         route: EvalCampaignInvitationsRoutes.createMany,
         pathParams: { organizationId, projectId, reviewCampaignId },
-        body: { payload: { emails: ["tester@example.com"], role: "owner", language: "en" } },
+        body: { payload: { emails: ["tester@example.com"], language: "en", ...roleFields } },
         token: "token",
       }),
       400,

@@ -122,7 +122,7 @@ describe("Evaluation conversation runs - getRecords", () => {
         .build({
           status: "graded",
           output: "The answer is 2",
-          formState: { title: "Request", summary: "Compare options" },
+          formState: { title: "Request", summary: "Compare options", count: 0, enabled: false },
           score: 4,
           traceId: "trace-1",
           createdAt: new Date("2024-01-01"),
@@ -158,7 +158,7 @@ describe("Evaluation conversation runs - getRecords", () => {
           input: gradedRecord.input,
           expectedOutput: gradedRecord.expectedOutput,
           output: "The answer is 2",
-          formState: { title: "Request", summary: "Compare options" },
+          formState: { title: "Request", summary: "Compare options", count: 0, enabled: false },
           score: 4,
           errorDetails: null,
           traceUrl: "https://traces.example.org/redirects/sessions/trace-1",
@@ -181,6 +181,25 @@ describe("Evaluation conversation runs - getRecords", () => {
       limit: 100,
     })
     expectSchemaResponse(EvalConversationRunsRoutes.getRecords, response)
+  })
+
+  it("returns an empty form as an empty form", async () => {
+    const { organization, project, datasetRecords, run } = await createContext()
+    await repositories.evaluationConversationRunRecordRepository.save(
+      evaluationConversationRunRecordFactory
+        .transient({
+          organization,
+          project,
+          evaluationConversationRun: run,
+          evaluationConversationDatasetRecord: datasetRecords[0],
+        })
+        .build({ status: "graded", output: "The answer is 2", formState: {}, score: 4 }),
+    )
+
+    const response = await subject()
+
+    expectSchemaResponse(EvalConversationRunsRoutes.getRecords, response)
+    expect(response.body.data.records[0]?.formState).toStrictEqual({})
   })
 
   it("returns one page of the records", async () => {

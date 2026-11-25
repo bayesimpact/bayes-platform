@@ -120,6 +120,12 @@ describe("Evaluation conversation datasets - updateRecord", () => {
     expect(record.input).toBe("Original question")
   })
 
+  it("answers 400 for a blank expected output", async () => {
+    await createContext()
+
+    expectResponse(await subject({ input: "New question", expectedOutput: "   " }), 400)
+  })
+
   it("answers 404 for a record of another dataset", async () => {
     const { organization, project } = await createContext()
     const otherDataset = await repositories.evaluationConversationDatasetRepository.save(

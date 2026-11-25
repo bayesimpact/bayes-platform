@@ -151,6 +151,13 @@ describe("Evaluation conversation runs - createOne", () => {
     expect(response.body.data.judgeInstructions).toBe("Grade strictly on factual accuracy.")
     expectSchemaResponse(EvalConversationRunsRoutes.createOne, blankResponse, 201)
     expect(blankResponse.body.data.judgeInstructions).toBeNull()
+    const runs = await repositories.evaluationConversationRunRepository.find({
+      order: { createdAt: "ASC" },
+    })
+    expect(runs.map((run) => run.judgeInstructions)).toEqual([
+      "Grade strictly on factual accuracy.",
+      null,
+    ])
   })
 
   it("pins the requested saved version", async () => {
@@ -166,6 +173,26 @@ describe("Evaluation conversation runs - createOne", () => {
     expectSchemaResponse(EvalConversationRunsRoutes.createOne, response, 201)
     expect(response.body.data.agentSettings.revision).toBe(1)
     expect(response.body.data.agentSettings.instructions).toBe(agentSettings.instructions)
+    const [run] = await repositories.evaluationConversationRunRepository.find()
+    expect(run?.agentSettingsId).toBe(agentSettings.id)
+  })
+
+  it("pins the version in production when it is not the first one", async () => {
+    const { organization, project, agent, agentSettings, validPayload } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, { isProduction: false })
+    const versionInProduction = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .production()
+        .transient({ organization, project, agent })
+        .build({ revision: 2, instructions: "Newer helpful assistant instructions" }),
+    )
+
+    const response = await subject(validPayload)
+
+    expectSchemaResponse(EvalConversationRunsRoutes.createOne, response, 201)
+    expect(response.body.data.agentSettings.revision).toBe(2)
+    const [run] = await repositories.evaluationConversationRunRepository.find()
+    expect(run?.agentSettingsId).toBe(versionInProduction.id)
   })
 
   it("pins the version in production, not a newer draft, without a revision", async () => {

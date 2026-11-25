@@ -1,15 +1,11 @@
 import { randomUUID } from "node:crypto"
 import {
-  AgentSessionMessagesRoutes,
-  ConversationAgentSessionsRoutes,
   MeRoutes,
   MyInvitationsRoutes,
   ProjectInvitationsRoutes,
-  ReviewCampaignsRoutes,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
-import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
@@ -28,7 +24,6 @@ import {
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
-import { reviewCampaignStatusErrorMessage } from "@/domains/review-campaigns/review-campaign-status"
 import { ReviewCampaignsModule } from "@/domains/review-campaigns/review-campaigns.module"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import { userFactory } from "@/domains/users/user.factory"
@@ -318,61 +313,6 @@ describe("Invitations - acceptOne", () => {
       })
       expect(projectRow?.id).toBe(projectMembership.id)
       expect(projectRow?.roleKeys).toEqual(["project_member"])
-    })
-
-    it("lets an invited tester chat with the campaign agent until the campaign closes", async () => {
-      const { project, agent, reviewCampaign, invitation } = await createCampaignInvitation(
-        "active",
-        "tester",
-      )
-      expectResponse(await subject(invitation.id), 201)
-      const agentPathParams = {
-        organizationId: project.organizationId,
-        projectId: project.id,
-        agentId: agent.id,
-      }
-      const startSession = () =>
-        request({
-          route: ReviewCampaignsRoutes.startTesterSession,
-          pathParams: {
-            organizationId: project.organizationId,
-            projectId: project.id,
-            reviewCampaignId: reviewCampaign.id,
-          },
-          token: "token",
-          request: { payload: {} },
-        })
-
-      const sessionResponse = await startSession()
-      expectResponse(sessionResponse, 201)
-      const agentSessionId = sessionResponse.body.data.id
-      const listMessages = () =>
-        request({
-          route: AgentSessionMessagesRoutes.review_campaign_tester.getAll,
-          pathParams: { ...agentPathParams, agentSessionId },
-          token: "token",
-        })
-      const messagesResponse = await listMessages()
-      expectResponse(messagesResponse, 201)
-      expect(messagesResponse.body.data).toEqual([])
-
-      // The tester routes are the only way in: the playground routes check a role on the agent.
-      expectResponse(
-        await request({
-          route: ConversationAgentSessionsRoutes.playground.createOne,
-          pathParams: agentPathParams,
-          token: "token",
-        }),
-        403,
-        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
-      )
-
-      await repositories.reviewCampaignRepository.update(
-        { id: reviewCampaign.id },
-        { status: "closed", closedAt: new Date() },
-      )
-
-      expectResponse(await listMessages(), 403, reviewCampaignStatusErrorMessage("closed"))
     })
 
     it("refuses while the campaign is not active", async () => {

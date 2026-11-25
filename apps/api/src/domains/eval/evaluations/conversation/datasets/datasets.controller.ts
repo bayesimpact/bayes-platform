@@ -22,8 +22,9 @@ import {
 import { toConversationDatasetDto, toConversationDatasetRecordDto } from "./dataset.mappers"
 
 /**
- * The conversation datasets of a project and their records. Each handler copies the one of
- * `EvaluationConversationDatasetsController`, with its permission, context and activity.
+ * The conversation datasets of a project and their records. `EvaluationConversationDatasetsController`
+ * still serves the list to the Studio, with the Studio's fields: a change to one list goes to the
+ * other.
  */
 @Controller()
 export class EvalConversationDatasetsController {

@@ -24,7 +24,7 @@ function toAnswerDto(answer: TesterFeedback["answers"][number]): ReviewCampaignA
 }
 
 /**
- * A copy of `toConversationFormDto`, as `TesterController` calls it: with no form schema, so the
+ * A copy of `toConversationFormDto` of the `agents` domain, called with no form schema, so the
  * form carries none.
  */
 function toConversationFormDto(form: ConversationForm): ConversationFormOutputDto {
@@ -37,7 +37,7 @@ function toConversationFormDto(form: ConversationForm): ConversationFormOutputDt
   }
 }
 
-/** A copy of `toMyTesterSessionSummaryDto` of `TesterController`, with the fields Evaluation reads. */
+/** A session in the tester's list, with the fields Evaluation reads. */
 export function toTesterSessionDto(summary: MyTesterSessionSummary): TesterSessionOutputDto {
   return {
     id: summary.id,
@@ -48,7 +48,7 @@ export function toTesterSessionDto(summary: MyTesterSessionSummary): TesterSessi
   }
 }
 
-/** A copy of `toFeedbackDto` of `TesterSessionFeedbackController`, with the fields Evaluation reads. */
+/** A tester's feedback on a session, with the fields Evaluation reads. */
 export function toTesterFeedbackDto(feedback: TesterFeedback): TesterFeedbackOutputDto {
   return {
     id: feedback.id,
@@ -59,7 +59,7 @@ export function toTesterFeedbackDto(feedback: TesterFeedback): TesterFeedbackOut
   }
 }
 
-/** A copy of `toSurveyDto` of `TesterController`, with the fields Evaluation reads. */
+/** A tester's survey at the end of a campaign, with the fields Evaluation reads. */
 export function toTesterSurveyDto(survey: TesterSurvey): TesterSurveyOutputDto {
   return {
     id: survey.id,

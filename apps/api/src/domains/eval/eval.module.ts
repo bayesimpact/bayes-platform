@@ -34,7 +34,8 @@ import { EvalTesterController } from "./review-campaigns/tester/tester.controlle
 
 /**
  * The evaluation app's own API: the routes of `@caseai-connect/eval-contracts`, each checked with
- * the schemas of its route. Each handler copies the logic of the endpoint the app called before.
+ * the schemas of its route. The business code stays in the feature domains: a handler calls their
+ * exported services.
  */
 @Module({
   imports: [

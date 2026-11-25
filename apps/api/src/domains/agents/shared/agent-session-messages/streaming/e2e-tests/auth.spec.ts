@@ -17,19 +17,8 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import {
-  createOrganizationWithAgent,
-  createOrganizationWithAgentSession,
-} from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
-import { RoleGrant } from "@/domains/rbac/role-grant.entity"
-import {
-  addUserToReviewCampaign,
-  reviewCampaignMembershipFactory,
-  saveReviewCampaignMembership,
-} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
-import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
-import { reviewCampaignStatusErrorMessage } from "@/domains/review-campaigns/review-campaign-status"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -216,118 +205,5 @@ describe("Agent Session Messages - stream - Auth", () => {
   it("turns away a live session on the playground route", async () => {
     await createContextForRole("project_owner", "live")
     await expectTurnedAway(await subject("playground"))
-  })
-
-  // The tester route checks the tester's key on the campaign of the session, which must be active.
-  describe("on the review campaign tester route", () => {
-    const createTesterContext = async () => {
-      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
-        repositories,
-        { agent: { type: "conversation" } },
-      )
-      const campaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory
-          .active()
-          .transient({ organization, project, agent, agentSettings })
-          .build(),
-      )
-      const testerAuthSubject = `oidc|${randomUUID()}`
-      const { user } = await addUserToReviewCampaign({
-        repositories,
-        organization,
-        project,
-        campaign,
-        user: { authSubject: testerAuthSubject, email: mockOidcEmailForSub(testerAuthSubject) },
-      })
-      const agentSession = conversationAgentSessionFactory
-        .transient({ organization, project, agent, user })
-        .reviewCampaignTester()
-        .build({ campaignId: campaign.id })
-      await repositories.conversationAgentSessionRepository.save(agentSession)
-
-      authSubject = testerAuthSubject
-      organizationId = organization.id
-      projectId = project.id
-      agentId = agent.id
-      agentSessionId = agentSession.id
-      return { organization, project, agent, agentSettings, campaign, user }
-    }
-
-    type TesterContext = Awaited<ReturnType<typeof createTesterContext>>
-
-    /** Makes the caller a tester of a second, active campaign of the same project. */
-    const joinAnotherActiveCampaign = async ({
-      organization,
-      project,
-      agent,
-      agentSettings,
-      user,
-    }: TesterContext) => {
-      const otherCampaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory
-          .active()
-          .transient({ organization, project, agent, agentSettings })
-          .build(),
-      )
-      await saveReviewCampaignMembership({
-        repositories,
-        membership: reviewCampaignMembershipFactory
-          .transient({ organization, project, campaign: otherCampaign, user })
-          .build({ roleKeys: ["review_campaign_tester"] }),
-      })
-    }
-
-    const leaveCampaign = ({ campaign, user }: TesterContext) =>
-      setup.dataSource
-        .getRepository(RoleGrant)
-        .softDelete({ userId: user.id, resourceType: "review_campaign", resourceId: campaign.id })
-
-    const closeCampaign = ({ campaign }: TesterContext) =>
-      repositories.reviewCampaignRepository.update(
-        { id: campaign.id },
-        { status: "closed", closedAt: new Date() },
-      )
-
-    it("lets a tester of an active campaign stream in their campaign session", async () => {
-      await createTesterContext()
-      await expectStreamed(await subject("review_campaign_tester"))
-    })
-
-    it("forbids the tester once the campaign is closed", async () => {
-      const context = await createTesterContext()
-      await closeCampaign(context)
-
-      const response = await subject("review_campaign_tester")
-      expect(response.text).toContain(reviewCampaignStatusErrorMessage("closed"))
-      expect(await countSessionMessages()).toBe(0)
-    })
-
-    it("keeps the session of a closed campaign shut for a tester of another active campaign of the project", async () => {
-      const context = await createTesterContext()
-      await joinAnotherActiveCampaign(context)
-      await closeCampaign(context)
-
-      const response = await subject("review_campaign_tester")
-      expect(response.text).toContain(reviewCampaignStatusErrorMessage("closed"))
-      expect(await countSessionMessages()).toBe(0)
-    })
-
-    it("forbids someone removed from the session's campaign, even as a tester of another active campaign of the project", async () => {
-      const context = await createTesterContext()
-      await joinAnotherActiveCampaign(context)
-      await leaveCampaign(context)
-
-      expectResponse(
-        await subject("review_campaign_tester"),
-        403,
-        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
-      )
-      expect(await countSessionMessages()).toBe(0)
-    })
-
-    it("turns away a live session on the tester route", async () => {
-      await createContextForRole("project_owner", "live")
-      expectResponse(await subject("review_campaign_tester"), 404)
-    })
   })
 })

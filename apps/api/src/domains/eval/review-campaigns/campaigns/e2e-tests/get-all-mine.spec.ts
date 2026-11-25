@@ -90,7 +90,16 @@ describe("Evaluation review campaigns - getAllMine", () => {
           .build(),
       })
     }
-    return { agent, activeCampaign, closedCampaign, draftCampaign }
+    return {
+      organization,
+      project,
+      user,
+      saveCampaign,
+      agent,
+      activeCampaign,
+      closedCampaign,
+      draftCampaign,
+    }
   }
 
   const subject = (query: Record<string, string>) =>
@@ -121,6 +130,30 @@ describe("Evaluation review campaigns - getAllMine", () => {
     expect(
       reviewerResponse.body.data.reviewCampaigns.map((campaign) => campaign.id).sort(),
     ).toEqual([activeCampaign.id, closedCampaign.id].sort())
+  })
+
+  it("leaves a campaign I only test out of the campaigns I review", async () => {
+    const { organization, project, user, saveCampaign, activeCampaign, closedCampaign } =
+      await createContext()
+    const testedOnlyCampaign = await saveCampaign(reviewCampaignFactory.active(), "Tested only")
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .withRoles("review_campaign_tester")
+        .transient({ organization, project, campaign: testedOnlyCampaign, user })
+        .build(),
+    })
+
+    const reviewerResponse = await subject({ role: "reviewer" })
+    expectSchemaResponse(EvalReviewCampaignsRoutes.getAllMine, reviewerResponse)
+    expect(
+      reviewerResponse.body.data.reviewCampaigns.map((campaign) => campaign.id).sort(),
+    ).toEqual([activeCampaign.id, closedCampaign.id].sort())
+
+    const testerResponse = await subject({ role: "tester" })
+    expect(testerResponse.body.data.reviewCampaigns.map((campaign) => campaign.id).sort()).toEqual(
+      [activeCampaign.id, testedOnlyCampaign.id].sort(),
+    )
   })
 
   it("answers 400 for an unknown role", async () => {

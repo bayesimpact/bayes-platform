@@ -28,7 +28,7 @@ export function toConversationDatasetDto({
   }
 }
 
-/** A copy of `toEvaluationConversationDatasetRecordDto`, with the fields Evaluation reads. */
+/** A record of a dataset, with the fields Evaluation reads. */
 export function toConversationDatasetRecordDto(
   record: ConversationDatasetRecord,
 ): ConversationDatasetRecordOutputDto {

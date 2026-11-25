@@ -48,9 +48,9 @@ import {
 
 /**
  * The messages of a tester's conversation in a review campaign: the transcript, the HTML of its
- * MCP Apps, its attachments and the feedback on a reply. A copy of
- * `ReviewCampaignTesterAgentMessagesController` (the logic of `AgentMessagesController` with the
- * session type fixed to `review_campaign_tester`) and of `AgentMessageFeedbackController.createOne`.
+ * MCP Apps, its attachments and the feedback on a reply. A copy of the logic of the abstract
+ * `AgentMessagesController` of the `agents` domain, with the session type fixed to
+ * `review_campaign_tester`, and of `AgentMessageFeedbackController.createOne`.
  * The session routes check the tester's keys on the campaign of the session, which must be active.
  */
 @Controller()

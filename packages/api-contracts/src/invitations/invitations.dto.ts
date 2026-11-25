@@ -69,12 +69,6 @@ export const createProjectInvitationsSchema = z.object({
 })
 export type CreateProjectInvitationsRequestDto = z.infer<typeof createProjectInvitationsSchema>
 
-export type ReviewCampaignInvitationRoleDto = "tester" | "reviewer"
-
-export type CreateReviewCampaignInvitationsRequestDto = CreateInvitationsRequestDto & {
-  role: ReviewCampaignInvitationRoleDto
-}
-
 export type CreateInvitationsResponseDto = {
   /** New pending invitations. Emails that already have access or a pending invitation are left out. */
   invitations: InvitationDto[]

@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto"
-import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
 import { EvalConversationsRoutes, type ReplyStreamEventDto } from "@caseai-connect/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import supertest from "supertest"
@@ -103,13 +102,6 @@ describe("Evaluation conversations - streamReply", () => {
   /** The stream is a POST: the message travels in the body. */
   const subject = (body: object) =>
     send(EvalConversationsRoutes.streamReply.getPath(conversationParams()), body)
-
-  /** The route this one copies, which the app still serves. */
-  const subjectOnTheOldRoute = (body: object) =>
-    send(
-      AgentSessionMessagesRoutes.review_campaign_tester.stream.getPath(conversationParams()),
-      body,
-    )
 
   const countMessages = () =>
     repositories.agentMessageRepository.count({ where: { sessionId: agentSessionId } })
@@ -257,20 +249,18 @@ describe("Evaluation conversations - streamReply", () => {
     expect(await countMessages()).toBe(0)
   })
 
-  // The handler checks the campaign, as the route it copies does: the status is read from that
-  // route, so the copy cannot drift from it.
-  it("answers as today for a reply on a closed campaign", async () => {
+  // The handler checks the campaign, not a guard: the refusal comes back as an SSE error frame.
+  it("refuses a reply on a closed campaign with an error frame", async () => {
     const { campaign } = await createContext()
     await repositories.reviewCampaignRepository.update(
       { id: campaign.id },
       { status: "closed", closedAt: new Date() },
     )
 
-    const oldResponse = await subjectOnTheOldRoute({ payload: { content: "Hello" } })
     const response = await subject({ payload: { content: "Hello" } })
 
-    expect(response.status).toBe(oldResponse.status)
-    expect(oldResponse.text).toContain(reviewCampaignStatusErrorMessage("closed"))
+    expect(response.status).toBe(200)
+    expect(response.text).toContain("event: error")
     expect(response.text).toContain(reviewCampaignStatusErrorMessage("closed"))
     expect(await countMessages()).toBe(0)
   })
@@ -279,22 +269,18 @@ describe("Evaluation conversations - streamReply", () => {
     const context = await createContext()
     await useLiveSessionOfCaller(context, { inCampaign: false })
 
-    expectResponse(await subjectOnTheOldRoute({ payload: { content: "Hello" } }), 404)
     expectResponse(await subject({ payload: { content: "Hello" } }), 404)
     expect(await countMessages()).toBe(0)
   })
 
-  // A live session of the campaign passes the guards: the handler turns it away, as the route it
-  // copies does.
-  it("answers as today for a live session of the campaign", async () => {
+  // A live session of the campaign passes the guards: the handler turns it away.
+  it("turns away a live session of the campaign with an error frame", async () => {
     const context = await createContext()
     await useLiveSessionOfCaller(context, { inCampaign: true })
 
-    const oldResponse = await subjectOnTheOldRoute({ payload: { content: "Hello" } })
     const response = await subject({ payload: { content: "Hello" } })
 
-    expect(response.status).toBe(oldResponse.status)
-    expect(oldResponse.text).toContain("event: error")
+    expect(response.status).toBe(200)
     expect(response.text).toContain("event: error")
     expect(response.text).toContain("data: Not Found")
     expect(await countMessages()).toBe(0)

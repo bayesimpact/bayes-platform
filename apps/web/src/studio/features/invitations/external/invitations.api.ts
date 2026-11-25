@@ -5,7 +5,6 @@ import {
   type ListInvitationsResponseDto,
   MyInvitationsRoutes,
   ProjectInvitationsRoutes,
-  ReviewCampaignInvitationsRoutes,
 } from "@caseai-connect/api-contracts"
 import i18n from "i18next"
 import { getAxiosInstance } from "@/external/axios"
@@ -76,10 +75,7 @@ function adminRoutesFor({
   organizationId,
   projectId,
 }: ScopedInvitationTarget): {
-  routes:
-    | typeof ProjectInvitationsRoutes
-    | typeof AgentInvitationsRoutes
-    | typeof ReviewCampaignInvitationsRoutes
+  routes: typeof ProjectInvitationsRoutes | typeof AgentInvitationsRoutes
   pathParams: Record<string, string>
 } {
   switch (targetType) {
@@ -89,11 +85,6 @@ function adminRoutesFor({
       return {
         routes: AgentInvitationsRoutes,
         pathParams: { organizationId, projectId, agentId: targetId },
-      }
-    case "review_campaign":
-      return {
-        routes: ReviewCampaignInvitationsRoutes,
-        pathParams: { organizationId, projectId, reviewCampaignId: targetId },
       }
   }
 }

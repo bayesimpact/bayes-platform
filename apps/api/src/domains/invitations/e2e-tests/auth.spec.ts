@@ -10,19 +10,13 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import type { AgentRoleKey } from "@/domains/agents/memberships/agent-membership.types"
-import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
-import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import {
-  mockForeignAuthSubject,
-  mockOidcEmailForSub,
-  setupUserGuardForTesting,
-} from "../../../../test/e2e.helpers"
+import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
@@ -70,13 +64,7 @@ describe("Invitations - Auth", () => {
       route: routes.createMany,
       pathParams,
       token,
-      // Only a review campaign invitation takes a role it cannot do without.
-      request: {
-        payload: {
-          emails: ["invited@example.com"],
-          ...("reviewCampaign" in target ? { role: "tester" } : {}),
-        } as { emails: string[]; role: "tester" },
-      },
+      request: { payload: { emails: ["invited@example.com"] } },
     })
     const deleteOne = await request({
       route: routes.deleteOne,
@@ -216,62 +204,6 @@ describe("Invitations - Auth", () => {
         project: "project_member",
         agent: "agent_owner",
       })
-      expectAllowed(await callAdminRoutes(target, invitationId))
-    })
-  })
-
-  describe("review campaign invitations", () => {
-    const createContextForRole = async (role: ProjectRoleKey) => {
-      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
-        repositories,
-        { user: { authSubject }, projectMembership: { roleKeys: [role] } },
-      )
-      const reviewCampaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory
-          .active()
-          .transient({ organization, project, agent, agentSettings })
-          .build(),
-      )
-      const invitation = await savePendingInvitation({ reviewCampaign })
-      return { organization, target: { reviewCampaign }, invitationId: invitation.id }
-    }
-
-    /** Switches the caller to an organization admin who holds no role on the project. */
-    const switchToOrganizationAdminWithoutProjectRole = async ({
-      organization,
-    }: Awaited<ReturnType<typeof createContextForRole>>) => {
-      const organizationAdminAuthSubject = `oidc|${randomUUID()}`
-      await addUserToOrganization({
-        repositories,
-        organization,
-        user: {
-          authSubject: organizationAdminAuthSubject,
-          email: mockOidcEmailForSub(organizationAdminAuthSubject),
-        },
-        membership: { roleKeys: ["org_admin"] },
-      })
-      authSubject = organizationAdminAuthSubject
-    }
-
-    it("doesn't allow a project member", async () => {
-      const { target, invitationId } = await createContextForRole("project_member")
-      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-    it("doesn't allow an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("project_owner")
-      await switchToOrganizationAdminWithoutProjectRole(context)
-      expectAll(
-        await callAdminRoutes(context.target, context.invitationId),
-        403,
-        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
-      )
-    })
-    it("allows a project admin", async () => {
-      const { target, invitationId } = await createContextForRole("project_admin")
-      expectAllowed(await callAdminRoutes(target, invitationId))
-    })
-    it("allows the project owner", async () => {
-      const { target, invitationId } = await createContextForRole("project_owner")
       expectAllowed(await callAdminRoutes(target, invitationId))
     })
   })

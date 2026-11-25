@@ -22,15 +22,8 @@ import {
   createOrganizationWithAgentMessage,
 } from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
-import { RoleGrant } from "@/domains/rbac/role-grant.entity"
-import {
-  addUserToReviewCampaign,
-  reviewCampaignMembershipFactory,
-  saveReviewCampaignMembership,
-} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
-import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
+import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
-import { reviewCampaignStatusErrorMessage } from "@/domains/review-campaigns/review-campaign-status"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -283,11 +276,9 @@ describe("Agent Session Messages - Auth", () => {
     describeChecks(subject, 201)
   })
 
-  // The tester routes check the tester's keys on the campaign of the session, which must be active.
+  // Evaluation serves a tester's conversation under `eval/`: its specs cover the tester's routes.
   describe("review campaign participants", () => {
-    const createCampaignParticipantContext = async (
-      roleKey: ReviewCampaignRoleKey = "review_campaign_tester",
-    ) => {
+    const createCampaignParticipantContext = async () => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
         repositories,
         { agent: { type: "conversation" } },
@@ -304,7 +295,7 @@ describe("Agent Session Messages - Auth", () => {
         organization,
         project,
         campaign,
-        roleKeys: [roleKey],
+        roleKeys: ["review_campaign_tester"],
         user: {
           authSubject: participantAuthSubject,
           email: mockOidcEmailForSub(participantAuthSubject),
@@ -327,113 +318,7 @@ describe("Agent Session Messages - Auth", () => {
       agentSessionId = agentSession.id
       messageId = agentMessage.id
       accessToken = "token"
-      return { organization, project, agent, agentSettings, campaign, user }
     }
-
-    type TesterContext = Awaited<ReturnType<typeof createCampaignParticipantContext>>
-
-    /** Makes the caller a tester of a second, active campaign of the same project. */
-    const joinAnotherActiveCampaign = async ({
-      organization,
-      project,
-      agent,
-      agentSettings,
-      user,
-    }: TesterContext) => {
-      const otherCampaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory
-          .active()
-          .transient({ organization, project, agent, agentSettings })
-          .build(),
-      )
-      await saveReviewCampaignMembership({
-        repositories,
-        membership: reviewCampaignMembershipFactory
-          .transient({ organization, project, campaign: otherCampaign, user })
-          .build({ roleKeys: ["review_campaign_tester"] }),
-      })
-    }
-
-    const leaveCampaign = ({ campaign, user }: TesterContext) =>
-      setup.dataSource
-        .getRepository(RoleGrant)
-        .softDelete({ userId: user.id, resourceType: "review_campaign", resourceId: campaign.id })
-
-    const closeCampaign = (campaignId: string) =>
-      repositories.reviewCampaignRepository.update(
-        { id: campaignId },
-        { status: "closed", closedAt: new Date() },
-      )
-
-    const listMessages = () =>
-      request({
-        route: AgentSessionMessagesRoutes.review_campaign_tester.getAll,
-        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
-        token: accessToken ?? undefined,
-      })
-
-    const getMessage = () =>
-      request({
-        route: AgentSessionMessagesRoutes.review_campaign_tester.getOne,
-        pathParams: removeNullish({
-          organizationId,
-          projectId,
-          agentId,
-          agentSessionId,
-          messageId,
-        }),
-        token: accessToken ?? undefined,
-      })
-
-    const presignAttachment = () =>
-      request({
-        route: AgentSessionMessagesRoutes.review_campaign_tester.presignAttachmentDocument,
-        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
-        token: accessToken ?? undefined,
-        request: {
-          payload: { fileName: "notes.pdf", mimeType: "application/pdf", size: 1234 },
-        },
-      })
-
-    it("lets a tester of an active campaign read and attach files in their own campaign session", async () => {
-      await createCampaignParticipantContext()
-
-      const messagesResponse = await listMessages()
-      expectResponse(messagesResponse, 201)
-      expect(messagesResponse.body.data.map((message) => message.id)).toEqual([messageId])
-      const messageResponse = await getMessage()
-      expectResponse(messageResponse, 201)
-      expect(messageResponse.body.data.id).toBe(messageId)
-      expectResponse(await presignAttachment(), 201)
-    })
-
-    it("forbids the tester to list messages or attach files once the campaign is closed", async () => {
-      const { campaign } = await createCampaignParticipantContext()
-      await closeCampaign(campaign.id)
-
-      expectResponse(await listMessages(), 403, reviewCampaignStatusErrorMessage("closed"))
-      expectResponse(await presignAttachment(), 403, reviewCampaignStatusErrorMessage("closed"))
-    })
-
-    it("keeps the session of a closed campaign shut for a tester of another active campaign of the project", async () => {
-      const context = await createCampaignParticipantContext()
-      await joinAnotherActiveCampaign(context)
-      await closeCampaign(context.campaign.id)
-
-      expectResponse(await listMessages(), 403, reviewCampaignStatusErrorMessage("closed"))
-      expectResponse(await getMessage(), 403, reviewCampaignStatusErrorMessage("closed"))
-      expectResponse(await presignAttachment(), 403, reviewCampaignStatusErrorMessage("closed"))
-    })
-
-    it("forbids someone removed from the session's campaign, even as a tester of another active campaign of the project", async () => {
-      const context = await createCampaignParticipantContext()
-      await joinAnotherActiveCampaign(context)
-      await leaveCampaign(context)
-
-      expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      expectResponse(await getMessage(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      expectResponse(await presignAttachment(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
 
     it("forbids the tester on the playground routes, which check a role on the agent", async () => {
       await createCampaignParticipantContext()
@@ -444,14 +329,6 @@ describe("Agent Session Messages - Auth", () => {
         token: accessToken ?? undefined,
       })
       expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-
-    it("forbids a reviewer-only participant", async () => {
-      await createCampaignParticipantContext("review_campaign_reviewer")
-
-      expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      expectResponse(await getMessage(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      expectResponse(await presignAttachment(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 })

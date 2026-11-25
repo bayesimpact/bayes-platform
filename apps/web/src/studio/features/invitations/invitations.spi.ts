@@ -5,8 +5,12 @@ import type {
   PendingInvitations,
 } from "./invitations.models"
 
+/**
+ * What the Studio invites to: a workspace or an agent. The invitations to a review campaign are
+ * managed in Evaluation, and the Studio only shows the ones the signed-in person received.
+ */
 export type InvitationTarget = {
-  targetType: InvitationTargetType
+  targetType: Exclude<InvitationTargetType, "review_campaign">
   targetId: string
 }
 
@@ -18,10 +22,7 @@ export type ScopedInvitationTarget = InvitationTarget & {
 
 export type CreateInvitationsParams = InvitationTarget & {
   emails: string[]
-  /**
-   * Review campaign role (tester or reviewer), required for review campaigns. On a workspace,
-   * `admin` or `member`.
-   */
+  /** On a workspace, `admin` or `member`. */
   role?: string
   /** The agents a workspace invitation for members also gives. */
   agentIds?: string[]

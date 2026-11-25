@@ -403,8 +403,7 @@ describe("Evaluation review campaigns - Auth", () => {
     })
   })
 
-  // `project.review_campaign.*` on the project, as `ReviewCampaignsController` and
-  // `ReviewCampaignInvitationsController` check: the project's owners and admins hold them.
+  // `project.review_campaign.*` on the project: the project's owners and admins hold them.
   describe.each(MANAGER_ROUTE_NAMES)("%s, for the people who manage campaigns", (routeName) => {
     const subject = () => subjects[routeName]()
     const campaignStatus = CAMPAIGN_STATUS_BY_ROUTE[routeName]
@@ -427,8 +426,8 @@ describe("Evaluation review campaigns - Auth", () => {
     })
   })
 
-  // `review_campaign.report.read` on the campaign, as `ReportsController` checks: its reviewers
-  // hold it, and the project's owners and admins get it from the project.
+  // `review_campaign.report.read` on the campaign: its reviewers hold it, and the project's owners
+  // and admins get it from the project.
   describe("getReport, for the readers of the report", () => {
     const subject = () => subjects.getReport()
 
@@ -456,8 +455,8 @@ describe("Evaluation review campaigns - Auth", () => {
     })
   })
 
-  // `review_campaign.read` on the campaign, as `TesterController.getTesterContext` checks: its
-  // testers and reviewers hold it, and the project's owners do not.
+  // `review_campaign.read` on the campaign: its testers and reviewers hold it, and the project's
+  // owners do not.
   describe("getContext, for the participants", () => {
     const subject = () => subjects.getContext()
 
