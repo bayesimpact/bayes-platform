@@ -230,6 +230,19 @@ describe("signing in and coming back", () => {
     }
   })
 
+  it("keeps each app to its own pages, whatever its base path", async () => {
+    const evaluation = createOidcClient({
+      basePath: "/eval/",
+      storageNamespace: "eval",
+      getConfig: () => ({ oidcAuthority: "https://idp.example.org", oidcClientId: "platform-web" }),
+    })
+
+    userManagerMock.signinRedirectCallback.mockResolvedValue({ state: { returnTo: "/app/o/1" } })
+    await expect(evaluation.completeSignIn()).resolves.toBe("/eval/")
+    userManagerMock.signinRedirectCallback.mockResolvedValue({ state: { returnTo: "/eval/o/1" } })
+    await expect(evaluation.completeSignIn()).resolves.toBe("/eval/o/1")
+  })
+
   it("keeps the page of the tab's last sign-in, once, until the sign-in completes", async () => {
     await signIn({ returnTo: "/app/o/1" })
     expect(takeTabReturnTo()).toBe("/app/o/1")

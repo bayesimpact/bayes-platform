@@ -19,7 +19,8 @@
   apps in `apps/api/src/common/web-app/`, `apps/api/Dockerfile` and the Helm chart (the Desk's
   theme mount), `apps/api/.dependency-cruiser.cjs`, the link of agent invitations
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
-  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, and `apps/web/src/desk/`
+  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in` and the
+  `lib/auth/` of each app (since 2026-11-25), and `apps/web/src/desk/`
   (deleted at the cutover).
 
 ---

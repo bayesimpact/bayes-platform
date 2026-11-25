@@ -18,15 +18,18 @@ const session = vi.hoisted(() => ({
   getAccessToken: vi.fn(),
   endSession: vi.fn(),
   signIn: vi.fn(),
-  // A stand-in for the one refusal these tests send: session.ts reads the app's configuration,
-  // which needs a browser, so the real function cannot load here. @caseai-connect/sign-in
-  // checks every refusal against the API's texts.
-  signInRefusalOf: (message: unknown) =>
-    message === "The identity provider did not return an email for this user"
-      ? "emailRequired"
-      : null,
 }))
-vi.mock("@/lib/auth/session", () => session)
+// The configuration needs a browser to load: a stand-in lets the real session module load, so
+// the API's refusals are read as the app reads them, and only the session's effects are mocked.
+vi.mock("@/app/config", () => ({
+  appBasePath: "/app/",
+  appConfig: { mode: "mock" },
+  isMockMode: true,
+}))
+vi.mock("@/lib/auth/session", async (importOriginal) => ({
+  ...session,
+  signInRefusalOf: (await importOriginal<typeof import("@/lib/auth/session")>()).signInRefusalOf,
+}))
 
 const { ApiError, ContractMismatchError, apiRequest, apiStreamResponse } = await import(
   "./api-client"

@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
+    "@types/node": "^22.19.17",
     "vitest": "^4.1.2"
   }
 }

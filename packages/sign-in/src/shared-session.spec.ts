@@ -89,10 +89,10 @@ const storeExpiredSession = (storage: Storage) => {
 }
 
 /** One app's OIDC client, apart from the other's, as two apps' bundles keep theirs. */
-const loadApp = (basePath: string) =>
+const loadApp = (basePath: string, storageNamespace: string) =>
   createOidcClient({
     basePath,
-    storageNamespace: basePath.replaceAll("/", ""),
+    storageNamespace,
     getConfig: () => ({ oidcAuthority: authority, oidcClientId: clientId }),
   })
 
@@ -127,7 +127,7 @@ describe("one session shared by the apps of an origin", () => {
         profile: { sub: "person", iss: authority, aud: clientId, exp: 0, iat: 0 },
       }).toStorageString(),
     )
-    const desk = loadApp("/app/")
+    const desk = loadApp("/app/", "desk")
 
     await expect(desk.hasSession()).resolves.toBe(true)
     await expect(desk.getAccessToken()).resolves.toBe("signed-in-elsewhere")
@@ -135,8 +135,8 @@ describe("one session shared by the apps of an origin", () => {
 
   it("is refreshed once when two apps refresh it at the same time", async () => {
     storeExpiredSession(storage)
-    const desk = loadApp("/app/")
-    const evaluation = loadApp("/eval/")
+    const desk = loadApp("/app/", "desk")
+    const evaluation = loadApp("/eval/", "eval")
 
     const tokens = await Promise.all([
       desk.getAccessToken(),
