@@ -18,8 +18,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
-- Knowledge base: several lookups in one reply no longer exceed the model's limit.
-- Knowledge base: a lookup returns the section around a matching passage, or the nearby passages of a long section.
+- Knowledge base: a lookup returns the passages around each match and stays within the model's limit.
 - Chat: a reply that is too long for the model shows a readable message instead of the provider's error.
 - Extraction evaluations: the dataset setup says when a CSV file has no data row.
 - CSV extraction and extraction evaluations: a file's columns are those of its header line, whatever its first row holds.
