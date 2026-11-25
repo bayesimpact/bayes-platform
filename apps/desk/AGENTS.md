@@ -75,7 +75,7 @@ Run them from the repository root.
 | `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
 | `npm run check:desk-parity -w @caseai-connect/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
-| `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and to the catalog of each other language (`fr`, `de`, `it`, `es`, `pl`), without line numbers, to translate in the same change |
+| `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
 | `npm run preview -w @caseai-connect/desk` | Serves that build on port 5178 at `/app/` |
 

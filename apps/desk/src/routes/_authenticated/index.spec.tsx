@@ -259,9 +259,11 @@ describe("the Desk's home", () => {
     const browserLanguages = vi.spyOn(navigator, "languages", "get")
     browserLanguages.mockReturnValue(["nl-NL", "pl-PL", "en-US"])
 
-    expect(detectLocale()).toBe("pl")
-
-    browserLanguages.mockRestore()
+    try {
+      expect(detectLocale()).toBe("pl")
+    } finally {
+      browserLanguages.mockRestore()
+    }
   })
 
   it("is where an organization's URL leads", async () => {

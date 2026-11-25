@@ -288,14 +288,15 @@ or editing the boundaries' configuration.
 - The same English with two meanings gets a `context`, and a `comment` tells the translator what a
   short text refers to. Zod messages shown in forms go through Lingui too.
 - After a text changes, run `npm run i18n:extract -w <app>` and write the new entries of every
-  other catalog of `src/locales/` in the same change: French, and each language the app's
+  other catalog of `src/locales/` in the same change: one per language the app's
   `lingui.config.ts` lists. A language with several plural forms gets them all (Polish: `one`,
-  `few`, `many` and `other`). The catalogs record each message's file and line, so a change that
-  only moves code needs an extract too. `i18n:check` (`lingui check sync` and
+  `few`, `many` and `other`). The catalogs record each message's file, without its line: a change
+  that moves a message to another file needs an extract too. `i18n:check` (`lingui check sync` and
   `lingui check missing`) fails the PR on a stale catalog or a translation missing in any language.
 - An app's languages are the `LOCALES` of its `src/app/i18n.ts`, which lists the same languages as
-  its `lingui.config.ts`. The user menu offers them, and the speech language of each one sits
-  beside them (`SPEECH_LANGUAGES`).
+  its `lingui.config.ts`: `src/app/i18n.spec.ts` fails when a catalog has no language there. The
+  user menu offers them, and what else depends on the language sits in a map typed by `Locale`,
+  so the typecheck fails when a language lacks its entry (`SPEECH_LANGUAGES`).
 - Lingui's agent skills (the `lingui` plugin of the `lingui/skills` marketplace, declared in
   `.claude/settings.json`) cover the macros, translator comments and text left outside a macro.
   When a skill and these rules disagree, these rules win.

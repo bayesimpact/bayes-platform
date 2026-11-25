@@ -1,11 +1,9 @@
 import "../src/styles/global.css"
 import type { Preview } from "@storybook/react-vite"
 import { INITIAL_VIEWPORTS } from "storybook/viewport"
-import { activateLocale, detectLocale, LOCALES, type Locale, languageNameOf } from "@/app/i18n"
+import { activateLocale, detectLocale, isLocale, LOCALES, languageNameOf } from "@/app/i18n"
 import { StoryProviders } from "@/stories/StoryProviders"
 import { type DeskStoryParameters, serveStoryWorld } from "@/test/msw/story-api"
-
-const isLocale = (value: unknown): value is Locale => LOCALES.some((locale) => locale === value)
 
 const preview: Preview = {
   // A story of the whole Desk sets its `desk` parameter and brings its own providers; a story of
