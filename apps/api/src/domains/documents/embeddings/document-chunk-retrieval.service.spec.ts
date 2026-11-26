@@ -38,7 +38,9 @@ function buildInnerQueryBuilderMock() {
 function buildOuterQueryBuilderMock(getRawMany: jest.Mock) {
   return {
     select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
     from: jest.fn().mockReturnThis(),
+    leftJoin: jest.fn().mockReturnThis(),
     setParameters: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
@@ -287,6 +289,11 @@ describe("DocumentChunkRetrievalService", () => {
     expect(getRawMany).toHaveBeenCalledTimes(1)
     expect(outerQueryBuilder.limit).toHaveBeenCalledWith(3)
     expect(innerQueryBuilder.distinctOn).toHaveBeenCalledWith(["COALESCE(parent.id, chunk.id)"])
+    const selectedAliases = [
+      ...innerQueryBuilder.select.mock.calls,
+      ...innerQueryBuilder.addSelect.mock.calls,
+    ].map(([, alias]) => alias)
+    expect(new Set(selectedAliases).size).toBe(selectedAliases.length)
     expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith(
       "document.source_type IN (:...allowedSourceTypes)",
       {

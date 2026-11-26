@@ -22,6 +22,7 @@ import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachm
 import { recoverAbortedStreams, throttleHeartbeat } from "../stream-recovery"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentLlmRequestService } from "./agent-llm-request.service"
+import { userFacingStreamErrorMessage } from "./stream-error-message"
 import type { AgentSessionScope, PublicStreamingSessionProxy } from "./streaming-session.types"
 import { createCitationStreamSplitter } from "./tools/inline-citations"
 import type { SessionStateTarget } from "./tools/session-state-target"
@@ -157,7 +158,7 @@ export class StreamingLlmService extends LlmServiceBase {
 
       yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      const errorMessage = userFacingStreamErrorMessage(error)
 
       await this.markStreamingError({
         sessionId: updatedSession.id,
@@ -333,7 +334,7 @@ export class StreamingLlmService extends LlmServiceBase {
         fullContent: splitter.streamedText(),
       })
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      const errorMessage = userFacingStreamErrorMessage(error)
 
       await this.updateMessageStatusWithIds({
         id: assistantMessageId,

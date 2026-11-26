@@ -27,6 +27,7 @@ import {
 } from "@/domains/organizations/organization.factory"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { AgentLlmRequestService } from "./agent-llm-request.service"
+import { CONTEXT_WINDOW_EXCEEDED_MESSAGE } from "./stream-error-message"
 import { StreamingModule } from "./streaming.module"
 import { StreamingLlmService } from "./streaming-llm.service"
 
@@ -230,6 +231,43 @@ describe("StreamingLLMService", () => {
       where: { sessionId: session.id, role: "assistant" },
     })
     expect(assistantMessage?.status).toBe("error")
+  })
+  it("streamAgentResponse - shows a readable message when the model's context window overflows", async () => {
+    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+    const notifyClient = jest.fn()
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {})
+    const providerMessage =
+      "This model's maximum context length is 131072 tokens. However, you requested 16384 output tokens and your prompt contains at least 114689 input tokens"
+
+    mockProvider.addErrorTurn(agent.id, new Error(providerMessage))
+
+    const stream = service.streamAgentResponse({
+      agentSessionScope: { connectScope, session, agent, agentSettings },
+      userContent: "Bonjour",
+      notifyClient,
+    })
+
+    const events: StreamEventPayload[] = []
+    await expect(
+      (async () => {
+        for await (const event of stream) {
+          events.push(JSON.parse(event.data) as StreamEventPayload)
+        }
+      })(),
+    ).rejects.toThrow(providerMessage)
+
+    // The user reads a readable message, the logs keep the provider wording
+    // and the AI SDK no longer prints the failure through console.error.
+    expect(events.find((event) => event.type === "error")).toMatchObject({
+      error: CONTEXT_WINDOW_EXCEEDED_MESSAGE,
+    })
+    const assistantMessage = await repositories.agentMessageRepository.findOne({
+      where: { sessionId: session.id, role: "assistant" },
+    })
+    expect(assistantMessage?.status).toBe("error")
+    expect(assistantMessage?.content).toBe(CONTEXT_WINDOW_EXCEEDED_MESSAGE)
+    expect(consoleError).not.toHaveBeenCalled()
+    consoleError.mockRestore()
   })
   it("streamAgentResponse - with document - pdf", async () => {
     const { connectScope, agent, agentSettings, session } = await createContextWithSession()

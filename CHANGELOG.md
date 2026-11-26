@@ -26,6 +26,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Knowledge base: a lookup returns the passages around each match and stays within the model's limit.
+- Chat: a reply that is too long for the model shows a readable message instead of the provider's error.
 - Extraction evaluations: the dataset setup says when a CSV file has no data row.
 - CSV extraction and extraction evaluations: a file's columns are those of its header line, whatever its first row holds.
 - (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.

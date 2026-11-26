@@ -138,6 +138,15 @@ export async function clearTestDatabase(dataSource: DataSource): Promise<void> {
       // Delete in order: child tables first, then parent tables
       await queryRunner.query(`
 WITH
+  del_document_chunk_embedding AS (
+    DELETE FROM "document_chunk_embedding"
+  ),
+  del_document_chunk AS (
+    DELETE FROM "document_chunk"
+  ),
+  del_document_parent_chunk AS (
+    DELETE FROM "document_parent_chunk"
+  ),
   del_activity AS (
     DELETE FROM "activity"
   ),

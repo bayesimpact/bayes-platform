@@ -7,6 +7,8 @@ import type { DataSource, SelectQueryBuilder } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
 import type { RetrievedDocumentChunk } from "./document-chunk.types"
+import { type RetrievedChunkRow, toRetrievedChunks } from "./document-chunk-retrieval.content"
+import { resolveMaxRetrievedChunkCharacters } from "./document-embeddings.config"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EmbedderService } from "./embedders/embedder.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -173,48 +175,51 @@ export class DocumentChunkRetrievalService {
     topK: number
     documentTagIds: string[]
   }): Promise<RetrievedDocumentChunk[]> {
+    const maxChunkCharacters = resolveMaxRetrievedChunkCharacters()
     const dedupedChunks = this.buildDedupedChunksQuery({
       connectScope,
       modelName,
       embedding,
+      maxChunkCharacters,
     })
     this.applyDocumentTagFilter({ queryBuilder: dedupedChunks, documentTagIds })
 
     const rows = await this.buildTopChunksQuery({
       dedupedChunks,
       topK,
-    }).getRawMany<RetrievedDocumentChunk>()
+    }).getRawMany<RetrievedChunkRow>()
 
     // The SQL already collapses children of the same parent via DISTINCT ON, so
     // chunkId is unique. This is a defensive guard against any future query
     // regression re-introducing duplicate chunks into the LLM context.
     const seenChunkIds = new Set<string>()
-    return rows
-      .filter((row) => {
-        if (seenChunkIds.has(row.chunkId)) {
-          return false
-        }
-        seenChunkIds.add(row.chunkId)
-        return true
-      })
-      .map((row) => ({
-        ...row,
-        isParentChunk: Boolean(row.isParentChunk),
-      }))
+    const uniqueRows = rows.filter((row) => {
+      if (seenChunkIds.has(row.chunkId)) {
+        return false
+      }
+      seenChunkIds.add(row.chunkId)
+      return true
+    })
+    return toRetrievedChunks({ rows: uniqueRows, maxChunkCharacters })
   }
 
   /**
    * Rank all matching child chunks by vector distance, then collapse children
    * of the same parent down to the single best-scoring one via DISTINCT ON.
+   *
+   * A parent above the size limit is left out of the join: its children then stand for
+   * themselves, each one a hit of its own, and `hasOversizedParent` marks them.
    */
   private buildDedupedChunksQuery({
     connectScope,
     modelName,
     embedding,
+    maxChunkCharacters,
   }: {
     connectScope: RequiredConnectScope
     modelName: string
     embedding: number[]
+    maxChunkCharacters: number
   }): SelectQueryBuilder<Record<string, unknown>> {
     return this.dataSource
       .createQueryBuilder()
@@ -225,11 +230,13 @@ export class DocumentChunkRetrievalService {
       .addSelect("COALESCE(parent.chunk_index, chunk.chunk_index)", "chunkIndex")
       .addSelect("COALESCE(parent.content, chunk.content)", "content")
       .addSelect("document.source_type", "documentSourceType")
-      .addSelect("chunk.chunk_index", "chunkIndex")
-      .addSelect("chunk.content", "content")
       .addSelect("embedding.model_name", "modelName")
       .addSelect("(embedding.embedding <=> :queryEmbedding::vector)", "distance")
       .addSelect("(parent.id IS NOT NULL)", "isParentChunk")
+      .addSelect("(parent.id IS NULL AND chunk.parent_id IS NOT NULL)", "hasOversizedParent")
+      .addSelect("chunk.parent_id", "childParentId")
+      .addSelect("chunk.prev_chunk_id", "previousChunkId")
+      .addSelect("chunk.next_chunk_id", "nextChunkId")
       .distinctOn(["COALESCE(parent.id, chunk.id)"])
       .from("document_chunk_embedding", "embedding")
       .innerJoin("document_chunk", "chunk", "chunk.id = embedding.document_chunk_id")
@@ -237,7 +244,9 @@ export class DocumentChunkRetrievalService {
       .leftJoin(
         "document_parent_chunk",
         "parent",
-        "parent.id = chunk.parent_id AND parent.deleted_at IS NULL",
+        // octet_length reads the size from the row header without loading the text. A text has
+        // at least as many bytes as characters, so a parent that passes fits the limit.
+        "parent.id = chunk.parent_id AND parent.deleted_at IS NULL AND octet_length(parent.content) <= :maxChunkCharacters",
       )
       .where("embedding.organization_id = :organizationId", {
         organizationId: connectScope.organizationId,
@@ -256,13 +265,14 @@ export class DocumentChunkRetrievalService {
       .andWhere("chunk.deleted_at IS NULL")
       .andWhere("embedding.deleted_at IS NULL")
       .andWhere("document.deleted_at IS NULL")
-      .setParameters({ queryEmbedding: toSql(embedding) })
+      .setParameters({ queryEmbedding: toSql(embedding), maxChunkCharacters })
       .orderBy("COALESCE(parent.id, chunk.id)")
       .addOrderBy("embedding.embedding <=> :queryEmbedding::vector", "ASC")
   }
 
   /**
    * Wrap the deduplicated chunks subquery, re-sort by distance and take topK.
+   * A hit whose parent is too large also gets its previous and next passages of that parent.
    */
   private buildTopChunksQuery({
     dedupedChunks,
@@ -273,11 +283,38 @@ export class DocumentChunkRetrievalService {
   }): SelectQueryBuilder<Record<string, unknown>> {
     return this.dataSource
       .createQueryBuilder()
-      .select("*")
+      .select("deduplicated.*")
+      .addSelect("previous_chunk.content", "previousContent")
+      .addSelect("next_chunk.content", "nextContent")
       .from(`(${dedupedChunks.getQuery()})`, "deduplicated")
+      .leftJoin(
+        "document_chunk",
+        "previous_chunk",
+        this.buildNeighbourJoinCondition({ alias: "previous_chunk", idColumn: "previousChunkId" }),
+      )
+      .leftJoin(
+        "document_chunk",
+        "next_chunk",
+        this.buildNeighbourJoinCondition({ alias: "next_chunk", idColumn: "nextChunkId" }),
+      )
       .setParameters(dedupedChunks.getParameters())
       .orderBy('"distance"', "ASC")
       .limit(topK)
+  }
+
+  private buildNeighbourJoinCondition({
+    alias,
+    idColumn,
+  }: {
+    alias: string
+    idColumn: "previousChunkId" | "nextChunkId"
+  }): string {
+    return [
+      `${alias}.id = deduplicated."${idColumn}"`,
+      'deduplicated."hasOversizedParent"',
+      `${alias}.parent_id = deduplicated."childParentId"`,
+      `${alias}.deleted_at IS NULL`,
+    ].join(" AND ")
   }
 
   private applyDocumentTagFilter({

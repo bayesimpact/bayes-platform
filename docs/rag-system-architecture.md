@@ -181,6 +181,14 @@ The service runs a SQL query over `document_chunk_embedding` with:
 
 There is currently **no re-ranking stage** after initial vector retrieval; results are used in raw similarity order from pgvector.
 
+Each hit carries the text the model reads, at most `DOCUMENT_RETRIEVAL_MAX_CHUNK_CHARS` characters (default 8000):
+
+- the section of the matching passage (its parent chunk) when the section fits the limit, once per section
+- the matching passage with the passages before and after it when the section is over the limit
+- the matching passage alone, cut to the limit, when it has no section
+
+`lookup_knowledge_base` then keeps the best hits within its own budget for the whole lookup.
+
 Returned chunk shape includes:
 
 - `chunkId`, `documentId`, `documentTitle`, `documentFileName`
@@ -201,6 +209,7 @@ Tool executions are also persisted in message history as `"tool"` messages with 
 - `GOOGLE_VERTEX_PROJECT`
 - `GOOGLE_VERTEX_LOCATION`
 - `DOCUMENT_EMBEDDING_MODELS` (comma-separated; the models a new project starts with, the first as its default)
+- `DOCUMENT_RETRIEVAL_MAX_CHUNK_CHARS` (optional, default 8000; the most characters one hit gives the model)
 - `BULLMQ_REDIS_URL` (defaults to `redis://localhost:6379` if unset)
 - `DOCUMENT_EMBEDDINGS_QUEUE_NAME` (optional, defaults to `document-embeddings`)
 - `DOCUMENT_EXTRACTOR_DOCLING_ENABLED` (optional, defaults to `true`)
