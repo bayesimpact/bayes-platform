@@ -21,6 +21,7 @@ import { BotIcon, PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { buildDefaultToolName } from "@/studio/features/agent-sub-agents/agent-sub-agents.helpers"
 import { AgentInstructionsSheet } from "../AgentInstructionsSheet"
 import { SubAgentItem } from "../SubAgentItem"
 
@@ -160,13 +161,4 @@ function AgentItem({ agent, addSubAgent }: { agent: Agent; addSubAgent: (agent: 
       </ItemActions>
     </Item>
   )
-}
-
-function buildDefaultToolName(agentName: string): string {
-  const slug = agentName
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-  return `ask_${slug || "sub_agent"}`
 }
