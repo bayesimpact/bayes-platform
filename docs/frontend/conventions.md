@@ -99,7 +99,7 @@ exports and dependencies:
 - The app imports nothing from another app or from a package another app owns. Its workspace
   dependencies are its contracts package and the packages no app owns and every app imports
   (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps,
-  `@caseai-connect/sign-in`, the sign-in, `@caseai-connect/api-client`, the API client, and
+  `@caseai-connect/sign-in`, the sign-in, `@caseai-connect/api-client`, the API client,
   `@caseai-connect/frontend-lib`, the hooks and helpers the apps share, and
   `@caseai-connect/app-ui`, the shadcn components and the design tokens. Only
   `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports `oidc-client-ts`, and
@@ -269,8 +269,10 @@ or editing the boundaries' configuration.
 - The shadcn CLI generates the components into `packages/app-ui/src/components/`, which every
   app of the stack imports (`@caseai-connect/app-ui/components/button`), on Base UI
   (`"style": "base-nova"`). Add one with `npx shadcn@latest add <name>`, run in an app's folder:
-  the app's `components.json` sends it to the package. Update one by generating it again
-  (`add <name> --overwrite`). Never write one by hand
+  the app's `components.json` sends it, its hooks and its helpers to the package. Update one by
+  generating it again (`add <name> --overwrite`). A change to the package reaches every app:
+  run its `check` (`npm run check -w @caseai-connect/app-ui`) and the `check` of each app. Never
+  write one by hand
   or copy it from `packages/ui`. Change a generated component only when composition falls short,
   minimally and with no business logic. Extend components with `cva`.
 - Base UI composes with a `render` prop where Radix used `asChild`. A link styled as a button is a
@@ -279,7 +281,11 @@ or editing the boundaries' configuration.
 - Tailwind only: no stylesheet, CSS module or inline style beyond `src/styles/global.css`, which
   loads Tailwind, then the stylesheet of `packages/app-ui` (the stylesheets shadcn relies on and
   the design tokens), then the app's own rules. The token values are the platform's
-  (`packages/ui/src/global.css`). Conditional classes go through `cn()`, colors and
+  (`packages/ui/src/global.css`). A token the components or every app read lives in the
+  package's `globals.css`; a token only the app's own code reads, such as the chat's, lives in
+  the app's `global.css`, after the import. The `--sidebar-*` tokens derive from `--primary`
+  (mixed in `oklab`, which keeps its hue), so the sidebar takes each install's color from its
+  `theme.css`. Conditional classes go through `cn()`, colors and
   spacing come from the tokens, with no arbitrary values.
 - The install's theme (`theme.css`, logo, favicon) is read at runtime from `<base>/theme/`, where
   each install mounts its files over the defaults of `public/theme/`.
@@ -491,6 +497,7 @@ and empty states.
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.
 - Editing an `AGENTS.md`, this file, a tsconfig, the app's `biome.json`, `packages/frontend-config`
-  (the Biome rules, the GritQL plugins and the component check of every app), or the
+  (the Biome rules, the GritQL plugins and the component check of every app), the `biome.json`
+  or the `components.json` of `packages/app-ui` or of an app, or the
   dependency-cruiser, knip, Lingui, Vitest or Playwright configuration without a human's go.
 - Disabling a lint rule, a type check, a translation check or a test to make `check` pass.

@@ -1,10 +1,42 @@
-/* The Desk's global stylesheet: Tailwind, then the stylesheet of the shared shadcn components
+/* The app's global stylesheet: Tailwind, then the stylesheet of the shared shadcn components
    (@caseai-connect/app-ui), which holds the design tokens, then what styles this app's own code.
    The app writes no other stylesheet. */
 @import "tailwindcss";
 @import "@caseai-connect/app-ui/globals.css";
 /* Streamdown styles the Markdown it renders with Tailwind classes, which Tailwind finds here. */
 @source "../../../../node_modules/streamdown/dist/*.js";
+
+/* The tokens of the chat, which only this app's code reads: the sizes of its text, and the
+   highlighter yellow of its annotations and quoted passages. The shared tokens are the package's. */
+@theme inline {
+  /* Inline code in a reply: a little smaller than the text around it, a heading's included. */
+  --text-code-inline: 0.9em;
+  /* The text of the messages: between Tailwind's small and base sizes, which the message box
+     keeps, so a long reply reads easily without looking like the box. */
+  --text-message: 0.9375rem;
+  --color-annotation: var(--annotation);
+  --color-annotation-foreground: var(--annotation-foreground);
+  --color-quote-mark: var(--quote-mark);
+}
+
+:root {
+  /* The highlighter yellow of an annotated passage, and of the bubbles that number annotations,
+     with a dark amber ink that reads on it. They come from point-by-point. */
+  --quote-mark: rgb(242 196 64 / 0.32);
+  /* A passage a sent message quoted, paler, and the one a person just jumped to, brighter. */
+  --quote-cited: rgb(242 196 64 / 0.16);
+  --quote-jump: rgb(242 196 64 / 0.6);
+  --annotation: rgb(242 196 64);
+  --annotation-foreground: rgb(58 45 6);
+}
+
+.dark {
+  --quote-mark: rgb(242 196 64 / 0.24);
+  --quote-cited: rgb(242 196 64 / 0.12);
+  --quote-jump: rgb(242 196 64 / 0.45);
+  --annotation: rgb(240 197 69);
+  --annotation-foreground: rgb(42 32 4);
+}
 
 /* A passage of a reply turns highlighter yellow as the person selects it, and stays so while they
    write their note on it and until their message leaves (`showQuoteHighlights` of

@@ -16,8 +16,8 @@
     "components": "@/components",
     "utils": "cn",
     "ui": "@caseai-connect/app-ui/components",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+    "lib": "@caseai-connect/app-ui/lib",
+    "hooks": "@caseai-connect/app-ui/hooks"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

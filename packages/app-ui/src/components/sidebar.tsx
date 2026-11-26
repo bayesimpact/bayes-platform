@@ -75,7 +75,7 @@ function SidebarProvider({
         _setOpen(openState)
       }
 
-      // The app renders on the client only and never reads the state back: shadcn's cookie, which
+      // The apps render on the client only and never reads the state back: shadcn's cookie, which
       // keeps it for server rendering, is left out.
     },
     [setOpenProp, open],

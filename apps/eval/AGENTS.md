@@ -327,6 +327,11 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. Each language of
   `LOCALES` has its date-fns locale there, which the typecheck requires. The chat keeps the Desk's
   `RelativeTime`, on `Intl`.
+- The shadcn components, the design tokens and the stylesheet shadcn relies on come from
+  `@caseai-connect/app-ui` (`packages/app-ui`), which the app shares with the Desk:
+  `src/styles/global.css` imports its `globals.css`, then holds the chat's tokens and
+  highlights, which `check:desk-parity` compares with the Desk's. `npx shadcn add`, run in
+  `apps/eval`, writes into the package, whose own `check` lints it.
 - The hooks and helpers the app shares with the Desk come from `@caseai-connect/frontend-lib`
   (`packages/frontend-lib`, whose `src/index.ts` lists them; ADR 0031, section 2.4).
 - The API client: `src/lib/api-client.ts`, which creates the client of

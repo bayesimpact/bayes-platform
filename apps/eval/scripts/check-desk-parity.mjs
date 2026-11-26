@@ -2,7 +2,7 @@
 /**
  * Checks that the chat of Evaluation stays the Desk's. A tester talks to the agent through a copy
  * of the Desk's conversation code (`features/conversation`, and the Markdown it renders with):
- * the apps share no code, so a fix made in the Desk must reach Evaluation too.
+ * the apps share no chat code, so a fix made in the Desk must reach Evaluation too.
  *
  * Each file is compared with the Desk's once the names that differ by app are aligned (the
  * contracts package, the route objects). The differences Evaluation keeps on purpose (no memory,
@@ -27,6 +27,8 @@ const SHARED_PATHS = [
   "components/shared/Markdown.tsx",
   "components/shared/HighlightedCodeBlock.tsx",
   "components/shared/InlineCode.tsx",
+  // The chat's tokens and highlights, the only rules of each app's stylesheet.
+  "styles/global.css",
 ]
 
 /** The names that differ by app only, written as Evaluation writes them. */

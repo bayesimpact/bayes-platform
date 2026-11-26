@@ -19,7 +19,7 @@ function PopoverContent({
   anchor,
   ...props
 }: PopoverPrimitive.Popup.Props &
-  // The app adds `anchor` to shadcn's props, so a popover can open on a text selection.
+  // The apps add `anchor` to shadcn's props, so a popover can open on a text selection.
   Pick<
     PopoverPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "anchor"

@@ -8,7 +8,7 @@ import {
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  // The app has no theme switch: toasts follow the system, without shadcn's next-themes.
+  // The apps have no theme switch: toasts follow the system, without shadcn's next-themes.
   const theme = "system"
 
   return (

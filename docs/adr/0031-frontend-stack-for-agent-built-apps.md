@@ -187,7 +187,8 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   and an app's `biome.json` extends the root configuration and that file, by path
   (`"root": false`,
   `"extends": ["../../biome.json", "../../packages/frontend-config/biome.app.json"]`).
-  `packages/frontend-lib`, whose hooks run in every app, extends them the same way.
+  `packages/frontend-lib` and `packages/app-ui`, whose code runs in every app, extend them the
+  same way.
   Biome 2.3 accepts `"//"` only alone, and does not follow an `extends` inside an extended file.
   The shared file is not named `biome.json`, so its folder keeps the root configuration.
 
@@ -367,7 +368,8 @@ opens it. Its limits:
   a reply open, which both apps hold until a route of their own serves it. Its one network call
   is the PUT of an upload's bytes to a signed URL (`putFileToSignedUrl`). A helper that reads the
   app's configuration (`app-update.ts`), shows a text (`field-text.ts`) or follows the app's own
-  pages stays in the app, as do the hooks shadcn's CLI writes (`use-mobile.ts`). The highlights of
+  pages stays in the app; the hook shadcn's CLI writes (`use-mobile.ts`) lives in
+  `packages/app-ui`, with the components. The highlights of
   quoted passages take names no app owns (`caseai-quote`, `caseai-cited`, `caseai-cited-jump`),
   which each app's `global.css` styles: the prefix keeps them apart from any library's highlights
   in the page's one registry.
@@ -391,22 +393,24 @@ not `packages/ui`, the component library of `apps/web` on Radix, which stays out
 
 * The CLI still generates the components, as section 2.9 says. Each app's `components.json`
   points its `ui` alias at `@caseai-connect/app-ui/components` and its stylesheet at the
-  package's `globals.css`, so `npx shadcn@latest add <name>`, run in an app, writes the
-  component into the package, and the variables it needs into that stylesheet. The package has
+  package's `globals.css`, and its `hooks` and `lib` aliases at the package too, so
+  `npx shadcn@latest add <name>`, run in an app, writes the component, its hooks and its
+  helpers into the package, and the variables it needs into that stylesheet. The package has
   its own `components.json`, with the same style, base color and icon library, and its
   components import each other by the package's name, as the CLI writes them.
 * An app imports a component by its path (`@caseai-connect/app-ui/components/button`), and
   its `global.css` imports Tailwind, then the package's stylesheet
-  (`@caseai-connect/app-ui/globals.css`), then styles its own code, such as the chat's
-  highlights. The package's stylesheet adds its folders to Tailwind's sources (`@source`),
+  (`@caseai-connect/app-ui/globals.css`), then styles its own code: the chat's tokens (the
+  sizes of its text, the yellow of its annotations and quotes) and its highlights, which no
+  component reads. Evaluation's parity check compares the two apps' stylesheets with the chat. The package's stylesheet adds its folders to Tailwind's sources (`@source`),
   which an app's own sources do not reach.
 * It holds shadcn's components and nothing of an app: the compositions an app builds on them
   stay in its `components/shared/`, and a generated component changes only as section 2.9
   allows. It depends on Base UI, `cva`, `cn`, lucide-react, sonner, `cmdk`, `@shadcn/react`
   and tw-animate-css, with React as a peer, and imports no other workspace package.
 * Its source goes through each app's Vite plugins, the React Compiler included. Its
-  `biome.json` extends the apps' rules. knip does not run on it: its components export every
-  part, used or not, as the CLI writes them.
+  `biome.json` extends the apps' rules, and its `check` script runs its typecheck and Biome. knip
+  does not run on it: its components export every part, used or not, as the CLI writes them.
 
 No other package is shared on these grounds. Another one needs its own decision.
 
@@ -1189,6 +1193,10 @@ part of it invalidates.
 
 ## 6. Open questions
 
+* No tool reports a component of `packages/app-ui` that no app uses any more. knip did, while
+  each app held its components; it does not run on the package, whose components export every
+  part. A small check that each file of `src/components/` is imported by an app or by another
+  component would close the gap.
 * The Desk's independence is not fully enforced yet. dependency-cruiser only sees imports: a copied
   file, a CSS import or an edit of its configuration can still bring code of `apps/web`,
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
