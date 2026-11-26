@@ -363,8 +363,9 @@ opens it. Its limits:
   is the PUT of an upload's bytes to a signed URL (`putFileToSignedUrl`). A helper that reads the
   app's configuration (`app-update.ts`), shows a text (`field-text.ts`) or follows the app's own
   pages stays in the app, as do the hooks shadcn's CLI writes (`use-mobile.ts`). The highlights of
-  quoted passages keep names with no prefix (`quote`, `cited`, `cited-jump`), which each app's
-  `global.css` styles.
+  quoted passages take names no app owns (`caseai-quote`, `caseai-cited`, `caseai-cited-jump`),
+  which each app's `global.css` styles: the prefix keeps them apart from any library's highlights
+  in the page's one registry.
 * It depends on React and TanStack Query alone, as peers, so the app keeps one copy of each, and
   imports no other workspace package.
 * The apps import it directly: a file of `hooks/` or `lib/` that only re-exported it would be a

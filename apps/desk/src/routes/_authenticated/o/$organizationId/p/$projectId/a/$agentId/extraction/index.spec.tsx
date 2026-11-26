@@ -166,6 +166,8 @@ describe("a file too large for an extraction", () => {
     await userEvent.upload(await screen.findByLabelText("File to extract"), file)
 
     const limit = fileSizeOf(EXTRACTION_MAX_BYTES, "en")
+    // The contracts set the limit in binary units, which reads as a round number.
+    expect(limit).toBe("25 MB")
     expect(await screen.findByText(`archive.pdf is larger than ${limit}.`)).toBeInTheDocument()
     expect(
       screen.getByText(`PDF, image, text or CSV file, up to ${limit}.`, { exact: false }),

@@ -1,6 +1,41 @@
 import { QueryClient } from "@tanstack/react-query"
 import { describe, expect, it, vi } from "vitest"
-import { loaderStaleTime } from "./start-query"
+import { loaderStaleTime, startQuery } from "./start-query"
+
+describe("startQuery", () => {
+  it("fills the cache the way the loaders read it", async () => {
+    const queryClient = new QueryClient()
+    const queryFn = vi.fn(async () => "history")
+
+    startQuery(queryClient, { queryKey: ["history"], queryFn })
+
+    await vi.waitFor(() => expect(queryClient.getQueryData(["history"])).toBe("history"))
+    // A second start reads the cache, as `loaderStaleTime` keeps it until an invalidation.
+    startQuery(queryClient, { queryKey: ["history"], queryFn })
+    expect(queryFn).toHaveBeenCalledTimes(1)
+  })
+
+  it("leaves a failure to the section that reads the query, and throws nothing", async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const unhandledRejection = vi.fn()
+    process.on("unhandledRejection", unhandledRejection)
+
+    expect(() =>
+      startQuery(queryClient, {
+        queryKey: ["history"],
+        queryFn: async () => {
+          throw new Error("The history is unreachable")
+        },
+      }),
+    ).not.toThrow()
+
+    await vi.waitFor(() => expect(queryClient.getQueryState(["history"])?.status).toBe("error"))
+    // Rejections surface on the next turn of the event loop.
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    process.off("unhandledRejection", unhandledRejection)
+    expect(unhandledRejection).not.toHaveBeenCalled()
+  })
+})
 
 describe("loaderStaleTime", () => {
   it("reads the cached data, unless a mutation invalidated it", async () => {
