@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
 declare global {
+  // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.
   interface Window {
     /** The browser's speech recognition, which Chrome and Safari still name with a prefix. */
     SpeechRecognition?: new () => SpeechRecognition

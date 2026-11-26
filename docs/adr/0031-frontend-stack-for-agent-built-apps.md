@@ -183,6 +183,7 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   and an app's `biome.json` extends the root configuration and that file, by path
   (`"root": false`,
   `"extends": ["../../biome.json", "../../packages/frontend-config/biome.app.json"]`).
+  `packages/frontend-lib`, whose hooks run in every app, extends them the same way.
   Biome 2.3 accepts `"//"` only alone, and does not follow an `extends` inside an extended file.
   The shared file is not named `biome.json`, so its folder keeps the root configuration.
 
@@ -370,7 +371,9 @@ opens it. Its limits:
   copy with a name.
 * It follows the TypeScript options of the new stack, resolves through its `exports` with no build,
   and has its own specs, which CI runs in the Desk's job. Its hooks go through the React Compiler
-  of each app, whose Vite plugin compiles the package's source with the app's.
+  of each app, whose Vite plugin compiles the package's source with the app's. Its `biome.json`
+  extends the apps' rules and GritQL plugins (`biome.app.json`, section 2.3), so a hook here meets
+  the checks it would meet in an app. knip does not run on it.
 
 No other package is shared on these grounds. Another one needs its own decision.
 
