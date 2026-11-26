@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { buildDefaultToolName } from "./agent-sub-agents.helpers"
 import type { AgentSubAgent } from "./agent-sub-agents.models"
 
 type AgentSubAgentTransientParams = {
@@ -36,12 +37,3 @@ export const agentSubAgentFactory = AgentSubAgentFactory.define(({ params, trans
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
   }
 })
-
-function buildDefaultToolName(agentName: string): string {
-  const slug = agentName
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-  return `ask_${slug || "sub_agent"}`
-}

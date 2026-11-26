@@ -28,6 +28,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - CSV extraction and extraction evaluations: a file's columns are those of its header line, whatever its first row holds.
 - (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.
 - CSV extraction: a CSV file with no data row or no header line no longer shows "Page not found".
+- (beta) Agent orchestration: the default tool name of a sub-agent keeps each accented letter, without its accent.
 
 ### Security
 
