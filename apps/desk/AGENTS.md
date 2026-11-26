@@ -2,7 +2,9 @@
 
 The Desk: where project members use the published agents of their projects. It follows the shared
 rules of [docs/frontend/conventions.md](../../docs/frontend/conventions.md), and
-[ADR 0031](../../docs/adr/0031-frontend-stack-for-agent-built-apps.md) keeps the reasons. This file
+[ADR 0031](../../docs/adr/0031-frontend-stack-for-agent-built-apps.md) keeps the reasons.
+[docs/frontend/shared-packages.md](../../docs/frontend/shared-packages.md) lists the packages
+it shares with the other apps, and their limits. This file
 holds what is specific to the Desk.
 
 ## The Desk at a glance
@@ -37,14 +39,11 @@ holds what is specific to the Desk.
   `permissions` hold the session key of their type (`AGENT_SESSION_CREATE_PERMISSIONS`): the API
   also lists the agents a project evaluator only reads.
 - MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
-  (`packages/mcp-app-host`), one of the two packages the Desk shares with `apps/web` and
-  `apps/web-embed` (ADR 0031, section 2.4). The other is the permission catalog,
-  `@caseai-connect/permissions`, which the Desk reads only through the constants its contracts
-  re-export (section 2.12). The Desk keeps what is its own: the `useMcpApp` hook and `McpAppCard`
+  (`packages/mcp-app-host`). The Desk keeps what is its own: the `useMcpApp` hook and `McpAppCard`
   in `features/conversation` and the placeholder. The lookup of an app's HTML (`findMcpAppHtml`)
   comes from `@caseai-connect/chat`.
-- Sign-in: `@caseai-connect/sign-in` (`packages/sign-in`), which the Desk shares with Evaluation
-  (ADR 0031, section 2.4). Only `src/lib/auth/` imports it: `session.ts`, which the rest of the
+- Sign-in: `@caseai-connect/sign-in` (`packages/sign-in`). Only `src/lib/auth/` imports it:
+  `session.ts`, which the rest of the
   Desk reads, and `adopt-desk-session.ts`, the move of the session the Desk held on its own before
   every app shared one. The sign-in uses the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its session is the one every app
@@ -82,7 +81,7 @@ Run them from the repository root.
 |---|---|
 | `npm run dev -w @caseai-connect/desk` | Dev server on port 5177 at `/app/`, forwarding `/api` to the local API |
 | `npm run storybook -w @caseai-connect/desk` | Storybook on port 6009: the whole Desk on the MSW handlers, with no API and no sign-in, one story per state of its world |
-| `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
+| `npm run check -w @caseai-connect/desk` | Typecheck, Biome, the component files check, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
 | `npm run check:desk-parity -w @caseai-connect/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
 | `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
@@ -154,9 +153,8 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
-- The chat's logic and hooks come from `@caseai-connect/chat` (`packages/chat`), which the Desk
-  shares with Evaluation: its messages and the stream of a reply, the annotations and quoted
-  passages, the task checks, the MCP Apps and the resources. A message keeps the results of its
+- The chat's logic and hooks come from `@caseai-connect/chat` (`packages/chat`). A message keeps
+  the results of its
   tool calls, in which the Desk reads the facts its memory saved (`savedMemoryIdsOf` of `features/memory`):
   the package knows no memory.
 - Evaluation (`apps/eval`) holds a copy of the rest of the chat: `src/features/conversation/`,

@@ -3,7 +3,9 @@
 These rules apply to every app built on the stack of
 [ADR 0031](../adr/0031-frontend-stack-for-agent-built-apps.md), starting with the Desk
 (`apps/desk`). The ADR keeps the reasons; this file keeps the rules. Each app adds what is specific
-to it in its own `AGENTS.md`, and its `CLAUDE.md` imports both files. `apps/web` follows its own
+to it in its own `AGENTS.md`, and its `CLAUDE.md` imports both files, with
+[shared-packages.md](shared-packages.md), the one list of the packages the apps share and of
+their limits. `apps/web` follows its own
 rules (ADR 0010, 0011 and 0012) until each of its apps is rebuilt here.
 
 A tool checks every rule it can. The app's `npm run check -w <app>` gives the verdict: the
@@ -97,19 +99,14 @@ exports and dependencies:
   code moves to `lib/` or `components/shared/`.
 - `components/` and `lib/` import neither `features/` nor `routes/`.
 - The app imports nothing from another app or from a package another app owns. Its workspace
-  dependencies are its contracts package and the packages no app owns and every app imports
-  (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps,
-  `@caseai-connect/sign-in`, the sign-in, `@caseai-connect/api-client`, the API client,
-  `@caseai-connect/frontend-lib`, the hooks and helpers the apps share,
-  `@caseai-connect/chat`, the chat's logic and hooks, and
-  `@caseai-connect/app-ui`, the shadcn components and the design tokens. Only
-  `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports `oidc-client-ts`, and
-  only `lib/api-client.ts` imports `@caseai-connect/api-client`: it creates the app's client with
-  the functions of `lib/auth/session.ts`, and the rest of the app imports it. The app imports
-  `@caseai-connect/frontend-lib` and `@caseai-connect/chat` directly, from any folder, and
-  keeps no file that re-exports them. A change to one of them runs its own tests
-  (`npm run test -w @caseai-connect/frontend-lib`, `npm run test -w @caseai-connect/chat`) and
-  the `check` of each app.
+  dependencies are its contracts package and the shared packages, which no app owns
+  ([shared-packages.md](shared-packages.md) lists them). Only `lib/auth/` imports
+  `@caseai-connect/sign-in`, no code of the app imports `oidc-client-ts`, and only
+  `lib/api-client.ts` imports `@caseai-connect/api-client`: it creates the app's client with the
+  functions of `lib/auth/session.ts`, and the rest of the app imports it. The app reaches the
+  permission catalog, the route helper and the chat's contracts through its contracts package
+  only. It imports `@caseai-connect/frontend-lib` and `@caseai-connect/chat` directly, from any
+  folder, and keeps no file that re-exports them.
 - `src/test/` serves the tests and the stories only: no app code imports it.
 - No cycles.
 
@@ -274,9 +271,8 @@ or editing the boundaries' configuration.
   app of the stack imports (`@caseai-connect/app-ui/components/button`), on Base UI
   (`"style": "base-nova"`). Add one with `npx shadcn@latest add <name>`, run in an app's folder:
   the app's `components.json` sends it, its hooks and its helpers to the package. Update one by
-  generating it again (`add <name> --overwrite`). A change to the package reaches every app:
-  run its `check` (`npm run check -w @caseai-connect/app-ui`) and the `check` of each app. Never
-  write one by hand
+  generating it again (`add <name> --overwrite`). A change to the package reaches every app
+  ([shared-packages.md](shared-packages.md), Build and checks). Never write one by hand
   or copy it from `packages/ui`. Change a generated component only when composition falls short,
   minimally and with no business logic. Extend components with `cva`.
 - Base UI composes with a `render` prop where Radix used `asChild`. A link styled as a button is a
@@ -332,8 +328,7 @@ or editing the boundaries' configuration.
   its story, and a changed screen updates its specs and stories in the same change. They show what
   a change breaks, on purpose or not, so a change without them is not done.
 - Vitest runs two projects: `*.spec.ts` in node for pure logic (the app's sign-in wrapper,
-  schemas; the sign-in, the API client, the hooks and helpers of `packages/frontend-lib` and the
-  chat's logic of `packages/chat` are tested in their packages),
+  schemas; the shared packages that hold logic are tested in their own folders),
   and `*.spec.tsx` in happy-dom for components and routes. A test checks what a person sees,
   queries by role and label in English, and uses `data-testid` as a last resort.
 - The network is mocked with MSW only, never by mocking TanStack Query, `fetch` or the client.
@@ -367,10 +362,9 @@ Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-
 Evaluation's is `packages/eval-contracts`), the routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
 Zod, `@caseai-connect/permissions`, `@caseai-connect/schema-route` and
 `@caseai-connect/chat-contracts` alone, and imports nothing from `packages/api-contracts`. The
-chat's contracts are the one part the apps share: the schemas of a conversation, of its forms
-and of the documents its replies cite live once in `packages/chat-contracts`, which each
-contracts package re-exports, with the routes of a conversation and of its documents, which it
-declares under its own path (`conversationRoutesAt(PROJECT_PATH, "live")`). The app reads its source. When the app
+chat's contracts are the one part the apps share: each contracts package re-exports
+`packages/chat-contracts` ([shared-packages.md](shared-packages.md)) and declares its routes
+under its own path (`conversationRoutesAt(PROJECT_PATH, "live")`). The app reads its source. When the app
 has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
 build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
@@ -485,32 +479,14 @@ and empty states.
 - A secret in code, the configuration, a `VITE_*` value, a log or a commit, and a committed local
   `.env` file.
 - Code copied from one feature into another instead of moved to `lib/` or `components/shared/`.
-- An import from another app or from a package another app owns. In
-  `packages/mcp-app-host`: React, a component, a style, a text shown to people, or an import of
-  another workspace package. In `packages/permissions`: a dependency, an import, an enum, or a
-  text shown to people. In `packages/sign-in`: React, a component, a style, a text shown to
-  people, a contract, a dependency beyond `oidc-client-ts` and Zod, or an import of another
-  workspace package. In `packages/schema-route`: a route, a schema of an app, React, a text shown
-  to people, a dependency beyond Zod, or an import of another workspace package. In
-  `packages/chat-contracts`: a route or a schema only one app reads, React, a text shown to
-  people, or a dependency beyond Zod and `@caseai-connect/schema-route`. In
-  `packages/api-client`: a route, React, a text shown to people, the app's session (it takes it
-  from the app), or a dependency beyond Zod, `@caseai-connect/schema-route` and
-  `@caseai-connect/sign-in`. In `packages/frontend-config`: a rule for one app only, or a
-  dependency. In `packages/frontend-lib`: a component, a style, a text shown to people, a route
-  beyond the library file link `toResourceUrl` checks, a contract, the app's configuration, a
-  network call beyond `putFileToSignedUrl`, a dependency beyond React and TanStack Query, or an
-  import of another workspace package. In `packages/chat`: a component, a style, a text shown to
-  people, a call to the API, what only one app shows (the Desk's memory), the app's
-  configuration, or a dependency beyond React, Zod, `@caseai-connect/chat-contracts`,
-  `@caseai-connect/frontend-lib` and `@caseai-connect/mcp-app-host`. In `packages/app-ui`: a
-  component the shadcn CLI did not generate, business logic, a text shown to people beyond
-  shadcn's own, or an import of another workspace package.
+- An import from another app or from a package another app owns.
+- In a shared package: what [shared-packages.md](shared-packages.md) says it must not hold.
+  Without a human's go: a dependency beyond the ones it lists, or a new shared package.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.
-- Editing an `AGENTS.md`, this file, a tsconfig, the app's `biome.json`, `packages/frontend-config`
-  (the Biome rules, the GritQL plugins and the component check of every app), the `biome.json`
-  or the `components.json` of `packages/app-ui` or of an app, or the
+- Editing an `AGENTS.md`, this file, `shared-packages.md`, a tsconfig, the app's `biome.json`,
+  `packages/frontend-config` (the Biome rules, the GritQL plugins and the component check of
+  every app), the `biome.json` or the `components.json` of `packages/app-ui` or of an app, or the
   dependency-cruiser, knip, Lingui, Vitest or Playwright configuration without a human's go.
 - Disabling a lint rule, a type check, a translation check or a test to make `check` pass.

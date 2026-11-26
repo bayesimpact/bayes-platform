@@ -14,15 +14,7 @@ This is a Turborepo monorepo with the following structure:
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
 - `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@caseai-connect/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
-- `packages/@caseai-connect/sign-in` - The sign-in of the apps of the ADR 0031 stack (the Desk, Evaluation): the OIDC client on the session every app of the origin shares, the guards against sign-in loops, and the API's sign-in refusals. No app owns it; each app wraps it in its `lib/auth/session.ts`
-- `packages/@caseai-connect/api-client` - The API client of the apps of the ADR 0031 stack (the Desk, Evaluation): `createApiClient` on the app's session, the reading of server-sent events and the retry rule of the queries. No app owns it; each app creates its client in its `lib/api-client.ts`
-- `packages/@caseai-connect/frontend-lib` - The hooks and helpers of the apps of the ADR 0031 stack (the Desk, Evaluation): `useNow`, `useMediaQuery`, `useResizableWidth`, `useSpeechRecognition`, the loaders' `startQuery`, `pollWhile`, `hasOwnKey`, the dates and sizes on `Intl`, the safe URLs and the highlights of quoted passages. No app owns it; the apps import it directly
-- `packages/@caseai-connect/chat` - The chat's logic and hooks the Desk and Evaluation share: its messages and the stream of a reply (`toChatMessages`, `applyReplyEvent`), the annotations and quoted passages of a reply, its task checks, its MCP Apps and its resources. It holds no text a screen shows, no call to the API, no configuration of an app and no memory. No app owns it; the apps import it directly. The chat's components, its calls to the API and the hooks and helpers that show a text or call the API are still copied in each app, which Evaluation's `check:desk-parity` compares
-- `packages/@caseai-connect/app-ui` - The shadcn components of the apps of the ADR 0031 stack (the Desk, Evaluation), on Base UI, with the stylesheet they rely on and the design tokens. `npx shadcn@latest add`, run in an app, writes into it. No app owns it; the apps import each component by its path
-- `packages/@caseai-connect/frontend-config` - The tooling the apps of the ADR 0031 stack share: the Biome rules (`biome.app.json`, which each app's `biome.json`, `packages/frontend-lib`, `packages/chat` and `packages/app-ui` extend with the root one), the GritQL plugins and the `check-component-files` check. No app owns it
-- `packages/@caseai-connect/schema-route` - The route helper of the contracts packages (`defineSchemaRoute`, `defineStreamRoute`, the types of a route) and the body of an error response. The Desk and Evaluation contracts re-export it, and the API's `src/common/schema-route/` takes its route types from it; no app owns it
-- `packages/@caseai-connect/chat-contracts` - The contracts of the chat the Desk and Evaluation share: the Zod schemas of a conversation, of its forms and of the documents its replies cite, and the routes of a conversation and of its documents, which each contracts package declares under its own path (`conversationRoutesAt`, `documentsRoutesAt`). The Desk and Evaluation contracts re-export it, and the API requires its CommonJS build through them; no app owns it
-- `packages/@caseai-connect/permissions` - The RBAC permission catalog (`src/index.ts`), the one place a permission string is declared. `api-contracts` re-exports it, and the Desk and Evaluation contracts re-export the constants their apps read; no app owns it
+- `packages/@caseai-connect/{permissions,schema-route,chat-contracts,sign-in,api-client,frontend-lib,chat,app-ui,frontend-config,mcp-app-host}` - The shared packages: no app owns them, and the apps of the ADR 0031 stack (the Desk, Evaluation) import them, the API, `apps/web` and `apps/web-embed` too for some. `docs/frontend/shared-packages.md` is the one list of them: what each one holds, who imports it, what it may depend on, what it must not hold and what to run after a change. Read a package's row before you change it, and follow its last section before you add one
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -63,12 +55,12 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - See `apps/api/CLAUDE.md` for detailed API rules
 
 ### Desk Application
-- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `desk/` (one exception, a library file link, is named in `apps/desk/AGENTS.md`), which `apps/api/src/domains/desk/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
+- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web` beyond the shared packages. It calls only its own endpoints, under `desk/` (one exception, a library file link, is named in `apps/desk/AGENTS.md`), which `apps/api/src/domains/desk/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/desk/AGENTS.md`
 - Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
 
 ### Evaluation Application
-- The second app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `eval/` (one exception, a library file link, is named in `apps/eval/AGENTS.md`), which `apps/api/src/domains/eval/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
+- The second app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web` beyond the shared packages. It calls only its own endpoints, under `eval/` (one exception, a library file link, is named in `apps/eval/AGENTS.md`), which `apps/api/src/domains/eval/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/eval/AGENTS.md`
 - Its gate: `npm run check -w @caseai-connect/eval`, on top of the completion criteria below
 
@@ -79,7 +71,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - Entry point: `apps/web/src/main.tsx`
 - See `apps/web/CLAUDE.md` for detailed web rules
 
-### Shared Packages
+### API contracts
 - `api-contracts`: DTOs and route definitions shared between API and web
   - All DTOs consolidated per domain: `packages/api-contracts/src/{domain}/{domain}.dto.ts`
   - All routes defined with `defineRoute` in `*.routes.ts` files
@@ -162,8 +154,9 @@ Before marking any work as completed, run and verify:
 1. `npm run biome:check` — formatting and linting must pass
 2. `npm run typecheck` — no TypeScript errors
 3. `npm run test` — all tests must pass (API work)
-4. `npm run check -w @caseai-connect/desk` — when the Desk or its contracts changed
-5. `npm run check -w @caseai-connect/eval`: when Evaluation or its contracts changed
+4. `npm run check -w @caseai-connect/desk` — when the Desk, its contracts or a shared package changed
+5. `npm run check -w @caseai-connect/eval`: when Evaluation, its contracts or a shared package changed
+6. What `docs/frontend/shared-packages.md` (Build and checks) asks for a shared package, when one changed
 
 Work is NOT complete until all applicable commands pass with exit code 0.
 

@@ -3,7 +3,9 @@
 Evaluation: where project members evaluate their agents (datasets, runs), manage review
 campaigns, and where the testers and reviewers of a campaign take part in it. It follows the shared rules of
 [docs/frontend/conventions.md](../../docs/frontend/conventions.md), and
-[ADR 0031](../../docs/adr/0031-frontend-stack-for-agent-built-apps.md) keeps the reasons. This
+[ADR 0031](../../docs/adr/0031-frontend-stack-for-agent-built-apps.md) keeps the reasons.
+[docs/frontend/shared-packages.md](../../docs/frontend/shared-packages.md) lists the packages
+it shares with the other apps, and their limits. This
 file holds what is specific to Evaluation. It uses the same library versions as the Desk.
 
 ## Evaluation at a glance
@@ -62,7 +64,7 @@ Run them from the repository root.
 |---|---|
 | `npm run dev -w @caseai-connect/eval` | Dev server on port 5179 at `/eval/`, forwarding `/api` to the local API |
 | `npm run storybook -w @caseai-connect/eval` | Storybook on port 6010: the whole app on the MSW handlers, with no API and no sign-in |
-| `npm run check -w @caseai-connect/eval` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
+| `npm run check -w @caseai-connect/eval` | Typecheck, Biome, the component files check, the parity check with the Desk's chat, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/eval` | Vitest alone |
 | `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/eval` | The production build, in `apps/eval/dist` |
@@ -320,10 +322,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   transcript shows each reply's sources with the same `SourcesList`. Its
   owner gives it the session's forms and loads them again when the agent fills one in.
 - MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
-  (`packages/mcp-app-host`), one of the two packages the app shares with the Desk, `apps/web` and
-  `apps/web-embed` (ADR 0031, section 2.4). The other is the permission catalog,
-  `@caseai-connect/permissions`, which the app reads only through the constants its contracts
-  re-export (section 2.12). The chat keeps what is its own, as the Desk does: the
+  (`packages/mcp-app-host`). The chat keeps what is its own, as the Desk does: the
   `useMcpApp` hook and `McpAppCard` in `features/conversation`. The lookup of an app's HTML
   (`findMcpAppHtml`) comes from `@caseai-connect/chat`.
 - A rating, a comment and the answers to a campaign's questions go through one form,
@@ -341,7 +340,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   highlights, which `check:desk-parity` compares with the Desk's. `npx shadcn add`, run in
   `apps/eval`, writes into the package, whose own `check` lints it.
 - The hooks and helpers the app shares with the Desk come from `@caseai-connect/frontend-lib`
-  (`packages/frontend-lib`, whose `src/index.ts` lists them; ADR 0031, section 2.4).
+  (`packages/frontend-lib`, whose `src/index.ts` lists them).
 - The API client: `src/lib/api-client.ts`, which creates the client of
   `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
   `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).
