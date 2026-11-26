@@ -129,7 +129,8 @@ RUN cd apps/web && npm run build
 # result at /app, ahead of the web front. As for the web front, no VITE_* value
 # is baked in: the Desk reads the configuration the API injects into its
 # index.html. Only the Desk, its contracts, the permissions, the schema routes,
-# the MCP App host and the sign-in are installed.
+# the MCP App host, the sign-in, the API client and the frontend config are
+# installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
 
