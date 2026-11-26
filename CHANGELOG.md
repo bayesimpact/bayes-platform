@@ -20,6 +20,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - Models: superadmins choose in the backoffice which models each workspace offers, replacing the model feature flags.
 - Review campaign report: the campaign's managers read the free-text answers, and the CSV file holds every answer.
+- Desk side panels: a panel that opens or grows too wide for the page folds the sidebar.
 - (beta) Embedded chat: the message box takes one line when empty and grows with the text.
 
 ### Fixed

@@ -133,9 +133,10 @@ the conventions as they stand. When a rule changes, its reference file changes i
   `--sidebar-*` ones derive from `--primary` (mixed in `oklab`, which keeps its hue), so the
   sidebar takes each install's color from its `theme.css`.
 - Shared compositions, in `src/components/shared/`: `SidePanel` for every panel docked beside a
-  page (it makes the page behind inert where it covers it), `HeaderActions` for the actions of the
-  bar above it, `DataTable` for every table, `ExternalLink` for a link to a new tab,
-  `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
+  page (it makes the page behind inert where it covers it, and folds the sidebar when it opens or
+  stretches so wide that the page, its previous sibling, keeps less than 480 px), `HeaderActions`
+  for the actions of the bar above it, `DataTable` for every table, `ExternalLink` for a link to a
+  new tab, `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
   `NewReleaseBanner` for a new release. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,
   `useIsNewReleaseOut`, `useReloadWhenSafe`), and shared logic in `src/lib/`: `not-found.ts`,
   `agent-params.ts`, `field-text.ts`, `run-state.ts`, `is-record.ts`, `app-update.ts`. The hooks
