@@ -1,6 +1,6 @@
+import { HeaderActionsContext } from "@caseai-connect/app-ui/compositions/header-actions-context"
 import { type ReactNode, useContext } from "react"
 import { createPortal } from "react-dom"
-import { HeaderSlotsContext } from "./header-slots-context"
 
 export type HeaderActionsProps = {
   children: ReactNode
@@ -11,6 +11,6 @@ export type HeaderActionsProps = {
  * app does: the page renders them, the shell places them.
  */
 export function HeaderActions({ children }: HeaderActionsProps) {
-  const { actions } = useContext(HeaderSlotsContext)
-  return actions ? createPortal(children, actions) : null
+  const slot = useContext(HeaderActionsContext)
+  return slot ? createPortal(children, slot) : null
 }

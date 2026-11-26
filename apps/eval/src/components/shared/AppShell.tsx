@@ -7,6 +7,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from "@caseai-connect/app-ui/components/sidebar"
+import { HeaderActionsContext } from "@caseai-connect/app-ui/compositions/header-actions-context"
 import { ResizeHandle } from "@caseai-connect/app-ui/compositions/ResizeHandle"
 import { SidePanelStorageKeyContext } from "@caseai-connect/app-ui/compositions/side-panel-storage-key-context"
 import { useMediaQuery, useResizableWidth } from "@caseai-connect/frontend-lib"
@@ -16,7 +17,7 @@ import { cn } from "cn"
 import { type ReactNode, useEffect, useState } from "react"
 import { useSidebarPeek } from "@/hooks/use-sidebar-peek"
 import { HeaderActionsMenu } from "./HeaderActionsMenu"
-import { HeaderSlotsContext } from "./header-slots-context"
+import { HeaderBackContext } from "./header-back-context"
 import { NewReleaseBanner } from "./NewReleaseBanner"
 import { SidebarToggle } from "./SidebarToggle"
 
@@ -106,9 +107,11 @@ export function AppShell({ header, sidebar, footer, title, children }: AppShellP
           </header>
           <NewReleaseBanner />
           {/* The page scrolls inside this frame, so a conversation can keep its message box in view. */}
-          <HeaderSlotsContext value={{ back: backSlot, actions: actionsSlot }}>
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
-          </HeaderSlotsContext>
+          <HeaderBackContext value={backSlot}>
+            <HeaderActionsContext value={actionsSlot}>
+              <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
+            </HeaderActionsContext>
+          </HeaderBackContext>
         </SidebarInset>
       </SidebarProvider>
     </SidePanelStorageKeyContext>

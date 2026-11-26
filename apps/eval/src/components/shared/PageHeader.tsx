@@ -1,5 +1,5 @@
+import { HeaderActions } from "@caseai-connect/app-ui/compositions/HeaderActions"
 import type { ReactNode } from "react"
-import { HeaderActions } from "./HeaderActions"
 import { HeaderBack } from "./HeaderBack"
 
 export type PageHeaderProps = {

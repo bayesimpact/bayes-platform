@@ -7,6 +7,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from "@caseai-connect/app-ui/components/sidebar"
+import { HeaderActionsContext } from "@caseai-connect/app-ui/compositions/header-actions-context"
 import { ResizeHandle } from "@caseai-connect/app-ui/compositions/ResizeHandle"
 import { SidePanelStorageKeyContext } from "@caseai-connect/app-ui/compositions/side-panel-storage-key-context"
 import { useIsMobile } from "@caseai-connect/app-ui/hooks/use-mobile"
@@ -16,7 +17,6 @@ import { useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 import { type ReactNode, useEffect, useState } from "react"
 import { useSidebarPeek } from "@/hooks/use-sidebar-peek"
-import { HeaderActionsContext } from "./header-actions-context"
 import { NewReleaseBanner } from "./NewReleaseBanner"
 import { SidebarToggle } from "./SidebarToggle"
 

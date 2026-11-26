@@ -7,6 +7,7 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@caseai-connect/app-ui/components/message-scroller"
+import { HeaderActions } from "@caseai-connect/app-ui/compositions/HeaderActions"
 import {
   ANNOTATION_LAYER_ATTRIBUTE,
   findRetryableMessage,
@@ -24,7 +25,6 @@ import { Trans } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
 import { type ReactNode, useId, useState } from "react"
-import { HeaderActions } from "@/components/shared/HeaderActions"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
 import { useConversationSend } from "../hooks/use-conversation-send"
