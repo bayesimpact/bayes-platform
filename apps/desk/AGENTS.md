@@ -139,9 +139,8 @@ the conventions as they stand. When a rule changes, its reference file changes i
   `NewReleaseBanner` for a new release. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,
   `useIsNewReleaseOut`, `useReloadWhenSafe`), and shared logic in `src/lib/`: `not-found.ts`,
   `agent-params.ts`, `field-text.ts`, `run-state.ts`, `is-record.ts`, `app-update.ts`. The hooks
-  and helpers Evaluation holds alike (`useNow`, `useMediaQuery`, `startQuery`, `pollWhile`,
-  `hasOwnKey`, the dates, the sizes, the safe URLs) come from `@caseai-connect/frontend-lib`
-  (`packages/frontend-lib`).
+  and helpers the Desk shares with Evaluation come from `@caseai-connect/frontend-lib`
+  (`packages/frontend-lib`, whose `src/index.ts` lists them).
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.

@@ -100,7 +100,7 @@ exports and dependencies:
   dependencies are its contracts package and the packages no app owns and every app imports
   (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps,
   `@caseai-connect/sign-in`, the sign-in, `@caseai-connect/api-client`, the API client, and
-  `@caseai-connect/frontend-lib`, the hooks and helpers every app of the stack holds alike. Only
+  `@caseai-connect/frontend-lib`, the hooks and helpers the apps share. Only
   `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports `oidc-client-ts`, and
   only `lib/api-client.ts` imports `@caseai-connect/api-client`: it creates the app's client with
   the functions of `lib/auth/session.ts`, and the rest of the app imports it. The app imports
@@ -197,7 +197,9 @@ or editing the boundaries' configuration.
 ## Network code, mutations, forms and tables
 
 - Every network call lives in `features/<feature>/api` on top of `lib/api-client.ts`, streams and
-  signed-URL uploads included, and takes its types from the route's schemas. No component calls
+  signed-URL uploads included, and takes its types from the route's schemas. The one call outside
+  the API client is the PUT of an upload's bytes to its signed URL, `putFileToSignedUrl` of
+  `@caseai-connect/frontend-lib`, which a feature's mutation calls. No component calls
   `fetch`. An upload is one mutation that presigns, sends the bytes and confirms.
 - `apiRequest(route, { params, query, body, signal })` takes the params and the query as their
   schemas output them, encodes them with `z.encode`, parses the body with its schema and sends it in
@@ -316,7 +318,8 @@ or editing the boundaries' configuration.
   its story, and a changed screen updates its specs and stories in the same change. They show what
   a change breaks, on purpose or not, so a change without them is not done.
 - Vitest runs two projects: `*.spec.ts` in node for pure logic (the app's sign-in wrapper,
-  schemas; the sign-in and the API client are tested in their packages),
+  schemas; the sign-in, the API client and the hooks and helpers of `packages/frontend-lib` are
+  tested in their packages),
   and `*.spec.tsx` in happy-dom for components and routes. A test checks what a person sees,
   queries by role and label in English, and uses `data-testid` as a last resort.
 - The network is mocked with MSW only, never by mocking TanStack Query, `fetch` or the client.
@@ -474,9 +477,10 @@ and empty states.
   `packages/api-client`: a route, React, a text shown to people, the app's session (it takes it
   from the app), or a dependency beyond Zod, `@caseai-connect/schema-route` and
   `@caseai-connect/sign-in`. In `packages/frontend-config`: a rule for one app only, or a
-  dependency. In `packages/frontend-lib`: a component, a style, a text shown to people, a route,
-  a contract, the app's configuration, a dependency beyond React and TanStack Query, or an import
-  of another workspace package.
+  dependency. In `packages/frontend-lib`: a component, a style, a text shown to people, a route
+  beyond the library file link `toResourceUrl` checks, a contract, the app's configuration, a
+  network call beyond `putFileToSignedUrl`, a dependency beyond React and TanStack Query, or an
+  import of another workspace package.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.

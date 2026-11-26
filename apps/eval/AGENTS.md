@@ -326,9 +326,8 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. Each language of
   `LOCALES` has its date-fns locale there, which the typecheck requires. The chat keeps the Desk's
   `RelativeTime`, on `Intl`.
-- The hooks and helpers the Desk holds alike (`useNow`, `useMediaQuery`, `startQuery`,
-  `pollWhile`, `hasOwnKey`, the dates, the sizes, the safe URLs) come from
-  `@caseai-connect/frontend-lib` (`packages/frontend-lib`, ADR 0031, section 2.4).
+- The hooks and helpers the app shares with the Desk come from `@caseai-connect/frontend-lib`
+  (`packages/frontend-lib`, whose `src/index.ts` lists them; ADR 0031, section 2.4).
 - The API client: `src/lib/api-client.ts`, which creates the client of
   `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
   `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).

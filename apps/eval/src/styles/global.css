@@ -162,7 +162,8 @@
 }
 
 /* A passage of a reply turns highlighter yellow as the person selects it, and stays so while they
-   write their note on it and until their message leaves (src/lib/quote-highlight.ts). */
+   write their note on it and until their message leaves (`showQuoteHighlights` of
+   @caseai-connect/frontend-lib). */
 [data-quotable] ::selection {
   background-color: var(--quote-mark);
 }

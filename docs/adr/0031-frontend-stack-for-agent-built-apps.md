@@ -344,21 +344,27 @@ and every app rebuilt after Evaluation would copy it once more. It keeps the sam
 
 **The shared hooks and helpers.** `packages/frontend-lib` (`@caseai-connect/frontend-lib`) holds
 the hooks and helpers that the Desk and Evaluation each held in `hooks/` and `lib/`, the same file
-in both apps: the loaders' `staleTime` and `startQuery`, `pollWhile`, `hasOwnKey`, the dates and
-durations of `Intl` (`relativeTimeOf`, `fullDateTimeOf`, `shortDateTimeOf`, `durationOf`), the size
-of a file, the URLs a reply may open and the tab a signed URL opens in, the upload to a signed URL,
-the tasks of a Markdown text, the highlights of quoted passages, `isApplePlatform`, `useNow`,
-`useMediaQuery`, `useCopyText` and `useInertPageBehind`. Evaluation started from copies of them,
-so the two apps held about 600 lines twice, and the first fixes had already landed in one copy
-only (`startQuery` in the Desk, `shortDateTimeOf` in Evaluation). Among them is code a drift makes
-unsafe: the check that a reply's link is https or a library file of the API, before a tab opens
-it. Its limits:
+in both apps: the loaders' `loaderStaleTime` and `startQuery`, `pollWhile`, `hasOwnKey`, the dates
+and durations of `Intl` (`relativeTimeOf`, `fullDateTimeOf`, `shortDateTimeOf`, `durationOf`), the
+size of a file, the URLs a reply may open and the tab a signed URL opens in, the upload to a
+signed URL, the tasks of a Markdown text, the highlights of quoted passages, `isApplePlatform`,
+`useNow`, `useMediaQuery`, `useCopyText` and `useInertPageBehind`. Evaluation started from copies
+of them, so the two apps held about 470 lines twice, and the first fixes had already landed in one
+copy only (`startQuery` in the Desk, `shortDateTimeOf` in Evaluation). Among them is code a drift
+makes unsafe: the check that a reply's link is https or a library file of the API, before a tab
+opens it. Its limits:
 
 * No app owns it, and it holds nothing of an app: no component, no style, no text a screen shows,
-  no route, no contract and no configuration. A helper that reads the app's configuration
-  (`app-update.ts`), shows a text (`field-text.ts`) or follows the app's own pages stays in the
-  app, as do the hooks shadcn's CLI writes (`use-mobile.ts`). The highlights of quoted passages
-  keep names with no prefix (`quote`, `cited`, `cited-jump`), which each app's `global.css` styles.
+  no contract and no configuration, and no route but the library file link `toResourceUrl` lets
+  a reply open, which both apps hold until a route of their own serves it. Its one network call
+  is the PUT of an upload's bytes to a signed URL (`putFileToSignedUrl`). A helper that reads the
+  app's configuration (`app-update.ts`), shows a text (`field-text.ts`) or follows the app's own
+  pages stays in the app, as do the hooks shadcn's CLI writes (`use-mobile.ts`). The highlights of
+  quoted passages keep names with no prefix (`quote`, `cited`, `cited-jump`), which each app's
+  `global.css` styles.
+* Two hooks both apps hold wait for a change of their own: `useSpeechRecognition`, whose browser
+  types each app declares in its `env.d.ts`, and `useResizableWidth`, which Evaluation already
+  changed for its `SidePanel`.
 * It depends on React and TanStack Query alone, as peers, so the app keeps one copy of each, and
   imports no other workspace package.
 * The apps import it directly: a file of `hooks/` or `lib/` that only re-exported it would be a
@@ -413,9 +419,8 @@ No other package is shared on these grounds. Another one needs its own decision.
   component observes would never reach the next loader.
   A query a loader does not wait for starts the same way, its error swallowed for the section that
   reads it (`startQuery` of `@caseai-connect/frontend-lib`), since `prefetchQuery` is deprecated
-  too. Each
-  feature's loaders sit in its `load-*.ts`, as `loadX(queryClient, params, deps?)`, and turn the
-  API's 403, 404 and 422 into the not-found page (`orNotFound`).
+  too. Each feature's loaders sit in its `load-*.ts`, as `loadX(queryClient, params, deps?)`, and
+  turn the API's 403, 404 and 422 into the not-found page (`orNotFound`).
 * Components read with `useSuspenseQuery` or `useSuspenseQueries`, so data is always defined: no
   `isLoading`, no `data?.`, no `if (!data)`. A component never chains `useSuspenseQuery` calls on
   queries its loader did not start, since each would wait for the one before.
@@ -436,7 +441,9 @@ No other package is shared on these grounds. Another one needs its own decision.
 
 * Every network call, streams and signed-URL uploads included, lives in `features/<feature>/api`
   on top of `lib/api-client.ts`, which wraps `@caseai-connect/api-client` (section 2.4), and takes
-  its types from the route's schemas.
+  its types from the route's schemas. The one call outside the API client is the PUT of an
+  upload's bytes to its signed URL (`putFileToSignedUrl` of `@caseai-connect/frontend-lib`),
+  which a feature's mutation calls.
   No component calls `fetch`. An upload is one mutation that presigns, sends the bytes and confirms.
 * Mutation hooks call the client and invalidate the affected keys on success, and on a 500 too,
   since a write may have committed before its response failed its schema. They never suspend: the
@@ -600,7 +607,8 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 
 * Vitest runs two projects. Pure logic (the app's sign-in wrapper, schemas) runs in node,
   unlike the kit's single jsdom project, and the stream parser and the client are tested in
-  `packages/api-client`. Components and hooks run in happy-dom with Testing Library
+  `packages/api-client`, the shared hooks and helpers in `packages/frontend-lib`. Components and
+  hooks run in happy-dom with Testing Library
   and user-event; a test checks what a person sees, queries by role and label (in English, the
   source text), and uses `data-testid` as a last resort. Test files sit next to the code.
 * The network is mocked with MSW only, never by mocking TanStack Query, `fetch` or the client.
@@ -1149,8 +1157,7 @@ part of it invalidates.
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
   has to be found. The same holds for `packages/mcp-app-host`, `packages/sign-in`,
   `packages/schema-route`, `packages/api-client` and `packages/frontend-lib`: no tool checks yet
-  that they import no
-  workspace package beyond the ones this ADR allows.
+  that they import no workspace package beyond the ones this ADR allows.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to
   `PermissionService` as well?

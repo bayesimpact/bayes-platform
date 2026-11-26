@@ -3,8 +3,9 @@ const KILOBYTE = 1024
 
 /**
  * A file's size in the person's language: "0.8 kB", "2.4 MB"; a few bytes read in kilobytes. A
- * limit of the contracts (`EXTRACTION_MAX_BYTES`) reads through it too, so its text follows them,
- * and counts in the same binary units, so 25 × 1024 × 1024 bytes read "25 MB".
+ * limit of the app's contracts, such as the largest file an upload takes, reads through it too, so
+ * its text follows them, and counts in the same binary units, so 25 × 1024 × 1024 bytes read
+ * "25 MB".
  */
 export function fileSizeOf(bytes: number, locale: string): string {
   const { unit, size } =
