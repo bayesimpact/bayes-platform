@@ -1,5 +1,4 @@
-import type { ChatResource } from "../chat-messages"
-import type { OpenedResource } from "../resource-media"
+import type { ChatResource, OpenedResource } from "@caseai-connect/chat"
 import { ResourceCard } from "./ResourceCard"
 
 export type ResourceCardsProps = {

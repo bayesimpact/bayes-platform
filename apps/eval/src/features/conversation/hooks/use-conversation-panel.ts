@@ -1,5 +1,5 @@
+import type { OpenedResource } from "@caseai-connect/chat"
 import { useState } from "react"
-import type { OpenedResource } from "../resource-media"
 
 /** A panel a button of the header opens and closes. */
 type ToggledPanel = "forms"

@@ -4,12 +4,12 @@ import {
   InputGroupButton,
 } from "@caseai-connect/app-ui/components/input-group"
 import { KbdGroup } from "@caseai-connect/app-ui/components/kbd"
+import type { OutgoingMessage } from "@caseai-connect/chat"
 import { plural } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { ArrowUpIcon, FileIcon, PaperclipIcon, XIcon } from "lucide-react"
 import { type ChangeEvent, type FormEvent, useId, useRef } from "react"
-import type { OutgoingMessage } from "../chat-messages"
 import { useAttachment } from "../hooks/use-attachment"
 import { useDictation } from "../hooks/use-dictation"
 import { DictationButton } from "./DictationButton"

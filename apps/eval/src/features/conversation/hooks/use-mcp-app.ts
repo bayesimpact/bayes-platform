@@ -1,8 +1,8 @@
+import type { ChatMcpApp } from "@caseai-connect/chat"
 import { type McpAppCsp, type McpAppMount, mountMcpApp } from "@caseai-connect/mcp-app-host"
 import { useLingui } from "@lingui/react/macro"
 import { type RefObject, useEffect, useEffectEvent, useRef, useState } from "react"
 import { appConfig } from "@/app/config"
-import type { ChatMcpApp } from "../chat-messages"
 
 /** How Evaluation names itself to an app, at the handshake. */
 const HOST_INFO = { name: "caseai-connect-eval", version: "1.0.0" }

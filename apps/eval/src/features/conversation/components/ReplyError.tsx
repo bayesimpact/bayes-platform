@@ -1,7 +1,7 @@
+import type { ChatMessage, ReplyFailure } from "@caseai-connect/chat"
 import { Trans } from "@lingui/react/macro"
 import { CircleAlertIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import type { ChatMessage, ReplyFailure } from "../chat-messages"
 
 export type ReplyErrorProps = {
   message: ChatMessage

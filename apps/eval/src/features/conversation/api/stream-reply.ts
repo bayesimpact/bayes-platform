@@ -1,13 +1,3 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
-import {
-  EvalConversationsRoutes,
-  type ReplyStreamEventDto,
-  replyStreamEventSchema,
-  TOOL_NAMES,
-} from "@caseai-connect/eval-contracts"
-import type { QueryClient } from "@tanstack/react-query"
-import { z } from "zod"
-import { apiStreamResponse, readServerSentEvents, type ServerSentEvent } from "@/lib/api-client"
 import {
   applyReplyEvent,
   type ChatMessage,
@@ -18,7 +8,17 @@ import {
   type ReplyFailure,
   setAttachmentDocument,
   startTurn,
-} from "../chat-messages"
+} from "@caseai-connect/chat"
+import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import {
+  EvalConversationsRoutes,
+  type ReplyStreamEventDto,
+  replyStreamEventSchema,
+  TOOL_NAMES,
+} from "@caseai-connect/eval-contracts"
+import type { QueryClient } from "@tanstack/react-query"
+import { z } from "zod"
+import { apiStreamResponse, readServerSentEvents, type ServerSentEvent } from "@/lib/api-client"
 import { conversationKeys } from "./keys"
 import { messagesQueryOptions } from "./queries"
 import { registerReplyStream, unregisterReplyStream } from "./reply-streams"

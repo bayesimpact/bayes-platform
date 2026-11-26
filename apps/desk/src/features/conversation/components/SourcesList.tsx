@@ -6,9 +6,9 @@ import {
   TraceLine,
   TraceTitle,
 } from "@caseai-connect/app-ui/components/trace"
+import type { ChatSource } from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { Plural } from "@lingui/react/macro"
-import type { ChatSource } from "../chat-messages"
 import { SourceItem } from "./SourceItem"
 
 export type SourcesListProps = {

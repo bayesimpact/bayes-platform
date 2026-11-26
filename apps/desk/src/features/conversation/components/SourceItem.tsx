@@ -1,4 +1,5 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
+import type { ChatSource } from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
@@ -7,7 +8,6 @@ import { DownloadIcon, FileTextIcon, GlobeIcon } from "lucide-react"
 import { toast } from "sonner"
 import { useOpenDocument } from "../api/mutations"
 import { documentIsPublicQueryOptions } from "../api/queries"
-import type { ChatSource } from "../chat-messages"
 
 export type SourceItemProps = {
   conversation: ConversationParamsDto

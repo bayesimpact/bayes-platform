@@ -1,5 +1,5 @@
+import type { CitedPassages } from "@caseai-connect/chat"
 import { useLingui } from "@lingui/react/macro"
-import type { CitedPassages } from "../hooks/use-cited-passages"
 import { AnnotationBadge } from "./AnnotationBadge"
 
 export type CitedPassageBadgesProps = {

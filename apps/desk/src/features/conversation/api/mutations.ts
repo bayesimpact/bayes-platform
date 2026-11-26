@@ -1,3 +1,4 @@
+import type { OutgoingMessage } from "@caseai-connect/chat"
 import type {
   AgentParamsDto,
   ConversationParamsDto,
@@ -10,7 +11,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
-import type { OutgoingMessage } from "../chat-messages"
 import { streamReply } from "./stream-reply"
 
 /** Sends a message in a conversation and streams the replies into its messages. */

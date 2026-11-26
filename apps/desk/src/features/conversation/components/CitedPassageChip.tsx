@@ -1,8 +1,8 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
+import { CITED_PASSAGE_ATTRIBUTE } from "@caseai-connect/chat"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { InlineCode } from "@/components/shared/InlineCode"
-import { CITED_PASSAGE_ATTRIBUTE } from "../annotation"
 
 export type CitedPassageChipProps = {
   passage: string

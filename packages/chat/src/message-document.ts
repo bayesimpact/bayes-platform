@@ -1,5 +1,15 @@
-import type { JSONContent } from "@tiptap/react"
 import { codeSegmentsOf } from "./annotation"
+
+/**
+ * The document of the message box, in the part of Tiptap's `JSONContent` these functions read and
+ * write: the package holds no editor, and the box's editor takes it and gives it as it is.
+ */
+export type MessageDocument = {
+  type?: string
+  text?: string
+  marks?: { type: string }[]
+  content?: MessageDocument[]
+}
 
 /**
  * The message box holds a document, the rest of the app a string: a line per paragraph, and the
@@ -8,7 +18,7 @@ import { codeSegmentsOf } from "./annotation"
  */
 
 /** The document of a message: one paragraph per line, its passages between backticks as code. */
-export function messageDocumentOf(text: string): JSONContent {
+export function messageDocumentOf(text: string): MessageDocument {
   return {
     type: "doc",
     content: text.split("\n").map((line) => {
@@ -28,7 +38,7 @@ export function messageDocumentOf(text: string): JSONContent {
 }
 
 /** The text of a message's document: its lines, with each passage in code between backticks. */
-export function messageTextOf(document: JSONContent): string {
+export function messageTextOf(document: MessageDocument): string {
   return (document.content ?? [])
     .map((paragraph) =>
       (paragraph.content ?? [])

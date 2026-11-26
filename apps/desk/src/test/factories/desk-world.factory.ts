@@ -1,3 +1,4 @@
+import { composeMessage, taskCheckLine } from "@caseai-connect/chat"
 import type {
   ConversationMessageOutputDto,
   ConversationSessionOutputDto,
@@ -17,8 +18,6 @@ import type {
   ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
 import { PROJECT_READ_PERMISSION, TOOL_NAMES } from "@caseai-connect/desk-contracts"
-import { composeMessage } from "@/features/conversation/annotation"
-import { taskCheckLine } from "@/features/conversation/task-checks"
 import { LONG_CONVERSATION_EXCHANGES, LONG_CONVERSATION_TITLE } from "../fixtures/long-conversation"
 import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 import {

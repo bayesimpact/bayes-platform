@@ -135,8 +135,8 @@ RUN cd apps/web && npm run build
 # is baked in: the Desk reads the configuration the API injects into its
 # index.html. Only the Desk, its contracts, the chat's contracts, the
 # permissions, the schema routes, the MCP App host, the sign-in, the API
-# client, the frontend config, the frontend lib and the shadcn components are
-# installed.
+# client, the frontend config, the frontend lib, the chat and the shadcn
+# components are installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
 
@@ -151,6 +151,7 @@ COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/api-client/package.json ./packages/api-client/
 COPY packages/frontend-lib/package.json ./packages/frontend-lib/
+COPY packages/chat/package.json ./packages/chat/
 COPY packages/app-ui/package.json ./packages/app-ui/
 # Whole, before the install: npm links the component check it gives as a binary.
 COPY packages/frontend-config ./packages/frontend-config
@@ -166,6 +167,7 @@ RUN npm ci \
     --workspace=@caseai-connect/sign-in \
     --workspace=@caseai-connect/api-client \
     --workspace=@caseai-connect/frontend-lib \
+    --workspace=@caseai-connect/chat \
     --workspace=@caseai-connect/app-ui \
     --workspace=@caseai-connect/frontend-config \
     --include-workspace-root
@@ -179,6 +181,7 @@ COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/sign-in ./packages/sign-in
 COPY packages/api-client ./packages/api-client
 COPY packages/frontend-lib ./packages/frontend-lib
+COPY packages/chat ./packages/chat
 COPY packages/app-ui ./packages/app-ui
 COPY packages/typescript-config ./packages/typescript-config
 
@@ -192,8 +195,8 @@ RUN cd apps/desk && npm run build
 # baked in: the app reads the configuration the API injects into its
 # index.html. Only the app, its contracts, the chat's contracts, the
 # permissions, the schema routes, the MCP App host, the sign-in, the API
-# client, the frontend config, the frontend lib and the shadcn components are
-# installed.
+# client, the frontend config, the frontend lib, the chat and the shadcn
+# components are installed.
 #
 FROM node:24.21.0-trixie-slim AS eval-build
 
@@ -208,6 +211,7 @@ COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/api-client/package.json ./packages/api-client/
 COPY packages/frontend-lib/package.json ./packages/frontend-lib/
+COPY packages/chat/package.json ./packages/chat/
 COPY packages/app-ui/package.json ./packages/app-ui/
 # Whole, before the install: npm links the component check it gives as a binary.
 COPY packages/frontend-config ./packages/frontend-config
@@ -223,6 +227,7 @@ RUN npm ci \
     --workspace=@caseai-connect/sign-in \
     --workspace=@caseai-connect/api-client \
     --workspace=@caseai-connect/frontend-lib \
+    --workspace=@caseai-connect/chat \
     --workspace=@caseai-connect/app-ui \
     --workspace=@caseai-connect/frontend-config \
     --include-workspace-root
@@ -236,6 +241,7 @@ COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/sign-in ./packages/sign-in
 COPY packages/api-client ./packages/api-client
 COPY packages/frontend-lib ./packages/frontend-lib
+COPY packages/chat ./packages/chat
 COPY packages/app-ui ./packages/app-ui
 COPY packages/typescript-config ./packages/typescript-config
 

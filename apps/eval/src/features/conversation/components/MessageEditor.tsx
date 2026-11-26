@@ -1,3 +1,4 @@
+import { messageDocumentOf, messageTextOf } from "@caseai-connect/chat"
 import { Code } from "@tiptap/extension-code"
 import { Document } from "@tiptap/extension-document"
 import { HardBreak } from "@tiptap/extension-hard-break"
@@ -7,7 +8,6 @@ import { UndoRedo } from "@tiptap/extensions"
 import { EditorContent, Extension, useEditor } from "@tiptap/react"
 import { useEffect, useEffectEvent, useRef } from "react"
 import { inlineCodeClassName } from "@/components/shared/InlineCode"
-import { messageDocumentOf, messageTextOf } from "../message-document"
 
 export type MessageEditorProps = {
   /** The id of the text field, so the page can put the focus back in it. */

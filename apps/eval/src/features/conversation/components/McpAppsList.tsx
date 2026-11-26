@@ -1,5 +1,4 @@
-import type { ChatMcpApp } from "../chat-messages"
-import { type AppsHtml, findMcpAppHtml } from "../mcp-apps"
+import { type AppsHtml, type ChatMcpApp, findMcpAppHtml } from "@caseai-connect/chat"
 import { McpAppCard } from "./McpAppCard"
 import { McpAppPlaceholder } from "./McpAppPlaceholder"
 

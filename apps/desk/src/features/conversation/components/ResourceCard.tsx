@@ -1,9 +1,13 @@
+import {
+  type ChatResource,
+  type OpenedResource,
+  openedResourceOf,
+  resourceMediaOf,
+} from "@caseai-connect/chat"
 import { toResourceUrl } from "@caseai-connect/frontend-lib"
 import { cn } from "cn"
 import { ArrowUpRightIcon, PlayIcon } from "lucide-react"
 import { type MouseEvent, useState } from "react"
-import type { ChatResource } from "../chat-messages"
-import { type OpenedResource, openedResourceOf, resourceMediaOf } from "../resource-media"
 
 export type ResourceCardProps = {
   resource: ChatResource

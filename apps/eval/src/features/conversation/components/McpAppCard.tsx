@@ -1,7 +1,7 @@
+import type { ChatMcpApp } from "@caseai-connect/chat"
 import { MCP_APP_FRAME_SANDBOX, type McpAppCsp } from "@caseai-connect/mcp-app-host"
 import { useLingui } from "@lingui/react/macro"
 import { useRef } from "react"
-import type { ChatMcpApp } from "../chat-messages"
 import { useMcpApp } from "../hooks/use-mcp-app"
 import { McpAppPlaceholder } from "./McpAppPlaceholder"
 

@@ -1,3 +1,14 @@
+import {
+  applyReplyEvent,
+  type ChatMessage,
+  failStreamingReplies,
+  newLocalMessageId,
+  type OutgoingMessage,
+  type ReplyCursor,
+  type ReplyFailure,
+  setAttachmentDocument,
+  startTurn,
+} from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import {
   DeskConversationsRoutes,
@@ -10,17 +21,6 @@ import { z } from "zod"
 import { invalidateAgentHistory } from "@/features/history"
 import { invalidateMemories } from "@/features/memory"
 import { apiStreamResponse, readServerSentEvents, type ServerSentEvent } from "@/lib/api-client"
-import {
-  applyReplyEvent,
-  type ChatMessage,
-  failStreamingReplies,
-  newLocalMessageId,
-  type OutgoingMessage,
-  type ReplyCursor,
-  type ReplyFailure,
-  setAttachmentDocument,
-  startTurn,
-} from "../chat-messages"
 import { conversationKeys } from "./keys"
 import { messagesQueryOptions } from "./queries"
 import { registerReplyStream, unregisterReplyStream } from "./reply-streams"

@@ -1,6 +1,6 @@
+import type { TaskCheck } from "@caseai-connect/chat"
 import { useLingui } from "@lingui/react/macro"
 import { SquareCheckIcon, SquareIcon } from "lucide-react"
-import type { TaskCheck } from "../task-checks"
 
 export type TaskChecksListProps = {
   checks: TaskCheck[]

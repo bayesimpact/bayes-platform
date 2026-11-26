@@ -24,6 +24,8 @@
   2.4, 2.9, 4, 6 and 7)
 * **Amended**: 2026-11-26, by Alexis: the chat's schemas and routes are a package the Desk and
   Evaluation contracts re-export, instead of a copy in each (sections 2.4, 2.12, 4 and 6)
+* **Amended**: 2026-11-26, by Alexis: the chat's logic and hooks are a package the Desk and
+  Evaluation import, instead of a copy in each (sections 2.3, 2.4, 2.11, 4 and 6)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -36,8 +38,8 @@
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
   `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in`, the
   `lib/auth/` of each app, `packages/schema-route`, `packages/api-client` and
-  `packages/frontend-config` (since 2026-11-25), `packages/frontend-lib`, `packages/app-ui` and
-  `packages/chat-contracts` (since 2026-11-26), and
+  `packages/frontend-config` (since 2026-11-25), `packages/frontend-lib`, `packages/app-ui`,
+  `packages/chat-contracts` and `packages/chat` (since 2026-11-26), and
   `apps/web/src/desk/`
   (deleted at the cutover).
 
@@ -189,8 +191,8 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   and an app's `biome.json` extends the root configuration and that file, by path
   (`"root": false`,
   `"extends": ["../../biome.json", "../../packages/frontend-config/biome.app.json"]`).
-  `packages/frontend-lib` and `packages/app-ui`, whose code runs in every app, extend them the
-  same way.
+  `packages/frontend-lib`, `packages/chat` and `packages/app-ui`, whose code runs in every app,
+  extend them the same way.
   Biome 2.3 accepts `"//"` only alone, and does not follow an `extends` inside an extended file.
   The shared file is not named `biome.json`, so its folder keeps the root configuration.
 
@@ -227,6 +229,7 @@ packages/chat-contracts/    the chat's schemas and routes, which the Desk and Ev
 packages/api-client/        the API client, which every app of the stack imports
 packages/frontend-config/   the Biome rules, GritQL plugins and component check of every app
 packages/frontend-lib/      the hooks and helpers every app of the stack imports
+packages/chat/              the chat's logic and hooks, which the Desk and Evaluation import
 packages/app-ui/            the shadcn components, their stylesheet and the design tokens
 ```
 
@@ -240,7 +243,7 @@ dependency-cruiser enforces the direction of imports between the folders of `src
   `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its workspace
   dependencies are `@caseai-connect/desk-contracts` and the packages no app owns (see below):
   `@caseai-connect/mcp-app-host`, `@caseai-connect/sign-in`, `@caseai-connect/api-client`,
-  `@caseai-connect/frontend-lib` and `@caseai-connect/app-ui`.
+  `@caseai-connect/frontend-lib`, `@caseai-connect/chat` and `@caseai-connect/app-ui`.
   Only `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports
   `oidc-client-ts`, and only `lib/api-client.ts` imports `@caseai-connect/api-client`.
 * No cycles.
@@ -385,6 +388,32 @@ opens it. Its limits:
   of each app, whose Vite plugin compiles the package's source with the app's. Its `biome.json`
   extends the apps' rules and GritQL plugins (`biome.app.json`, section 2.3), so a hook here meets
   the checks it would meet in an app. knip does not run on it.
+
+**The shared chat logic.** `packages/chat` (`@caseai-connect/chat`) holds the logic and the
+hooks of the chat that the Desk and Evaluation each held in `features/conversation`: the
+messages of a conversation and the stream of a reply (`toChatMessages`, `startTurn`,
+`applyReplyEvent`), the annotations and quoted passages of a reply and the hooks that follow the
+person's selection, the task checks, the MCP Apps a reply shows, the media of its resources, the
+document of the message box, and the form that reports a problem with a reply. Evaluation's chat
+started as a copy of the Desk's, which a parity check compared file by file; these files were
+the same in both apps but for their imports and comments, and the memory, which only the Desk
+has. Its limits:
+
+* No app owns it, and it holds nothing only one app shows: a message keeps the results of its
+  tool calls, without their arguments, in which the Desk reads the facts its memory saved, so the
+  package knows no memory. It holds no
+  component, style or text a screen shows, and makes no call to the API: the components, the
+  calls, and the hooks and helpers that show a text or call the API stay in each app, which the
+  parity check still compares,
+  until the next steps move them with a way for each app to give its routes, its client and its
+  texts.
+* It depends on React as a peer, on Zod, and on `@caseai-connect/chat-contracts`,
+  `@caseai-connect/frontend-lib` and `@caseai-connect/mcp-app-host`, which no app owns either.
+* The apps import it directly. It follows the TypeScript options of the new stack, resolves
+  through its `exports` with no build, and has its own specs, which CI runs in the Desk's job.
+  Its hooks go through the React Compiler of each app, and its `biome.json` extends the apps'
+  rules, as `packages/frontend-lib` does. knip does not run on it, so its `index.ts` exports by
+  name only what the apps import: an export they stop using then shows as unused in the package.
 
 **The shared shadcn components.** `packages/app-ui` (`@caseai-connect/app-ui`) holds the shadcn
 components on Base UI, the `use-mobile` hook shadcn's sidebar reads, `shadcn.css` and the
@@ -650,7 +679,8 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 
 * Vitest runs two projects. Pure logic (the app's sign-in wrapper, schemas) runs in node,
   unlike the kit's single jsdom project, and the stream parser and the client are tested in
-  `packages/api-client`, the shared hooks and helpers in `packages/frontend-lib`. Components and
+  `packages/api-client`, the shared hooks and helpers in `packages/frontend-lib`, the chat's
+  logic in `packages/chat`. Components and
   hooks run in happy-dom with Testing Library
   and user-event; a test checks what a person sees, queries by role and label (in English, the
   source text), and uses `data-testid` as a last resort. Test files sit next to the code.
@@ -733,10 +763,11 @@ conversation, of its forms and of the documents its replies cite, and the routes
 send its messages. The copies differed by their comments and by the file a schema lived in, and
 the routes by one segment of their path: the type of the session (`live` for the Desk,
 `review_campaign_tester` for Evaluation). Since 2026-11-26, `packages/chat-contracts`
-(`@caseai-connect/chat-contracts`) holds the schemas once, with `defineConversationRoutes(app,
-sessionType)` and `defineDocumentsRoutes(app)`, which return the routes under an app's path. The
+(`@caseai-connect/chat-contracts`) holds the schemas once, with `conversationRoutesAt(projectPath,
+sessionType)` and `documentsRoutesAt(projectPath)`, which return the routes under the project path
+an app's contracts declare (`PROJECT_PATH`), so the prefix of the app's routes is written once. The
 type of a path keeps its `:name` segments, so `defineSchemaRoute` still checks each route's
-params. Each contracts package re-exports the package and declares the chat's routes under its
+params. Their names do not end in `Routes`, which the API's routes specs read as a routes object. Each contracts package re-exports the package and declares the chat's routes under its
 own path, beside the routes only its app has (the Desk creates and deletes a conversation), so
 the apps and the API import them from their contracts as before, and the chat code the apps
 will share reads one type of route (`ConversationRoutes`, `DocumentsRoutes`). No app owns it,
@@ -1135,8 +1166,8 @@ part of it invalidates.
   `packages/schema-route` reaches both contracts packages and the API at once, as does a change
   to `packages/chat-contracts`, the chat's schemas and routes. A change to
   `packages/frontend-config` changes the Biome rules and the component check of every app at once
-  (section 2.3), and a change to `packages/frontend-lib` the hooks and helpers of the Desk and
-  Evaluation at once (section 2.4).
+  (section 2.3), a change to `packages/frontend-lib` the hooks and helpers of the Desk and
+  Evaluation at once, and a change to `packages/chat` the logic of both chats (section 2.4).
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
@@ -1224,7 +1255,7 @@ part of it invalidates.
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
   has to be found. The same holds for `packages/mcp-app-host`, `packages/sign-in`,
   `packages/schema-route`, `packages/chat-contracts`, `packages/api-client`,
-  `packages/frontend-lib` and `packages/app-ui`:
+  `packages/frontend-lib`, `packages/chat` and `packages/app-ui`:
   no tool checks yet that they import no workspace package beyond the ones this ADR allows.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to

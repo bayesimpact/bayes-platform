@@ -7,6 +7,14 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@caseai-connect/app-ui/components/message-scroller"
+import {
+  ANNOTATION_LAYER_ATTRIBUTE,
+  findRetryableMessage,
+  isBeingWritten,
+  lastReplyFollowUpQuestions,
+  useCitedPassages,
+  withAppMessage,
+} from "@caseai-connect/chat"
 import type {
   ConversationFormOutputDto,
   ConversationParamsDto,
@@ -17,13 +25,9 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
 import { type ReactNode, useId, useState } from "react"
 import { HeaderActions } from "@/components/shared/HeaderActions"
-import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
-import { findRetryableMessage, isBeingWritten, lastReplyFollowUpQuestions } from "../chat-messages"
-import { useCitedPassages } from "../hooks/use-cited-passages"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
 import { useConversationSend } from "../hooks/use-conversation-send"
-import { withAppMessage } from "../mcp-apps"
 import { ChatMessageView } from "./ChatMessageView"
 import { CitedPassageBadges } from "./CitedPassageBadges"
 import { Composer } from "./Composer"

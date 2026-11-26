@@ -1,10 +1,14 @@
+import {
+  type ChatMessage,
+  composeMessage,
+  type OutgoingMessage,
+  quoteSourceOf,
+  taskCheckLine,
+  useAnnotations,
+  useTaskChecks,
+} from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
-import { composeMessage, quoteSourceOf } from "../annotation"
 import { useSendMessage } from "../api/mutations"
-import type { ChatMessage, OutgoingMessage } from "../chat-messages"
-import { taskCheckLine } from "../task-checks"
-import { useAnnotations } from "./use-annotations"
-import { useTaskChecks } from "./use-task-checks"
 
 /**
  * What the person sends in a conversation: their message with the annotations they wrote on the

@@ -1,4 +1,4 @@
-import { messageFeedbackContentSchema } from "@caseai-connect/eval-contracts"
+import { messageFeedbackContentSchema } from "@caseai-connect/chat-contracts"
 import { z } from "zod"
 
 /**

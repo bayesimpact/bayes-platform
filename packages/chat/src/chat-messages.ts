@@ -9,7 +9,7 @@ import {
   surfaceResourcesArgumentsSchema,
   TOOL_NAMES,
   type ToolName,
-} from "@caseai-connect/eval-contracts"
+} from "@caseai-connect/chat-contracts"
 import { isToolError } from "@caseai-connect/mcp-app-host"
 import type { z } from "zod"
 
@@ -47,6 +47,11 @@ export type ChatMessage = {
   status: NonNullable<ConversationMessageOutputDto["status"]>
   /** The tools the agent called, in order, from the persisted message or the stream. */
   toolNames: string[]
+  /**
+   * The results the persisted message kept of its tool calls, where an app reads what only it
+   * shows. Empty while the reply streams.
+   */
+  toolResults: ChatToolResult[]
   createdAt: number | null
   /** Set when the app failed the reply; the content then holds nothing to show. */
   failure: ReplyFailure | null
@@ -75,7 +80,7 @@ export type ChatMcpApp = {
  * The MCP Apps of a reply: a tool with an app pointer and a kept result, which is not an error.
  * A failed call shows no app: the model reads the error and often calls the tool again.
  */
-function readMcpApps(toolCalls: ToolCall[]): ChatMcpApp[] {
+function readMcpApps(toolCalls: ChatToolCall[]): ChatMcpApp[] {
   return toolCalls.flatMap((toolCall) =>
     toolCall.mcpApp && toolCall.result !== undefined && !isToolError(toolCall.result)
       ? [
@@ -91,14 +96,24 @@ function readMcpApps(toolCalls: ToolCall[]): ChatMcpApp[] {
   )
 }
 
-type ToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
+type ChatToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
+
+/** The result of a tool the agent called, which the API keeps for a few tools only. */
+export type ChatToolResult = { toolName: string; result: unknown }
+
+/** The results a message kept of its tool calls, without their arguments. */
+function readToolResults(toolCalls: ChatToolCall[]): ChatToolResult[] {
+  return toolCalls.flatMap((toolCall) =>
+    toolCall.result === undefined ? [] : [{ toolName: toolCall.name, result: toolCall.result }],
+  )
+}
 
 /**
  * The arguments of the calls of one tool, read with their schema. A call the schema rejects is
  * left out and logged: the rest of the reply still shows.
  */
 function readToolArguments<TSchema extends z.ZodType>(
-  toolCalls: ToolCall[],
+  toolCalls: ChatToolCall[],
   toolName: ToolName,
   schema: TSchema,
 ): z.output<TSchema>[] {
@@ -117,7 +132,7 @@ function readToolArguments<TSchema extends z.ZodType>(
  * The questions of the last `suggestFollowUpQuestions` call of a reply, without blank or repeated
  * ones: each one is a button, keyed by its text.
  */
-function readFollowUpQuestions(toolCalls: ToolCall[]): string[] {
+function readFollowUpQuestions(toolCalls: ChatToolCall[]): string[] {
   const lastCall = readToolArguments(
     toolCalls,
     TOOL_NAMES.suggestFollowUpQuestions,
@@ -149,6 +164,7 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
         content: message.content,
         status: message.status ?? "completed",
         toolNames: toolCalls.map((toolCall) => toolCall.name),
+        toolResults: readToolResults(toolCalls),
         createdAt: message.createdAt ?? null,
         failure: null,
         sources: readToolArguments(toolCalls, TOOL_NAMES.sources, sourcesArgumentsSchema).flatMap(
@@ -193,6 +209,7 @@ function newMessage(id: string, role: ChatMessage["role"], now: number): ChatMes
     content: "",
     status: "streaming",
     toolNames: [],
+    toolResults: [],
     createdAt: now,
     failure: null,
     sources: [],

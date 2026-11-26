@@ -1,3 +1,4 @@
+import type { OutgoingMessage } from "@caseai-connect/chat"
 import {
   type ConversationParamsDto,
   EvalConversationsRoutes,
@@ -8,7 +9,6 @@ import {
 import { openInTab } from "@caseai-connect/frontend-lib"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import type { OutgoingMessage } from "../chat-messages"
 import { streamReply } from "./stream-reply"
 
 /**

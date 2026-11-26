@@ -1,4 +1,15 @@
 import { Message, MessageContent } from "@caseai-connect/app-ui/components/message"
+import {
+  type AppsHtml,
+  type ChatMessage,
+  hasMeaningfulText,
+  isBeingWritten,
+  isLocalMessageId,
+  type OpenedResource,
+  QUOTABLE_ATTRIBUTE,
+  type TaskChecks,
+  unavailableApps,
+} from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { toolResultText } from "@caseai-connect/mcp-app-host"
 import { Trans, useLingui } from "@lingui/react/macro"
@@ -6,12 +17,7 @@ import { useState } from "react"
 import { CopyButton } from "@/components/shared/CopyButton"
 import { Markdown } from "@/components/shared/Markdown"
 import { RelativeTime } from "@/components/shared/RelativeTime"
-import { MemoryProposals } from "@/features/memory"
-import { QUOTABLE_ATTRIBUTE } from "../annotation"
-import { type ChatMessage, isBeingWritten, isLocalMessageId } from "../chat-messages"
-import type { TaskChecks } from "../hooks/use-task-checks"
-import { type AppsHtml, hasMeaningfulText, unavailableApps } from "../mcp-apps"
-import type { OpenedResource } from "../resource-media"
+import { MemoryProposals, savedMemoryIdsOf } from "@/features/memory"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { FollowUpQuestions } from "./FollowUpQuestions"
 import { GoodReplyButton } from "./GoodReplyButton"
@@ -63,6 +69,7 @@ export function AssistantMessageView({
   const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
   const isWriting = isBeingWritten(message, now)
+  const memoryIds = savedMemoryIdsOf(message.toolResults)
   const isInterrupted =
     message.status === "aborted" || (message.status === "streaming" && !isWriting)
   const text =
@@ -110,8 +117,8 @@ export function AssistantMessageView({
         {message.resources.length > 0 ? (
           <ResourceCards resources={message.resources} onOpenResource={onOpenResource} />
         ) : null}
-        {message.memoryIds.length > 0 ? (
-          <MemoryProposals agent={conversation} memoryIds={message.memoryIds} />
+        {memoryIds.length > 0 ? (
+          <MemoryProposals agent={conversation} memoryIds={memoryIds} />
         ) : null}
         {hasSourcesTool && message.sources.length > 0 ? (
           <SourcesList conversation={conversation} sources={message.sources} />

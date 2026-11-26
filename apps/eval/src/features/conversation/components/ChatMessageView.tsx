@@ -1,14 +1,16 @@
 import { Bubble, BubbleContent } from "@caseai-connect/app-ui/components/bubble"
 import { Message, MessageContent } from "@caseai-connect/app-ui/components/message"
+import type {
+  AppsHtml,
+  ChatMessage,
+  CitedPassages,
+  OpenedResource,
+  TaskChecks,
+} from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { CopyButton } from "@/components/shared/CopyButton"
 import { RelativeTime } from "@/components/shared/RelativeTime"
-import type { ChatMessage } from "../chat-messages"
-import type { CitedPassages } from "../hooks/use-cited-passages"
-import type { TaskChecks } from "../hooks/use-task-checks"
-import type { AppsHtml } from "../mcp-apps"
-import type { OpenedResource } from "../resource-media"
 import { AssistantMessageView } from "./AssistantMessageView"
 import { AttachmentChip } from "./AttachmentChip"
 import { MessageActions } from "./MessageActions"
