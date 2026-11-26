@@ -48,10 +48,10 @@ export type ChatMessage = {
   /** The tools the agent called, in order, from the persisted message or the stream. */
   toolNames: string[]
   /**
-   * The calls of the persisted message, with their arguments and results, where an app reads
-   * what only it shows. Empty while the reply streams.
+   * The results the persisted message kept of its tool calls, where an app reads what only it
+   * shows. Empty while the reply streams.
    */
-  toolCalls: ChatToolCall[]
+  toolResults: ChatToolResult[]
   createdAt: number | null
   /** Set when the app failed the reply; the content then holds nothing to show. */
   failure: ReplyFailure | null
@@ -96,7 +96,17 @@ function readMcpApps(toolCalls: ChatToolCall[]): ChatMcpApp[] {
   )
 }
 
-export type ChatToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
+type ChatToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
+
+/** The result of a tool the agent called, which the API keeps for a few tools only. */
+export type ChatToolResult = { toolName: string; result: unknown }
+
+/** The results a message kept of its tool calls, without their arguments. */
+function readToolResults(toolCalls: ChatToolCall[]): ChatToolResult[] {
+  return toolCalls.flatMap((toolCall) =>
+    toolCall.result === undefined ? [] : [{ toolName: toolCall.name, result: toolCall.result }],
+  )
+}
 
 /**
  * The arguments of the calls of one tool, read with their schema. A call the schema rejects is
@@ -154,7 +164,7 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
         content: message.content,
         status: message.status ?? "completed",
         toolNames: toolCalls.map((toolCall) => toolCall.name),
-        toolCalls,
+        toolResults: readToolResults(toolCalls),
         createdAt: message.createdAt ?? null,
         failure: null,
         sources: readToolArguments(toolCalls, TOOL_NAMES.sources, sourcesArgumentsSchema).flatMap(
@@ -199,7 +209,7 @@ function newMessage(id: string, role: ChatMessage["role"], now: number): ChatMes
     content: "",
     status: "streaming",
     toolNames: [],
-    toolCalls: [],
+    toolResults: [],
     createdAt: now,
     failure: null,
     sources: [],

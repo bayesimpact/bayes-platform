@@ -69,7 +69,7 @@ export function AssistantMessageView({
   const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
   const isWriting = isBeingWritten(message, now)
-  const memoryIds = savedMemoryIdsOf(message.toolCalls)
+  const memoryIds = savedMemoryIdsOf(message.toolResults)
   const isInterrupted =
     message.status === "aborted" || (message.status === "streaming" && !isWriting)
   const text =

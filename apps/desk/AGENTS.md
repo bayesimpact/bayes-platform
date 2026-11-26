@@ -156,8 +156,8 @@ the conventions as they stand. When a rule changes, its reference file changes i
   scroll to.
 - The chat's logic and hooks come from `@caseai-connect/chat` (`packages/chat`), which the Desk
   shares with Evaluation: its messages and the stream of a reply, the annotations and quoted
-  passages, the task checks, the MCP Apps and the resources. A message keeps its tool calls, in
-  which the Desk reads the facts its memory saved (`savedMemoryIdsOf` of `features/memory`):
+  passages, the task checks, the MCP Apps and the resources. A message keeps the results of its
+  tool calls, in which the Desk reads the facts its memory saved (`savedMemoryIdsOf` of `features/memory`):
   the package knows no memory.
 - Evaluation (`apps/eval`) holds a copy of the rest of the chat: `src/features/conversation/`,
   and `Markdown`, `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. A change

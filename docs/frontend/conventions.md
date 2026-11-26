@@ -370,7 +370,7 @@ Zod, `@caseai-connect/permissions`, `@caseai-connect/schema-route` and
 chat's contracts are the one part the apps share: the schemas of a conversation, of its forms
 and of the documents its replies cite live once in `packages/chat-contracts`, which each
 contracts package re-exports, with the routes of a conversation and of its documents, which it
-declares under its own path (`defineConversationRoutes("desk", "live")`). The app reads its source. When the app
+declares under its own path (`conversationRoutesAt(PROJECT_PATH, "live")`). The app reads its source. When the app
 has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
 build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 

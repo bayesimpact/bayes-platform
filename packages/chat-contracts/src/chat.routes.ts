@@ -19,21 +19,19 @@ import {
 } from "./documents.dto"
 
 /**
- * The path of a project in the routes of an app, whose routes start with the app's name (`desk`,
- * `eval`). Its type keeps the `:name` segments, so `defineSchemaRoute` still checks each route's
- * params against its path.
+ * The path of a project in the routes of an app, the `PROJECT_PATH` of its contracts
+ * (`desk/organizations/:organizationId/projects/:projectId`). Its type keeps the `:name` segments,
+ * so `defineSchemaRoute` still checks each route's params against its path.
  */
-function projectPathOf(app: string) {
-  return `${app}/organizations/:organizationId/projects/:projectId` as const
-}
+export type ProjectPath = `${string}/organizations/:organizationId/projects/:projectId`
 
 /**
- * The routes of a conversation in the sessions of one type (`live` for the Desk,
- * `review_campaign_tester` for Evaluation): its messages, its files, the feedback on its replies
- * and the stream of the agent's replies. Each app spreads them in its own routes.
+ * The routes of a conversation under an app's project path, in the sessions of one type (`live`
+ * for the Desk, `review_campaign_tester` for Evaluation): its messages, its files, the feedback on
+ * its replies and the stream of the agent's replies. Each app spreads them in its own routes.
+ * The name does not end in `Routes`, which the API's routes specs read as a routes object.
  */
-export function defineConversationRoutes(app: string, sessionType: string) {
-  const projectPath = projectPathOf(app)
+export function conversationRoutesAt(projectPath: ProjectPath, sessionType: string) {
   const sessionPath =
     `${projectPath}/agents/:agentId/agent-sessions/${sessionType}/:agentSessionId` as const
   const messagesPath = `${sessionPath}/messages` as const
@@ -88,11 +86,11 @@ export function defineConversationRoutes(app: string, sessionType: string) {
 }
 
 /** The routes of a conversation, whatever its app: what the chat reads and sends. */
-export type ConversationRoutes = ReturnType<typeof defineConversationRoutes>
+export type ConversationRoutes = ReturnType<typeof conversationRoutesAt>
 
-/** The routes of the documents a reply cites as its sources. */
-export function defineDocumentsRoutes(app: string) {
-  const documentPath = `${projectPathOf(app)}/documents/:documentId` as const
+/** The routes of the documents a reply cites as its sources, under an app's project path. */
+export function documentsRoutesAt(projectPath: ProjectPath) {
+  const documentPath = `${projectPath}/documents/:documentId` as const
   return {
     getIsPublic: defineSchemaRoute({
       method: "get",
@@ -111,4 +109,4 @@ export function defineDocumentsRoutes(app: string) {
 }
 
 /** The routes of the documents a reply cites, whatever its app. */
-export type DocumentsRoutes = ReturnType<typeof defineDocumentsRoutes>
+export type DocumentsRoutes = ReturnType<typeof documentsRoutesAt>

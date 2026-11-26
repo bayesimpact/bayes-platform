@@ -74,19 +74,20 @@ describe("toChatMessages", () => {
     expect(reply?.mcpApps.map((app) => app.toolCallId)).toEqual(["worked"])
   })
 
-  it("keeps the tool calls of a reply, for what only an app reads in them", () => {
+  it("keeps the results of a reply's tool calls, for what only an app reads in them", () => {
     const toolCall = { id: crypto.randomUUID(), name: "book_meeting", result: { booked: true } }
+    const withoutResult = { id: crypto.randomUUID(), name: "lookup_knowledge_base" }
     const [reply] = toChatMessages([
       {
         id: crypto.randomUUID(),
         role: "assistant",
         content: "Noted.",
         status: "completed",
-        toolCalls: [toolCall],
+        toolCalls: [toolCall, withoutResult],
       },
     ])
 
-    expect(reply?.toolCalls).toEqual([toolCall])
+    expect(reply?.toolResults).toEqual([{ toolName: "book_meeting", result: { booked: true } }])
   })
 })
 

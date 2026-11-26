@@ -3,7 +3,7 @@
   "features/conversation/api/mutations.ts": "7e36d142f46d805e",
   "features/conversation/api/queries.ts": "88a9e22479a38023",
   "features/conversation/api/stream-reply.ts": "9e7d8b974045a859",
-  "features/conversation/components/AssistantMessageView.tsx": "8d48537ed13791cd",
+  "features/conversation/components/AssistantMessageView.tsx": "823ec8712b2dc8f0",
   "features/conversation/components/ConversationMenu.tsx": "f328631efe6480bf",
   "features/conversation/components/ConversationTitle.tsx": "fcb55301100576ce",
   "features/conversation/components/ConversationView.tsx": "3c100a793724ca7a",

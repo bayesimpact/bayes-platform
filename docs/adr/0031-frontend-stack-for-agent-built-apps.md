@@ -399,8 +399,9 @@ started as a copy of the Desk's, which a parity check compared file by file; the
 the same in both apps but for their imports and comments, and the memory, which only the Desk
 has. Its limits:
 
-* No app owns it, and it holds nothing only one app shows: a message keeps its tool calls, in
-  which the Desk reads the facts its memory saved, so the package knows no memory. It holds no
+* No app owns it, and it holds nothing only one app shows: a message keeps the results of its
+  tool calls, without their arguments, in which the Desk reads the facts its memory saved, so the
+  package knows no memory. It holds no
   component, style or text a screen shows, and makes no call to the API: the components, the
   calls, and the hooks and helpers that show a text or call the API stay in each app, which the
   parity check still compares,
@@ -411,7 +412,8 @@ has. Its limits:
 * The apps import it directly. It follows the TypeScript options of the new stack, resolves
   through its `exports` with no build, and has its own specs, which CI runs in the Desk's job.
   Its hooks go through the React Compiler of each app, and its `biome.json` extends the apps'
-  rules, as `packages/frontend-lib` does. knip does not run on it.
+  rules, as `packages/frontend-lib` does. knip does not run on it, so its `index.ts` exports by
+  name only what the apps import: an export they stop using then shows as unused in the package.
 
 **The shared shadcn components.** `packages/app-ui` (`@caseai-connect/app-ui`) holds the shadcn
 components on Base UI, the `use-mobile` hook shadcn's sidebar reads, `shadcn.css` and the
@@ -761,10 +763,11 @@ conversation, of its forms and of the documents its replies cite, and the routes
 send its messages. The copies differed by their comments and by the file a schema lived in, and
 the routes by one segment of their path: the type of the session (`live` for the Desk,
 `review_campaign_tester` for Evaluation). Since 2026-11-26, `packages/chat-contracts`
-(`@caseai-connect/chat-contracts`) holds the schemas once, with `defineConversationRoutes(app,
-sessionType)` and `defineDocumentsRoutes(app)`, which return the routes under an app's path. The
+(`@caseai-connect/chat-contracts`) holds the schemas once, with `conversationRoutesAt(projectPath,
+sessionType)` and `documentsRoutesAt(projectPath)`, which return the routes under the project path
+an app's contracts declare (`PROJECT_PATH`), so the prefix of the app's routes is written once. The
 type of a path keeps its `:name` segments, so `defineSchemaRoute` still checks each route's
-params. Each contracts package re-exports the package and declares the chat's routes under its
+params. Their names do not end in `Routes`, which the API's routes specs read as a routes object. Each contracts package re-exports the package and declares the chat's routes under its
 own path, beside the routes only its app has (the Desk creates and deletes a conversation), so
 the apps and the API import them from their contracts as before, and the chat code the apps
 will share reads one type of route (`ConversationRoutes`, `DocumentsRoutes`). No app owns it,

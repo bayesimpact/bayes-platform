@@ -1,7 +1,7 @@
-import { conversationParamsSchema, defineConversationRoutes } from "@caseai-connect/chat-contracts"
+import { conversationParamsSchema, conversationRoutesAt } from "@caseai-connect/chat-contracts"
 import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
-import { AGENT_PATH, agentParamsSchema } from "../common/params.dto"
+import { AGENT_PATH, agentParamsSchema, PROJECT_PATH } from "../common/params.dto"
 import { createdConversationOutputSchema } from "./conversations.dto"
 
 const conversationPath = `${AGENT_PATH}/conversation-agent-sessions/live/:agentSessionId`
@@ -24,5 +24,5 @@ export const DeskConversationsRoutes = {
     params: conversationParamsSchema,
     response: z.object({ success: z.boolean() }),
   }),
-  ...defineConversationRoutes("desk", "live"),
+  ...conversationRoutesAt(PROJECT_PATH, "live"),
 }
