@@ -26,6 +26,9 @@
   Evaluation contracts re-export, instead of a copy in each (sections 2.4, 2.12, 4 and 6)
 * **Amended**: 2026-11-26, by Alexis: the chat's logic and hooks are a package the Desk and
   Evaluation import, instead of a copy in each (sections 2.3, 2.4, 2.11, 4 and 6)
+* **Amended**: 2026-11-26, by Alexis: the shared packages have one list,
+  `docs/frontend/shared-packages.md`, which the other documents point to instead of repeating it
+  (sections 2.3, 2.4, 2.11, 4 and 6)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -36,10 +39,8 @@
   apps in `apps/api/src/common/web-app/`, `apps/api/Dockerfile` and the Helm chart (the Desk's
   theme mount), `apps/api/.dependency-cruiser.cjs`, the link of agent invitations
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
-  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in`, the
-  `lib/auth/` of each app, `packages/schema-route`, `packages/api-client` and
-  `packages/frontend-config` (since 2026-11-25), `packages/frontend-lib`, `packages/app-ui`,
-  `packages/chat-contracts` and `packages/chat` (since 2026-11-26), and
+  `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, the `lib/auth/` of each
+  app, the shared packages that `docs/frontend/shared-packages.md` lists, and
   `apps/web/src/desk/`
   (deleted at the cutover).
 
@@ -191,8 +192,8 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   and an app's `biome.json` extends the root configuration and that file, by path
   (`"root": false`,
   `"extends": ["../../biome.json", "../../packages/frontend-config/biome.app.json"]`).
-  `packages/frontend-lib`, `packages/chat` and `packages/app-ui`, whose code runs in every app,
-  extend them the same way.
+  The shared packages that hold React code extend them the same way
+  (`docs/frontend/shared-packages.md`).
   Biome 2.3 accepts `"//"` only alone, and does not follow an `extends` inside an extended file.
   The shared file is not named `biome.json`, so its folder keeps the root configuration.
 
@@ -222,15 +223,7 @@ apps/desk/
     test/                   setup, MSW handlers, fixture factories, render helpers
   .storybook/               Storybook on the MSW handlers
 packages/desk-contracts/    the Desk's routes and Zod schemas
-packages/mcp-app-host/      the sandbox of MCP Apps, which every app imports
-packages/sign-in/           the sign-in, which every app of the stack imports
-packages/schema-route/      the route helper and the error body of every contracts package
-packages/chat-contracts/    the chat's schemas and routes, which the Desk and Evaluation contracts re-export
-packages/api-client/        the API client, which every app of the stack imports
-packages/frontend-config/   the Biome rules, GritQL plugins and component check of every app
-packages/frontend-lib/      the hooks and helpers every app of the stack imports
-packages/chat/              the chat's logic and hooks, which the Desk and Evaluation import
-packages/app-ui/            the shadcn components, their stylesheet and the design tokens
+packages/<shared>/          the packages no app owns (docs/frontend/shared-packages.md)
 ```
 
 dependency-cruiser enforces the direction of imports between the folders of `src/`:
@@ -241,9 +234,9 @@ dependency-cruiser enforces the direction of imports between the folders of `src
 * `components/`, `hooks/` and `lib/` import neither `features/` nor `routes/`.
 * The Desk imports nothing from another app or from a package another app owns: `apps/web`,
   `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its workspace
-  dependencies are `@caseai-connect/desk-contracts` and the packages no app owns (see below):
-  `@caseai-connect/mcp-app-host`, `@caseai-connect/sign-in`, `@caseai-connect/api-client`,
-  `@caseai-connect/frontend-lib`, `@caseai-connect/chat` and `@caseai-connect/app-ui`.
+  dependencies are `@caseai-connect/desk-contracts` and the shared packages an app imports,
+  which no app owns (see below, and `docs/frontend/shared-packages.md`). It reaches the
+  permission catalog, the route helper and the chat's contracts through its contracts only.
   Only `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports
   `oidc-client-ts`, and only `lib/api-client.ts` imports `@caseai-connect/api-client`.
 * No cycles.
@@ -252,8 +245,7 @@ knip reports unused files, exports and dependencies. Both tools run in the Desk'
 `check:boundaries` script, which CI already runs through turbo. They only see imports, so these
 boundaries can still be bypassed (section 6).
 
-Apart from the packages below, and the permission catalog and the route helper its contracts
-re-export (section 2.12),
+Apart from the packages below, and the packages its contracts re-export (section 2.12),
 the Desk shares no code with the other apps: what it needs lives in it, even where `apps/web` has
 its own version. Whether the apps of the new stack share code with each other was left for the
 second one (section 7). Evaluation answered it on 2026-11-25 for the sign-in ("The shared
@@ -261,6 +253,14 @@ sign-in" below), the route helper of the contracts (section 2.12) and the API cl
 API client" below), and on 2026-11-26 for the hooks and helpers held in the same copy ("The shared
 hooks and helpers" below) and for the shadcn components with their tokens ("The shared shadcn
 components" below). Each app keeps its other code.
+
+`docs/frontend/shared-packages.md` is the one list of the shared packages: what each one holds,
+who imports it, what it may depend on and what it must not hold today, with the steps that add
+one. The other documents point to it for what a package holds and for its limits. The paragraphs
+below list the packages shared up to the shadcn components; the list holds every one shared
+since. They, and those of
+section 2.12, keep the reasons each package was shared, with its limits as of that day: where
+one differs from the list, the list wins.
 
 **The shared sandbox of MCP Apps.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
@@ -444,7 +444,8 @@ not `packages/ui`, the component library of `apps/web` on Radix, which stays out
   `biome.json` extends the apps' rules, and its `check` script runs its typecheck and Biome. knip
   does not run on it: its components export every part, used or not, as the CLI writes them.
 
-No other package is shared on these grounds. Another one needs its own decision.
+No other package is shared on these grounds. Another one needs its own decision: an amendment
+of this ADR that gives its reasons, and a row in the list.
 
 ### 2.5 Code conventions
 
@@ -678,9 +679,9 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 ### 2.11 Tests and quality gate
 
 * Vitest runs two projects. Pure logic (the app's sign-in wrapper, schemas) runs in node,
-  unlike the kit's single jsdom project, and the stream parser and the client are tested in
-  `packages/api-client`, the shared hooks and helpers in `packages/frontend-lib`, the chat's
-  logic in `packages/chat`. Components and
+  unlike the kit's single jsdom project, and the shared packages that hold logic are
+  tested in their own folders (the stream parser and the client in `packages/api-client`).
+  Components and
   hooks run in happy-dom with Testing Library
   and user-event; a test checks what a person sees, queries by role and label (in English, the
   source text), and uses `data-testid` as a last resort. Test files sit next to the code.
@@ -1156,18 +1157,10 @@ part of it invalidates.
 ## 4. Consequences
 
 * The Desk depends on no other app's code. Its theme files, contracts and translations are its
-  own, and a change in Studio cannot break it. Its shadcn components and tokens are those of
-  `packages/app-ui`, which it shares with Evaluation only: a change there reaches both at once.
-  The sandbox of MCP Apps is the exception (section 2.4): a change to `packages/mcp-app-host` reaches the Desk, `apps/web` and
-  `apps/web-embed` at once, on purpose. So does the permission catalog (section 2.12): a change to
-  `packages/permissions` reaches every app and the API at once. And so does the sign-in (section
-  2.4): a change to `packages/sign-in` reaches the Desk and Evaluation at once, as does a change to
-  `packages/api-client`. And so does the route helper (section 2.12): a change to
-  `packages/schema-route` reaches both contracts packages and the API at once, as does a change
-  to `packages/chat-contracts`, the chat's schemas and routes. A change to
-  `packages/frontend-config` changes the Biome rules and the component check of every app at once
-  (section 2.3), a change to `packages/frontend-lib` the hooks and helpers of the Desk and
-  Evaluation at once, and a change to `packages/chat` the logic of both chats (section 2.4).
+  own, and a change in Studio cannot break it. The shared packages are the exception (section
+  2.4, `docs/frontend/shared-packages.md`): a change to one of them reaches every app that imports
+  it at once, on purpose, and the API too for the permission catalog, the route helper and the
+  chat's contracts.
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
@@ -1253,10 +1246,8 @@ part of it invalidates.
 * The Desk's independence is not fully enforced yet. dependency-cruiser only sees imports: a copied
   file, a CSS import or an edit of its configuration can still bring code of `apps/web`,
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
-  has to be found. The same holds for `packages/mcp-app-host`, `packages/sign-in`,
-  `packages/schema-route`, `packages/chat-contracts`, `packages/api-client`,
-  `packages/frontend-lib`, `packages/chat` and `packages/app-ui`:
-  no tool checks yet that they import no workspace package beyond the ones this ADR allows.
+  has to be found. The same holds for the shared packages: no tool checks yet that they stay
+  within the limits of `docs/frontend/shared-packages.md`.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to
   `PermissionService` as well?
@@ -1278,7 +1269,8 @@ part of it invalidates.
   contracts, the API client and the Biome configuration with its checks are shared (sections 2.3,
   2.4 and 2.12), and the design system stays in each app. Decided on 2026-11-26: the hooks and
   helpers held in the same copy are shared too, and so are the shadcn components with their
-  tokens, which no app had changed (section 2.4). Ask again when a third app joins.
+  tokens, which no app had changed (section 2.4). `docs/frontend/shared-packages.md` lists what
+  is shared since. Ask again when a third app joins.
 * The API moves to NestJS 12, or TypeScript 7.1 ships a compiler API: a typecheck several times
   faster pays off with every agent run.
 * Parsing large transcripts shows in response times.
