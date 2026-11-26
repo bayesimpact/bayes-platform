@@ -1,5 +1,43 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
+declare global {
+  interface Window {
+    /** The browser's speech recognition, which Chrome and Safari still name with a prefix. */
+    SpeechRecognition?: new () => SpeechRecognition
+    webkitSpeechRecognition?: new () => SpeechRecognition
+  }
+
+  /** The events of the browser's speech recognition, whose payloads lib.dom declares. */
+  type SpeechRecognitionEventMap = {
+    result: SpeechRecognitionEvent
+    error: SpeechRecognitionErrorEvent
+    start: Event
+    end: Event
+  }
+
+  /**
+   * The parts of the browser's speech recognition the hook uses. lib.dom declares its events but
+   * not the recognition itself, which only some browsers have.
+   */
+  interface SpeechRecognition extends EventTarget {
+    continuous: boolean
+    interimResults: boolean
+    lang: string
+    start(): void
+    stop(): void
+    addEventListener<K extends keyof SpeechRecognitionEventMap>(
+      type: K,
+      listener: (this: SpeechRecognition, event: SpeechRecognitionEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void
+    removeEventListener<K extends keyof SpeechRecognitionEventMap>(
+      type: K,
+      listener: (this: SpeechRecognition, event: SpeechRecognitionEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void
+  }
+}
+
 function speechRecognitionConstructor(): (new () => SpeechRecognition) | null {
   if (typeof window === "undefined") return null
   return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null

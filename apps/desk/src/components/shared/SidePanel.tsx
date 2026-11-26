@@ -1,9 +1,8 @@
-import { useInertPageBehind, useMediaQuery } from "@caseai-connect/frontend-lib"
+import { useInertPageBehind, useMediaQuery, useResizableWidth } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
 import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { ResizeHandle } from "./ResizeHandle"
 
 export type SidePanelProps = {

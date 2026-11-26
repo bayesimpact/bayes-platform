@@ -1,8 +1,8 @@
+import { useSpeechRecognition } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { useRef } from "react"
 import { toast } from "sonner"
 import { activeLocaleOf, SPEECH_LANGUAGES } from "@/app/i18n"
-import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
 
 type UseDictationOptions = {
   content: string

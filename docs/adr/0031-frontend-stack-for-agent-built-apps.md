@@ -348,9 +348,11 @@ in both apps: the loaders' `loaderStaleTime` and `startQuery`, `pollWhile`, `has
 and durations of `Intl` (`relativeTimeOf`, `fullDateTimeOf`, `shortDateTimeOf`, `durationOf`), the
 size of a file, the URLs a reply may open and the tab a signed URL opens in, the upload to a
 signed URL, the tasks of a Markdown text, the highlights of quoted passages, `isApplePlatform`,
-`useNow`, `useMediaQuery`, `useCopyText` and `useInertPageBehind`. Evaluation started from copies
-of them, so the two apps held about 470 lines twice, and the first fixes had already landed in one
-copy only (`startQuery` in the Desk, `shortDateTimeOf` in Evaluation). Among them is code a drift
+`useNow`, `useMediaQuery`, `useCopyText`, `useInertPageBehind`, `useResizableWidth` and
+`useSpeechRecognition`, with the browser types of the speech recognition. Evaluation started from
+copies of them, so the two apps held about 700 lines twice, and the first changes had already
+landed in one copy only (`startQuery` in the Desk; `shortDateTimeOf` and the `onResize` of
+`useResizableWidth` in Evaluation): the package keeps them all. Among them is code a drift
 makes unsafe: the check that a reply's link is https or a library file of the API, before a tab
 opens it. Its limits:
 
@@ -362,9 +364,6 @@ opens it. Its limits:
   pages stays in the app, as do the hooks shadcn's CLI writes (`use-mobile.ts`). The highlights of
   quoted passages keep names with no prefix (`quote`, `cited`, `cited-jump`), which each app's
   `global.css` styles.
-* Two hooks both apps hold wait for a change of their own: `useSpeechRecognition`, whose browser
-  types each app declares in its `env.d.ts`, and `useResizableWidth`, which Evaluation already
-  changed for its `SidePanel`.
 * It depends on React and TanStack Query alone, as peers, so the app keeps one copy of each, and
   imports no other workspace package.
 * The apps import it directly: a file of `hooks/` or `lib/` that only re-exported it would be a

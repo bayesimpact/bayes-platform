@@ -1,10 +1,9 @@
-import { useInertPageBehind, useMediaQuery } from "@caseai-connect/frontend-lib"
+import { useInertPageBehind, useMediaQuery, useResizableWidth } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
 import { type KeyboardEvent, type ReactNode, useEffect, useEffectEvent, useId, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { useSidebar } from "@/components/ui/sidebar"
-import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { ResizeHandle } from "./ResizeHandle"
 
 /** Under this width, the page beside a panel is too narrow to read: the sidebar gives way. */
