@@ -51,18 +51,19 @@ jobs:
           fi
           # The Desk's tests, translation checks and build run when the Desk,
           # its contracts, the permissions, the schema routes, the MCP App host, the sign-in, the
-          # API client or the frontend config it shares, or the dependencies changed.
-          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|packages/permissions/|packages/schema-route/|packages/mcp-app-host/|packages/sign-in/|packages/api-client/|packages/frontend-config/|package\.json$|package-lock\.json$)'; then
+          # API client, the frontend config or the frontend lib it shares, or the dependencies
+          # changed.
+          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|packages/permissions/|packages/schema-route/|packages/mcp-app-host/|packages/sign-in/|packages/api-client/|packages/frontend-config/|packages/frontend-lib/|package\.json$|package-lock\.json$)'; then
             echo "desk-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "desk-tests=false" >> "$GITHUB_OUTPUT"
           fi
           # Evaluation's checks run when Evaluation, its contracts, the permissions, the schema
-          # routes, the sign-in, the API client or the frontend config it shares or the
-          # dependencies changed,
+          # routes, the sign-in, the API client, the frontend config or the frontend lib it shares
+          # or the dependencies changed,
           # and when the Desk's chat changed: Evaluation's chat is a copy of it, which
           # check:desk-parity compares.
-          if echo "$CHANGED" | grep -qE '^(apps/eval/|packages/eval-contracts/|packages/permissions/|packages/schema-route/|packages/sign-in/|packages/api-client/|packages/frontend-config/|apps/desk/src/features/conversation/|apps/desk/src/components/shared/(Markdown|HighlightedCodeBlock|InlineCode)\.tsx$|package\.json$|package-lock\.json$)'; then
+          if echo "$CHANGED" | grep -qE '^(apps/eval/|packages/eval-contracts/|packages/permissions/|packages/schema-route/|packages/sign-in/|packages/api-client/|packages/frontend-config/|packages/frontend-lib/|apps/desk/src/features/conversation/|apps/desk/src/components/shared/(Markdown|HighlightedCodeBlock|InlineCode)\.tsx$|package\.json$|package-lock\.json$)'; then
             echo "eval-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "eval-tests=false" >> "$GITHUB_OUTPUT"
@@ -198,7 +199,7 @@ jobs:
     steps:
       - name: Skip, nothing the Desk checks exercise changed
         if: needs.changes.outputs.desk-tests == 'false'
-        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, packages/permissions, packages/schema-route, packages/mcp-app-host, packages/sign-in, packages/api-client, packages/frontend-config, package.json or package-lock.json"
+        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, packages/permissions, packages/schema-route, packages/mcp-app-host, packages/sign-in, packages/api-client, packages/frontend-config, packages/frontend-lib, package.json or package-lock.json"
 
       - name: Checkout code
         if: needs.changes.outputs.desk-tests == 'true'
@@ -242,6 +243,11 @@ jobs:
         if: needs.changes.outputs.desk-tests == 'true'
         run: npm run test --workspace=@caseai-connect/api-client
 
+      # The hooks and helpers the Desk and Evaluation share.
+      - name: Run frontend lib tests
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run test --workspace=@caseai-connect/frontend-lib
+
       - name: Build the Desk
         if: needs.changes.outputs.desk-tests == 'true'
         run: npm run build --workspace=@caseai-connect/desk
@@ -252,7 +258,7 @@ jobs:
     steps:
       - name: Skip, nothing Evaluation's checks exercise changed
         if: needs.changes.outputs.eval-tests == 'false'
-        run: echo "Skipping Evaluation's checks, no change under apps/eval, packages/eval-contracts, packages/permissions, packages/schema-route, packages/sign-in, packages/api-client, packages/frontend-config, the Desk's chat, package.json or package-lock.json"
+        run: echo "Skipping Evaluation's checks, no change under apps/eval, packages/eval-contracts, packages/permissions, packages/schema-route, packages/sign-in, packages/api-client, packages/frontend-config, packages/frontend-lib, the Desk's chat, package.json or package-lock.json"
 
       - name: Checkout code
         if: needs.changes.outputs.eval-tests == 'true'

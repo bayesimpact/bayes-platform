@@ -3,6 +3,7 @@ import type {
   ReviewCampaignParamsDto,
 } from "@caseai-connect/eval-contracts"
 import { reviewCampaignRoleSchema } from "@caseai-connect/eval-contracts"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CopyIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
@@ -12,7 +13,6 @@ import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { useRevokeInvitation } from "../api/mutations"
 import { CampaignRoleLabel } from "./CampaignRoleLabel"
 

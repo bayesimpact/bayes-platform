@@ -1,8 +1,8 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import { loaderStaleTime, startQuery } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { extractionDocumentsQueryOptions } from "@/features/history"
 import { orNotFound } from "@/lib/not-found"
-import { loaderStaleTime, startQuery } from "@/lib/start-query"
 import {
   csvColumnsQueryOptions,
   csvRecordsQueryOptions,

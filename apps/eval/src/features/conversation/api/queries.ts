@@ -4,9 +4,9 @@ import {
   EvalConversationsRoutes,
   EvalDocumentsRoutes,
 } from "@caseai-connect/eval-contracts"
+import { pollWhile } from "@caseai-connect/frontend-lib"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { pollWhile } from "@/lib/polling"
 import { type ChatMessage, isBeingWritten, toChatMessages } from "../chat-messages"
 import { conversationKeys, documentKeys } from "./keys"
 import { isReplyStreaming } from "./reply-streams"

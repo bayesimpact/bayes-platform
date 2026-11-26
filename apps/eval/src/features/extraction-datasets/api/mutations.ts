@@ -6,10 +6,10 @@ import {
   type ExtractionDatasetSetupInputDto,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { putFileToSignedUrl } from "@caseai-connect/frontend-lib"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { EXTRACTION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"
-import { putFileToSignedUrl } from "@/lib/upload-file"
 import { extractionDatasetKeys } from "./keys"
 
 /** Creates a dataset with no record, then loads the project's list again. */

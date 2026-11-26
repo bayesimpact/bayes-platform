@@ -1,4 +1,5 @@
 import { TOOL_NAMES, type ToolName } from "@caseai-connect/eval-contracts"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
@@ -12,7 +13,6 @@ import {
   TraceLine,
   TraceTitle,
 } from "@/components/ui/trace"
-import { hasOwnKey } from "@/lib/has-own-key"
 
 /** What a person reads while the agent uses a tool. The tools missing here read as a generic step. */
 const TOOL_LABELS = {

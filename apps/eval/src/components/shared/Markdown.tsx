@@ -1,3 +1,4 @@
+import { withTaskStates } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { type ComponentProps, createContext, use, useId } from "react"
 import {
@@ -7,7 +8,6 @@ import {
   useIsCodeFenceIncomplete,
 } from "streamdown"
 import { Checkbox } from "@/components/ui/checkbox"
-import { withTaskStates } from "@/lib/task-list"
 import { ExternalLink } from "./ExternalLink"
 import { HighlightedCodeBlock } from "./HighlightedCodeBlock"
 import { InlineCode } from "./InlineCode"

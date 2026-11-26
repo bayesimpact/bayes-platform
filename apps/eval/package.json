@@ -23,6 +23,7 @@
     "@base-ui/react": "^1.9.0",
     "@caseai-connect/api-client": "*",
     "@caseai-connect/eval-contracts": "*",
+    "@caseai-connect/frontend-lib": "*",
     "@caseai-connect/mcp-app-host": "*",
     "@caseai-connect/sign-in": "*",
     "@hookform/resolvers": "^5.2.2",

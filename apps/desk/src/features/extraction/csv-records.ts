@@ -1,5 +1,5 @@
 import type { CsvColumnDto } from "@caseai-connect/desk-contracts"
-import { hasOwnKey } from "@/lib/has-own-key"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 
 /** The columns of the file a run's results show beside the answers: the read and kept ones. */
 export function shownFileColumnsOf(columnSchema: Record<string, CsvColumnDto>): CsvColumnDto[] {

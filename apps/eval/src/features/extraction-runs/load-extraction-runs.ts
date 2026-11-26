@@ -3,11 +3,11 @@ import type {
   ExtractionRunParamsDto,
   ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { orNotFound } from "@/lib/not-found"
 import type { RunSearch } from "@/lib/run-search"
-import { loaderStaleTime } from "@/lib/start-query"
 import {
   extractionRunQueryOptions,
   extractionRunRecordsQueryOptions,

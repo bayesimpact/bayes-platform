@@ -1,5 +1,5 @@
 import { EXTRACTION_MAX_BYTES, EXTRACTION_MIME_TYPES } from "@caseai-connect/desk-contracts"
-import { hasOwnKey } from "@/lib/has-own-key"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 
 type ExtractionMimeType = (typeof EXTRACTION_MIME_TYPES)[number]
 

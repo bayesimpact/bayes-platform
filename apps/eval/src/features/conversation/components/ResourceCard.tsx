@@ -1,7 +1,7 @@
+import { toResourceUrl } from "@caseai-connect/frontend-lib"
 import { cn } from "cn"
 import { ArrowUpRightIcon, PlayIcon } from "lucide-react"
 import { type MouseEvent, useState } from "react"
-import { toResourceUrl } from "@/lib/safe-url"
 import type { ChatResource } from "../chat-messages"
 import { type OpenedResource, openedResourceOf, resourceMediaOf } from "../resource-media"
 

@@ -1,12 +1,11 @@
 import type { ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import { fileSizeOf, fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { Markdown } from "@/components/shared/Markdown"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { Button } from "@/components/ui/button"
-import { fileSizeOf } from "@/lib/file-size"
-import { fullDateTimeOf } from "@/lib/format-time"
 import { fileKindOf } from "../extraction-files"
 import { FILE_KIND_LABELS } from "../file-kind-labels"
 

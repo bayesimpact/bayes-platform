@@ -6,6 +6,7 @@ import {
   type ExtractionRunParamsDto,
   STUDIO_UI_READ_PERMISSION,
 } from "@caseai-connect/eval-contracts"
+import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -18,7 +19,6 @@ import { useRunEndToasts } from "@/hooks/use-run-end-toasts"
 import { useSidePanel } from "@/hooks/use-side-panel"
 import type { RunSearch } from "@/lib/run-search"
 import { isRunActive } from "@/lib/run-status"
-import { openBlankTab } from "@/lib/safe-url"
 import {
   useCancelExtractionRun,
   useDeleteExtractionRun,

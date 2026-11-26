@@ -11,7 +11,7 @@
   "features/conversation/components/McpAppCard.tsx": "7bf381295a43a1f6",
   "features/conversation/components/MessageEditor.tsx": "432bff2be6d14968",
   "features/conversation/components/NewConversation.tsx": "ea1f31724e5274cc",
-  "features/conversation/components/ReadOnlyConversation.tsx": "6a7220f197ab51f6",
+  "features/conversation/components/ReadOnlyConversation.tsx": "efb0402288d8444e",
   "features/conversation/components/ReplyError.tsx": "43c0c0aa4f67a9c2",
   "features/conversation/components/ResourcePanel.tsx": "668c64e1f625bc54",
   "features/conversation/hooks/use-conversation-forms.ts": "ce753f8fb58793df",

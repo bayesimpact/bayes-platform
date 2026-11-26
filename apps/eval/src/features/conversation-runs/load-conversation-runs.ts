@@ -3,10 +3,10 @@ import type {
   ConversationRunParamsDto,
   ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { orNotFound } from "@/lib/not-found"
-import { loaderStaleTime } from "@/lib/start-query"
 import {
   conversationRunQueryOptions,
   conversationRunRecordsQueryOptions,

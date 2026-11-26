@@ -1,3 +1,8 @@
+import {
+  clearQuoteHighlights,
+  isPointInRange,
+  showQuoteHighlights,
+} from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { Trash2Icon } from "lucide-react"
@@ -6,7 +11,6 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { clearQuoteHighlights, isPointInRange, showQuoteHighlights } from "@/lib/quote-highlight"
 import { type Annotation, isSameRange, readQuotableSelection } from "../annotation"
 import { type ReplyClick, useSettledSelection } from "../hooks/use-settled-selection"
 import { AnnotationBadge } from "./AnnotationBadge"

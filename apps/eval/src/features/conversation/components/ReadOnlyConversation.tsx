@@ -2,8 +2,8 @@ import type {
   ConversationMessageOutputDto,
   ConversationParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@caseai-connect/frontend-lib"
 import { useState } from "react"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { toChatMessages } from "../chat-messages"
 import { useCitedPassages } from "../hooks/use-cited-passages"
 import { useTaskChecks } from "../hooks/use-task-checks"

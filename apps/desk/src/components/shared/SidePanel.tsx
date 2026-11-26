@@ -1,9 +1,8 @@
+import { useInertPageBehind, useMediaQuery } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
 import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { useInertPageBehind } from "@/hooks/use-inert-page-behind"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { ResizeHandle } from "./ResizeHandle"
 

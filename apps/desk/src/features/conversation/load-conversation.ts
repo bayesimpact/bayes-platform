@@ -1,7 +1,7 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { orNotFound } from "@/lib/not-found"
-import { loaderStaleTime } from "@/lib/start-query"
 import { messagesQueryOptions } from "./api/queries"
 
 /**

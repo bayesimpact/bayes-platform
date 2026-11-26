@@ -2,11 +2,11 @@ import type {
   CampaignSessionParamsDto,
   ReviewCampaignParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { loadConversation } from "@/features/conversation"
 import { orNotFound } from "@/lib/not-found"
-import { loaderStaleTime } from "@/lib/start-query"
 import { testerSessionsQueryOptions, testerSurveyQueryOptions } from "./api/queries"
 
 /** Loads the tester's sessions and their final survey, in parallel. */

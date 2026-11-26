@@ -6,9 +6,9 @@ import {
   type ExtractionRunRecordsOutputDto,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { pollWhile } from "@caseai-connect/frontend-lib"
 import { keepPreviousData, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { pollWhile } from "@/lib/polling"
 import { type RecordsSearch, recordsQueryOf } from "@/lib/records-search"
 import { ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS, isRunActive } from "@/lib/run-status"
 import { extractionRunKeys } from "./keys"

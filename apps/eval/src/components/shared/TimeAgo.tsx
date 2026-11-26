@@ -1,8 +1,11 @@
+import {
+  fullDateTimeOf,
+  RELATIVE_TIME_INTERVAL_IN_MILLISECONDS,
+  useNow,
+} from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
-import { fullDateTimeOf } from "@/lib/format-time"
 import { timeAgoOf } from "@/lib/time-ago"
 
 export type TimeAgoProps = {

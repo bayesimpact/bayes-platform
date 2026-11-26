@@ -1,6 +1,6 @@
+import { isApplePlatform } from "@caseai-connect/frontend-lib"
 import { useNavigate } from "@tanstack/react-router"
 import { type ReactNode, useEffect, useState } from "react"
-import { isApplePlatform } from "@/lib/platform"
 import { AgentCommandCenterContext } from "../agent-command-center-context"
 import { type DeskAgent, flattenDeskAgents } from "../desk-agents"
 import { agentPathParams } from "../find-agent"

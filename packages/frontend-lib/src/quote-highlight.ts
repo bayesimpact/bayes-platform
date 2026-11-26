@@ -1,10 +1,11 @@
 /**
- * The highlights global.css styles: the passages being annotated, as the browser's selection, the
- * paler passages the messages quoted, and the one a person just jumped to.
+ * The highlights the app's global.css styles, as `::highlight(quote)` and the others: the passages
+ * being annotated, as the browser's selection, the paler passages the messages quoted, and the one
+ * a person just jumped to. Each app is a page of its own, so the names need no prefix.
  */
-const QUOTE_HIGHLIGHT = "eval-quote"
-export const CITED_HIGHLIGHT = "eval-cited"
-export const JUMPED_HIGHLIGHT = "eval-cited-jump"
+const QUOTE_HIGHLIGHT = "quote"
+export const CITED_HIGHLIGHT = "cited"
+export const JUMPED_HIGHLIGHT = "cited-jump"
 
 type HighlightName = typeof QUOTE_HIGHLIGHT | typeof CITED_HIGHLIGHT | typeof JUMPED_HIGHLIGHT
 

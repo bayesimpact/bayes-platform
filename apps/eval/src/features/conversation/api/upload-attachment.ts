@@ -3,8 +3,8 @@ import {
   EvalConversationsRoutes,
   presignAttachmentInputSchema,
 } from "@caseai-connect/eval-contracts"
+import { putFileToSignedUrl } from "@caseai-connect/frontend-lib"
 import { apiRequest } from "@/lib/api-client"
-import { putFileToSignedUrl } from "@/lib/upload-file"
 
 /**
  * Uploads a file to attach to the next message of a conversation: the API signs an upload URL,

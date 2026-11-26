@@ -1,10 +1,10 @@
 import type { ExtractionDatasetFileOutputDto } from "@caseai-connect/eval-contracts"
+import { fileSizeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { FileSpreadsheetIcon } from "lucide-react"
 import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { fileSizeOf } from "@/lib/file-size"
 import { ExtractionFileDetails } from "./ExtractionFileDetails"
 
 export type ExtractionFileRowProps = {

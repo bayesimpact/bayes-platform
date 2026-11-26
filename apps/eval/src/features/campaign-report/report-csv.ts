@@ -3,7 +3,7 @@ import type {
   CampaignReportOutputDto,
   CampaignReportSessionOutputDto,
 } from "@caseai-connect/eval-contracts"
-import { hasOwnKey } from "@/lib/has-own-key"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 
 const SESSION_HEADER = [
   "sessionId",

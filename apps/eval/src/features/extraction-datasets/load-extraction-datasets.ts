@@ -1,10 +1,10 @@
 import type { ExtractionDatasetParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { isSetUp } from "@/lib/extraction-columns"
 import { orNotFound } from "@/lib/not-found"
 import type { RecordsSearch } from "@/lib/records-search"
-import { loaderStaleTime } from "@/lib/start-query"
 import {
   extractionDatasetRecordsQueryOptions,
   extractionFilesQueryOptions,

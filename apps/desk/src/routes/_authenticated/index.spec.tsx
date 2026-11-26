@@ -1,11 +1,11 @@
 import { DeskAccountRoutes, DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
+import { isApplePlatform } from "@caseai-connect/frontend-lib"
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { HttpResponse } from "msw"
 import { describe, expect, it, vi } from "vitest"
 import { activateLocale, detectLocale } from "@/app/i18n"
 import { rememberLastAgent } from "@/features/agents"
-import { isApplePlatform } from "@/lib/platform"
 import { agentOf, agentUrlOf, routerPathOf } from "@/test/desk-urls"
 import {
   buildDeskWorld,

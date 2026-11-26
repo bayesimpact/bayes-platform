@@ -3,6 +3,7 @@ import {
   EXTRACTION_DATASET_FILE_MIME_TYPE,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { fileSizeOf } from "@caseai-connect/frontend-lib"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
@@ -13,7 +14,6 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { fileSizeOf } from "@/lib/file-size"
 import { useDeleteExtractionFiles, useUploadExtractionFile } from "../api/mutations"
 import { extractionFilesQueryOptions } from "../api/queries"
 import { csvFileProblemOf } from "../csv-file"

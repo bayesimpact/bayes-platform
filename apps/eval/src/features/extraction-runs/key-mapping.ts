@@ -4,7 +4,7 @@ import type {
   ExtractionRunKeyMappingEntryDto,
   ExtractionRunRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
-import { hasOwnKey } from "@/lib/has-own-key"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 
 /** The fields a version of an extraction agent returns: the properties of its output schema. */
 export function outputKeysOf(version: Pick<AgentVersionOutputDto, "outputJsonSchema">): string[] {
