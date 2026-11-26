@@ -7,12 +7,8 @@ import { activateLocale } from "./i18n"
 describe("the texts of a shared package", () => {
   it("show in the accessible name of a component of the package", async () => {
     await activateLocale("fr")
-    try {
-      renderWithI18n(<ExternalLink href="https://example.com">Aide</ExternalLink>)
+    renderWithI18n(<ExternalLink href="https://example.com">Aide</ExternalLink>)
 
-      expect(screen.getByRole("link", { name: /s'ouvre dans un nouvel onglet/ })).toBeTruthy()
-    } finally {
-      await activateLocale("en")
-    }
+    expect(screen.getByRole("link", { name: /s'ouvre dans un nouvel onglet/ })).toBeInTheDocument()
   })
 })

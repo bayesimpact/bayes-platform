@@ -66,7 +66,7 @@ Run them from the repository root.
 | `npm run storybook -w @caseai-connect/eval` | Storybook on port 6010: the whole app on the MSW handlers, with no API and no sign-in |
 | `npm run check -w @caseai-connect/eval` | Typecheck, Biome, the component files check, the parity check with the Desk's chat, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/eval` | Vitest alone |
-| `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
+| `npm run i18n:extract -w @caseai-connect/eval` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, and the texts of the shared packages to their own catalogs (`packages/app-ui/src/locales/`), without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/eval` | The production build, in `apps/eval/dist` |
 | `npm run preview -w @caseai-connect/eval` | Serves that build on port 5180 at `/eval/` |
 
@@ -189,7 +189,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
   then opens its page. The Runs tab (`ConversationRunsSection`) lists the agent's runs of the dataset (a run
   of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). Each run shows by its short id, which opens it, and how long ago it started, the
-  `RelativeTime` of `@caseai-connect/app-ui/compositions/RelativeTime`. A run's version opens the
+  shared `TimeAgo`. A run's version opens the
   history of the agent's versions on it, the shared `AgentVersionsSheet` without its choice, to
   compare it with the others. A run's page, `evaluations/$datasetId/runs/$runId`
   (`ConversationRunPage`), shows its figures and all its records, with what it used in a side panel of two tabs (`RunSettingsPanel`): Agent, with its

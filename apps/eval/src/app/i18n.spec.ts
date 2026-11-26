@@ -1,4 +1,5 @@
 import { loadMessages, LOCALES as SHARED_LOCALES } from "@caseai-connect/app-ui/locales"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 import { describe, expect, it } from "vitest"
 import { LOCALES, SPEECH_LANGUAGES } from "./i18n"
 
@@ -24,7 +25,7 @@ describe("the app's languages", () => {
     for (const locale of LOCALES) {
       const shared = await loadMessages(locale)
       const { messages } = await import(`../locales/${locale}.po`)
-      for (const id of Object.keys(messages).filter((key) => key in shared))
+      for (const id of Object.keys(messages).filter((key) => hasOwnKey(shared, key)))
         expect(messages[id], `${locale}: ${id}`).toEqual(shared[id])
     }
   })
