@@ -1,6 +1,7 @@
 import { AgentModel } from "@bayes-platform/api-contracts"
 import { Test } from "@nestjs/testing"
 import { LlmModule } from "@/external/llm/llm.module"
+import { WorkspaceModelsService } from "@/external/llm/workspace-models/workspace-models.service"
 import { AgentModelsService } from "./agent-models.service"
 
 describe("AgentModelsService", () => {
@@ -9,7 +10,8 @@ describe("AgentModelsService", () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [LlmModule],
-      providers: [AgentModelsService],
+      // Only `isModelRetired` is tested here: it reads no model list.
+      providers: [AgentModelsService, { provide: WorkspaceModelsService, useValue: {} }],
     }).compile()
     service = module.get(AgentModelsService)
   })

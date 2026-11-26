@@ -78,7 +78,20 @@
         "title": "HANDLUNGSBEDARF: {{model}} wurde am {{date}} eingestellt",
         "description": "Durchläufe mit {{model}} schlagen jetzt fehl. Stellen Sie diesen Agenten auf {{replacement}} um und testen Sie ihn erneut."
       },
-      "unavailable": "Dieses Modell ist nicht mehr verfügbar. Wählen Sie ein neues Modell aus der Liste."
+      "unavailable": "Dieses Modell ist nicht mehr verfügbar. Wählen Sie ein neues Modell aus der Liste.",
+      "addedModelsGroup": "Modelle dieses Workspace",
+      "searchPlaceholder": "Modell suchen",
+      "noResults": "Kein Modell gefunden",
+      "tags": {
+        "recommended": "Empfohlen",
+        "outsideEu": "Außerhalb der EU",
+        "selfHosted": "Selbst gehostet",
+        "selfHostedBy": "Gehostet von {{operator}}",
+        "priority": "Priorität",
+        "reasoning": "Einstellbares Reasoning",
+        "retiresOn": "Endet am {{date}}",
+        "retiredOn": "Beendet am {{date}}"
+      }
     },
     "playground": "Playground",
     "notifications": {

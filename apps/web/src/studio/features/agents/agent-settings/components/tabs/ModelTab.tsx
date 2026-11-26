@@ -27,10 +27,8 @@ import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import {
-  buildAgentModelOptions,
   describeModelOptionFields,
   findAgentModelEntry,
-  formatAgentModelLabel,
   isPriorityCallsAvailable,
   readModelOption,
 } from "@/common/features/agents/agent-model.helpers"
@@ -43,8 +41,15 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { EmbeddingModelManager } from "@/studio/features/project-embedding-models/components/EmbeddingModelManager"
 import { selectCompletedProjectEmbeddingModels } from "@/studio/features/project-embedding-models/project-embedding-models.selectors"
 import { type AgentTabFormProps, useAutosave } from "../agent-tab-form.shared"
+import { AgentModelSelect } from "./AgentModelSelect"
 import { AgentTabLink } from "./AgentTabLink"
 import { AgentTabSectionHeader } from "./AgentTabSectionHeader"
+import {
+  buildAgentModelSelectOptions,
+  fromAgentModelSelectValue,
+  isAgentModelChoiceAvailable,
+  toAgentModelSelectValue,
+} from "./agent-model-select.helpers"
 import { ModelOptionsFields } from "./ModelOptionsFields"
 import {
   buildModelTabDefaultValues,
@@ -67,11 +72,6 @@ export function ModelTab({
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
   const catalog = useValue(selectAvailableModelsData)
-  const models = buildAgentModelOptions(catalog)
-  const modelLabelSuffixes = {
-    deprecatedSuffix: t("agent:model.deprecatedSuffix"),
-    nonEuSuffix: t("agent:model.nonEuSuffix"),
-  }
   const completedEmbeddingModels = useAppSelector(selectCompletedProjectEmbeddingModels)
   // Enabling a model re-embeds every document of the project.
   const canManageEmbeddingModels = project.permissions.includes(DOCUMENT_UPDATE_PERMISSION)
@@ -147,37 +147,72 @@ export function ModelTab({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("agentSettings:props.model")}</FormLabel>
-                  <Select
-                    onValueChange={(model) => {
-                      field.onChange(model)
-                      form.setValue(
-                        "providerOptions",
-                        modelOptionsForPickedModel({ catalog, agentSettings, model }),
-                        { shouldDirty: true },
-                      )
-                    }}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("agentSettings:props.placeholders.model")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {/* The agent's model stays shown once the project can no longer pick it. */}
-                      {!models.includes(agentSettings.model) && (
-                        <SelectItem value={agentSettings.model} disabled>
-                          {formatAgentModelLabel(agentSettings.model, catalog, modelLabelSuffixes)}
-                        </SelectItem>
-                      )}
-                      {models.map((model) => (
-                        <SelectItem key={model} value={model}>
-                          {formatAgentModelLabel(model, catalog, modelLabelSuffixes)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {!models.includes(field.value) && (
+                  <FormControl>
+                    <AgentModelSelect
+                      value={toAgentModelSelectValue({
+                        model: field.value,
+                        customModelId: form.watch("customModelId") ?? null,
+                      })}
+                      onChange={(value) => {
+                        const choice = fromAgentModelSelectValue(catalog, value)
+                        if (!choice) return
+                        const modelChanges = choice.model !== field.value
+                        field.onChange(choice.model)
+                        form.setValue("customModelId", choice.customModelId, { shouldDirty: true })
+                        if (modelChanges)
+                          form.setValue(
+                            "providerOptions",
+                            modelOptionsForPickedModel({
+                              catalog,
+                              agentSettings,
+                              model: choice.model,
+                            }),
+                            { shouldDirty: true },
+                          )
+                      }}
+                      options={buildAgentModelSelectOptions({
+                        catalog,
+                        current: {
+                          model: agentSettings.model,
+                          customModelId: agentSettings.customModelId,
+                        },
+                        priorityCallsModel:
+                          priorityCallsAvailable &&
+                          !form.watch("customModelId") &&
+                          form.watch("priorityCallsEnabled")
+                            ? selectedModel
+                            : null,
+                        addedModelsGroup: t("agent:model.addedModelsGroup"),
+                        formatDate: (isoDate) =>
+                          new Date(isoDate).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                          }),
+                      })}
+                      labels={{
+                        placeholder: t("agentSettings:props.placeholders.model"),
+                        searchPlaceholder: t("agent:model.searchPlaceholder"),
+                        noResults: t("agent:model.noResults"),
+                        tags: {
+                          recommended: t("agent:model.tags.recommended"),
+                          outsideEu: t("agent:model.tags.outsideEu"),
+                          selfHosted: catalog.selfHostedBy
+                            ? t("agent:model.tags.selfHostedBy", { operator: catalog.selfHostedBy })
+                            : t("agent:model.tags.selfHosted"),
+                          priority: t("agent:model.tags.priority"),
+                          reasoning: t("agent:model.tags.reasoning"),
+                        },
+                        retires: (date, past) =>
+                          t(past ? "agent:model.tags.retiredOn" : "agent:model.tags.retiresOn", {
+                            date,
+                          }),
+                      }}
+                    />
+                  </FormControl>
+                  {!isAgentModelChoiceAvailable(catalog, {
+                    model: field.value,
+                    customModelId: form.watch("customModelId") ?? null,
+                  }) && (
                     <FormDescription className="text-destructive">
                       {t("agent:model.unavailable")}
                     </FormDescription>

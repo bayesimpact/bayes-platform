@@ -19,7 +19,9 @@
       "appDeleteError": "Failed to delete app",
       "appOAuthClientError": "Failed to load or update the app's OAuth client",
       "maintenanceJobStarted": "Maintenance job started",
-      "maintenanceJobStartError": "Failed to start the maintenance job"
+      "maintenanceJobStartError": "Failed to start the maintenance job",
+      "modelEndpointSaved": "Model settings saved",
+      "modelEndpointSaveError": "Failed to save the model settings"
     }
   }
 }

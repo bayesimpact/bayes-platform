@@ -316,6 +316,12 @@ WITH
   del_mcp_server AS (
     DELETE FROM "mcp_server"
   ),
+  del_project_model AS (
+    DELETE FROM "project_model"
+  ),
+  del_custom_model AS (
+    DELETE FROM "custom_model"
+  ),
   del_project AS (
     DELETE FROM "project"
   ),

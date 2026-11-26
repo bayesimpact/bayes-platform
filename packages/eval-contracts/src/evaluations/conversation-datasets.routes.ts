@@ -1,6 +1,6 @@
+import { defineSchemaRoute } from "@bayes-platform/schema-route"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
-import { defineSchemaRoute } from "../define-schema-route"
 import { successOutputSchema } from "../review-campaigns/review-campaigns.dto"
 import {
   conversationDatasetOutputSchema,

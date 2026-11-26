@@ -151,7 +151,9 @@ describe("Evaluation conversations - streamReply", () => {
   it("attaches the uploaded document to the message the tester typed", async () => {
     const { organization, project } = await createContext()
     const attachmentDocument = await repositories.agentMessageAttachmentDocumentRepository.save(
-      agentMessageAttachmentDocumentFactory.transient({ organization, project }).build(),
+      agentMessageAttachmentDocumentFactory.transient({ organization, project }).build({
+        agentSessionId,
+      }),
     )
 
     const response = await subject({

@@ -79,7 +79,7 @@ describe("prepareForStreaming", () => {
       const attachmentDocument = await repositories.agentMessageAttachmentDocumentRepository.save(
         agentMessageAttachmentDocumentFactory
           .transient({ organization: testOrganization, project: testProject })
-          .build({ pdfPageCount: 3 }),
+          .build({ pdfPageCount: 3, agentSessionId: session.id }),
       )
       const agentSessionScope = {
         agent: testAgent,
@@ -195,6 +195,66 @@ describe("prepareForStreaming", () => {
           agentSessionScope,
           userContent: "What is in this file?",
           attachmentDocumentId: attachmentDocument.id,
+        }),
+      ).rejects.toThrow(UnprocessableEntityException)
+    })
+
+    it("rejects a document uploaded for another conversation that no message carries yet", async () => {
+      // The file was uploaded for another conversation of the same project and never sent: the
+      // first conversation to send its id must not become its owner.
+      const {
+        service,
+        streamingLLMService,
+        repositories,
+        agentSessionScope,
+        connectScope,
+        testAgentSettings,
+        testUser,
+      } = await buildContext()
+      const otherSession = await service.createSession({
+        connectScope,
+        agentSettingsId: testAgentSettings.id,
+        userId: testUser.id,
+        type: "playground",
+      })
+      const otherAttachment = await repositories.agentMessageAttachmentDocumentRepository.save(
+        agentMessageAttachmentDocumentFactory
+          .transient({
+            organization: getTestContext().testOrganization,
+            project: getTestContext().testProject,
+          })
+          .build({ agentSessionId: otherSession.id }),
+      )
+
+      await expect(
+        streamingLLMService.prepareForStreaming({
+          agentSessionScope,
+          userContent: "What is in this file?",
+          attachmentDocumentId: otherAttachment.id,
+        }),
+      ).rejects.toThrow(UnprocessableEntityException)
+      const carried = await repositories.agentMessageRepository.countBy({
+        attachmentDocumentId: otherAttachment.id,
+      })
+      expect(carried).toBe(0)
+    })
+
+    it("rejects a document with no conversation", async () => {
+      const { streamingLLMService, repositories, agentSessionScope } = await buildContext()
+      const orphanAttachment = await repositories.agentMessageAttachmentDocumentRepository.save(
+        agentMessageAttachmentDocumentFactory
+          .transient({
+            organization: getTestContext().testOrganization,
+            project: getTestContext().testProject,
+          })
+          .build({ agentSessionId: null }),
+      )
+
+      await expect(
+        streamingLLMService.prepareForStreaming({
+          agentSessionScope,
+          userContent: "What is in this file?",
+          attachmentDocumentId: orphanAttachment.id,
         }),
       ).rejects.toThrow(UnprocessableEntityException)
     })

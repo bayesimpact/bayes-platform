@@ -21,6 +21,8 @@ import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { resourceLibraryFactory } from "@/domains/resource-libraries/resource-library.factory"
+import { customModelFactory } from "@/external/llm/workspace-models/custom-model.factory"
+import { projectModelFactory } from "@/external/llm/workspace-models/project-model.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -81,10 +83,8 @@ describe("Agent Settings - updateOne", () => {
       request: payload,
     })
 
-  const enableFeatureFlag = async (featureFlagKey: string) => {
-    await repositories.featureFlagRepository.save(
-      repositories.featureFlagRepository.create({ projectId, featureFlagKey, enabled: true }),
-    )
+  const enableModel = async (model: AgentModel) => {
+    await repositories.projectModelRepository.save(projectModelFactory.build({ projectId, model }))
   }
 
   const latestOptions = async () =>
@@ -180,17 +180,75 @@ describe("Agent Settings - updateOne", () => {
     })
   })
 
-  it("rejects switching to a model behind a feature flag the project lacks", async () => {
+  it("rejects switching to a model the workspace has not enabled", async () => {
     await createContext()
 
     expectResponse(await subject({ payload: { model: AgentModel.Gemma4_26B } }), 400)
   })
 
-  it("accepts switching to a flagged provider's model once the project has its flag", async () => {
+  it("accepts switching to a model once the workspace has it enabled", async () => {
     await createContext()
-    await enableFeatureFlag("gemma")
+    await enableModel(AgentModel.Gemma4_26B)
 
     expectResponse(await subject({ payload: { model: AgentModel.Gemma4_26B } }), 200)
+  })
+
+  describe("a model the workspace added", () => {
+    const addModel = async (forProjectId: string, baseModel = AgentModel.Gemma4_26B) =>
+      repositories.customModelRepository.save(
+        customModelFactory.build({ projectId: forProjectId, baseModel }),
+      )
+
+    const latestCustomModelId = async () =>
+      (
+        await repositories.agentSettingsRepository.findOne({
+          where: { agentId },
+          order: { revision: "DESC" },
+        })
+      )?.customModelId
+
+    it("switches to it, even with its type turned off for the workspace", async () => {
+      await createContext()
+      const added = await addModel(projectId)
+
+      const response = await subject({
+        payload: { model: AgentModel.Gemma4_26B, customModelId: added.id },
+      })
+
+      expectResponse(response, 200)
+      expect(await latestCustomModelId()).toBe(added.id)
+    })
+
+    it("refuses a model another workspace added", async () => {
+      await createContext()
+      const otherWorkspace = await createOrganizationWithAgent(repositories)
+      const added = await addModel(otherWorkspace.project.id)
+
+      expectResponse(
+        await subject({ payload: { model: AgentModel.Gemma4_26B, customModelId: added.id } }),
+        400,
+      )
+    })
+
+    it("refuses it with a model that is not its type", async () => {
+      await createContext()
+      const added = await addModel(projectId)
+
+      expectResponse(
+        await subject({ payload: { model: AgentModel.Gemini35Flash, customModelId: added.id } }),
+        400,
+      )
+    })
+
+    it("leaves it when the agent switches to a model of the code", async () => {
+      await createContext()
+      const added = await addModel(projectId)
+      await subject({ payload: { model: AgentModel.Gemma4_26B, customModelId: added.id } })
+
+      expectResponse(await subject({ payload: { model: AgentModel.Gemini35Flash } }), 200)
+
+      expect(await latestCustomModelId()).toBeNull()
+    })
   })
 
   it.each([

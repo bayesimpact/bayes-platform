@@ -26,6 +26,11 @@ export type EnabledMcpServer = McpServerConfig & {
    * mints an ID token for this audience instead of sending a static API key.
    */
   googleIamAudience?: string
+  /**
+   * Only for the servers of no project. A redirect from a server a project configured
+   * could lead to an internal address that its URL check never saw.
+   */
+  followRedirects?: boolean
 }
 
 export type McpServerOauthTokens = {

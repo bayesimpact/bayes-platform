@@ -34,6 +34,7 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "instructions",
   "documentsRagMode",
   "model",
+  "customModelId",
   "deletedTemperature",
   "outputJsonSchema",
   "greetingMessage",

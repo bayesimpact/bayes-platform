@@ -11,6 +11,8 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { agentMessageAttachmentDocumentFactory } from "./agent-message-attachment-document.factory"
 import { AgentMessageAttachmentDocumentsService } from "./agent-message-attachment-documents.service"
 
+/** The conversation the files are uploaded for. No foreign key: any id fits. */
+const AGENT_SESSION_ID = "00000000-0000-4000-8000-0000000000aa"
 describe("AgentMessageAttachmentDocumentsService", () => {
   let service: AgentMessageAttachmentDocumentsService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -40,6 +42,7 @@ describe("AgentMessageAttachmentDocumentsService", () => {
 
     const createdAttachmentDocument = await service.createAttachmentDocument({
       attachmentDocumentId: "00000000-0000-4000-8000-000000000001",
+      agentSessionId: AGENT_SESSION_ID,
       connectScope,
       fields: {
         fileName: "attachment.pdf",
@@ -72,6 +75,7 @@ describe("AgentMessageAttachmentDocumentsService", () => {
 
     const createdAttachmentDocument = await service.createAttachmentDocument({
       attachmentDocumentId: "00000000-0000-4000-8000-000000000002",
+      agentSessionId: AGENT_SESSION_ID,
       connectScope: firstConnectScope,
       fields: {
         fileName: "attachment.pdf",
@@ -95,6 +99,7 @@ describe("AgentMessageAttachmentDocumentsService", () => {
 
     const createdAttachmentDocument = await service.createAttachmentDocument({
       attachmentDocumentId: "00000000-0000-4000-8000-000000000003",
+      agentSessionId: AGENT_SESSION_ID,
       connectScope,
       fields: {
         fileName: "attachment.pdf",

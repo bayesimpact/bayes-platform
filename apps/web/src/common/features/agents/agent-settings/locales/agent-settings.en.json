@@ -193,7 +193,21 @@
       "changedFields_one": "{{count}} changed field:",
       "changedFields_other": "{{count}} changed fields:",
       "advancedMode": "Advanced mode",
-      "advancedModeHint": "You compare the draft with v{{revision}}, the last saved version. Your changes go to the draft."
+      "advancedModeHint": "You compare the draft with v{{revision}}, the last saved version. Your changes go to the draft.",
+      "deleteBlocked": {
+        "production": "The agent runs with this version. Put another version in production first.",
+        "latest": "This is the newest version: the next draft starts from it. Save a newer version first.",
+        "neverSaved": "No version was saved yet, so the draft is this agent's only settings."
+      },
+      "deleteDialog": {
+        "title": "Delete version {{revision}}?",
+        "description": "Version {{revision}} leaves the history and cannot be restored. Conversations and extractions that used it are not changed."
+      },
+      "discardDraft": "Discard draft",
+      "discardDraftDialog": {
+        "title": "Discard the draft?",
+        "description": "All changes made since the last saved version are lost. The editor goes back to the last saved version. The version in production does not change."
+      }
     },
     "version": {
       "ariaLabel": "Settings version new messages run with",
@@ -323,7 +337,11 @@
       "subAgentsUpdated": "Sub-agents updated successfully",
       "subAgentsUpdateError": "Failed to update sub-agents",
       "productionSet": "Version {{revision}} is now in production",
-      "productionSetError": "Could not change the version in production"
+      "productionSetError": "Could not change the version in production",
+      "versionDeleted": "Agent version deleted",
+      "versionDeleteError": "The version could not be deleted. Try again.",
+      "draftDiscarded": "Draft discarded",
+      "draftDiscardError": "The draft could not be discarded. Try again."
     },
     "sources": {
       "documents": {

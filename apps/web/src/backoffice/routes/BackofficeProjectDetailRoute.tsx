@@ -9,12 +9,14 @@ import { Button } from "@bayes-platform/ui/shad/button"
 import { ArrowLeftIcon, ExternalLinkIcon, LockIcon } from "lucide-react"
 import { type ReactNode, useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { selectIsWorkspaceModelManagementAuthorized } from "@/common/features/me/me.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeProjectDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import { FeatureFlagCell } from "../features/backoffice/components/BackofficeTable"
+import { ProjectWorkspaceModels } from "../features/backoffice/components/custom-models/ProjectWorkspaceModels"
 import {
   BackofficeAgentRoutes,
   BackofficeOrganizationRoutes,
@@ -47,6 +49,7 @@ function WithData() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const project = useValue(selectBackofficeProjectDetail)
+  const canManageModels = useAppSelector(selectIsWorkspaceModelManagementAuthorized)
 
   return (
     <div className="p-6 space-y-6">
@@ -124,6 +127,8 @@ function WithData() {
           emptyText="No agents"
         />
       </div>
+
+      {canManageModels && <ProjectWorkspaceModels />}
     </div>
   )
 }

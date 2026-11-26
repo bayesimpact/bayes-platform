@@ -1,5 +1,6 @@
 import { AppsRoutes, BackofficeRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
+import type { CustomModels } from "../backoffice.models"
 import {
   toAppManifest,
   toBackofficeAgentDetail,
@@ -8,11 +9,14 @@ import {
   toBackofficeProjectDetail,
   toBackofficeRbacCatalog,
   toBackofficeUserDetail,
+  toCustomModel,
+  toCustomModelType,
   toMaintenanceJob,
   toPaginatedBackofficeAgents,
   toPaginatedBackofficeOrganizations,
   toPaginatedBackofficeProjects,
   toPaginatedBackofficeUsers,
+  toProjectModel,
 } from "../backoffice.models"
 import type { IBackofficeSpi } from "../backoffice.spi"
 
@@ -200,6 +204,59 @@ export default {
     )
     return toMaintenanceJob(response.data.data)
   },
+  listProjectModels: async (projectId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.listProjectModels.response>(
+      BackofficeRoutes.listProjectModels.getPath({ projectId }),
+    )
+    return response.data.data.models.map(toProjectModel)
+  },
+  setProjectModel: async ({ projectId, model, enabled }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.put<typeof BackofficeRoutes.setProjectModel.response>(
+      BackofficeRoutes.setProjectModel.getPath({ projectId }),
+      { payload: { model, enabled } } satisfies typeof BackofficeRoutes.setProjectModel.request,
+    )
+    return response.data.data.models.map(toProjectModel)
+  },
+  resetProjectModel: async ({ projectId, model }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof BackofficeRoutes.resetProjectModel.response>(
+      BackofficeRoutes.resetProjectModel.getPath({ projectId }),
+      { payload: { model } } satisfies typeof BackofficeRoutes.resetProjectModel.request,
+    )
+    return response.data.data.models.map(toProjectModel)
+  },
+  listCustomModels: async (projectId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.listCustomModels.response>(
+      BackofficeRoutes.listCustomModels.getPath({ projectId }),
+    )
+    return toCustomModels(response.data.data)
+  },
+  createCustomModel: async ({ projectId, input }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof BackofficeRoutes.createCustomModel.response>(
+      BackofficeRoutes.createCustomModel.getPath({ projectId }),
+      { payload: input } satisfies typeof BackofficeRoutes.createCustomModel.request,
+    )
+    return toCustomModels(response.data.data)
+  },
+  updateCustomModel: async ({ projectId, customModelId, input }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.patch<typeof BackofficeRoutes.updateCustomModel.response>(
+      BackofficeRoutes.updateCustomModel.getPath({ projectId, customModelId }),
+      { payload: input } satisfies typeof BackofficeRoutes.updateCustomModel.request,
+    )
+    return toCustomModels(response.data.data)
+  },
+  deleteCustomModel: async ({ projectId, customModelId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.delete<typeof BackofficeRoutes.deleteCustomModel.response>(
+      BackofficeRoutes.deleteCustomModel.getPath({ projectId, customModelId }),
+    )
+    return toCustomModels(response.data.data)
+  },
   getAppOAuthClient: async (appManifestId) => {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof AppsRoutes.getOAuthClient.response>(
@@ -224,3 +281,12 @@ export default {
     }
   },
 } satisfies IBackofficeSpi
+
+function toCustomModels(
+  data: (typeof BackofficeRoutes.listCustomModels.response)["data"],
+): CustomModels {
+  return {
+    customModels: data.customModels.map(toCustomModel),
+    types: data.types.map(toCustomModelType),
+  }
+}

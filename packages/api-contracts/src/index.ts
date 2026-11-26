@@ -75,9 +75,13 @@ export {
 export type * from "./backoffice/backoffice.dto"
 export {
   BACKOFFICE_GLOBAL_ROLE_KEYS,
+  createBackofficeCustomModelSchema,
   createBackofficeOrganizationSchema,
   grantBackofficeAgentConversationReviewerSchema,
   grantBackofficeUserGlobalRoleSchema,
+  resetBackofficeProjectModelSchema,
+  setBackofficeProjectModelSchema,
+  updateBackofficeCustomModelSchema,
 } from "./backoffice/backoffice.dto"
 export { BackofficeRoutes } from "./backoffice/backoffice.routes"
 // Document Tags

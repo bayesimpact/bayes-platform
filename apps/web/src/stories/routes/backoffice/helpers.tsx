@@ -32,11 +32,13 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUser,
   BackofficeUserDetail,
+  CustomModels,
   MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
+  ProjectModel,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
 import type { IBackofficeSpi } from "@/backoffice/features/backoffice/backoffice.spi"
@@ -50,6 +52,7 @@ export type BackofficeStoryArgs = {
   isTermsManagementAuthorized: boolean
   isAppManagementAuthorized: boolean
   isMaintenanceJobRunAuthorized: boolean
+  isWorkspaceModelManagementAuthorized: boolean
   canCreateOrganization: boolean
   canUpdateConversationReviewers: boolean
   canUpdateGlobalRoles: boolean
@@ -66,6 +69,7 @@ export const backofficeStoryArgs = {
   isTermsManagementAuthorized: false,
   isAppManagementAuthorized: false,
   isMaintenanceJobRunAuthorized: false,
+  isWorkspaceModelManagementAuthorized: false,
   canCreateOrganization: true,
   canUpdateConversationReviewers: true,
   canUpdateGlobalRoles: true,
@@ -82,6 +86,7 @@ export const backofficeStoryArgTypes = {
   isTermsManagementAuthorized: { control: "boolean" },
   isAppManagementAuthorized: { control: "boolean" },
   isMaintenanceJobRunAuthorized: { control: "boolean" },
+  isWorkspaceModelManagementAuthorized: { control: "boolean" },
   canCreateOrganization: { control: "boolean" },
   canUpdateConversationReviewers: { control: "boolean" },
   canUpdateGlobalRoles: { control: "boolean" },
@@ -109,6 +114,9 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       ...(args.isTermsManagementAuthorized ? (["backoffice.terms.update"] as const) : []),
       ...(args.isAppManagementAuthorized ? (["backoffice.app.manage"] as const) : []),
       ...(args.isMaintenanceJobRunAuthorized ? (["backoffice.maintenance_job.run"] as const) : []),
+      ...(args.isWorkspaceModelManagementAuthorized
+        ? (["backoffice.project_model.update"] as const)
+        : []),
       ...(args.canCreateOrganization ? (["organization.create"] as const) : []),
       ...(args.canUpdateConversationReviewers
         ? (["backoffice.conversation_reviewer.update"] as const)
@@ -223,6 +231,8 @@ export function buildMockBackofficeService(overrides: {
   termsDocuments?: TermsDocuments | null
   appManifests?: AppManifest[]
   maintenanceJobs?: MaintenanceJob[]
+  projectModels?: ProjectModel[]
+  customModels?: CustomModels
 }): IBackofficeSpi {
   const organizations =
     overrides.organizations ??
@@ -249,6 +259,8 @@ export function buildMockBackofficeService(overrides: {
   const termsDocuments = overrides.termsDocuments ?? null
   let appManifests = overrides.appManifests ?? []
   let maintenanceJobs = overrides.maintenanceJobs ?? []
+  const projectModels = overrides.projectModels ?? []
+  const customModels = overrides.customModels ?? { customModels: [], types: [] }
   const appClientIds = new Map<string, string>()
   return {
     async listOrganizations() {
@@ -317,6 +329,27 @@ export function buildMockBackofficeService(overrides: {
     },
     async listMaintenanceJobs() {
       return maintenanceJobs
+    },
+    async listProjectModels() {
+      return projectModels
+    },
+    async setProjectModel() {
+      return projectModels
+    },
+    async resetProjectModel() {
+      return projectModels
+    },
+    async listCustomModels() {
+      return customModels
+    },
+    async createCustomModel() {
+      return customModels
+    },
+    async updateCustomModel() {
+      return customModels
+    },
+    async deleteCustomModel() {
+      return customModels
     },
     async runMaintenanceJob(jobKey) {
       const current = maintenanceJobs.find((job) => job.key === jobKey)

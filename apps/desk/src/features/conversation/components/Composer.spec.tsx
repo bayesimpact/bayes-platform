@@ -2,6 +2,7 @@ import { act, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { activateLocale } from "@/app/i18n"
 import { Toaster } from "@/components/ui/sonner"
 import { writeMessage } from "@/test/message-box"
 import { renderWithI18n } from "@/test/render-with-i18n"
@@ -79,6 +80,15 @@ describe("the dictation", () => {
     act(() => FakeSpeechRecognition.current?.say("late", true))
     expect(messageBox.textContent).toBe("")
     expect(screen.getByRole("button", { name: "Dictate your message" })).toBeInTheDocument()
+  })
+
+  it("listens in the language the app shows", async () => {
+    await activateLocale("fr")
+    renderWithI18n(<ComposerWithDraft onSend={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole("button", { name: "Dicter votre message" }))
+
+    expect(FakeSpeechRecognition.current?.lang).toBe("fr-FR")
   })
 
   it("is not offered by a browser without speech recognition", () => {

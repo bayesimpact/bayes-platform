@@ -194,17 +194,48 @@ describe("McpServers - inspect", () => {
   })
 
   it.each([
-    { authMethod: "none" as const },
-    { authMethod: "apiKey" as const, apiKey: "stored-key" },
-  ])("should call a local server that uses the $authMethod method", async (auth) => {
-    await createContext({ url: "http://localhost:3100/mcp", ...auth })
-    serverAnswersWithTools([{ name: "search_articles" }])
+    { url: "http://localhost:3100/mcp", authMethod: "none" as const },
+    { url: "http://169.254.169.254/computeMetadata/v1/", authMethod: "none" as const },
+    { url: "https://10.0.0.12/mcp", authMethod: "none" as const },
+    { url: "https://internal.example.com/mcp", authMethod: "none" as const },
+    { url: "https://internal.example.com/mcp", authMethod: "apiKey" as const, apiKey: "key" },
+  ])("should not call $url for a server with the $authMethod method", async (config) => {
+    await createContext(config)
 
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data).toMatchObject({ status: "connected", error: null })
-    expect(lastClientOptions()?.transport).toMatchObject({ url: "http://localhost:3100/mcp" })
+    expect(response.body.data).toMatchObject({
+      status: "failed",
+      tools: [],
+      error: { code: "urlNotAllowed", httpStatus: null },
+    })
+    expect(createMCPClient).not.toHaveBeenCalled()
+  })
+
+  it("should call a local server in development when the local flag is set", async () => {
+    process.env.MCP_OAUTH_ALLOW_INSECURE_LOCAL = "true"
+    try {
+      await createContext({ url: "http://localhost:3100/mcp", authMethod: "none" })
+      serverAnswersWithTools([{ name: "search_articles" }])
+
+      const response = await subject()
+
+      expectResponse(response, 200)
+      expect(response.body.data).toMatchObject({ status: "connected", error: null })
+      expect(lastClientOptions()?.transport).toMatchObject({ url: "http://localhost:3100/mcp" })
+    } finally {
+      delete process.env.MCP_OAUTH_ALLOW_INSECURE_LOCAL
+    }
+  })
+
+  it("should refuse the redirects of a server a project configured", async () => {
+    await createContext({ url: "https://mcp.example.com/mcp", authMethod: "none" })
+    serverAnswersWithTools([])
+
+    await subject()
+
+    expect(lastClientOptions()?.transport).toMatchObject({ redirect: "error" })
   })
 
   it("should refuse to send an OAuth token to a URL that resolves inside the network", async () => {

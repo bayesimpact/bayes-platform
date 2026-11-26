@@ -175,6 +175,8 @@ export class AgentsController {
       data: {
         models: availableModels.models.map((model) => toAgentModelDto(model)),
         defaults: availableModels.defaults,
+        customModels: availableModels.customModels,
+        selfHostedBy: availableModels.selfHostedBy,
       } satisfies AgentModelListDto,
     }
   }
@@ -292,6 +294,7 @@ function toAgentModelDto(model: AgentModelData): AgentModelDto {
     model: model.agentModel,
     provider: model.agentProvider,
     isAvailable: model.isAvailable,
+    selfHosted: model.selfHosted,
     deprecation: model.agentModelDeprecation,
     servedOutsideEu: model.servedOutsideEu,
     optionsSchema: model.optionsSchema,

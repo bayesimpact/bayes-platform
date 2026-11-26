@@ -1,6 +1,7 @@
 process.env.MCP_OAUTH_REDIRECT_URL = "https://app.test/oauth/mcp/callback"
 
 import { BadRequestException } from "@nestjs/common"
+import { EncryptionService } from "@/common/encryption/encryption.service"
 import { clearTestDatabase } from "@/common/test/test-database"
 import {
   type AllRepositories,
@@ -9,7 +10,6 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { EncryptionService } from "../encryption.service"
 import type { McpServer } from "../mcp-server.entity"
 import type { McpServerConfig } from "../mcp-server-config.types"
 import { McpServersModule } from "../mcp-servers.module"

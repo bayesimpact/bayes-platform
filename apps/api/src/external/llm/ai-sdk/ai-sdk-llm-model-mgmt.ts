@@ -34,6 +34,7 @@ import {
   PSEUDO_TOOL_CALL_OPEN_RE,
   PSEUDO_TOOL_CALL_RE,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-tools-mgmt"
+import type { ModelEndpointSettings } from "@/external/llm/workspace-models/model-endpoint.types"
 
 const logger = new Logger("AISDKLLMModelMgmt")
 
@@ -150,6 +151,8 @@ export abstract class AISDKLLMModelMgmt<
     config: LLMConfig
     callOrigin: CallOrigin
     callContext: LLMCallContext
+    /** The server of the call, when it overrides the environment variables (self-hosted models). */
+    endpoint?: ModelEndpointSettings
   })
   /** What the call's model and settings say of it, sent under `model.*`. Providers add their own. */
   getModelMetadata(config: LLMConfig): ModelMetadata {
@@ -481,6 +484,7 @@ export abstract class AISDKLLMModelMgmt<
     config: LLMConfig
     callOrigin: CallOrigin
     callContext: LLMCallContext
+    endpoint?: ModelEndpointSettings
     /**
      * Request-scoped sink for tool calls the model verbalized in the text
      * channel. The sanitizer removes the tag before anything downstream sees

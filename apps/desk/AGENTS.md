@@ -12,8 +12,9 @@ holds what is specific to the Desk.
   pages below it. `/app` is the home, and `/app/o/$organizationId` redirects to it.
 - Contracts: `@bayes-platform/desk-contracts` (`packages/desk-contracts`), one folder per area
   (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
-  `invitations`, `memories`, `organizations`, `projects`), with `common/` for the error body and
-  the params every route extends (`AgentParamsDto`, `ConversationParamsDto`), and a
+  `invitations`, `memories`, `organizations`, `projects`), with `common/` for the params every
+  route extends (`AgentParamsDto`, `ConversationParamsDto`), the route helper and the error body
+  it re-exports from `@bayes-platform/schema-route` (`packages/schema-route`), and a
   `Desk{Area}Routes` object per area (`extractions` has two: documents and CSV files). It
   describes the `desk/` routes the Desk calls and the fields it reads, and the API serves these
   routes with the same schemas.
@@ -77,7 +78,7 @@ Run them from the repository root.
 | `npm run check -w @bayes-platform/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @bayes-platform/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
 | `npm run check:desk-parity -w @bayes-platform/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
-| `npm run i18n:extract -w @bayes-platform/desk` | Writes every message to `src/locales/en.po` and `fr.po`, without line numbers, to translate in the same change |
+| `npm run i18n:extract -w @bayes-platform/desk` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
 | `npm run build -w @bayes-platform/desk` | The production build, in `apps/desk/dist` |
 | `npm run preview -w @bayes-platform/desk` | Serves that build on port 5178 at `/app/` |
 
@@ -143,15 +144,16 @@ the conventions as they stand. When a rule changes, its reference file changes i
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
 - Evaluation (`apps/eval`) holds a copy of the chat: `src/features/conversation/`, and `Markdown`,
-  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no code, so
-  a change to one of these files goes to the copy too, in the same PR.
+  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no chat code,
+  so a change to one of these files goes to the copy too, in the same PR.
   `npm run check:desk-parity -w @bayes-platform/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
   of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
   one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a
   snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
-- The API client: `src/lib/api-client.ts`. The query client's retry rules:
-  `src/app/query-client.ts`.
+- The API client: `src/lib/api-client.ts`, which creates the client of
+  `@bayes-platform/api-client` (`packages/api-client`) on the app's session. The query client:
+  `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).
 - The mocked API: `src/test/msw/handlers.ts` and `extraction-handlers.ts`, written with
   `mockRoute` and `mockStreamRoute` (`src/test/msw/mock-route.ts`) and fed by the factories of
   `src/test/factories/`, whose `desk-world.factory.ts` builds the worlds. `src/test/setup.ts` gives

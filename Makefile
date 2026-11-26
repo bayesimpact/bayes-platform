@@ -31,6 +31,7 @@ API_PATHS := \
 	packages/desk-contracts \
 	packages/eval-contracts \
 	packages/permissions \
+	packages/schema-route \
 	package.json \
 	package-lock.json \
 	turbo.json

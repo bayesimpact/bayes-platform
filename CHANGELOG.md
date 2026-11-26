@@ -9,10 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Agent versions: managers discard the draft and delete old versions from the version history.
+- Backoffice languages: the backoffice notifications are available in German, Italian, Spanish and Polish.
+- Workspace models: superadmins add self-hosted models on a workspace's own servers for its agents to pick.
 - MCP: AI assistants save an agent's draft as a version to evaluate it, and never put it in production.
+- Desk languages: the Desk is available in German, Italian, Spanish and Polish.
+- Evaluation languages: Evaluation is available in German, Italian, Spanish and Polish.
 
 ### Changed
 
+- Models: superadmins choose in the backoffice which models each workspace offers, replacing the model feature flags.
 - Review campaign report: the campaign's managers read the free-text answers, and the CSV file holds every answer.
 - (beta) Embedded chat: the message box takes one line when empty and grows with the text.
 
@@ -26,6 +32,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Security
 
 - Studio, Desk and Evaluation pages: another site cannot display them in a frame.
+- Conversation attachments: a file is attached only in the conversation it was uploaded for.
+- (beta) MCP servers: a workspace's server is called only at a public https address or at an internal host the platform allows.
 
 ## [26.11.4] - 2026-11-24
 

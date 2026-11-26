@@ -17,6 +17,7 @@ import { AISDKLLMErrorsMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-errors-mgmt
 import type { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
 import type { AISDKLLMModelMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import type { LeakedToolCall } from "@/external/llm/ai-sdk/ai-sdk-llm-tools-mgmt"
+import type { ModelEndpointSettings } from "@/external/llm/workspace-models/model-endpoint.types"
 
 const logger = new Logger("AISDKLLMProviderBase")
 
@@ -39,6 +40,18 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
   /** What the provider says of itself, sent under `provider.*`. Providers add their own. */
   getProviderMetadata(): ProviderMetadata {
     return { name: this.getAgentProvider() }
+  }
+
+  /**
+   * The server the call goes to, when it is not the one the provider knows by itself. Only the
+   * self-hosted providers have one (see `AISDKVllmProviderBase`). Resolved once per call, before
+   * the model is built.
+   */
+  protected async resolveEndpoint(_args: {
+    config: LLMConfig
+    callContext: LLMCallContext
+  }): Promise<ModelEndpointSettings | undefined> {
+    return undefined
   }
 
   /** All the metadata of a call: the caller's, then the provider and model levels. */
@@ -77,10 +90,12 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     // instead of emitting them. Collected by the raw-capture middleware and
     // recovered after the stream (see recoverLeakedToolCalls).
     const leakedToolCalls: LeakedToolCall[] = []
+    const endpoint = await this.resolveEndpoint({ config, callContext })
     const modelWithoutLeakedToolCalls = this.getLanguageModelWithRawCapture({
       config,
       callOrigin,
       callContext,
+      endpoint,
     })
 
     const systemPrompt = this.applySpecificToSystemPrompt({
@@ -94,6 +109,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
         config,
         callOrigin,
         callContext,
+        endpoint,
         leakedToolCalls,
       }),
       // Passed as instructions, not as a system message in `messages`: the AI SDK
@@ -189,8 +205,9 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     const callOrigin = CallOrigin.generateText
     this.checkConfigProviderAndModel(config)
     const telemetryMetadata = this.getTelemetryMetadata(config, additionalMetadata)
+    const endpoint = await this.resolveEndpoint({ config, callContext })
     const { text } = await generateText({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext, endpoint }),
       system: config.systemPrompt,
       prompt,
       maxRetries: this.getMaxRetries(config),
@@ -237,8 +254,9 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
 
     const aiSDKMessages = this.toConversationMessages([message], "generate structured output")
     const telemetryMetadata = this.getTelemetryMetadata(config, additionalMetadata)
+    const endpoint = await this.resolveEndpoint({ config, callContext })
     const result = await generateText({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext, endpoint }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
       maxRetries: this.getMaxRetries(config),

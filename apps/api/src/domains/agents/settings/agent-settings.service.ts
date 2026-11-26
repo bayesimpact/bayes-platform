@@ -17,8 +17,6 @@ import { ProjectEmbeddingModelsService } from "@/domains/documents/embeddings/pr
 import { DocumentTagsService } from "@/domains/documents/tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "@/domains/documents/tags/document-tags.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ProjectRepository } from "@/domains/projects/project.repository"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ResourceLibrariesService } from "@/domains/resource-libraries/resource-libraries.service"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { Agent } from "../agent.entity"
@@ -57,8 +55,6 @@ export class AgentSettingsService {
     private readonly resourceLibrariesService: ResourceLibrariesService,
 
     private readonly agentModelsService: AgentModelsService,
-
-    private readonly projectRepository: ProjectRepository,
 
     private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
 
@@ -376,15 +372,26 @@ export class AgentSettingsService {
     const found = await this.agentSettingsConnectRepository.find(connectScope, {
       where: { agentId, revision },
     })
-    if (!found || found.length !== 1) return { success: false }
-    if (!found[0] || found[0].isDraft) return { success: false }
-    if (found[0].isProduction) {
+    if (!found || found.length !== 1 || !found[0]) return { success: false }
+    const target = found[0]
+    if (target.isProduction) {
       throw new UnprocessableEntityException("The version in production cannot be archived")
     }
 
-    const last = await this.agentSettingsRepository.findLatest(connectScope, agentId)
-    if (last && last.revision === revision)
-      throw new UnprocessableEntityException("Cannot archive the last revision")
+    if (target.isDraft) {
+      // Archiving the draft discards it: the next change starts a new draft from the newest saved
+      // revision. An agent that never saved a version has nothing to go back to.
+      const latestSaved = await this.agentSettingsRepository.findLatestSaved(connectScope, agentId)
+      if (!latestSaved) {
+        throw new UnprocessableEntityException(
+          "The draft of an agent with no saved version cannot be discarded",
+        )
+      }
+    } else {
+      const last = await this.agentSettingsRepository.findLatest(connectScope, agentId)
+      if (last && last.revision === revision)
+        throw new UnprocessableEntityException("Cannot archive the last revision")
+    }
 
     return this.agentSettingsConnectRepository.updateOneById({
       connectScope,
@@ -783,21 +790,22 @@ export class AgentSettingsService {
   }
 
   async getAvailableModels(connectScope: RequiredConnectScope): Promise<AvailableModels> {
-    return this.agentModelsService.getAvailableModelsForFeatures(
-      await this.listEnabledFeatures(connectScope),
-    )
+    return this.agentModelsService.getAvailableModels(connectScope.projectId)
   }
 
   async assertModelAvailable({
     connectScope,
     model,
+    customModelId,
   }: {
     connectScope: RequiredConnectScope
     model: string
+    customModelId?: string | null
   }): Promise<void> {
-    this.agentModelsService.assertAvailable({
-      features: await this.listEnabledFeatures(connectScope),
+    await this.agentModelsService.assertAvailable({
+      projectId: connectScope.projectId,
       model,
+      customModelId,
     })
   }
 
@@ -819,10 +827,15 @@ export class AgentSettingsService {
    * The update fields with their model choice checked. Keeping the current model is always
    * allowed, even when the project lost access to it. New options are checked against the model,
    * and a new model without options starts on its defaults, since the options of the previous one
-   * may not fit it.
+   * may not fit it. A new model of the code without `customModelId` leaves the added model the
+   * agent ran: an added model only runs its own type.
    */
   async checkModelUpdate<
-    Fields extends { model?: AgentModel; providerOptions?: Record<string, unknown> | null },
+    Fields extends {
+      model?: AgentModel
+      customModelId?: string | null
+      providerOptions?: Record<string, unknown> | null
+    },
   >({
     connectScope,
     agentId,
@@ -832,25 +845,33 @@ export class AgentSettingsService {
     agentId: string
     fieldsToUpdate: Fields
   }): Promise<Fields> {
-    if (fieldsToUpdate.model === undefined && fieldsToUpdate.providerOptions === undefined)
+    if (
+      fieldsToUpdate.model === undefined &&
+      fieldsToUpdate.customModelId === undefined &&
+      fieldsToUpdate.providerOptions === undefined
+    )
       return fieldsToUpdate
     const current = await this.getLatest({ connectScope, agentId })
     const model = fieldsToUpdate.model ?? current.model
     const modelChanges =
       fieldsToUpdate.model !== undefined && fieldsToUpdate.model !== current.model
-    if (modelChanges) await this.assertModelAvailable({ connectScope, model })
-    if (fieldsToUpdate.providerOptions === undefined && !modelChanges) return fieldsToUpdate
+    const customModelId =
+      fieldsToUpdate.customModelId !== undefined
+        ? fieldsToUpdate.customModelId
+        : modelChanges
+          ? null
+          : current.customModelId
+    const choiceChanges = modelChanges || customModelId !== current.customModelId
+    if (choiceChanges) await this.assertModelAvailable({ connectScope, model, customModelId })
+    const checked = choiceChanges ? { ...fieldsToUpdate, customModelId } : fieldsToUpdate
+    if (fieldsToUpdate.providerOptions === undefined && !modelChanges) return checked
     return {
-      ...fieldsToUpdate,
+      ...checked,
       providerOptions: this.agentModelsService.resolveModelOptions({
         model,
         providerOptions: fieldsToUpdate.providerOptions,
       }),
     }
-  }
-
-  private listEnabledFeatures(connectScope: RequiredConnectScope) {
-    return this.projectRepository.listEnabledFeatures(connectScope.projectId)
   }
 }
 

@@ -14,13 +14,17 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   CreateAppManifestInput,
+  CreateCustomModelInput,
+  CustomModels,
   MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
+  ProjectModel,
   TermsDocuments,
   UpdateAppManifestInput,
+  UpdateCustomModelInput,
   UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
@@ -240,6 +244,64 @@ const runMaintenanceJob = createAsyncThunk<MaintenanceJob, string, ThunkConfig>(
   },
 )
 
+const withApiError = async <Result>(call: () => Promise<Result>): Promise<Result> => {
+  try {
+    return await call()
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+}
+
+const listProjectModels = createAsyncThunk<ProjectModel[], string, ThunkConfig>(
+  "backoffice/listProjectModels",
+  async (projectId, { extra: { services } }) => services.backoffice.listProjectModels(projectId),
+)
+
+const setProjectModel = createAsyncThunk<
+  ProjectModel[],
+  { projectId: string; model: string; enabled: boolean },
+  ThunkConfig
+>("backoffice/setProjectModel", async (params, { extra: { services } }) =>
+  withApiError(() => services.backoffice.setProjectModel(params)),
+)
+
+const resetProjectModel = createAsyncThunk<
+  ProjectModel[],
+  { projectId: string; model: string },
+  ThunkConfig
+>("backoffice/resetProjectModel", async (params, { extra: { services } }) =>
+  withApiError(() => services.backoffice.resetProjectModel(params)),
+)
+
+const listCustomModels = createAsyncThunk<CustomModels, string, ThunkConfig>(
+  "backoffice/listCustomModels",
+  async (projectId, { extra: { services } }) => services.backoffice.listCustomModels(projectId),
+)
+
+const createCustomModel = createAsyncThunk<
+  CustomModels,
+  { projectId: string; input: CreateCustomModelInput },
+  ThunkConfig
+>("backoffice/createCustomModel", async (params, { extra: { services } }) =>
+  withApiError(() => services.backoffice.createCustomModel(params)),
+)
+
+const updateCustomModel = createAsyncThunk<
+  CustomModels,
+  { projectId: string; customModelId: string; input: UpdateCustomModelInput },
+  ThunkConfig
+>("backoffice/updateCustomModel", async (params, { extra: { services } }) =>
+  withApiError(() => services.backoffice.updateCustomModel(params)),
+)
+
+const deleteCustomModel = createAsyncThunk<
+  CustomModels,
+  { projectId: string; customModelId: string },
+  ThunkConfig
+>("backoffice/deleteCustomModel", async (params, { extra: { services } }) =>
+  withApiError(() => services.backoffice.deleteCustomModel(params)),
+)
+
 export const backofficeThunks = {
   listOrganizations,
   getOrganization,
@@ -267,4 +329,11 @@ export const backofficeThunks = {
   createAppOAuthClientSecret,
   listMaintenanceJobs,
   runMaintenanceJob,
+  listProjectModels,
+  setProjectModel,
+  resetProjectModel,
+  listCustomModels,
+  createCustomModel,
+  updateCustomModel,
+  deleteCustomModel,
 }

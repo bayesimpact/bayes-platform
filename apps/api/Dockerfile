@@ -20,10 +20,11 @@ COPY packages/api-contracts/package.json ./packages/api-contracts/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
+COPY packages/schema-route/package.json ./packages/schema-route/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
-# Scope install to API + the contracts and the permissions they share so packages/ui's runtime deps (vite, tailwind, radix, react)
+# Scope install to API + the contracts and the permissions and schema routes they share so packages/ui's runtime deps (vite, tailwind, radix, react)
 # never enter node_modules/. Frontend workspaces are left on disk but their deps aren't installed.
 RUN npm ci \
     --workspace=@bayes-platform/api \
@@ -31,6 +32,7 @@ RUN npm ci \
     --workspace=@bayes-platform/desk-contracts \
     --workspace=@bayes-platform/eval-contracts \
     --workspace=@bayes-platform/permissions \
+    --workspace=@bayes-platform/schema-route \
     --include-workspace-root
 
 #
@@ -49,6 +51,7 @@ COPY packages/api-contracts/package.json ./packages/api-contracts/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
+COPY packages/schema-route/package.json ./packages/schema-route/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
@@ -58,6 +61,7 @@ RUN npm ci --omit=dev \
     --workspace=@bayes-platform/desk-contracts \
     --workspace=@bayes-platform/eval-contracts \
     --workspace=@bayes-platform/permissions \
+    --workspace=@bayes-platform/schema-route \
     --include-workspace-root
 
 # `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
@@ -81,6 +85,7 @@ COPY ./packages ./packages
 # Generate the production build. The build script compiles src/ to dist/ with SWC (.swcrc).
 RUN cd apps/api && npm run build
 RUN cd packages/permissions && npm run build
+RUN cd packages/schema-route && npm run build
 RUN cd packages/api-contracts && npm run build
 RUN cd packages/desk-contracts && npm run build
 RUN cd packages/eval-contracts && npm run build
@@ -123,7 +128,8 @@ RUN cd apps/web && npm run build
 # Builds apps/desk for its `/app/` base (vite.config.ts): the API serves the
 # result at /app, ahead of the web front. As for the web front, no VITE_* value
 # is baked in: the Desk reads the configuration the API injects into its
-# index.html. Only the Desk, its contracts, the permissions, the MCP App host and the sign-in are
+# index.html. Only the Desk, its contracts, the permissions, the schema routes,
+# the MCP App host, the sign-in, the API client and the frontend config are
 # installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
@@ -133,23 +139,32 @@ COPY package.json package-lock.json ./
 COPY apps/desk/package.json ./apps/desk/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
+COPY packages/schema-route/package.json ./packages/schema-route/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
+COPY packages/api-client/package.json ./packages/api-client/
+# Whole, before the install: npm links the component check it gives as a binary.
+COPY packages/frontend-config ./packages/frontend-config
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
     --workspace=@bayes-platform/desk \
     --workspace=@bayes-platform/desk-contracts \
     --workspace=@bayes-platform/permissions \
+    --workspace=@bayes-platform/schema-route \
     --workspace=@bayes-platform/mcp-app-host \
     --workspace=@bayes-platform/sign-in \
+    --workspace=@bayes-platform/api-client \
+    --workspace=@bayes-platform/frontend-config \
     --include-workspace-root
 
 COPY apps/desk ./apps/desk
 COPY packages/desk-contracts ./packages/desk-contracts
 COPY packages/permissions ./packages/permissions
+COPY packages/schema-route ./packages/schema-route
 COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/sign-in ./packages/sign-in
+COPY packages/api-client ./packages/api-client
 COPY packages/typescript-config ./packages/typescript-config
 
 RUN cd apps/desk && npm run build
@@ -160,7 +175,8 @@ RUN cd apps/desk && npm run build
 # Builds apps/eval for its `/eval/` base (vite.config.ts): the API serves the
 # result at /eval, ahead of the web front. As for the Desk, no VITE_* value is
 # baked in: the app reads the configuration the API injects into its
-# index.html. Only the app, its contracts, the permissions, the MCP App host and the sign-in are
+# index.html. Only the app, its contracts, the permissions, the schema routes,
+# the MCP App host, the sign-in, the API client and the frontend config are
 # installed.
 #
 FROM node:24.21.0-trixie-slim AS eval-build
@@ -170,23 +186,32 @@ COPY package.json package-lock.json ./
 COPY apps/eval/package.json ./apps/eval/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
+COPY packages/schema-route/package.json ./packages/schema-route/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
+COPY packages/api-client/package.json ./packages/api-client/
+# Whole, before the install: npm links the component check it gives as a binary.
+COPY packages/frontend-config ./packages/frontend-config
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
     --workspace=@bayes-platform/eval \
     --workspace=@bayes-platform/eval-contracts \
     --workspace=@bayes-platform/permissions \
+    --workspace=@bayes-platform/schema-route \
     --workspace=@bayes-platform/mcp-app-host \
     --workspace=@bayes-platform/sign-in \
+    --workspace=@bayes-platform/api-client \
+    --workspace=@bayes-platform/frontend-config \
     --include-workspace-root
 
 COPY apps/eval ./apps/eval
 COPY packages/eval-contracts ./packages/eval-contracts
 COPY packages/permissions ./packages/permissions
+COPY packages/schema-route ./packages/schema-route
 COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/sign-in ./packages/sign-in
+COPY packages/api-client ./packages/api-client
 COPY packages/typescript-config ./packages/typescript-config
 
 RUN cd apps/eval && npm run build
@@ -218,6 +243,7 @@ COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
 COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/packages/eval-contracts /app/packages/eval-contracts
 COPY --from=build /app/packages/permissions /app/packages/permissions
+COPY --from=build /app/packages/schema-route /app/packages/schema-route
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:
@@ -343,6 +369,7 @@ COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
 COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/packages/eval-contracts /app/packages/eval-contracts
 COPY --from=build /app/packages/permissions /app/packages/permissions
+COPY --from=build /app/packages/schema-route /app/packages/schema-route
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:

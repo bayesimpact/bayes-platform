@@ -40,7 +40,8 @@ export function InviteParticipantsForm({ campaign }: InviteParticipantsFormProps
       {
         emails: parseEmails(values.emailsText),
         role: values.role,
-        // The invitation email is written in the inviter's language.
+        // The API writes the invitation email in French or English: French for a person who
+        // reads the app in French, English for any other language.
         language: i18n.locale === "fr" ? "fr" : "en",
       },
       {

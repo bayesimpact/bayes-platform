@@ -1,5 +1,5 @@
+import { defineSchemaRoute } from "@bayes-platform/schema-route"
 import { PROJECT_PATH } from "../common/params.dto"
-import { defineSchemaRoute } from "../define-schema-route"
 import {
   documentIsPublicOutputSchema,
   documentParamsSchema,

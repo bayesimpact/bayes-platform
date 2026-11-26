@@ -1,0 +1,27 @@
+{
+  "backoffice": {
+    "notifications": {
+      "organizationCreated": "Organización creada",
+      "organizationCreateError": "No se pudo crear la organización",
+      "projectUpdated": "Espacio de trabajo actualizado en el backoffice",
+      "projectUpdateError": "No se pudo actualizar el espacio de trabajo en el backoffice",
+      "conversationReviewersUpdated": "Revisores de conversaciones actualizados",
+      "conversationReviewersUpdateError": "No se pudieron actualizar los revisores de conversaciones",
+      "globalRolesUpdated": "Roles globales actualizados",
+      "globalRolesUpdateError": "No se pudieron actualizar los roles globales",
+      "termsDocumentsSaved": "Documentos de condiciones guardados",
+      "termsDocumentsSaveError": "No se pudieron guardar los documentos de condiciones",
+      "appCreated": "Aplicación creada",
+      "appUpdated": "Aplicación actualizada",
+      "appDeleted": "Aplicación eliminada",
+      "appCreateError": "No se pudo crear la aplicación",
+      "appUpdateError": "No se pudo actualizar la aplicación",
+      "appDeleteError": "No se pudo eliminar la aplicación",
+      "appOAuthClientError": "No se pudo cargar o actualizar el cliente OAuth de la aplicación",
+      "maintenanceJobStarted": "Tarea de mantenimiento iniciada",
+      "maintenanceJobStartError": "No se pudo iniciar la tarea de mantenimiento",
+      "modelEndpointSaved": "Ajustes del modelo guardados",
+      "modelEndpointSaveError": "No se pudieron guardar los ajustes del modelo"
+    }
+  }
+}

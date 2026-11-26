@@ -10,13 +10,17 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   CreateAppManifestInput,
+  CreateCustomModelInput,
+  CustomModels,
   MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
+  ProjectModel,
   TermsDocuments,
   UpdateAppManifestInput,
+  UpdateCustomModelInput,
   UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
@@ -74,6 +78,24 @@ export interface IBackofficeSpi {
   deleteAppManifest: (appManifestId: string) => Promise<void>
   listMaintenanceJobs: () => Promise<MaintenanceJob[]>
   runMaintenanceJob: (jobKey: string) => Promise<MaintenanceJob>
+  listProjectModels: (projectId: string) => Promise<ProjectModel[]>
+  setProjectModel: (params: {
+    projectId: string
+    model: string
+    enabled: boolean
+  }) => Promise<ProjectModel[]>
+  resetProjectModel: (params: { projectId: string; model: string }) => Promise<ProjectModel[]>
+  listCustomModels: (projectId: string) => Promise<CustomModels>
+  createCustomModel: (params: {
+    projectId: string
+    input: CreateCustomModelInput
+  }) => Promise<CustomModels>
+  updateCustomModel: (params: {
+    projectId: string
+    customModelId: string
+    input: UpdateCustomModelInput
+  }) => Promise<CustomModels>
+  deleteCustomModel: (params: { projectId: string; customModelId: string }) => Promise<CustomModels>
   getAppOAuthClient: (appManifestId: string) => Promise<AppOAuthClient>
   createAppOAuthClientSecret: (appManifestId: string) => Promise<AppOAuthClientSecret>
 }

@@ -133,7 +133,7 @@ describe("Agent Settings - archiveOne", () => {
     expect(productionSettings?.isArchived).toBe(false)
   })
 
-  it("should fail with a draft revision - draft", async () => {
+  it("should discard the draft - draft", async () => {
     await createContext()
 
     const initialAgentSettings = await repositories.agentSettingsRepository.findOne({
@@ -141,12 +141,30 @@ describe("Agent Settings - archiveOne", () => {
     })
     expect(initialAgentSettings?.isDraft).toBeTruthy()
     expect(initialAgentSettings?.isArchived).toBeFalsy()
-    expect(initialAgentSettings?.revisionName).not.toBe("revisionName")
-    expect(initialAgentSettings?.revisionDesc).not.toBe("revisionDesc")
 
     revision = "3"
     const response = await subject()
-    expectResponse(response, 422)
+    expectResponse(response, 201)
+
+    const discardedDraft = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 3 },
+    })
+    expect(discardedDraft?.isArchived).toBe(true)
+  })
+
+  it("should fail with the draft of an agent with no saved version - draft", async () => {
+    await createContext()
+    await repositories.agentSettingsRepository.delete({ agentId, revision: 1 })
+    await repositories.agentSettingsRepository.delete({ agentId, revision: 2 })
+
+    revision = "3"
+    const response = await subject()
+    expectResponse(response, 422, "The draft of an agent with no saved version cannot be discarded")
+
+    const draft = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 3 },
+    })
+    expect(draft?.isArchived).toBe(false)
   })
   it("should fail with invalid revision", async () => {
     await createContext()

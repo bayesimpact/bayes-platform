@@ -18,14 +18,15 @@ module.exports = {
       comment:
         "The Desk imports nothing from another app or from a package another app owns. Its " +
         "workspace dependencies are @bayes-platform/desk-contracts and the packages no app " +
-        "owns: @bayes-platform/mcp-app-host and @bayes-platform/sign-in (ADR 0031, section 2.4).",
+        "owns: @bayes-platform/api-client, @bayes-platform/mcp-app-host and " +
+        "@bayes-platform/sign-in (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/desk.
           "^\\.\\./(?!\\.\\./|desk/)[^/]+/",
-          "^\\.\\./\\.\\./packages/(?!(desk-contracts|mcp-app-host|sign-in)/)",
-          "node_modules/@bayes-platform/(?!(desk-contracts|mcp-app-host|sign-in)(/|$))",
+          "^\\.\\./\\.\\./packages/(?!(api-client|desk-contracts|mcp-app-host|sign-in)/)",
+          "node_modules/@bayes-platform/(?!(api-client|desk-contracts|mcp-app-host|sign-in)(/|$))",
           "node_modules/@repo/",
         ],
       },
@@ -63,6 +64,15 @@ module.exports = {
       to: {
         path: ["node_modules/oidc-client-ts/", "(node_modules/@bayes-platform|packages)/sign-in/"],
       },
+    },
+    {
+      name: "only-lib-api-client-imports-api-client",
+      severity: "error",
+      comment:
+        "lib/api-client.ts is the app's API client, on the app's session: the rest of the app " +
+        "reads it, never @bayes-platform/api-client.",
+      from: { path: "^src/", pathNot: "^src/lib/api-client\\.ts$" },
+      to: { path: "(node_modules/@bayes-platform|packages)/api-client/" },
     },
     {
       name: "test-code-stays-in-tests",

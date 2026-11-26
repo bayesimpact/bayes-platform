@@ -65,7 +65,18 @@ function buildMockAgentsService(listAgents: () => Agent[]): IAgentsSpi {
   return {
     getAll: async () => listAgents(),
     getAllWithDrafts: async () => listAgents(),
-    getAvailableModels: async () => agentModelsCatalogFactory.build(),
+    // The operator's name and one added model, so the picker shows both, as on a real workspace.
+    getAvailableModels: async () =>
+      agentModelsCatalogFactory.build({
+        selfHostedBy: "Bayes",
+        customModels: [
+          {
+            id: "8f0c5a8e-2f7b-4c1e-9d3a-5b6e7f8a9b0c",
+            name: "Gemma 4 on the new server",
+            baseModel: AgentModel.Gemma4_26B,
+          },
+        ],
+      }),
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
     },
@@ -315,13 +326,24 @@ export const ConversationAgentOnDeprecatedModel: Story = {
   decorators: ConversationAgent.decorators,
 }
 
-/** The Model tab shows the priority tier toggle: flag on, Gemini 3.x model, option already on. */
+/**
+ * The Model tab with the priority tier on: flag on, Gemini 3.x model, option already on. The
+ * picker shows the Priority badge on that model only, next to the temperature and reasoning fields.
+ */
 export const ConversationAgentWithPriorityCalls: Story = {
   args: {
     featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "llm-priority-calls"],
     withPriorityCalls: true,
   },
   decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const modelTab = await within(canvasElement).findByRole(
+      "button",
+      { name: "Model" },
+      { timeout: 10_000 },
+    )
+    await userEvent.click(modelTab)
+  },
 }
 
 /** The Tools tab with follow-up questions on: their maximum and the author's instructions. */

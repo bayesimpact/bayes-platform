@@ -35,6 +35,7 @@ export function buildModelTabDefaultValues(
 ): UpdateAgentSettingsModelDto {
   return {
     model: agentSettings.model,
+    customModelId: agentSettings.customModelId,
     providerOptions: agentSettings.providerOptions,
     priorityCallsEnabled: agentSettings.priorityCallsEnabled,
     embeddingModel: agentSettings.embeddingModel,

@@ -230,7 +230,7 @@ function vertexOptions({
 }
 
 /** The catalog of the API, model by model (the test model is never listed). */
-const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
+const CATALOG: Omit<AgentModelEntry, "isAvailable" | "selfHosted">[] = [
   {
     model: AgentModel.Gemini25Flash,
     provider: AgentProvider.Vertex,
@@ -385,6 +385,13 @@ type AgentModelsCatalogTransientParams = {
   flaggedProviders: AgentProvider[]
 }
 
+const SELF_HOSTED_PROVIDERS: AgentProvider[] = [
+  AgentProvider.Gemma,
+  AgentProvider.MedGemma,
+  AgentProvider.Mistral,
+  AgentProvider.Qwen,
+]
+
 class AgentModelsCatalogFactory extends Factory<
   AgentModelsCatalog,
   AgentModelsCatalogTransientParams
@@ -403,8 +410,11 @@ export const agentModelsCatalogFactory = AgentModelsCatalogFactory.define(
           ...entry,
           isAvailable:
             availableProviders.includes(entry.provider) && !RETIRED_MODELS.includes(entry.model),
+          selfHosted: SELF_HOSTED_PROVIDERS.includes(entry.provider),
         })),
       defaults: { ...defaultAgentModels, ...params.defaults },
+      customModels: (params.customModels as AgentModelsCatalog["customModels"] | undefined) ?? [],
+      selfHostedBy: params.selfHostedBy ?? null,
     }
   },
 )

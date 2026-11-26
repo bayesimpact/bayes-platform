@@ -19,7 +19,7 @@
   "features/conversation/hooks/use-conversation-panel.ts": "989df2ce58f6e7c8",
   "features/conversation/hooks/use-conversation-send.ts": "d1e6b4f6920a6b9e",
   "features/conversation/hooks/use-conversation-title.ts": "f5aa5a1242778d12",
-  "features/conversation/hooks/use-dictation.ts": "f1f455a55dafd75c",
+  "features/conversation/hooks/use-dictation.ts": "a44acbd042a826c3",
   "features/conversation/hooks/use-mcp-app.spec.tsx": "837463c4c99b1704",
   "features/conversation/hooks/use-mcp-app.ts": "91acdf73255d125e",
   "features/conversation/index.ts": "9b16ccffdb0a3246",

@@ -9,6 +9,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectModelFactory } from "@/external/llm/workspace-models/project-model.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import {
@@ -50,15 +51,11 @@ describe("Evaluation agents - getModels", () => {
     await app.close()
   })
 
-  const createContext = async ({ featureFlags = [] }: { featureFlags?: string[] } = {}) => {
+  const createContext = async ({ enabledModels = [] }: { enabledModels?: AgentModel[] } = {}) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
-    for (const featureFlagKey of featureFlags) {
-      await repositories.featureFlagRepository.save(
-        repositories.featureFlagRepository.create({
-          projectId: project.id,
-          featureFlagKey,
-          enabled: true,
-        }),
+    for (const model of enabledModels) {
+      await repositories.projectModelRepository.save(
+        projectModelFactory.build({ projectId: project.id, model }),
       )
     }
     organizationId = organization.id
@@ -104,8 +101,8 @@ describe("Evaluation agents - getModels", () => {
     expect(gemini25Flash?.deprecation).not.toBeNull()
   })
 
-  it("offers a flagged provider's models once the project has its flag", async () => {
-    await createContext({ featureFlags: ["gemma"] })
+  it("offers a model once the workspace has it enabled", async () => {
+    await createContext({ enabledModels: [AgentModel.Gemma4_26B] })
 
     const response = await subject()
 

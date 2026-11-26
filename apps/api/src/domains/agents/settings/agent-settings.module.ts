@@ -2,9 +2,9 @@ import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ProjectEmbeddingModelsModule } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-models.module"
 import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
-import { ProjectRepository } from "@/domains/projects/project.repository"
 import { ResourceLibrariesModule } from "@/domains/resource-libraries/resource-libraries.module"
 import { LlmModule } from "@/external/llm/llm.module"
+import { WorkspaceModelsModule } from "@/external/llm/workspace-models/workspace-models.module"
 import { Agent } from "../agent.entity"
 import { AgentSessionCategoriesService } from "../session-categories/agent-session-categories.service"
 import { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
@@ -25,6 +25,7 @@ import { AgentSettingsService } from "./agent-settings.service"
     forwardRef(() => DocumentTagsModule),
     forwardRef(() => ResourceLibrariesModule),
     LlmModule,
+    WorkspaceModelsModule,
     ProjectEmbeddingModelsModule,
   ],
   providers: [
@@ -32,7 +33,6 @@ import { AgentSettingsService } from "./agent-settings.service"
     AgentSessionCategoriesService,
     AgentSettingsRepository,
     AgentSettingsService,
-    ProjectRepository,
   ],
   exports: [AgentSettingsService, AgentSettingsRepository],
 })

@@ -22,6 +22,7 @@
   ],
   "dependencies": {
     "@bayes-platform/permissions": "*",
+    "@bayes-platform/schema-route": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -18,6 +18,7 @@ export const agentMessageAttachmentDocumentFactory = Factory.define<
   const id = params.id || randomUUID()
   return {
     id,
+    agentSessionId: params.agentSessionId ?? null,
     fileName: params.fileName || "attachment.pdf",
     mimeType: params.mimeType || "application/pdf",
     size: params.size || 1234,

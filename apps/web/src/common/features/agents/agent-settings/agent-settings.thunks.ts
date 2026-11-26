@@ -62,6 +62,22 @@ export const setProductionAgentSettings = createAsyncThunk<
   },
 )
 
+/**
+ * Removes a revision from the history, or discards the draft. The API archives it: runs that
+ * used it keep their label. `isDraft` only picks the notification.
+ */
+export const deleteAgentSettings = createAsyncThunk<
+  void,
+  { revision: number; isDraft: boolean },
+  ThunkConfig
+>("agentSettings/archiveOne", async ({ revision }, { extra: { services }, getState }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const agentId = getCurrentId({ state, name: "agentId" })
+  await services.agentSettings.archiveOne({ organizationId, projectId, agentId, revision })
+})
+
 export const createAgentSettings = createAsyncThunk<
   void,
   {

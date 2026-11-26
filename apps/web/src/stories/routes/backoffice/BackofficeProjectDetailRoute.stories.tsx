@@ -1,4 +1,5 @@
 import {
+  AgentModel,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
@@ -9,6 +10,9 @@ import {
   backofficeProjectAgentFactory,
   backofficeProjectDetailFactory,
   backofficeProjectMemberFactory,
+  buildCustomModelTypes,
+  customModelFactory,
+  projectModelFactory,
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import { backofficeRoutes } from "@/backoffice/routes/BackofficeRoutes"
 import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
@@ -32,6 +36,8 @@ type StoryArgs = BackofficeStoryArgs & {
   /** Members the caller may not read, which the API leaves out and only counts. */
   hiddenMembers?: number
   canUpdateProject?: boolean
+  /** Some models turned on and added in the workspace, shown to superadmins. */
+  withWorkspaceModels?: boolean
 }
 
 const decorator = buildDecorator<StoryArgs>(
@@ -41,12 +47,13 @@ const decorator = buildDecorator<StoryArgs>(
     visibleMembers,
     hiddenMembers,
     canUpdateProject,
+    withWorkspaceModels,
     ...args
   }) => {
     const { baseSeeds, organizations, users } = buildBackofficeData(args)
     const projectDetail = backofficeProjectDetailFactory.build({
       id: BACKOFFICE_STORY_PROJECT_ID,
-      featureFlags: ["gemma"],
+      featureFlags: ["agent-memory"],
       permissions: canUpdateProject
         ? [BACKOFFICE_PROJECT_READ_PERMISSION, BACKOFFICE_PROJECT_UPDATE_PERMISSION]
         : [BACKOFFICE_PROJECT_READ_PERMISSION],
@@ -63,13 +70,42 @@ const decorator = buildDecorator<StoryArgs>(
         }),
       ),
     })
+    const projectModels = [
+      projectModelFactory.build({ model: AgentModel.Gemini35Flash }),
+      projectModelFactory.build({ model: AgentModel.Gemini4Argon }),
+      projectModelFactory.build(
+        withWorkspaceModels
+          ? { model: AgentModel.Gemma4_26B, enabled: true, customized: true }
+          : { model: AgentModel.Gemma4_26B },
+      ),
+      projectModelFactory.build({ model: AgentModel.Qwen38_27B }),
+    ]
+    const customModels = {
+      customModels: withWorkspaceModels
+        ? [
+            customModelFactory.build({
+              name: "Gemma 4 on the new server",
+              baseModel: AgentModel.Gemma4_26B,
+              agentCount: 2,
+            }),
+          ]
+        : [],
+      types: buildCustomModelTypes(),
+    }
     return {
-      state: mergeSeeds(baseSeeds, seed.backoffice.projectDetail(projectDetail)),
+      state: mergeSeeds(
+        baseSeeds,
+        seed.backoffice.projectDetail(projectDetail),
+        seed.backoffice.projectModels(projectModels),
+        seed.backoffice.customModels(customModels),
+      ),
       services: {
         backoffice: buildMockBackofficeService({
           organizations,
           users,
           projectDetails: { [projectDetail.id]: projectDetail },
+          projectModels,
+          customModels,
         }),
       },
     }
@@ -86,6 +122,7 @@ const meta = {
     visibleMembers: { control: { type: "number", min: 0 } },
     hiddenMembers: { control: { type: "number", min: 0 } },
     canUpdateProject: { control: "boolean" },
+    withWorkspaceModels: { control: "boolean" },
   },
   args: {
     ...backofficeStoryArgs,
@@ -94,6 +131,8 @@ const meta = {
     visibleMembers: 2,
     hiddenMembers: 0,
     canUpdateProject: true,
+    isWorkspaceModelManagementAuthorized: true,
+    withWorkspaceModels: true,
   },
   decorators: [decorator],
   render: render({
@@ -129,6 +168,11 @@ export const OneMemberHidden: Story = {
 
 export const WithoutMembers: Story = {
   args: { visibleMembers: 0, hiddenMembers: 0 },
+}
+
+/** A superadmin sees the models of the workspace; without the permission, the section is hidden. */
+export const WithoutModelManagement: Story = {
+  args: { isWorkspaceModelManagementAuthorized: false },
 }
 
 export const WithoutProjectUpdate: Story = {

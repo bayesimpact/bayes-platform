@@ -275,23 +275,30 @@ describe("AgentSettings", () => {
         }),
       ).rejects.toThrow("The version in production cannot be archived")
     })
-    it("archive should NOT works - draft", async () => {
+    it("archive should work - draft - discards it, and the next change starts a new draft", async () => {
       const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
-      const { success } = await service.archive({
-        connectScope: { organizationId: organization.id, projectId: project.id },
-        agentId: agent.id,
-        revision: 3,
-      })
-      expect(success).toBeFalsy()
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+      const { success } = await service.archive({ connectScope, agentId: agent.id, revision: 3 })
+      expect(success).toBeTruthy()
+
       const settings = await service.getAll({
-        connectScope: { organizationId: organization.id, projectId: project.id },
+        connectScope,
         agentId: agent.id,
         includesDraft: true,
         includesArchived: true,
       })
       expect(settings.length).toBe(3)
       assertOnSettings(agentSettingsValuesRev3Draft, settings[0])
-      expect(settings[0]?.isArchived).toBeFalsy()
+      expect(settings[0]?.isArchived).toBeTruthy()
+
+      const newDraft = await service.updateSettings({
+        connectScope,
+        agentId: agent.id,
+        agentSettings: { instructions: "A new draft after the discard" },
+      })
+      expect(newDraft.isDraft).toBe(true)
+      expect(newDraft.revision).toBe(4)
+      expect(newDraft.instructions).toBe("A new draft after the discard")
     })
 
     it("publish should works - draft", async () => {

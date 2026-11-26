@@ -7,6 +7,7 @@ import type {
 import { Column, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
+import { CustomModel } from "@/external/llm/workspace-models/custom-model.entity"
 
 @ConnectEntityWithUniqueIndex("agent_settings", "agentId", "revision")
 // At most one revision of an agent is in production.
@@ -55,6 +56,18 @@ export class AgentSettings extends ConnectEntityBase {
 
   @Column({ type: "varchar", nullable: false })
   model!: AgentModel
+
+  /**
+   * Set when the agent runs a model its workspace added: `model` is then that model's type, whose
+   * options apply, and the calls go to its server. A model in use cannot be deleted.
+   */
+  @Column({ type: "uuid", name: "custom_model_id", nullable: true, default: null })
+  customModelId!: string | null
+
+  // NO ACTION, checked at the end of the statement: deleting a model in use fails.
+  @ManyToOne(() => CustomModel, { nullable: true })
+  @JoinColumn({ name: "custom_model_id" })
+  customModel?: Relation<CustomModel> | null
 
   @Column({
     type: "decimal",

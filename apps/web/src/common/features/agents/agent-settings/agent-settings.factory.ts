@@ -88,5 +88,6 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     followUpSuggestionsEnabled: params.followUpSuggestionsEnabled ?? false,
     followUpSuggestionsInstructions: params.followUpSuggestionsInstructions ?? null,
     followUpSuggestionsMax: params.followUpSuggestionsMax ?? FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX,
+    customModelId: params.customModelId ?? null,
   } satisfies AgentSettings
 })

@@ -13,6 +13,7 @@ import {
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
 import { CustomMedGemmaLanguageModel } from "@/external/llm/ai-sdk/providers/medgemma/custom-med-gemma-language-model"
+import type { ModelEndpointSettings } from "@/external/llm/workspace-models/model-endpoint.types"
 
 type MedGemmaAgentModel = AgentModelOf<AgentProvider.MedGemma>
 
@@ -45,18 +46,20 @@ export class AISDKMedGemmaProvider extends AISDKVllmProviderBase<AgentProvider.M
   override getLanguageModel({
     config,
     callOrigin,
+    endpoint,
   }: {
     config: LLMConfig
     callOrigin: CallOrigin
+    endpoint?: ModelEndpointSettings
   }): LanguageModelV3 {
     switch (callOrigin) {
       case CallOrigin.generateText:
-        return this.getOpenResponsesProvider(config)
+        return this.getOpenResponsesProvider(config, endpoint)
       case CallOrigin.streamChatResponse:
-        return this.getOpenAiProvider(config)
+        return this.getOpenAiProvider(config, endpoint)
       case CallOrigin.generateStructuredOutput:
       case CallOrigin.streamChatResponse_withTools:
-        return this.getCustomProvider(config)
+        return this.getCustomProvider(config, endpoint)
       default:
         throw new NotImplementedException(`DEV - Unknown callOrigin: ${callOrigin}`)
     }
@@ -88,28 +91,28 @@ ${toolDocs.join("\n")}
     return systemPrompt
   }
 
-  getOpenResponsesProvider(config: LLMConfig): LanguageModelV3 {
-    const { url, apiKey } = this.getModelEnvSettings(config.model)
+  getOpenResponsesProvider(config: LLMConfig, endpoint?: ModelEndpointSettings): LanguageModelV3 {
+    const { url, apiKey, modelName } = this.getModelSettings(config.model, endpoint)
     return createOpenResponses({
       name: this.providerName,
       url: new URL("v1/responses", url).toString(),
       apiKey,
       fetch: this.fetchFor(config),
-    })(config.model)
+    })(modelName)
   }
-  getOpenAiProvider(config: LLMConfig): LanguageModelV3 {
-    const { url, apiKey } = this.getModelEnvSettings(config.model)
+  getOpenAiProvider(config: LLMConfig, endpoint?: ModelEndpointSettings): LanguageModelV3 {
+    const { url, apiKey, modelName } = this.getModelSettings(config.model, endpoint)
     return createOpenAI({
       name: this.providerName,
       baseURL: new URL("v1", url).toString(),
       apiKey,
       fetch: this.fetchFor(config),
-    })(config.model)
+    })(modelName)
   }
-  getCustomProvider(config: LLMConfig): LanguageModelV3 {
-    const { url, apiKey } = this.getModelEnvSettings(config.model)
+  getCustomProvider(config: LLMConfig, endpoint?: ModelEndpointSettings): LanguageModelV3 {
+    const { url, apiKey, modelName } = this.getModelSettings(config.model, endpoint)
     return new CustomMedGemmaLanguageModel({
-      config,
+      config: { ...config, model: modelName },
       baseUrl: url,
       apiKey,
       fetch: this.fetchFor(config),

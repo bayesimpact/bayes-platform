@@ -15,6 +15,9 @@ This is a Turborepo monorepo with the following structure:
 - `packages/@bayes-platform/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@bayes-platform/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
 - `packages/@bayes-platform/sign-in` - The sign-in of the apps of the ADR 0031 stack (the Desk, Evaluation): the OIDC client on the session every app of the origin shares, the guards against sign-in loops, and the API's sign-in refusals. No app owns it; each app wraps it in its `lib/auth/session.ts`
+- `packages/@bayes-platform/api-client` - The API client of the apps of the ADR 0031 stack (the Desk, Evaluation): `createApiClient` on the app's session, the reading of server-sent events and the retry rule of the queries. No app owns it; each app creates its client in its `lib/api-client.ts`
+- `packages/@bayes-platform/frontend-config` - The tooling the apps of the ADR 0031 stack share: the Biome rules (`biome.app.json`, which each app's `biome.json` extends with the root one), the GritQL plugins and the `check-component-files` check. No app owns it
+- `packages/@bayes-platform/schema-route` - The route helper of the contracts packages (`defineSchemaRoute`, `defineStreamRoute`, the types of a route) and the body of an error response. The Desk and Evaluation contracts re-export it, and the API's `src/common/schema-route/` takes its route types from it; no app owns it
 - `packages/@bayes-platform/permissions` - The RBAC permission catalog (`src/index.ts`), the one place a permission string is declared. `api-contracts` re-exports it, and the Desk and Evaluation contracts re-export the constants their apps read; no app owns it
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@bayes-platform/ui` - Shared React component library
@@ -110,6 +113,7 @@ Any edit to `CHANGELOG.md` follows `docs/changelog.md`, whether or not a skill i
 - Use semantic commit messages consistent with the repo history: `feat: ...`, `fix: ...`, `chore: ...`.
 - Use scoped variants only when they match existing history and add clarity.
 - This repository is **public**. Never mention private GitHub repos (especially `bayesimpact/internal-issues`) in commits, PR titles/bodies, comments, docs, or `Closes`/`Refs`/`Fixes` trailers. Link public `bayes-platform` issues only, or omit the reference.
+- An issue or an issue comment on this repository is public too: it names no client, partner or confidential project, and it holds no internal URL, secret or client identifier. Describe the case in generic terms.
 
 ## Working in a Worktree (Claude Code)
 
@@ -144,6 +148,8 @@ projects.map((project) => project.name)
 ## Communication
 
 Mirror the user's language. When replying in French, use simplified technical French: short sentences, simple words, active voice, one idea per sentence — no nominal chains, no nested clauses. When replying in English, use Simplified Technical English (STE): the same plain, short, active style.
+
+This rule is for replies in the conversation. Write GitHub issues and their comments in English, whatever language the user writes in.
 
 ## Completion Criteria
 

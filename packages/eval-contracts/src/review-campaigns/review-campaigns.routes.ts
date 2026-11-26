@@ -1,7 +1,7 @@
+import { defineSchemaRoute } from "@bayes-platform/schema-route"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { mcpAppHtmlOutputSchema } from "../conversations/conversations.dto"
-import { defineSchemaRoute } from "../define-schema-route"
 import {
   campaignInvitationParamsSchema,
   campaignInvitationsOutputSchema,

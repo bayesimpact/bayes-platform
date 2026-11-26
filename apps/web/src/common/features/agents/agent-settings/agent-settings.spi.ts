@@ -22,6 +22,11 @@ export interface IAgentSettingsSpi {
       revision: number
     },
   ) => Promise<SuccessResponseDTO>
+  archiveOne: (
+    params: BaseParams & {
+      revision: number
+    },
+  ) => Promise<SuccessResponseDTO>
   setProduction: (
     params: BaseParams & {
       revision: number

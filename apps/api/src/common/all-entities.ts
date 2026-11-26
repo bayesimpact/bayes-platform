@@ -60,6 +60,8 @@ import { TesterSessionFeedback } from "@/domains/review-campaigns/tester-session
 import { TermsAcceptance } from "@/domains/terms-compliance/terms-acceptance.entity"
 import { TermsDocument } from "@/domains/terms-compliance/terms-document.entity"
 import { User } from "@/domains/users/user.entity"
+import { CustomModel } from "@/external/llm/workspace-models/custom-model.entity"
+import { ProjectModel } from "@/external/llm/workspace-models/project-model.entity"
 import { AgentSettings } from "../domains/agents/settings/agent-settings.entity"
 
 export const ALL_ENTITIES = [
@@ -103,6 +105,8 @@ export const ALL_ENTITIES = [
   FeatureFlag,
   Invitation,
   McpServer,
+  CustomModel,
+  ProjectModel,
   OAuthAuthorizationCode,
   OAuthClient,
   OAuthGrant,

@@ -7,8 +7,8 @@ to it in its own `AGENTS.md`, and its `CLAUDE.md` imports both files. `apps/web`
 rules (ADR 0010, 0011 and 0012) until each of its apps is rebuilt here.
 
 A tool checks every rule it can. The app's `npm run check -w <app>` gives the verdict: the
-typecheck, Biome with the app's GritQL plugins (`biome-plugins/`), the component files check,
-dependency-cruiser, knip, the translation checks and Vitest. It passes after each significant
+typecheck, Biome with the GritQL plugins every app shares (`packages/frontend-config`), the
+component files check, dependency-cruiser, knip, the translation checks and Vitest. It passes after each significant
 change, on top of the repository's completion criteria. A plugin's false positive is silenced
 where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no tool sees goes to the
 `frontend-conventions-reviewer` agent, which the `end-feature` skill runs before the PR.
@@ -43,11 +43,11 @@ where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no too
 | App | React 19 with the React Compiler, Vite, TypeScript in strict mode |
 | Routing | TanStack Router, file-based through its Vite plugin |
 | Server state | TanStack Query |
-| API client | `lib/api-client.ts`, one `fetch` wrapper driven by the route objects and their schemas |
+| API client | `@bayes-platform/api-client`, one `fetch` wrapper driven by the route objects and their schemas, created in the app's `lib/api-client.ts` |
 | Validation | Zod 4, in the app's contracts package: the schemas of what it sends and reads |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
 | Tables | TanStack Table v8, rendered with the shadcn `Table` |
-| Text | Lingui: English in the components, French in a PO catalog |
+| Text | Lingui: English in the components, each other language in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
 | Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@bayes-platform/mcp-app-host` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only: any other extension waits for a human's go) |
 | Sign-in | `@bayes-platform/sign-in`, on `oidc-client-ts`, wrapped by the app's `lib/auth/session.ts` |
@@ -83,7 +83,7 @@ apps/<app>/
     hooks/                  hooks shared by features, such as `useNow`
     lib/                    api-client.ts, auth/, and code shared by features: `polling.ts`,
                             `not-found.ts`, `start-query.ts`, `agent-params.ts`, `has-own-key.ts`
-    locales/                en.po (source), fr.po
+    locales/                en.po (source), one catalog per other language
     stories/                stories of the whole app, one per state of its mocked world
     styles/global.css       Tailwind and the design tokens; shadcn.css, which shadcn needs
     test/                   setup, MSW handlers, fixture factories, render helpers
@@ -98,9 +98,11 @@ exports and dependencies:
 - `components/` and `lib/` import neither `features/` nor `routes/`.
 - The app imports nothing from another app or from a package another app owns. Its workspace
   dependencies are its contracts package and the packages no app owns and every app imports
-  (ADR 0031, section 2.4): `@bayes-platform/mcp-app-host`, the sandbox of MCP Apps, and
-  `@bayes-platform/sign-in`, the sign-in. Only `lib/auth/` imports `@bayes-platform/sign-in`, and
-  no code of the app imports `oidc-client-ts`.
+  (ADR 0031, section 2.4): `@bayes-platform/mcp-app-host`, the sandbox of MCP Apps,
+  `@bayes-platform/sign-in`, the sign-in, and `@bayes-platform/api-client`, the API client. Only
+  `lib/auth/` imports `@bayes-platform/sign-in`, no code of the app imports `oidc-client-ts`, and
+  only `lib/api-client.ts` imports `@bayes-platform/api-client`: it creates the app's client with
+  the functions of `lib/auth/session.ts`, and the rest of the app imports it.
 - `src/test/` serves the tests and the stories only: no app code imports it.
 - No cycles.
 
@@ -121,8 +123,8 @@ or editing the boundaries' configuration.
   match inherited keys such as `constructor`.
 - **Components.** One exported component per file, named like the file (`ProjectCard.tsx` exports
   `ProjectCard`), with named exports only; a default export is for config files
-  (`scripts/check-component-files.mjs` checks the files in `PascalCase.tsx`). A function stays
-  under 200 lines, blank lines aside (Biome's `noExcessiveLinesPerFunction`, specs excepted): a
+  (`check-component-files`, from `packages/frontend-config`, checks the files in
+  `PascalCase.tsx`). A function stays under 200 lines, blank lines aside (Biome's `noExcessiveLinesPerFunction`, specs excepted): a
   component beyond splits into sub-components or hooks. Presentational
   components take props and return JSX, and their logic lives in hooks. Props are typed by a
   `ProjectCardProps` type declared just above the component. No `useEffect` to derive state, to
@@ -288,10 +290,16 @@ or editing the boundaries' configuration.
   [`useLingui`](https://lingui.dev/ref/react.md).
 - The same English with two meanings gets a `context`, and a `comment` tells the translator what a
   short text refers to. Zod messages shown in forms go through Lingui too.
-- After a text changes, run `npm run i18n:extract -w <app>` and write the new French entries of
-  `src/locales/fr.po` in the same change. The catalogs record each message's file and line, so a
-  change that only moves code needs an extract too. `i18n:check` (`lingui check sync` and
-  `lingui check missing`) fails the PR on a stale catalog or a missing French translation.
+- After a text changes, run `npm run i18n:extract -w <app>` and write the new entries of every
+  other catalog of `src/locales/` in the same change: one per language the app's
+  `lingui.config.ts` lists. A language with several plural forms gets them all (Polish: `one`,
+  `few`, `many` and `other`). The catalogs record each message's file, without its line: a change
+  that moves a message to another file needs an extract too. `i18n:check` (`lingui check sync` and
+  `lingui check missing`) fails the PR on a stale catalog or a translation missing in any language.
+- An app's languages are the `LOCALES` of its `src/app/i18n.ts`, which lists the same languages as
+  its `lingui.config.ts`: `src/app/i18n.spec.ts` fails when a catalog has no language there. The
+  user menu offers them, and what else depends on the language sits in a map typed by `Locale`,
+  so the typecheck fails when a language lacks its entry (`SPEECH_LANGUAGES`).
 - Lingui's agent skills (the `lingui` plugin of the `lingui/skills` marketplace, declared in
   `.claude/settings.json`) cover the macros, translator comments and text left outside a macro.
   When a skill and these rules disagree, these rules win.
@@ -305,8 +313,8 @@ or editing the boundaries' configuration.
   spec that checks it, a new state of a screen (empty, loading, error, a role, a long list) with
   its story, and a changed screen updates its specs and stories in the same change. They show what
   a change breaks, on purpose or not, so a change without them is not done.
-- Vitest runs two projects: `*.spec.ts` in node for pure logic (the client, the app's sign-in
-  wrapper, schemas; the sign-in itself is tested in `packages/sign-in`),
+- Vitest runs two projects: `*.spec.ts` in node for pure logic (the app's sign-in wrapper,
+  schemas; the sign-in and the API client are tested in their packages),
   and `*.spec.tsx` in happy-dom for components and routes. A test checks what a person sees,
   queries by role and label in English, and uses `data-testid` as a last resort.
 - The network is mocked with MSW only, never by mocking TanStack Query, `fetch` or the client.
@@ -338,13 +346,15 @@ or editing the boundaries' configuration.
 
 Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`,
 Evaluation's is `packages/eval-contracts`), the routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
-Zod and `@bayes-platform/permissions` alone, and imports nothing from `packages/api-contracts`. The app reads its source. When the app
+Zod, `@bayes-platform/permissions` and `@bayes-platform/schema-route` alone, and imports nothing
+from `packages/api-contracts`. The app reads its source. When the app
 has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
 build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
-- A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`.
-  It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its `schemas`, with no
-  phantom `request` and `response`. It refuses at compile time a `params` schema whose keys
+- A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`,
+  which the package re-exports from `@bayes-platform/schema-route` (`packages/schema-route`) with
+  the error body. It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its
+  `schemas`, with no phantom `request` and `response`. It refuses at compile time a `params` schema whose keys
   differ from the path's `:name` segments, and adds the `{ payload }` and `{ data }` envelopes.
 - A response schema declares the fields the app reads, and only those: `z.object` strips the
   others, so the app never depends on a field it does not declare. On an endpoint of the app's own,
@@ -425,7 +435,7 @@ typecheck proves the app reads the new types.
 
 **A feature**: its endpoint first when it is missing or must change, then keys, queries and
 mutations, components with their skeletons and their English text, `index.ts` with the strict
-minimum, the route with its loader, pending and error components, the French translations after
+minimum, the route with its loader, pending and error components, the translations after
 `i18n:extract`, tests and `check`. Last comes a look in the browser, in Storybook or the
 worktree environment, at desktop and phone widths, in French and English, with the loading, error
 and empty states.
@@ -435,9 +445,9 @@ and empty states.
 - `check` passes with no ignored warning, `npm run build -w <app>` works, and the build served under
   its base by `vite preview` loads and reloads a deep link.
 - Screens load through their loader and `useSuspenseQuery` with skeletons, each `useQuery` carries
-  its justification, error states offer a retry, empty states exist, every new text has its French
-  translation, every new behaviour has its spec and every new state its story, and the screen was
-  checked at desktop and phone widths.
+  its justification, error states offer a retry, empty states exist, every new text has its
+  translation in every catalog, every new behaviour has its spec and every new state its story,
+  and the screen was checked at desktop and phone widths.
 - No API type is written by hand, and there is no dead code, `console.log`, unflagged TODO or
   unjustified dependency.
 - The work ends with a summary of what was done, what remains, the decisions these rules did not
@@ -457,10 +467,16 @@ and empty states.
   another workspace package. In `packages/permissions`: a dependency, an import, an enum, or a
   text shown to people. In `packages/sign-in`: React, a component, a style, a text shown to
   people, a contract, a dependency beyond `oidc-client-ts` and Zod, or an import of another
-  workspace package.
+  workspace package. In `packages/schema-route`: a route, a schema of an app, React, a text shown
+  to people, a dependency beyond Zod, or an import of another workspace package. In
+  `packages/api-client`: a route, React, a text shown to people, the app's session (it takes it
+  from the app), or a dependency beyond Zod, `@bayes-platform/schema-route` and
+  `@bayes-platform/sign-in`. In `packages/frontend-config`: a rule for one app only, or a
+  dependency.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.
-- Editing an `AGENTS.md`, this file, a tsconfig, the app's `biome.json`, or the dependency-cruiser,
-  knip, Lingui, Vitest or Playwright configuration without a human's go.
+- Editing an `AGENTS.md`, this file, a tsconfig, the app's `biome.json`, `packages/frontend-config`
+  (the Biome rules, the GritQL plugins and the component check of every app), or the
+  dependency-cruiser, knip, Lingui, Vitest or Playwright configuration without a human's go.
 - Disabling a lint rule, a type check, a translation check or a test to make `check` pass.

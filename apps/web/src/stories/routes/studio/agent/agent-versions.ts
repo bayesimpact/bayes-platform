@@ -148,6 +148,11 @@ export function buildAgentVersionsBackend(initial: { agent: Agent; versions: Age
       if (isFirstVersion || payload.setAsProduction) setProduction(revision)
       return { success: true }
     },
+    // Deleting a version, or discarding the draft, takes it out of the history.
+    archiveOne: async ({ revision }) => {
+      commit(versions.filter((version) => version.revision !== revision))
+      return { success: true }
+    },
     restoreOne: async () => {
       throw new Error("restoreOne is not supported in this story")
     },

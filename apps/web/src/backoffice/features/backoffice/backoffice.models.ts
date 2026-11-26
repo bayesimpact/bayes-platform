@@ -4,6 +4,8 @@ import type {
   BackofficeAgentDetailDto,
   BackofficeAgentListItemDto,
   BackofficeAgentMemberDto,
+  BackofficeCustomModelDto,
+  BackofficeCustomModelTypeDto,
   BackofficeMaintenanceJobDto,
   BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
@@ -14,6 +16,7 @@ import type {
   BackofficeProjectDto,
   BackofficeProjectListItemDto,
   BackofficeProjectMemberDto,
+  BackofficeProjectModelDto,
   BackofficeRbacCatalogDto,
   BackofficeRbacPermissionDto,
   BackofficeRbacRoleDto,
@@ -25,6 +28,7 @@ import type {
   BackofficeUserOrganizationMembershipDto,
   BackofficeUserProjectMembershipDto,
   BackofficeUserReviewCampaignMembershipDto,
+  CreateBackofficeCustomModelRequestDto,
   CurrentTermsDto,
   FeatureFlagKey,
   MembershipRoleDto,
@@ -34,7 +38,9 @@ import type {
   PaginatedBackofficeUsersDto,
   ReviewCampaignMembershipRole,
   TimeType,
+  UpdateBackofficeCustomModelRequestDto,
 } from "@bayes-platform/api-contracts"
+import { AgentModelDisplayNames, AgentProviderVendors } from "@bayes-platform/api-contracts"
 import {
   type LegacyMembershipRole,
   toLegacyRole,
@@ -604,3 +610,89 @@ export const toMaintenanceJob = (dto: BackofficeMaintenanceJobDto): MaintenanceJ
   remainingSummary: dto.remainingSummary,
   lastRun: dto.lastRun,
 })
+
+/**
+ * A platform model, as one workspace offers it. `customized` says the workspace has its own
+ * choice; otherwise it follows the default of the code.
+ */
+export type ProjectModel = {
+  model: string
+  /** The readable name, e.g. "Gemini 3.5 Flash". */
+  name: string
+  /** The vendor it is grouped under, e.g. "Google". */
+  vendor: string
+  provider: string
+  selfHosted: boolean
+  enabled: boolean
+  customized: boolean
+  /** Set when the provider retires the model: the ISO date and the readable name of its successor. */
+  retirement: { date: string; replacement: string } | null
+  /** The provider serves the model outside the European Union. */
+  servedOutsideEu: boolean
+}
+
+/** A model a workspace added next to the platform models: a self-hosted type on its server. */
+export type CustomModel = {
+  id: string
+  name: string
+  /** The self-hosted platform model it runs. */
+  baseModel: string
+  provider: string
+  baseUrl: string
+  hasApiKey: boolean
+  servedModelName: string | null
+  /** The agents whose draft or a version uses it. It cannot be deleted while they do. */
+  agentCount: number
+  createdAt: TimeType
+}
+
+/** A self-hosted platform model a custom model can run. */
+export type CustomModelType = {
+  model: string
+  provider: string
+}
+
+export const toProjectModel = (dto: BackofficeProjectModelDto): ProjectModel => ({
+  model: dto.model,
+  name: AgentModelDisplayNames[dto.model] ?? dto.model,
+  vendor: AgentProviderVendors[dto.provider] ?? dto.provider,
+  provider: dto.provider,
+  selfHosted: dto.selfHosted,
+  enabled: dto.enabled,
+  customized: dto.customized,
+  retirement: dto.deprecation
+    ? {
+        date: dto.deprecation.deprecatedOn,
+        replacement:
+          AgentModelDisplayNames[dto.deprecation.recommendedReplacement] ??
+          dto.deprecation.recommendedReplacement,
+      }
+    : null,
+  servedOutsideEu: dto.servedOutsideEu,
+})
+
+export const toCustomModel = (dto: BackofficeCustomModelDto): CustomModel => ({
+  id: dto.id,
+  name: dto.name,
+  baseModel: dto.baseModel,
+  provider: dto.provider,
+  baseUrl: dto.baseUrl,
+  hasApiKey: dto.hasApiKey,
+  servedModelName: dto.servedModelName,
+  agentCount: dto.agentCount,
+  createdAt: dto.createdAt,
+})
+
+export const toCustomModelType = (dto: BackofficeCustomModelTypeDto): CustomModelType => ({
+  model: dto.model,
+  provider: dto.provider,
+})
+
+/** The models a workspace added, and the types it can add. */
+export type CustomModels = {
+  customModels: CustomModel[]
+  types: CustomModelType[]
+}
+
+export type CreateCustomModelInput = CreateBackofficeCustomModelRequestDto
+export type UpdateCustomModelInput = UpdateBackofficeCustomModelRequestDto

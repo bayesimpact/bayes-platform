@@ -1,3 +1,5 @@
+// Route helper and error body
+export * from "@bayes-platform/schema-route"
 // Account
 export * from "./account/account.dto"
 export { EvalAccountRoutes } from "./account/account.routes"
@@ -6,12 +8,10 @@ export * from "./agents/agent-versions.dto"
 export * from "./agents/agents.dto"
 export { EvalAgentsRoutes } from "./agents/agents.routes"
 // Common
-export * from "./common/error.dto"
 export * from "./common/params.dto"
 // Conversations
 export * from "./conversations/conversations.dto"
 export { EvalConversationsRoutes } from "./conversations/conversations.routes"
-export * from "./define-schema-route"
 // Documents
 export * from "./documents/documents.dto"
 export { EvalDocumentsRoutes } from "./documents/documents.routes"

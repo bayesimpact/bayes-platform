@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common"
 import { clearTestDatabase } from "@/common/test/test-database"
 import {
   type AllRepositories,
@@ -14,6 +15,16 @@ import { McpServersService } from "./mcp-servers.service"
 // An operator-seeded preset (seed-mcp-preset.ts): a preset slug and no
 // project, but not on the built-in allowlist.
 const OTHER_PRESET_SLUG = "other-preset"
+
+// The outbound URL guard resolves the host of a project's server: every name
+// resolves to a public address, except internal.example.com.
+jest.mock("node:dns/promises", () => ({
+  lookup: jest.fn(async (hostname: string) =>
+    hostname === "internal.example.com"
+      ? [{ address: "10.0.0.12", family: 4 }]
+      : [{ address: "93.184.216.34", family: 4 }],
+  ),
+}))
 
 describe("McpServersService", () => {
   let service: McpServersService
@@ -449,6 +460,7 @@ describe("McpServersService", () => {
         id: server.id,
         url: "https://example.com/mcp",
         apiKey: "sk-test-key",
+        followRedirects: true,
       })
     })
 
@@ -498,6 +510,51 @@ describe("McpServersService", () => {
           headers: { "X-Api-Version": "2", "X-Tenant": "acme" },
         },
       ])
+    })
+
+    it.each([
+      "http://localhost:3000/mcp",
+      "http://169.254.169.254/computeMetadata/v1/",
+      "https://10.0.0.12/mcp",
+      "https://internal.example.com/mcp",
+    ])("should leave out a project's server at %s", async (url) => {
+      const loggedWarning = jest.spyOn(Logger.prototype, "warn").mockImplementation(() => {})
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Internal",
+        config: { url, authMethod: "none" },
+      })
+      await service.enableForAgent(agent.id, server.id)
+
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
+      loggedWarning.mockRestore()
+    })
+
+    it("should keep a project's server on an internal host the deployment allows", async () => {
+      process.env.MCP_ALLOWED_INTERNAL_HOSTS = "mcp-service.tools.svc.cluster.local, other.internal"
+      try {
+        const { organization, project } = await createOrganizationWithProject(repositories)
+        const agent = agentFactory.transient({ organization, project }).build()
+        await repositories.agentRepository.save(agent)
+        const server = await service.createMcpServer({
+          projectId: project.id,
+          name: "Internal tools",
+          config: { url: "http://mcp-service.tools.svc.cluster.local/mcp", authMethod: "none" },
+        })
+        await service.enableForAgent(agent.id, server.id)
+
+        expect(await service.getEnabledServersForAgent(agent.id)).toEqual([
+          expect.objectContaining({
+            id: server.id,
+            url: "http://mcp-service.tools.svc.cluster.local/mcp",
+          }),
+        ])
+      } finally {
+        delete process.env.MCP_ALLOWED_INTERNAL_HOSTS
+      }
     })
 
     it("should skip a link whose server was soft-deleted directly", async () => {
@@ -550,8 +607,13 @@ describe("McpServersService", () => {
       expect(configs).toHaveLength(2)
       expect(configs).toEqual(
         expect.arrayContaining([
-          { id: server1.id, url: "https://social.example.com/mcp", apiKey: "sk-social" },
-          { id: server2.id, url: "https://other.example.com/mcp" },
+          {
+            id: server1.id,
+            url: "https://social.example.com/mcp",
+            apiKey: "sk-social",
+            followRedirects: true,
+          },
+          { id: server2.id, url: "https://other.example.com/mcp", followRedirects: true },
         ]),
       )
     })
@@ -661,6 +723,7 @@ describe("McpServersService", () => {
           {
             id: server.id,
             url: "https://pdf-converter.example.test/mcp",
+            followRedirects: true,
             googleIamAudience: "https://pdf-converter.example.test",
           },
         ])
@@ -689,7 +752,9 @@ describe("McpServersService", () => {
 
         const configs = await service.getEnabledServersForAgent(agent.id)
 
-        expect(configs).toEqual([{ id: server.id, url: "https://other-preset.example.test/mcp" }])
+        expect(configs).toEqual([
+          { id: server.id, url: "https://other-preset.example.test/mcp", followRedirects: true },
+        ])
       })
     })
 
@@ -702,7 +767,9 @@ describe("McpServersService", () => {
 
       const configs = await service.getEnabledServersForAgent(agent.id)
 
-      expect(configs).toEqual([{ id: server.id, url: "https://pdf-converter.example.test/mcp" }])
+      expect(configs).toEqual([
+        { id: server.id, url: "https://pdf-converter.example.test/mcp", followRedirects: true },
+      ])
     })
   })
 

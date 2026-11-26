@@ -74,6 +74,48 @@ export const AgentModelToAgentProvider = {
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
 
+/** The vendor the apps group each provider's models under. */
+export const AgentProviderVendors = {
+  [AgentProvider.Vertex]: "Google",
+  [AgentProvider.Vertex3]: "Google",
+  [AgentProvider.Vertex4]: "Google",
+  [AgentProvider.Gemma]: "Google",
+  [AgentProvider.MedGemma]: "Google",
+  [AgentProvider.Mistral]: "Mistral",
+  [AgentProvider.Qwen]: "Qwen",
+  [AgentProvider.Anthropic]: "Anthropic",
+  [AgentProvider.OpenAI]: "OpenAI",
+  [AgentProvider._Mock]: "Test",
+} as const satisfies Record<AgentProvider, string>
+
+/** The name the apps show for each model; the id stays visible beside it. */
+export const AgentModelDisplayNames = {
+  [AgentModel.Gemini25Flash]: "Gemini 2.5 Flash",
+  [AgentModel.Gemini25Pro]: "Gemini 2.5 Pro",
+  [AgentModel.Gemini31FlashLite]: "Gemini 3.1 Flash Lite",
+  [AgentModel.Gemini35FlashLite]: "Gemini 3.5 Flash Lite",
+  [AgentModel.Gemini35Flash]: "Gemini 3.5 Flash",
+  [AgentModel.Gemini36Flash]: "Gemini 3.6 Flash",
+  [AgentModel.Gemini37Flash]: "Gemini 3.7 Flash",
+  [AgentModel.Gemini38Flash]: "Gemini 3.8 Flash",
+  [AgentModel.Gemini4Argon]: "Gemini 4 Argon",
+  [AgentModel.Gemini4Carbon]: "Gemini 4 Carbon",
+  [AgentModel.Gemini4Hydrogen]: "Gemini 4 Hydrogen",
+  [AgentModel.MedGemma10_27B]: "MedGemma 27B",
+  [AgentModel.Gemma4_26B]: "Gemma 4 26B",
+  [AgentModel.Gemma4_31B]: "Gemma 4 31B",
+  [AgentModel.MistralSmall31_24B]: "Mistral Small 3.1",
+  [AgentModel.MistralSmall32_24B]: "Mistral Small 3.2",
+  [AgentModel.Qwen38_27B]: "Qwen 3.8 27B",
+  [AgentModel.ClaudeSonnet55]: "Claude Sonnet 5.5",
+  [AgentModel.ClaudeHaiku55]: "Claude Haiku 5.5",
+  [AgentModel.ClaudeOpus5]: "Claude Opus 5",
+  [AgentModel.ClaudeOpus55]: "Claude Opus 5.5",
+  [AgentModel.Gpt54]: "GPT-5.4",
+  [AgentModel.Gpt54Mini]: "GPT-5.4 mini",
+  [AgentModel._Mock]: "Test model",
+} as const satisfies Record<AgentModel, string>
+
 /**
  * The providers whose models take a service tier, priority or flex: Gemini 3.x and 4 (Vertex
  * AI's shared request type) and OpenAI (the service tier of the Responses API). Priority needs the
@@ -122,10 +164,20 @@ export type AgentModelDto = {
   model: AgentModel
   provider: AgentProvider
   isAvailable: boolean
+  /** Runs on a vLLM server of the operator of the platform. */
+  selfHosted: boolean
   deprecation: AgentModelDeprecation | null
   servedOutsideEu: boolean
   optionsSchema: Record<string, unknown>
   defaultOptions: Record<string, unknown>
+}
+
+/** A model the workspace added on a server of its own. Its server is never sent to the apps. */
+export type AgentCustomModelDto = {
+  id: string
+  name: string
+  /** The model of the code it runs: its options apply. */
+  baseModel: AgentModel
 }
 
 export type AgentModelListDto = {
@@ -133,6 +185,10 @@ export type AgentModelListDto = {
   models: AgentModelDto[]
   /** The model a new agent starts on, and the one a new evaluation run is judged by. */
   defaults: { agent: AgentModel; judge: AgentModel }
+  /** The models the workspace added, offered as more lines of the list. */
+  customModels: AgentCustomModelDto[]
+  /** Who runs the self-hosted models, for their badge. Null when the platform does not say. */
+  selfHostedBy: string | null
 }
 
 /**
@@ -169,6 +225,8 @@ export type AgentSettingsDto = {
   embeddingModel: EmbeddingModel
   fillFormEnabled: boolean
   priorityCallsEnabled: boolean
+  /** Set when the agent runs a model its workspace added; `model` is then that model's type. */
+  customModelId: string | null
   greetingMessage?: string
   hasCategories?: boolean
   id: string
@@ -299,6 +357,8 @@ export const agentSettingsValidationSchema = z.object({
   fillFormEnabled: z.boolean(),
   priorityCallsEnabled: z.boolean(),
   model: z.enum(AgentModel),
+  /** Set when the agent runs a model its workspace added; `model` is then that model's type. */
+  customModelId: z.string().uuid().nullable().optional(),
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
@@ -396,6 +456,7 @@ export type UpdateAgentSettingsGeneralDto = z.infer<typeof updateAgentSettingsGe
 
 export const updateAgentSettingsModelSchema = agentSettingsValidationSchema.pick({
   model: true,
+  customModelId: true,
   providerOptions: true,
   priorityCallsEnabled: true,
   embeddingModel: true,

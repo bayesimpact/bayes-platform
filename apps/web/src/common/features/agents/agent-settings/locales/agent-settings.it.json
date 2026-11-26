@@ -194,7 +194,21 @@
       "changedFields_one": "{{count}} campo modificato:",
       "changedFields_other": "{{count}} campi modificati:",
       "advancedMode": "Modalità avanzata",
-      "advancedModeHint": "Confronti la bozza con la v{{revision}}, l'ultima versione salvata. Le tue modifiche vanno nella bozza."
+      "advancedModeHint": "Confronti la bozza con la v{{revision}}, l'ultima versione salvata. Le tue modifiche vanno nella bozza.",
+      "deleteBlocked": {
+        "production": "L'agente funziona con questa versione. Metti prima in produzione un'altra versione.",
+        "latest": "È la versione più recente: la prossima bozza parte da essa. Salva prima una versione più recente.",
+        "neverSaved": "Non è ancora stata salvata nessuna versione, quindi la bozza è l'unica configurazione di questo agente."
+      },
+      "deleteDialog": {
+        "title": "Eliminare la versione {{revision}}?",
+        "description": "La versione {{revision}} esce dalla cronologia e non può essere ripristinata. Le conversazioni e le estrazioni che l'hanno usata non cambiano."
+      },
+      "discardDraft": "Scarta la bozza",
+      "discardDraftDialog": {
+        "title": "Scartare la bozza?",
+        "description": "Tutte le modifiche fatte dall'ultima versione salvata vanno perse. L'editor torna all'ultima versione salvata. La versione in produzione non cambia."
+      }
     },
     "version": {
       "ariaLabel": "Versione delle impostazioni usata per i nuovi messaggi",
@@ -325,7 +339,11 @@
       "subAgentsUpdated": "Sotto-agenti aggiornati",
       "subAgentsUpdateError": "Impossibile aggiornare i sotto-agenti",
       "productionSet": "La versione {{revision}} è ora in produzione",
-      "productionSetError": "Impossibile cambiare la versione in produzione"
+      "productionSetError": "Impossibile cambiare la versione in produzione",
+      "versionDeleted": "Versione dell'agente eliminata",
+      "versionDeleteError": "Impossibile eliminare la versione. Riprova.",
+      "draftDiscarded": "Bozza scartata",
+      "draftDiscardError": "Impossibile scartare la bozza. Riprova."
     },
     "sources": {
       "documents": {

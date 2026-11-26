@@ -60,7 +60,7 @@ Run them from the repository root.
 | `npm run storybook -w @bayes-platform/eval` | Storybook on port 6010: the whole app on the MSW handlers, with no API and no sign-in |
 | `npm run check -w @bayes-platform/eval` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @bayes-platform/eval` | Vitest alone |
-| `npm run i18n:extract -w @bayes-platform/eval` | Writes every message to `src/locales/en.po` and `fr.po` |
+| `npm run i18n:extract -w @bayes-platform/eval` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
 | `npm run build -w @bayes-platform/eval` | The production build, in `apps/eval/dist` |
 | `npm run preview -w @bayes-platform/eval` | Serves that build on port 5180 at `/eval/` |
 
@@ -322,10 +322,12 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   required answers.
 - A date in a table or under a title reads as how long ago it was, with the full date and time
   on hover: `TimeAgo` (`components/shared/`), which follows the clock by itself and words the time with
-  `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. The chat keeps the
-  Desk's `RelativeTime`, on `Intl`.
-- The API client: `src/lib/api-client.ts`. The query client's retry rules:
-  `src/app/query-client.ts`.
+  `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. Each language of
+  `LOCALES` has its date-fns locale there, which the typecheck requires. The chat keeps the Desk's
+  `RelativeTime`, on `Intl`.
+- The API client: `src/lib/api-client.ts`, which creates the client of
+  `@bayes-platform/api-client` (`packages/api-client`) on the app's session. The query client:
+  `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).
 - The mocked API: `src/test/msw/handlers.ts`, with one file of handlers per area beside it
   (`campaign-handlers.ts`, `conversation-dataset-handlers.ts`, `conversation-run-handlers.ts`,
   `extraction-dataset-handlers.ts`, `extraction-run-handlers.ts`), written with `mockRoute`

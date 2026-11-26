@@ -1,6 +1,6 @@
+import { defineSchemaRoute, defineStreamRoute } from "@bayes-platform/schema-route"
 import { z } from "zod"
 import { AGENT_PATH, PROJECT_PATH } from "../common/params.dto"
-import { defineSchemaRoute, defineStreamRoute } from "../define-schema-route"
 import {
   attachmentParamsSchema,
   conversationMessageOutputSchema,

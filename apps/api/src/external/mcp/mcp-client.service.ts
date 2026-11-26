@@ -36,6 +36,8 @@ export type McpConnectionConfig = {
    * minted Google ID token is sent instead of a static API key.
    */
   googleIamAudience?: string
+  /** A redirect fails the request unless this is true (servers the platform runs itself). */
+  followRedirects?: boolean
 }
 
 export type McpInspection =
@@ -132,6 +134,7 @@ export class McpClientService {
       transport: {
         type: "http",
         url: config.url,
+        redirect: config.followRedirects ? "follow" : "error",
         ...(Object.keys(headers).length > 0 ? { headers } : {}),
       },
       name: "bayes-platform",

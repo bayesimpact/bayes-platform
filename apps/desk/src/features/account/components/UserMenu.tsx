@@ -1,7 +1,7 @@
 import type { MeUserOutputDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ChevronDownIcon, CircleHelpIcon, HouseIcon, LogOutIcon, PencilIcon } from "lucide-react"
-import { isLocale, type Locale } from "@/app/i18n"
+import { isLocale, type Locale, languageNameOf } from "@/app/i18n"
 import { ExternalLink } from "@/components/shared/ExternalLink"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,12 +29,6 @@ export type UserMenuProps = {
   onLocaleChange: (locale: Locale) => void
   onEditName: () => void
   onSignOut: () => void
-}
-
-/** Each language in its own name, from the browser, capitalized as a menu item: "English", "Français". */
-function languageName(locale: Locale): string {
-  const name = new Intl.DisplayNames([locale], { type: "language" }).of(locale) ?? locale
-  return `${name.charAt(0).toLocaleUpperCase(locale)}${name.slice(1)}`
 }
 
 export function UserMenu({
@@ -85,7 +79,7 @@ export function UserMenu({
           >
             {locales.map((code) => (
               <DropdownMenuRadioItem key={code} value={code} lang={code}>
-                {languageName(code)}
+                {languageNameOf(code)}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>

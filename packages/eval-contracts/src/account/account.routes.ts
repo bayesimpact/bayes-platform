@@ -1,4 +1,4 @@
-import { defineSchemaRoute } from "../define-schema-route"
+import { defineSchemaRoute } from "@bayes-platform/schema-route"
 import { meOutputSchema } from "./account.dto"
 
 export const EvalAccountRoutes = {

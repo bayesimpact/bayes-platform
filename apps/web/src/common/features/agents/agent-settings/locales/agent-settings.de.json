@@ -193,7 +193,21 @@
       "changedFields_one": "{{count}} geändertes Feld:",
       "changedFields_other": "{{count}} geänderte Felder:",
       "advancedMode": "Erweiterter Modus",
-      "advancedModeHint": "Sie vergleichen den Entwurf mit v{{revision}}, der zuletzt gespeicherten Version. Ihre Änderungen gehen in den Entwurf."
+      "advancedModeHint": "Sie vergleichen den Entwurf mit v{{revision}}, der zuletzt gespeicherten Version. Ihre Änderungen gehen in den Entwurf.",
+      "deleteBlocked": {
+        "production": "Der Agent läuft mit dieser Version. Setzen Sie zuerst eine andere Version in Produktion.",
+        "latest": "Dies ist die neueste Version: Der nächste Entwurf geht von ihr aus. Speichern Sie zuerst eine neuere Version.",
+        "neverSaved": "Es wurde noch keine Version gespeichert, daher ist der Entwurf die einzige Einstellung dieses Agenten."
+      },
+      "deleteDialog": {
+        "title": "Version {{revision}} löschen?",
+        "description": "Version {{revision}} wird aus dem Verlauf entfernt und kann nicht wiederhergestellt werden. Unterhaltungen und Extraktionen, die sie verwendet haben, ändern sich nicht."
+      },
+      "discardDraft": "Entwurf verwerfen",
+      "discardDraftDialog": {
+        "title": "Entwurf verwerfen?",
+        "description": "Alle Änderungen seit der zuletzt gespeicherten Version gehen verloren. Der Editor kehrt zur zuletzt gespeicherten Version zurück. Die Version in Produktion ändert sich nicht."
+      }
     },
     "version": {
       "ariaLabel": "Einstellungsversion für neue Nachrichten",
@@ -323,7 +337,11 @@
       "subAgentsUpdated": "Sub-Agenten erfolgreich aktualisiert",
       "subAgentsUpdateError": "Sub-Agenten konnten nicht aktualisiert werden",
       "productionSet": "Version {{revision}} ist jetzt in Produktion",
-      "productionSetError": "Die Version in Produktion konnte nicht geändert werden"
+      "productionSetError": "Die Version in Produktion konnte nicht geändert werden",
+      "versionDeleted": "Agentenversion gelöscht",
+      "versionDeleteError": "Die Version konnte nicht gelöscht werden. Versuchen Sie es erneut.",
+      "draftDiscarded": "Entwurf verworfen",
+      "draftDiscardError": "Der Entwurf konnte nicht verworfen werden. Versuchen Sie es erneut."
     },
     "sources": {
       "documents": {

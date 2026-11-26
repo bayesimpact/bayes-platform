@@ -9,7 +9,6 @@ import { adoptDeskSession } from "./adopt-desk-session"
  */
 
 export {
-  AuthenticationRequiredError,
   readLoginHint,
   type SignInCallbackSearch,
   SignInLoopError,
@@ -17,7 +16,6 @@ export {
   SignInRefusedError,
   signInCallbackProblemOf,
   signInCallbackSearchSchema,
-  signInRefusalOf,
 } from "@bayes-platform/sign-in"
 
 function getOidcConfig(): OidcConfig {

@@ -7,8 +7,7 @@ import {
 } from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { z } from "zod"
-import { apiStreamResponse } from "@/lib/api-client"
-import { readServerSentEvents, type ServerSentEvent } from "@/lib/stream"
+import { apiStreamResponse, readServerSentEvents, type ServerSentEvent } from "@/lib/api-client"
 import {
   applyReplyEvent,
   type ChatMessage,
