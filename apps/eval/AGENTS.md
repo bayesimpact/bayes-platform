@@ -12,7 +12,10 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   `basepath`), the path of the evaluation pages of apps/web, which this app replaces.
 - Contracts: `@caseai-connect/eval-contracts` (`packages/eval-contracts`), one folder per area,
   with an `Eval{Area}Routes` object per area. It describes the API routes the app calls and the
-  fields it reads. The API requires its CommonJS build and serves every route under `eval/`, in
+  fields it reads. The chat's schemas and routes come from `@caseai-connect/chat-contracts`
+  (`packages/chat-contracts`), which it re-exports, as the Desk's contracts do:
+  `EvalConversationsRoutes` is the conversation routes under the `review_campaign_tester`
+  sessions, and `EvalDocumentsRoutes` the documents' routes under `eval/`. The API requires its CommonJS build and serves every route under `eval/`, in
   `apps/api/src/domains/eval/`, with the same schemas. The app calls only `eval/` endpoints,
   with one exception: a resource card links to a library file at
   `organizations/.../resource-libraries/.../resources/.../file` (`toResourceUrl` of

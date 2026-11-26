@@ -235,7 +235,7 @@ no schemas for the decorator to read.
   `documents`, the feedback on a message), the list of conversation datasets and
   `revokeMembership` of a campaign, which the Studio calls on the old routes. Nothing links a copy
   to its source, so a change to one goes to the other.
-- In a worktree environment, run `bayes wt up` after a change to a contracts package or to
-  `packages/schema-route`. After a
+- In a worktree environment, run `bayes wt up` after a change to a contracts package, to
+  `packages/schema-route` or to `packages/chat-contracts`. After a
   rebase, check that the API runs (`/api/me` answers 401) and run `bayes wt restart api` when it
   does not.

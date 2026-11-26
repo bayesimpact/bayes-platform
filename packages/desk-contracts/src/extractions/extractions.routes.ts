@@ -1,7 +1,7 @@
+import { temporaryUrlOutputSchema } from "@caseai-connect/chat-contracts"
 import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
 import { AGENT_PATH, agentParamsSchema } from "../common/params.dto"
-import { temporaryUrlOutputSchema } from "../documents/documents.dto"
 import {
   confirmExtractionDocumentInputSchema,
   createCsvExtractionRunInputSchema,

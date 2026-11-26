@@ -1,6 +1,6 @@
+import { toolCallOutputSchema } from "@caseai-connect/chat-contracts"
 import { z } from "zod"
 import { agentTypeSchema } from "../agents/agents.dto"
-import { toolCallOutputSchema } from "../conversations/conversations.dto"
 import {
   RATING_MAX,
   reviewCampaignAnswerInputSchema,

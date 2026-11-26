@@ -1,7 +1,7 @@
+import { mcpAppHtmlOutputSchema } from "@caseai-connect/chat-contracts"
 import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
-import { mcpAppHtmlOutputSchema } from "../conversations/conversations.dto"
 import {
   campaignInvitationParamsSchema,
   campaignInvitationsOutputSchema,

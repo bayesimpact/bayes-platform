@@ -21,6 +21,7 @@
     "./src/**"
   ],
   "dependencies": {
+    "@caseai-connect/chat-contracts": "*",
     "@caseai-connect/permissions": "*",
     "@caseai-connect/schema-route": "*",
     "zod": "^4.4.3"

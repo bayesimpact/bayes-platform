@@ -28,6 +28,7 @@ API_PATHS := \
 	apps/api/requirements-torch.txt \
 	apps/api/requirements-docling.txt \
 	packages/api-contracts \
+	packages/chat-contracts \
 	packages/desk-contracts \
 	packages/eval-contracts \
 	packages/permissions \
