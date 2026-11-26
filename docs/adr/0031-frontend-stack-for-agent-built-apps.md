@@ -425,9 +425,9 @@ byte for byte and 3 apart in a comment only, and the same tokens. Each app's cop
 same CLI, on the same `components.json`, so a second copy only waited to drift. The package is
 not `packages/ui`, the component library of `apps/web` on Radix, which stays out of bounds.
 The compositions that moved in later (`SidePanel`, `HeaderActions`, `CopyButton`,
-`RelativeTime`, `ExternalLink`) each existed in a copy in the Desk and a copy in Evaluation. A text the
-chat and other screens show must be translated once, so the package has a catalog of its own,
-which each app extracts and loads next to its own.
+`RelativeTime`, `ExternalLink`) each existed in a copy in the Desk and a copy in Evaluation. A
+text the chat and other screens show must be translated once, so the package has a catalog of its
+own, which each app extracts and loads next to its own.
 
 * The CLI still generates the components, as section 2.9 says. Each app's `components.json`
   points its `ui` alias at `@caseai-connect/app-ui/components` and its stylesheet at the
@@ -449,8 +449,8 @@ which each app extracts and loads next to its own.
   `@shadcn/react` and tw-animate-css, with React and Lingui as peers, and imports no other
   workspace package but `frontend-lib`.
 * Its source goes through each app's Vite plugins, the React Compiler included. Its
-  `biome.json` extends the apps' rules, and its `check` script runs its typecheck and Biome. knip
-  does not run on it: its components export every part, used or not, as the CLI writes them.
+  `biome.json` extends the apps' rules, and its `check` script runs its typecheck, Biome and its specs.
+  knip does not run on it: its components export every part, used or not, as the CLI writes them.
 
 No other package is shared on these grounds. Another one needs its own decision: an amendment
 of this ADR that gives its reasons, and a row in the list.

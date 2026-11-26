@@ -1,4 +1,5 @@
 import { HeaderActions } from "@caseai-connect/app-ui/compositions/HeaderActions"
+import { SidePanel } from "@caseai-connect/app-ui/compositions/SidePanel"
 import {
   createMemoryHistory,
   createRootRoute,
@@ -6,6 +7,7 @@ import {
   RouterContextProvider,
 } from "@tanstack/react-router"
 import { screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import type { ReactNode } from "react"
 import { describe, expect, it } from "vitest"
 import { renderWithI18n } from "@/test/render-with-i18n"
@@ -42,5 +44,19 @@ describe("AppShell", () => {
     const bar = await screen.findByRole("banner")
     expect(within(bar).getByRole("link", { name: "Back" })).toBeVisible()
     expect(within(bar).getByRole("button", { name: "Export" })).toBeVisible()
+  })
+
+  it("keeps the width of a side panel under Evaluation's own key", async () => {
+    renderShellAround(
+      <SidePanel title="Details" onClose={() => {}}>
+        Body
+      </SidePanel>,
+    )
+    // Saved widths survive only while the shell gives the panel the same key.
+    screen.getByRole("separator", { name: "Resize the panel" }).focus()
+    await userEvent.keyboard("{ArrowLeft}")
+
+    expect(window.localStorage.getItem("eval.sidePanelWidth")).not.toBeNull()
+    expect(window.localStorage.getItem("sidePanelWidth")).toBeNull()
   })
 })

@@ -1,7 +1,7 @@
 # One chat for the Desk and Evaluation
 
-Design of the last step of sharing the chat between `apps/desk` and `apps/eval`. Status: to be
-approved.
+Design of the last step of sharing the chat between `apps/desk` and `apps/eval`. Status: approved on
+2026-11-26.
 
 ## Intent
 

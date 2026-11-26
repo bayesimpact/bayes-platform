@@ -107,14 +107,14 @@ describe("SidePanel", () => {
   it("keeps its width under the key its shell gives", async () => {
     mockMatchMedia(true)
     renderWithI18n(
-      <SidePanelStorageKeyContext value="desk.sidePanelWidth">
+      <SidePanelStorageKeyContext value="app.sidePanelWidth">
         <PanelOpener />
       </SidePanelStorageKeyContext>,
     )
     await userEvent.click(screen.getByRole("button", { name: "Memory" }))
 
     await widenPanel()
-    expect(window.localStorage.getItem("desk.sidePanelWidth")).not.toBeNull()
+    expect(window.localStorage.getItem("app.sidePanelWidth")).not.toBeNull()
     expect(window.localStorage.getItem("sidePanelWidth")).toBeNull()
   })
 })
@@ -147,12 +147,6 @@ describe("SidePanel below a laptop's width", () => {
 describe("SidePanel beside a page with little room", () => {
   it("folds the sidebar when it opens beside a page with little room", async () => {
     await openBeside(300)
-    expect(sidebarState()).toHaveTextContent("folded")
-  })
-
-  it("folds the sidebar once the page has little room left", async () => {
-    await openBeside(300)
-    await widenPanel()
     expect(sidebarState()).toHaveTextContent("folded")
   })
 

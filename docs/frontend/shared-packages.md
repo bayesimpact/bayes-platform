@@ -19,9 +19,9 @@ that imports it at once.
 | `packages/chat-contracts` (`@caseai-connect/chat-contracts`) | The chat's Zod schemas (a conversation, its forms, the documents its replies cite), the params of a project's and an agent's routes, and the routes of a conversation and of its documents under an app's project path (`conversationRoutesAt`, `documentsRoutesAt`) | The Desk and Evaluation contracts, which re-export it and declare its routes under their `PROJECT_PATH`; `chat` |
 | `packages/sign-in` (`@caseai-connect/sign-in`) | The OIDC client on the session every app of the origin shares, the guards against sign-in loops, the reading of the provider's and the API's sign-in refusals, the `login_hint` of an invitation's link | The `lib/auth/` of the Desk and of Evaluation, and nothing else of an app; `api-client` |
 | `packages/api-client` (`@caseai-connect/api-client`) | `createApiClient` on the app's session, the reading of server-sent events, the retry rule of the queries | The `lib/api-client.ts` of the Desk and of Evaluation, and nothing else of an app |
-| `packages/frontend-lib` (`@caseai-connect/frontend-lib`) | Hooks and helpers that hold nothing of an app: the loaders' `startQuery` and `loaderStaleTime`, `pollWhile`, `hasOwnKey`, dates and sizes on `Intl`, the safe URLs, the upload to a signed URL, the highlights of quoted passages, `useNow`, `useMediaQuery`, `useResizableWidth`, `useSpeechRecognition` (its `src/index.ts` lists them) | The Desk and Evaluation, directly, from any folder; `chat` |
+| `packages/frontend-lib` (`@caseai-connect/frontend-lib`) | Hooks and helpers that hold nothing of an app: the loaders' `startQuery` and `loaderStaleTime`, `pollWhile`, `hasOwnKey`, dates and sizes on `Intl`, the safe URLs, the upload to a signed URL, the highlights of quoted passages, `useNow`, `useMediaQuery`, `useResizableWidth`, `useSpeechRecognition` (its `src/index.ts` lists them) | The Desk and Evaluation, directly, from any folder; `chat`; `app-ui` |
 | `packages/chat` (`@caseai-connect/chat`) | The chat's logic and hooks: its messages and the stream of a reply (`toChatMessages`, `applyReplyEvent`), the annotations and quoted passages, the task checks, the MCP Apps and the resources of a reply, the document of the message box, the form that reports a problem with a reply | The Desk and Evaluation, directly, from any folder |
-| `packages/app-ui` (`@caseai-connect/app-ui`) | The shadcn components on Base UI, the `use-mobile` hook, `shadcn.css` and the stylesheet of the design tokens (`globals.css`); compositions written by hand that know no feature (`src/compositions/`: `SidePanel`, `HeaderActions`, `CopyButton`, `RelativeTime`, `ExternalLink`) and their catalog of translations (`src/locales/`) | The Desk and Evaluation: each component and each composition by its path, the catalog through `loadMessages` of `@caseai-connect/app-ui/locales`, and `globals.css` from the app's `global.css`. `npx shadcn@latest add`, run in an app, writes into `src/components/` |
+| `packages/app-ui` (`@caseai-connect/app-ui`) | The shadcn components on Base UI, the `use-mobile` hook, `shadcn.css` and the stylesheet of the design tokens (`globals.css`); compositions written by hand that know no feature (`src/compositions/`: `SidePanel`, `HeaderActions`, `CopyButton`, `RelativeTime`, `ExternalLink`) and their catalog of translations (`src/locales/`). Two compositions read a context that each app's shell provides: `SidePanelStorageKeyContext` (the key of the saved panel width) and `HeaderActionsContext` (the element of the page's actions). A `.ts` file of `src/compositions/`, as a context is, needs its own entry in the package's `exports`, since the pattern of the compositions matches `.tsx` files only | The Desk and Evaluation: each component and each composition by its path, the catalog through `loadMessages` of `@caseai-connect/app-ui/locales`, and `globals.css` from the app's `global.css`. `npx shadcn@latest add`, run in an app, writes into `src/components/` |
 | `packages/frontend-config` (`@caseai-connect/frontend-config`) | The Biome rules of the apps (`biome.app.json`), the GritQL plugins and the `check-component-files` check | The `biome.json` of the Desk, of Evaluation, of `frontend-lib`, of `chat` and of `app-ui`, which extend it; each app's `check:components` script |
 | `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) | The sandbox of MCP Apps: the page of the outer frame, the transport between the frames, the Content Security Policy, the checks on what an app asks for | The Desk, Evaluation, `apps/web` and `apps/web-embed`; `chat` |
 
@@ -44,11 +44,14 @@ Every shared package follows these:
   has). Each app's `lingui.config.ts` declares that catalog as a second one, so the app's
   `i18n:extract` writes it and its `i18n:check` checks it. Each app's `activateLocale` loads it,
   and the app's own messages win for a message both hold. A text that names an app stays in the
-  app.
+  app. The generated shadcn components of `app-ui` hold a few texts of their own (`dialog.tsx`,
+  `sheet.tsx` and `sidebar.tsx` in `src/components/`), which are in no catalog: Lingui extracts
+  from the `src/` of an app only.
 - It follows the TypeScript options of the stack (`erasableSyntaxOnly`, `verbatimModuleSyntax`).
 - knip runs on no shared package, so no tool reports an export nobody imports any more. The
-  `index.ts` of `frontend-lib` and of `chat` exports by name what the apps import: a change
-  that removes the last use of an export removes the export too.
+  `index.ts` of `frontend-lib` and of `chat` exports by name what their users import (the apps,
+  and `app-ui` for `frontend-lib`): a change that removes the last use of an export removes the
+  export too.
 
 Each package adds its own. A dependency or an import beyond its list, test tooling aside, needs a
 human's go, as a new shared package does.
@@ -62,7 +65,7 @@ human's go, as a new shared package does.
 | `api-client` | Zod, `schema-route`, `sign-in` | A route, React, the app's session (it takes it from the app) |
 | `frontend-lib` | React and TanStack Query, as peers | A component, a style, a contract, the app's configuration, a route beyond the library file link `toResourceUrl` checks, a network call beyond `putFileToSignedUrl`, an import of another workspace package |
 | `chat` | React as a peer, Zod, `chat-contracts`, `frontend-lib`, `mcp-app-host` | A component, a style, a call to the API, the app's configuration, what only one app shows (the Desk's memory) |
-| `app-ui` | Base UI, `cva`, `cn`, lucide-react, sonner, `cmdk`, `@shadcn/react`, tw-animate-css, `frontend-lib`, React and React DOM as peers, Lingui (`@lingui/core`, `@lingui/react`) as peers | In `src/components/`, a component the shadcn CLI did not generate; in `src/compositions/`, a component that knows a feature or that one app alone uses; business logic; a text outside its catalog; an import of another workspace package beyond `frontend-lib` |
+| `app-ui` | Base UI, `cva`, `cn`, lucide-react, sonner, `cmdk`, `@shadcn/react`, tw-animate-css, `frontend-lib`, React and React DOM as peers, Lingui (`@lingui/core`, `@lingui/react`) as peers | In `src/components/`, a component the shadcn CLI did not generate; in `src/compositions/`, a component that knows a feature or that one app alone uses; business logic; a text outside its catalog, shadcn's own in `dialog.tsx`, `sheet.tsx` and `sidebar.tsx` aside; an import of another workspace package beyond `frontend-lib` |
 | `frontend-config` | Nothing | A rule for one app only, a dependency |
 | `mcp-app-host` | `@modelcontextprotocol/ext-apps`, `@modelcontextprotocol/sdk` | React, a component, a style, a contract, an import of another workspace package |
 
@@ -86,9 +89,10 @@ environment, run `bayes wt up` after a change to one of them.
 | `frontend-config` | `npm run biome:check`, then the `check` of the Desk and of Evaluation |
 | `mcp-app-host` | Its `test`, then the `check` of the Desk and of Evaluation, and the tests of `apps/web` and `apps/web-embed` |
 
-CI runs the specs of `sign-in`, `api-client`, `frontend-lib`, `chat` and `app-ui` in the Desk's job, and
-those of `mcp-app-host` with the web tests. The path filters of `.github/workflows/ci.yml` start
-the Desk's and Evaluation's jobs when a package they import changes.
+CI runs the specs of `sign-in`, `api-client`, `frontend-lib`, `chat` and `app-ui` in the Desk's
+job, and those of `mcp-app-host` with the web tests. The path filters of
+`.github/workflows/ci.yml` start the Desk's and Evaluation's jobs when a package they import
+changes.
 
 ## Adding a shared package
 
@@ -109,10 +113,13 @@ Then, in one change:
    second catalog in each app's `lingui.config.ts`; the call of `loadMessages` in each app's
    `activateLocale`, with the app's messages last; and the two specs of each app's
    `src/app/i18n.spec.ts` (every language of the app is in the package's `LOCALES`, and a message
-   both catalogs hold has one translation). A short message that both the package and an app's
-   code show stays in both catalogs. The package has a minimal `lingui.config.ts` (its languages
+   that any two catalogs the app loads both hold has one translation, every pair compared). The
+   order of the merge is fixed: the shared packages' catalogs first, in one order, then the app's,
+   which wins. Once a second package has a catalog, each app keeps one list of the shared catalogs
+   it loads, which `activateLocale` and the spec both read. A short message that both the package
+   and an app's code show stays in both catalogs. The package has a minimal `lingui.config.ts` (its languages
    only), which Lingui's macro reads when the package's specs compile: the package has no extract
-   script, since the apps extract. A `po.d.ts` in `src/locales/` types the `.po` imports. The
+   script, since the apps extract. A `po.d.ts` in `src/locales/` declares the `*.po` modules and references the types of Vite. The
    specs' `src/test/setup.ts` loads no catalog, so a spec reads the English source text. A spec
    never uses a Lingui macro for a text of the package: the extraction would put the message back
    in the app's catalog.
