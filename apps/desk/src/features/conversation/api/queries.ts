@@ -1,9 +1,9 @@
+import { type ChatMessage, isBeingWritten, toChatMessages } from "@caseai-connect/chat"
 import type { ConversationParamsDto, DocumentParamsDto } from "@caseai-connect/desk-contracts"
 import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
 import { pollWhile } from "@caseai-connect/frontend-lib"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { type ChatMessage, isBeingWritten, toChatMessages } from "../chat-messages"
 import { conversationKeys, documentKeys } from "./keys"
 import { isReplyStreaming } from "./reply-streams"
 

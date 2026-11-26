@@ -41,7 +41,8 @@ holds what is specific to the Desk.
   `apps/web-embed` (ADR 0031, section 2.4). The other is the permission catalog,
   `@caseai-connect/permissions`, which the Desk reads only through the constants its contracts
   re-export (section 2.12). The Desk keeps what is its own: the `useMcpApp` hook and `McpAppCard`
-  in `features/conversation`, the placeholder, and the lookup of an app's HTML (`mcp-apps.ts`).
+  in `features/conversation` and the placeholder. The lookup of an app's HTML (`findMcpAppHtml`)
+  comes from `@caseai-connect/chat`.
 - Sign-in: `@caseai-connect/sign-in` (`packages/sign-in`), which the Desk shares with Evaluation
   (ADR 0031, section 2.4). Only `src/lib/auth/` imports it: `session.ts`, which the rest of the
   Desk reads, and `adopt-desk-session.ts`, the move of the session the Desk held on its own before
@@ -153,9 +154,14 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
-- Evaluation (`apps/eval`) holds a copy of the chat: `src/features/conversation/`, and `Markdown`,
-  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no chat code,
-  so a change to one of these files goes to the copy too, in the same PR.
+- The chat's logic and hooks come from `@caseai-connect/chat` (`packages/chat`), which the Desk
+  shares with Evaluation: its messages and the stream of a reply, the annotations and quoted
+  passages, the task checks, the MCP Apps and the resources. A message keeps its tool calls, in
+  which the Desk reads the facts its memory saved (`savedMemoryIdsOf` of `features/memory`):
+  the package knows no memory.
+- Evaluation (`apps/eval`) holds a copy of the rest of the chat: `src/features/conversation/`,
+  and `Markdown`, `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. A change
+  to one of these files goes to the copy too, in the same PR.
   `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
   of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record

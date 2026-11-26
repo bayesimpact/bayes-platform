@@ -1,0 +1,38 @@
+{
+  "name": "@caseai-connect/chat",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "files": [
+    "./src/**"
+  ],
+  "dependencies": {
+    "@caseai-connect/chat-contracts": "*",
+    "@caseai-connect/frontend-lib": "*",
+    "@caseai-connect/mcp-app-host": "*",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "react": "^19.2.6"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "@types/node": "^22.19.17",
+    "@types/react": "^19.2.14",
+    "happy-dom": "^21.0.4",
+    "react": "^19.2.6",
+    "vitest": "^4.1.2"
+  }
+}

@@ -3,15 +3,14 @@
   "features/conversation/api/mutations.ts": "7e36d142f46d805e",
   "features/conversation/api/queries.ts": "88a9e22479a38023",
   "features/conversation/api/stream-reply.ts": "9e7d8b974045a859",
-  "features/conversation/chat-messages.ts": "649639c6d179c2ab",
-  "features/conversation/components/AssistantMessageView.tsx": "085624ae1576514b",
+  "features/conversation/components/AssistantMessageView.tsx": "8d48537ed13791cd",
   "features/conversation/components/ConversationMenu.tsx": "f328631efe6480bf",
   "features/conversation/components/ConversationTitle.tsx": "fcb55301100576ce",
   "features/conversation/components/ConversationView.tsx": "3c100a793724ca7a",
   "features/conversation/components/McpAppCard.tsx": "7bf381295a43a1f6",
   "features/conversation/components/MessageEditor.tsx": "432bff2be6d14968",
   "features/conversation/components/NewConversation.tsx": "d53fc5947db80e36",
-  "features/conversation/components/ReadOnlyConversation.tsx": "efb0402288d8444e",
+  "features/conversation/components/ReadOnlyConversation.tsx": "bdf13cbbe8ae9469",
   "features/conversation/components/ReplyError.tsx": "43c0c0aa4f67a9c2",
   "features/conversation/components/ResourcePanel.tsx": "668c64e1f625bc54",
   "features/conversation/hooks/use-conversation-forms.ts": "ce753f8fb58793df",
@@ -22,6 +21,5 @@
   "features/conversation/hooks/use-dictation.ts": "a44acbd042a826c3",
   "features/conversation/hooks/use-mcp-app.spec.tsx": "14db84aff23ef985",
   "features/conversation/hooks/use-mcp-app.ts": "1c4cf7cedbdd5c32",
-  "features/conversation/index.ts": "9b16ccffdb0a3246",
-  "features/conversation/message-document.ts": "563dd1ed1db8afac"
+  "features/conversation/index.ts": "9b16ccffdb0a3246"
 }

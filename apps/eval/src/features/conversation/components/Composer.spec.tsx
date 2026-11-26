@@ -1,4 +1,5 @@
 import { Toaster } from "@caseai-connect/app-ui/components/sonner"
+import type { OutgoingMessage } from "@caseai-connect/chat"
 import { act, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
@@ -6,7 +7,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { activateLocale } from "@/app/i18n"
 import { writeMessage } from "@/test/message-box"
 import { renderWithI18n } from "@/test/render-with-i18n"
-import type { OutgoingMessage } from "../chat-messages"
 import { Composer } from "./Composer"
 
 /** A browser's speech recognition that the test makes speak. */

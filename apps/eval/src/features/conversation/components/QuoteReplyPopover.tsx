@@ -3,6 +3,13 @@ import { Popover, PopoverContent } from "@caseai-connect/app-ui/components/popov
 import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import {
+  type Annotation,
+  isSameRange,
+  type ReplyClick,
+  readQuotableSelection,
+  useSettledSelection,
+} from "@caseai-connect/chat"
+import {
   clearQuoteHighlights,
   isPointInRange,
   showQuoteHighlights,
@@ -11,8 +18,6 @@ import { useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { Trash2Icon } from "lucide-react"
 import { type KeyboardEvent, type ReactNode, useEffect, useState } from "react"
-import { type Annotation, isSameRange, readQuotableSelection } from "../annotation"
-import { type ReplyClick, useSettledSelection } from "../hooks/use-settled-selection"
 import { AnnotationBadge } from "./AnnotationBadge"
 import { SelectionActions } from "./SelectionActions"
 

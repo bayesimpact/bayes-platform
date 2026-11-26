@@ -1,10 +1,10 @@
+import type { ChatMcpApp } from "@caseai-connect/chat"
 import type { McpAppMountOptions } from "@caseai-connect/mcp-app-host"
 import { I18nProvider } from "@lingui/react"
 import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { activateLocale, i18n } from "@/app/i18n"
-import type { ChatMcpApp } from "../chat-messages"
 import { useMcpApp } from "./use-mcp-app"
 
 /** What Evaluation asked the shared host to run, and what it told the running apps since. */

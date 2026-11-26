@@ -1,9 +1,9 @@
+import { type Annotation, saveAnnotation } from "@caseai-connect/chat"
 import { act, fireEvent, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 import { renderWithI18n } from "@/test/render-with-i18n"
-import { type Annotation, saveAnnotation } from "../annotation"
 import { QuoteReplyPopover } from "./QuoteReplyPopover"
 
 const REPLY = "The Pro plan covers unlimited teams."

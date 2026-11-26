@@ -1,5 +1,5 @@
+import { useRangeEnd } from "@caseai-connect/chat"
 import { createPortal } from "react-dom"
-import { useRangeEnd } from "../hooks/use-range-end"
 
 export type AnnotationBadgeProps = {
   /** The passage, at whose end the bubble stands. */

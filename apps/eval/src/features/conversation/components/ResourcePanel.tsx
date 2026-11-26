@@ -1,10 +1,10 @@
 import { buttonVariants } from "@caseai-connect/app-ui/components/button"
+import { type OpenedResource, youtubeEmbedUrlOf } from "@caseai-connect/chat"
 import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import { ExternalLinkIcon } from "lucide-react"
 import { ExternalLink } from "@/components/shared/ExternalLink"
 import { SidePanel } from "@/components/shared/SidePanel"
-import { type OpenedResource, youtubeEmbedUrlOf } from "../resource-media"
 
 export type ResourcePanelProps = {
   resource: OpenedResource

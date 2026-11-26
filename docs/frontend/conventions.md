@@ -100,12 +100,16 @@ exports and dependencies:
   dependencies are its contracts package and the packages no app owns and every app imports
   (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps,
   `@caseai-connect/sign-in`, the sign-in, `@caseai-connect/api-client`, the API client,
-  `@caseai-connect/frontend-lib`, the hooks and helpers the apps share, and
+  `@caseai-connect/frontend-lib`, the hooks and helpers the apps share,
+  `@caseai-connect/chat`, the chat's logic and hooks, and
   `@caseai-connect/app-ui`, the shadcn components and the design tokens. Only
   `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports `oidc-client-ts`, and
   only `lib/api-client.ts` imports `@caseai-connect/api-client`: it creates the app's client with
   the functions of `lib/auth/session.ts`, and the rest of the app imports it. The app imports
-  `@caseai-connect/frontend-lib` directly, from any folder, and keeps no file that re-exports it.
+  `@caseai-connect/frontend-lib` and `@caseai-connect/chat` directly, from any folder, and
+  keeps no file that re-exports them. A change to one of them runs its own tests
+  (`npm run test -w @caseai-connect/frontend-lib`, `npm run test -w @caseai-connect/chat`) and
+  the `check` of each app.
 - `src/test/` serves the tests and the stories only: no app code imports it.
 - No cycles.
 
@@ -328,8 +332,8 @@ or editing the boundaries' configuration.
   its story, and a changed screen updates its specs and stories in the same change. They show what
   a change breaks, on purpose or not, so a change without them is not done.
 - Vitest runs two projects: `*.spec.ts` in node for pure logic (the app's sign-in wrapper,
-  schemas; the sign-in, the API client and the hooks and helpers of `packages/frontend-lib` are
-  tested in their packages),
+  schemas; the sign-in, the API client, the hooks and helpers of `packages/frontend-lib` and the
+  chat's logic of `packages/chat` are tested in their packages),
   and `*.spec.tsx` in happy-dom for components and routes. A test checks what a person sees,
   queries by role and label in English, and uses `data-testid` as a last resort.
 - The network is mocked with MSW only, never by mocking TanStack Query, `fetch` or the client.
@@ -496,9 +500,12 @@ and empty states.
   dependency. In `packages/frontend-lib`: a component, a style, a text shown to people, a route
   beyond the library file link `toResourceUrl` checks, a contract, the app's configuration, a
   network call beyond `putFileToSignedUrl`, a dependency beyond React and TanStack Query, or an
-  import of another workspace package. In `packages/app-ui`: a component the shadcn CLI did not
-  generate, business logic, a text shown to people beyond shadcn's own, or an import of another
-  workspace package.
+  import of another workspace package. In `packages/chat`: a component, a style, a text shown to
+  people, a call to the API, what only one app shows (the Desk's memory), the app's
+  configuration, or a dependency beyond React, Zod, `@caseai-connect/chat-contracts`,
+  `@caseai-connect/frontend-lib` and `@caseai-connect/mcp-app-host`. In `packages/app-ui`: a
+  component the shadcn CLI did not generate, business logic, a text shown to people beyond
+  shadcn's own, or an import of another workspace package.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns
   into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.

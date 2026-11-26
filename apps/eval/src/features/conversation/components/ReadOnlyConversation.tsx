@@ -1,13 +1,15 @@
+import {
+  type AppsHtml,
+  toChatMessages,
+  useCitedPassages,
+  useTaskChecks,
+} from "@caseai-connect/chat"
 import type {
   ConversationMessageOutputDto,
   ConversationParamsDto,
 } from "@caseai-connect/eval-contracts"
 import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@caseai-connect/frontend-lib"
 import { useState } from "react"
-import { toChatMessages } from "../chat-messages"
-import { useCitedPassages } from "../hooks/use-cited-passages"
-import { useTaskChecks } from "../hooks/use-task-checks"
-import type { AppsHtml } from "../mcp-apps"
 import { ChatMessageView } from "./ChatMessageView"
 
 export type ReadOnlyConversationProps = {

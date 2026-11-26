@@ -21,6 +21,7 @@
   "dependencies": {
     "@caseai-connect/api-client": "*",
     "@caseai-connect/app-ui": "*",
+    "@caseai-connect/chat": "*",
     "@caseai-connect/desk-contracts": "*",
     "@caseai-connect/frontend-lib": "*",
     "@caseai-connect/mcp-app-host": "*",

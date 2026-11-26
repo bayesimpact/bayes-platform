@@ -1,12 +1,10 @@
+import { toChatMessages, useCitedPassages, useTaskChecks } from "@caseai-connect/chat"
 import { TOOL_NAMES } from "@caseai-connect/eval-contracts"
 import { prettyDOM, screen } from "@testing-library/react"
 import { useState } from "react"
 import { describe, expect, it } from "vitest"
 import { randomConversationParams, renderWithQueryClient } from "@/test/render-with-query-client"
-import { toChatMessages } from "./chat-messages"
 import { ChatMessageView } from "./components/ChatMessageView"
-import { useCitedPassages } from "./hooks/use-cited-passages"
-import { useTaskChecks } from "./hooks/use-task-checks"
 
 /**
  * The same conversation renders the same in the Desk and in Evaluation, whose chat is a copy of

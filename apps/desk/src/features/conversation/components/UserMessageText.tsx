@@ -1,12 +1,15 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  type CitedPassages,
+  citedPassageKey,
+  messageSegmentsOf,
+  taskChecksOf,
+  useIsOverflowing,
+} from "@caseai-connect/chat"
 import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import { useId, useRef, useState } from "react"
 import { InlineCode } from "@/components/shared/InlineCode"
-import { citedPassageKey, messageSegmentsOf } from "../annotation"
-import type { CitedPassages } from "../hooks/use-cited-passages"
-import { useIsOverflowing } from "../hooks/use-is-overflowing"
-import { taskChecksOf } from "../task-checks"
 import { CitedPassageChip } from "./CitedPassageChip"
 import { TaskChecksList } from "./TaskChecksList"
 

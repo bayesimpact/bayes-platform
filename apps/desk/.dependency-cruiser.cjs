@@ -18,7 +18,7 @@ module.exports = {
       comment:
         "The Desk imports nothing from another app or from a package another app owns. Its " +
         "workspace dependencies are @caseai-connect/desk-contracts and the packages no app " +
-        "owns: @caseai-connect/api-client, @caseai-connect/app-ui, " +
+        "owns: @caseai-connect/api-client, @caseai-connect/app-ui, @caseai-connect/chat, " +
         "@caseai-connect/frontend-lib, @caseai-connect/mcp-app-host and " +
         "@caseai-connect/sign-in (ADR 0031, section 2.4).",
       from: { path: "^src/" },
@@ -26,8 +26,8 @@ module.exports = {
         path: [
           // Another app: a sibling of apps/desk.
           "^\\.\\./(?!\\.\\./|desk/)[^/]+/",
-          "^\\.\\./\\.\\./packages/(?!(api-client|app-ui|desk-contracts|frontend-lib|mcp-app-host|sign-in)/)",
-          "node_modules/@caseai-connect/(?!(api-client|app-ui|desk-contracts|frontend-lib|mcp-app-host|sign-in)(/|$))",
+          "^\\.\\./\\.\\./packages/(?!(api-client|app-ui|chat|desk-contracts|frontend-lib|mcp-app-host|sign-in)/)",
+          "node_modules/@caseai-connect/(?!(api-client|app-ui|chat|desk-contracts|frontend-lib|mcp-app-host|sign-in)(/|$))",
           "node_modules/@repo/",
         ],
       },
