@@ -5,6 +5,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@caseai-connect/app-ui/components/sheet"
+import { ExternalLink } from "@caseai-connect/app-ui/compositions/ExternalLink"
 import type {
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
@@ -15,7 +16,6 @@ import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
 import { CheckIcon, XIcon } from "lucide-react"
-import { ExternalLink } from "@/components/shared/ExternalLink"
 import { canReadTracesQueryOptions } from "@/features/account"
 import { cellTextOf } from "@/lib/extraction-columns"
 import { SUCCESS_TEXT_CLASSES } from "@/lib/success-classes"

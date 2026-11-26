@@ -1,3 +1,4 @@
+import { loadMessages, LOCALES as SHARED_LOCALES } from "@caseai-connect/app-ui/locales"
 import { describe, expect, it } from "vitest"
 import { LOCALES, SPEECH_LANGUAGES } from "./i18n"
 
@@ -13,5 +14,18 @@ describe("the Desk's languages", () => {
   it("each have a speech language of their own, which starts with their code", () => {
     for (const locale of LOCALES)
       expect(SPEECH_LANGUAGES[locale]).toMatch(new RegExp(`^${locale}-`))
+  })
+
+  it("has every one of its languages in the catalog of each shared package", () => {
+    expect([...SHARED_LOCALES].sort()).toEqual(expect.arrayContaining([...LOCALES].sort()))
+  })
+
+  it("gives one translation to a message that two of its catalogs hold", async () => {
+    for (const locale of LOCALES) {
+      const shared = await loadMessages(locale)
+      const { messages } = await import(`../locales/${locale}.po`)
+      for (const id of Object.keys(messages).filter((key) => key in shared))
+        expect(messages[id], `${locale}: ${id}`).toEqual(shared[id])
+    }
   })
 })

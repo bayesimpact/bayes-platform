@@ -11,10 +11,6 @@ msgstr ""
 msgid "“{removedPrompt}” leaves this list, with its settings."
 msgstr "\"{removedPrompt}\" esce da questo elenco, con le sue impostazioni."
 
-#: src/components/shared/ExternalLink.tsx
-msgid "(opens in a new tab)"
-msgstr "(si apre in una nuova scheda)"
-
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} risponde ai record di {datasetName} e un modello giudice valuta ogni risposta rispetto alla risposta attesa."
