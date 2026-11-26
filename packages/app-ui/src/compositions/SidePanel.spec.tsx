@@ -1,10 +1,11 @@
 import { SidebarProvider, useSidebar } from "@caseai-connect/app-ui/components/sidebar"
+import { SidePanel } from "@caseai-connect/app-ui/compositions/SidePanel"
+import { SidePanelStorageKeyContext } from "@caseai-connect/app-ui/compositions/side-panel-storage-key-context"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { type ReactNode, StrictMode, useState } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { renderWithI18n } from "@/test/render-with-i18n"
-import { SidePanel } from "./SidePanel"
+import { renderWithI18n } from "../test/render-with-i18n"
 
 /** Says whether the app's sidebar is open, for the tests to read. */
 function SidebarState() {
@@ -12,7 +13,7 @@ function SidebarState() {
   return <output aria-label="Sidebar">{open ? "open" : "folded"}</output>
 }
 
-function PanelOpener({ children }: { children?: ReactNode }) {
+function PanelOpener({ children, takesFocus }: { children?: ReactNode; takesFocus?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
   return (
     // The panel folds the app's sidebar when it leaves the page no room: it reads its state. The
@@ -27,7 +28,11 @@ function PanelOpener({ children }: { children?: ReactNode }) {
         </button>
       </main>
       {isOpen ? (
-        <SidePanel title="What the agent remembers" onClose={() => setIsOpen(false)}>
+        <SidePanel
+          title="What the agent remembers"
+          takesFocus={takesFocus}
+          onClose={() => setIsOpen(false)}
+        >
           <button type="button">Forget</button>
         </SidePanel>
       ) : null}
@@ -88,6 +93,30 @@ describe("SidePanel", () => {
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument()
     expect(opener).toHaveFocus()
   })
+
+  it("leaves the focus where it is when it does not take it", async () => {
+    renderWithI18n(<PanelOpener takesFocus={false} />)
+    const opener = screen.getByRole("button", { name: "Memory" })
+
+    await userEvent.click(opener)
+    expect(screen.getByRole("complementary")).toBeInTheDocument()
+    expect(opener).toHaveFocus()
+    expect(screen.getByRole("heading", { name: "What the agent remembers" })).not.toHaveFocus()
+  })
+
+  it("keeps its width under the key its shell gives", async () => {
+    mockMatchMedia(true)
+    renderWithI18n(
+      <SidePanelStorageKeyContext value="desk.sidePanelWidth">
+        <PanelOpener />
+      </SidePanelStorageKeyContext>,
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Memory" }))
+
+    await widenPanel()
+    expect(window.localStorage.getItem("desk.sidePanelWidth")).not.toBeNull()
+    expect(window.localStorage.getItem("sidePanelWidth")).toBeNull()
+  })
 })
 
 describe("SidePanel below a laptop's width", () => {
@@ -118,6 +147,12 @@ describe("SidePanel below a laptop's width", () => {
 describe("SidePanel beside a page with little room", () => {
   it("folds the sidebar when it opens beside a page with little room", async () => {
     await openBeside(300)
+    expect(sidebarState()).toHaveTextContent("folded")
+  })
+
+  it("folds the sidebar once the page has little room left", async () => {
+    await openBeside(300)
+    await widenPanel()
     expect(sidebarState()).toHaveTextContent("folded")
   })
 

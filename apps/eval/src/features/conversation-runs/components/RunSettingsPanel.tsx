@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/app-ui/components/tabs"
+import { SidePanel } from "@caseai-connect/app-ui/compositions/SidePanel"
 import type {
   AgentParamsDto,
   AgentTypeDto,
@@ -8,7 +9,6 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { RunAgentFacts } from "@/components/shared/RunAgentFacts"
 import { RunFact } from "@/components/shared/RunFact"
-import { SidePanel } from "@/components/shared/SidePanel"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { DOCUMENT_SEARCH_LABELS } from "@/lib/document-search-labels"
 import { temperatureOf, thinkingLevelLabelOf, thinkingLevelOf } from "../thinking-level"

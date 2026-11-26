@@ -250,10 +250,6 @@ msgstr "Wybierz inny plik"
 msgid "Choose at least one column for the agent to read."
 msgstr "Wybierz co najmniej jedną kolumnę, którą agent ma czytać."
 
-#: src/components/shared/SidePanel.tsx
-msgid "Close the panel"
-msgstr "Zamknij panel"
-
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Columns"
 msgstr "Kolumny"
@@ -835,10 +831,6 @@ msgstr "Zgłoś problem"
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Report a problem with this reply"
 msgstr "Zgłoś problem z tą odpowiedzią"
-
-#: src/components/shared/SidePanel.tsx
-msgid "Resize the panel"
-msgstr "Zmień rozmiar panelu"
 
 #: src/components/shared/DeskShell.tsx
 msgid "Resize the sidebar"

@@ -11,6 +11,10 @@ msgstr ""
 msgid "(opens in a new tab)"
 msgstr "(si apre in una nuova scheda)"
 
+#: ../../packages/app-ui/src/compositions/SidePanel.tsx
+msgid "Close the panel"
+msgstr "Chiudi il pannello"
+
 #. The copy button, once it copied its text
 #: ../../packages/app-ui/src/compositions/CopyButton.tsx
 msgid "Copied"
@@ -20,3 +24,7 @@ msgstr "Copiato"
 #: ../../packages/app-ui/src/compositions/RelativeTime.tsx
 msgid "just now"
 msgstr "proprio ora"
+
+#: ../../packages/app-ui/src/compositions/SidePanel.tsx
+msgid "Resize the panel"
+msgstr "Ridimensiona il pannello"

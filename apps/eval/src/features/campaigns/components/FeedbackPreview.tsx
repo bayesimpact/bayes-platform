@@ -1,6 +1,6 @@
+import { SidePanel } from "@caseai-connect/app-ui/compositions/SidePanel"
 import { Trans } from "@lingui/react/macro"
 import { type Control, useWatch } from "react-hook-form"
-import { SidePanel } from "@/components/shared/SidePanel"
 import { previewQuestionOf } from "../campaign-form"
 import type { CampaignFormValues, QuestionListName } from "../schemas"
 import { FeedbackFormPreview } from "./FeedbackFormPreview"

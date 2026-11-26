@@ -140,9 +140,11 @@ the conventions as they stand. When a rule changes, its reference file changes i
   highlights, which Evaluation's parity check compares with its copy. `npx shadcn add`, run in
   `apps/desk`, writes into the package. The sidebar takes each install's color from its
   `theme.css` (`docs/frontend/conventions.md`, UI and styling).
-- Shared compositions, in `src/components/shared/`: `SidePanel` for every panel docked beside a
-  page (it makes the page behind inert where it covers it, and folds the sidebar when it opens or
-  stretches so wide that the page, its previous sibling, keeps less than 480 px), `HeaderActions`
+- `SidePanel` for every panel docked beside a page comes from `@caseai-connect/app-ui`
+  (`compositions/SidePanel`): it makes the page behind inert where it covers it, and folds the
+  sidebar when it opens or stretches so wide that the page, its previous sibling, keeps less than
+  480 px. `DeskShell` gives it the key of the width it saves, `desk.sidePanelWidth`.
+- Shared compositions, in `src/components/shared/`: `HeaderActions`
   for the actions of the bar above it, `DataTable` for every table, `ExternalLink` for a link to a
   new tab, `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
   `NewReleaseBanner` for a new release. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,

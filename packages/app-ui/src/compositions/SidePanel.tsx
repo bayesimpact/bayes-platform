@@ -1,10 +1,20 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
 import { useSidebar } from "@caseai-connect/app-ui/components/sidebar"
+import { ResizeHandle } from "@caseai-connect/app-ui/compositions/ResizeHandle"
+import { SidePanelStorageKeyContext } from "@caseai-connect/app-ui/compositions/side-panel-storage-key-context"
 import { useInertPageBehind, useMediaQuery, useResizableWidth } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
-import { type KeyboardEvent, type ReactNode, useEffect, useEffectEvent, useId, useRef } from "react"
-import { ResizeHandle } from "./ResizeHandle"
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useEffectEvent,
+  useId,
+  useRef,
+} from "react"
 
 /** Under this width, the page beside a panel is too narrow to read: the sidebar gives way. */
 const MIN_PAGE_WIDTH_IN_PIXELS = 480
@@ -43,6 +53,8 @@ export function SidePanel({
   children,
 }: SidePanelProps) {
   const { t } = useLingui()
+  // Each app's shell names the key, so the width a person saved stays theirs.
+  const storageKey = useContext(SidePanelStorageKeyContext)
   const titleId = useId()
   const titleRef = useRef<HTMLHeadingElement>(null)
   const panelRef = useRef<HTMLElement>(null)
@@ -68,7 +80,7 @@ export function SidePanel({
     if (isDocked) makeRoomOnOpen()
   }, [isDocked])
   const panelWidth = useResizableWidth({
-    storageKey: "eval.sidePanelWidth",
+    storageKey,
     defaultWidth: 384,
     minWidth: 320,
     maxWidth: 720,
@@ -104,7 +116,9 @@ export function SidePanel({
       ref={panelRef}
       onKeyDown={handleKeyDown}
       aria-labelledby={titleId}
-      style={{ "--side-panel-width": `${panelWidth.width}px` }}
+      // Safe: a custom property, which `CSSProperties` knows only where an app declares it, as the
+      // sidebar's own does.
+      style={{ "--side-panel-width": `${panelWidth.width}px` } as CSSProperties}
       className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:relative lg:inset-auto lg:z-20 lg:my-2 lg:mr-2 lg:w-(--side-panel-width) lg:shrink-0 lg:rounded-xl lg:border lg:border-foreground/15 lg:shadow-sm"
     >
       <ResizeHandle

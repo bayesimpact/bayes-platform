@@ -248,6 +248,11 @@ jobs:
         if: needs.changes.outputs.desk-tests == 'true'
         run: npm run test --workspace=@caseai-connect/frontend-lib
 
+      # The shadcn components and the compositions the Desk and Evaluation share.
+      - name: Run app-ui tests
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run test --workspace=@caseai-connect/app-ui
+
       # The chat's logic and hooks the Desk and Evaluation share.
       - name: Run chat tests
         if: needs.changes.outputs.desk-tests == 'true'

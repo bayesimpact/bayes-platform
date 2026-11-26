@@ -6,12 +6,14 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "check": "tsc --noEmit && biome check ."
+    "test": "vitest run",
+    "check": "tsc --noEmit && biome check . && vitest run"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
     "./components/*": "./src/components/*.tsx",
     "./compositions/*": "./src/compositions/*.tsx",
+    "./compositions/side-panel-storage-key-context": "./src/compositions/side-panel-storage-key-context.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./lib/*": "./src/lib/*.ts",
     "./locales": "./src/locales/index.ts"
@@ -37,12 +39,19 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
+    "@lingui/babel-plugin-lingui-macro": "^6.10.0",
     "@lingui/core": "^6.10.0",
     "@lingui/react": "^6.10.0",
     "@repo/typescript-config": "*",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "happy-dom": "^21.0.4",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "vitest": "^4.1.2"
   }
 }

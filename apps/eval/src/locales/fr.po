@@ -687,10 +687,6 @@ msgstr "Clôturer « {name} » ?"
 msgid "Close the campaign"
 msgstr "Clôturer la campagne"
 
-#: src/components/shared/SidePanel.tsx
-msgid "Close the panel"
-msgstr "Fermer le panneau"
-
 #. A review campaign that is over
 #: src/lib/campaign-status.ts
 msgid "Closed"
@@ -2277,10 +2273,6 @@ msgstr "Signaler un problème avec cette réponse"
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Required"
 msgstr "Obligatoire"
-
-#: src/components/shared/SidePanel.tsx
-msgid "Resize the panel"
-msgstr "Redimensionner le panneau"
 
 #: src/components/shared/AppShell.tsx
 msgid "Resize the sidebar"

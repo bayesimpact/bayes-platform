@@ -1,7 +1,7 @@
+import { ResizeHandle } from "@caseai-connect/app-ui/compositions/ResizeHandle"
 import { useResizableWidth } from "@caseai-connect/frontend-lib"
 import { fireEvent, render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it } from "vitest"
-import { ResizeHandle } from "./ResizeHandle"
 
 function ResizableBox() {
   const resizable = useResizableWidth({
