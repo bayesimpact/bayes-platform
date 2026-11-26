@@ -29,6 +29,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Embedded chat: a reply with an interactive card no longer blanks the chat on an http page.
 - CSV extraction: a CSV file with no data row or no header line no longer shows "Page not found".
 - (beta) Agent orchestration: the default tool name of a sub-agent keeps each accented letter, without its accent.
+- (beta) Agent orchestration: the interactive card of a sub-agent that takes over is displayed in the conversation.
 
 ### Security
 

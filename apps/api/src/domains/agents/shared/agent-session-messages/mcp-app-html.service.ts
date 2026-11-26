@@ -1,4 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsRepository } from "@/domains/agents/settings/agent-settings.repository"
 import type { AgentMessageToolCall } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import type { EnabledMcpServer } from "@/domains/mcp-servers/mcp-servers.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -10,37 +13,31 @@ import type { McpSession } from "@/external/mcp/mcp-client.service"
 import type { McpConversationContext } from "@/external/mcp/mcp-request-headers"
 import { mcpAppHtmlCacheKey } from "./agent-message.helpers"
 
+/** A message as this service reads it: its tool calls and the settings revision that wrote it. */
+type MessageWithMcpApps = {
+  toolCalls?: AgentMessageToolCall[] | null
+  agentSettingsId?: string | null
+  /** The loaded relation, when the caller has it: it saves the lookup of the author. */
+  agentSettings?: { agentId: string } | null
+}
+
 /** A `ui://` card pointer persisted on a tool call — not the HTML snapshot. */
 type McpAppRef = {
   mcpServerId?: string
   resourceUri: string
 }
 
-/**
- * Unique MCP App pointers on this timeline. Ignores non-`ui://` values so a
- * stored junk URI cannot become a `resources/read`. Dedupes by server + URI
- * because a conversation may repeat the same card many times.
- */
-function collectMcpAppRefs(
-  messages: Array<{ toolCalls?: AgentMessageToolCall[] | null }>,
-): McpAppRef[] {
+/** The `ui://` pointers of one message. Ignores other values so a stored junk URI cannot become a `resources/read`. */
+function mcpAppRefsOf(message: MessageWithMcpApps): McpAppRef[] {
   const refs: McpAppRef[] = []
-  const seen = new Set<string>()
+  for (const toolCall of message.toolCalls ?? []) {
+    const resourceUri = toolCall.mcpApp?.resourceUri
+    if (typeof resourceUri !== "string" || !resourceUri.startsWith("ui://")) continue
 
-  for (const message of messages) {
-    for (const toolCall of message.toolCalls ?? []) {
-      const resourceUri = toolCall.mcpApp?.resourceUri
-      if (typeof resourceUri !== "string" || !resourceUri.startsWith("ui://")) continue
-
-      const mcpServerId =
-        typeof toolCall.mcpApp?.mcpServerId === "string" ? toolCall.mcpApp.mcpServerId : undefined
-      const dedupeKey = `${mcpServerId ?? "*"}::${resourceUri}`
-      if (seen.has(dedupeKey)) continue
-      seen.add(dedupeKey)
-      refs.push({ mcpServerId, resourceUri })
-    }
+    const mcpServerId =
+      typeof toolCall.mcpApp?.mcpServerId === "string" ? toolCall.mcpApp.mcpServerId : undefined
+    refs.push({ mcpServerId, resourceUri })
   }
-
   return refs
 }
 
@@ -79,8 +76,9 @@ function groupUrisByEnabledServer(
  *
  * Tool calls persist only `{ mcpServerId, resourceUri }`. Storing the HTML
  * would freeze the card UI, so old conversations would miss server-side style
- * updates. This service re-reads each declared `ui://` from the same enabled
- * MCP server. Missing HTML is fine: the DTO omits it and the chat falls back
+ * updates. This service re-reads each declared `ui://` from the same MCP
+ * server, as long as it is still enabled for the agent that wrote the message.
+ * Missing HTML is fine: the DTO omits it and the chat falls back
  * to the timeline instead of breaking the message.
  */
 @Injectable()
@@ -90,6 +88,7 @@ export class McpAppHtmlService {
   constructor(
     private readonly mcpClientService: McpClientService,
     private readonly mcpServersService: McpServersService,
+    private readonly agentSettingsRepository: AgentSettingsRepository,
   ) {}
 
   /**
@@ -98,28 +97,84 @@ export class McpAppHtmlService {
    */
   async readLiveHtml({
     agentId,
+    connectScope,
     sessionId,
     messages,
     externalVisitorId = null,
   }: {
+    /** The session's agent: the author of a message whose settings revision is unknown. */
     agentId: string
+    connectScope: RequiredConnectScope
     sessionId: string
-    messages: Array<{ toolCalls?: AgentMessageToolCall[] | null }>
+    messages: MessageWithMcpApps[]
     /** Forwarded on public/embed sessions so MCP servers can attribute the read. */
     externalVisitorId?: string | null
   }): Promise<Map<string, McpAppResource>> {
-    const refs = collectMcpAppRefs(messages)
-    if (refs.length === 0) return new Map()
-
-    const enabledServers = await this.mcpServersService.getEnabledServersForAgent(agentId)
+    const refsByAgent = await this.collectRefsByAuthorAgent({ agentId, connectScope, messages })
     const htmlByKey = new Map<string, McpAppResource>()
-    const context: McpConversationContext = { agentId, sessionId, externalVisitorId }
 
-    for (const [server, resourceUris] of groupUrisByEnabledServer(refs, enabledServers)) {
-      await this.readHtmlFromServer({ context, htmlByKey, resourceUris, server })
+    // Each author agent is read with its own enabled servers and its own id in
+    // the context, as when it called the tool.
+    for (const [authorAgentId, refs] of refsByAgent) {
+      const enabledServers = await this.mcpServersService.getEnabledServersForAgent(authorAgentId)
+      const context: McpConversationContext = {
+        agentId: authorAgentId,
+        sessionId,
+        externalVisitorId,
+      }
+
+      for (const [server, resourceUris] of groupUrisByEnabledServer(refs, enabledServers)) {
+        const missingUris = new Set(
+          [...resourceUris].filter((uri) => !htmlByKey.has(mcpAppHtmlCacheKey(server.id, uri))),
+        )
+        if (missingUris.size === 0) continue
+        await this.readHtmlFromServer({ context, htmlByKey, resourceUris: missingUris, server })
+      }
     }
 
     return htmlByKey
+  }
+
+  /**
+   * The MCP App pointers of the timeline, grouped by the agent that wrote the
+   * message. After a handoff a sub-agent writes in the session of the
+   * meta-agent, and its card lives on a server only the sub-agent has. So the
+   * author comes from the settings revision of the message, not from the
+   * session. Makes no query when no message has a card.
+   */
+  private async collectRefsByAuthorAgent({
+    agentId,
+    connectScope,
+    messages,
+  }: {
+    agentId: string
+    connectScope: RequiredConnectScope
+    messages: MessageWithMcpApps[]
+  }): Promise<Map<string, McpAppRef[]>> {
+    const messagesWithRefs = messages
+      .map((message) => ({ message, refs: mcpAppRefsOf(message) }))
+      .filter(({ refs }) => refs.length > 0)
+
+    const settingsIdsToResolve = new Set<string>()
+    for (const { message } of messagesWithRefs) {
+      if (!message.agentSettings && message.agentSettingsId) {
+        settingsIdsToResolve.add(message.agentSettingsId)
+      }
+    }
+    const agentIdBySettingsId = await this.agentSettingsRepository.findAgentIdsBySettingsIds(
+      connectScope,
+      [...settingsIdsToResolve],
+    )
+
+    const refsByAgent = new Map<string, McpAppRef[]>()
+    for (const { message, refs } of messagesWithRefs) {
+      const authorAgentId =
+        message.agentSettings?.agentId ??
+        (message.agentSettingsId ? agentIdBySettingsId.get(message.agentSettingsId) : undefined) ??
+        agentId
+      refsByAgent.set(authorAgentId, [...(refsByAgent.get(authorAgentId) ?? []), ...refs])
+    }
+    return refsByAgent
   }
 
   /**

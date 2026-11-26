@@ -60,6 +60,19 @@ export class AgentSettingsRepository {
     return productionSettings.map((agentSettings) => agentSettings.agentId)
   }
 
+  /** The agent of each revision among `agentSettingsIds`, by revision id. */
+  async findAgentIdsBySettingsIds(
+    connectScope: RequiredConnectScope,
+    agentSettingsIds: readonly string[],
+  ): Promise<Map<string, string>> {
+    if (agentSettingsIds.length === 0) return new Map()
+    const revisions = await this.connectRepo().find(connectScope, {
+      where: { id: In([...agentSettingsIds]) },
+      select: { id: true, agentId: true },
+    })
+    return new Map(revisions.map((agentSettings) => [agentSettings.id, agentSettings.agentId]))
+  }
+
   /**
    * Puts one revision of the agent in production and takes the previous one out. Two writes: call
    * it inside `transactionService.run()`, or the unique index may see two revisions in production.
