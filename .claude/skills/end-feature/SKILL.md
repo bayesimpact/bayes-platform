@@ -1,6 +1,6 @@
 ---
 name: end-feature
-description: Run the last steps before ending a feature. Shows a form where you can check/uncheck which final steps to run (update changelog, review the Desk conventions, review the apps/web conventions, CI checks, API tests, web tests, Desk checks, create a PR), then executes the selected steps in that order.
+description: Run the last steps before ending a feature. Shows a form where you can check/uncheck which final steps to run (update changelog, review the Desk and Evaluation conventions, review the apps/web conventions, CI checks, API tests, web tests, Desk checks, Evaluation checks, create a PR), then executes the selected steps in that order.
 user_invocable: true
 ---
 
@@ -23,12 +23,12 @@ Say in one line how many commits `main` brought and how the branch took them, or
 
 First list the files the feature changes: `git diff --name-only origin/main...HEAD` plus `git status --porcelain`. The pre-selections below depend on them.
 
-Then call `AskUserQuestion` once, with two **multi-select** questions (`multiSelect: true`). A question takes 4 options at most, so the steps are split in two:
+Then call `AskUserQuestion` once, with three **multi-select** questions (`multiSelect: true`). A question takes 4 options at most, so the steps are split in three:
 
 **Question 1, `header: "Steps"`**
 
 - **Update changelog**: add an entry under `## [Unreleased]` in `CHANGELOG.md`
-- **Review the Desk conventions**: a subagent reviews the diff of `apps/desk` (ADR 0031 stack) against `docs/frontend/conventions.md`
+- **Review the Desk and Evaluation conventions**: a subagent reviews the diff of each app of the ADR 0031 stack (`apps/desk`, `apps/eval`) against `docs/frontend/conventions.md` and the app's `AGENTS.md`
 - **Review the apps/web conventions**: a subagent reviews the diff of `apps/web` and `packages/ui` against the rules of `apps/web`, which differ from the Desk's
 - **Create a PR**: push the branch and open a pull request with `gh`
 
@@ -37,15 +37,19 @@ Then call `AskUserQuestion` once, with two **multi-select** questions (`multiSel
 - **CI checks**: `make ci-checks` (Biome, typecheck, boundaries)
 - **API tests**: `make tests-only-parallel`
 - **Web tests**: `npm run test -w @caseai-connect/web`
+
+**Question 3, `header: "App checks"`**
+
 - **Desk checks**: `npm run check -w @caseai-connect/desk`, then `npm run build -w @caseai-connect/desk`
+- **Evaluation checks**: `npm run check -w @caseai-connect/eval`, then `npm run build -w @caseai-connect/eval`
 
 Pre-select:
 
 - **Update changelog** only when the change needs an entry, as `docs/changelog.md` ▸ *When to write an entry* says. When it is unchecked, say why in the question; the user can still check it.
-- **Review the Desk conventions** only when the diff touches `apps/desk`, `packages/desk-contracts` or `docs/frontend/`.
+- **Review the Desk and Evaluation conventions** only when the diff touches `apps/desk`, `packages/desk-contracts`, `apps/eval`, `packages/eval-contracts` or `docs/frontend/`.
 - **Review the apps/web conventions** only when the diff touches `apps/web` or `packages/ui`.
 - **Create a PR** and **CI checks** always.
-- The three test options with the path rules of the `changes` job in `.github/workflows/ci.yml`, so the form runs what CI will run. Read the rules there; do not copy them here. Name in the question the option you left unchecked and why.
+- The test and app check options with the path rules of the `changes` job in `.github/workflows/ci.yml`, so the form runs what CI will run. Read the rules there; do not copy them here. Name in the question the option you left unchecked and why.
 
 Whatever the user leaves checked is the set to run. Run the checked steps **strictly in this order** and skip the unchecked ones.
 
@@ -57,11 +61,11 @@ Only if checked. Read [`docs/changelog.md`](../../../docs/changelog.md) in full:
 2. Write the entry under `## [Unreleased]`, in its category, following every rule of the file.
 3. Run the local dry run of the changelog check, as `docs/changelog.md` ▸ *Checks* says.
 
-## 2. Review the Desk conventions
+## 2. Review the Desk and Evaluation conventions
 
-Only if checked. Dispatch the `frontend-conventions-reviewer` subagent (Agent tool, `subagent_type: "frontend-conventions-reviewer"`) on the current branch's diff. It reports what breaks the rules no tool checks, and edits nothing.
+Only if checked. Dispatch the `frontend-conventions-reviewer` subagent (Agent tool, `subagent_type: "frontend-conventions-reviewer"`) once per app the diff touches, and name the app in the brief: `apps/desk` for a change to the Desk or `packages/desk-contracts`, `apps/eval` for a change to Evaluation or `packages/eval-contracts`. A change to `docs/frontend/` alone goes to both. When both apps are reviewed, dispatch the two subagents in one message so they run in parallel. Each reports what breaks the rules no tool checks, and edits nothing.
 
-- Fix each finding. The Desk checks of step 4 then run on the fixed code; if they are unchecked, run `npm run check -w @caseai-connect/desk` anyway.
+- Fix each finding. The app checks of step 4 then run on the fixed code; if the check of a reviewed app is unchecked, run `npm run check -w @caseai-connect/<desk|eval>` anyway.
 - A finding you disagree with goes to the user with your reasoning; do not skip it silently.
 - Commit the fixes with the feature's other changes.
 
@@ -88,6 +92,7 @@ Run each checked option from the repository root, in the order of the form. When
 - **API tests**: `make tests-only-parallel`. It starts the test database if needed, runs the migrations on it, then the API suite in parallel. In a worktree with an environment, it uses that environment's test database (see "Working in a Worktree" in `CLAUDE.md`).
 - **Web tests**: `npm run test -w @caseai-connect/web`.
 - **Desk checks**: `npm run check -w @caseai-connect/desk`, then `npm run build -w @caseai-connect/desk`.
+- **Evaluation checks**: `npm run check -w @caseai-connect/eval`, then `npm run build -w @caseai-connect/eval`. Its `check:desk-parity` fails when the Desk's chat changed without Evaluation's copy: bring the copy in line, or record a wanted difference with `npm run check:desk-parity -w @caseai-connect/eval -- --update`, as `apps/eval/AGENTS.md` says.
 
 ## 5. Create a PR
 
@@ -133,6 +138,6 @@ Steps:
 
 ## Notes
 
-- Respect the order: branch update → form → changelog → Desk review → apps/web review → checks and tests → PR. Never reorder.
+- Respect the order: branch update → form → changelog → Desk and Evaluation review → apps/web review → checks and tests → PR. Never reorder.
 - If the user unchecks everything, there is nothing to do: say so.
 - If a step's precondition isn't met, point out the conflict and ask before proceeding rather than guessing.
