@@ -317,3 +317,19 @@ it("puts a page's back link at the start of the bar and its actions at the end",
 ## After this PR
 
 PR 2 (the chat object and the calls to the API) and PR 3 (the components, the chat's catalog, the end of the parity check) each get a plan of their own, written from `main` once the PR before is merged. `packages/chat` then takes the catalog mechanism of this PR as it stands.
+
+Carried to those plans, from the review of this branch:
+
+- **Every pair of catalogs is compared.** Once `packages/chat` has a catalog, each app keeps one
+  list of the shared catalogs it loads, which `activateLocale` and the "one translation" spec both
+  read. The spec compares every pair, two packages included: `Copied` is shown by `CopyButton` of
+  `app-ui` and by a chat file that moves to `packages/chat`.
+- **A package checks its own component files and compiles them as the apps do.** The
+  `check-component-files` check and the React Compiler join the `check` and the Vitest of
+  `packages/app-ui` and of `packages/chat`, before about 50 component files arrive.
+- **A look in a browser, in French.** Before PR 3 starts, open a page with a `SidePanel` and an
+  `ExternalLink` in French in a worktree environment and in Storybook: this PR proved the texts of
+  a package in the tests and in the production builds only.
+- **Texts in no catalog.** `message-scroller.tsx` and `code-block.tsx` of
+  `packages/app-ui/src/components/` hold English texts ("Scroll to end", "Copied") from before
+  this work. The chat shows both: PR 3 decides where their translations live.
