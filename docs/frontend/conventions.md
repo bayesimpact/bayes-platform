@@ -307,7 +307,10 @@ or editing the boundaries' configuration.
 - After a text changes, run `npm run i18n:extract -w <app>` and write the new entries of every
   other catalog of `src/locales/` in the same change: one per language the app's
   `lingui.config.ts` lists. A language with several plural forms gets them all (Polish: `one`,
-  `few`, `many` and `other`). The catalogs record each message's file, without its line: a change
+  `few`, `many` and `other`). The same command writes the catalogs of the shared packages that
+  show text (`packages/app-ui/src/locales/`), which the app's `lingui.config.ts` declares: a text
+  of a package is translated there, once, and the app loads it with its own
+  ([shared-packages.md](shared-packages.md), Limits). The catalogs record each message's file, without its line: a change
   that moves a message to another file needs an extract too. `i18n:check` (`lingui check sync` and
   `lingui check missing`) fails the PR on a stale catalog or a translation missing in any language.
 - An app's languages are the `LOCALES` of its `src/app/i18n.ts`, which lists the same languages as

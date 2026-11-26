@@ -29,6 +29,8 @@
 * **Amended**: 2026-11-26, by Alexis: the shared packages have one list,
   `docs/frontend/shared-packages.md`, which the other documents point to instead of repeating it
   (sections 2.3, 2.4, 2.11, 4 and 6)
+* **Amended**: 2026-11-26, by Alexis: the compositions that know no feature, and the texts they
+  show, are part of `packages/app-ui`, which has a catalog of its own (section 2.4)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -213,7 +215,7 @@ apps/desk/
       schemas.ts            schemas of the app only: a form with no endpoint, a .refine
       index.ts              what the rest of the app may import, and nothing more
       load-*.ts             the loaders of the feature's routes
-    components/shared/      DataTable, SidePanel, ExternalLink and other compositions
+    components/shared/      DataTable and other compositions
     hooks/                  hooks shared by features, such as useReloadWhenSafe
     lib/                    api-client.ts, auth/, not-found.ts and other code shared by
                             features
@@ -422,6 +424,10 @@ stylesheet of the design tokens (`globals.css`). The Desk and Evaluation each he
 byte for byte and 3 apart in a comment only, and the same tokens. Each app's copy came from the
 same CLI, on the same `components.json`, so a second copy only waited to drift. The package is
 not `packages/ui`, the component library of `apps/web` on Radix, which stays out of bounds.
+The compositions that moved in later (`SidePanel`, `HeaderActions`, `CopyButton`,
+`RelativeTime`, `ExternalLink`) each existed in two copies that differed by a prop. A text the
+chat and other screens show must be translated once, so the package has a catalog of its own,
+which each app extracts and loads next to its own.
 
 * The CLI still generates the components, as section 2.9 says. Each app's `components.json`
   points its `ui` alias at `@caseai-connect/app-ui/components` and its stylesheet at the
@@ -436,10 +442,12 @@ not `packages/ui`, the component library of `apps/web` on Radix, which stays out
   sizes of its text, the yellow of its annotations and quotes) and its highlights, which no
   component reads. Evaluation's parity check compares the two apps' stylesheets with the chat. The package's stylesheet adds its folders to Tailwind's sources (`@source`),
   which an app's own sources do not reach.
-* It holds shadcn's components and nothing of an app: the compositions an app builds on them
-  stay in its `components/shared/`, and a generated component changes only as section 2.9
-  allows. It depends on Base UI, `cva`, `cn`, lucide-react, sonner, `cmdk`, `@shadcn/react`
-  and tw-animate-css, with React as a peer, and imports no other workspace package.
+* It holds shadcn's components, and the compositions that know no feature (`src/compositions/`,
+  written by hand, apart from `src/components/`, which the CLI writes). The other compositions
+  an app builds on them stay in its `components/shared/`, and a generated component changes only
+  as section 2.9 allows. It depends on Base UI, `cva`, `cn`, lucide-react, sonner, `cmdk`,
+  `@shadcn/react` and tw-animate-css, with React and Lingui as peers, and imports no other
+  workspace package but `frontend-lib`.
 * Its source goes through each app's Vite plugins, the React Compiler included. Its
   `biome.json` extends the apps' rules, and its `check` script runs its typecheck and Biome. knip
   does not run on it: its components export every part, used or not, as the CLI writes them.

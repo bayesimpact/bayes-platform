@@ -130,12 +130,16 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   under `test/`. A tester's Sessions starts a session and lists theirs; a reviewer's lists the
   sessions to review.
 - The top bar of the page holds its way back and its actions: `PageHeader`'s `back` and `actions`
-  go there (`HeaderBack`, `HeaderActions`), so they stay in view as the page scrolls, and the
-  title stays in the page. At phone width, the back link keeps its arrow only and the actions go
+  go there (`HeaderBack`, and `HeaderActions` of `@caseai-connect/app-ui/compositions`), so they
+  stay in view as the page scrolls, and the title stays in the page. `AppShell` gives the
+  element of the actions through the package's `HeaderActionsContext`, and the element of the
+  back link through `HeaderBackContext` (`components/shared/header-back-context.ts`), a context
+  of Evaluation's own. At phone width, the back link keeps its arrow only and the actions go
   in a menu (`HeaderActionsMenu`). A link styled as a button takes `cn(buttonVariants(...))`:
   without `cn`, the variant's border loses to the base's `border-transparent`.
 - A page in two parts is a `SplitPage` (`components/shared/`): the page on the left, a `SidePanel`
-  on the right, each scrolling alone, with a `SidePanelToggle` in the bar above the page.
+  (`@caseai-connect/app-ui/compositions/SidePanel`, which `AppShell` gives the key of the width it
+  saves, `eval.sidePanelWidth`) on the right, each scrolling alone, with a `SidePanelToggle` in the bar above the page.
   `useSidePanel` shows the panel from the start where the window has room for it. Four pages use
   it: a run of an evaluation with what it used, a campaign's setup with the preview of its forms (the `preview` search param), a session
   with the reviewer's review, and a tester's conversation with the feedback that ends it
@@ -184,7 +188,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   instructions for the judge, and all the records or the first ones. It creates the run, starts it,
   then opens its page. The Runs tab (`ConversationRunsSection`) lists the agent's runs of the dataset (a run
   of another agent of the project shows on that agent's pages), in one sub-tab per status that holds runs (`RUN_STATUS_ORDER`). Each run shows by its short id, which opens it, and how long ago it started, the
-  shared `RelativeTime`. A run's version opens the
+  `RelativeTime` of `@caseai-connect/app-ui/compositions`. A run's version opens the
   history of the agent's versions on it, the shared `AgentVersionsSheet` without its choice, to
   compare it with the others. A run's page, `evaluations/$datasetId/runs/$runId`
   (`ConversationRunPage`), shows its figures and all its records, with what it used in a side panel of two tabs (`RunSettingsPanel`): Agent, with its
@@ -332,8 +336,8 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
 - A date in a table or under a title reads as how long ago it was, with the full date and time
   on hover: `TimeAgo` (`components/shared/`), which follows the clock by itself and words the time with
   `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. Each language of
-  `LOCALES` has its date-fns locale there, which the typecheck requires. The chat keeps the Desk's
-  `RelativeTime`, on `Intl`.
+  `LOCALES` has its date-fns locale there, which the typecheck requires. The chat uses `RelativeTime`
+  of `@caseai-connect/app-ui/compositions`, on `Intl`.
 - The shadcn components, the design tokens and the stylesheet shadcn relies on come from
   `@caseai-connect/app-ui` (`packages/app-ui`), which the app shares with the Desk:
   `src/styles/global.css` imports its `globals.css`, then holds the chat's tokens and

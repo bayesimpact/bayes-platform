@@ -147,9 +147,11 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - `HeaderActions` for the actions of the bar above the page comes from `@caseai-connect/app-ui`
   (`compositions/HeaderActions`): `DeskShell` gives it the element of the bar through
   `HeaderActionsContext`.
-- Shared compositions, in `src/components/shared/`: `DataTable` for every table, `ExternalLink` for a link to a
-  new tab, `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
-  `NewReleaseBanner` for a new release. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,
+- Shared compositions, in `src/components/shared/`: `DataTable` for every table,
+  `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
+  `NewReleaseBanner` for a new release. The compositions that know no feature (`SidePanel`,
+  `HeaderActions`, `CopyButton`, `RelativeTime`, `ExternalLink`) come from
+  `@caseai-connect/app-ui/compositions`. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,
   `useIsNewReleaseOut`, `useReloadWhenSafe`), and shared logic in `src/lib/`: `not-found.ts`,
   `agent-params.ts`, `field-text.ts`, `run-state.ts`, `is-record.ts`, `app-update.ts`. The hooks
   and helpers the Desk shares with Evaluation come from `@caseai-connect/frontend-lib`
