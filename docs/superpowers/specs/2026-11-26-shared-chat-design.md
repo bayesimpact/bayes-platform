@@ -176,8 +176,10 @@ The apps and the chat import them as `@caseai-connect/app-ui/compositions/<Name>
 
 - `src/components/` stays what the shadcn CLI generates, and nothing else. `src/compositions/`
   holds components written by hand that at least two consumers use and that know no feature.
-- What differs between the two copies becomes a prop with the behaviour of today as its default
-  in each app: the storage key of the `SidePanel`'s width, whether it takes the focus.
+- What differs between the two copies stays as each app has it today. Whether a `SidePanel` takes
+  the focus is a prop, as in Evaluation. The storage key of its width comes from a context of
+  `packages/app-ui` that each app's shell provides, so every panel of an app, the chat's
+  included, keeps the width the person set, with no setting to pass around.
 - `HeaderActions` moves with the Desk's context, one element. Evaluation's shell provides that
   context for its actions, and keeps a context of its own for `HeaderBack`, which only it has.
   This is the one refactor of an app's shell in this work, and belongs to the first PR.
@@ -194,7 +196,6 @@ export const chat = createChat({
   routes: { conversation: DeskConversationsRoutes, documents: DeskDocumentsRoutes },
   api: { apiRequest, apiStreamResponse, readServerSentEvents },
   host: { name: "caseai-connect-desk", version: "1.0.0" },
-  sidePanelStorageKey: "desk.sidePanelWidth",
   mcpAppSandboxOrigin: () => appConfig.mcpAppSandboxOrigin,
   speechLanguageOf: (locale) => SPEECH_LANGUAGES[activeLocaleOf(locale)],
   texts: {
@@ -212,8 +213,7 @@ What an app gives the chat is one of four kinds, and nothing else:
 1. **Where the API is**: `routes`, typed by `ConversationRoutes` and `DocumentsRoutes` of
    `packages/chat-contracts`, and `api`, the three functions of the app's client that the chat
    calls: a request, a stream, and the reading of its events.
-2. **The app's settings**: `host`, `sidePanelStorageKey`, `mcpAppSandboxOrigin`,
-   `speechLanguageOf`.
+2. **The app's settings**: `host`, `mcpAppSandboxOrigin`, `speechLanguageOf`.
 3. **The texts that name the app**: `texts`, as message descriptors of the app's catalog.
 4. **What the app does when the chat moves**: `onToolCalled`, each time the stream names a tool,
    and `onReplySettled`, when a reply ends, fails or is stopped, as the stream's last step does
