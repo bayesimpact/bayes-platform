@@ -110,8 +110,12 @@ Then, in one change:
    `activateLocale`, with the app's messages last; and the two specs of each app's
    `src/app/i18n.spec.ts` (every language of the app is in the package's `LOCALES`, and a message
    both catalogs hold has one translation). A short message that both the package and an app's
-   code show stays in both catalogs. A spec never uses a Lingui macro for a text of the package:
-   the extraction would put the message back in the app's catalog.
+   code show stays in both catalogs. The package has a minimal `lingui.config.ts` (its languages
+   only), which Lingui's macro reads when the package's specs compile: the package has no extract
+   script, since the apps extract. A `po.d.ts` in `src/locales/` types the `.po` imports. The
+   specs' `src/test/setup.ts` loads no catalog, so a spec reads the English source text. A spec
+   never uses a Lingui macro for a text of the package: the extraction would put the message back
+   in the app's catalog.
 4. Its users. An app that imports it: its `package.json`, and the allowlist of its
    `.dependency-cruiser.cjs` with the comment above it. A package the contracts re-export: the
    `package.json` and the `src/index.ts` of each contracts package, and no entry in an app's

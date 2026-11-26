@@ -425,7 +425,7 @@ byte for byte and 3 apart in a comment only, and the same tokens. Each app's cop
 same CLI, on the same `components.json`, so a second copy only waited to drift. The package is
 not `packages/ui`, the component library of `apps/web` on Radix, which stays out of bounds.
 The compositions that moved in later (`SidePanel`, `HeaderActions`, `CopyButton`,
-`RelativeTime`, `ExternalLink`) each existed in two copies that differed by a prop. A text the
+`RelativeTime`, `ExternalLink`) each existed in a copy in the Desk and a copy in Evaluation. A text the
 chat and other screens show must be translated once, so the package has a catalog of its own,
 which each app extracts and loads next to its own.
 
