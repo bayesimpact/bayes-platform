@@ -28,7 +28,7 @@ Then call `AskUserQuestion` once, with three **multi-select** questions (`multiS
 **Question 1, `header: "Steps"`**
 
 - **Update changelog**: add an entry under `## [Unreleased]` in `CHANGELOG.md`
-- **Review the Desk and Evaluation conventions**: a subagent reviews the diff of each app of the ADR 0031 stack (`apps/desk`, `apps/eval`) against `docs/frontend/conventions.md` and the app's `AGENTS.md`
+- **Review the Desk and Evaluation conventions**: a subagent reviews the diff of each app of the ADR 0031 stack (`apps/desk`, `apps/eval`) against `docs/frontend/conventions.md`, `docs/frontend/shared-packages.md` and the app's `AGENTS.md`
 - **Review the apps/web conventions**: a subagent reviews the diff of `apps/web` and `packages/ui` against the rules of `apps/web`, which differ from the Desk's
 - **Create a PR**: push the branch and open a pull request with `gh`
 
@@ -46,7 +46,7 @@ Then call `AskUserQuestion` once, with three **multi-select** questions (`multiS
 Pre-select:
 
 - **Update changelog** only when the change needs an entry, as `docs/changelog.md` ▸ *When to write an entry* says. When it is unchecked, say why in the question; the user can still check it.
-- **Review the Desk and Evaluation conventions** only when the diff touches `apps/desk`, `packages/desk-contracts`, `apps/eval`, `packages/eval-contracts` or `docs/frontend/`.
+- **Review the Desk and Evaluation conventions** only when the diff touches `apps/desk`, `packages/desk-contracts`, `apps/eval`, `packages/eval-contracts`, a shared package (`docs/frontend/shared-packages.md` lists them) or `docs/frontend/`.
 - **Review the apps/web conventions** only when the diff touches `apps/web` or `packages/ui`.
 - **Create a PR** and **CI checks** always.
 - The test and app check options with the path rules of the `changes` job in `.github/workflows/ci.yml`, so the form runs what CI will run. Read the rules there; do not copy them here. Name in the question the option you left unchecked and why.
@@ -63,7 +63,7 @@ Only if checked. Read [`docs/changelog.md`](../../../docs/changelog.md) in full:
 
 ## 2. Review the Desk and Evaluation conventions
 
-Only if checked. Dispatch the `frontend-conventions-reviewer` subagent (Agent tool, `subagent_type: "frontend-conventions-reviewer"`) once per app the diff touches, and name the app in the brief: `apps/desk` for a change to the Desk or `packages/desk-contracts`, `apps/eval` for a change to Evaluation or `packages/eval-contracts`. A change to `docs/frontend/` alone goes to both. When both apps are reviewed, dispatch the two subagents in one message so they run in parallel. Each reports what breaks the rules no tool checks, and edits nothing.
+Only if checked. Dispatch the `frontend-conventions-reviewer` subagent (Agent tool, `subagent_type: "frontend-conventions-reviewer"`) once per app the diff touches, and name the app in the brief: `apps/desk` for a change to the Desk or `packages/desk-contracts`, `apps/eval` for a change to Evaluation or `packages/eval-contracts`. A change to `docs/frontend/` or to a shared package alone goes to both. When both apps are reviewed, dispatch the two subagents in one message so they run in parallel. Each reports what breaks the rules no tool checks, and edits nothing.
 
 - Fix each finding. The app checks of step 4 then run on the fixed code; if the check of a reviewed app is unchecked, run `npm run check -w @caseai-connect/<desk|eval>` anyway.
 - A finding you disagree with goes to the user with your reasoning; do not skip it silently.
