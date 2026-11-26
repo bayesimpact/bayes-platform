@@ -1,8 +1,8 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
+import { RelativeTime } from "@caseai-connect/app-ui/compositions/RelativeTime"
 import type { InvitationOutputDto, InvitationTargetTypeDto } from "@caseai-connect/eval-contracts"
 import { hasOwnKey } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { RelativeTime } from "@/components/shared/RelativeTime"
 import type { InvitationAnswer } from "../api/mutations"
 
 export type InvitationItemProps = {

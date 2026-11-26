@@ -783,8 +783,6 @@ msgid "Conversational agent"
 msgstr "Agente conversazionale"
 
 #. The copy button, once it copied its text
-#. The copy button, once it copied its text
-#: src/components/shared/CopyButton.tsx
 #: src/features/conversation/components/SelectionActions.tsx
 msgid "Copied"
 msgstr "Copiato"
@@ -1537,11 +1535,6 @@ msgstr "Giudice"
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "Judge model"
 msgstr "Modello giudice"
-
-#. Something that happened less than a minute ago
-#: src/components/shared/RelativeTime.tsx
-msgid "just now"
-msgstr "proprio ora"
 
 #. Gives up cancelling a run under way
 #: src/components/shared/RunPageHeader.tsx

@@ -1,4 +1,6 @@
 import { Message, MessageContent } from "@caseai-connect/app-ui/components/message"
+import { CopyButton } from "@caseai-connect/app-ui/compositions/CopyButton"
+import { RelativeTime } from "@caseai-connect/app-ui/compositions/RelativeTime"
 import {
   type AppsHtml,
   type ChatMessage,
@@ -14,9 +16,7 @@ import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
 import { toolResultText } from "@caseai-connect/mcp-app-host"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
-import { CopyButton } from "@/components/shared/CopyButton"
 import { Markdown } from "@/components/shared/Markdown"
-import { RelativeTime } from "@/components/shared/RelativeTime"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { FollowUpQuestions } from "./FollowUpQuestions"
 import { GoodReplyButton } from "./GoodReplyButton"

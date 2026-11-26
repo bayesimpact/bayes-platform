@@ -275,8 +275,6 @@ msgid "Conversation agents"
 msgstr "Conversation agents"
 
 #. The copy button, once it copied its text
-#. The copy button, once it copied its text
-#: src/components/shared/CopyButton.tsx
 #: src/features/conversation/components/SelectionActions.tsx
 msgid "Copied"
 msgstr "Copied"
@@ -590,11 +588,6 @@ msgstr "Interactive card"
 #: src/features/invitations/components/InvitationsButton.tsx
 msgid "Invitations"
 msgstr "Invitations"
-
-#. Something that happened less than a minute ago
-#: src/components/shared/RelativeTime.tsx
-msgid "just now"
-msgstr "just now"
 
 #. The column shows beside the results, unread
 #: src/features/extraction/components/ColumnRoleRow.tsx

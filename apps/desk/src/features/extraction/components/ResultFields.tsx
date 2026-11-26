@@ -1,5 +1,5 @@
+import { CopyButton } from "@caseai-connect/app-ui/compositions/CopyButton"
 import { useLingui } from "@lingui/react/macro"
-import { CopyButton } from "@/components/shared/CopyButton"
 import { fieldTextOf } from "@/lib/field-text"
 import type { ExtractedField } from "../extraction-fields"
 import { FieldValue } from "./FieldValue"

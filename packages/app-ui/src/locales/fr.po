@@ -10,3 +10,13 @@ msgstr ""
 #: ../../packages/app-ui/src/compositions/ExternalLink.tsx
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
+
+#. The copy button, once it copied its text
+#: ../../packages/app-ui/src/compositions/CopyButton.tsx
+msgid "Copied"
+msgstr "Copié"
+
+#. Something that happened less than a minute ago
+#: ../../packages/app-ui/src/compositions/RelativeTime.tsx
+msgid "just now"
+msgstr "à l'instant"

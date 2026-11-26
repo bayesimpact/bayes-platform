@@ -1,6 +1,7 @@
 import { Badge } from "@caseai-connect/app-ui/components/badge"
 import { Button } from "@caseai-connect/app-ui/components/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
+import { RelativeTime } from "@caseai-connect/app-ui/compositions/RelativeTime"
 import type {
   CampaignInvitationOutputDto,
   ReviewCampaignParamsDto,
@@ -12,7 +13,6 @@ import { CopyIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { RelativeTime } from "@/components/shared/RelativeTime"
 import { useRevokeInvitation } from "../api/mutations"
 import { CampaignRoleLabel } from "./CampaignRoleLabel"
 
