@@ -13,6 +13,8 @@ The code is small. Read it beside this page:
 
 | File | What it holds |
 |---|---|
+| `packages/schema-route/src/define-schema-route.ts` | `defineSchemaRoute`, `defineStreamRoute` and the types of a route |
+| `packages/schema-route/src/error.dto.ts` | the body of an error response |
 | `apps/api/src/common/schema-route/schema-route.decorator.ts` | `@SchemaRoute` |
 | `apps/api/src/common/schema-route/schema-route-input.guard.ts` | the check of the request |
 | `apps/api/src/common/schema-route/schema-route-response.interceptor.ts` | the check of the response |
@@ -193,12 +195,11 @@ that every route of the Desk contracts starts with `/desk/` and has a handler.
 
 The layer in `src/common/schema-route/` is generic. An app that gets endpoints of its own needs:
 
-1. **A contracts package** with its own `defineSchemaRoute`, as `packages/desk-contracts` and
-   `packages/eval-contracts` have. Each package keeps its copy of the helper, so each app stays a
-   closed world and its contracts import nothing but Zod. The layer in
-   `src/common/schema-route/` declares the shape of a route itself (`AnySchemaRoute` and
-   `AnyStreamRoute` in `schema-route.types.ts`) and imports no contracts package. A route of any
-   package that has this shape type-checks.
+1. **A contracts package** that depends on `@caseai-connect/schema-route` and re-exports it, as
+   `packages/desk-contracts` and `packages/eval-contracts` do, so the app imports the helper and
+   the error body from its own contracts. `@caseai-connect/schema-route` holds the one
+   `defineSchemaRoute`, and the layer in `src/common/schema-route/` takes `AnySchemaRoute` and
+   `AnyStreamRoute` from it, so a route of any contracts package type-checks. The layer imports no contracts package.
 2. **A CommonJS build that the API requires.** Do what was done for the Desk contracts: a
    `tsconfig.build.json` and the `build` and `dev` scripts, `main` and a `require` entry in
    `exports`, the dependency in `apps/api/package.json` and `package-lock.json`, the
@@ -234,8 +235,7 @@ no schemas for the decorator to read.
   `documents`, the feedback on a message), the list of conversation datasets and
   `revokeMembership` of a campaign, which the Studio calls on the old routes. Nothing links a copy
   to its source, so a change to one goes to the other.
-- Each contracts package keeps a copy of `defineSchemaRoute`. The two files must keep the same
-  shape. The typecheck of the API proves it on every handler.
-- In a worktree environment, run `bayes wt up` after a change to a contracts package. After a
+- In a worktree environment, run `bayes wt up` after a change to a contracts package or to
+  `packages/schema-route`. After a
   rebase, check that the API runs (`/api/me` answers 401) and run `bayes wt restart api` when it
   does not.

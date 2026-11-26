@@ -1,4 +1,4 @@
-import { defineSchemaRoute } from "../define-schema-route"
+import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import {
   acceptTermsInputSchema,
   acceptTermsOutputSchema,

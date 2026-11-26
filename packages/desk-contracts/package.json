@@ -22,6 +22,7 @@
   ],
   "dependencies": {
     "@caseai-connect/permissions": "*",
+    "@caseai-connect/schema-route": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

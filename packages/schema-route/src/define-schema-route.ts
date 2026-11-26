@@ -74,7 +74,7 @@ export type AnySchemaRoute = SchemaRoute<
 >
 
 /**
- * Declares a route of the API with the Zod schemas of what the evaluation app sends and reads. Its
+ * Declares a route of the API with the Zod schemas of what an app sends and reads. The app's
  * client builds the request from them and parses the response at runtime, so a response that
  * drifts from the contract fails loudly. The API serves the route with `@SchemaRoute`, which
  * checks each request and each JSON response with the same schemas.

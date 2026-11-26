@@ -1,6 +1,6 @@
+import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
 import { AGENT_PATH, agentParamsSchema } from "../common/params.dto"
-import { defineSchemaRoute } from "../define-schema-route"
 import { temporaryUrlOutputSchema } from "../documents/documents.dto"
 import {
   confirmExtractionDocumentInputSchema,

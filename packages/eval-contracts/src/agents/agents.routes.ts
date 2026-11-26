@@ -1,3 +1,4 @@
+import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
 import {
   AGENT_PATH,
@@ -5,7 +6,6 @@ import {
   PROJECT_PATH,
   projectParamsSchema,
 } from "../common/params.dto"
-import { defineSchemaRoute } from "../define-schema-route"
 import { agentModelsOutputSchema } from "./agent-versions.dto"
 import { agentVersionOutputSchema, projectAgentOutputSchema } from "./agents.dto"
 

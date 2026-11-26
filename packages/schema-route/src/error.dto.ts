@@ -3,7 +3,8 @@ import { z } from "zod"
 /**
  * The body of an error response: NestJS's default one. `message` is a list when the global
  * validation pipe refuses a body, and `error` is absent from a malformed (400) or an oversized
- * (413) JSON body.
+ * (413) JSON body. The 400 of a schema route's input guard also carries `issues`, which the apps
+ * do not read.
  */
 export const errorOutputSchema = z.object({
   statusCode: z.number(),
