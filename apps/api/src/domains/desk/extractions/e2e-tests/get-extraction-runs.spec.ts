@@ -1,5 +1,5 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
-import { DeskAgentSessionsRoutes } from "@caseai-connect/desk-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
+import { DeskAgentSessionsRoutes } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

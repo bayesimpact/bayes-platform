@@ -2,7 +2,7 @@ import type {
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
   ExtractionRunRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"

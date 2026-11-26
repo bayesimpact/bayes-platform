@@ -2,7 +2,7 @@ import {
   EXTRACTION_DATASET_FILE_MAX_SIZE,
   EXTRACTION_DATASET_FILE_MIME_TYPE,
   type ProjectParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"

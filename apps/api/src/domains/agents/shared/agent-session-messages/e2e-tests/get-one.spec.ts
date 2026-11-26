@@ -1,4 +1,4 @@
-import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
+import { AgentSessionMessagesRoutes } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

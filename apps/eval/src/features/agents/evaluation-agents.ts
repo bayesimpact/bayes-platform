@@ -1,4 +1,4 @@
-import type { ProjectAgentOutputDto } from "@caseai-connect/eval-contracts"
+import type { ProjectAgentOutputDto } from "@bayes-platform/eval-contracts"
 import type { EvaluationProject } from "./evaluation-projects"
 import type { MyCampaign } from "./my-campaigns"
 

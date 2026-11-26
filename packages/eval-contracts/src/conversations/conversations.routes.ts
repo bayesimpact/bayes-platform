@@ -1,4 +1,4 @@
-import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/schema-route"
+import { defineSchemaRoute, defineStreamRoute } from "@bayes-platform/schema-route"
 import { z } from "zod"
 import { AGENT_PATH, PROJECT_PATH } from "../common/params.dto"
 import {

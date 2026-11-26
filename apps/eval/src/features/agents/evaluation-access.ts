@@ -1,4 +1,4 @@
-import { EVALUATION_UI_READ_PERMISSION } from "@caseai-connect/eval-contracts"
+import { EVALUATION_UI_READ_PERMISSION } from "@bayes-platform/eval-contracts"
 import { notFound } from "@tanstack/react-router"
 import type { EvaluationAgent } from "./evaluation-agents"
 import { hasProjectPermission } from "./evaluation-projects"

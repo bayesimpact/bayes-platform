@@ -1,4 +1,4 @@
-import { MimeTypes } from "@caseai-connect/api-contracts"
+import { MimeTypes } from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"

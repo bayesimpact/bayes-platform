@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Sheet,
   SheetContent,
@@ -6,7 +6,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@caseai-connect/ui/shad/sheet"
+} from "@bayes-platform/ui/shad/sheet"
 import { ClipboardListIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { FormResultFields } from "@/common/features/agents/agent-sessions/conversation/components/FormResultFields"

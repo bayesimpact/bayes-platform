@@ -1,4 +1,4 @@
-import { Item, ItemHeader, ItemTitle } from "@caseai-connect/ui/shad/item"
+import { Item, ItemHeader, ItemTitle } from "@bayes-platform/ui/shad/item"
 import { Loader2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 export function Loader() {

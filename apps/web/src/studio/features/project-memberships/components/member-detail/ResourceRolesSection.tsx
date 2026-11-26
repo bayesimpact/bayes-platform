@@ -1,16 +1,16 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@caseai-connect/ui/shad/card"
+} from "@bayes-platform/ui/shad/card"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@caseai-connect/ui/shad/collapsible"
+} from "@bayes-platform/ui/shad/collapsible"
 import { ChevronDownIcon, type LucideIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { GroupedPermissionList } from "../GroupedPermissionList"

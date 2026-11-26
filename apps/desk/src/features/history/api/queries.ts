@@ -1,5 +1,5 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
-import { DeskAgentSessionsRoutes, DeskExtractionsRoutes } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
+import { DeskAgentSessionsRoutes, DeskExtractionsRoutes } from "@bayes-platform/desk-contracts"
 import { type QueryClient, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { pollWhile } from "@/lib/polling"

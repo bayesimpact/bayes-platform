@@ -2,7 +2,7 @@ import type {
   ExtractionDatasetColumnDto,
   ExtractionDatasetColumnRoleDto,
   ExtractionDatasetOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 

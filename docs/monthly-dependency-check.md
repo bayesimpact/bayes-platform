@@ -81,7 +81,7 @@ make docker-build
 make trivy-scan
 ```
 
-`make trivy-scan` runs trivy against the `caseai-connect/api:local`, `caseai-connect/cpu-workers:local`, and `caseai-connect/gpu-workers:local` images with:
+`make trivy-scan` runs trivy against the `bayes-platform/api:local`, `bayes-platform/cpu-workers:local`, and `bayes-platform/gpu-workers:local` images with:
 - `--ignore-unfixed` — only report CVEs that have a fix available
 - `--pkg-types os,library` — scan OS packages and language libraries
 - `--severity CRITICAL,HIGH` — ignore low/medium findings

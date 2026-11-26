@@ -1,4 +1,4 @@
-import type { CsvExtractionRecordOutputDto } from "@caseai-connect/desk-contracts"
+import type { CsvExtractionRecordOutputDto } from "@bayes-platform/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { RunStateIcon } from "@/components/shared/RunStateIcon"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"

@@ -5,7 +5,7 @@ import {
   type ListInvitationsResponseDto,
   MyInvitationsRoutes,
   ProjectInvitationsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import i18n from "i18next"
 import { getAxiosInstance } from "@/external/axios"
 import type { PendingInvitation, PendingInvitations } from "../invitations.models"

@@ -1,4 +1,4 @@
-import { EvalAgentsRoutes, EvalConversationRunsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalAgentsRoutes, EvalConversationRunsRoutes } from "@bayes-platform/eval-contracts"
 import {
   buildAgentModels,
   buildConversationRun,

@@ -1,4 +1,4 @@
-import type { OrganizationPermission } from "@caseai-connect/api-contracts"
+import type { OrganizationPermission } from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"

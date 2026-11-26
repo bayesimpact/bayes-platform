@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { ResourceLibrariesRoutes } from "@caseai-connect/api-contracts"
+import { ResourceLibrariesRoutes } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import supertest from "supertest"

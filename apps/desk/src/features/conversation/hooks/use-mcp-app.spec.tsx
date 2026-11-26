@@ -1,4 +1,4 @@
-import type { McpAppMountOptions } from "@caseai-connect/mcp-app-host"
+import type { McpAppMountOptions } from "@bayes-platform/mcp-app-host"
 import { I18nProvider } from "@lingui/react"
 import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
@@ -18,7 +18,7 @@ const host = vi.hoisted(
 
 // The shared host runs the app in a frame the tests' DOM does not run: it records what the Desk
 // asks for, and its own specs cover the bridge and the sandbox.
-vi.mock("@caseai-connect/mcp-app-host", () => ({
+vi.mock("@bayes-platform/mcp-app-host", () => ({
   mountMcpApp: (_frame: HTMLIFrameElement, options: McpAppMountOptions) => {
     host.mounts.push(options)
     return {
@@ -80,7 +80,7 @@ describe("useMcpApp", () => {
     const html = '<p>Plans</p><iframe src="https://example.org/video"></iframe><p>After</p>'
     renderCard({ html })
 
-    expect(lastMount()).toMatchObject({ html, hostInfo: { name: "caseai-connect-desk" } })
+    expect(lastMount()).toMatchObject({ html, hostInfo: { name: "bayes-platform-desk" } })
   })
 
   it("shows the card once the app is ready, and gives up when it fails", async () => {

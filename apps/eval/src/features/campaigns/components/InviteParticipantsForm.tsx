@@ -2,7 +2,7 @@ import {
   CAMPAIGN_INVITATION_EMAILS_MAX,
   type ReviewCampaignParamsDto,
   reviewCampaignRoleSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"

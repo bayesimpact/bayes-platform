@@ -1,13 +1,13 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@caseai-connect/ui/shad/dialog"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@bayes-platform/ui/shad/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+} from "@bayes-platform/ui/shad/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { EyeIcon, MoreHorizontalIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { useMemo, useState } from "react"

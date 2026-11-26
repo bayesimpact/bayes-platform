@@ -1,4 +1,4 @@
-import type { ReviewerSessionOutputDto } from "@caseai-connect/eval-contracts"
+import type { ReviewerSessionOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { PanelSection } from "@/components/shared/PanelSection"
 import { Badge } from "@/components/ui/badge"

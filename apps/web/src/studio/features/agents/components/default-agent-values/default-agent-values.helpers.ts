@@ -1,4 +1,4 @@
-import { outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
+import { outputJsonSchemaSchema } from "@bayes-platform/api-contracts"
 import type { z } from "zod"
 import type { Agent } from "../../../../../common/features/agents/agents.models"
 import { conversationAgentDefaultValues } from "./conversation-agent-default-values"

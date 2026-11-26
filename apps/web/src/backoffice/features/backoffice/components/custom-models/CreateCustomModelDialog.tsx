@@ -1,11 +1,11 @@
-import type { CreateBackofficeCustomModelRequestDto } from "@caseai-connect/api-contracts"
+import type { CreateBackofficeCustomModelRequestDto } from "@bayes-platform/api-contracts"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import type { CustomModelType } from "../../backoffice.models"
 import { CustomModelForm } from "./CustomModelForm"
 

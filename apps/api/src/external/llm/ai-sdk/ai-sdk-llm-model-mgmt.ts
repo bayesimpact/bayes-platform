@@ -5,7 +5,7 @@ import {
   type AgentModelOf,
   AgentModelToAgentProvider,
   type AgentProvider,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Logger, NotImplementedException } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
 import { wrapLanguageModel } from "ai"

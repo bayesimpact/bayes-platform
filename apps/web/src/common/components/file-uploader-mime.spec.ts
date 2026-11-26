@@ -1,7 +1,7 @@
 import {
   allowedDocumentUploadMimeTypesForFileUploader,
   MimeTypes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { describe, expect, it } from "vitest"
 import { buildAccept } from "./file-uploader-mime"
 

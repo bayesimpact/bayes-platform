@@ -1,6 +1,6 @@
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
-import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
+import { RadioGroup, RadioGroupItem } from "@bayes-platform/ui/shad/radio-group"
 import { useTranslation } from "react-i18next"
 
 export function RunScopeSelector({

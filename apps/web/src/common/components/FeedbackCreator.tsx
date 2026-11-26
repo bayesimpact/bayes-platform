@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -6,11 +6,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
-import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
-import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
+} from "@bayes-platform/ui/shad/dialog"
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@bayes-platform/ui/shad/field"
+import { Item, ItemContent } from "@bayes-platform/ui/shad/item"
+import { ScrollArea } from "@bayes-platform/ui/shad/scroll-area"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
 import { ThumbsDownIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

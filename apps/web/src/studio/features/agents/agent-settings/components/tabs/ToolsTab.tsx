@@ -4,7 +4,7 @@ import {
   FOLLOW_UP_SUGGESTIONS_MAX,
   type UpdateAgentSettingsToolsDto,
   updateAgentSettingsToolsSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Form,
   FormControl,
@@ -13,16 +13,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
+} from "@bayes-platform/ui/shad/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Switch } from "@caseai-connect/ui/shad/switch"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
+} from "@bayes-platform/ui/shad/select"
+import { Switch } from "@bayes-platform/ui/shad/switch"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"

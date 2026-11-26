@@ -1,4 +1,4 @@
-import type { ReviewCampaignQuestionDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignQuestionDto } from "@bayes-platform/eval-contracts"
 import { Plural } from "@lingui/react/macro"
 import type { ReactNode } from "react"
 import { FoldingCard } from "@/components/shared/FoldingCard"

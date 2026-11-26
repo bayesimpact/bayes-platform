@@ -1,4 +1,4 @@
-import { EvalConversationsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalConversationsRoutes } from "@bayes-platform/eval-contracts"
 import {
   Controller,
   HttpStatus,

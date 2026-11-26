@@ -3,7 +3,7 @@ import {
   AppsDocumentsRoutes,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"

@@ -1,11 +1,11 @@
 import {
   type UpdateAgentSettingsCategoriesDto,
   updateAgentSettingsCategoriesSchema,
-} from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
-import { Field, FieldDescription, FieldLabel } from "@caseai-connect/ui/shad/field"
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@caseai-connect/ui/shad/form"
+} from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
+import { Field, FieldDescription, FieldLabel } from "@bayes-platform/ui/shad/field"
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@bayes-platform/ui/shad/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"

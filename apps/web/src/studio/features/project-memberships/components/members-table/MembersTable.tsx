@@ -1,12 +1,12 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Empty,
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
+} from "@bayes-platform/ui/shad/empty"
 import {
   type ColumnDef,
   getCoreRowModel,

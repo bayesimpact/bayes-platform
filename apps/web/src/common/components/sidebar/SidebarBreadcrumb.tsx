@@ -1,4 +1,4 @@
-import { Breadcrumb, BreadcrumbList } from "@caseai-connect/ui/shad/breadcrumb"
+import { Breadcrumb, BreadcrumbList } from "@bayes-platform/ui/shad/breadcrumb"
 import { BreadcrumbAgent } from "@/common/components/breadcrumb/BreadcrumbAgent"
 import { BreadcrumbAgentAnalytics } from "@/common/components/breadcrumb/BreadcrumbAgentAnalytics"
 import { BreadcrumbAgentMembership } from "@/common/components/breadcrumb/BreadcrumbAgentMembership"

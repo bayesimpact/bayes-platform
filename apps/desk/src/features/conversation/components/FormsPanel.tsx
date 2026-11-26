@@ -1,4 +1,4 @@
-import type { ConversationFormOutputDto } from "@caseai-connect/desk-contracts"
+import type { ConversationFormOutputDto } from "@bayes-platform/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { FormFields } from "./FormFields"

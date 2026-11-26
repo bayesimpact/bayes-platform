@@ -1,4 +1,4 @@
-import type { FeatureFlagsDto, ProjectPermission, TimeType } from "@caseai-connect/api-contracts"
+import type { FeatureFlagsDto, ProjectPermission, TimeType } from "@bayes-platform/api-contracts"
 
 export type Project = {
   id: string

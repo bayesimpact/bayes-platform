@@ -5,7 +5,7 @@ import type {
   CsvExtractionRunDetailOutputDto,
   ExtractionDocumentOutputDto,
   ExtractionRunOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import type { I18n, MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 

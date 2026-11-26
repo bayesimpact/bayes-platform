@@ -2,7 +2,7 @@ import type {
   AgentCsvExtractionRunStatusDto,
   AgentCsvExtractionRunSummaryDto,
   BaseAgentSessionTypeDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import type { DataSource } from "typeorm"

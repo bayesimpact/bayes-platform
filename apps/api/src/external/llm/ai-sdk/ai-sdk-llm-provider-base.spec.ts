@@ -3,7 +3,7 @@ import type {
   LanguageModelV3GenerateResult,
   LanguageModelV3StreamPart,
 } from "@ai-sdk/provider"
-import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@bayes-platform/api-contracts"
 import { simulateReadableStream, tool } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"

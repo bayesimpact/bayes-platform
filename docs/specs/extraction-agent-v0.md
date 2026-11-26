@@ -125,7 +125,7 @@ The endpoint:
 
 ## Proposed API Contract (v0)
 
-> Final route naming should follow `defineRoute` conventions in `@caseai-connect/api-contracts`.
+> Final route naming should follow `defineRoute` conventions in `@bayes-platform/api-contracts`.
 > This section defines behavior and payload shape for implementation.
 
 ### Endpoint (execute extraction)

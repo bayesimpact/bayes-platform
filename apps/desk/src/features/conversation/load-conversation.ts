@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { orNotFound } from "@/lib/not-found"
 import { loaderStaleTime } from "@/lib/start-query"

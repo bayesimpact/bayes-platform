@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -6,7 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import {
   Item,
   ItemContent,
@@ -14,7 +14,7 @@ import {
   ItemGroup,
   ItemMedia,
   ItemTitle,
-} from "@caseai-connect/ui/shad/item"
+} from "@bayes-platform/ui/shad/item"
 import { ShieldCheckIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

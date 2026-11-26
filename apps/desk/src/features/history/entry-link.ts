@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
 import { linkOptions } from "@tanstack/react-router"
 import { agentParamsOf } from "@/lib/agent-params"
 import type { HistoryEntry } from "./history-entries"

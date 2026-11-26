@@ -1,4 +1,4 @@
-import { type AppCatalogEntryDto, ProjectAppCatalogRoutes } from "@caseai-connect/api-contracts"
+import { type AppCatalogEntryDto, ProjectAppCatalogRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AppCatalogEntry } from "../app-catalog.models"
 import type { IAppCatalogSpi } from "../app-catalog.spi"

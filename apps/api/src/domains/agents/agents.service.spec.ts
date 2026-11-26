@@ -1,4 +1,4 @@
-import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import { UnprocessableEntityException } from "@nestjs/common"
 import {

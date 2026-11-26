@@ -4,7 +4,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
+} from "@bayes-platform/ui/shad/empty"
 import { MessageSquareWarningIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"

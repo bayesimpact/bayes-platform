@@ -4,7 +4,7 @@ import type {
   ReviewerReviewOutputDto,
   ReviewerSessionListItemOutputDto,
   ReviewerSessionOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type {
   ReviewerService,
   ReviewerSessionSummary,

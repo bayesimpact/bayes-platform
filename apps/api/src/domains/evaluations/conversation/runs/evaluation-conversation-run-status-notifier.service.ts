@@ -1,7 +1,7 @@
 import type {
   EvaluationConversationRunStatusDto,
   EvaluationConversationRunSummaryDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import type { DataSource } from "typeorm"

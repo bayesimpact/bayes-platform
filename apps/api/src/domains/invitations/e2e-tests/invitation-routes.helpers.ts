@@ -1,4 +1,4 @@
-import { AgentInvitationsRoutes, ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
+import { AgentInvitationsRoutes, ProjectInvitationsRoutes } from "@bayes-platform/api-contracts"
 
 type ProjectLike = { id: string; organizationId: string }
 type ScopedLike = { id: string; organizationId: string; projectId: string }

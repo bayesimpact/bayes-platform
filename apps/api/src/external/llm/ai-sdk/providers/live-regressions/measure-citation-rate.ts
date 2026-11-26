@@ -19,7 +19,7 @@
  *     --model gemini-3.6-flash --scenario rag --attempts 5
  */
 import "dotenv/config"
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import type { ToolExecutionLog } from "@/domains/agents/shared/agent-session-messages/streaming/tools/tool-execution-log"
 import { PROVIDER_CASES } from "./provider-cases"
 import { runFatPromptTurnScenario, runRagTurnScenario } from "./turn-classification-scenario"

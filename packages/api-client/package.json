@@ -1,5 +1,5 @@
 {
-  "name": "@caseai-connect/api-client",
+  "name": "@bayes-platform/api-client",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -19,8 +19,8 @@
     "./src/**"
   ],
   "dependencies": {
-    "@caseai-connect/schema-route": "*",
-    "@caseai-connect/sign-in": "*",
+    "@bayes-platform/schema-route": "*",
+    "@bayes-platform/sign-in": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

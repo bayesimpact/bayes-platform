@@ -3,7 +3,7 @@ import type {
   ResourceDto,
   ResourceFileDto,
   ResourceLibraryDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type ResourceLibrary = ResourceLibraryDto
 

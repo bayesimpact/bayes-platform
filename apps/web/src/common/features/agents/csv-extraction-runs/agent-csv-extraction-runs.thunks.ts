@@ -1,4 +1,4 @@
-import type { AgentCsvExtractionRunColumnSchemaDto } from "@caseai-connect/api-contracts"
+import type { AgentCsvExtractionRunColumnSchemaDto } from "@bayes-platform/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { getCurrentId } from "@/common/features/helpers"

@@ -1,4 +1,4 @@
-import type { AllowedMimeTypes } from "@caseai-connect/api-contracts"
+import type { AllowedMimeTypes } from "@bayes-platform/api-contracts"
 
 // Extension hints for MIME types that OS file pickers don't reliably map to
 // extensions (e.g. `.md` has no registered MIME type on most platforms, so a

@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { ButtonGroup } from "@bayes-platform/ui/shad/button-group"
 import {
   Command,
   CommandEmpty,
@@ -7,7 +7,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@caseai-connect/ui/shad/command"
+} from "@bayes-platform/ui/shad/command"
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -17,9 +17,9 @@ import {
   MessageScrollerViewport,
   useMessageScroller,
   useMessageScrollerVisibility,
-} from "@caseai-connect/ui/shad/message-scroller"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/message-scroller"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
+import { cn } from "@bayes-platform/ui/utils"
 import { FileCheckIcon, ListIcon, XIcon } from "lucide-react"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"

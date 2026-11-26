@@ -4,7 +4,7 @@ import {
   DOCUMENT_UPDATE_PERMISSION,
   DocumentsRagMode,
   EmbeddingModel,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { expect, userEvent, within } from "storybook/test"
 import {

@@ -2,7 +2,7 @@ import {
   type ConversationRunInputDto,
   EvalConversationRunsRoutes,
   type ProjectParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { conversationRunKeys } from "./keys"

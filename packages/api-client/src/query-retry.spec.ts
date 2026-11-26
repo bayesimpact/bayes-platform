@@ -2,7 +2,7 @@ import {
   AuthenticationRequiredError,
   SignInLoopError,
   SignInRefusedError,
-} from "@caseai-connect/sign-in"
+} from "@bayes-platform/sign-in"
 import { describe, expect, it } from "vitest"
 import { ApiError, ContractMismatchError, InvalidRequestError } from "./api-client"
 import { shouldRetryQuery } from "./query-retry"

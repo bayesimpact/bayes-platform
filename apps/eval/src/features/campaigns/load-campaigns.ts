@@ -2,8 +2,8 @@ import type {
   AgentParamsDto,
   ProjectParamsDto,
   ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
-import { PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION } from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
+import { PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION } from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import {

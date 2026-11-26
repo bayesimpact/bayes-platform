@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@caseai-connect/ui/shad/card"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/card"
+import { cn } from "@bayes-platform/ui/utils"
 import { ChevronDownIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

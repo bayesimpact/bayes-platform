@@ -1,4 +1,4 @@
-import type { AgentModel, EmbeddingModel } from "@caseai-connect/api-contracts"
+import type { AgentModel, EmbeddingModel } from "@bayes-platform/api-contracts"
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"

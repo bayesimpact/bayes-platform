@@ -1,13 +1,13 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
-import { FieldGroup } from "@caseai-connect/ui/shad/field"
+} from "@bayes-platform/ui/shad/empty"
+import { FieldGroup } from "@bayes-platform/ui/shad/field"
 import {
   Item,
   ItemContent,
@@ -15,8 +15,8 @@ import {
   ItemGroup,
   ItemMedia,
   ItemTitle,
-} from "@caseai-connect/ui/shad/item"
-import { Switch } from "@caseai-connect/ui/shad/switch"
+} from "@bayes-platform/ui/shad/item"
+import { Switch } from "@bayes-platform/ui/shad/switch"
 import { ExternalLinkIcon, ServerIcon, WrenchIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

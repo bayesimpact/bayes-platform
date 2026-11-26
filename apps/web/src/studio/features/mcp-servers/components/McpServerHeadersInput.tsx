@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Input } from "@caseai-connect/ui/shad/input"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { PlusIcon, XIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

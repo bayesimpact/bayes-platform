@@ -1,3 +1,3 @@
-import type { AgentMessageFeedbackDto } from "@caseai-connect/api-contracts"
+import type { AgentMessageFeedbackDto } from "@bayes-platform/api-contracts"
 
 export type AgentMessageFeedback = AgentMessageFeedbackDto

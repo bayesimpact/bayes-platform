@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { EllipsisIcon, ExternalLinkIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"

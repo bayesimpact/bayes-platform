@@ -1,7 +1,7 @@
 import type {
   ExtractionRunOutputDto,
   ExtractionRunRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { EndpointRequestWithEvaluationExtractionRun } from "@/common/context/request.interface"
 import type { EvaluationExtractionRunsService } from "@/domains/evaluations/extraction/runs/evaluation-extraction-runs.service"
 import { telemetryTraceUrl } from "@/external/llm/telemetry"

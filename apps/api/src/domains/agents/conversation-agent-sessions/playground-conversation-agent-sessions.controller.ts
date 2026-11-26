@@ -1,4 +1,4 @@
-import { ConversationAgentSessionsRoutes } from "@caseai-connect/api-contracts"
+import { ConversationAgentSessionsRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,

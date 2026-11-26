@@ -1,5 +1,5 @@
-import { duplicateAgentSchema } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { duplicateAgentSchema } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import {
   Form,
   FormControl,
@@ -15,10 +15,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
-import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
+import { RadioGroup, RadioGroupItem } from "@bayes-platform/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CopyIcon } from "lucide-react"
 import { useMemo, useState } from "react"

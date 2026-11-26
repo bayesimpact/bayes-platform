@@ -1,7 +1,7 @@
 import {
   type ProjectEmbeddingModelDto,
   ProjectEmbeddingModelsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { ProjectEmbeddingModel } from "../project-embedding-models.models"
 import type { IProjectEmbeddingModelsSpi } from "../project-embedding-models.spi"

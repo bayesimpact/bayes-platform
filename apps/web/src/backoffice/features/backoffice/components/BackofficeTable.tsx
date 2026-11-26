@@ -1,13 +1,13 @@
-import { type FeatureFlagKey, FeatureFlags } from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { type FeatureFlagKey, FeatureFlags } from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@caseai-connect/ui/shad/command"
+} from "@bayes-platform/ui/shad/command"
 import {
   Dialog,
   DialogContent,
@@ -15,8 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@caseai-connect/ui/shad/dialog"
-import { Input } from "@caseai-connect/ui/shad/input"
+} from "@bayes-platform/ui/shad/dialog"
+import { Input } from "@bayes-platform/ui/shad/input"
 import type { Column } from "@tanstack/react-table"
 import {
   ArrowUpDownIcon,

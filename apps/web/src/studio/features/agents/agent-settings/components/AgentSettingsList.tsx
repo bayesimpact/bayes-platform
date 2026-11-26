@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 import { useTranslation } from "react-i18next"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import { buildDate, buildSince } from "@/common/utils/build-date"

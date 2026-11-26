@@ -1,4 +1,4 @@
-import { AgentMemoriesRoutes, type AgentMemoryDto } from "@caseai-connect/api-contracts"
+import { AgentMemoriesRoutes, type AgentMemoryDto } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentMemory } from "../agent-memories.models"
 import type { IAgentMemoriesSpi } from "../agent-memories.spi"

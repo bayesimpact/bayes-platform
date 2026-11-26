@@ -1,4 +1,4 @@
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel } from "@bayes-platform/api-contracts"
 import type { DataSource } from "typeorm"
 import type { DocumentsService } from "../documents.service"
 import type { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"

@@ -1,4 +1,4 @@
-import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentVersionOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { CheckIcon } from "lucide-react"

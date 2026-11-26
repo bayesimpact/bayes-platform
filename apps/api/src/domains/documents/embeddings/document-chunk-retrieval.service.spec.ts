@@ -1,4 +1,4 @@
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel } from "@bayes-platform/api-contracts"
 import { trace } from "@opentelemetry/api"
 import { embed } from "ai"
 import { DocumentChunkRetrievalService } from "./document-chunk-retrieval.service"

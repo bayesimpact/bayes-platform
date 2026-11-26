@@ -2,7 +2,7 @@ import {
   type AgentModel,
   AgentModelDisplayNames,
   AgentProviderVendors,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   describeModelOptionFields,
   findAgentModelEntry,

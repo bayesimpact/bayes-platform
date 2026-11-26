@@ -3,7 +3,7 @@ import {
   type ConversationDatasetRecordOutputDto,
   conversationDatasetOutputSchema,
   conversationDatasetRecordOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { daysAgo } from "./review-campaigns.factory"
 
 /** A conversation dataset of a project with its records, whole: the handlers page the records. */

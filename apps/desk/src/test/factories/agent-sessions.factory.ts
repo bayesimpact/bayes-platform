@@ -8,7 +8,7 @@ import {
   type ExtractionRunOutputDto,
   extractionRunOutputSchema,
   toolCallOutputSchema,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import type { z } from "zod"
 
 type ToolCallOutputDto = z.output<typeof toolCallOutputSchema>

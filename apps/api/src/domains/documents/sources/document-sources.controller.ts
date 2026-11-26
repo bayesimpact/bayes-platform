@@ -4,7 +4,7 @@ import {
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   type DocumentSourceSummaryDto,
   DocumentSourcesRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Body,
   Controller,

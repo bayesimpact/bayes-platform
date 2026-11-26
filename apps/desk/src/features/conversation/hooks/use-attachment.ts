@@ -1,4 +1,4 @@
-import { ATTACHMENT_MAX_BYTES, presignAttachmentInputSchema } from "@caseai-connect/desk-contracts"
+import { ATTACHMENT_MAX_BYTES, presignAttachmentInputSchema } from "@bayes-platform/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { toast } from "sonner"

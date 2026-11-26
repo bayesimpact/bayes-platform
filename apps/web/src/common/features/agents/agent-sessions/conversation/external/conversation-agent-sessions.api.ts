@@ -1,4 +1,4 @@
-import { ConversationAgentSessionsRoutes } from "@caseai-connect/api-contracts"
+import { ConversationAgentSessionsRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { IConversationAgentSessionsSpi } from "../conversation-agent-sessions.spi"
 import { fromDto, fromSubSessionDto } from "./conversation-agent-sessions.mappers"

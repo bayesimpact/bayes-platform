@@ -1,4 +1,4 @@
-import { TOOL_NAMES } from "@caseai-connect/desk-contracts"
+import { TOOL_NAMES } from "@bayes-platform/desk-contracts"
 import { screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { renderWithI18n } from "@/test/render-with-i18n"

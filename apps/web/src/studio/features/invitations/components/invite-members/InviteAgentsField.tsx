@@ -1,12 +1,12 @@
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@caseai-connect/ui/shad/input-group"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@bayes-platform/ui/shad/input-group"
 import {
   Item,
   ItemContent,
   ItemDescription,
   ItemGroup,
   ItemTitle,
-} from "@caseai-connect/ui/shad/item"
+} from "@bayes-platform/ui/shad/item"
 import { SearchIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

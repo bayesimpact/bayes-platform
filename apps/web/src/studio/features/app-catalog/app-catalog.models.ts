@@ -1,4 +1,4 @@
-import type { AppGrantablePermission } from "@caseai-connect/api-contracts"
+import type { AppGrantablePermission } from "@bayes-platform/api-contracts"
 
 /** An app of the studio's catalog, as the current project sees it. */
 export type AppCatalogEntry = {

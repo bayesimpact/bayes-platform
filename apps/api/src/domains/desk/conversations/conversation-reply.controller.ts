@@ -1,5 +1,5 @@
-import type { StreamEvent } from "@caseai-connect/api-contracts"
-import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import type { StreamEvent } from "@bayes-platform/api-contracts"
+import { DeskConversationsRoutes } from "@bayes-platform/desk-contracts"
 import { Controller, type MessageEvent, NotFoundException, Req } from "@nestjs/common"
 import { Observable } from "rxjs"
 import type { EndpointRequestWithConversationAgentSession } from "@/common/context/request.interface"

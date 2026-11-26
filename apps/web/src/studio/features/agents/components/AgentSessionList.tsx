@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -6,8 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@caseai-connect/ui/shad/dialog"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/dialog"
+import { cn } from "@bayes-platform/ui/utils"
 import { PlusCircleIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

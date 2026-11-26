@@ -1,4 +1,4 @@
-import { Skeleton } from "@caseai-connect/ui/shad/skeleton"
+import { Skeleton } from "@bayes-platform/ui/shad/skeleton"
 import {
   areLanguagesAttached,
   areThemesAttached,

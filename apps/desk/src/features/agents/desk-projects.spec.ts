@@ -1,4 +1,4 @@
-import { DESK_UI_READ_PERMISSION, PROJECT_READ_PERMISSION } from "@caseai-connect/desk-contracts"
+import { DESK_UI_READ_PERMISSION, PROJECT_READ_PERMISSION } from "@bayes-platform/desk-contracts"
 import { describe, expect, it } from "vitest"
 import { listDeskProjects } from "./desk-projects"
 

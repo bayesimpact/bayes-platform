@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -6,7 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import {
   Form,
   FormControl,
@@ -15,9 +15,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Label } from "@caseai-connect/ui/shad/label"
-import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+} from "@bayes-platform/ui/shad/form"
+import { Label } from "@bayes-platform/ui/shad/label"
+import { RadioGroup, RadioGroupItem } from "@bayes-platform/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"

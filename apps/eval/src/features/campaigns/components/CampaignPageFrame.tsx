@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"

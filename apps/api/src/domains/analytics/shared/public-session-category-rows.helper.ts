@@ -1,4 +1,4 @@
-import type { TimeType } from "@caseai-connect/api-contracts"
+import type { TimeType } from "@bayes-platform/api-contracts"
 import type { ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"

@@ -1,4 +1,4 @@
-import { type AnalyticsDailyPointDto, AnalyticsRoutes } from "@caseai-connect/api-contracts"
+import { type AnalyticsDailyPointDto, AnalyticsRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AnalyticsDailyPoint } from "../analytics.models"
 import type { IProjectAnalyticsSpi } from "../analytics.spi"

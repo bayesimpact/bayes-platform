@@ -6,7 +6,7 @@ import {
   EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
   EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
   outputJsonSchemaSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 import { getMcpServerTitle } from "@/config/mcp-server-title"

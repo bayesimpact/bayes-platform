@@ -1,7 +1,7 @@
 import {
   type AgentSessionMessagesRoutes,
   agentSessionMessageAttachmentAllowedMimeTypes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { v4 } from "uuid"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"

@@ -1,4 +1,4 @@
-import type { DocumentTagDto, DocumentTagsUpdateFieldsDto } from "@caseai-connect/api-contracts"
+import type { DocumentTagDto, DocumentTagsUpdateFieldsDto } from "@bayes-platform/api-contracts"
 
 export type DocumentTag = DocumentTagDto
 

@@ -1,4 +1,4 @@
-import type { MeOutputDto } from "@caseai-connect/desk-contracts"
+import type { MeOutputDto } from "@bayes-platform/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { LogOutIcon } from "lucide-react"

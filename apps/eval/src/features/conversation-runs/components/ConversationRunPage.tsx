@@ -4,7 +4,7 @@ import {
   EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { PageContainer } from "@/components/shared/PageContainer"

@@ -2,7 +2,7 @@ import {
   REVIEW_CAMPAIGN_ROLE_KEYS,
   type ReviewCampaignMembershipOutputDto,
   type ReviewCampaignRoleDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 
 /** One role of one person in a campaign: a row of the participants' table. */
 export type Participant = {

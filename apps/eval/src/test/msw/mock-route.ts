@@ -2,7 +2,7 @@ import {
   type AnySchemaRoute,
   type AnyStreamRoute,
   errorOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { delay, HttpResponse, http, type PathParams, type RequestHandlerOptions } from "msw"
 import { z } from "zod"
 

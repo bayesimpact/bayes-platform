@@ -1,4 +1,4 @@
-import { DeskMemoriesRoutes } from "@caseai-connect/desk-contracts"
+import { DeskMemoriesRoutes } from "@bayes-platform/desk-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

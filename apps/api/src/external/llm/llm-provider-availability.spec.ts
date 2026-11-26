@@ -1,4 +1,4 @@
-import { AgentModel, AgentModelToAgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider } from "@bayes-platform/api-contracts"
 import { Test } from "@nestjs/testing"
 import { v4 } from "uuid"
 import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"

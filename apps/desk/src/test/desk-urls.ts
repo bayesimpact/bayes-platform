@@ -1,7 +1,7 @@
 import type {
   ConversationSessionOutputDto,
   ProjectAgentOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { appBasePath } from "@/app/config"
 import type { DeskWorld } from "./factories/desk-world.factory"
 import { required } from "./required"

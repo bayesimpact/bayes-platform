@@ -1,4 +1,4 @@
-import type { ExtractionAgentSessionStatus } from "@caseai-connect/api-contracts"
+import type { ExtractionAgentSessionStatus } from "@bayes-platform/api-contracts"
 import { createAction } from "@reduxjs/toolkit"
 
 // Standalone action so thunks can dispatch it without importing the slice,

@@ -1,4 +1,4 @@
-import type { AnySchemaRoute, AnyStreamRoute } from "@caseai-connect/schema-route"
+import type { AnySchemaRoute, AnyStreamRoute } from "@bayes-platform/schema-route"
 import type { z } from "zod"
 import type { ContextResource } from "@/common/context/require-context.decorator"
 import type { TrackActivityOptions } from "@/domains/activities/track-activity.decorator"
@@ -10,7 +10,7 @@ export type {
   AnySchemaRoute,
   AnyStreamRoute,
   SchemaRouteMethod,
-} from "@caseai-connect/schema-route"
+} from "@bayes-platform/schema-route"
 
 /** The metadata key under which `@SchemaRoute` stores the route of a handler. */
 export const SCHEMA_ROUTE_METADATA_KEY = "schema_route"

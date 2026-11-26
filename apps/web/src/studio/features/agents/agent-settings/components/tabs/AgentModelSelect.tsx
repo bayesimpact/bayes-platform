@@ -1,4 +1,4 @@
-import { Badge, type BadgeVariant } from "@caseai-connect/ui/shad/badge"
+import { Badge, type BadgeVariant } from "@bayes-platform/ui/shad/badge"
 import {
   Command,
   CommandEmpty,
@@ -7,9 +7,9 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@caseai-connect/ui/shad/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
+import { cn } from "@bayes-platform/ui/utils"
 import { BrainIcon, CheckIcon, ChevronDownIcon, ZapIcon } from "lucide-react"
 import { useState } from "react"
 import { filterAgentModelOptions } from "./agent-model-select.helpers"

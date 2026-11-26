@@ -1,5 +1,5 @@
-import { Separator } from "@caseai-connect/ui/shad/separator"
-import { SidebarTrigger } from "@caseai-connect/ui/shad/sidebar"
+import { Separator } from "@bayes-platform/ui/shad/separator"
+import { SidebarTrigger } from "@bayes-platform/ui/shad/sidebar"
 
 export function LayoutHeader({
   title,

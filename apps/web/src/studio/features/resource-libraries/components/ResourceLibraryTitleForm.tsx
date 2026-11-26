@@ -1,6 +1,6 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Field, FieldLabel } from "@bayes-platform/ui/shad/field"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 

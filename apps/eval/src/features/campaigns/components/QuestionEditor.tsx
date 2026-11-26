@@ -1,4 +1,4 @@
-import { reviewCampaignQuestionTypeSchema } from "@caseai-connect/eval-contracts"
+import { reviewCampaignQuestionTypeSchema } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-react"
 import { useId } from "react"

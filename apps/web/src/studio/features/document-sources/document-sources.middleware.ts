@@ -1,4 +1,4 @@
-import { DOCUMENT_SOURCE_READ_PERMISSION } from "@caseai-connect/api-contracts"
+import { DOCUMENT_SOURCE_READ_PERMISSION } from "@bayes-platform/api-contracts"
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"

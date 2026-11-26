@@ -1,4 +1,4 @@
-import { RATING_MAX } from "@caseai-connect/eval-contracts"
+import { RATING_MAX } from "@bayes-platform/eval-contracts"
 import { Plural } from "@lingui/react/macro"
 import { cn } from "cn"
 import { StarIcon } from "lucide-react"

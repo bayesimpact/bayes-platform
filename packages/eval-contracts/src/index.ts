@@ -1,5 +1,5 @@
 // Route helper and error body
-export * from "@caseai-connect/schema-route"
+export * from "@bayes-platform/schema-route"
 // Account
 export * from "./account/account.dto"
 export { EvalAccountRoutes } from "./account/account.routes"

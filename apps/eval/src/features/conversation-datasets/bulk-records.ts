@@ -1,7 +1,7 @@
 import {
   type ConversationDatasetRecordInputDto,
   conversationDatasetRecordInputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 
 /** What pasted lines hold: the records to add, and the lines that make none, by their number. */
 export type ParsedBulkRecords = {

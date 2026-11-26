@@ -1,4 +1,4 @@
-import { AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentProvider } from "@bayes-platform/api-contracts"
 import { Module, type Type } from "@nestjs/common"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { AISDKAnthropicProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-anthropic.provider"

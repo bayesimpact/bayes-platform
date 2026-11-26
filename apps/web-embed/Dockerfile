@@ -17,17 +17,17 @@ COPY apps/web-embed ./apps/web-embed
 COPY packages ./packages
 
 RUN npm ci \
-    --workspace=@caseai-connect/web-embed \
-    --workspace=@caseai-connect/api-contracts \
-    --workspace=@caseai-connect/mcp-app-host \
-    --workspace=@caseai-connect/permissions \
+    --workspace=@bayes-platform/web-embed \
+    --workspace=@bayes-platform/api-contracts \
+    --workspace=@bayes-platform/mcp-app-host \
+    --workspace=@bayes-platform/permissions \
     --include-workspace-root
 
 ENV VITE_API_URL=__VITE_API_URL__
 ENV VITE_MCP_APP_SANDBOX_ORIGIN=__VITE_MCP_APP_SANDBOX_ORIGIN__
 
 # Builds the SPA (dist/) and the launcher IIFE (dist-launcher/).
-RUN npx turbo run build --filter=@caseai-connect/web-embed
+RUN npx turbo run build --filter=@bayes-platform/web-embed
 
 #
 # Runtime: nginx, non root, port 8080.

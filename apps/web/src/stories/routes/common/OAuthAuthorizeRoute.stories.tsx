@@ -1,7 +1,7 @@
 import {
   APP_GRANTABLE_PERMISSIONS,
   OAUTH_GRANTABLE_PERMISSIONS,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Provider } from "react-redux"

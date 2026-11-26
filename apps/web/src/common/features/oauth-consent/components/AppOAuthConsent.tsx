@@ -1,6 +1,6 @@
-import type { oauthConsentSchema } from "@caseai-connect/api-contracts"
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
-import { CardContent } from "@caseai-connect/ui/shad/card"
+import type { oauthConsentSchema } from "@bayes-platform/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
+import { CardContent } from "@bayes-platform/ui/shad/card"
 import {
   Form,
   FormControl,
@@ -9,8 +9,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+} from "@bayes-platform/ui/shad/form"
+import { RadioGroup, RadioGroupItem } from "@bayes-platform/ui/shad/radio-group"
 import {
   Select,
   SelectContent,
@@ -19,8 +19,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/select"
+import { cn } from "@bayes-platform/ui/utils"
 import { InfoIcon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"

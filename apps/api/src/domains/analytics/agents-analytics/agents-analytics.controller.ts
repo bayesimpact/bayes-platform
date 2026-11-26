@@ -1,4 +1,4 @@
-import { AgentAnalyticsRoutes as Routes } from "@caseai-connect/api-contracts"
+import { AgentAnalyticsRoutes as Routes } from "@bayes-platform/api-contracts"
 import { Controller, Get, ParseIntPipe, Query, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithAgent } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

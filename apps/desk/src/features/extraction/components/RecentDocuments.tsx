@@ -1,4 +1,4 @@
-import type { ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import type { ExtractionDocumentOutputDto } from "@bayes-platform/desk-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { useId, useState } from "react"
 import { DocumentRow } from "./DocumentRow"

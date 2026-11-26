@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { ButtonGroup } from "@bayes-platform/ui/shad/button-group"
 import { Settings2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link, useOutlet } from "react-router-dom"

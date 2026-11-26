@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"

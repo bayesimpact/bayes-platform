@@ -1,4 +1,4 @@
-import type { MyReviewCampaignOutputDto } from "@caseai-connect/eval-contracts"
+import type { MyReviewCampaignOutputDto } from "@bayes-platform/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { mergeMyCampaigns } from "./my-campaigns"
 

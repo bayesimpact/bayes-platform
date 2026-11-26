@@ -1,4 +1,4 @@
-import { EXTRACTION_MAX_BYTES, EXTRACTION_MIME_TYPES } from "@caseai-connect/desk-contracts"
+import { EXTRACTION_MAX_BYTES, EXTRACTION_MIME_TYPES } from "@bayes-platform/desk-contracts"
 import { hasOwnKey } from "@/lib/has-own-key"
 
 type ExtractionMimeType = (typeof EXTRACTION_MIME_TYPES)[number]

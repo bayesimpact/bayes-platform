@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto"
-import type { OAuthGrantablePermission } from "@caseai-connect/api-contracts"
+import type { OAuthGrantablePermission } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import { getStorageToken, type ThrottlerStorageService } from "@nestjs/throttler"
 import request from "supertest"

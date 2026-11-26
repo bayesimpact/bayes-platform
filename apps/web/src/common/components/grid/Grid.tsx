@@ -1,12 +1,12 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Card,
   CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@caseai-connect/ui/shad/card"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/card"
+import { cn } from "@bayes-platform/ui/utils"
 import { ArrowLeftIcon } from "lucide-react"
 import { Children, isValidElement } from "react"
 import { useBreakpoint } from "@/common/hooks/use-breakpoint"

@@ -1,5 +1,5 @@
 {
-  "name": "@caseai-connect/eval-contracts",
+  "name": "@bayes-platform/eval-contracts",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -21,8 +21,8 @@
     "./src/**"
   ],
   "dependencies": {
-    "@caseai-connect/permissions": "*",
-    "@caseai-connect/schema-route": "*",
+    "@bayes-platform/permissions": "*",
+    "@bayes-platform/schema-route": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

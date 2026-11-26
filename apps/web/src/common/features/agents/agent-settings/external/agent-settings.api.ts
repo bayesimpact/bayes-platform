@@ -1,4 +1,4 @@
-import { type AgentSettingsDto, AgentSettingsRoutes } from "@caseai-connect/api-contracts"
+import { type AgentSettingsDto, AgentSettingsRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentSettings } from "../agent-settings.models"
 import type { IAgentSettingsSpi } from "../agent-settings.spi"

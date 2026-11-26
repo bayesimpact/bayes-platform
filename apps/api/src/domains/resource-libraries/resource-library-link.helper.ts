@@ -1,4 +1,4 @@
-import type { ResourceDto } from "@caseai-connect/api-contracts"
+import type { ResourceDto } from "@bayes-platform/api-contracts"
 
 /**
  * Computes the link surfaced for a resource. Typed-URL resources use their url directly; uploaded

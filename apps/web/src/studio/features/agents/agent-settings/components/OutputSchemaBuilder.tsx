@@ -2,27 +2,27 @@ import {
   getOrderedPropertyEntries,
   type OutputJsonSchemaProperty,
   outputJsonSchemaSchema,
-} from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+} from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+} from "@bayes-platform/ui/shad/dialog"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Switch } from "@caseai-connect/ui/shad/switch"
+} from "@bayes-platform/ui/shad/select"
+import { Switch } from "@bayes-platform/ui/shad/switch"
 import {
   Table,
   TableBody,
@@ -30,9 +30,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@caseai-connect/ui/shad/table"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/table"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
+import { cn } from "@bayes-platform/ui/utils"
 import {
   closestCenter,
   DndContext,

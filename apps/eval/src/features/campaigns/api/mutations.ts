@@ -6,7 +6,7 @@ import {
   type ProjectParamsDto,
   type ReviewCampaignParamsDto,
   type UpdateReviewCampaignInputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { refreshCampaignInWorkspace } from "@/features/agents"
 import { apiRequest } from "@/lib/api-client"

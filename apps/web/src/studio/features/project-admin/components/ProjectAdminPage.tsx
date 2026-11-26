@@ -1,5 +1,5 @@
-import { FieldGroup, FieldSet } from "@caseai-connect/ui/shad/field"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
+import { FieldGroup, FieldSet } from "@bayes-platform/ui/shad/field"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bayes-platform/ui/shad/tabs"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"

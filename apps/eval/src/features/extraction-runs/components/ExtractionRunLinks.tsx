@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@bayes-platform/eval-contracts"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { RunSidebarLinks } from "@/components/shared/RunSidebarLinks"
 import { projectExtractionRunsQueryOptions } from "../api/queries"

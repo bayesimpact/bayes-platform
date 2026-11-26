@@ -2,7 +2,7 @@ import type {
   AgentPermission,
   OrganizationPermission,
   ProjectPermission,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { useCallback, useMemo } from "react"
 import { selectAgentsDataIfInjected } from "@/common/features/agents/agents.selectors"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"

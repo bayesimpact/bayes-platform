@@ -1,4 +1,4 @@
-import { SIGN_IN_ERRORS } from "@caseai-connect/api-contracts"
+import { SIGN_IN_ERRORS } from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { AuthErrorRoute as Comp } from "@/common/routes/AuthErrorRoute"

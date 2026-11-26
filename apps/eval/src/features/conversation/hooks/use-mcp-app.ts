@@ -1,11 +1,11 @@
-import { type McpAppCsp, type McpAppMount, mountMcpApp } from "@caseai-connect/mcp-app-host"
+import { type McpAppCsp, type McpAppMount, mountMcpApp } from "@bayes-platform/mcp-app-host"
 import { useLingui } from "@lingui/react/macro"
 import { type RefObject, useEffect, useEffectEvent, useRef, useState } from "react"
 import { appConfig } from "@/app/config"
 import type { ChatMcpApp } from "../chat-messages"
 
 /** How Evaluation names itself to an app, at the handshake. */
-const HOST_INFO = { name: "caseai-connect-eval", version: "1.0.0" }
+const HOST_INFO = { name: "bayes-platform-eval", version: "1.0.0" }
 
 export type McpAppStatus = "loading" | "ready" | "failed"
 
@@ -24,7 +24,7 @@ type UseMcpAppOptions = {
 
 /**
  * Runs an MCP App in the sandbox of a frame, through the host all the platform's apps share
- * (`@caseai-connect/mcp-app-host`): the handshake, the tool's input and result, the app's height,
+ * (`@bayes-platform/mcp-app-host`): the handshake, the tool's input and result, the app's height,
  * and the links and messages it asks for. The frame talks to the browser outside React, which an
  * effect is for. The card is keyed by its tool call, so the app restarts only for new HTML, new
  * declared domains or another server. The app gets the person's language in its host context, and

@@ -3,7 +3,7 @@ import {
   EvalReviewCampaignsRoutes,
   type ProjectParamsDto,
   type ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { campaignKeys } from "./keys"

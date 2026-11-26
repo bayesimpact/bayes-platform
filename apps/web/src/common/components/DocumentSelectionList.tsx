@@ -1,6 +1,6 @@
-import type { TimeType } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@caseai-connect/ui/shad/sheet"
+import type { TimeType } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@bayes-platform/ui/shad/sheet"
 import {
   type ColumnDef,
   getCoreRowModel,

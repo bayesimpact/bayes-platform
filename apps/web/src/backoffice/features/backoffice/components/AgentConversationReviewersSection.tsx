@@ -1,10 +1,10 @@
 import {
   type GrantBackofficeAgentConversationReviewerRequestDto,
   grantBackofficeAgentConversationReviewerSchema,
-} from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
+} from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { selectCanUpdateConversationReviewers } from "@/common/features/me/me.selectors"

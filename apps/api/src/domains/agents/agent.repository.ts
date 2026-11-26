@@ -1,4 +1,4 @@
-import type { AgentType } from "@caseai-connect/api-contracts"
+import type { AgentType } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import type { Repository, SelectQueryBuilder } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"

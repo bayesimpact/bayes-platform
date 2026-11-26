@@ -53,5 +53,5 @@ jobs:
       - name: Remove the smoke images
         if: always()
         run: |
-          docker image rm -f caseai-connect/gpu-workers:local caseai-connect/cpu-workers:local || true
+          docker image rm -f bayes-platform/gpu-workers:local bayes-platform/cpu-workers:local || true
           docker image prune -f

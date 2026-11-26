@@ -1,4 +1,4 @@
-import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"

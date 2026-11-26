@@ -1,5 +1,5 @@
 import type { JSONSchema7Definition, LanguageModelV3CallOptions } from "@ai-sdk/provider"
-import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@bayes-platform/api-contracts"
 import { jsonSchema, type ToolSet, tool } from "ai"
 import { z } from "zod"
 import type { LLMCallContext, LLMConfig } from "@/common/interfaces/llm-provider.interface"

@@ -3,7 +3,7 @@ import {
   type AgentVersionOutputDto,
   EvalAgentsRoutes,
   type ProjectAgentOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Controller, Req } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,

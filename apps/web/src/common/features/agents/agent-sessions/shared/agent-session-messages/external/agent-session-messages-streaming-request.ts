@@ -1,4 +1,4 @@
-import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
+import { AgentSessionMessagesRoutes } from "@bayes-platform/api-contracts"
 
 /**
  * The stream is a POST: the URL holds ids only and the message travels in the body, so a long

@@ -2,7 +2,7 @@ import type {
   CurrentTermsDto,
   TermsDocumentDto,
   TermsDocumentType,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { NotFoundException } from "@nestjs/common"
 import type { TermsAcceptance } from "./terms-acceptance.entity"
 import type { TermsDocument } from "./terms-document.entity"

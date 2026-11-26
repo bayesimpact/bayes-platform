@@ -1,7 +1,7 @@
 import {
   type EvaluationExtractionDatasetSchemaColumnDto,
   MimeTypes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Inject,
   Injectable,

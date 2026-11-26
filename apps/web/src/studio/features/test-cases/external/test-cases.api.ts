@@ -1,4 +1,4 @@
-import { EvaluationConversationTestCasesRoutes } from "@caseai-connect/api-contracts"
+import { EvaluationConversationTestCasesRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { ITestCasesSpi } from "../test-cases.spi"
 

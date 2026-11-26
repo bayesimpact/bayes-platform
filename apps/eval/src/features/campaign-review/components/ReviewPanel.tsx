@@ -1,7 +1,7 @@
 import type {
   CampaignSessionParamsDto,
   ReviewerSessionOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { EyeOffIcon } from "lucide-react"
 import { toast } from "sonner"

@@ -1,4 +1,4 @@
-import type { AgentModel } from "@caseai-connect/api-contracts"
+import type { AgentModel } from "@bayes-platform/api-contracts"
 import { Column, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { Agent } from "@/domains/agents/agent.entity"

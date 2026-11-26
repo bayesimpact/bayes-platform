@@ -1,9 +1,9 @@
 import type {
   McpServerAuthStatus,
   McpServerConnectionErrorCode,
-} from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
+} from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
 import { useTranslation } from "react-i18next"
 import type { McpServerConnection } from "../mcp-servers.models"
 

@@ -2,7 +2,7 @@ import type {
   AgentParamsDto,
   AgentTypeDto,
   AgentVersionOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { type ReactNode, useState } from "react"
 import { Button } from "@/components/ui/button"

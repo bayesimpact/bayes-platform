@@ -1,4 +1,4 @@
-import { EXTRACTION_MAX_BYTES } from "@caseai-connect/desk-contracts"
+import { EXTRACTION_MAX_BYTES } from "@bayes-platform/desk-contracts"
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"

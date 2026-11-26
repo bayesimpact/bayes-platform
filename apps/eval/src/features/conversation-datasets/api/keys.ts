@@ -1,4 +1,4 @@
-import type { ConversationDatasetParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { ConversationDatasetParamsDto, ProjectParamsDto } from "@bayes-platform/eval-contracts"
 
 export const conversationDatasetKeys = {
   all: ["conversation-datasets"] as const,

@@ -1,11 +1,11 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
+} from "@bayes-platform/ui/shad/empty"
 import { LayoutGridIcon, PlugIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"

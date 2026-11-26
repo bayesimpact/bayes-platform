@@ -2,16 +2,16 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
-} from "@caseai-connect/ui/shad/breadcrumb"
-import { Button } from "@caseai-connect/ui/shad/button"
+} from "@bayes-platform/ui/shad/breadcrumb"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/dropdown-menu"
+import { cn } from "@bayes-platform/ui/utils"
 import { CheckIcon, ChevronDownIcon, GitCommitHorizontalIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"

@@ -1,4 +1,4 @@
-import type { MeUserOutputDto } from "@caseai-connect/eval-contracts"
+import type { MeUserOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ChevronDownIcon, CircleHelpIcon, HouseIcon, LogOutIcon } from "lucide-react"
 import { isLocale, type Locale, languageNameOf } from "@/app/i18n"

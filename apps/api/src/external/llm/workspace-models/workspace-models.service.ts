@@ -1,4 +1,4 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   ConflictException,

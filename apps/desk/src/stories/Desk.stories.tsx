@@ -1,4 +1,4 @@
-import { DeskAgentSessionsRoutes, DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAgentSessionsRoutes, DeskProjectsRoutes } from "@bayes-platform/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
 import { userEvent, within } from "storybook/test"

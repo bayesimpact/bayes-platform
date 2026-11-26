@@ -1,4 +1,4 @@
-import { AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentProvider } from "@bayes-platform/api-contracts"
 import { agentFactory, agentModelsCatalogFactory } from "@/common/features/agents/agent.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { userFactory } from "@/common/features/me/me.factory"

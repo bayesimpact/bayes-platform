@@ -2,7 +2,7 @@ import {
   DESK_UI_READ_PERMISSION,
   type MyOrganizationOutputDto,
   type MyProjectOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 
 /** A project the person can open in the Desk, with its organization. */
 export type DeskProject = Pick<MyProjectOutputDto, "id" | "name" | "featureFlags"> & {

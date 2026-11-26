@@ -1,4 +1,4 @@
-import { addProjectMemberRolesSchema, ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
+import { addProjectMemberRolesSchema, ProjectMembershipRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Param, Post, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type {
   EndpointRequestWithProject,

@@ -39,8 +39,8 @@ import type {
   ReviewCampaignMembershipRole,
   TimeType,
   UpdateBackofficeCustomModelRequestDto,
-} from "@caseai-connect/api-contracts"
-import { AgentModelDisplayNames, AgentProviderVendors } from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
+import { AgentModelDisplayNames, AgentProviderVendors } from "@bayes-platform/api-contracts"
 import {
   type LegacyMembershipRole,
   toLegacyRole,

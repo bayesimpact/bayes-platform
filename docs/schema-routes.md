@@ -195,9 +195,9 @@ that every route of the Desk contracts starts with `/desk/` and has a handler.
 
 The layer in `src/common/schema-route/` is generic. An app that gets endpoints of its own needs:
 
-1. **A contracts package** that depends on `@caseai-connect/schema-route` and re-exports it, as
+1. **A contracts package** that depends on `@bayes-platform/schema-route` and re-exports it, as
    `packages/desk-contracts` and `packages/eval-contracts` do, so the app imports the helper and
-   the error body from its own contracts. `@caseai-connect/schema-route` holds the one
+   the error body from its own contracts. `@bayes-platform/schema-route` holds the one
    `defineSchemaRoute`, and the layer in `src/common/schema-route/` takes `AnySchemaRoute` and
    `AnyStreamRoute` from it, so a route of any contracts package type-checks. The layer imports no contracts package.
 2. **A CommonJS build that the API requires.** Do what was done for the Desk contracts: a

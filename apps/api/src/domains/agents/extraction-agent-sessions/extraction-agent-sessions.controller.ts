@@ -3,7 +3,7 @@ import type {
   ExtractionAgentSessionStatusChangedEventDto,
   ExtractionAgentSessionSummaryDto,
   ExtractionAgentSessionsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   ForbiddenException,
   Injectable,

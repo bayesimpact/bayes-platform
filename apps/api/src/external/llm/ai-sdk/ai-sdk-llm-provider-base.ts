@@ -1,4 +1,4 @@
-import type { AgentProvider } from "@caseai-connect/api-contracts"
+import type { AgentProvider } from "@bayes-platform/api-contracts"
 import { Logger } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
 import { generateText, jsonSchema, Output, ToolLoopAgent } from "ai"

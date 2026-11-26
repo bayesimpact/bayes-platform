@@ -3,7 +3,7 @@ import {
   AGENT_CSV_EXTRACTION_RUN_STATUS_CHANGED_CHANNEL_DTO,
   type AgentCsvExtractionRunStatusChangedEventPayload,
   AgentCsvExtractionRunsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import { Subject } from "rxjs"
 import type { App } from "supertest/types"

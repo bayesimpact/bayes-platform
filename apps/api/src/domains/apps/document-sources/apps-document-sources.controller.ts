@@ -7,7 +7,7 @@ import {
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   type DocumentSourceDto,
   updateDocumentSourceSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   Body,

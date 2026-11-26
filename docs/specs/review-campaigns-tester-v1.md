@@ -159,7 +159,7 @@ No cascading inheritance: a project admin is not automatically a campaign tester
 
 ## API
 
-All routes use `defineRoute` and live in `packages/@caseai-connect/api-contracts/src/review-campaigns/review-campaigns.routes.ts`. DTOs in the sibling `review-campaigns.dto.ts`.
+All routes use `defineRoute` and live in `packages/@bayes-platform/api-contracts/src/review-campaigns/review-campaigns.routes.ts`. DTOs in the sibling `review-campaigns.dto.ts`.
 
 ### Admin routes (workspace admin)
 

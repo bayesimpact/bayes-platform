@@ -2,7 +2,7 @@ import type {
   AgentMemoryOrigin,
   AgentMemorySessionTypeDto,
   AgentMemoryStatus,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"

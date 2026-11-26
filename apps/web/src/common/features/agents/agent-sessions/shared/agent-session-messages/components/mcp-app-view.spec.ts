@@ -1,4 +1,4 @@
-import type { AgentSessionToolCallDto } from "@caseai-connect/api-contracts"
+import type { AgentSessionToolCallDto } from "@bayes-platform/api-contracts"
 import { describe, expect, it } from "vitest"
 import {
   findMcpAppHtml,

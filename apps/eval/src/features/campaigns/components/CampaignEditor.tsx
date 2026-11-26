@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { TabsContent } from "@/components/ui/tabs"
 import type { EvaluationAgent } from "@/features/agents"

@@ -2,7 +2,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-} from "@caseai-connect/ui/shad/dropdown-menu"
+} from "@bayes-platform/ui/shad/dropdown-menu"
 import { ExternalLinkIcon, LogOutIcon, PlugIcon, UserPenIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { ConnectedAppsDialog } from "@/common/features/oauth-grants/components/ConnectedAppsDialog"

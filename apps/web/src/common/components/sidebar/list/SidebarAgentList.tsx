@@ -4,7 +4,7 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarSeparator,
-} from "@caseai-connect/ui/shad/sidebar"
+} from "@bayes-platform/ui/shad/sidebar"
 import { useTranslation } from "react-i18next"
 import { useParams } from "react-router-dom"
 import type { BaseAgentSessionCreatorProps } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"

@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto"
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import {
   CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
   type ConversationRunInputDto,
   EvalConversationRunsRoutes,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

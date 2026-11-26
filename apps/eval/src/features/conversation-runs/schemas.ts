@@ -1,4 +1,4 @@
-import { conversationRunInputSchema } from "@caseai-connect/eval-contracts"
+import { conversationRunInputSchema } from "@bayes-platform/eval-contracts"
 import { z } from "zod"
 import { isRunScopeValid, runScopeShape } from "@/lib/run-scope"
 

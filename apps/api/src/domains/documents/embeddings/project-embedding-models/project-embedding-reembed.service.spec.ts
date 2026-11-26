@@ -1,4 +1,4 @@
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel } from "@bayes-platform/api-contracts"
 import type { EmbedderService } from "../embedders/embedder.service"
 import type { DocumentChunkEmbeddingRepository } from "./document-chunk-embedding.repository"
 import type { ProjectEmbeddingModelsService } from "./project-embedding-models.service"

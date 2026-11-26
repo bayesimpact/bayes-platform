@@ -1,12 +1,12 @@
 import {
   DOCUMENT_SOURCE_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@caseai-connect/ui/shad/collapsible"
+} from "@bayes-platform/ui/shad/collapsible"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -17,8 +17,8 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@caseai-connect/ui/shad/sidebar"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/sidebar"
+import { cn } from "@bayes-platform/ui/utils"
 import {
   AppWindowIcon,
   BarChart3Icon,

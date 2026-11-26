@@ -2,7 +2,7 @@ import type {
   ConversationAgentSessionDto,
   ConversationFormDto,
   ConversationSubSessionDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type ConversationAgentSession = ConversationAgentSessionDto
 export type ConversationForm = ConversationFormDto

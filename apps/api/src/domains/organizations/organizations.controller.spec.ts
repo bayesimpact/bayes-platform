@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
-import type { OrganizationDto } from "@caseai-connect/api-contracts"
-import { OrganizationsRoutes } from "@caseai-connect/api-contracts"
+import type { OrganizationDto } from "@bayes-platform/api-contracts"
+import { OrganizationsRoutes } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"

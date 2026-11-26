@@ -1,4 +1,4 @@
-import type { ConversationFormOutputDto } from "@caseai-connect/eval-contracts"
+import type { ConversationFormOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { ClipboardListIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"

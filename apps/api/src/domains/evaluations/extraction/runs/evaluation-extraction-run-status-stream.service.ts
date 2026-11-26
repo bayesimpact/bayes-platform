@@ -1,4 +1,4 @@
-import type { EvaluationExtractionRunStatusChangedEventDto } from "@caseai-connect/api-contracts"
+import type { EvaluationExtractionRunStatusChangedEventDto } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { PostgresStatusStreamService } from "@/common/sse/postgres-status-stream.service"
 import { EVALUATION_EXTRACTION_RUN_STATUS_CHANGED_CHANNEL } from "./evaluation-extraction-run.constants"

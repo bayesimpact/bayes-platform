@@ -185,12 +185,12 @@ jobs:
 
       - name: Run web tests
         if: needs.changes.outputs.web-tests == 'true'
-        run: npm run test --workspace=@caseai-connect/web
+        run: npm run test --workspace=@bayes-platform/web
 
       # The sandbox of MCP Apps, which the web front, the embed and the Desk share.
       - name: Run MCP App host tests
         if: needs.changes.outputs.web-tests == 'true'
-        run: npm run test --workspace=@caseai-connect/mcp-app-host
+        run: npm run test --workspace=@bayes-platform/mcp-app-host
 
   desk-tests:
     needs: changes
@@ -221,30 +221,30 @@ jobs:
       # The typecheck, Biome and check:boundaries run in ci-checks, through turbo.
       - name: Check the translation catalogs
         if: needs.changes.outputs.desk-tests == 'true'
-        run: npm run i18n:check --workspace=@caseai-connect/desk
+        run: npm run i18n:check --workspace=@bayes-platform/desk
 
       - name: Run Desk tests
         if: needs.changes.outputs.desk-tests == 'true'
-        run: npm run test --workspace=@caseai-connect/desk
+        run: npm run test --workspace=@bayes-platform/desk
 
       # The typecheck, Biome and check:boundaries run in ci-checks, through turbo.
       - name: Check the Desk's component files
         if: needs.changes.outputs.desk-tests == 'true'
-        run: npm run check:components --workspace=@caseai-connect/desk
+        run: npm run check:components --workspace=@bayes-platform/desk
 
       # The sign-in the Desk and Evaluation share.
       - name: Run sign-in tests
         if: needs.changes.outputs.desk-tests == 'true'
-        run: npm run test --workspace=@caseai-connect/sign-in
+        run: npm run test --workspace=@bayes-platform/sign-in
 
       # The API client the Desk and Evaluation share.
       - name: Run API client tests
         if: needs.changes.outputs.desk-tests == 'true'
-        run: npm run test --workspace=@caseai-connect/api-client
+        run: npm run test --workspace=@bayes-platform/api-client
 
       - name: Build the Desk
         if: needs.changes.outputs.desk-tests == 'true'
-        run: npm run build --workspace=@caseai-connect/desk
+        run: npm run build --workspace=@bayes-platform/desk
 
   eval-tests:
     needs: changes
@@ -275,23 +275,23 @@ jobs:
       # The typecheck, Biome and check:boundaries run in ci-checks, through turbo.
       - name: Check that the chat stays the Desk's
         if: needs.changes.outputs.eval-tests == 'true'
-        run: npm run check:desk-parity --workspace=@caseai-connect/eval
+        run: npm run check:desk-parity --workspace=@bayes-platform/eval
 
       - name: Check the component files
         if: needs.changes.outputs.eval-tests == 'true'
-        run: npm run check:components --workspace=@caseai-connect/eval
+        run: npm run check:components --workspace=@bayes-platform/eval
 
       - name: Check the translation catalogs
         if: needs.changes.outputs.eval-tests == 'true'
-        run: npm run i18n:check --workspace=@caseai-connect/eval
+        run: npm run i18n:check --workspace=@bayes-platform/eval
 
       - name: Run Evaluation tests
         if: needs.changes.outputs.eval-tests == 'true'
-        run: npm run test --workspace=@caseai-connect/eval
+        run: npm run test --workspace=@bayes-platform/eval
 
       - name: Build Evaluation
         if: needs.changes.outputs.eval-tests == 'true'
-        run: npm run build --workspace=@caseai-connect/eval
+        run: npm run build --workspace=@bayes-platform/eval
 
   pdf-converter-tests:
     needs: changes

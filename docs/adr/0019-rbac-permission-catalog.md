@@ -5,7 +5,7 @@
 * **Deciders**: engineering
 * **Scope**: `packages/permissions/src/index.ts` (in `packages/api-contracts/src/rbac/permissions.ts` until 2026-11-25), `apps/api/src/domains/rbac/`, `docs/rbac-permission-matrix.md`
 * **Amended by**: [ADR 0032](0032-several-roles-per-resource.md) (a person can hold several roles on one resource)
-* **Amended**: 2026-11-25: the catalog moved to a package of its own, `@caseai-connect/permissions`,
+* **Amended**: 2026-11-25: the catalog moved to a package of its own, `@bayes-platform/permissions`,
   which `api-contracts` and the contracts of the Desk and Evaluation re-export
   ([ADR 0031](0031-frontend-stack-for-agent-built-apps.md), section 2.12)
 

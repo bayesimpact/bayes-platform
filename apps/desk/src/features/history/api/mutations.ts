@@ -1,9 +1,9 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
 import {
   DeskConversationsRoutes,
   DeskCsvExtractionsRoutes,
   DeskExtractionsRoutes,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import type { HistoryEntry } from "../history-entries"

@@ -1,4 +1,4 @@
-import type { TermsDocumentType } from "@caseai-connect/api-contracts"
+import type { TermsDocumentType } from "@bayes-platform/api-contracts"
 import { Column, Entity, Index } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 

@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
@@ -6,9 +6,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
+} from "@bayes-platform/ui/shad/dialog"
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@bayes-platform/ui/shad/field"
+import { Input } from "@bayes-platform/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusCircleIcon, XIcon } from "lucide-react"
 import { type KeyboardEvent, useEffect, useState } from "react"

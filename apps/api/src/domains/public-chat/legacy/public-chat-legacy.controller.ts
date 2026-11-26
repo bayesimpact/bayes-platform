@@ -1,5 +1,5 @@
-import type { StreamEvent } from "@caseai-connect/api-contracts"
-import { PublicChatLegacyRoutes } from "@caseai-connect/api-contracts"
+import type { StreamEvent } from "@bayes-platform/api-contracts"
+import { PublicChatLegacyRoutes } from "@bayes-platform/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
 import {
   Body,

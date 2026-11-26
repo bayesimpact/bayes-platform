@@ -1,7 +1,7 @@
 import {
   type AppInstallationSummaryDto,
   ProjectAppInstallationsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AppInstallation } from "../app-installations.models"
 import type { IAppInstallationsSpi } from "../app-installations.spi"

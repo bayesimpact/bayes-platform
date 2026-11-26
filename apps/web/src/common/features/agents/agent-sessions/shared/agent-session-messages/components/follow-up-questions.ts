@@ -1,4 +1,4 @@
-import { type AgentSessionToolName, ToolName } from "@caseai-connect/api-contracts"
+import { type AgentSessionToolName, ToolName } from "@bayes-platform/api-contracts"
 
 type ToolCall = { name: AgentSessionToolName; arguments: Record<string, unknown> }
 

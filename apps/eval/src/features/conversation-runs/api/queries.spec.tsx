@@ -1,7 +1,7 @@
 import {
   CONVERSATION_RUN_RECORDS_PAGE_SIZE,
   EvalConversationRunsRoutes,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { createQueryClient } from "@/app/query-client"
 import { buildConversationRunRecord } from "@/test/factories/conversation-runs.factory"

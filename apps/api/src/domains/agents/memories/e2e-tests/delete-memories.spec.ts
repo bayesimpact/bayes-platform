@@ -1,4 +1,4 @@
-import { AgentMemoriesRoutes } from "@caseai-connect/api-contracts"
+import { AgentMemoriesRoutes } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

@@ -1,8 +1,8 @@
-import { SUB_AGENT_DESCRIPTION_MAX_LENGTH } from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
+import { SUB_AGENT_DESCRIPTION_MAX_LENGTH } from "@bayes-platform/api-contracts"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Field, FieldLabel } from "@bayes-platform/ui/shad/field"
+import { Input } from "@bayes-platform/ui/shad/input"
 import {
   Item,
   ItemActions,
@@ -10,17 +10,17 @@ import {
   ItemDescription,
   ItemMedia,
   ItemTitle,
-} from "@caseai-connect/ui/shad/item"
+} from "@bayes-platform/ui/shad/item"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Switch } from "@caseai-connect/ui/shad/switch"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+} from "@bayes-platform/ui/shad/select"
+import { Switch } from "@bayes-platform/ui/shad/switch"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@bayes-platform/ui/shad/tooltip"
 import { Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

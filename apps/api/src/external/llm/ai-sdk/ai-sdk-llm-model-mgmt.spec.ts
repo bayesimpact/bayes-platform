@@ -5,7 +5,7 @@ import type {
   LanguageModelV3GenerateResult,
   LanguageModelV3StreamPart,
 } from "@ai-sdk/provider"
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import { type Span, trace } from "@opentelemetry/api"
 import { simulateReadableStream } from "ai"
 import { MockLanguageModelV3 } from "ai/test"

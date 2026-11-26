@@ -1,5 +1,5 @@
 import { createVertex } from "@ai-sdk/google-vertex"
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel } from "@bayes-platform/api-contracts"
 import { embed, embedMany } from "ai"
 import { EmbedderService } from "./embedder.service"
 

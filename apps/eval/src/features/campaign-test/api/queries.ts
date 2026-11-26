@@ -1,4 +1,4 @@
-import { EvalTesterRoutes, type ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import { EvalTesterRoutes, type ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { campaignTestKeys } from "./keys"

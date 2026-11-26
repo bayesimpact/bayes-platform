@@ -9,9 +9,9 @@ site referenced by `VITE_HELP_CENTER_URL` in `apps/web`.
 Run from the repo root (Turbo) or inside `apps/help`:
 
 ```bash
-npx turbo dev --filter=@caseai-connect/help        # dev server (http://localhost:4321)
-npx turbo build --filter=@caseai-connect/help      # static build to apps/help/dist
-npx turbo typecheck --filter=@caseai-connect/help  # astro check (types + templates)
+npx turbo dev --filter=@bayes-platform/help        # dev server (http://localhost:4321)
+npx turbo build --filter=@bayes-platform/help      # static build to apps/help/dist
+npx turbo typecheck --filter=@bayes-platform/help  # astro check (types + templates)
 ```
 
 ## Authoring content

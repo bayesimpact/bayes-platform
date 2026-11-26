@@ -1,4 +1,4 @@
-import { DeskInvitationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskInvitationsRoutes } from "@bayes-platform/desk-contracts"
 import { Controller, Req } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { RouteInput } from "@/common/schema-route/route-input.decorator"

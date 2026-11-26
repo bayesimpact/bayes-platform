@@ -1,21 +1,21 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/ui/shad/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
-import { Item } from "@caseai-connect/ui/shad/item"
+} from "@bayes-platform/ui/shad/dropdown-menu"
+import { Item } from "@bayes-platform/ui/shad/item"
 import {
   type ColumnDef,
   getCoreRowModel,

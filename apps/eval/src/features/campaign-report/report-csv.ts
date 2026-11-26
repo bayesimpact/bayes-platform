@@ -2,7 +2,7 @@ import type {
   CampaignReportDistributionOutputDto,
   CampaignReportOutputDto,
   CampaignReportSessionOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { hasOwnKey } from "@/lib/has-own-key"
 
 const SESSION_HEADER = [

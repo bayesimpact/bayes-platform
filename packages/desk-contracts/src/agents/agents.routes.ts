@@ -1,4 +1,4 @@
-import { defineSchemaRoute } from "@caseai-connect/schema-route"
+import { defineSchemaRoute } from "@bayes-platform/schema-route"
 import { z } from "zod"
 import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { projectAgentOutputSchema } from "./agents.dto"

@@ -1,4 +1,4 @@
-import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import type { ModelInfos } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import {

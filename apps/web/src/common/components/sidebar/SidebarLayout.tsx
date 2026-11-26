@@ -1,6 +1,6 @@
-import { LayoutHeader } from "@caseai-connect/ui/components/layouts/header"
-import { NavUser } from "@caseai-connect/ui/components/layouts/sidebar/NavUser"
-import type { User } from "@caseai-connect/ui/components/layouts/sidebar/types"
+import { LayoutHeader } from "@bayes-platform/ui/components/layouts/header"
+import { NavUser } from "@bayes-platform/ui/components/layouts/sidebar/NavUser"
+import type { User } from "@bayes-platform/ui/components/layouts/sidebar/types"
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarProvider,
-} from "@caseai-connect/ui/shad/sidebar"
+} from "@bayes-platform/ui/shad/sidebar"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { Organization } from "@/common/features/organizations/organizations.models"

@@ -1,4 +1,4 @@
-import { AgentMembershipRoutes } from "@caseai-connect/api-contracts"
+import { AgentMembershipRoutes } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {

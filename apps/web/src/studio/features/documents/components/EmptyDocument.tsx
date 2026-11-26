@@ -5,7 +5,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
+} from "@bayes-platform/ui/shad/empty"
 import { FileIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { UploadDocumentsButton } from "./UploadDocumentsButton"

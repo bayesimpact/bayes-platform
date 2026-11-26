@@ -1,4 +1,4 @@
-import type { CampaignSessionParamsDto } from "@caseai-connect/eval-contracts"
+import type { CampaignSessionParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"

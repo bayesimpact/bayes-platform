@@ -1,7 +1,7 @@
 import {
   AgentMessageFeedbackRoutes,
   type CreateAgentMessageFeedbackDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"

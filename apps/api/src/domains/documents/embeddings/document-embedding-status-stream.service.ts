@@ -1,4 +1,4 @@
-import type { DocumentEmbeddingStatusChangedEventDto } from "@caseai-connect/api-contracts"
+import type { DocumentEmbeddingStatusChangedEventDto } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { PostgresStatusStreamService } from "@/common/sse/postgres-status-stream.service"
 import { DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL } from "./document-embedding-status.constants"

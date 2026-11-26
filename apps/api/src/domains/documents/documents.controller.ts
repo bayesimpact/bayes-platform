@@ -3,7 +3,7 @@ import {
   type DocumentSourceType,
   DocumentsRoutes,
   type PresignFileResponseItemDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Body,
   Controller,

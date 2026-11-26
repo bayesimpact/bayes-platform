@@ -1,11 +1,11 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
+} from "@bayes-platform/ui/shad/empty"
 import { InfoIcon, LayoutGridIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"

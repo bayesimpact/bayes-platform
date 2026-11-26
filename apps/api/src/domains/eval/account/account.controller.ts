@@ -1,5 +1,5 @@
-import { buildNameFromEmail } from "@caseai-connect/api-contracts"
-import { EvalAccountRoutes, type MeUserOutputDto } from "@caseai-connect/eval-contracts"
+import { buildNameFromEmail } from "@bayes-platform/api-contracts"
+import { EvalAccountRoutes, type MeUserOutputDto } from "@bayes-platform/eval-contracts"
 import { Controller, Req } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { SchemaRoute } from "@/common/schema-route/schema-route.decorator"

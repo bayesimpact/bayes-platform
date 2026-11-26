@@ -174,7 +174,7 @@ File: `apps/api/src/domains/{featureName}/{entityNamePlural}.controller.ts`
 
 Pattern: `apps/api/src/domains/agents/agents.controller.ts`
 
-- Import `{EntityName}sRoutes` from `"@caseai-connect/api-contracts"`
+- Import `{EntityName}sRoutes` from `"@bayes-platform/api-contracts"`
 - `@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)` at class level
 - `@RequireContext("organization", "project")` at class level (adjust scopes based on entity's parent relations)
 - Only generate `@Post`, `@Get`, `@Patch`, `@Delete` methods for requested operations
@@ -406,7 +406,7 @@ File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.models.t
 
 Pattern: `apps/web/src/features/agents/agents.models.ts`
 
-- Export a `type {EntityName} = { ... }` mirroring the DTO fields, using frontend-friendly types (import shared types from `"@caseai-connect/api-contracts"` when needed, use `TimeType` for timestamps)
+- Export a `type {EntityName} = { ... }` mirroring the DTO fields, using frontend-friendly types (import shared types from `"@bayes-platform/api-contracts"` when needed, use `TimeType` for timestamps)
 - Export a `{entityNameCamel}Schema = z.object({ ... }).strict()` Zod schema for the core fields
 
 ### 4n. Frontend — SPI
@@ -429,7 +429,7 @@ File: `apps/web/src/features/{entityNameKebabPlural}/external/{entityNamePlural}
 
 Pattern: `apps/web/src/features/agents/external/agents.api.ts`
 
-- Import `{EntityName}sRoutes` from `"@caseai-connect/api-contracts"` and `getAxiosInstance` from `"@/external/axios"`
+- Import `{EntityName}sRoutes` from `"@bayes-platform/api-contracts"` and `getAxiosInstance` from `"@/external/axios"`
 - Export a default object `satisfies I{EntityName}sSpi` with only the methods matching requested operations
 - For each method:
   - Use `{EntityName}sRoutes.{method}.getPath(params)` where `{method}` is `getAll` / `getOne` / `createOne` / `updateOne` / `deleteOne`

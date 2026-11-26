@@ -1,5 +1,5 @@
 {
-  "name": "@caseai-connect/api-contracts",
+  "name": "@bayes-platform/api-contracts",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -25,7 +25,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@caseai-connect/permissions": "*",
+    "@bayes-platform/permissions": "*",
     "@nestjs/mapped-types": "*"
   },
   "devDependencies": {

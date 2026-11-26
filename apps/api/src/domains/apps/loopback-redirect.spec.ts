@@ -5,7 +5,7 @@ import {
   isLoopbackHostname,
   isLoopbackRedirectUri,
   parseLoopbackRedirectUri,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 describe("loopback redirect URIs", () => {
   it("accepts RFC 8252 loopback hosts and RFC 6761 *.localhost", () => {

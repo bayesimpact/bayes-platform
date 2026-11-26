@@ -1,4 +1,4 @@
-import type { ReplaceAgentSubAgentDto } from "@caseai-connect/api-contracts"
+import type { ReplaceAgentSubAgentDto } from "@bayes-platform/api-contracts"
 import { Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI

@@ -1,4 +1,4 @@
-import type { EmbeddingModel, ProjectEmbeddingModelStatus } from "@caseai-connect/api-contracts"
+import type { EmbeddingModel, ProjectEmbeddingModelStatus } from "@bayes-platform/api-contracts"
 import { Column, Index } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 

@@ -1,4 +1,4 @@
-import type { SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type { SuccessResponseDTO } from "@bayes-platform/api-contracts"
 import type {
   ConversationAgentSession,
   ConversationSubSession,

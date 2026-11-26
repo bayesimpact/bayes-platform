@@ -1,4 +1,4 @@
-import { type DocumentTagDto, DocumentTagsRoutes } from "@caseai-connect/api-contracts"
+import { type DocumentTagDto, DocumentTagsRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { DocumentTag } from "../document-tags.models"
 import type { IDocumentTagsSpi } from "../document-tags.spi"

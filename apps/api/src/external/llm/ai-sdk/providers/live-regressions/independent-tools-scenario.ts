@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@bayes-platform/api-contracts"
 import { wrapLanguageModel } from "ai"
 import type { LLMCallContext, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"

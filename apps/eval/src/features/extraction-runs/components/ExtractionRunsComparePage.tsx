@@ -4,7 +4,7 @@ import type {
   ExtractionRunOutputDto,
   ExtractionRunRecordOutputDto,
   ExtractionRunRecordsOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { type UseQueryResult, useQueries, useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"

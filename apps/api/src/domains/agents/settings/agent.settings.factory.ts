@@ -5,7 +5,7 @@ import {
   DocumentsRagMode,
   EmbeddingModel,
   FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"

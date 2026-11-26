@@ -2,7 +2,7 @@ import {
   extractPromptVariables,
   GREETING_MESSAGE_MAX_LENGTH,
   updateAgentSettingsGeneralSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Form,
   FormControl,
@@ -11,10 +11,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Switch } from "@caseai-connect/ui/shad/switch"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Switch } from "@bayes-platform/ui/shad/switch"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"

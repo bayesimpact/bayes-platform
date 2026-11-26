@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import { useConversationTitle } from "../hooks/use-conversation-title"
 
 export type ConversationTitleProps = {

@@ -1,4 +1,4 @@
-import type { ReviewCampaignDetailOutputDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignDetailOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { StatCard } from "@/components/shared/StatCard"
 import { meanRatingOf } from "@/lib/format-rating"

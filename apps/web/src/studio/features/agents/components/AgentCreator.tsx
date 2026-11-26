@@ -1,13 +1,13 @@
-import { agentValidationSchema, type CreateAgentDto } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { agentValidationSchema, type CreateAgentDto } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
+} from "@bayes-platform/ui/shad/dialog"
+import { Field, FieldLabel } from "@bayes-platform/ui/shad/field"
 import {
   Form,
   FormControl,
@@ -15,9 +15,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { cn } from "@caseai-connect/ui/utils"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { cn } from "@bayes-platform/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusCircleIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"

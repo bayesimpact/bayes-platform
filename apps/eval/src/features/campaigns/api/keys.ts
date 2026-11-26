@@ -1,4 +1,4 @@
-import type { ProjectParamsDto, ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type { ProjectParamsDto, ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 
 export const campaignKeys = {
   all: ["campaigns"] as const,

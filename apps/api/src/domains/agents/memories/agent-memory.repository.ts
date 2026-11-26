@@ -1,4 +1,4 @@
-import type { AgentMemoryStatus } from "@caseai-connect/api-contracts"
+import type { AgentMemoryStatus } from "@bayes-platform/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { In, LessThan, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"

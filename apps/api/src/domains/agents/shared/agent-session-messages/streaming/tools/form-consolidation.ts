@@ -2,7 +2,7 @@ import {
   getOrderedPropertyEntries,
   type OutputJsonSchemaProperty,
   type outputJsonSchemaSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Logger } from "@nestjs/common"
 import type { z } from "zod"
 import type {

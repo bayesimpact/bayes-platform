@@ -4,7 +4,7 @@ import {
   type ConversationDatasetRecordOutputDto,
   EvalConversationDatasetsRoutes,
   type ProjectParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { conversationDatasetKeys } from "./keys"

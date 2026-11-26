@@ -1,5 +1,5 @@
-import type { ConversationDatasetRecordInputDto } from "@caseai-connect/eval-contracts"
-import { CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/eval-contracts"
+import type { ConversationDatasetRecordInputDto } from "@bayes-platform/eval-contracts"
+import { CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@bayes-platform/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useId, useState } from "react"
 import { Button } from "@/components/ui/button"

@@ -43,14 +43,14 @@ where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no too
 | App | React 19 with the React Compiler, Vite, TypeScript in strict mode |
 | Routing | TanStack Router, file-based through its Vite plugin |
 | Server state | TanStack Query |
-| API client | `@caseai-connect/api-client`, one `fetch` wrapper driven by the route objects and their schemas, created in the app's `lib/api-client.ts` |
+| API client | `@bayes-platform/api-client`, one `fetch` wrapper driven by the route objects and their schemas, created in the app's `lib/api-client.ts` |
 | Validation | Zod 4, in the app's contracts package: the schemas of what it sends and reads |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
 | Tables | TanStack Table v8, rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, each other language in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
-| Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@caseai-connect/mcp-app-host` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only: any other extension waits for a human's go) |
-| Sign-in | `@caseai-connect/sign-in`, on `oidc-client-ts`, wrapped by the app's `lib/auth/session.ts` |
+| Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@bayes-platform/mcp-app-host` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only: any other extension waits for a human's go) |
+| Sign-in | `@bayes-platform/sign-in`, on `oidc-client-ts`, wrapped by the app's `lib/auth/session.ts` |
 | Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10, Playwright |
 | Quality | Biome, dependency-cruiser, knip |
 
@@ -98,10 +98,10 @@ exports and dependencies:
 - `components/` and `lib/` import neither `features/` nor `routes/`.
 - The app imports nothing from another app or from a package another app owns. Its workspace
   dependencies are its contracts package and the packages no app owns and every app imports
-  (ADR 0031, section 2.4): `@caseai-connect/mcp-app-host`, the sandbox of MCP Apps,
-  `@caseai-connect/sign-in`, the sign-in, and `@caseai-connect/api-client`, the API client. Only
-  `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports `oidc-client-ts`, and
-  only `lib/api-client.ts` imports `@caseai-connect/api-client`: it creates the app's client with
+  (ADR 0031, section 2.4): `@bayes-platform/mcp-app-host`, the sandbox of MCP Apps,
+  `@bayes-platform/sign-in`, the sign-in, and `@bayes-platform/api-client`, the API client. Only
+  `lib/auth/` imports `@bayes-platform/sign-in`, no code of the app imports `oidc-client-ts`, and
+  only `lib/api-client.ts` imports `@bayes-platform/api-client`: it creates the app's client with
   the functions of `lib/auth/session.ts`, and the rest of the app imports it.
 - `src/test/` serves the tests and the stories only: no app code imports it.
 - No cycles.
@@ -346,13 +346,13 @@ or editing the boundaries' configuration.
 
 Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`,
 Evaluation's is `packages/eval-contracts`), the routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
-Zod, `@caseai-connect/permissions` and `@caseai-connect/schema-route` alone, and imports nothing
+Zod, `@bayes-platform/permissions` and `@bayes-platform/schema-route` alone, and imports nothing
 from `packages/api-contracts`. The app reads its source. When the app
 has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
 build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
 - A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`,
-  which the package re-exports from `@caseai-connect/schema-route` (`packages/schema-route`) with
+  which the package re-exports from `@bayes-platform/schema-route` (`packages/schema-route`) with
   the error body. It returns `path`, `getPath` and `method`, as `defineRoute` does, plus its
   `schemas`, with no phantom `request` and `response`. It refuses at compile time a `params` schema whose keys
   differ from the path's `:name` segments, and adds the `{ payload }` and `{ data }` envelopes.
@@ -365,7 +365,7 @@ build (`dist`) and serves its routes with the same schemas (see Endpoints). One 
   never written by hand.
 - The package defines its own enums and constants with `z.enum` and `as const` objects. A
   permission string is never written there: the package re-exports the constant of
-  `@caseai-connect/permissions` (`packages/permissions`), the one declaration of the catalog
+  `@bayes-platform/permissions` (`packages/permissions`), the one declaration of the catalog
   (`DESK_UI_READ_PERMISSION`).
 - Response schemas use JSON types only, with no transform, pipe or codec. Dates are epoch
   milliseconds, as the API sends them. Ids are `z.uuid()`, enums `z.enum`, input objects
@@ -470,8 +470,8 @@ and empty states.
   workspace package. In `packages/schema-route`: a route, a schema of an app, React, a text shown
   to people, a dependency beyond Zod, or an import of another workspace package. In
   `packages/api-client`: a route, React, a text shown to people, the app's session (it takes it
-  from the app), or a dependency beyond Zod, `@caseai-connect/schema-route` and
-  `@caseai-connect/sign-in`. In `packages/frontend-config`: a rule for one app only, or a
+  from the app), or a dependency beyond Zod, `@bayes-platform/schema-route` and
+  `@bayes-platform/sign-in`. In `packages/frontend-config`: a rule for one app only, or a
   dependency.
 - A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
   installed. An extension reads what the person pastes or drops and decides what the editor turns

@@ -1,4 +1,4 @@
-import { defineSchemaRoute } from "@caseai-connect/schema-route"
+import { defineSchemaRoute } from "@bayes-platform/schema-route"
 import {
   acceptTermsInputSchema,
   acceptTermsOutputSchema,

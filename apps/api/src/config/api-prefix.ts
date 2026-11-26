@@ -1,4 +1,4 @@
-import { PUBLIC_PATH_PREFIX } from "@caseai-connect/api-contracts"
+import { PUBLIC_PATH_PREFIX } from "@bayes-platform/api-contracts"
 import { type INestApplication, RequestMethod } from "@nestjs/common"
 
 /**

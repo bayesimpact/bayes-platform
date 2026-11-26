@@ -1,18 +1,18 @@
 import {
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE,
-} from "@caseai-connect/api-contracts"
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
+} from "@bayes-platform/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@bayes-platform/ui/shad/alert"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connect/ui/shad/empty"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+} from "@bayes-platform/ui/shad/dropdown-menu"
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@bayes-platform/ui/shad/empty"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { EllipsisVerticalIcon, Trash2Icon, TriangleAlertIcon, XIcon } from "lucide-react"
 import { useMemo, useState } from "react"

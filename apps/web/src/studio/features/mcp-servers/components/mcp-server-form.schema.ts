@@ -1,4 +1,4 @@
-import { updateMcpServerSchema } from "@caseai-connect/api-contracts"
+import { updateMcpServerSchema } from "@bayes-platform/api-contracts"
 import type { z } from "zod"
 
 /**

@@ -3,7 +3,7 @@ import type {
   CreateResourceDto,
   ResourceDto,
   UpdateResourceDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"

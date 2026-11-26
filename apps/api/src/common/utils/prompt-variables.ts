@@ -3,14 +3,14 @@ import {
   findMissingPromptVariables,
   hasPromptVariableValue,
   PROMPT_VARIABLE_PLACEHOLDER,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { BadRequestException } from "@nestjs/common"
 
 /**
  * The {{variables}} an agent declares in its instructions.
  *
  * The parse (which variables a prompt declares) lives in the shared
- * `@caseai-connect/api-contracts` package, so the API and the studio UI agree on
+ * `@bayes-platform/api-contracts` package, so the API and the studio UI agree on
  * it. This module keeps the session-side resolution: substituting the declared
  * variables with their resolved values and refusing a session or a turn that is
  * missing one.

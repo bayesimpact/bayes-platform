@@ -1,7 +1,7 @@
 import {
   CONVERSATION_REVIEW_UNCATEGORIZED_CATEGORY,
   ConversationReviewRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { IConversationReviewSpi } from "../conversation-review.spi"
 

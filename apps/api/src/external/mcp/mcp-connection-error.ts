@@ -1,7 +1,7 @@
 import type {
   McpServerConnectionErrorCode,
   McpServerConnectionErrorDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 const MAX_DETAIL_LENGTH = 300
 

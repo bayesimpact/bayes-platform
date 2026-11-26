@@ -1,4 +1,4 @@
-import type { DocumentSourceType } from "@caseai-connect/api-contracts"
+import type { DocumentSourceType } from "@bayes-platform/api-contracts"
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Document } from "./documents.models"

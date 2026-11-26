@@ -4,7 +4,7 @@ import { z } from "zod"
  * Reading a project, and opening its Desk: the projects that grant `desk.ui.read` are the ones the
  * Desk's home lists.
  */
-export { DESK_UI_READ_PERMISSION, PROJECT_READ_PERMISSION } from "@caseai-connect/permissions"
+export { DESK_UI_READ_PERMISSION, PROJECT_READ_PERMISSION } from "@bayes-platform/permissions"
 
 /** The feature of a project that shows the sources a reply relied on, under the reply. */
 export const SOURCES_TOOL_FEATURE_FLAG = "sources-tool" as const

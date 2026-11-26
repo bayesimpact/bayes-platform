@@ -1,4 +1,4 @@
-import type { CsvColumnDto, CsvExtractionRecordOutputDto } from "@caseai-connect/desk-contracts"
+import type { CsvColumnDto, CsvExtractionRecordOutputDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { fileValueOf } from "../csv-records"

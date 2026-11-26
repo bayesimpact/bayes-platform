@@ -1,4 +1,4 @@
-import type { AgentSessionMessageDto } from "@caseai-connect/api-contracts"
+import type { AgentSessionMessageDto } from "@bayes-platform/api-contracts"
 
 /**
  * What the launcher may show next to its button while the chat is closed: the opening message of

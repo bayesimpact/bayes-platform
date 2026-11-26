@@ -1,12 +1,12 @@
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Label } from "@caseai-connect/ui/shad/label"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Label } from "@bayes-platform/ui/shad/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
+} from "@bayes-platform/ui/shad/select"
 import { useTranslation } from "react-i18next"
 import {
   type ModelOptionFields,

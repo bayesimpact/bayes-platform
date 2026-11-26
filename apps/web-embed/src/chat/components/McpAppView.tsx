@@ -3,14 +3,14 @@ import {
   type McpAppCsp,
   type McpAppMount,
   mountMcpApp,
-} from "@caseai-connect/mcp-app-host"
+} from "@bayes-platform/mcp-app-host"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { MCP_APP_SANDBOX_ORIGIN } from "../../api/api-base"
 import { cn } from "../lib/cn"
 import { DotGridLoader } from "./DotGrid"
 
-const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
+const HOST_INFO = { name: "bayes-platform", version: "1.0.0" }
 const INITIAL_IFRAME_HEIGHT_PX = 72
 
 /**
@@ -38,7 +38,7 @@ export function McpAppPlaceholder({ className }: { className?: string }) {
 
 /**
  * An MCP App card, run in the sandbox every app of the platform shares
- * (`@caseai-connect/mcp-app-host`): this component renders the frame, and the shared host does
+ * (`@bayes-platform/mcp-app-host`): this component renders the frame, and the shared host does
  * the handshake, hands the app its tool data and answers what it asks for. The widget takes no
  * message from an app, which the app learns at the handshake.
  */

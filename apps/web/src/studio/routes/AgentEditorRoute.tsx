@@ -1,4 +1,4 @@
-import { DOCUMENT_READ_PERMISSION } from "@caseai-connect/api-contracts"
+import { DOCUMENT_READ_PERMISSION } from "@bayes-platform/api-contracts"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { agentSettingsActions } from "@/common/features/agents/agent-settings/agent-settings.slice"
 import {

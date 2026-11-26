@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ResolveMemoryProposalsInputDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, ResolveMemoryProposalsInputDto } from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { BrainIcon, CheckIcon, PencilIcon, XIcon } from "lucide-react"

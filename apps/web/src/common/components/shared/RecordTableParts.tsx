@@ -1,8 +1,8 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
-import { cn } from "@caseai-connect/ui/utils"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@bayes-platform/ui/shad/popover"
+import { cn } from "@bayes-platform/ui/utils"
 import type { Column } from "@tanstack/react-table"
 import {
   ArrowDownIcon,

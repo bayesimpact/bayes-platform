@@ -1,4 +1,4 @@
-import { PublicChatRoutes, type PublicStreamEventPayload } from "@caseai-connect/api-contracts"
+import { PublicChatRoutes, type PublicStreamEventPayload } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import {
   type DynamicModule,

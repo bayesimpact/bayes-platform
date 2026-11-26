@@ -1,4 +1,4 @@
-import { DOCUMENT_SOURCE_READ_PERMISSION } from "@caseai-connect/api-contracts"
+import { DOCUMENT_SOURCE_READ_PERMISSION } from "@bayes-platform/api-contracts"
 import {
   selectCurrentProjectData,
   selectCurrentProjectId,

@@ -1,4 +1,4 @@
-import type { McpAppCspDto } from "@caseai-connect/api-contracts"
+import type { McpAppCspDto } from "@bayes-platform/api-contracts"
 
 export const MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 

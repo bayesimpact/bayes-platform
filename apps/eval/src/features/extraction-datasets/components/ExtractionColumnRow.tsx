@@ -1,4 +1,4 @@
-import type { ExtractionDatasetSetupInputDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionDatasetSetupInputDto } from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { type Control, Controller } from "react-hook-form"
 import { Checkbox } from "@/components/ui/checkbox"

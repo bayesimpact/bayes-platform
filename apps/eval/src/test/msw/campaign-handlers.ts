@@ -9,7 +9,7 @@ import {
   EvalTesterRoutes,
   type MeOutputDto,
   type ReviewCampaignDetailOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { buildAgentVersions } from "../factories/agents.factory"
 import { buildConversationMessage, buildToolCall } from "../factories/conversations.factory"
 import type { EvalWorld } from "../factories/eval-world.factory"

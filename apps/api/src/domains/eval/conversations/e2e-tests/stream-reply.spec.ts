@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { EvalConversationsRoutes, type ReplyStreamEventDto } from "@caseai-connect/eval-contracts"
+import { EvalConversationsRoutes, type ReplyStreamEventDto } from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import supertest from "supertest"
 import type { App } from "supertest/types"

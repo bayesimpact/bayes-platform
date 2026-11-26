@@ -1,10 +1,10 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import {
   DeskConversationsRoutes,
   type ReplyStreamEventDto,
   replyStreamEventSchema,
   TOOL_NAMES,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import { invalidateAgentHistory } from "@/features/history"

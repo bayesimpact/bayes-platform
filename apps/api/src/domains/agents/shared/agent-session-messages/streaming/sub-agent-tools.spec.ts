@@ -1,4 +1,4 @@
-import { DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { DocumentsRagMode } from "@bayes-platform/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
 import type { AdditionalMetadata } from "@/common/interfaces/llm-provider.interface"

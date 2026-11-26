@@ -2,7 +2,7 @@ import {
   type AgentRevisionDto,
   AgentsRoutes,
   type AgentWithDraftDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { Agent } from "../agents.models"
 import type { IAgentsSpi } from "../agents.spi"

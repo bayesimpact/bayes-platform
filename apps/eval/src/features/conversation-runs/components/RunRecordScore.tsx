@@ -1,4 +1,4 @@
-import type { ConversationRunRecordOutputDto } from "@caseai-connect/eval-contracts"
+import type { ConversationRunRecordOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Badge } from "@/components/ui/badge"
 import { scoreOf } from "../score"

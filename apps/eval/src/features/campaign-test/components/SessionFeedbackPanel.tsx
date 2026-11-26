@@ -1,7 +1,7 @@
 import type {
   CampaignContextOutputDto,
   CampaignSessionParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { SessionFeedbackForm } from "./SessionFeedbackForm"

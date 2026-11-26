@@ -1,4 +1,4 @@
-import { TOOL_NAMES, type ToolName } from "@caseai-connect/eval-contracts"
+import { TOOL_NAMES, type ToolName } from "@bayes-platform/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"

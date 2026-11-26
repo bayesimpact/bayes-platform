@@ -1,4 +1,4 @@
-import type { ProjectMembershipDto } from "@caseai-connect/api-contracts"
+import type { ProjectMembershipDto } from "@bayes-platform/api-contracts"
 import { toMembershipRoleDto } from "@/domains/rbac/membership-roles"
 import type { ResolvedRole } from "@/domains/rbac/permission.types"
 import { unionRolePermissions } from "@/domains/rbac/union-role-permissions"

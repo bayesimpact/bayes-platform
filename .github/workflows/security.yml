@@ -37,7 +37,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on API
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: 'caseai-connect/api:local'
+          image-ref: 'bayes-platform/api:local'
           format: 'json'
           exit-code: '1'
           ignore-unfixed: true
@@ -50,7 +50,7 @@ jobs:
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: 'caseai-connect/cpu-workers:local'
+          image-ref: 'bayes-platform/cpu-workers:local'
           format: 'json'
           exit-code: '1'
           ignore-unfixed: true
@@ -63,7 +63,7 @@ jobs:
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: 'caseai-connect/gpu-workers:local'
+          image-ref: 'bayes-platform/gpu-workers:local'
           format: 'json'
           exit-code: '1'
           ignore-unfixed: true
@@ -76,7 +76,7 @@ jobs:
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: 'caseai-connect/pdf-converter:local'
+          image-ref: 'bayes-platform/pdf-converter:local'
           format: 'json'
           exit-code: '1'
           ignore-unfixed: true

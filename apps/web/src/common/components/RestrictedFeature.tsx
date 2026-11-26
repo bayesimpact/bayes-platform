@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { FeatureFlagKey } from "@bayes-platform/api-contracts"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { selectCurrentProjectData } from "../features/projects/projects.selectors"
 import { useValue } from "../hooks/use-value"

@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import { Test } from "@nestjs/testing"
 import { LlmModule } from "@/external/llm/llm.module"
 import { WorkspaceModelsService } from "@/external/llm/workspace-models/workspace-models.service"

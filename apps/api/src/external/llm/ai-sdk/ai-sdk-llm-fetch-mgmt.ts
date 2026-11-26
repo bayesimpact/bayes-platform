@@ -1,4 +1,4 @@
-import type { AgentProvider } from "@caseai-connect/api-contracts"
+import type { AgentProvider } from "@bayes-platform/api-contracts"
 import { Agent, fetch as undiciFetch } from "undici"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMModelMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"

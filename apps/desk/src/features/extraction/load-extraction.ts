@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto } from "@bayes-platform/desk-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { extractionDocumentsQueryOptions } from "@/features/history"
 import { orNotFound } from "@/lib/not-found"

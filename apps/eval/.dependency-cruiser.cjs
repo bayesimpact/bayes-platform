@@ -17,16 +17,16 @@ module.exports = {
       severity: "error",
       comment:
         "The app imports nothing from another app or from a package another app owns. Its " +
-        "workspace dependencies are @caseai-connect/eval-contracts and the packages no app " +
-        "owns: @caseai-connect/api-client, @caseai-connect/mcp-app-host and " +
-        "@caseai-connect/sign-in (ADR 0031, section 2.4).",
+        "workspace dependencies are @bayes-platform/eval-contracts and the packages no app " +
+        "owns: @bayes-platform/api-client, @bayes-platform/mcp-app-host and " +
+        "@bayes-platform/sign-in (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/eval.
           "^\\.\\./(?!\\.\\./|eval/)[^/]+/",
           "^\\.\\./\\.\\./packages/(?!(api-client|eval-contracts|mcp-app-host|sign-in)/)",
-          "node_modules/@caseai-connect/(?!(api-client|eval-contracts|mcp-app-host|sign-in)(/|$))",
+          "node_modules/@bayes-platform/(?!(api-client|eval-contracts|mcp-app-host|sign-in)(/|$))",
           "node_modules/@repo/",
         ],
       },
@@ -59,10 +59,10 @@ module.exports = {
       severity: "error",
       comment:
         "lib/auth/session.ts is the app's sign-in: the rest of the app reads it, never " +
-        "@caseai-connect/sign-in or the OIDC client that package wraps.",
+        "@bayes-platform/sign-in or the OIDC client that package wraps.",
       from: { path: "^src/", pathNot: "^src/lib/auth/" },
       to: {
-        path: ["node_modules/oidc-client-ts/", "(node_modules/@caseai-connect|packages)/sign-in/"],
+        path: ["node_modules/oidc-client-ts/", "(node_modules/@bayes-platform|packages)/sign-in/"],
       },
     },
     {
@@ -70,9 +70,9 @@ module.exports = {
       severity: "error",
       comment:
         "lib/api-client.ts is the app's API client, on the app's session: the rest of the app " +
-        "reads it, never @caseai-connect/api-client.",
+        "reads it, never @bayes-platform/api-client.",
       from: { path: "^src/", pathNot: "^src/lib/api-client\\.ts$" },
-      to: { path: "(node_modules/@caseai-connect|packages)/api-client/" },
+      to: { path: "(node_modules/@bayes-platform|packages)/api-client/" },
     },
     {
       name: "test-code-stays-in-tests",

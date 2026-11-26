@@ -1,4 +1,4 @@
-import type { DocumentDto } from "@caseai-connect/api-contracts"
+import type { DocumentDto } from "@bayes-platform/api-contracts"
 
 export type Document = DocumentDto
 

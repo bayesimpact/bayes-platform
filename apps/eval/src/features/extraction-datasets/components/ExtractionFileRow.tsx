@@ -1,4 +1,4 @@
-import type { ExtractionDatasetFileOutputDto } from "@caseai-connect/eval-contracts"
+import type { ExtractionDatasetFileOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { FileSpreadsheetIcon } from "lucide-react"
 import { TimeAgo } from "@/components/shared/TimeAgo"

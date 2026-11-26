@@ -3,18 +3,18 @@ import {
   type AnyStreamRoute,
   type ErrorOutputDto,
   errorOutputSchema,
-} from "@caseai-connect/schema-route"
+} from "@bayes-platform/schema-route"
 import {
   AuthenticationRequiredError,
   SignInLoopError,
   SignInRefusedError,
   signInRefusalOf,
-} from "@caseai-connect/sign-in"
+} from "@bayes-platform/sign-in"
 import { z } from "zod"
 
 /**
  * What the client needs of the app's session: the app's `lib/auth/session.ts`, which wraps
- * `@caseai-connect/sign-in` with the app's namespace and its mock mode.
+ * `@bayes-platform/sign-in` with the app's namespace and its mock mode.
  */
 export type ApiClientSession = {
   getAccessToken: (options: { forceRefresh: boolean }) => Promise<string>

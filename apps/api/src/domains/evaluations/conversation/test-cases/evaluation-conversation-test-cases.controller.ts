@@ -1,4 +1,4 @@
-import { EvaluationConversationTestCasesRoutes } from "@caseai-connect/api-contracts"
+import { EvaluationConversationTestCasesRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, ForbiddenException, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

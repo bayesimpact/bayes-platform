@@ -1,4 +1,4 @@
-import { BreadcrumbItem } from "@caseai-connect/ui/shad/breadcrumb"
+import { BreadcrumbItem } from "@bayes-platform/ui/shad/breadcrumb"
 import { useTranslation } from "react-i18next"
 import { useIsRoute } from "@/common/hooks/use-is-route"
 import { StudioRoutes } from "@/studio/routes/helpers"

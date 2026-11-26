@@ -1,4 +1,4 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@bayes-platform/api-contracts"
 import { AGENT_DEFAULT_MODELS } from "@/domains/agents/settings/agent-models.service"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import { AISDKAnthropicProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-anthropic.provider"

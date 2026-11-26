@@ -4,8 +4,8 @@ import type {
   CsvExtractionRunDetailOutputDto,
   CsvExtractionRunStatusDto,
   ExtractionRunDetailOutputDto,
-} from "@caseai-connect/desk-contracts"
-import { DeskCsvExtractionsRoutes, DeskExtractionsRoutes } from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
+import { DeskCsvExtractionsRoutes, DeskExtractionsRoutes } from "@bayes-platform/desk-contracts"
 import { keepPreviousData, queryOptions } from "@tanstack/react-query"
 import { ApiError, apiRequest } from "@/lib/api-client"
 import { pollWhile } from "@/lib/polling"

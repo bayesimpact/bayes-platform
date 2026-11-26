@@ -5,7 +5,7 @@ import {
   AttachmentContent,
   AttachmentMedia,
   AttachmentTitle,
-} from "@caseai-connect/ui/shad/attachment"
+} from "@bayes-platform/ui/shad/attachment"
 import { ExternalLinkIcon, FileTextIcon } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"

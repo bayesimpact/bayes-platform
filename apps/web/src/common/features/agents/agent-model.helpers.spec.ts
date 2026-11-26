@@ -1,4 +1,4 @@
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import { agentModelsCatalogFactory } from "./agent.factory"

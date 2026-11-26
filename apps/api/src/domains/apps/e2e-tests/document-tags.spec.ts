@@ -7,7 +7,7 @@ import {
   DOCUMENT_TAG_READ_PERMISSION,
   DOCUMENT_TAG_UPDATE_PERMISSION,
   PUBLIC_DOCUMENTS_TAG_NAME,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"

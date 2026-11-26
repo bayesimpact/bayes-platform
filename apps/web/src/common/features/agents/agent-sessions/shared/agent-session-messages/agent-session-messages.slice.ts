@@ -1,4 +1,4 @@
-import type { AgentSessionToolName } from "@caseai-connect/api-contracts"
+import type { AgentSessionToolName } from "@bayes-platform/api-contracts"
 import { createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"

@@ -1,4 +1,4 @@
-import { AGENT_MEMORY_MAX_SAVED_PER_USER, AgentMemoryMode } from "@caseai-connect/api-contracts"
+import { AGENT_MEMORY_MAX_SAVED_PER_USER, AgentMemoryMode } from "@bayes-platform/api-contracts"
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "@jest/globals"
 import { v4 } from "uuid"
 import {

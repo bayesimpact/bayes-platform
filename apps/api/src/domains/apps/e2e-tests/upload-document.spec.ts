@@ -4,7 +4,7 @@ import {
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
   DOCUMENT_UPLOAD_MAX_BYTES,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"

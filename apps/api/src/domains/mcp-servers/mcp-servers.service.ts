@@ -3,7 +3,7 @@ import type {
   McpServerAuthStatus,
   McpServerInspectionDto,
   UpdateMcpServerDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   ForbiddenException,

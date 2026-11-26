@@ -5,7 +5,7 @@ import {
   type ProjectMembershipDto,
   ProjectMembershipRoutes,
   ReviewCampaignsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { MemberResource, MemberRoles, ProjectMembership } from "../project-memberships.models"
 import type { IProjectMembershipsSpi } from "../project-memberships.spi"

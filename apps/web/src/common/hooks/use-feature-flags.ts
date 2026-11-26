@@ -1,4 +1,4 @@
-import type { FeatureFlagKey, FeatureFlagsDto } from "@caseai-connect/api-contracts"
+import type { FeatureFlagKey, FeatureFlagsDto } from "@bayes-platform/api-contracts"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import type { RootState } from "@/common/store"
 import { ADS } from "@/common/store/async-data-status"

@@ -5,7 +5,7 @@ import {
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
   EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"

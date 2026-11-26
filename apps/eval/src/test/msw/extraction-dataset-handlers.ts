@@ -1,4 +1,4 @@
-import { EvalExtractionDatasetsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalExtractionDatasetsRoutes } from "@bayes-platform/eval-contracts"
 import { HttpResponse, http } from "msw"
 import type { EvalWorld } from "../factories/eval-world.factory"
 import {

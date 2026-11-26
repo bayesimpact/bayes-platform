@@ -1,4 +1,4 @@
-import type { ConversationFormOutputDto } from "@caseai-connect/eval-contracts"
+import type { ConversationFormOutputDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { formFieldsOf } from "../form-fields"
 

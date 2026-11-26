@@ -7,7 +7,7 @@ import {
   duplicateAgentSchema,
   replaceAgentSubAgentsSchema,
   updateAgentNameSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Body,
   Controller,

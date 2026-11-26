@@ -3,7 +3,7 @@ import type {
   LanguageModelV3GenerateResult,
   LanguageModelV3StreamPart,
 } from "@ai-sdk/provider"
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import type { Logger } from "@nestjs/common"
 import { Test } from "@nestjs/testing"
 import {

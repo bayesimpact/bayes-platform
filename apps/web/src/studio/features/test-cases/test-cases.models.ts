@@ -2,7 +2,7 @@ import type {
   EvaluationConversationTestCaseDto,
   EvaluationConversationTestCaseInputDraftDto,
   EvaluationConversationTestCaseInputMode,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 /** Whether the agent should keep giving the answer, or stop giving it. */
 export type TestCaseVerdict = "good" | "bad"

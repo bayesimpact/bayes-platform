@@ -4,7 +4,7 @@ import {
   EvalDocumentsRoutes,
   type MessageFeedbackInputDto,
   type MessageParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { openInTab } from "@/lib/safe-url"

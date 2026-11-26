@@ -5,7 +5,7 @@ import {
   type ExtractionRunRecordOutputDto,
   extractionRunOutputSchema,
   extractionRunRecordOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { columnIdOf, type ExtractionDatasetEntry } from "./extraction-datasets.factory"
 import { daysAgo } from "./review-campaigns.factory"
 

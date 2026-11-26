@@ -1,4 +1,4 @@
-import type { PresignAgentSessionMessageAttachmentDocumentResponseDto } from "@caseai-connect/api-contracts"
+import type { PresignAgentSessionMessageAttachmentDocumentResponseDto } from "@bayes-platform/api-contracts"
 import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
 
 type BaseParams = {

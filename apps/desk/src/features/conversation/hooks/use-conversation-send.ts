@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import { composeMessage, quoteSourceOf } from "../annotation"
 import { useSendMessage } from "../api/mutations"
 import type { ChatMessage, OutgoingMessage } from "../chat-messages"

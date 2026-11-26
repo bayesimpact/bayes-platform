@@ -1,4 +1,4 @@
-import type { ConversationRunParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { ConversationRunParamsDto, ProjectParamsDto } from "@bayes-platform/eval-contracts"
 import { CONVERSATION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"
 
 export const conversationRunKeys = {

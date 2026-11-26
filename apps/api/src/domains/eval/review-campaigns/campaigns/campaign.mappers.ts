@@ -9,7 +9,7 @@ import type {
   ReviewCampaignMembershipOutputDto,
   ReviewCampaignOutputDto,
   ReviewCampaignQuestionDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { EndpointRequestWithReviewCampaign } from "@/common/context/request.interface"
 import type { InvitationsService } from "@/domains/invitations/invitations.service"
 import type { ReportsService } from "@/domains/review-campaigns/reports/reports.service"

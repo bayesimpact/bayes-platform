@@ -11,7 +11,7 @@ import type {
   ReviewCampaignRoleDto,
   TesterSessionOutputDto,
   TesterSurveyOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import {
   DESK_UI_READ_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
@@ -39,7 +39,7 @@ import {
   STUDIO_UI_READ_PERMISSION,
   TESTER_UI_READ_PERMISSION,
   TOOL_NAMES,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { agentVersionIdOf, buildAgentVersions, buildProjectAgent } from "./agents.factory"
 import {
   buildPricingDatasets,

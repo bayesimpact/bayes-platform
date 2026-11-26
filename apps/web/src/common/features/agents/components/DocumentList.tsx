@@ -1,11 +1,11 @@
-import { Card, CardContent } from "@caseai-connect/ui/shad/card"
+import { Card, CardContent } from "@bayes-platform/ui/shad/card"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@caseai-connect/ui/shad/empty"
+} from "@bayes-platform/ui/shad/empty"
 import { FileIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { DocumentSelectionList } from "@/common/components/DocumentSelectionList"

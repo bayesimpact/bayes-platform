@@ -1,4 +1,4 @@
-import { addMemberRoleSchema, ReviewCampaignsRoutes } from "@caseai-connect/api-contracts"
+import { addMemberRoleSchema, ReviewCampaignsRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithReviewCampaign } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"

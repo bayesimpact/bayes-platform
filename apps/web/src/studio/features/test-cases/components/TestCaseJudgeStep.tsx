@@ -1,13 +1,13 @@
-import { EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { DialogFooter } from "@caseai-connect/ui/shad/dialog"
+import { EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { DialogFooter } from "@bayes-platform/ui/shad/dialog"
 import {
   Field,
   FieldContent,
   FieldDescription,
   FieldLabel,
   FieldTitle,
-} from "@caseai-connect/ui/shad/field"
+} from "@bayes-platform/ui/shad/field"
 import {
   Form,
   FormControl,
@@ -16,9 +16,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
-import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
+import { RadioGroup, RadioGroupItem } from "@bayes-platform/ui/shad/radio-group"
 import {
   Select,
   SelectContent,
@@ -26,8 +26,8 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
+} from "@bayes-platform/ui/shad/select"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
 import { useMemo } from "react"

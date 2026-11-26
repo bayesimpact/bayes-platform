@@ -1,4 +1,4 @@
-import { ATTACHMENT_MAX_BYTES, EXTRACTION_MAX_BYTES } from "@caseai-connect/desk-contracts"
+import { ATTACHMENT_MAX_BYTES, EXTRACTION_MAX_BYTES } from "@bayes-platform/desk-contracts"
 import { describe, expect, it } from "vitest"
 import { fileSizeOf } from "./file-size"
 

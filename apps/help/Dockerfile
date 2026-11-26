@@ -22,7 +22,7 @@ COPY apps/help ./apps/help
 COPY packages ./packages
 
 RUN npm ci \
-    --workspace=@caseai-connect/help \
+    --workspace=@bayes-platform/help \
     --include-workspace-root
 
 ENV PUBLIC_APP_URL=__PUBLIC_APP_URL__ \
@@ -30,7 +30,7 @@ ENV PUBLIC_APP_URL=__PUBLIC_APP_URL__ \
     PUBLIC_APP_VERSION=__PUBLIC_APP_VERSION__ \
     PUBLIC_SITE_URL=https://public-site-url.placeholder.invalid
 
-RUN npx turbo run build --filter=@caseai-connect/help
+RUN npx turbo run build --filter=@bayes-platform/help
 
 #
 # Runtime: nginx, non root, port 8080.

@@ -2,7 +2,7 @@ import type {
   AgentMemoryDto,
   AgentMemorySessionTypeDto,
   AgentMemoryToolItemDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type AgentMemory = AgentMemoryDto
 export type AgentMemorySessionType = AgentMemorySessionTypeDto

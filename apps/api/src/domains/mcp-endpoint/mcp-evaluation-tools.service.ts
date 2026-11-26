@@ -3,7 +3,7 @@ import type {
   EvaluationConversationRunRecordStatusDto,
   EvaluationConversationRunStatusDto,
   EvaluationConversationRunSummaryDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { getAppPublicUrl } from "@/config/app-public-url"

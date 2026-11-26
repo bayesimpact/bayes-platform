@@ -1,4 +1,4 @@
-import type { ReviewCampaignDetailOutputDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignDetailOutputDto } from "@bayes-platform/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { RocketIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"

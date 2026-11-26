@@ -1,4 +1,4 @@
-import { DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskDocumentsRoutes } from "@bayes-platform/desk-contracts"
 import {
   Controller,
   ForbiddenException,

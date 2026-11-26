@@ -535,13 +535,13 @@ export interface IProjectMembershipsSpi {
 Concrete Axios implementation. Follows the exact same structure as `agents.api.ts`:
 
 - Uses `getAxiosInstance()` from `@/external/axios`
-- Imports routes & DTOs from `@caseai-connect/api-contracts`
+- Imports routes & DTOs from `@bayes-platform/api-contracts`
 - Uses `satisfies IProjectMembershipsSpi` at the end
 - Has `fromDto` mapping function at the bottom of the file
 - Default export (like `agents.api.ts`)
 
 ```typescript
-import { type ProjectMembershipDto, ProjectsRoutes } from "@caseai-connect/api-contracts"
+import { type ProjectMembershipDto, ProjectsRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { ProjectMembership } from "../project-memberships.models"
 import type { IProjectMembershipsSpi } from "../project-memberships.spi"
@@ -900,7 +900,7 @@ export function ProjectMembershipsRoute() {
 **File**: `components/sidebar/projects/NavProjectMemberships.tsx`
 
 Follows the exact `NavDocuments.tsx` pattern:
-- Uses `SidebarMenu > SidebarMenuItem > SidebarMenuButton` from `@caseai-connect/ui/shad/sidebar`
+- Uses `SidebarMenu > SidebarMenuItem > SidebarMenuButton` from `@bayes-platform/ui/shad/sidebar`
 - Uses `UsersIcon` from `lucide-react`
 - Uses `Link` from `react-router-dom`
 - Uses `useAbility()` hook — returns `null` if `!isAdminInterface`
@@ -955,7 +955,7 @@ export function NavProjectMemberships({
 
 #### `components/project-memberships/InviteProjectMembersDialog.tsx`
 
-Uses `Dialog` / `DialogContent` / `DialogHeader` / `DialogTitle` / `DialogDescription` from `@caseai-connect/ui/shad/dialog` (same pattern as `DeleteAgentDialog.tsx`):
+Uses `Dialog` / `DialogContent` / `DialogHeader` / `DialogTitle` / `DialogDescription` from `@bayes-platform/ui/shad/dialog` (same pattern as `DeleteAgentDialog.tsx`):
 
 - Controlled via `open` / `onOpenChange` state
 - Form with a textarea for emails (comma or newline separated)

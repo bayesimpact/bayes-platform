@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { MyInvitationsRoutes, ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
+import { MyInvitationsRoutes, ProjectInvitationsRoutes } from "@bayes-platform/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"

@@ -26,7 +26,7 @@ export {
   PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 
 export const reviewCampaignQuestionTypeSchema = z.enum(["rating", "single-choice", "free-text"])
 

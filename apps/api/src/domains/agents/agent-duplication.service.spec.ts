@@ -1,4 +1,4 @@
-import { AgentMemoryMode, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentMemoryMode, AgentModel, DocumentsRagMode } from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import { NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import {

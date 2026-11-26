@@ -1,4 +1,4 @@
-import type { EmbeddingModel } from "@caseai-connect/api-contracts"
+import type { EmbeddingModel } from "@bayes-platform/api-contracts"
 import type { ProjectEmbeddingModel } from "./project-embedding-models.models"
 
 type ScopeParams = {

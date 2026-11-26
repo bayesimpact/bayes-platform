@@ -1,5 +1,5 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
-import { MESSAGE_FEEDBACK_MAX_LENGTH } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
+import { MESSAGE_FEEDBACK_MAX_LENGTH } from "@bayes-platform/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ThumbsDownIcon } from "lucide-react"

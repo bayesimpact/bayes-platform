@@ -1,4 +1,4 @@
-import type { InvitationDto } from "@caseai-connect/api-contracts"
+import type { InvitationDto } from "@bayes-platform/api-contracts"
 import type { Invitation } from "./invitation.entity"
 import type { InvitationDetails } from "./invitation.repository"
 

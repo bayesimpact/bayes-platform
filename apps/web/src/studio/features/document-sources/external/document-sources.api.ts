@@ -1,4 +1,4 @@
-import { type DocumentSourceSummaryDto, DocumentSourcesRoutes } from "@caseai-connect/api-contracts"
+import { type DocumentSourceSummaryDto, DocumentSourcesRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { DocumentSource } from "../document-sources.models"
 import type { IDocumentSourcesSpi } from "../document-sources.spi"

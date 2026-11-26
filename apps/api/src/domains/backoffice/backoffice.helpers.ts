@@ -21,7 +21,7 @@ import type {
   FeatureFlagKey,
   FeatureFlagsDto,
   TimeType,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentConversationReviewerRecord } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.repository"
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"

@@ -4,7 +4,7 @@ import {
   type MyProjectOutputDto,
   type ProjectAgentOutputDto,
   projectAgentOutputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 
 /** An agent of `GET eval/.../projects/:projectId/agents`, checked against the contract. */
 export function buildProjectAgent(

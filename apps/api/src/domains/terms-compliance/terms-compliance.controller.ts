@@ -1,4 +1,4 @@
-import { BackofficeRoutes, MeRoutes } from "@caseai-connect/api-contracts"
+import { BackofficeRoutes, MeRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Get, Post, Put, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"

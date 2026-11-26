@@ -1,4 +1,4 @@
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@bayes-platform/api-contracts"
 import type { LLMConfig, SpecificProviderOptions } from "@/common/interfaces/llm-provider.interface"
 import { configFor, modelsOf } from "@/external/llm/ai-sdk/non-regression/non-regression.harness"
 import { AISDKAnthropicProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-anthropic.provider"

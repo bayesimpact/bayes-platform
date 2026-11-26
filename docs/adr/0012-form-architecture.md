@@ -17,7 +17,7 @@ Forms drifted into three incompatible styles: hand-rolled `useState` per field w
 2. **Errors never surfaced.** Manual forms disabled the submit button instead of explaining *why*; server validation errors were swallowed into a generic toast.
 3. **Inconsistent a11y and markup.** Each form wired `id`/`htmlFor`/`aria-invalid`/`aria-describedby` differently (or not at all).
 
-The fix is one mandated stack: **`react-hook-form` for state, Zod (the shared `api-contracts` schema) for validation via `zodResolver`, and the `@caseai-connect/ui/shad/form` components for markup.** [ResourceForm.tsx](../../apps/web/src/studio/features/resource-libraries/components/ResourceForm.tsx) is the canonical reference; copy it.
+The fix is one mandated stack: **`react-hook-form` for state, Zod (the shared `api-contracts` schema) for validation via `zodResolver`, and the `@bayes-platform/ui/shad/form` components for markup.** [ResourceForm.tsx](../../apps/web/src/studio/features/resource-libraries/components/ResourceForm.tsx) is the canonical reference; copy it.
 
 ---
 
@@ -26,8 +26,8 @@ The fix is one mandated stack: **`react-hook-form` for state, Zod (the shared `a
 | Concern | Use | Never |
 |---|---|---|
 | Form state | `useForm<FormValues>()` from `react-hook-form` | `useState` per field |
-| Validation | `zodResolver(schema)`, schema from `@caseai-connect/api-contracts` | hand-written `if (!value)` checks |
-| Markup | `Form` / `FormField` / `FormItem` / `FormLabel` / `FormControl` / `FormDescription` / `FormMessage` from [@caseai-connect/ui/shad/form](../../packages/ui/src/shad/form.tsx) | bare `<Field>`/`<label>` + ad-hoc error `<p>` |
+| Validation | `zodResolver(schema)`, schema from `@bayes-platform/api-contracts` | hand-written `if (!value)` checks |
+| Markup | `Form` / `FormField` / `FormItem` / `FormLabel` / `FormControl` / `FormDescription` / `FormMessage` from [@bayes-platform/ui/shad/form](../../packages/ui/src/shad/form.tsx) | bare `<Field>`/`<label>` + ad-hoc error `<p>` |
 | Submit | `form.handleSubmit(onValid)` | `onClick` + manual validity gate |
 
 The shared `Form` components are wrappers around react-hook-form's `Controller` + context. They wire `id`, `htmlFor`, `aria-invalid`, `aria-describedby`, and render the field's error message automatically through `FormMessage`. You get accessible, consistent forms for free — that is the entire point of using them over raw `<Field>`.
@@ -38,10 +38,10 @@ The shared `Form` components are wrappers around react-hook-form's `Controller` 
 
 ### 3.1 The resolver schema comes from `api-contracts`
 
-The client MUST validate with the same Zod schema the API validates with. Import `create{Entity}Schema` / `update{Entity}Schema` (or the field object) from `@caseai-connect/api-contracts` and pass it to `zodResolver`. This is what keeps client and server in lockstep — a field's max length, required-ness, and enum live in exactly one place.
+The client MUST validate with the same Zod schema the API validates with. Import `create{Entity}Schema` / `update{Entity}Schema` (or the field object) from `@bayes-platform/api-contracts` and pass it to `zodResolver`. This is what keeps client and server in lockstep — a field's max length, required-ness, and enum live in exactly one place.
 
 ```ts
-import { createResourceSchema } from "@caseai-connect/api-contracts"
+import { createResourceSchema } from "@bayes-platform/api-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 type FormValues = z.infer<typeof createResourceSchema>

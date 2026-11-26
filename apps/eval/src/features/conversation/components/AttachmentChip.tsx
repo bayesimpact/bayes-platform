@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { ExternalLinkIcon, FileIcon } from "lucide-react"
 import { toast } from "sonner"

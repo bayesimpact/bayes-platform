@@ -1,7 +1,7 @@
 import {
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { appInstallerFactory } from "@/common/features/app-installers/app-installers.factory"

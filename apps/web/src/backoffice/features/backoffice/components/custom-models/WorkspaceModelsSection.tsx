@@ -1,7 +1,7 @@
 import type {
   CreateBackofficeCustomModelRequestDto,
   UpdateBackofficeCustomModelRequestDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { ReactNode } from "react"
 import type { CustomModel, CustomModelType, ProjectModel } from "../../backoffice.models"
 import { CustomModelsTable } from "./CustomModelsTable"

@@ -1,4 +1,4 @@
-import { DeskInvitationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskInvitationsRoutes } from "@bayes-platform/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"

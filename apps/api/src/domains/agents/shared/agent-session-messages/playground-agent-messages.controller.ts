@@ -1,7 +1,7 @@
 import {
   AgentSessionMessagesRoutes,
   presignAgentSessionMessageAttachmentDocumentSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Body, Controller, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"

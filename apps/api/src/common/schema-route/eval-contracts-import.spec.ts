@@ -1,4 +1,4 @@
-import { EvalAccountRoutes } from "@caseai-connect/eval-contracts"
+import { EvalAccountRoutes } from "@bayes-platform/eval-contracts"
 
 describe("eval-contracts in the API", () => {
   it("gives a route with its schemas", () => {

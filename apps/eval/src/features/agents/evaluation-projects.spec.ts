@@ -2,7 +2,7 @@ import {
   DESK_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   PROJECT_READ_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { listEvaluationProjects } from "./evaluation-projects"
 

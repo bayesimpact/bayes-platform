@@ -4,7 +4,7 @@ import type {
   AgentCsvExtractionRunRecordStatusDto,
   AgentCsvExtractionRunStatusDto,
   AgentCsvExtractionRunSummaryDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 
 export type AgentCsvExtractionRun = AgentCsvExtractionRunDto
 export type AgentCsvExtractionRunRecord = AgentCsvExtractionRunRecordDto

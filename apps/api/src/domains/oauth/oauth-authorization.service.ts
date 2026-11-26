@@ -12,7 +12,7 @@ import {
   oauthRedirectUriMatches,
   oauthRevocationRequestSchema,
   oauthTokenRequestSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   ForbiddenException,

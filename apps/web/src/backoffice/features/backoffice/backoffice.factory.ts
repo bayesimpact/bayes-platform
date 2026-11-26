@@ -10,7 +10,7 @@ import {
   type ReviewCampaignMembershipRole,
   type TermsDocumentType,
   type TimeType,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type {

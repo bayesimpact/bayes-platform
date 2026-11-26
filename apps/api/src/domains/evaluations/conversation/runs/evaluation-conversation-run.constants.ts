@@ -1,4 +1,4 @@
-import { EVALUATION_CONVERSATION_RUN_STATUS_CHANGED_CHANNEL_DTO } from "@caseai-connect/api-contracts"
+import { EVALUATION_CONVERSATION_RUN_STATUS_CHANGED_CHANNEL_DTO } from "@bayes-platform/api-contracts"
 
 export const EVALUATION_CONVERSATION_RUN_QUEUE_NAME =
   process.env.EVALUATION_CONVERSATION_RUN_QUEUE_NAME ?? "evaluation-conversation-run-queue"

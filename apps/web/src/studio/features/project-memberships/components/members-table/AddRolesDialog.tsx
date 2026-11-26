@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Checkbox } from "@bayes-platform/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -7,8 +7,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import { Label } from "@caseai-connect/ui/shad/label"
+} from "@bayes-platform/ui/shad/dialog"
+import { Label } from "@bayes-platform/ui/shad/label"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MembersTableScope, ProjectRoleOption } from "./members-table.models"

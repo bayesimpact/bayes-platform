@@ -4,7 +4,7 @@ import {
   type AgentSubAgentDto,
   type AgentWithDraftDto,
   isAgentPermission,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Agent } from "./agent.entity"
 import type { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"

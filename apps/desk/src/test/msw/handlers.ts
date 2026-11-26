@@ -10,7 +10,7 @@ import {
   DeskProjectsRoutes,
   type MemoryOutputDto,
   type MeOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { HttpResponse, http } from "msw"
 import { buildMe } from "../factories/account.factory"
 import {

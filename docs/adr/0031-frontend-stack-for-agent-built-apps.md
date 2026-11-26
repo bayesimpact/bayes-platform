@@ -116,12 +116,12 @@ runtime.**
 | Routing | TanStack Router, file-based through its Vite plugin, base path `/app` |
 | Server state | TanStack Query |
 | API client | One `fetch` wrapper driven by the route objects and their schemas |
-| Validation | Zod 4, schemas shared with the API through `@caseai-connect/desk-contracts` |
+| Validation | Zod 4, schemas shared with the API through `@bayes-platform/desk-contracts` |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
 | Tables | TanStack Table v8 (section 2.3), rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog (section 2.10) |
 | UI | Tailwind CSS v4 and shadcn/ui components on Base UI, generated into the Desk, `cva`, `cn()`, lucide-react, sonner |
-| Sign-in | `oidc-client-ts`, in `@caseai-connect/sign-in`, which every app of the stack imports (sections 2.4 and 2.9) |
+| Sign-in | `oidc-client-ts`, in `@bayes-platform/sign-in`, which every app of the stack imports (sections 2.4 and 2.9) |
 | Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10 (section 2.11), Playwright |
 | Quality | Biome, dependency-cruiser, knip |
 
@@ -131,11 +131,11 @@ allowed, for real global client state and with a human's go.
 ### 2.3 Versions and monorepo tooling
 
 The kit installs the latest versions with pnpm and TypeScript 7. The Desk joins the npm workspaces
-instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the root tooling
+instead, as `@bayes-platform/desk` (private, 0.0.0). The shared lockfile and the root tooling
 (Biome, turbo, CI) are the only ties it keeps with the other workspaces:
 
 * npm is the only package manager, and the root `package-lock.json` the only lockfile. Commands are
-  npm ones (`npm run <script> -w @caseai-connect/desk`, `npx`). No git hook: CI is the gate, as for
+  npm ones (`npm run <script> -w @bayes-platform/desk`, `npx`). No git hook: CI is the gate, as for
   the rest of the repo.
 * Runtime libraries keep one copy in the lockfile. The Desk's ranges admit the versions the
   monorepo resolves (React `^19.2.0`, Tailwind, React Hook Form and its resolvers, Vite, Vitest,
@@ -224,10 +224,10 @@ dependency-cruiser enforces the direction of imports between the folders of `src
 * `components/`, `hooks/` and `lib/` import neither `features/` nor `routes/`.
 * The Desk imports nothing from another app or from a package another app owns: `apps/web`,
   `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its workspace
-  dependencies are `@caseai-connect/desk-contracts` and the packages no app owns (see below):
-  `@caseai-connect/mcp-app-host`, `@caseai-connect/sign-in` and `@caseai-connect/api-client`.
-  Only `lib/auth/` imports `@caseai-connect/sign-in`, no code of the app imports
-  `oidc-client-ts`, and only `lib/api-client.ts` imports `@caseai-connect/api-client`.
+  dependencies are `@bayes-platform/desk-contracts` and the packages no app owns (see below):
+  `@bayes-platform/mcp-app-host`, `@bayes-platform/sign-in` and `@bayes-platform/api-client`.
+  Only `lib/auth/` imports `@bayes-platform/sign-in`, no code of the app imports
+  `oidc-client-ts`, and only `lib/api-client.ts` imports `@bayes-platform/api-client`.
 * No cycles.
 
 knip reports unused files, exports and dependencies. Both tools run in the Desk's
@@ -242,7 +242,7 @@ second one (section 7). Evaluation answered it on 2026-11-25 for the sign-in ("T
 sign-in" below), the route helper of the contracts (section 2.12) and the API client ("The shared
 API client" below). Each app keeps its own design system and other code.
 
-**The shared sandbox of MCP Apps.** `packages/mcp-app-host` (`@caseai-connect/mcp-app-host`) runs an MCP
+**The shared sandbox of MCP Apps.** `packages/mcp-app-host` (`@bayes-platform/mcp-app-host`) runs an MCP
 App in its sandbox: the page of the outer frame, the transport between the frames, the handshake,
 the Content Security Policy built from the domains an app declares, and the checks on the links
 and messages an app asks for. `apps/web`, `apps/web-embed` and the
@@ -282,7 +282,7 @@ written through `srcdoc` has an opaque origin that only a random id can stand fo
 * Without a template, or for an app whose server is unknown, the host writes the page itself, as
   before. Local development, the tests and Storybook run that way.
 
-**The shared sign-in.** `packages/sign-in` (`@caseai-connect/sign-in`) is the sign-in of the apps
+**The shared sign-in.** `packages/sign-in` (`@bayes-platform/sign-in`) is the sign-in of the apps
 of the stack: the OIDC client on `oidc-client-ts` (section 2.9), the guards that keep an app from
 sending the person to the provider in a loop, the reading of the provider's refusals and of the
 API's (`SIGN_IN_REFUSALS`, a copy of `SIGN_IN_ERRORS` in `api-contracts`, which it cannot import),
@@ -314,7 +314,7 @@ It stays within the limits of the MCP App host, which keep each app a closed wor
   and has its own specs, among them the two apps that refresh one session at once. CI runs them in
   the Desk's job.
 
-**The shared API client.** `packages/api-client` (`@caseai-connect/api-client`) is the client of
+**The shared API client.** `packages/api-client` (`@bayes-platform/api-client`) is the client of
 the apps' endpoints (section 2.7): `createApiClient`, which builds a request from the route's
 schemas, parses the response, refreshes the token once after a 401 and then starts a new sign-in,
 the reading of a server-sent event stream (`readServerSentEvents`), and the rule of the queries
@@ -329,7 +329,7 @@ and every app rebuilt after Evaluation would copy it once more. It keeps the sam
   own `lib/auth/session.ts`, so the app's mock mode and sign-in guards stay the app's. The rest of
   the app imports that file, never the package, and `app/query-client.ts` keeps the app's
   `QueryClient` and its options.
-* It depends on Zod, `@caseai-connect/schema-route` and `@caseai-connect/sign-in` alone: the
+* It depends on Zod, `@bayes-platform/schema-route` and `@bayes-platform/sign-in` alone: the
   types of a route, the error body, and the sign-in errors it throws and the API's refusals it
   reads.
 * It follows the TypeScript options of the new stack, resolves through its `exports` with no build,
@@ -402,7 +402,7 @@ No other package is shared on these grounds. Another one needs its own decision.
 ### 2.7 Network code, mutations, forms and tables
 
 * Every network call, streams and signed-URL uploads included, lives in `features/<feature>/api`
-  on top of `lib/api-client.ts`, which wraps `@caseai-connect/api-client` (section 2.4), and takes
+  on top of `lib/api-client.ts`, which wraps `@bayes-platform/api-client` (section 2.4), and takes
   its types from the route's schemas.
   No component calls `fetch`. An upload is one mutation that presigns, sends the bytes and confirms.
 * Mutation hooks call the client and invalidate the affected keys on success, and on a 500 too,
@@ -471,7 +471,7 @@ edits the conversation's query.
   `oidc-client-ts`. Its sign-in module started as a copy of the one in `apps/web`
   (`src/external/oidcClient.ts`, `src/config/oidc.config.ts`, the `login_hint` and return-path
   helpers, and their specs), wired to the Desk's configuration, and never changes in step with
-  `apps/web`. Since 2026-11-25 it is `@caseai-connect/sign-in`, which every app of the stack
+  `apps/web`. Since 2026-11-25 it is `@bayes-platform/sign-in`, which every app of the stack
   imports (section 2.4), and the Desk's `lib/auth/session.ts` wraps it. It uses the identity provider and client
   of the install with redirect URIs of its own (`<origin>/app/auth/callback` after sign-in,
   `<origin>/app/` after sign-out). Every app of an origin shares one session: the stored user sits
@@ -544,7 +544,7 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 * `<Trans>` holds text in JSX, `t` from `useLingui()` text in attributes and toasts, `<Plural>` and
   `plural` counts, and `msg` text defined outside a component and translated where it renders.
   Variables and inline components go inside the message: `<Trans>Delete {title}?</Trans>`.
-* `npm run i18n:extract -w @caseai-connect/desk` (`lingui extract --clean`) writes every message to
+* `npm run i18n:extract -w @bayes-platform/desk` (`lingui extract --clean`) writes every message to
   `src/locales/fr.po`, with the file and line it comes from; `en.po` fills itself from the source.
   The agent that changes a text translates the new French entries in the same change.
 * `check` runs `lingui check sync` and `lingui check missing`, so a stale catalog or a missing
@@ -574,7 +574,7 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   Handlers live in `src/test/msw/`. Their fixtures come from factories whose output goes through the
   Desk response schemas, so a mock cannot drift from the contract. Stream handlers return a
   `ReadableStream`, since MSW's `sse()` only intercepts `EventSource`.
-* Storybook (`npm run storybook -w @caseai-connect/desk`) serves the Desk on the same handlers, to
+* Storybook (`npm run storybook -w @bayes-platform/desk`) serves the Desk on the same handlers, to
   build or check a screen without the API. Each story of `src/stories/` builds its own world of
   the handlers and opens the whole Desk at a page, with a memory history: the person navigates
   from there as in the Desk, so a story is both a state and the start of a journey. It takes the
@@ -592,7 +592,7 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   what it was asked. A change without its tests and stories is not done.
 * Every bug fix comes with the test that would have caught it. Ids in tests come from
   `randomUUID()`, since `z.uuid()` rejects the hand-written ids some existing specs use.
-* `npm run check -w @caseai-connect/desk` runs the typecheck, Biome, dependency-cruiser, knip, the
+* `npm run check -w @bayes-platform/desk` runs the typecheck, Biome, dependency-cruiser, knip, the
   translation checks and Vitest. It passes after each significant change, on top of the repo's
   completion criteria.
 * A rule a tool can check is checked by a tool, since an agent forgets a written rule and never a
@@ -610,13 +610,13 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 ### 2.12 The Desk contract
 
 Desk contracts live in a package of their own, `packages/desk-contracts`
-(`@caseai-connect/desk-contracts`), written the way `packages/api-contracts` is: one folder per area
+(`@bayes-platform/desk-contracts`), written the way `packages/api-contracts` is: one folder per area
 (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
 `invitations`, `memories`, `organizations`, `projects`, and `common` for the params every area
 extends), each with an `{area}.dto.ts` that holds the Zod schemas and an `{area}.routes.ts`, the
 `{ payload }` and `{ data }` envelopes, the CRUD keys `getAll`, `getOne`, `createOne`, `updateOne`
 and `deleteOne`, and one `Desk{Area}Routes` object per area. It depends on Zod,
-`@caseai-connect/permissions` and `@caseai-connect/schema-route` alone, and imports nothing from
+`@bayes-platform/permissions` and `@bayes-platform/schema-route` alone, and imports nothing from
 `packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
 and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
@@ -625,7 +625,7 @@ import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
 (`desk.ui.read`, the session keys of an agent, the keys of Evaluation), and nothing checked that a
 copy still matched its source: a renamed key would have hidden a page or a button with no error.
 Since 2026-11-25 the catalog, `packages/permissions/src/index.ts`, is a package of its own,
-`@caseai-connect/permissions`, and its one declaration. `api-contracts` re-exports it, so the API and
+`@bayes-platform/permissions`, and its one declaration. `api-contracts` re-exports it, so the API and
 `apps/web` import it as before, and each contracts package re-exports the constants its app reads.
 Like the MCP App host, no app owns it, and it stays within limits that keep the apps closed worlds:
 no dependency and no import, strings, string unions and pure functions only, nothing a screen shows,
@@ -636,7 +636,7 @@ requires, which the API image and the `contracts` service of a worktree environm
 **The route helper.** Each contracts package first held its own `defineSchemaRoute` and error body,
 and the API declared the shape of a route a third time, so that a route of either package fit. The
 three copies had to keep one shape, and only the typecheck of the API's handlers checked it. Since
-2026-11-25, `packages/schema-route` (`@caseai-connect/schema-route`) holds `defineSchemaRoute`,
+2026-11-25, `packages/schema-route` (`@bayes-platform/schema-route`) holds `defineSchemaRoute`,
 `defineStreamRoute`, the types of a route and the error body. Each contracts package re-exports it,
 so the apps import it from their contracts as before, and the layer of the API takes its route
 types from it. No app owns it, and it stays within limits that keep the apps closed worlds: Zod as
@@ -644,7 +644,7 @@ its one dependency, no import of another workspace package, no route, no schema 
 React, nothing a screen shows, and the TypeScript options of the new stack. It has a CommonJS build the API requires, which the API image and the `contracts` service of a
 worktree environment build first.
 
-* A route is declared with `defineSchemaRoute`, a helper of `@caseai-connect/schema-route` that the
+* A route is declared with `defineSchemaRoute`, a helper of `@bayes-platform/schema-route` that the
   package re-exports. It takes the method, the path and the schemas of the params, query, body and response, and infers the request and
   response types from them. A stream route is declared with `defineStreamRoute`, which takes an
   `event` schema in place of the response. `defineSchemaRoute` returns `path`, `getPath` and
@@ -728,7 +728,7 @@ stays the target, and these parts wait for later changes:
   app's UI permission (`studio.ui.read`, `evaluation.ui.read` and so on).
 * Desk endpoints live in `apps/api/src/domains/desk/`, a cross-domain module in the read-model layer
   of ADR 0007 (still proposed), beside `me` and `analytics`, that also carries commands. It takes
-  its schemas from `@caseai-connect/desk-contracts`, maps domain records onto the Desk DTOs, and
+  its schemas from `@bayes-platform/desk-contracts`, maps domain records onto the Desk DTOs, and
   calls the exported services of the feature modules, never another domain's entities. Anything it
   persists itself goes through custom repositories (ADR 0020). The dependency-cruiser rules that
   list `me` and `analytics` list `desk` too. The context resolvers it needs come from a context
@@ -842,7 +842,7 @@ API requires the CommonJS build of `eval-contracts`, as it does for the Desk, an
 package to its source. The layer in `apps/api/src/common/schema-route/` then declared the shape of
 a route itself and imported no contracts package, so a route of either package fit, and each
 contracts package kept its own `defineSchemaRoute`. Since 2026-11-25 both contracts packages
-re-export the helper from `@caseai-connect/schema-route`, and the layer takes its route types from
+re-export the helper from `@bayes-platform/schema-route`, and the layer takes its route types from
 it (section 2.12). Each Evaluation endpoint copies the endpoint the app called before: the same method, params, body and response, the same permission on the same
 resource, and the same status codes and tracked activities. Two things change: every schema refusal
 answers 400, and a response holds only the fields the contract declares. Two query schemas of the

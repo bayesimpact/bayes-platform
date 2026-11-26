@@ -8,7 +8,7 @@ export {
   EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
-} from "@caseai-connect/permissions"
+} from "@bayes-platform/permissions"
 
 /** How many records of a dataset the app shows in a page: a dataset may hold thousands. */
 export const EXTRACTION_DATASET_RECORDS_PAGE_SIZE = 50

@@ -1,8 +1,8 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import {
   DeskConversationsRoutes,
   presignAttachmentInputSchema,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { apiRequest } from "@/lib/api-client"
 import { putFileToSignedUrl } from "@/lib/upload-file"
 

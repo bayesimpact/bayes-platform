@@ -1,12 +1,12 @@
-import { Avatar, AvatarFallback } from "@caseai-connect/ui/shad/avatar"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Avatar, AvatarFallback } from "@bayes-platform/ui/shad/avatar"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
+} from "@bayes-platform/ui/shad/dropdown-menu"
 import { ChevronsUpDown } from "lucide-react"
 import type * as React from "react"
 import type { User } from "@/common/features/me/me.models"

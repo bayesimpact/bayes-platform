@@ -2,7 +2,7 @@ import type {
   CreateAgentSettingsDto,
   PartialUpdateAgentSettingsDto,
   SuccessResponseDTO,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { AgentSettings } from "./agent-settings.models"
 
 type BaseParams = {

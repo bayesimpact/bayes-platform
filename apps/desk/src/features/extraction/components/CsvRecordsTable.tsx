@@ -2,7 +2,7 @@ import type {
   CsvColumnDto,
   CsvExtractionRecordOutputDto,
   CsvExtractionRecordsOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { getCoreRowModel, type SortingState, useReactTable } from "@tanstack/react-table"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"

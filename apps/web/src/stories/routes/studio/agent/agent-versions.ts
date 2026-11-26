@@ -1,4 +1,4 @@
-import type { CreateAgentSettingsDto } from "@caseai-connect/api-contracts"
+import type { CreateAgentSettingsDto } from "@bayes-platform/api-contracts"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"

@@ -1,4 +1,4 @@
-import { type DocumentTagDto, DocumentTagsRoutes } from "@caseai-connect/api-contracts"
+import { type DocumentTagDto, DocumentTagsRoutes } from "@bayes-platform/api-contracts"
 import { Body, Controller, Delete, Get, Patch, Post, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithDocumentTag,

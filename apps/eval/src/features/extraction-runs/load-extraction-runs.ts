@@ -2,7 +2,7 @@ import type {
   AgentParamsDto,
   ExtractionRunParamsDto,
   ProjectParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { orNotFound } from "@/lib/not-found"

@@ -1,4 +1,4 @@
-import { DeskAgentSessionsRoutes, DeskCsvExtractionsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAgentSessionsRoutes, DeskCsvExtractionsRoutes } from "@bayes-platform/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { extractionUrlsOf } from "@/test/desk-urls"

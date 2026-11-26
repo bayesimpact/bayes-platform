@@ -1,4 +1,4 @@
-import { type MeOutputDto, meOutputSchema } from "@caseai-connect/eval-contracts"
+import { type MeOutputDto, meOutputSchema } from "@bayes-platform/eval-contracts"
 
 /** A `GET eval/me` response, checked against the contract so a mock cannot drift from it. */
 export function buildMe(overrides: Partial<MeOutputDto["user"]> = {}): MeOutputDto {

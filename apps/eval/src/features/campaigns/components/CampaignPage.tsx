@@ -2,7 +2,7 @@ import {
   type AgentParamsDto,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   type ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { campaignQueryOptions } from "../api/queries"

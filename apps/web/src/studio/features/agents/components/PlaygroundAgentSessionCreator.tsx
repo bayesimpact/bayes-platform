@@ -1,4 +1,4 @@
-import { extractPromptVariables } from "@caseai-connect/api-contracts"
+import { extractPromptVariables } from "@bayes-platform/api-contracts"
 import { useCallback } from "react"
 import {
   BaseAgentSessionCreator,

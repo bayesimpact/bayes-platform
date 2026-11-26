@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"

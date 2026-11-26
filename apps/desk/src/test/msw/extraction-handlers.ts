@@ -5,7 +5,7 @@ import {
   DeskCsvExtractionsRoutes,
   DeskExtractionsRoutes,
   type ExtractionDocumentOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import { HttpResponse, http } from "msw"
 import { buildCsvExtractionRun, buildExtractionRun } from "../factories/agent-sessions.factory"
 import type { DeskWorld } from "../factories/desk-world.factory"

@@ -1,4 +1,4 @@
-import { BreadcrumbItem, BreadcrumbSeparator } from "@caseai-connect/ui/shad/breadcrumb"
+import { BreadcrumbItem, BreadcrumbSeparator } from "@bayes-platform/ui/shad/breadcrumb"
 import { GitCommitHorizontalIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"

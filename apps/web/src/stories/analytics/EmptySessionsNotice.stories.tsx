@@ -1,4 +1,4 @@
-import ChartCard from "@caseai-connect/ui/components/ChartCard"
+import ChartCard from "@bayes-platform/ui/components/ChartCard"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useTranslation } from "react-i18next"
 import { buildStoryDates } from "@/stories/analytics/helpers"

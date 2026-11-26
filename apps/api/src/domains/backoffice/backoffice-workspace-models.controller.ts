@@ -5,7 +5,7 @@ import {
   resetBackofficeProjectModelSchema,
   setBackofficeProjectModelSchema,
   updateBackofficeCustomModelSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   Body,
   Controller,

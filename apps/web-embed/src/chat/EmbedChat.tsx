@@ -2,7 +2,7 @@ import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
   EmbedDisplayMode,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
 import type { SupportedLocale } from "../i18n"

@@ -1,9 +1,9 @@
-import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/schema-route"
+import { defineSchemaRoute, defineStreamRoute } from "@bayes-platform/schema-route"
 import {
   AuthenticationRequiredError,
   SignInLoopError,
   SignInRefusedError,
-} from "@caseai-connect/sign-in"
+} from "@bayes-platform/sign-in"
 import { HttpResponse, http } from "msw"
 import { setupServer } from "msw/node"
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"

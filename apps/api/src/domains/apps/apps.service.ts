@@ -3,7 +3,7 @@ import {
   type AppGrantablePermission,
   type AppInstallerDto,
   MAX_ALLOWED_REDIRECT_URIS,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   ConflictException,
   Injectable,

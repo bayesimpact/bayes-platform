@@ -1,4 +1,4 @@
-import { EvalAccountRoutes } from "@caseai-connect/eval-contracts"
+import { EvalAccountRoutes } from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"

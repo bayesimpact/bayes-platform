@@ -1,5 +1,5 @@
-import { ToolName } from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
+import { ToolName } from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { CirclePlusIcon, MicIcon, PaperclipIcon } from "lucide-react"
 import { useRef, useState } from "react"

@@ -4,7 +4,7 @@ import {
   type StreamEvent,
   type StreamEventPayload,
   ToolName,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { afterAll } from "@jest/globals"
 import { tool } from "ai"
 import { v4 } from "uuid"

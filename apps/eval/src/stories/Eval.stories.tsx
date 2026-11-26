@@ -1,4 +1,4 @@
-import { EvalProjectsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalProjectsRoutes } from "@bayes-platform/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
 import { userEvent, within } from "storybook/test"

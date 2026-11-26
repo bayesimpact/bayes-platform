@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@bayes-platform/eval-contracts"
 
 /**
  * The page of an agent in the Studio, on the app's origin, where the agent is set up: apps/web

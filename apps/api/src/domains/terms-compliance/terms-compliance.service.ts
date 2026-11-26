@@ -1,7 +1,7 @@
 import type {
   TERMS_DOCUMENT_TYPES,
   UpdateTermsDocumentsRequestDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { BadRequestException, Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"

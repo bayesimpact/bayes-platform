@@ -1,4 +1,4 @@
-import { EvalAccountRoutes } from "@caseai-connect/eval-contracts"
+import { EvalAccountRoutes } from "@bayes-platform/eval-contracts"
 import { screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { claimAutomaticSignIn } from "@/lib/auth/session"

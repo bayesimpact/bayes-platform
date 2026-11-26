@@ -1,7 +1,7 @@
 import {
   EXTRACTION_DATASET_FILE_MAX_SIZE,
   EXTRACTION_DATASET_FILE_MIME_TYPE,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 
 /** Why a file a person chose cannot be uploaded. */
 export type CsvFileProblem = "notCsv" | "tooLarge"

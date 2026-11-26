@@ -1,7 +1,7 @@
 import {
   type EvaluationConversationDatasetDto,
   EvaluationConversationDatasetsRoutes,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { EvaluationConversationDataset } from "../evaluation-conversation-datasets.models"
 import type { IEvaluationConversationDatasetsSpi } from "../evaluation-conversation-datasets.spi"

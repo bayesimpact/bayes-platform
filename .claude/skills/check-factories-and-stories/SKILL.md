@@ -23,7 +23,7 @@ For each match, derive the expected factory path by replacing `.models.ts` with 
 
 Exclusions:
 - Any model file under a `__tests__/` or `__mocks__/` directory.
-- `notifications.models.ts` and other purely UI-state slices that don't represent domain entities — only flag if the file declares a `type X = XDto` or a Zod schema (heuristic: contains `import type` from `@caseai-connect/api-contracts` OR `z.object(`). If neither pattern is present, treat the file as exempt.
+- `notifications.models.ts` and other purely UI-state slices that don't represent domain entities — only flag if the file declares a `type X = XDto` or a Zod schema (heuristic: contains `import type` from `@bayes-platform/api-contracts` OR `z.object(`). If neither pattern is present, treat the file as exempt.
 
 Read the contents of each candidate to apply the exclusion heuristic.
 

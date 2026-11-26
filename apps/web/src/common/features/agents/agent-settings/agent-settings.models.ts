@@ -1,3 +1,3 @@
-import type { AgentSettingsDto } from "@caseai-connect/api-contracts"
+import type { AgentSettingsDto } from "@bayes-platform/api-contracts"
 
 export type AgentSettings = AgentSettingsDto

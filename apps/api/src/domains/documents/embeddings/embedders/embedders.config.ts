@@ -2,7 +2,7 @@ import {
   EmbeddingModel,
   EmbeddingProvider,
   getEmbeddingModelMetadata,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { readPositiveIntEnv } from "@/config/positive-int-env"
 
 /** Models served by an OpenAI embeddings server; every other model name goes to Vertex. */

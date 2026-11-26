@@ -1,4 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import type { ConversationParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { DownloadIcon, FileTextIcon, GlobeIcon } from "lucide-react"

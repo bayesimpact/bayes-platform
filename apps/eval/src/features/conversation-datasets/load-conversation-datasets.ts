@@ -1,4 +1,4 @@
-import type { ConversationDatasetParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import type { ConversationDatasetParamsDto, ProjectParamsDto } from "@bayes-platform/eval-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { orNotFound } from "@/lib/not-found"

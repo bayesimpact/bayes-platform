@@ -1,4 +1,4 @@
-import type { DocumentEmbeddingStatus } from "@caseai-connect/api-contracts"
+import type { DocumentEmbeddingStatus } from "@bayes-platform/api-contracts"
 
 export type CreateDocumentEmbeddingsJobPayload = {
   documentId: string

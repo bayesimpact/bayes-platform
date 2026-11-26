@@ -10,7 +10,7 @@ export const meUserOutputSchema = z.object({
 })
 
 /** The permission to open the trace of an agent's answer: a global one. */
-export { TRACE_READ_PERMISSION } from "@caseai-connect/permissions"
+export { TRACE_READ_PERMISSION } from "@bayes-platform/permissions"
 
 export const meOutputSchema = z.object({
   user: meUserOutputSchema,

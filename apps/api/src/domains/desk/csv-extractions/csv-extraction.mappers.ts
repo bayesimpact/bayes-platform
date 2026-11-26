@@ -1,7 +1,7 @@
 import type {
   CsvExtractionRecordOutputDto,
   CsvExtractionRunDetailOutputDto,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import type { AgentCsvExtractionRunsService } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.service"
 
 /** A CSV extraction run as the service gives it, with its settings. */

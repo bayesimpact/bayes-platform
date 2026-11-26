@@ -1,4 +1,4 @@
-import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@bayes-platform/api-contracts"
 import {
   type AllRepositories,
   clearTestDatabase,

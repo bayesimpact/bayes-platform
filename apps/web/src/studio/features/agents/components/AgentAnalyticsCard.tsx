@@ -1,5 +1,5 @@
-import { Item } from "@caseai-connect/ui/shad/item"
-import { cn } from "@caseai-connect/ui/utils"
+import { Item } from "@bayes-platform/ui/shad/item"
+import { cn } from "@bayes-platform/ui/utils"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"

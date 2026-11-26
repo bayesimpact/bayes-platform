@@ -1,7 +1,7 @@
 import type {
   ExtractionDatasetColumnDto,
   ExtractionDatasetRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { Badge } from "@/components/ui/badge"
 import {

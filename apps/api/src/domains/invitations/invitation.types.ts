@@ -1,4 +1,4 @@
-import type { InvitationStatusDto, InvitationTargetTypeDto } from "@caseai-connect/api-contracts"
+import type { InvitationStatusDto, InvitationTargetTypeDto } from "@bayes-platform/api-contracts"
 
 export type InvitationTargetType = InvitationTargetTypeDto
 

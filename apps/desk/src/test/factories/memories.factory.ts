@@ -1,4 +1,4 @@
-import { type MemoryOutputDto, memoryOutputSchema } from "@caseai-connect/desk-contracts"
+import { type MemoryOutputDto, memoryOutputSchema } from "@bayes-platform/desk-contracts"
 import { daysAgo } from "./agent-sessions.factory"
 
 /** A fact an agent remembers about the person, or proposes to, checked against the contract. */

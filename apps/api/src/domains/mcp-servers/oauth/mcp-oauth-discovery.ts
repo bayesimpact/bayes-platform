@@ -9,7 +9,7 @@
  * through the outbound URL guard before any request is made.
  */
 
-import { isAllowedOauthEndpointUrl } from "@caseai-connect/api-contracts"
+import { isAllowedOauthEndpointUrl } from "@bayes-platform/api-contracts"
 import { assertAllowedOutboundUrl, isAllowedOutboundUrl } from "./outbound-url-guard"
 
 export type McpOauthDiscovery = {

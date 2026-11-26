@@ -1,9 +1,9 @@
-import { createOidcClient, createSignInGuards, type OidcConfig } from "@caseai-connect/sign-in"
+import { createOidcClient, createSignInGuards, type OidcConfig } from "@bayes-platform/sign-in"
 import { appBasePath, appConfig, isMockMode } from "@/app/config"
 import { adoptDeskSession } from "./adopt-desk-session"
 
 /**
- * The Desk's session: the OIDC client of @caseai-connect/sign-in, on the session every app of
+ * The Desk's session: the OIDC client of @bayes-platform/sign-in, on the session every app of
  * the origin shares, or in mock mode a signed-in stand-in, since the mock mode has no identity
  * provider. Everything outside lib/auth goes through this file.
  */
@@ -16,7 +16,7 @@ export {
   SignInRefusedError,
   signInCallbackProblemOf,
   signInCallbackSearchSchema,
-} from "@caseai-connect/sign-in"
+} from "@bayes-platform/sign-in"
 
 function getOidcConfig(): OidcConfig {
   if (appConfig.mode !== "api") throw new Error("The mock mode has no sign-in")

@@ -2,7 +2,7 @@ import {
   type ConversationFormOutputDto,
   type ConversationSessionOutputDto,
   formSchemaOutputSchema,
-} from "@caseai-connect/desk-contracts"
+} from "@bayes-platform/desk-contracts"
 import type { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import { toConversationFormDto } from "@/domains/agents/shared/conversation-forms/conversation-form.mapper"
 

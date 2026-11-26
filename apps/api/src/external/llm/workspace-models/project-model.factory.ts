@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import { Factory } from "fishery"
 import type { Project } from "@/domains/projects/project.entity"
 import type { ProjectModel } from "./project-model.entity"

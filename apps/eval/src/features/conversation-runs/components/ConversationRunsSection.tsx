@@ -2,7 +2,7 @@ import type {
   AgentParamsDto,
   ConversationDatasetParamsDto,
   ConversationRunOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"

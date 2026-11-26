@@ -6,7 +6,7 @@ import {
   type ExtractionDatasetParamsDto,
   extractionDatasetColumnRoleSchema,
   extractionDatasetSetupInputSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { Fragment, useId, useState } from "react"

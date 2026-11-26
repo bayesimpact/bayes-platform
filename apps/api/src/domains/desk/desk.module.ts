@@ -30,7 +30,7 @@ import { DeskOrganizationsController } from "./organizations/organizations.contr
 import { DeskProjectsController } from "./projects/projects.controller"
 
 /**
- * The Desk's own API: the routes of `@caseai-connect/desk-contracts`, each checked with the
+ * The Desk's own API: the routes of `@bayes-platform/desk-contracts`, each checked with the
  * schemas of its route. Each handler copies the logic of the endpoint the Desk called before.
  */
 @Module({

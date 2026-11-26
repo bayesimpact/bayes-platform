@@ -1,4 +1,4 @@
-import { appStorePrefix, sessionStorageKey } from "@caseai-connect/sign-in"
+import { appStorePrefix, sessionStorageKey } from "@bayes-platform/sign-in"
 
 /**
  * The Desk kept a session of its own under `desk.oidc.` until every app shared one. That session

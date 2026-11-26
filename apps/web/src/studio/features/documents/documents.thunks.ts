@@ -1,4 +1,4 @@
-import type { DocumentSourceType } from "@caseai-connect/api-contracts"
+import type { DocumentSourceType } from "@bayes-platform/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"

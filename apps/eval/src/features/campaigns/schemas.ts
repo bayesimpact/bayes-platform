@@ -2,7 +2,7 @@ import {
   CAMPAIGN_INVITATION_EMAILS_MAX,
   reviewCampaignQuestionTypeSchema,
   reviewCampaignRoleSchema,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { z } from "zod"
 
 /** The tabs of a campaign's editor, which the URL holds. */

@@ -11,16 +11,16 @@ This is a Turborepo monorepo with the following structure:
 - `apps/desk` - The Desk, rebuilt on the frontend stack of ADR 0031 (Vite, TanStack Router and Query, shadcn on Base UI, Lingui), runs on port 5177 at `/app/`; see `apps/desk/AGENTS.md`
 - `apps/eval` - Evaluation, rebuilt on the same frontend stack of ADR 0031, runs on port 5179 at `/eval/`; see `apps/eval/AGENTS.md`
 - `apps/web` - Vite + React frontend application (runs on port 5173)
-- `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
-- `packages/@caseai-connect/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
-- `packages/@caseai-connect/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
-- `packages/@caseai-connect/sign-in` - The sign-in of the apps of the ADR 0031 stack (the Desk, Evaluation): the OIDC client on the session every app of the origin shares, the guards against sign-in loops, and the API's sign-in refusals. No app owns it; each app wraps it in its `lib/auth/session.ts`
-- `packages/@caseai-connect/api-client` - The API client of the apps of the ADR 0031 stack (the Desk, Evaluation): `createApiClient` on the app's session, the reading of server-sent events and the retry rule of the queries. No app owns it; each app creates its client in its `lib/api-client.ts`
-- `packages/@caseai-connect/frontend-config` - The tooling the apps of the ADR 0031 stack share: the Biome rules (`biome.app.json`, which each app's `biome.json` extends with the root one), the GritQL plugins and the `check-component-files` check. No app owns it
-- `packages/@caseai-connect/schema-route` - The route helper of the contracts packages (`defineSchemaRoute`, `defineStreamRoute`, the types of a route) and the body of an error response. The Desk and Evaluation contracts re-export it, and the API's `src/common/schema-route/` takes its route types from it; no app owns it
-- `packages/@caseai-connect/permissions` - The RBAC permission catalog (`src/index.ts`), the one place a permission string is declared. `api-contracts` re-exports it, and the Desk and Evaluation contracts re-export the constants their apps read; no app owns it
+- `packages/@bayes-platform/api-contracts` - Shared API contracts and DTOs
+- `packages/@bayes-platform/desk-contracts` - The Desk's contracts: its `desk/` routes and their Zod schemas. `apps/desk` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
+- `packages/@bayes-platform/eval-contracts` - Evaluation's contracts: its `eval/` routes and their Zod schemas. `apps/eval` reads its source and checks each response; `apps/api` requires its CommonJS build and checks each request and each JSON response with the same schemas
+- `packages/@bayes-platform/sign-in` - The sign-in of the apps of the ADR 0031 stack (the Desk, Evaluation): the OIDC client on the session every app of the origin shares, the guards against sign-in loops, and the API's sign-in refusals. No app owns it; each app wraps it in its `lib/auth/session.ts`
+- `packages/@bayes-platform/api-client` - The API client of the apps of the ADR 0031 stack (the Desk, Evaluation): `createApiClient` on the app's session, the reading of server-sent events and the retry rule of the queries. No app owns it; each app creates its client in its `lib/api-client.ts`
+- `packages/@bayes-platform/frontend-config` - The tooling the apps of the ADR 0031 stack share: the Biome rules (`biome.app.json`, which each app's `biome.json` extends with the root one), the GritQL plugins and the `check-component-files` check. No app owns it
+- `packages/@bayes-platform/schema-route` - The route helper of the contracts packages (`defineSchemaRoute`, `defineStreamRoute`, the types of a route) and the body of an error response. The Desk and Evaluation contracts re-export it, and the API's `src/common/schema-route/` takes its route types from it; no app owns it
+- `packages/@bayes-platform/permissions` - The RBAC permission catalog (`src/index.ts`), the one place a permission string is declared. `api-contracts` re-exports it, and the Desk and Evaluation contracts re-export the constants their apps read; no app owns it
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
-- `packages/@caseai-connect/ui` - Shared React component library
+- `packages/@bayes-platform/ui` - Shared React component library
 
 ## Development Commands
 
@@ -61,17 +61,17 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 ### Desk Application
 - The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `desk/` (one exception, a library file link, is named in `apps/desk/AGENTS.md`), which `apps/api/src/domains/desk/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/desk/AGENTS.md`
-- Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
+- Its gate: `npm run check -w @bayes-platform/desk`, on top of the completion criteria below
 
 ### Evaluation Application
 - The second app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. It calls only its own endpoints, under `eval/` (one exception, a library file link, is named in `apps/eval/AGENTS.md`), which `apps/api/src/domains/eval/` serves with `@SchemaRoute` (see `apps/api/CLAUDE.md`)
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/eval/AGENTS.md`
-- Its gate: `npm run check -w @caseai-connect/eval`, on top of the completion criteria below
+- Its gate: `npm run check -w @bayes-platform/eval`, on top of the completion criteria below
 
 ### Web Application
 - Vite + React (SPA) with React Compiler enabled via `babel-plugin-react-compiler`
 - Redux for state management with feature-based slices/thunks/selectors
-- Integrates with shared UI component library from `@caseai-connect/ui`
+- Integrates with shared UI component library from `@bayes-platform/ui`
 - Entry point: `apps/web/src/main.tsx`
 - See `apps/web/CLAUDE.md` for detailed web rules
 
@@ -91,7 +91,7 @@ The routes under `PUBLIC_PATH_PREFIX` (`/public/...`) are a frozen contract with
 
 Decisions live in `docs/adr/`. Two of them apply to every API change, and each has a skill that walks through the steps:
 
-- **Authorization** follows [ADR 0019](docs/adr/0019-rbac-permission-catalog.md). A permission is one string declared in `packages/permissions` (`@caseai-connect/permissions`, which `api-contracts` re-exports), granted on a role in the RBAC catalog, checked on the route with `@CheckPermission`, and used through `PermissionService` to list what the caller can see. Use the `rbac` skill, then `check-permission-matrix`. ADR 0004 and ADR 0013 are superseded: do not implement the three membership tables, role checks inside services, or an org-wide `project.read` grant.
+- **Authorization** follows [ADR 0019](docs/adr/0019-rbac-permission-catalog.md). A permission is one string declared in `packages/permissions` (`@bayes-platform/permissions`, which `api-contracts` re-exports), granted on a role in the RBAC catalog, checked on the route with `@CheckPermission`, and used through `PermissionService` to list what the caller can see. Use the `rbac` skill, then `check-permission-matrix`. ADR 0004 and ADR 0013 are superseded: do not implement the three membership tables, role checks inside services, or an org-wide `project.read` grant.
 - **Persistence** follows [ADR 0020](docs/adr/0020-custom-repositories.md). A service never imports TypeORM. It calls a named method on an `{Entity}Repository` provider, and transactions come from `transactionService.run()` in the service. Use the `custom-repository` skill. Many existing services still inject `Repository<T>`. Do not copy them.
 
 ## Package Management
@@ -158,8 +158,8 @@ Before marking any work as completed, run and verify:
 1. `npm run biome:check` — formatting and linting must pass
 2. `npm run typecheck` — no TypeScript errors
 3. `npm run test` — all tests must pass (API work)
-4. `npm run check -w @caseai-connect/desk` — when the Desk or its contracts changed
-5. `npm run check -w @caseai-connect/eval`: when Evaluation or its contracts changed
+4. `npm run check -w @bayes-platform/desk` — when the Desk or its contracts changed
+5. `npm run check -w @bayes-platform/eval`: when Evaluation or its contracts changed
 
 Work is NOT complete until all applicable commands pass with exit code 0.
 

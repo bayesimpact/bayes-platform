@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@bayes-platform/api-contracts"
 import { beforeAll, beforeEach } from "@jest/globals"
 import { tool } from "ai"
 import { v4 } from "uuid"

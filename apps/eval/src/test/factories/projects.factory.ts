@@ -5,7 +5,7 @@ import {
   myOrganizationOutputSchema,
   myProjectOutputSchema,
   PROJECT_READ_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 
 /** An organization of `GET eval/organizations/mine`, checked against the contract. */
 export function buildMyOrganization(

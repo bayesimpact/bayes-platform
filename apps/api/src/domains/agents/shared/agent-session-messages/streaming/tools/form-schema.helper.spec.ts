@@ -2,7 +2,7 @@ import {
   getOrderedPropertyEntries,
   type outputJsonSchemaSchema,
   outputJsonSchemaSchema as schema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { z } from "zod"
 import { buildFormFieldsZodSchema } from "./form-schema.helper"
 

@@ -1,5 +1,5 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import { cn } from "@caseai-connect/ui/utils"
+import { Badge } from "@bayes-platform/ui/shad/badge"
+import { cn } from "@bayes-platform/ui/utils"
 import { useTranslation } from "react-i18next"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { buildDate } from "@/common/utils/build-date"

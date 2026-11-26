@@ -1,4 +1,4 @@
-import { type McpServerDto, McpServersRoutes } from "@caseai-connect/api-contracts"
+import { type McpServerDto, McpServersRoutes } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { McpServer, McpServerInspection } from "../mcp-servers.models"
 import type { IMcpServersSpi } from "../mcp-servers.spi"

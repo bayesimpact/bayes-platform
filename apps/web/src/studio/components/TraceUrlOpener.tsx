@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { ExternalLinkIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { selectCanViewTraces } from "@/common/features/me/me.selectors"

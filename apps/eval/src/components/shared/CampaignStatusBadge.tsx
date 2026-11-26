@@ -1,4 +1,4 @@
-import type { ReviewCampaignStatusDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignStatusDto } from "@bayes-platform/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { Badge } from "@/components/ui/badge"
 import { CAMPAIGN_STATUS_LABELS } from "@/lib/campaign-status"

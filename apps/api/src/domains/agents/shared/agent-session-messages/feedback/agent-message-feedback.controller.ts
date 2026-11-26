@@ -3,7 +3,7 @@ import {
   AgentMessageFeedbackRoutes,
   createAgentMessageFeedbackSchema,
   type RequestPayload,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { z } from "zod"
 import type {

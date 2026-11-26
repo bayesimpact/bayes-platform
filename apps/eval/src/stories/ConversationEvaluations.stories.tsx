@@ -1,4 +1,4 @@
-import { EvalAgentsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalAgentsRoutes } from "@bayes-platform/eval-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fireEvent, userEvent, within } from "storybook/test"
 import {

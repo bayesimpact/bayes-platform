@@ -1,4 +1,4 @@
-import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
+import type { ReviewCampaignParamsDto } from "@bayes-platform/eval-contracts"
 import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"
 import { AgentSwitcher, useOpenAgentCommandCenter } from "@/features/agents"
 import { useCampaignContext } from "../hooks/use-campaign-context"

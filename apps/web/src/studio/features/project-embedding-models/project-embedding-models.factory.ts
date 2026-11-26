@@ -1,4 +1,4 @@
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel } from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Project } from "@/common/features/projects/projects.models"

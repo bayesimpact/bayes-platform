@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto } from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { MegaphoneIcon } from "lucide-react"
 import { SidebarCollapsibleMenu } from "@/components/shared/SidebarCollapsibleMenu"

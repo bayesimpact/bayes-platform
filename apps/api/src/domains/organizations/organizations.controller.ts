@@ -1,4 +1,4 @@
-import { OrganizationsRoutes, updateOrganizationSchema } from "@caseai-connect/api-contracts"
+import { OrganizationsRoutes, updateOrganizationSchema } from "@bayes-platform/api-contracts"
 import { Body, Controller, Get, Patch, Post, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type {
   EndpointRequest,

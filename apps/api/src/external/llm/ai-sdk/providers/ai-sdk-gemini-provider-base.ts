@@ -1,5 +1,5 @@
 import { createVertex } from "@ai-sdk/google-vertex"
-import type { AgentModel, AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
+import type { AgentModel, AgentModelOf, AgentProvider } from "@bayes-platform/api-contracts"
 import type { LanguageModel } from "ai"
 import { z } from "zod"
 import type {

@@ -1,4 +1,4 @@
-import { type AgentSessionMessageDto, ToolName } from "@caseai-connect/api-contracts"
+import { type AgentSessionMessageDto, ToolName } from "@bayes-platform/api-contracts"
 import { useTranslation } from "react-i18next"
 
 /**

@@ -1,4 +1,4 @@
-import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes } from "@bayes-platform/desk-contracts"
 import { Controller, HttpStatus, Inject, NotFoundException, Req } from "@nestjs/common"
 import { v4 } from "uuid"
 import type {

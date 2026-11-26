@@ -5,7 +5,7 @@ import {
   type ExtractionDatasetOutputDto,
   type ExtractionRunParamsDto,
   STUDIO_UI_READ_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { toast } from "sonner"

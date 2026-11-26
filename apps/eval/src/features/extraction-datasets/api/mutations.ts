@@ -5,7 +5,7 @@ import {
   type ExtractionDatasetParamsDto,
   type ExtractionDatasetSetupInputDto,
   type ProjectParamsDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { EXTRACTION_RUNS_QUERY_KEY } from "@/lib/run-query-keys"

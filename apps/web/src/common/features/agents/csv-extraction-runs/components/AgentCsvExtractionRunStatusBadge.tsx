@@ -1,4 +1,4 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
+import { Badge } from "@bayes-platform/ui/shad/badge"
 import { useTranslation } from "react-i18next"
 import type {
   AgentCsvExtractionRunRecordStatus,

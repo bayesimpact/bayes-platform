@@ -1,5 +1,5 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
-import { toolResultText } from "@caseai-connect/mcp-app-host"
+import type { ConversationParamsDto } from "@bayes-platform/eval-contracts"
+import { toolResultText } from "@bayes-platform/mcp-app-host"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { CopyButton } from "@/components/shared/CopyButton"

@@ -1,4 +1,4 @@
-import { ProjectsRoutes, updateProjectSchema } from "@caseai-connect/api-contracts"
+import { ProjectsRoutes, updateProjectSchema } from "@bayes-platform/api-contracts"
 import {
   Body,
   Controller,

@@ -1,4 +1,4 @@
-import type { EvaluationExtractionDatasetSchemaColumnDto } from "@caseai-connect/api-contracts"
+import type { EvaluationExtractionDatasetSchemaColumnDto } from "@bayes-platform/api-contracts"
 import type { Repository } from "typeorm"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"

@@ -1,9 +1,9 @@
 import {
   type CreateBackofficeCustomModelRequestDto,
   createBackofficeCustomModelSchema,
-} from "@caseai-connect/api-contracts"
-import { Button } from "@caseai-connect/ui/shad/button"
-import { DialogFooter } from "@caseai-connect/ui/shad/dialog"
+} from "@bayes-platform/api-contracts"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { DialogFooter } from "@bayes-platform/ui/shad/dialog"
 import {
   Form,
   FormControl,
@@ -12,16 +12,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
+} from "@bayes-platform/ui/shad/form"
+import { Input } from "@bayes-platform/ui/shad/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@caseai-connect/ui/shad/select"
-import { Switch } from "@caseai-connect/ui/shad/switch"
+} from "@bayes-platform/ui/shad/select"
+import { Switch } from "@bayes-platform/ui/shad/switch"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import type { CustomModelType } from "../../backoffice.models"

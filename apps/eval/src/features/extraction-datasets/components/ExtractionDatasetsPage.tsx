@@ -3,7 +3,7 @@ import {
   EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { DatasetsListPage } from "@/components/shared/DatasetsListPage"

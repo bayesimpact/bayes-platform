@@ -1,7 +1,7 @@
 import type {
   AgentParamsDto,
   ReviewCampaignListItemOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"

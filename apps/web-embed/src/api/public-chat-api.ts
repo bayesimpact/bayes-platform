@@ -4,8 +4,8 @@ import type {
   PublicAgentSessionDto,
   PublicMcpAppHtmlDto,
   PublicStreamEventPayload,
-} from "@caseai-connect/api-contracts"
-import { PublicChatRoutes } from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
+import { PublicChatRoutes } from "@bayes-platform/api-contracts"
 import { apiUrl as routeUrl } from "./api-base"
 
 /** Reference client of the public chat API v1 (`docs/public-api-contract.md`). */

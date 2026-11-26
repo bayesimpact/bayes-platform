@@ -1,4 +1,4 @@
-import { cn } from "@caseai-connect/ui/utils"
+import { cn } from "@bayes-platform/ui/utils"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import type * as React from "react"
 

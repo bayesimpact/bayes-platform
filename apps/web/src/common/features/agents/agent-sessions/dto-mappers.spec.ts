@@ -1,7 +1,7 @@
 import type {
   AgentSessionMessageDto,
   ConversationAgentSessionDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import { describe, expect, it } from "vitest"
 import { fromDto as fromSessionDto } from "./conversation/external/conversation-agent-sessions.mappers"
 import { fromDto as fromMessageDto } from "./shared/agent-session-messages/external/agent-session-messages.mappers"

@@ -1,4 +1,4 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import { LogOutIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useAuthHandler } from "@/common/hooks/use-auth-handler"

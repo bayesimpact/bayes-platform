@@ -1,13 +1,13 @@
-import { Button } from "@caseai-connect/ui/shad/button"
+import { Button } from "@bayes-platform/ui/shad/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@caseai-connect/ui/shad/dialog"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
+} from "@bayes-platform/ui/shad/dialog"
+import { Spinner } from "@bayes-platform/ui/shad/spinner"
+import { Textarea } from "@bayes-platform/ui/shad/textarea"
 import { Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

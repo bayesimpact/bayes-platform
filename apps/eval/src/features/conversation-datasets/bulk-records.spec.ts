@@ -1,4 +1,4 @@
-import { CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/eval-contracts"
+import { CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@bayes-platform/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { parseBulkRecords } from "./bulk-records"
 

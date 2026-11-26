@@ -1,4 +1,4 @@
-import type { ConversationFormDto } from "@caseai-connect/api-contracts"
+import type { ConversationFormDto } from "@bayes-platform/api-contracts"
 import type { ConversationForm } from "./conversation-form.entity"
 
 export function toConversationFormDto(

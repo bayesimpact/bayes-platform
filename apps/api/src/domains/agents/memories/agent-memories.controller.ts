@@ -4,7 +4,7 @@ import {
   type ResolveAgentMemoryProposalsDto,
   AgentMemoriesRoutes as Routes,
   resolveAgentMemoryProposalsSchema,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import {
   BadRequestException,
   Body,

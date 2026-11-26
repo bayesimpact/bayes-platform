@@ -1,4 +1,4 @@
-import type { AgentParamsDto, ExtractionDatasetOutputDto } from "@caseai-connect/eval-contracts"
+import type { AgentParamsDto, ExtractionDatasetOutputDto } from "@bayes-platform/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"

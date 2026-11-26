@@ -2,7 +2,7 @@ import type {
   CreateAgentDto,
   DuplicateAgentDto,
   SuccessResponseDTO,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { Agent, AgentModelsCatalog } from "./agents.models"
 
 export interface IAgentsSpi {

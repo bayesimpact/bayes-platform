@@ -3,7 +3,7 @@ import type {
   LegacyEmbedPublicConfigDto,
   PublicAgentSessionDto,
   PublicSessionMessageDto,
-} from "@caseai-connect/api-contracts"
+} from "@bayes-platform/api-contracts"
 import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import type { PublicAgentSession } from "../public-agent-sessions/public-agent-session.entity"
 

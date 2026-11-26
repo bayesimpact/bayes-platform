@@ -1,5 +1,5 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+import { Button } from "@bayes-platform/ui/shad/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@bayes-platform/ui/shad/tooltip"
 import { Trash2Icon, Undo2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

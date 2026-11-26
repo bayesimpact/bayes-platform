@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { EvalExtractionDatasetsRoutes } from "@caseai-connect/eval-contracts"
+import { EvalExtractionDatasetsRoutes } from "@bayes-platform/eval-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"

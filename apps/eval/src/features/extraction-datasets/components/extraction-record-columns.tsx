@@ -1,7 +1,7 @@
 import type {
   ExtractionDatasetColumnDto,
   ExtractionDatasetRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
+} from "@bayes-platform/eval-contracts"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { cn } from "cn"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"

@@ -1,4 +1,4 @@
-import { ResourceLibrariesRoutes, type ResourceLibraryDto } from "@caseai-connect/api-contracts"
+import { ResourceLibrariesRoutes, type ResourceLibraryDto } from "@bayes-platform/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { ResourceLibrary } from "../resource-libraries.models"
 import type { IResourceLibrariesSpi } from "../resource-libraries.spi"

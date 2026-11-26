@@ -1,4 +1,4 @@
-import type { MembershipRoleDto, RoleScopeTypeDto } from "@caseai-connect/api-contracts"
+import type { MembershipRoleDto, RoleScopeTypeDto } from "@bayes-platform/api-contracts"
 import { faker } from "@faker-js/faker"
 
 const KEY_PREFIX: Record<Exclude<RoleScopeTypeDto, "global">, string> = {

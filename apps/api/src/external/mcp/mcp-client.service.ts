@@ -1,5 +1,5 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp"
-import type { McpServerConnectionErrorDto, McpServerToolDto } from "@caseai-connect/api-contracts"
+import type { McpServerConnectionErrorDto, McpServerToolDto } from "@bayes-platform/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import type { ToolSet } from "ai"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -137,7 +137,7 @@ export class McpClientService {
         redirect: config.followRedirects ? "follow" : "error",
         ...(Object.keys(headers).length > 0 ? { headers } : {}),
       },
-      name: "caseai-connect",
+      name: "bayes-platform",
       version: "1.0.0",
       capabilities: MCP_APP_CLIENT_CAPABILITIES,
     })
