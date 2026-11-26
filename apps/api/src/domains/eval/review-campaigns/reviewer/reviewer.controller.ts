@@ -92,6 +92,10 @@ export class EvalReviewerController {
     })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: request.reviewCampaign.agentId,
+      connectScope: {
+        organizationId: request.reviewCampaign.organizationId,
+        projectId: request.reviewCampaign.projectId,
+      },
       sessionId,
       messages: transcript,
     })

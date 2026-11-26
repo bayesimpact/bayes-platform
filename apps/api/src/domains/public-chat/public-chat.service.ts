@@ -74,6 +74,7 @@ export class PublicChatService {
     )
     return this.mcpAppHtmlService.readLiveHtml({
       agentId: session.agentId,
+      connectScope: { organizationId: session.organizationId, projectId: session.projectId },
       sessionId: session.id,
       messages,
       externalVisitorId: session.externalVisitorId,

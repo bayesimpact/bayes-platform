@@ -78,6 +78,7 @@ export abstract class AgentMessagesController {
     })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: request.agent.id,
+      connectScope,
       sessionId: agentSessionId,
       messages,
     })

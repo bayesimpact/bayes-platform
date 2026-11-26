@@ -92,12 +92,14 @@ export class EvalConversationMessagesController {
     assertReviewCampaignIsActive(request.reviewCampaign)
     assertTesterSession(request)
     const agentSessionId = request.agentSession.id
+    const connectScope = getRequiredConnectScope(request)
     const messages = await this.conversationAgentSessionsService.listMessagesForSession({
       agentSessionId,
-      connectScope: getRequiredConnectScope(request),
+      connectScope,
     })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: request.agent.id,
+      connectScope,
       sessionId: agentSessionId,
       messages,
     })

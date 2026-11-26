@@ -71,6 +71,7 @@ describe("PublicChatService", () => {
 
     expect(readLiveHtml).toHaveBeenCalledWith({
       agentId: session.agentId,
+      connectScope: { organizationId: session.organizationId, projectId: session.projectId },
       sessionId: session.id,
       messages: [messageWithCard],
       externalVisitorId: "visitor-1",
