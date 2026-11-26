@@ -144,15 +144,16 @@ the conventions as they stand. When a rule changes, its reference file changes i
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
 - Evaluation (`apps/eval`) holds a copy of the chat: `src/features/conversation/`, and `Markdown`,
-  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no code, so
-  a change to one of these files goes to the copy too, in the same PR.
+  `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. The apps share no chat code,
+  so a change to one of these files goes to the copy too, in the same PR.
   `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
   of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
   one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a
   snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
-- The API client: `src/lib/api-client.ts`. The query client's retry rules:
-  `src/app/query-client.ts`.
+- The API client: `src/lib/api-client.ts`, which creates the client of
+  `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
+  `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).
 - The mocked API: `src/test/msw/handlers.ts` and `extraction-handlers.ts`, written with
   `mockRoute` and `mockStreamRoute` (`src/test/msw/mock-route.ts`) and fed by the factories of
   `src/test/factories/`, whose `desk-world.factory.ts` builds the worlds. `src/test/setup.ts` gives
