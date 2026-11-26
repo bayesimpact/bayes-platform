@@ -1,14 +1,14 @@
-import { Trans, useLingui } from "@lingui/react/macro"
-import { useNavigate, useParams } from "@tanstack/react-router"
-import { EllipsisIcon, Trash2Icon } from "lucide-react"
-import { useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { SidebarMenuAction } from "@/components/ui/sidebar"
+} from "@caseai-connect/app-ui/components/dropdown-menu"
+import { SidebarMenuAction } from "@caseai-connect/app-ui/components/sidebar"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { useNavigate, useParams } from "@tanstack/react-router"
+import { EllipsisIcon, Trash2Icon } from "lucide-react"
+import { useState } from "react"
 import { agentParamsOf } from "@/lib/agent-params"
 import type { HistoryAgent, HistoryEntry } from "../history-entries"
 import { DeleteEntryDialog } from "./DeleteEntryDialog"

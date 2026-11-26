@@ -1,10 +1,10 @@
+import { SidebarMenu } from "@caseai-connect/app-ui/components/sidebar"
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 import { AgentName } from "@/components/shared/AgentName"
 import { AppShell } from "@/components/shared/AppShell"
 import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { SidebarClosedOnly } from "@/components/shared/SidebarClosedOnly"
-import { SidebarMenu } from "@/components/ui/sidebar"
 import {
   AgentSidebarHeader,
   agentSearchSchema,

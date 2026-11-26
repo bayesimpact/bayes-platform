@@ -1,3 +1,11 @@
+import { Button, buttonVariants } from "@caseai-connect/app-ui/components/button"
+import { ButtonGroup } from "@caseai-connect/app-ui/components/button-group"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@caseai-connect/app-ui/components/dropdown-menu"
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
@@ -5,14 +13,6 @@ import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 import { EllipsisIcon, Trash2Icon } from "lucide-react"
 import type { ReactNode } from "react"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { ButtonGroup } from "@/components/ui/button-group"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export type RunRowActionsProps = {
   agentParams: AgentParamsDto

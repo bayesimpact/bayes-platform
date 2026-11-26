@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 import { AppShell } from "./AppShell"
 
 /** The app's frame while the agents load: a sidebar of placeholders and an empty center. */

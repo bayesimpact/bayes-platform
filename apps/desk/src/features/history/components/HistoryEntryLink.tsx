@@ -1,7 +1,7 @@
+import { SidebarMenuButton } from "@caseai-connect/app-ui/components/sidebar"
 import { useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { RunStateIcon } from "@/components/shared/RunStateIcon"
-import { SidebarMenuButton } from "@/components/ui/sidebar"
 import { RUN_STATE_LABELS, type RunState } from "@/lib/run-state"
 import { entryLinkOptions } from "../entry-link"
 import type { HistoryAgent, HistoryEntry, HistoryEntryState } from "../history-entries"

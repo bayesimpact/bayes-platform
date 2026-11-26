@@ -1,3 +1,4 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import type {
   ExtractionDatasetColumnDto,
   ExtractionDatasetRecordOutputDto,
@@ -5,7 +6,6 @@ import type {
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { cn } from "cn"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"
-import { Badge } from "@/components/ui/badge"
 import { CELL_TEXT_CLASSES } from "@/lib/cell-text"
 import { cellTextOf } from "@/lib/extraction-columns"
 

@@ -1,11 +1,16 @@
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@caseai-connect/app-ui/components/field"
+import { NativeSelect, NativeSelectOption } from "@caseai-connect/app-ui/components/native-select"
 import type {
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import type { ReactNode } from "react"
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 
 export type KeyMappingFieldProps = {
   /** How the run reads each field the agent returns. */

@@ -1,6 +1,6 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { PanelRightIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import { Button } from "@/components/ui/button"
 
 export type SidePanelToggleProps = {
   isOpen: boolean

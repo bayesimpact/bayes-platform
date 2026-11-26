@@ -1,9 +1,14 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@caseai-connect/app-ui/components/popover"
 import type { ExtractionDatasetFileOutputDto } from "@caseai-connect/eval-contracts"
 import { fileSizeOf, fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { InfoIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover"
 
 export type ExtractionFileDetailsProps = {
   file: ExtractionDatasetFileOutputDto

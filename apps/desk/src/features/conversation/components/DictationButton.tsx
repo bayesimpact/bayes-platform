@@ -1,8 +1,8 @@
+import { InputGroupButton } from "@caseai-connect/app-ui/components/input-group"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import { useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { MicIcon } from "lucide-react"
-import { InputGroupButton } from "@/components/ui/input-group"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export type DictationButtonProps = {
   isListening: boolean

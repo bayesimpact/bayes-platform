@@ -1,8 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro"
-import { cn } from "cn"
-import { ChevronDownIcon, WrapTextIcon } from "lucide-react"
-import { type ReactNode, useId, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   CodeBlock,
   CodeBlockActions,
@@ -12,8 +8,12 @@ import {
   CodeBlockHeader,
   CodeBlockLine,
   CodeBlockTitle,
-} from "@/components/ui/code-block"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+} from "@caseai-connect/app-ui/components/code-block"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { cn } from "cn"
+import { ChevronDownIcon, WrapTextIcon } from "lucide-react"
+import { type ReactNode, useId, useState } from "react"
 import { useHighlightedCode } from "@/hooks/use-highlighted-code"
 
 /** Beyond this many lines, a collapsible block shows its start, and the rest on demand. */

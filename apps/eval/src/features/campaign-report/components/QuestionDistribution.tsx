@@ -1,7 +1,7 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
+import { Progress } from "@caseai-connect/app-ui/components/progress"
 import type { CampaignReportDistributionOutputDto } from "@caseai-connect/eval-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 
 export type QuestionDistributionProps = {
   distribution: CampaignReportDistributionOutputDto

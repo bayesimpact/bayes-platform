@@ -2,7 +2,7 @@
 
 // One exported component per file, named like the file: `ProjectCard.tsx` exports `ProjectCard`
 // and no other component. Biome's GritQL plugins cannot read a file's name, so this script checks
-// it. The components shadcn's CLI generates into `src/components/ui/` keep shadcn's own layout.
+// it. The components shadcn's CLI generates live in `packages/app-ui`, with shadcn's own layout.
 //
 // Each app of the stack runs it on its own folder, as `check-component-files`:
 // `npm run check:components -w <app>`, which the app's `check` runs.
@@ -14,8 +14,8 @@ import { basename, join } from "node:path"
 const appRoot = process.cwd()
 // Component files are named in PascalCase.tsx; the test reads the name, since a glob ignores case
 // on macOS.
-const componentFiles = globSync("src/**/*.tsx", { cwd: appRoot }).filter(
-  (file) => /^[A-Z]\w*\.tsx$/.test(basename(file)) && !file.startsWith("src/components/ui/"),
+const componentFiles = globSync("src/**/*.tsx", { cwd: appRoot }).filter((file) =>
+  /^[A-Z]\w*\.tsx$/.test(basename(file)),
 )
 // Run outside an app, the check would find nothing and pass: it fails instead.
 if (componentFiles.length === 0) {

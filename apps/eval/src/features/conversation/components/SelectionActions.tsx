@@ -1,8 +1,8 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { useCopyText } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CheckIcon, CopyIcon, MessageSquarePlusIcon } from "lucide-react"
 import { useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
 
 export type SelectionActionsProps = {
   /** The passage the person selected. */

@@ -1,3 +1,4 @@
+import { DropdownMenuItem } from "@caseai-connect/app-ui/components/dropdown-menu"
 import type {
   AgentParamsDto,
   ExtractionDatasetParamsDto,
@@ -13,7 +14,6 @@ import { DataTable } from "@/components/shared/DataTable"
 import { RunRowActions } from "@/components/shared/RunRowActions"
 import { RunsSection, type RunsTableSlot } from "@/components/shared/RunsSection"
 import { RunVersionButton } from "@/components/shared/RunVersionButton"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { pickedAfterSelection, rowSelectionOf } from "@/lib/run-selection"
 import { useDeleteExtractionRun, useOpenRunCsv } from "../api/mutations"

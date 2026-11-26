@@ -1,5 +1,5 @@
+import { MessageFooter } from "@caseai-connect/app-ui/components/message"
 import type { ReactNode } from "react"
-import { MessageFooter } from "@/components/ui/message"
 
 export type MessageActionsProps = {
   children: ReactNode

@@ -1,8 +1,8 @@
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { useLingui } from "@lingui/react/macro"
 import { EllipsisVerticalIcon } from "lucide-react"
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { useHasChildren } from "@/hooks/use-has-children"
 
 export type HeaderActionsMenuProps = {

@@ -1,3 +1,12 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@caseai-connect/app-ui/components/message-scroller"
 import type {
   ConversationFormOutputDto,
   ConversationParamsDto,
@@ -8,15 +17,6 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
 import { type ReactNode, useId, useState } from "react"
 import { HeaderActions } from "@/components/shared/HeaderActions"
-import { Button } from "@/components/ui/button"
-import {
-  MessageScroller,
-  MessageScrollerButton,
-  MessageScrollerContent,
-  MessageScrollerItem,
-  MessageScrollerProvider,
-  MessageScrollerViewport,
-} from "@/components/ui/message-scroller"
 import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isBeingWritten, lastReplyFollowUpQuestions } from "../chat-messages"

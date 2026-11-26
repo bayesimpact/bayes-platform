@@ -1,3 +1,4 @@
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 import {
   DEFAULT_THEMES,
   getFiletypeFromFileName,
@@ -6,7 +7,6 @@ import {
 } from "@pierre/diffs"
 import { MultiFileDiff } from "@pierre/diffs/react"
 import { Suspense, use } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
 
 /** A text as a file the diff reads: a last line with no line break gets one, which means nothing here. */
 const contentsOf = (text: string) => (text === "" || text.endsWith("\n") ? text : `${text}\n`)

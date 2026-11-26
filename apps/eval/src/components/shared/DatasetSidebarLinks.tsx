@@ -1,8 +1,8 @@
+import { SidebarMenuSubButton, SidebarMenuSubItem } from "@caseai-connect/app-ui/components/sidebar"
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { Link, useParams } from "@tanstack/react-router"
 import type { ReactNode } from "react"
-import { SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { SidebarSection } from "./SidebarSection"
 import { SidebarSubGroupLabel } from "./SidebarSubGroupLabel"
 

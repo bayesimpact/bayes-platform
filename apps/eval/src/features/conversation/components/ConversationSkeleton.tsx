@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 
 /** A conversation's shape while its messages load. */
 export function ConversationSkeleton() {

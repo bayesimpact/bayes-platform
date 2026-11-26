@@ -1,9 +1,9 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type { ReviewCampaignDetailOutputDto } from "@caseai-connect/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { RocketIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { Button } from "@/components/ui/button"
 
 export type ActivateStepProps = {
   campaign: ReviewCampaignDetailOutputDto

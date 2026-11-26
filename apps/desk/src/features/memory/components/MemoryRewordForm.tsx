@@ -1,3 +1,6 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import {
   MEMORY_MAX_LENGTH,
   resolveMemoryProposalsInputSchema,
@@ -7,9 +10,6 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Textarea } from "@/components/ui/textarea"
 
 /** The reworded fact, with the rule of the resolve route's `content`. */
 const rewordSchema = z.object({

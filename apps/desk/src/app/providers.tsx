@@ -1,7 +1,7 @@
+import { Toaster } from "@caseai-connect/app-ui/components/sonner"
 import { I18nProvider } from "@lingui/react"
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { RouterProvider } from "@tanstack/react-router"
-import { Toaster } from "@/components/ui/sonner"
 import { i18n } from "./i18n"
 import type { createAppRouter } from "./router"
 

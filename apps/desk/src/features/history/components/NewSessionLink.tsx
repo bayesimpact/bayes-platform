@@ -1,7 +1,11 @@
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@caseai-connect/app-ui/components/sidebar"
 import { Trans } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { SquarePenIcon } from "lucide-react"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { agentParamsOf } from "@/lib/agent-params"
 import type { HistoryAgent } from "../history-entries"
 

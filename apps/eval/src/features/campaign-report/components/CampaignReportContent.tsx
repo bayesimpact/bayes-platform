@@ -1,3 +1,4 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/app-ui/components/tabs"
 import type {
   CampaignReportDistributionOutputDto,
   ReviewCampaignParamsDto,
@@ -6,7 +7,6 @@ import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 import { StatCard } from "@/components/shared/StatCard"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { meanRatingOf } from "@/lib/format-rating"
 import { campaignReportQueryOptions } from "../api/queries"
 import { QuestionDistribution } from "./QuestionDistribution"

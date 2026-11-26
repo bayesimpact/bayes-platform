@@ -1,3 +1,8 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Label } from "@caseai-connect/app-ui/components/label"
+import { RadioGroup, RadioGroupItem } from "@caseai-connect/app-ui/components/radio-group"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import {
   CAMPAIGN_INVITATION_EMAILS_MAX,
   type ReviewCampaignParamsDto,
@@ -8,11 +13,6 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Textarea } from "@/components/ui/textarea"
 import { useInviteParticipants } from "../api/mutations"
 import { inviteParticipantsFormSchema, parseEmails } from "../schemas"
 import { CampaignRoleLabel } from "./CampaignRoleLabel"

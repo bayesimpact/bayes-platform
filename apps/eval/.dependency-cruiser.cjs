@@ -18,15 +18,16 @@ module.exports = {
       comment:
         "The app imports nothing from another app or from a package another app owns. Its " +
         "workspace dependencies are @caseai-connect/eval-contracts and the packages no app " +
-        "owns: @caseai-connect/api-client, @caseai-connect/frontend-lib, " +
-        "@caseai-connect/mcp-app-host and @caseai-connect/sign-in (ADR 0031, section 2.4).",
+        "owns: @caseai-connect/api-client, @caseai-connect/app-ui, " +
+        "@caseai-connect/frontend-lib, @caseai-connect/mcp-app-host and " +
+        "@caseai-connect/sign-in (ADR 0031, section 2.4).",
       from: { path: "^src/" },
       to: {
         path: [
           // Another app: a sibling of apps/eval.
           "^\\.\\./(?!\\.\\./|eval/)[^/]+/",
-          "^\\.\\./\\.\\./packages/(?!(api-client|eval-contracts|frontend-lib|mcp-app-host|sign-in)/)",
-          "node_modules/@caseai-connect/(?!(api-client|eval-contracts|frontend-lib|mcp-app-host|sign-in)(/|$))",
+          "^\\.\\./\\.\\./packages/(?!(api-client|app-ui|eval-contracts|frontend-lib|mcp-app-host|sign-in)/)",
+          "node_modules/@caseai-connect/(?!(api-client|app-ui|eval-contracts|frontend-lib|mcp-app-host|sign-in)(/|$))",
           "node_modules/@repo/",
         ],
       },

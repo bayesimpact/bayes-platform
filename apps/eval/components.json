@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/styles/global.css",
+    "css": "../../packages/app-ui/src/styles/globals.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
@@ -15,9 +15,9 @@
   "aliases": {
     "components": "@/components",
     "utils": "cn",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+    "ui": "@caseai-connect/app-ui/components",
+    "lib": "@caseai-connect/app-ui/lib",
+    "hooks": "@caseai-connect/app-ui/hooks"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

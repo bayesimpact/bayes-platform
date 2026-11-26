@@ -1,6 +1,6 @@
+import { Kbd, KbdGroup } from "@caseai-connect/app-ui/components/kbd"
 import { isApplePlatform } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
-import { Kbd, KbdGroup } from "@/components/ui/kbd"
 
 export type ShortcutHintProps = {
   /** The key pressed with the system's command key, such as `K`. */

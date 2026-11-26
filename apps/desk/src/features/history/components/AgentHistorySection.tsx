@@ -1,9 +1,9 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { Trans } from "@lingui/react/macro"
 import { useQueryErrorResetBoundary } from "@tanstack/react-query"
 import { CatchBoundary, type ErrorComponentProps } from "@tanstack/react-router"
 import { Suspense } from "react"
 import { SidebarEntriesSkeleton } from "@/components/shared/SidebarEntriesSkeleton"
-import { Button } from "@/components/ui/button"
 import type { HistoryAgent } from "../history-entries"
 import { AgentHistory } from "./AgentHistory"
 

@@ -1,6 +1,6 @@
+import { Kbd } from "@caseai-connect/app-ui/components/kbd"
 import { Trans } from "@lingui/react/macro"
 import { ArrowBigUpIcon } from "lucide-react"
-import { Kbd } from "@/components/ui/kbd"
 
 /** The Shift key, drawn as ⇧, and named for screen readers. */
 export function ShiftKey() {

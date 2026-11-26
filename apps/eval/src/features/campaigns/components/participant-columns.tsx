@@ -1,8 +1,8 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import type { ReactNode } from "react"
-import { Badge } from "@/components/ui/badge"
 import type { Participant } from "../participants"
 import { CampaignRoleLabel } from "./CampaignRoleLabel"
 

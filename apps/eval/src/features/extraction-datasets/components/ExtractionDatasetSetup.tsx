@@ -1,3 +1,4 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type {
   ExtractionDatasetOutputDto,
   ExtractionDatasetParamsDto,
@@ -6,7 +7,6 @@ import { Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { Button } from "@/components/ui/button"
 import { extractionFileColumnsQueryOptions } from "../api/queries"
 import { ExtractionColumnsForm } from "./ExtractionColumnsForm"
 import { ExtractionFilesSection } from "./ExtractionFilesSection"

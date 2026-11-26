@@ -1,6 +1,10 @@
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@caseai-connect/app-ui/components/collapsible"
 import { ChevronDownIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 export type FoldingCardProps = {
   title: ReactNode

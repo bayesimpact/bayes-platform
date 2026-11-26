@@ -1,15 +1,15 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { useNavigate } from "@tanstack/react-router"
-import { EllipsisIcon, Trash2Icon } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@caseai-connect/app-ui/components/dropdown-menu"
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { useNavigate } from "@tanstack/react-router"
+import { EllipsisIcon, Trash2Icon } from "lucide-react"
+import { useState } from "react"
 import { DeleteEntryDialog } from "@/features/history"
 import { agentParamsOf } from "@/lib/agent-params"
 import { useConversationTitle } from "../hooks/use-conversation-title"

@@ -1,13 +1,13 @@
-import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
-import { Trans } from "@lingui/react/macro"
-import { type ReactNode, useState } from "react"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
+} from "@caseai-connect/app-ui/components/sheet"
+import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
+import { Trans } from "@lingui/react/macro"
+import { type ReactNode, useState } from "react"
 import { AgentVersionCompare } from "./AgentVersionCompare"
 import { AgentVersionList } from "./AgentVersionList"
 

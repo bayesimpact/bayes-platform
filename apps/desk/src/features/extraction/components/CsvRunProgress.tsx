@@ -1,6 +1,6 @@
+import { Progress } from "@caseai-connect/app-ui/components/progress"
 import type { CsvExtractionRunDetailOutputDto } from "@caseai-connect/desk-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { Progress } from "@/components/ui/progress"
 import { isCsvRunLive } from "../api/queries"
 
 export type CsvRunProgressProps = {

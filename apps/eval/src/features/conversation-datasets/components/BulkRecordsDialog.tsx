@@ -1,8 +1,4 @@
-import type { ConversationDatasetRecordInputDto } from "@caseai-connect/eval-contracts"
-import { CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/eval-contracts"
-import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { useId, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   Dialog,
   DialogContent,
@@ -10,9 +6,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
-import { Textarea } from "@/components/ui/textarea"
+} from "@caseai-connect/app-ui/components/dialog"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@caseai-connect/app-ui/components/field"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
+import type { ConversationDatasetRecordInputDto } from "@caseai-connect/eval-contracts"
+import { CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/eval-contracts"
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { useId, useState } from "react"
 import { parseBulkRecords } from "../bulk-records"
 
 export type BulkRecordsDialogProps = {

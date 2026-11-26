@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 import { DeskShell } from "./DeskShell"
 import { SidebarEntriesSkeleton } from "./SidebarEntriesSkeleton"
 

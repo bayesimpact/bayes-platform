@@ -1,9 +1,9 @@
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Input } from "@caseai-connect/app-ui/components/input"
+import { Label } from "@caseai-connect/app-ui/components/label"
+import { RadioGroup, RadioGroupItem } from "@caseai-connect/app-ui/components/radio-group"
 import { Plural, Trans } from "@lingui/react/macro"
 import { useId } from "react"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { RunScope } from "@/lib/run-scope"
 
 export type RunScopeFieldProps = {

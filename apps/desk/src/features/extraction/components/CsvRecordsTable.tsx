@@ -1,3 +1,4 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type {
   CsvColumnDto,
   CsvExtractionRecordOutputDto,
@@ -8,7 +9,6 @@ import { getCoreRowModel, type SortingState, useReactTable } from "@tanstack/rea
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useId } from "react"
 import { DataTable } from "@/components/shared/DataTable"
-import { Button } from "@/components/ui/button"
 import { CSV_RECORDS_PAGE_SIZE } from "../api/queries"
 import { fieldKeysOf } from "../extraction-fields"
 import type { CsvRecordsPage } from "../schemas"

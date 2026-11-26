@@ -1,4 +1,12 @@
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@caseai-connect/app-ui/components/table"
+import {
   flexRender,
   type Header,
   type Row,
@@ -7,14 +15,6 @@ import {
 import { cn } from "cn"
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 
 export type DataTableProps<TData> = {
   table: TanStackTable<TData>

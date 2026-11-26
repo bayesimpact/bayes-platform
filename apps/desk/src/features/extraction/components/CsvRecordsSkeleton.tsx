@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 
 /** The table of a CSV run's rows while its page loads. */
 export function CsvRecordsSkeleton() {

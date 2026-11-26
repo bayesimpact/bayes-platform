@@ -1,12 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
-import { MESSAGE_FEEDBACK_MAX_LENGTH } from "@caseai-connect/eval-contracts"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { ThumbsDownIcon } from "lucide-react"
-import { useId, useState } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   Dialog,
   DialogClose,
@@ -16,10 +8,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+} from "@caseai-connect/app-ui/components/dialog"
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
+import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import { MESSAGE_FEEDBACK_MAX_LENGTH } from "@caseai-connect/eval-contracts"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { ThumbsDownIcon } from "lucide-react"
+import { useId, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { useSendFeedback } from "../api/mutations"
 import { reportFormSchema } from "../schemas"
 

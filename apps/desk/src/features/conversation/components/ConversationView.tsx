@@ -1,11 +1,4 @@
-import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
-import { useNow } from "@caseai-connect/frontend-lib"
-import { Trans } from "@lingui/react/macro"
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
-import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
-import { useId, useState } from "react"
-import { HeaderActions } from "@/components/shared/HeaderActions"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -13,7 +6,14 @@ import {
   MessageScrollerItem,
   MessageScrollerProvider,
   MessageScrollerViewport,
-} from "@/components/ui/message-scroller"
+} from "@caseai-connect/app-ui/components/message-scroller"
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import { useNow } from "@caseai-connect/frontend-lib"
+import { Trans } from "@lingui/react/macro"
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
+import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
+import { useId, useState } from "react"
+import { HeaderActions } from "@/components/shared/HeaderActions"
 import { MemoryButton, MemoryPanel } from "@/features/memory"
 import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"

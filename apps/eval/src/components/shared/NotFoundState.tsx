@@ -1,8 +1,8 @@
+import { buttonVariants } from "@caseai-connect/app-ui/components/button"
 import { Trans } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 import { SearchXIcon } from "lucide-react"
-import { buttonVariants } from "@/components/ui/button"
 import { StatusPage } from "./StatusPage"
 
 export function NotFoundState() {

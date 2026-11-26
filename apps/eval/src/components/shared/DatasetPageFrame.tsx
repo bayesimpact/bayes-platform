@@ -1,17 +1,17 @@
+import { Button, buttonVariants } from "@caseai-connect/app-ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@caseai-connect/app-ui/components/dropdown-menu"
+import { Tabs, TabsList, TabsTrigger } from "@caseai-connect/app-ui/components/tabs"
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { cn } from "cn"
 import { EllipsisIcon, PencilIcon, PlayIcon, Trash2Icon } from "lucide-react"
 import type { ReactNode } from "react"
-import { Button, buttonVariants } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BackLink } from "./BackLink"
 import { PageContainer } from "./PageContainer"
 import { PageHeader } from "./PageHeader"

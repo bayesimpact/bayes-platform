@@ -1,9 +1,14 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  FieldDescription,
+  FieldError,
+  FieldLegend,
+  FieldSet,
+} from "@caseai-connect/app-ui/components/field"
 import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { HistoryIcon } from "lucide-react"
 import { type ReactNode, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { FieldDescription, FieldError, FieldLegend, FieldSet } from "@/components/ui/field"
 import { AgentVersionsSheet } from "./AgentVersionsSheet"
 import { AgentVersionTitle } from "./AgentVersionTitle"
 import { TimeAgo } from "./TimeAgo"

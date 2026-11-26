@@ -1,13 +1,13 @@
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@caseai-connect/frontend-lib"
-import { useLingui } from "@lingui/react/macro"
-import type { ReactNode } from "react"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@caseai-connect/app-ui/components/sidebar"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@caseai-connect/frontend-lib"
+import { useLingui } from "@lingui/react/macro"
+import type { ReactNode } from "react"
 import {
   entryTitleOf,
   groupByPeriod,

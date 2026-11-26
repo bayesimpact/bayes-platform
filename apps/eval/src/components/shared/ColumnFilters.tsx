@@ -1,11 +1,15 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { ButtonGroup } from "@caseai-connect/app-ui/components/button-group"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@caseai-connect/app-ui/components/input-group"
+import { NativeSelect, NativeSelectOption } from "@caseai-connect/app-ui/components/native-select"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { SearchIcon, XIcon } from "lucide-react"
 import { useState } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ButtonGroup } from "@/components/ui/button-group"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 
 export type ColumnFiltersProps = {
   /** The columns the API can look in, each with the name the person reads. */

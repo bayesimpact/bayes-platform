@@ -1,5 +1,5 @@
+import { useSidebar } from "@caseai-connect/app-ui/components/sidebar"
 import type { ReactNode } from "react"
-import { useSidebar } from "@/components/ui/sidebar"
 
 export type SidebarClosedOnlyProps = {
   children: ReactNode

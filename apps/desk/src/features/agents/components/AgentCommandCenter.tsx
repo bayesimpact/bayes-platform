@@ -1,10 +1,3 @@
-import { type AgentTypeDto, agentTypeSchema } from "@caseai-connect/desk-contracts"
-import type { MessageDescriptor } from "@lingui/core"
-import { msg } from "@lingui/core/macro"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { cn } from "cn"
-import { ArrowRightIcon } from "lucide-react"
-import { CommandSearchInput } from "@/components/shared/CommandSearchInput"
 import {
   Command,
   CommandEmpty,
@@ -12,15 +5,22 @@ import {
   CommandItem,
   CommandList,
   CommandShortcut,
-} from "@/components/ui/command"
+} from "@caseai-connect/app-ui/components/command"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Kbd } from "@/components/ui/kbd"
+} from "@caseai-connect/app-ui/components/dialog"
+import { Kbd } from "@caseai-connect/app-ui/components/kbd"
+import { type AgentTypeDto, agentTypeSchema } from "@caseai-connect/desk-contracts"
+import type { MessageDescriptor } from "@lingui/core"
+import { msg } from "@lingui/core/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { cn } from "cn"
+import { ArrowRightIcon } from "lucide-react"
+import { CommandSearchInput } from "@/components/shared/CommandSearchInput"
 import type { DeskAgent, DeskProjectAgents } from "../desk-agents"
 import { AgentTypeIcon } from "./AgentTypeIcon"
 

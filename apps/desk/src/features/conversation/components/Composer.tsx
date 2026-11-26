@@ -1,10 +1,14 @@
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+} from "@caseai-connect/app-ui/components/input-group"
+import { KbdGroup } from "@caseai-connect/app-ui/components/kbd"
 import { plural } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { ArrowUpIcon, FileIcon, PaperclipIcon, XIcon } from "lucide-react"
 import { type ChangeEvent, type FormEvent, useId, useRef } from "react"
-import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group"
-import { KbdGroup } from "@/components/ui/kbd"
 import type { OutgoingMessage } from "../chat-messages"
 import { useAttachment } from "../hooks/use-attachment"
 import { useDictation } from "../hooks/use-dictation"

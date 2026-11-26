@@ -1,6 +1,3 @@
-import type { AgentParamsDto, ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { toast } from "sonner"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -9,8 +6,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+} from "@caseai-connect/app-ui/components/alert-dialog"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import type { AgentParamsDto, ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { toast } from "sonner"
 import { useDeleteExtractionDocument } from "../api/mutations"
 
 export type DeleteDocumentDialogProps = {

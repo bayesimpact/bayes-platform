@@ -1,3 +1,4 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import type {
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
@@ -10,7 +11,6 @@ import { cn } from "cn"
 import { CheckIcon, XIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { rowNumberColumnOf } from "@/components/shared/row-number-column"
-import { Badge } from "@/components/ui/badge"
 import { CELL_TEXT_CLASSES } from "@/lib/cell-text"
 import { cellTextOf } from "@/lib/extraction-columns"
 import { SUCCESS_TEXT_CLASSES } from "@/lib/success-classes"

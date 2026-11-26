@@ -1,7 +1,7 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type { ConversationFormOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { ClipboardListIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 
 export type FormsButtonProps = {
   forms: ConversationFormOutputDto[]

@@ -1,6 +1,6 @@
+import { SidebarMenuSubButton, SidebarMenuSubItem } from "@caseai-connect/app-ui/components/sidebar"
 import { CheckCircle2Icon, CircleDashedIcon } from "lucide-react"
 import type { ReactElement } from "react"
-import { SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 
 export type SidebarSessionItemProps = {
   /** The link that opens the session, rendered as the entry. */

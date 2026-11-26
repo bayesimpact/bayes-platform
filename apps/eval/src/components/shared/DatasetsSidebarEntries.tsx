@@ -1,9 +1,9 @@
+import { SidebarMenuSubButton, SidebarMenuSubItem } from "@caseai-connect/app-ui/components/sidebar"
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { ListIcon, PlusIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import { SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { SidebarSection } from "./SidebarSection"
 
 export type DatasetsSidebarEntriesProps = {

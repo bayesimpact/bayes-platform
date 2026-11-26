@@ -1,9 +1,4 @@
-import { DATASET_NAME_MIN_LENGTH, datasetNameInputSchema } from "@caseai-connect/eval-contracts"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { type ReactNode, useId } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   Dialog,
   DialogContent,
@@ -11,9 +6,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@caseai-connect/app-ui/components/dialog"
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Input } from "@caseai-connect/app-ui/components/input"
+import { DATASET_NAME_MIN_LENGTH, datasetNameInputSchema } from "@caseai-connect/eval-contracts"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { type ReactNode, useId } from "react"
+import { Controller, useForm } from "react-hook-form"
 
 export type DatasetNameDialogProps = {
   title: ReactNode

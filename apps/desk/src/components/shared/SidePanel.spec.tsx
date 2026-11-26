@@ -1,8 +1,8 @@
+import { SidebarProvider, useSidebar } from "@caseai-connect/app-ui/components/sidebar"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { type ReactNode, StrictMode, useState } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { SidebarProvider, useSidebar } from "@/components/ui/sidebar"
 import { renderWithI18n } from "@/test/render-with-i18n"
 import { SidePanel } from "./SidePanel"
 

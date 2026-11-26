@@ -1,7 +1,11 @@
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@caseai-connect/app-ui/components/sidebar"
 import { useLingui } from "@lingui/react/macro"
 import { ChevronsUpDownIcon } from "lucide-react"
 import { ShortcutHint } from "@/components/shared/ShortcutHint"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import type { DeskAgent } from "../desk-agents"
 import { AgentIdentity } from "./AgentIdentity"
 

@@ -1,10 +1,10 @@
+import { SidebarMenuSub } from "@caseai-connect/app-ui/components/sidebar"
 import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
 import { shortDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { SidebarSessionItem } from "@/components/shared/SidebarSessionItem"
-import { SidebarMenuSub } from "@/components/ui/sidebar"
 import { testerSessionsQueryOptions } from "../api/queries"
 
 export type TesterSessionLinksProps = {

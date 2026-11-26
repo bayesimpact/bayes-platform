@@ -1,9 +1,9 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
 import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { ExternalLinkIcon, FileIcon } from "lucide-react"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import { useOpenAttachment } from "../api/mutations"
 import type { ChatAttachment } from "../chat-messages"
 

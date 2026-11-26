@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 
 /** A new extraction's page while the person's documents load. */
 export function NewExtractionSkeleton() {

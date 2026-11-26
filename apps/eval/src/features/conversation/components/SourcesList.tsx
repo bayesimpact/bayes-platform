@@ -1,5 +1,3 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
-import { Plural } from "@lingui/react/macro"
 import {
   Trace,
   TraceCollapsible,
@@ -7,7 +5,9 @@ import {
   TraceCollapsibleTrigger,
   TraceLine,
   TraceTitle,
-} from "@/components/ui/trace"
+} from "@caseai-connect/app-ui/components/trace"
+import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import { Plural } from "@lingui/react/macro"
 import type { ChatSource } from "../chat-messages"
 import { SourceItem } from "./SourceItem"
 

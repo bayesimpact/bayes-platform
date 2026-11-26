@@ -1,10 +1,4 @@
-import { USER_NAME_MAX_LENGTH, updateMeInputSchema } from "@caseai-connect/desk-contracts"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { useId } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   Dialog,
   DialogClose,
@@ -13,9 +7,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@caseai-connect/app-ui/components/dialog"
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Input } from "@caseai-connect/app-ui/components/input"
+import { USER_NAME_MAX_LENGTH, updateMeInputSchema } from "@caseai-connect/desk-contracts"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { useId } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { useUpdateName } from "../api/mutations"
 
 export type EditNameDialogProps = {
