@@ -1,4 +1,3 @@
-import { ATTACHMENT_MAX_BYTES } from "@caseai-connect/eval-contracts"
 import { describe, expect, it } from "vitest"
 import { fileSizeOf } from "./file-size"
 
@@ -9,7 +8,8 @@ describe("fileSizeOf", () => {
     expect(fileSizeOf(24 * 1024 * 1024, "en")).toBe("24 MB")
   })
 
-  it("writes the contracts' limits as they are set", () => {
-    expect(fileSizeOf(ATTACHMENT_MAX_BYTES, "en")).toBe("10 MB")
+  it("reads a limit set in binary units as it is set", () => {
+    expect(fileSizeOf(10 * 1024 * 1024, "en")).toBe("10 MB")
+    expect(fileSizeOf(25 * 1024 * 1024, "en")).toBe("25 MB")
   })
 })

@@ -3,6 +3,7 @@ import type {
   ExtractionRunKeyMappingEntryDto,
   ExtractionRunRecordOutputDto,
 } from "@caseai-connect/eval-contracts"
+import { toHttpsUrl } from "@caseai-connect/frontend-lib"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/sheet"
 import { canReadTracesQueryOptions } from "@/features/account"
 import { cellTextOf } from "@/lib/extraction-columns"
-import { toHttpsUrl } from "@/lib/safe-url"
 import { SUCCESS_TEXT_CLASSES } from "@/lib/success-classes"
 import { comparedFieldOf } from "../key-mapping"
 import { RecordStatusBadge } from "./RecordStatusBadge"

@@ -1,4 +1,9 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import {
+  durationOf,
+  RELATIVE_TIME_INTERVAL_IN_MILLISECONDS,
+  useNow,
+} from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
@@ -9,8 +14,6 @@ import {
   extractionDocumentsQueryOptions,
   extractionRunsQueryOptions,
 } from "@/features/history"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
-import { durationOf } from "@/lib/format-time"
 import { useExtractDocument } from "../api/mutations"
 import { extractionRunQueryOptions } from "../api/queries"
 import { fileKindOf } from "../extraction-files"

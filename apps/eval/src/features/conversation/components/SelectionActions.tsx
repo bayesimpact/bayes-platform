@@ -1,8 +1,8 @@
+import { useCopyText } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CheckIcon, CopyIcon, MessageSquarePlusIcon } from "lucide-react"
 import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { useCopyText } from "@/hooks/use-copy-text"
 
 export type SelectionActionsProps = {
   /** The passage the person selected. */

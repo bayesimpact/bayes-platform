@@ -1,5 +1,5 @@
+import { measureRangeEnd } from "@caseai-connect/frontend-lib"
 import { useLayoutEffect, useState } from "react"
-import { measureRangeEnd } from "@/lib/quote-highlight"
 
 /**
  * Where a passage ends in the element its number is drawn in, measured again whenever that

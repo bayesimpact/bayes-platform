@@ -1,4 +1,5 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import { useNow } from "@caseai-connect/frontend-lib"
 import { Trans } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
@@ -14,7 +15,6 @@ import {
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
 import { MemoryButton, MemoryPanel } from "@/features/memory"
-import { useNow } from "@/hooks/use-now"
 import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isBeingWritten, lastReplyFollowUpQuestions } from "../chat-messages"

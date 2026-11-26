@@ -1,4 +1,5 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import { fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -12,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { fullDateTimeOf } from "@/lib/format-time"
 
 export type RunRowActionsProps = {
   agentParams: AgentParamsDto

@@ -1,9 +1,9 @@
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
+import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { ExternalLinkIcon, FileIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { openBlankTab } from "@/lib/safe-url"
 import { useOpenAttachment } from "../api/mutations"
 import type { ChatAttachment } from "../chat-messages"
 

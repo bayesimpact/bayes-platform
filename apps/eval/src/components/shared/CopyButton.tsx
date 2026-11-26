@@ -1,8 +1,8 @@
+import { useCopyText } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { CheckIcon, CopyIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useCopyText } from "@/hooks/use-copy-text"
 
 export type CopyButtonProps = {
   text: string

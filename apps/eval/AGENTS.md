@@ -15,8 +15,9 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   fields it reads. The API requires its CommonJS build and serves every route under `eval/`, in
   `apps/api/src/domains/eval/`, with the same schemas. The app calls only `eval/` endpoints,
   with one exception: a resource card links to a library file at
-  `organizations/.../resource-libraries/.../resources/.../file` (`src/lib/safe-url.ts`), outside
-  `eval/` and the contracts, until an Evaluation route serves it.
+  `organizations/.../resource-libraries/.../resources/.../file` (`toResourceUrl` of
+  `@caseai-connect/frontend-lib`), outside `eval/` and the contracts, until an Evaluation route
+  serves it.
 - Sign-in: `@caseai-connect/sign-in` (`packages/sign-in`), which the app shares with the Desk
   (ADR 0031, section 2.4), wrapped by `src/lib/auth/session.ts`, the only file that imports it.
   The sign-in comes back to `<origin>/eval/auth/callback` (`<origin>/eval/` after sign-out). It shares one session with every app of the origin (apps/web, the Desk): the user
@@ -325,6 +326,8 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   `date-fns` (`timeAgoOf` in `lib/time-ago.ts`), a library a human chose for it. Each language of
   `LOCALES` has its date-fns locale there, which the typecheck requires. The chat keeps the Desk's
   `RelativeTime`, on `Intl`.
+- The hooks and helpers the app shares with the Desk come from `@caseai-connect/frontend-lib`
+  (`packages/frontend-lib`, whose `src/index.ts` lists them; ADR 0031, section 2.4).
 - The API client: `src/lib/api-client.ts`, which creates the client of
   `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
   `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).

@@ -4,6 +4,7 @@ import type {
   ReviewCampaignParamsDto,
 } from "@caseai-connect/eval-contracts"
 import { PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION } from "@caseai-connect/eval-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import {
@@ -12,7 +13,6 @@ import {
   hasProjectPermission,
 } from "@/features/agents"
 import { orNotFound } from "@/lib/not-found"
-import { loaderStaleTime } from "@/lib/start-query"
 import { campaignQueryOptions, projectCampaignsQueryOptions } from "./api/queries"
 
 /** Whether the person sees the review campaigns of an agent's project. */

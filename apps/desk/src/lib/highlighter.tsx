@@ -1,7 +1,7 @@
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 import type { CSSProperties } from "react"
 import { createHighlighterCore, type GrammarState, type HighlighterCore } from "shiki/core"
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript"
-import { hasOwnKey } from "./has-own-key"
 
 /** The languages the Desk highlights, each loaded the first time a code block uses it. */
 const LANGUAGES = {

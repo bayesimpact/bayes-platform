@@ -1,4 +1,4 @@
-import { indexPassages, occurrenceAt } from "@/lib/quote-highlight"
+import { indexPassages, occurrenceAt } from "@caseai-connect/frontend-lib"
 import { isLocalMessageId } from "./chat-messages"
 import { withoutTaskChecks } from "./task-checks"
 

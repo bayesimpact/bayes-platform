@@ -20,7 +20,8 @@ holds what is specific to the Desk.
   routes with the same schemas.
 - Endpoints: the Desk calls only its own endpoints, under `desk/`, with one exception: a resource
   card links to a library file at `organizations/.../resource-libraries/.../resources/.../file`
-  (`src/lib/safe-url.ts`), outside `desk/` and the contracts, until a Desk route serves it.
+  (`toResourceUrl` of `@caseai-connect/frontend-lib`), outside `desk/` and the contracts, until a
+  Desk route serves it.
   `DeskModule` (`apps/api/src/domains/desk/`) serves the `desk/` routes with `@SchemaRoute`, and
   each one copies the endpoint the Desk called before, with the same permission on the same
   resource. A new or changed endpoint is contract first (`docs/frontend/conventions.md`,
@@ -135,11 +136,11 @@ the conventions as they stand. When a rule changes, its reference file changes i
   page (it makes the page behind inert where it covers it), `HeaderActions` for the actions of the
   bar above it, `DataTable` for every table, `ExternalLink` for a link to a new tab,
   `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
-  `NewReleaseBanner` for a new release. Shared hooks sit in `src/hooks/` (`useNow`,
-  `useMediaQuery`, `useAbortOnUnmount`, `useIsNewReleaseOut`, `useReloadWhenSafe`), and shared
-  logic in `src/lib/`: `polling.ts`, `not-found.ts`, `start-query.ts`, `agent-params.ts`,
-  `field-text.ts`, `file-size.ts`, `format-time.ts`, `run-state.ts`, `has-own-key.ts`,
-  `is-record.ts`, `app-update.ts`.
+  `NewReleaseBanner` for a new release. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,
+  `useIsNewReleaseOut`, `useReloadWhenSafe`), and shared logic in `src/lib/`: `not-found.ts`,
+  `agent-params.ts`, `field-text.ts`, `run-state.ts`, `is-record.ts`, `app-update.ts`. The hooks
+  and helpers the Desk shares with Evaluation come from `@caseai-connect/frontend-lib`
+  (`packages/frontend-lib`, whose `src/index.ts` lists them).
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.

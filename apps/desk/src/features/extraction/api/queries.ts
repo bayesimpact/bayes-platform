@@ -6,9 +6,9 @@ import type {
   ExtractionRunDetailOutputDto,
 } from "@caseai-connect/desk-contracts"
 import { DeskCsvExtractionsRoutes, DeskExtractionsRoutes } from "@caseai-connect/desk-contracts"
+import { pollWhile } from "@caseai-connect/frontend-lib"
 import { keepPreviousData, queryOptions } from "@tanstack/react-query"
 import { ApiError, apiRequest } from "@/lib/api-client"
-import { pollWhile } from "@/lib/polling"
 import type { CsvRecordsPage } from "../schemas"
 import { extractionKeys } from "./keys"
 

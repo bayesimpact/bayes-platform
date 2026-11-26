@@ -3,6 +3,7 @@ import type {
   ExtractionDatasetParamsDto,
   ExtractionRunOutputDto,
 } from "@caseai-connect/eval-contracts"
+import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
@@ -15,7 +16,6 @@ import { RunVersionButton } from "@/components/shared/RunVersionButton"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { pickedAfterSelection, rowSelectionOf } from "@/lib/run-selection"
-import { openBlankTab } from "@/lib/safe-url"
 import { useDeleteExtractionRun, useOpenRunCsv } from "../api/mutations"
 import { projectExtractionRunsQueryOptions } from "../api/queries"
 import { extractionRunColumnsOf } from "./extraction-run-columns"

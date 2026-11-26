@@ -1,7 +1,7 @@
+import { fullDateTimeOf, relativeTimeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { fullDateTimeOf, relativeTimeOf } from "@/lib/format-time"
 
 export type RelativeTimeProps = {
   moment: number

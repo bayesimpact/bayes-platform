@@ -1,8 +1,8 @@
 import type { ConversationDatasetParamsDto, ProjectParamsDto } from "@caseai-connect/eval-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
 import { orNotFound } from "@/lib/not-found"
-import { loaderStaleTime } from "@/lib/start-query"
 import {
   conversationDatasetRecordsQueryOptions,
   projectConversationDatasetsQueryOptions,

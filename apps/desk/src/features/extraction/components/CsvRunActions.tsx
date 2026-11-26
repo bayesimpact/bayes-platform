@@ -2,6 +2,7 @@ import type {
   AgentParamsDto,
   CsvExtractionRunDetailOutputDto,
 } from "@caseai-connect/desk-contracts"
+import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { DownloadIcon, EllipsisIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
@@ -13,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { openBlankTab } from "@/lib/safe-url"
 import {
   useCancelCsvExtraction,
   useOpenExtractionFile,

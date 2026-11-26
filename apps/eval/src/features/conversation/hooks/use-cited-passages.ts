@@ -1,4 +1,3 @@
-import { useEffect, useEffectEvent, useState } from "react"
 import {
   CITED_HIGHLIGHT,
   clearQuoteHighlights,
@@ -8,7 +7,8 @@ import {
   JUMPED_HIGHLIGHT,
   type PassageIndex,
   showQuoteHighlights,
-} from "@/lib/quote-highlight"
+} from "@caseai-connect/frontend-lib"
+import { useEffect, useEffectEvent, useState } from "react"
 import { CITED_PASSAGE_ATTRIBUTE, citedPassagesOf, QUOTABLE_ATTRIBUTE } from "../annotation"
 import type { ChatMessage } from "../chat-messages"
 import type { ReplyClick } from "./use-settled-selection"

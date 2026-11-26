@@ -5,9 +5,9 @@ import {
   type MessageFeedbackInputDto,
   type MessageParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { openInTab } from "@caseai-connect/frontend-lib"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { openInTab } from "@/lib/safe-url"
 import type { OutgoingMessage } from "../chat-messages"
 import { streamReply } from "./stream-reply"
 

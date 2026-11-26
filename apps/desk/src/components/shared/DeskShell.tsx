@@ -1,3 +1,4 @@
+import { useResizableWidth } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -12,7 +13,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { useSidebarPeek } from "@/hooks/use-sidebar-peek"
 import { HeaderActionsContext } from "./header-actions-context"
 import { NewReleaseBanner } from "./NewReleaseBanner"

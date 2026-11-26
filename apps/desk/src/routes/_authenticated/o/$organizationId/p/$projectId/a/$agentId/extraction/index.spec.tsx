@@ -1,8 +1,8 @@
 import { EXTRACTION_MAX_BYTES } from "@caseai-connect/desk-contracts"
+import { fileSizeOf } from "@caseai-connect/frontend-lib"
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
-import { fileSizeOf } from "@/lib/file-size"
 import { extractionUrlsOf } from "@/test/desk-urls"
 import { buildExtractionAgentWorld, type DeskWorld } from "@/test/factories/desk-world.factory"
 import { hiddenFileInput } from "@/test/file-input"
@@ -166,6 +166,8 @@ describe("a file too large for an extraction", () => {
     await userEvent.upload(await screen.findByLabelText("File to extract"), file)
 
     const limit = fileSizeOf(EXTRACTION_MAX_BYTES, "en")
+    // The contracts set the limit in binary units, which reads as a round number.
+    expect(limit).toBe("25 MB")
     expect(await screen.findByText(`archive.pdf is larger than ${limit}.`)).toBeInTheDocument()
     expect(
       screen.getByText(`PDF, image, text or CSV file, up to ${limit}.`, { exact: false }),

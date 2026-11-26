@@ -1,4 +1,5 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { EllipsisIcon, ExternalLinkIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
@@ -11,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { openBlankTab } from "@/lib/safe-url"
 import { useOpenExtractionFile } from "../api/mutations"
 
 export type ExtractionRunActionsProps = {

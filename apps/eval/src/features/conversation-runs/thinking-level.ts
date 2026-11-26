@@ -1,6 +1,6 @@
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
-import { hasOwnKey } from "@/lib/has-own-key"
 
 /** The names providers give the thinking level in a model's options. */
 const THINKING_LEVEL_KEYS = ["thinkingLevel", "reasoningEffort", "effort"]

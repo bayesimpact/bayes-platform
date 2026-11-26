@@ -7,9 +7,9 @@ import {
   EvalConversationRunsRoutes,
   type ProjectParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { pollWhile } from "@caseai-connect/frontend-lib"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { pollWhile } from "@/lib/polling"
 import { ACTIVE_RUN_REFETCH_INTERVAL_IN_MILLISECONDS, isRunActive } from "@/lib/run-status"
 import { conversationRunKeys } from "./keys"
 

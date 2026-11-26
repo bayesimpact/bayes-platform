@@ -2,6 +2,7 @@ import type {
   ReviewCampaignParamsDto,
   TesterSessionOutputDto,
 } from "@caseai-connect/eval-contracts"
+import { fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Link } from "@tanstack/react-router"
@@ -11,7 +12,6 @@ import { CheckCircle2Icon, CircleDashedIcon, Trash2Icon } from "lucide-react"
 import { TimeAgo } from "@/components/shared/TimeAgo"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { fullDateTimeOf } from "@/lib/format-time"
 
 const columnHelper = createColumnHelper<TesterSessionOutputDto>()
 

@@ -1,8 +1,8 @@
 import { ATTACHMENT_MAX_BYTES, presignAttachmentInputSchema } from "@caseai-connect/eval-contracts"
+import { fileSizeOf } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { toast } from "sonner"
-import { fileSizeOf } from "@/lib/file-size"
 
 /** Why a file cannot be attached. */
 type AttachmentProblem = "type" | "empty" | "size"

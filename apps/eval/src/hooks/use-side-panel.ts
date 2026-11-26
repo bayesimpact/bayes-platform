@@ -1,5 +1,5 @@
+import { useMediaQuery } from "@caseai-connect/frontend-lib"
 import { useState } from "react"
-import { useMediaQuery } from "./use-media-query"
 
 /** Tailwind's `lg`, from which a side panel docks beside the page. */
 const DOCKED_QUERY = "(min-width: 64rem)"

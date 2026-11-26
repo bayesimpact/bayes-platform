@@ -1,9 +1,8 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { DeskAgentSessionsRoutes, DeskExtractionsRoutes } from "@caseai-connect/desk-contracts"
+import { pollWhile, startQuery } from "@caseai-connect/frontend-lib"
 import { type QueryClient, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { pollWhile } from "@/lib/polling"
-import { startQuery } from "@/lib/start-query"
 import { type HistoryAgent, hasPendingCsvRun, hasPendingExtractionRun } from "../history-entries"
 import { historyKeys } from "./keys"
 

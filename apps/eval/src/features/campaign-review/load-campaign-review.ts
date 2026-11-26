@@ -2,9 +2,9 @@ import type {
   CampaignSessionParamsDto,
   ReviewCampaignParamsDto,
 } from "@caseai-connect/eval-contracts"
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { orNotFound } from "@/lib/not-found"
-import { loaderStaleTime } from "@/lib/start-query"
 import { reviewerSessionQueryOptions, reviewerSessionsQueryOptions } from "./api/queries"
 
 /** Loads the sessions a reviewer can review in a campaign. */

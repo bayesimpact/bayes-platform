@@ -1,3 +1,4 @@
+import { useMediaQuery, useResizableWidth } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -11,8 +12,6 @@ import {
   SidebarProvider,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useMediaQuery } from "@/hooks/use-media-query"
-import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { useSidebarPeek } from "@/hooks/use-sidebar-peek"
 import { HeaderActionsMenu } from "./HeaderActionsMenu"
 import { HeaderSlotsContext } from "./header-slots-context"

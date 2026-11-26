@@ -1,8 +1,8 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import { shortDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
-import { shortDateTimeOf } from "@/lib/format-time"
 import { RUN_STATUS_LABELS, RUN_STATUS_ORDER, type RunSummary } from "@/lib/run-status"
 import { SidebarSubGroupLabel } from "./SidebarSubGroupLabel"
 

@@ -1,7 +1,7 @@
 import type { ConversationFormOutputDto } from "@caseai-connect/desk-contracts"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
 import type { I18n } from "@lingui/core"
 import { fieldLabelOf, fieldTextOf } from "@/lib/field-text"
-import { hasOwnKey } from "@/lib/has-own-key"
 
 /** A field of a form as the panel shows it: its label, and its value as text, if noted. */
 export type FormFieldView = {

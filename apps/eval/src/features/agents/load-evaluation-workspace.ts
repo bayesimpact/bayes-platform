@@ -1,5 +1,5 @@
+import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
-import { loaderStaleTime } from "@/lib/start-query"
 import { evaluationWorkspaceQueryOptions } from "./api/queries"
 import type { EvaluationWorkspace } from "./evaluation-agents"
 

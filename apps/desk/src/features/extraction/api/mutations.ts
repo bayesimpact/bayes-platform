@@ -7,11 +7,10 @@ import {
   type ExecuteCsvExtractionRunInputDto,
   presignExtractionDocumentInputSchema,
 } from "@caseai-connect/desk-contracts"
+import { openInTab, putFileToSignedUrl } from "@caseai-connect/frontend-lib"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
-import { openInTab } from "@/lib/safe-url"
-import { putFileToSignedUrl } from "@/lib/upload-file"
 import { extractionMimeTypeOf } from "../extraction-files"
 import { extractionKeys } from "./keys"
 import { csvRunQueryOptions } from "./queries"

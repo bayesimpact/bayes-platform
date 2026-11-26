@@ -1,5 +1,5 @@
+import { taskListOf } from "@caseai-connect/frontend-lib"
 import { useState } from "react"
-import { taskListOf } from "@/lib/task-list"
 import type { ChatMessage } from "../chat-messages"
 import { savedTaskStatesOf, type TaskCheck } from "../task-checks"
 

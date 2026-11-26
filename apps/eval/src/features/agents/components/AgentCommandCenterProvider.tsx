@@ -1,6 +1,6 @@
+import { isApplePlatform } from "@caseai-connect/frontend-lib"
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router"
 import { type ReactNode, useEffect, useState } from "react"
-import { isApplePlatform } from "@/lib/platform"
 import { AgentCommandCenterContext } from "../agent-command-center-context"
 import { type CampaignAgent, campaignAgentsOf, switchableAgentCountOf } from "../campaign-agents"
 import type { EvaluationAgent } from "../evaluation-agents"

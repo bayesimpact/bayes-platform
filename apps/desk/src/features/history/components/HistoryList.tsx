@@ -1,3 +1,4 @@
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import type { ReactNode } from "react"
 import {
@@ -7,7 +8,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import {
   entryTitleOf,
   groupByPeriod,

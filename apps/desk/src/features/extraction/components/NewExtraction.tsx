@@ -3,6 +3,11 @@ import {
   EXTRACTION_MAX_BYTES,
   type ExtractionDocumentOutputDto,
 } from "@caseai-connect/desk-contracts"
+import {
+  fileSizeOf,
+  RELATIVE_TIME_INTERVAL_IN_MILLISECONDS,
+  useNow,
+} from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
@@ -10,8 +15,6 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { extractionDocumentsQueryOptions } from "@/features/history"
 import { useAbortOnUnmount } from "@/hooks/use-abort-on-unmount"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
-import { fileSizeOf } from "@/lib/file-size"
 import {
   type StartedExtraction,
   type UploadStep,

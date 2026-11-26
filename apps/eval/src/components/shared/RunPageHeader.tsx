@@ -1,4 +1,5 @@
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import { durationOf, fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
 import {
@@ -18,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { durationOf, fullDateTimeOf } from "@/lib/format-time"
 import { isRunActive, type RunSummary } from "@/lib/run-status"
 import { shortIdOf } from "@/lib/short-id"
 import { BackLink } from "./BackLink"

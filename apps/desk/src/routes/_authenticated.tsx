@@ -1,3 +1,4 @@
+import { startQuery } from "@caseai-connect/frontend-lib"
 import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { Suspense } from "react"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
@@ -10,7 +11,6 @@ import {
   SignInLoopError,
   signIn,
 } from "@/lib/auth/session"
-import { startQuery } from "@/lib/start-query"
 
 /**
  * Every page of the Desk but the sign-in callback: a session, the terms accepted, then the page in

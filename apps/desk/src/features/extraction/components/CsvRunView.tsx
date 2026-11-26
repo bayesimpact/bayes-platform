@@ -1,11 +1,14 @@
 import type { AgentParamsDto, CsvExtractionRecordOutputDto } from "@caseai-connect/desk-contracts"
+import {
+  durationOf,
+  RELATIVE_TIME_INTERVAL_IN_MILLISECONDS,
+  useNow,
+} from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { DeleteEntryDialog, extractionDocumentsQueryOptions } from "@/features/history"
-import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
-import { durationOf } from "@/lib/format-time"
 import { csvRecordsQueryOptions, csvRunQueryOptions, isCsvRunLive } from "../api/queries"
 import { shownFileColumnsOf } from "../csv-records"
 import { CSV_RUN_STATES } from "../run-states"

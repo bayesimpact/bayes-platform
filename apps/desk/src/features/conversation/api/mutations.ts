@@ -5,11 +5,11 @@ import type {
   MessageParamsDto,
 } from "@caseai-connect/desk-contracts"
 import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
+import { openInTab } from "@caseai-connect/frontend-lib"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
-import { openInTab } from "@/lib/safe-url"
 import type { OutgoingMessage } from "../chat-messages"
 import { streamReply } from "./stream-reply"
 
