@@ -21,6 +21,7 @@ COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/schema-route/package.json ./packages/schema-route/
+COPY packages/chat-contracts/package.json ./packages/chat-contracts/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
@@ -33,6 +34,7 @@ RUN npm ci \
     --workspace=@caseai-connect/eval-contracts \
     --workspace=@caseai-connect/permissions \
     --workspace=@caseai-connect/schema-route \
+    --workspace=@caseai-connect/chat-contracts \
     --include-workspace-root
 
 #
@@ -52,6 +54,7 @@ COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/schema-route/package.json ./packages/schema-route/
+COPY packages/chat-contracts/package.json ./packages/chat-contracts/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
@@ -62,6 +65,7 @@ RUN npm ci --omit=dev \
     --workspace=@caseai-connect/eval-contracts \
     --workspace=@caseai-connect/permissions \
     --workspace=@caseai-connect/schema-route \
+    --workspace=@caseai-connect/chat-contracts \
     --include-workspace-root
 
 # `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
@@ -86,6 +90,7 @@ COPY ./packages ./packages
 RUN cd apps/api && npm run build
 RUN cd packages/permissions && npm run build
 RUN cd packages/schema-route && npm run build
+RUN cd packages/chat-contracts && npm run build
 RUN cd packages/api-contracts && npm run build
 RUN cd packages/desk-contracts && npm run build
 RUN cd packages/eval-contracts && npm run build
@@ -128,9 +133,10 @@ RUN cd apps/web && npm run build
 # Builds apps/desk for its `/app/` base (vite.config.ts): the API serves the
 # result at /app, ahead of the web front. As for the web front, no VITE_* value
 # is baked in: the Desk reads the configuration the API injects into its
-# index.html. Only the Desk, its contracts, the permissions, the schema routes,
-# the MCP App host, the sign-in, the API client, the frontend config, the
-# frontend lib and the shadcn components are installed.
+# index.html. Only the Desk, its contracts, the chat's contracts, the
+# permissions, the schema routes, the MCP App host, the sign-in, the API
+# client, the frontend config, the frontend lib and the shadcn components are
+# installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
 
@@ -140,6 +146,7 @@ COPY apps/desk/package.json ./apps/desk/
 COPY packages/desk-contracts/package.json ./packages/desk-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/schema-route/package.json ./packages/schema-route/
+COPY packages/chat-contracts/package.json ./packages/chat-contracts/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/api-client/package.json ./packages/api-client/
@@ -154,6 +161,7 @@ RUN npm ci \
     --workspace=@caseai-connect/desk-contracts \
     --workspace=@caseai-connect/permissions \
     --workspace=@caseai-connect/schema-route \
+    --workspace=@caseai-connect/chat-contracts \
     --workspace=@caseai-connect/mcp-app-host \
     --workspace=@caseai-connect/sign-in \
     --workspace=@caseai-connect/api-client \
@@ -166,6 +174,7 @@ COPY apps/desk ./apps/desk
 COPY packages/desk-contracts ./packages/desk-contracts
 COPY packages/permissions ./packages/permissions
 COPY packages/schema-route ./packages/schema-route
+COPY packages/chat-contracts ./packages/chat-contracts
 COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/sign-in ./packages/sign-in
 COPY packages/api-client ./packages/api-client
@@ -181,9 +190,10 @@ RUN cd apps/desk && npm run build
 # Builds apps/eval for its `/eval/` base (vite.config.ts): the API serves the
 # result at /eval, ahead of the web front. As for the Desk, no VITE_* value is
 # baked in: the app reads the configuration the API injects into its
-# index.html. Only the app, its contracts, the permissions, the schema routes,
-# the MCP App host, the sign-in, the API client, the frontend config, the
-# frontend lib and the shadcn components are installed.
+# index.html. Only the app, its contracts, the chat's contracts, the
+# permissions, the schema routes, the MCP App host, the sign-in, the API
+# client, the frontend config, the frontend lib and the shadcn components are
+# installed.
 #
 FROM node:24.21.0-trixie-slim AS eval-build
 
@@ -193,6 +203,7 @@ COPY apps/eval/package.json ./apps/eval/
 COPY packages/eval-contracts/package.json ./packages/eval-contracts/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/schema-route/package.json ./packages/schema-route/
+COPY packages/chat-contracts/package.json ./packages/chat-contracts/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/api-client/package.json ./packages/api-client/
@@ -207,6 +218,7 @@ RUN npm ci \
     --workspace=@caseai-connect/eval-contracts \
     --workspace=@caseai-connect/permissions \
     --workspace=@caseai-connect/schema-route \
+    --workspace=@caseai-connect/chat-contracts \
     --workspace=@caseai-connect/mcp-app-host \
     --workspace=@caseai-connect/sign-in \
     --workspace=@caseai-connect/api-client \
@@ -219,6 +231,7 @@ COPY apps/eval ./apps/eval
 COPY packages/eval-contracts ./packages/eval-contracts
 COPY packages/permissions ./packages/permissions
 COPY packages/schema-route ./packages/schema-route
+COPY packages/chat-contracts ./packages/chat-contracts
 COPY packages/mcp-app-host ./packages/mcp-app-host
 COPY packages/sign-in ./packages/sign-in
 COPY packages/api-client ./packages/api-client
@@ -256,6 +269,7 @@ COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/packages/eval-contracts /app/packages/eval-contracts
 COPY --from=build /app/packages/permissions /app/packages/permissions
 COPY --from=build /app/packages/schema-route /app/packages/schema-route
+COPY --from=build /app/packages/chat-contracts /app/packages/chat-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:
@@ -382,6 +396,7 @@ COPY --from=build /app/packages/desk-contracts /app/packages/desk-contracts
 COPY --from=build /app/packages/eval-contracts /app/packages/eval-contracts
 COPY --from=build /app/packages/permissions /app/packages/permissions
 COPY --from=build /app/packages/schema-route /app/packages/schema-route
+COPY --from=build /app/packages/chat-contracts /app/packages/chat-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 # Commit built, from the build argument. The release version is not known yet:

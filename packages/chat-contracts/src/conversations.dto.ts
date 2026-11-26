@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { agentParamsSchema, projectParamsSchema } from "../common/params.dto"
+import { agentParamsSchema, projectParamsSchema } from "./params.dto"
 
 /** The params of the routes under one conversation. */
 export const conversationParamsSchema = agentParamsSchema.extend({ agentSessionId: z.uuid() })
@@ -202,11 +202,6 @@ export const mcpAppHtmlOutputSchema = z.object({
 })
 
 export type McpAppHtmlOutputDto = z.output<typeof mcpAppHtmlOutputSchema>
-
-/** A short-lived URL to download a file. */
-export const temporaryUrlOutputSchema = z.object({
-  url: z.url(),
-})
 
 /** A field of a form, as the agent's form schema describes it. */
 const formFieldSchemaSchema = z.object({

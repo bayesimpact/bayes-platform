@@ -1,6 +1,6 @@
+import { conversationFormOutputSchema } from "@caseai-connect/chat-contracts"
 import { z } from "zod"
 import { agentTypeSchema } from "../agents/agents.dto"
-import { conversationFormOutputSchema } from "../conversations/conversations.dto"
 import {
   reviewCampaignAnswerSchema,
   reviewCampaignQuestionSchema,

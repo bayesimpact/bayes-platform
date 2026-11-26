@@ -361,8 +361,12 @@ or editing the boundaries' configuration.
 
 Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`,
 Evaluation's is `packages/eval-contracts`), the routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
-Zod, `@caseai-connect/permissions` and `@caseai-connect/schema-route` alone, and imports nothing
-from `packages/api-contracts`. The app reads its source. When the app
+Zod, `@caseai-connect/permissions`, `@caseai-connect/schema-route` and
+`@caseai-connect/chat-contracts` alone, and imports nothing from `packages/api-contracts`. The
+chat's contracts are the one part the apps share: the schemas of a conversation, of its forms
+and of the documents its replies cite live once in `packages/chat-contracts`, which each
+contracts package re-exports, with the routes of a conversation and of its documents, which it
+declares under its own path (`defineConversationRoutes("desk", "live")`). The app reads its source. When the app
 has endpoints of its own, as the Desk and Evaluation do, the API requires the package's CommonJS
 build (`dist`) and serves its routes with the same schemas (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
@@ -484,6 +488,8 @@ and empty states.
   people, a contract, a dependency beyond `oidc-client-ts` and Zod, or an import of another
   workspace package. In `packages/schema-route`: a route, a schema of an app, React, a text shown
   to people, a dependency beyond Zod, or an import of another workspace package. In
+  `packages/chat-contracts`: a route or a schema only one app reads, React, a text shown to
+  people, or a dependency beyond Zod and `@caseai-connect/schema-route`. In
   `packages/api-client`: a route, React, a text shown to people, the app's session (it takes it
   from the app), or a dependency beyond Zod, `@caseai-connect/schema-route` and
   `@caseai-connect/sign-in`. In `packages/frontend-config`: a rule for one app only, or a

@@ -1,4 +1,7 @@
 // Route helper and error body
+
+// The chat's schemas and routes, shared with Evaluation
+export * from "@caseai-connect/chat-contracts"
 export * from "@caseai-connect/schema-route"
 // Account
 export * from "./account/account.dto"
@@ -15,7 +18,6 @@ export * from "./common/params.dto"
 export * from "./conversations/conversations.dto"
 export { DeskConversationsRoutes } from "./conversations/conversations.routes"
 // Documents
-export * from "./documents/documents.dto"
 export { DeskDocumentsRoutes } from "./documents/documents.routes"
 // Extractions
 export * from "./extractions/extractions.dto"

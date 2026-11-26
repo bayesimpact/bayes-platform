@@ -22,6 +22,8 @@
 * **Amended**: 2026-11-26, by Alexis: the shadcn components, their stylesheet and the design
   tokens are a package the Desk and Evaluation share, instead of a copy in each (sections 2.2,
   2.4, 2.9, 4, 6 and 7)
+* **Amended**: 2026-11-26, by Alexis: the chat's schemas and routes are a package the Desk and
+  Evaluation contracts re-export, instead of a copy in each (sections 2.4, 2.12, 4 and 6)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -34,8 +36,8 @@
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
   `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in`, the
   `lib/auth/` of each app, `packages/schema-route`, `packages/api-client` and
-  `packages/frontend-config` (since 2026-11-25), `packages/frontend-lib` and `packages/app-ui`
-  (since 2026-11-26), and
+  `packages/frontend-config` (since 2026-11-25), `packages/frontend-lib`, `packages/app-ui` and
+  `packages/chat-contracts` (since 2026-11-26), and
   `apps/web/src/desk/`
   (deleted at the cutover).
 
@@ -221,6 +223,7 @@ packages/desk-contracts/    the Desk's routes and Zod schemas
 packages/mcp-app-host/      the sandbox of MCP Apps, which every app imports
 packages/sign-in/           the sign-in, which every app of the stack imports
 packages/schema-route/      the route helper and the error body of every contracts package
+packages/chat-contracts/    the chat's schemas and routes, which the Desk and Evaluation contracts re-export
 packages/api-client/        the API client, which every app of the stack imports
 packages/frontend-config/   the Biome rules, GritQL plugins and component check of every app
 packages/frontend-lib/      the hooks and helpers every app of the stack imports
@@ -697,8 +700,8 @@ Desk contracts live in a package of their own, `packages/desk-contracts`
 extends), each with an `{area}.dto.ts` that holds the Zod schemas and an `{area}.routes.ts`, the
 `{ payload }` and `{ data }` envelopes, the CRUD keys `getAll`, `getOne`, `createOne`, `updateOne`
 and `deleteOne`, and one `Desk{Area}Routes` object per area. It depends on Zod,
-`@caseai-connect/permissions` and `@caseai-connect/schema-route` alone, and imports nothing from
-`packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
+`@caseai-connect/permissions`, `@caseai-connect/schema-route` and
+`@caseai-connect/chat-contracts` alone, and imports nothing from `packages/api-contracts`. The Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime
 and maps it to its source in Jest, as it does for `api-contracts`. In phase 1 the API did not
 import it; it does since the Desk endpoints of 2026-11-23 (section 2.13).
 
@@ -724,6 +727,24 @@ types from it. No app owns it, and it stays within limits that keep the apps clo
 its one dependency, no import of another workspace package, no route, no schema of an app, no
 React, nothing a screen shows, and the TypeScript options of the new stack. It has a CommonJS build the API requires, which the API image and the `contracts` service of a
 worktree environment build first.
+
+**The chat's contracts.** Evaluation's contracts first copied the Desk's chat: the schemas of a
+conversation, of its forms and of the documents its replies cite, and the routes that read and
+send its messages. The copies differed by their comments and by the file a schema lived in, and
+the routes by one segment of their path: the type of the session (`live` for the Desk,
+`review_campaign_tester` for Evaluation). Since 2026-11-26, `packages/chat-contracts`
+(`@caseai-connect/chat-contracts`) holds the schemas once, with `defineConversationRoutes(app,
+sessionType)` and `defineDocumentsRoutes(app)`, which return the routes under an app's path. The
+type of a path keeps its `:name` segments, so `defineSchemaRoute` still checks each route's
+params. Each contracts package re-exports the package and declares the chat's routes under its
+own path, beside the routes only its app has (the Desk creates and deletes a conversation), so
+the apps and the API import them from their contracts as before, and the chat code the apps
+will share reads one type of route (`ConversationRoutes`, `DocumentsRoutes`). No app owns it,
+and it stays within limits that keep the apps closed worlds: Zod and
+`@caseai-connect/schema-route` as its dependencies, no route or schema only one app reads, no
+React, nothing a screen shows, and the TypeScript options of the new stack. It has a CommonJS
+build the API requires through the contracts, which the API image and the `contracts` service
+of a worktree environment build after the route helper.
 
 * A route is declared with `defineSchemaRoute`, a helper of `@caseai-connect/schema-route` that the
   package re-exports. It takes the method, the path and the schemas of the params, query, body and response, and infers the request and
@@ -1111,7 +1132,8 @@ part of it invalidates.
   `packages/permissions` reaches every app and the API at once. And so does the sign-in (section
   2.4): a change to `packages/sign-in` reaches the Desk and Evaluation at once, as does a change to
   `packages/api-client`. And so does the route helper (section 2.12): a change to
-  `packages/schema-route` reaches both contracts packages and the API at once. A change to
+  `packages/schema-route` reaches both contracts packages and the API at once, as does a change
+  to `packages/chat-contracts`, the chat's schemas and routes. A change to
   `packages/frontend-config` changes the Biome rules and the component check of every app at once
   (section 2.3), and a change to `packages/frontend-lib` the hooks and helpers of the Desk and
   Evaluation at once (section 2.4).
@@ -1201,7 +1223,8 @@ part of it invalidates.
   file, a CSS import or an edit of its configuration can still bring code of `apps/web`,
   `packages/ui` or `packages/api-contracts` into the Desk. This will cause problems, and a solution
   has to be found. The same holds for `packages/mcp-app-host`, `packages/sign-in`,
-  `packages/schema-route`, `packages/api-client`, `packages/frontend-lib` and `packages/app-ui`:
+  `packages/schema-route`, `packages/chat-contracts`, `packages/api-client`,
+  `packages/frontend-lib` and `packages/app-ui`:
   no tool checks yet that they import no workspace package beyond the ones this ADR allows.
 * Project owners and admins see every agent of the project in the Desk, while the Studio list and
   the MCP `list_agents` tool keep reading agent memberships. Should those two lists move to

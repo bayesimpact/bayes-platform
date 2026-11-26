@@ -1,26 +1,15 @@
-import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/schema-route"
+import { conversationParamsSchema, defineConversationRoutes } from "@caseai-connect/chat-contracts"
+import { defineSchemaRoute } from "@caseai-connect/schema-route"
 import { z } from "zod"
-import { AGENT_PATH, agentParamsSchema, PROJECT_PATH } from "../common/params.dto"
-import { temporaryUrlOutputSchema } from "../documents/documents.dto"
-import {
-  attachmentParamsSchema,
-  conversationMessageOutputSchema,
-  conversationParamsSchema,
-  createdConversationOutputSchema,
-  mcpAppHtmlOutputSchema,
-  messageFeedbackInputSchema,
-  messageParamsSchema,
-  presignAttachmentInputSchema,
-  presignAttachmentOutputSchema,
-  replyInputSchema,
-  replyStreamEventSchema,
-} from "./conversations.dto"
+import { AGENT_PATH, agentParamsSchema } from "../common/params.dto"
+import { createdConversationOutputSchema } from "./conversations.dto"
 
 const conversationPath = `${AGENT_PATH}/conversation-agent-sessions/live/:agentSessionId`
-const sessionPath = `${AGENT_PATH}/agent-sessions/live/:agentSessionId`
-const messagesPath = `${sessionPath}/messages`
 
-/** A person's live conversations with a conversation agent. */
+/**
+ * A person's live conversations with a conversation agent: the Desk starts and deletes them, and
+ * the chat's routes read and send their messages.
+ */
 export const DeskConversationsRoutes = {
   createOne: defineSchemaRoute({
     method: "post",
@@ -35,50 +24,5 @@ export const DeskConversationsRoutes = {
     params: conversationParamsSchema,
     response: z.object({ success: z.boolean() }),
   }),
-  getMessages: defineSchemaRoute({
-    method: "post",
-    path: messagesPath,
-    params: conversationParamsSchema,
-    response: z.array(conversationMessageOutputSchema),
-  }),
-  /**
-   * The current HTML of every MCP App the conversation's replies show. Reading it connects to
-   * each MCP server, so it loads after the messages.
-   */
-  getMcpAppsHtml: defineSchemaRoute({
-    method: "post",
-    path: `${messagesPath}/mcp-app-html`,
-    params: conversationParamsSchema,
-    response: z.array(mcpAppHtmlOutputSchema),
-  }),
-  /** Prepares the upload of a file to attach to the next message. */
-  presignAttachment: defineSchemaRoute({
-    method: "post",
-    path: `${messagesPath}/attachment-document/presign`,
-    params: conversationParamsSchema,
-    body: presignAttachmentInputSchema,
-    response: presignAttachmentOutputSchema,
-  }),
-  getAttachmentUrl: defineSchemaRoute({
-    method: "post",
-    path: `${messagesPath}/attachment-document/:attachmentDocumentId/temporary-url`,
-    params: attachmentParamsSchema,
-    response: temporaryUrlOutputSchema,
-  }),
-  /** Gives a thumbs-up to one of the agent's replies, or reports a problem with it. */
-  createMessageFeedback: defineSchemaRoute({
-    method: "post",
-    path: `${PROJECT_PATH}/agent-messages/:agentMessageId/feedbacks`,
-    params: messageParamsSchema,
-    body: messageFeedbackInputSchema,
-    response: z.object({ success: z.boolean() }),
-  }),
-  /** Sends a message and streams the replies, as server-sent events. */
-  streamReply: defineStreamRoute({
-    method: "post",
-    path: `${sessionPath}/stream`,
-    params: conversationParamsSchema,
-    body: replyInputSchema,
-    event: replyStreamEventSchema,
-  }),
+  ...defineConversationRoutes("desk", "live"),
 }

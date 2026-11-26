@@ -12,10 +12,15 @@ holds what is specific to the Desk.
   pages below it. `/app` is the home, and `/app/o/$organizationId` redirects to it.
 - Contracts: `@caseai-connect/desk-contracts` (`packages/desk-contracts`), one folder per area
   (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
-  `invitations`, `memories`, `organizations`, `projects`), with `common/` for the params every
-  route extends (`AgentParamsDto`, `ConversationParamsDto`), the route helper and the error body
-  it re-exports from `@caseai-connect/schema-route` (`packages/schema-route`), and a
-  `Desk{Area}Routes` object per area (`extractions` has two: documents and CSV files). It
+  `invitations`, `memories`, `organizations`, `projects`), with `common/` for the paths every
+  route starts with, the route helper and the error body it re-exports from
+  `@caseai-connect/schema-route` (`packages/schema-route`), and a `Desk{Area}Routes` object per
+  area (`extractions` has two: documents and CSV files). The chat's schemas and routes come
+  from `@caseai-connect/chat-contracts` (`packages/chat-contracts`), which it re-exports, as
+  Evaluation's contracts do: `DeskConversationsRoutes` adds them, under the `live` sessions, to
+  the creation and the deletion of a conversation, and `DeskDocumentsRoutes` is the documents'
+  routes under `desk/`. The params every route extends (`AgentParamsDto`,
+  `ConversationParamsDto`) come from it too. It
   describes the `desk/` routes the Desk calls and the fields it reads, and the API serves these
   routes with the same schemas.
 - Endpoints: the Desk calls only its own endpoints, under `desk/`, with one exception: a resource
