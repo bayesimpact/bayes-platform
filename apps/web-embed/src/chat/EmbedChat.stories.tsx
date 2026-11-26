@@ -320,6 +320,24 @@ export const ThemeDark: Story = {
   },
 }
 
+/** A link in a reply takes the widget's colour. */
+export const ThemeLink: Story = {
+  name: "Theme — Link in a reply",
+  args: {
+    messages: markdownConversation,
+    theme: { primaryColor: "#16a34a" },
+  },
+}
+
+/** On a colour too pale to read on white, the link falls back to ink, as the send button does. */
+export const ThemePaleLink: Story = {
+  name: "Theme — Link in a reply, pale colour",
+  args: {
+    messages: markdownConversation,
+    theme: { primaryColor: "#F2EFE9" },
+  },
+}
+
 export const French: Story = {
   name: "Locale — French",
   args: {

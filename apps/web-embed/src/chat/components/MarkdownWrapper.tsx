@@ -70,7 +70,7 @@ export function MarkdownWrapper({ content, end }: MarkdownProps) {
           <a
             href={href}
             className={cn(
-              "inline-flex w-fit items-center gap-1 text-blue-600 underline underline-offset-2 transition-colors hover:text-blue-800 hover:no-underline",
+              "inline-flex w-fit items-center gap-1 text-[var(--embed-accent)] underline underline-offset-2 hover:no-underline",
             )}
             target="_blank"
             rel="noopener noreferrer"
