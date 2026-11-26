@@ -15,10 +15,6 @@ msgstr "Dokument „{name}” nie będzie już proponowany do ekstrakcji. Jego w
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "Rozmowa „{title}” i jej wiadomości zostaną usunięte. Tej operacji nie można cofnąć."
 
-#: src/components/shared/ExternalLink.tsx
-msgid "(opens in a new tab)"
-msgstr "(otwiera się w nowej karcie)"
-
 #. A document the person may accept or not
 #: src/features/account/components/TermsCheckbox.tsx
 msgid "(optional)"

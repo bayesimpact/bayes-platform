@@ -11,8 +11,10 @@
   "exports": {
     "./globals.css": "./src/styles/globals.css",
     "./components/*": "./src/components/*.tsx",
+    "./compositions/*": "./src/compositions/*.tsx",
     "./hooks/*": "./src/hooks/*.ts",
-    "./lib/*": "./src/lib/*.ts"
+    "./lib/*": "./src/lib/*.ts",
+    "./locales": "./src/locales/index.ts"
   },
   "files": [
     "./src/**"
@@ -28,10 +30,14 @@
     "tw-animate-css": "^1.4.0"
   },
   "peerDependencies": {
+    "@lingui/core": "^6.10.0",
+    "@lingui/react": "^6.10.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
+    "@lingui/core": "^6.10.0",
+    "@lingui/react": "^6.10.0",
     "@repo/typescript-config": "*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

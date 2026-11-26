@@ -8,6 +8,7 @@
 @import "./shadcn.css";
 /* The components of this package, which an app's sources do not include. */
 @source "../components";
+@source "../compositions";
 
 @custom-variant dark (&:is(.dark *));
 

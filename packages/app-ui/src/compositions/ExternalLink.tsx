@@ -8,8 +8,8 @@ export type ExternalLinkProps = Omit<ComponentProps<"a">, "target" | "rel"> & {
 }
 
 /**
- * A link that opens in a new tab, away from the Desk: it says so to screen readers, and gives the
- * page it opens no hold on the Desk's.
+ * A link that opens in a new tab, away from the app: it says so to screen readers, and gives the
+ * page it opens no hold on the app's.
  */
 export function ExternalLink({ children, hasIcon = true, ...props }: ExternalLinkProps) {
   return (

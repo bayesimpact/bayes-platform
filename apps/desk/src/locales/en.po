@@ -15,10 +15,6 @@ msgstr "\"{name}\" will no longer be offered for an extraction. Its past extract
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
-#: src/components/shared/ExternalLink.tsx
-msgid "(opens in a new tab)"
-msgstr "(opens in a new tab)"
-
 #. A document the person may accept or not
 #: src/features/account/components/TermsCheckbox.tsx
 msgid "(optional)"

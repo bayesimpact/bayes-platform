@@ -15,10 +15,6 @@ msgstr "„{name}“ wird nicht mehr für eine Extraktion angeboten. Die bisheri
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "„{title}“ und die zugehörigen Nachrichten werden gelöscht. Dies kann nicht rückgängig gemacht werden."
 
-#: src/components/shared/ExternalLink.tsx
-msgid "(opens in a new tab)"
-msgstr "(wird in einem neuen Tab geöffnet)"
-
 #. A document the person may accept or not
 #: src/features/account/components/TermsCheckbox.tsx
 msgid "(optional)"

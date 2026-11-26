@@ -15,10 +15,6 @@ msgstr "\"{name}\" ya no se ofrecerá para una extracción. Sus extracciones ant
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "\"{title}\" y sus mensajes se eliminarán. Esta acción no se puede deshacer."
 
-#: src/components/shared/ExternalLink.tsx
-msgid "(opens in a new tab)"
-msgstr "(se abre en una nueva pestaña)"
-
 #. A document the person may accept or not
 #: src/features/account/components/TermsCheckbox.tsx
 msgid "(optional)"

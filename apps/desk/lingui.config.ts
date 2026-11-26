@@ -14,6 +14,13 @@ export default defineConfig({
     {
       path: "<rootDir>/src/locales/{locale}",
       include: ["src"],
+      // A spec holds the messages it checks, which belong to the catalog they come from.
+      exclude: ["**/*.spec.ts", "**/*.spec.tsx"],
+    },
+    // The texts of packages/app-ui: the app loads this catalog next to its own (`loadMessages`).
+    {
+      path: "<rootDir>/../../packages/app-ui/src/locales/{locale}",
+      include: ["<rootDir>/../../packages/app-ui/src"],
     },
   ],
 })
