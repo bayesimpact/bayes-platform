@@ -97,7 +97,7 @@ ${toolDocs.join("\n")}
       name: this.providerName,
       url: new URL("v1/responses", url).toString(),
       apiKey,
-      fetch: this.fetchFor(config),
+      fetch: this.fetchForEndpoint(config, endpoint),
     })(modelName)
   }
   getOpenAiProvider(config: LLMConfig, endpoint?: ModelEndpointSettings): LanguageModelV3 {
@@ -106,7 +106,7 @@ ${toolDocs.join("\n")}
       name: this.providerName,
       baseURL: new URL("v1", url).toString(),
       apiKey,
-      fetch: this.fetchFor(config),
+      fetch: this.fetchForEndpoint(config, endpoint),
     })(modelName)
   }
   getCustomProvider(config: LLMConfig, endpoint?: ModelEndpointSettings): LanguageModelV3 {
@@ -115,7 +115,7 @@ ${toolDocs.join("\n")}
       config: { ...config, model: modelName },
       baseUrl: url,
       apiKey,
-      fetch: this.fetchFor(config),
+      fetch: this.fetchForEndpoint(config, endpoint),
     }) as LanguageModelV3
   }
   /** MedGemma does not honour the response format: the object is read from its text. */

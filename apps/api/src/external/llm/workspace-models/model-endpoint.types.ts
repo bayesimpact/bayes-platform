@@ -2,8 +2,9 @@ import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"
 
 /**
  * The server a call to a self-hosted model goes to when the agent runs a model its workspace
- * added. Without an API key, the call keeps the key of the environment variables. Without a served
- * name, the server is asked for the model under the id of its type.
+ * added. Without an API key, the call sends the key of the environment variables only when the
+ * server is the one of the environment (same origin), and no key otherwise. Without a served name,
+ * the server is asked for the model under the id of its type.
  */
 export type ModelEndpointSettings = {
   url: string

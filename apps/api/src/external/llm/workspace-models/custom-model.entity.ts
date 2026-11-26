@@ -29,7 +29,10 @@ export class CustomModel extends Base4AllEntity {
   @Column({ type: "varchar", name: "base_url" })
   baseUrl!: string
 
-  /** Encrypted with `EncryptionService`. Null keeps the key of the environment variables. */
+  /**
+   * Encrypted with `EncryptionService`. Null sends no key, or the key of the environment variables
+   * when the server is the one of the environment.
+   */
   @Column({ type: "text", name: "api_key_encrypted", nullable: true })
   apiKeyEncrypted!: string | null
 
