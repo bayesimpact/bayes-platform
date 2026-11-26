@@ -4,18 +4,26 @@
 // and no other component. Biome's GritQL plugins cannot read a file's name, so this script checks
 // it. The components shadcn's CLI generates into `src/components/ui/` keep shadcn's own layout.
 //
-// Run it with `npm run check:components -w @caseai-connect/eval`, which `check` runs.
+// Each app of the stack runs it on its own folder, as `check-component-files`:
+// `npm run check:components -w <app>`, which the app's `check` runs.
 
 import { globSync, readFileSync } from "node:fs"
-import { basename, dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
+import { basename, join } from "node:path"
 
-const appRoot = join(dirname(fileURLToPath(import.meta.url)), "..")
+// npm runs a workspace's script in the workspace's folder: the app's root.
+const appRoot = process.cwd()
 // Component files are named in PascalCase.tsx; the test reads the name, since a glob ignores case
 // on macOS.
 const componentFiles = globSync("src/**/*.tsx", { cwd: appRoot }).filter(
   (file) => /^[A-Z]\w*\.tsx$/.test(basename(file)) && !file.startsWith("src/components/ui/"),
 )
+// Run outside an app, the check would find nothing and pass: it fails instead.
+if (componentFiles.length === 0) {
+  console.error(
+    `No component file under ${join(appRoot, "src")}: run the check from an app's root.`,
+  )
+  process.exit(1)
+}
 // A component is a PascalCase function or constant, which leaves SCREAMING_CASE constants out.
 const exportedComponent = /^export (?:async )?(?:function|const|class) ([A-Z][a-z]\w*)/gm
 

@@ -129,7 +129,8 @@ RUN cd apps/web && npm run build
 # result at /app, ahead of the web front. As for the web front, no VITE_* value
 # is baked in: the Desk reads the configuration the API injects into its
 # index.html. Only the Desk, its contracts, the permissions, the schema routes,
-# the MCP App host and the sign-in are installed.
+# the MCP App host, the sign-in, the API client and the frontend config are
+# installed.
 #
 FROM node:24.21.0-trixie-slim AS desk-build
 
@@ -142,6 +143,8 @@ COPY packages/schema-route/package.json ./packages/schema-route/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/api-client/package.json ./packages/api-client/
+# Whole, before the install: npm links the component check it gives as a binary.
+COPY packages/frontend-config ./packages/frontend-config
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
@@ -152,6 +155,7 @@ RUN npm ci \
     --workspace=@caseai-connect/mcp-app-host \
     --workspace=@caseai-connect/sign-in \
     --workspace=@caseai-connect/api-client \
+    --workspace=@caseai-connect/frontend-config \
     --include-workspace-root
 
 COPY apps/desk ./apps/desk
@@ -172,7 +176,8 @@ RUN cd apps/desk && npm run build
 # result at /eval, ahead of the web front. As for the Desk, no VITE_* value is
 # baked in: the app reads the configuration the API injects into its
 # index.html. Only the app, its contracts, the permissions, the schema routes,
-# the MCP App host, the sign-in and the API client are installed.
+# the MCP App host, the sign-in, the API client and the frontend config are
+# installed.
 #
 FROM node:24.21.0-trixie-slim AS eval-build
 
@@ -185,6 +190,8 @@ COPY packages/schema-route/package.json ./packages/schema-route/
 COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/sign-in/package.json ./packages/sign-in/
 COPY packages/api-client/package.json ./packages/api-client/
+# Whole, before the install: npm links the component check it gives as a binary.
+COPY packages/frontend-config ./packages/frontend-config
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN npm ci \
@@ -195,6 +202,7 @@ RUN npm ci \
     --workspace=@caseai-connect/mcp-app-host \
     --workspace=@caseai-connect/sign-in \
     --workspace=@caseai-connect/api-client \
+    --workspace=@caseai-connect/frontend-config \
     --include-workspace-root
 
 COPY apps/eval ./apps/eval

@@ -13,6 +13,9 @@
   contracts package and the API import, instead of a copy in each (sections 2.12 and 2.13)
 * **Amended**: 2026-11-25, by Alexis: the API client is a package every app of the stack imports,
   instead of a copy in each (sections 1, 2.4, 2.7, 2.11, 4, 6 and 7)
+* **Amended**: 2026-11-25, by Alexis: the Biome configuration, the GritQL plugins and the
+  component files check are a package every app of the stack uses, instead of a copy in each
+  (sections 2.3, 2.4, 2.11, 4 and 7)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -24,8 +27,8 @@
   theme mount), `apps/api/.dependency-cruiser.cjs`, the link of agent invitations
   (`apps/api/src/domains/invitations/` and Studio's copy button), `infra/worktree/`,
   `infra/oidc-picker/`, `infra/keycloak/`, `.github/workflows/ci.yml`, `packages/sign-in`, the
-  `lib/auth/` of each app, `packages/schema-route` and `packages/api-client` (since 2026-11-25),
-  and `apps/web/src/desk/`
+  `lib/auth/` of each app, `packages/schema-route`, `packages/api-client` and
+  `packages/frontend-config` (since 2026-11-25), and `apps/web/src/desk/`
   (deleted at the cutover).
 
 ---
@@ -168,11 +171,16 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   Lingui's macro plugin before the React Compiler in its Babel plugins, then `lingui()` and
   `tailwindcss()`. The contracts resolve through the `exports` of `packages/desk-contracts`, with no
   alias.
-* The root Biome configuration stays. `apps/desk/biome.json` extends it with
-  `"root": false, "extends": "//"`, adds the kit's stricter rules for Desk code (no enum, no
-  non-null assertion, no default export outside config files, no `console.log`) and ignores the
-  generated `routeTree.gen.ts`, as knip does. That file is committed, so CI can typecheck without
-  running Vite.
+* The root Biome configuration stays. `apps/desk/biome.json` extends it, adds the kit's stricter
+  rules for Desk code (no enum, no non-null assertion, no default export outside config files, no
+  `console.log`) and ignores the generated `routeTree.gen.ts`, as knip does. `routeTree.gen.ts` is
+  committed, so CI can typecheck without running Vite. Since 2026-11-25 those rules and the GritQL
+  plugins are in `packages/frontend-config/biome.app.json`, which every app of the stack shares,
+  and an app's `biome.json` extends the root configuration and that file, by path
+  (`"root": false`,
+  `"extends": ["../../biome.json", "../../packages/frontend-config/biome.app.json"]`).
+  Biome 2.3 accepts `"//"` only alone, and does not follow an `extends` inside an extended file.
+  The shared file is not named `biome.json`, so its folder keeps the root configuration.
 
 ### 2.4 Folders and boundaries
 
@@ -205,6 +213,7 @@ packages/mcp-app-host/      the sandbox of MCP Apps, which every app imports
 packages/sign-in/           the sign-in, which every app of the stack imports
 packages/schema-route/      the route helper and the error body of every contracts package
 packages/api-client/        the API client, which every app of the stack imports
+packages/frontend-config/   the Biome rules, GritQL plugins and component check of every app
 ```
 
 dependency-cruiser enforces the direction of imports between the folders of `src/`:
@@ -587,8 +596,8 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   translation checks and Vitest. It passes after each significant change, on top of the repo's
   completion criteria.
 * A rule a tool can check is checked by a tool, since an agent forgets a written rule and never a
-  failing check. Biome's GritQL plugins (`apps/desk/biome-plugins/`) hold the rules a syntax
-  pattern shows, such as an unjustified `useQuery`, an effect that only sets a state, or a
+  failing check. Biome's GritQL plugins (`packages/frontend-config/biome-plugins/`, which every app
+  of the stack shares) hold the rules a syntax pattern shows, such as an unjustified `useQuery`, an effect that only sets a state, or a
   `useReactTable` without `"use no memo"`; a script checks that a component file exports one
   component, named like the file. The React Compiler fails the dev server, Storybook and the tests
   on any component it gives up on (`panicThreshold`): it leaves such a component unmemoized without
@@ -1018,7 +1027,9 @@ part of it invalidates.
   `packages/permissions` reaches every app and the API at once. And so does the sign-in (section
   2.4): a change to `packages/sign-in` reaches the Desk and Evaluation at once, as does a change to
   `packages/api-client`. And so does the route helper (section 2.12): a change to
-  `packages/schema-route` reaches both contracts packages and the API at once.
+  `packages/schema-route` reaches both contracts packages and the API at once. A change to
+  `packages/frontend-config` changes the Biome rules and the component check of every app at once
+  (section 2.3).
 * A person signs in once for the Desk and Studio, which share one session on the origin (section
   2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
@@ -1120,9 +1131,9 @@ part of it invalidates.
 
 * The second app joins the stack: whether the apps of the new stack share code with each other (a
   design system, a sign-in module, the API client) is decided then, and the conventions get tested
-  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in, the route
-  helper of the contracts and the API client are shared (sections 2.4 and 2.12), and the design
-  system stays in each app. Ask again when a third app joins.
+  on a second app. Decided on 2026-11-25, with Evaluation: the sign-in, the route helper of the
+  contracts, the API client and the Biome configuration with its checks are shared (sections 2.3,
+  2.4 and 2.12), and the design system stays in each app. Ask again when a third app joins.
 * The API moves to NestJS 12, or TypeScript 7.1 ships a compiler API: a typecheck several times
   faster pays off with every agent run.
 * Parsing large transcripts shows in response times.
