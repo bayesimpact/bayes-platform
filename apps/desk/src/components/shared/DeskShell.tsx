@@ -1,8 +1,3 @@
-import { useResizableWidth } from "@caseai-connect/frontend-lib"
-import { useLingui } from "@lingui/react/macro"
-import { useRouter } from "@tanstack/react-router"
-import { cn } from "cn"
-import { type ReactNode, useEffect, useState } from "react"
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +6,13 @@ import {
   SidebarInset,
   SidebarProvider,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { useIsMobile } from "@/hooks/use-mobile"
+} from "@caseai-connect/app-ui/components/sidebar"
+import { useIsMobile } from "@caseai-connect/app-ui/hooks/use-mobile"
+import { useResizableWidth } from "@caseai-connect/frontend-lib"
+import { useLingui } from "@lingui/react/macro"
+import { useRouter } from "@tanstack/react-router"
+import { cn } from "cn"
+import { type ReactNode, useEffect, useState } from "react"
 import { useSidebarPeek } from "@/hooks/use-sidebar-peek"
 import { HeaderActionsContext } from "./header-actions-context"
 import { NewReleaseBanner } from "./NewReleaseBanner"

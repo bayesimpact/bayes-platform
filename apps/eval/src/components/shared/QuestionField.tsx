@@ -1,10 +1,10 @@
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Label } from "@caseai-connect/app-ui/components/label"
+import { RadioGroup, RadioGroupItem } from "@caseai-connect/app-ui/components/radio-group"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import type { ReviewCampaignQuestionDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useId } from "react"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Textarea } from "@/components/ui/textarea"
 import { StarRatingInput } from "./StarRatingInput"
 
 export type QuestionFieldProps = {

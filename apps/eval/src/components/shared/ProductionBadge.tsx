@@ -1,5 +1,5 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import { Trans } from "@lingui/react/macro"
-import { Badge } from "@/components/ui/badge"
 import { SUCCESS_BADGE_CLASSES } from "@/lib/success-classes"
 
 /** The green mark of the version every live channel runs with, as the Studio shows it. */

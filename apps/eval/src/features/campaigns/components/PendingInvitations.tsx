@@ -1,3 +1,6 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import type {
   CampaignInvitationOutputDto,
   ReviewCampaignParamsDto,
@@ -10,9 +13,6 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { RelativeTime } from "@/components/shared/RelativeTime"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRevokeInvitation } from "../api/mutations"
 import { CampaignRoleLabel } from "./CampaignRoleLabel"
 

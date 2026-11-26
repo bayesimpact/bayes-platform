@@ -1,7 +1,7 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { Trans } from "@lingui/react/macro"
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import { Button } from "@/components/ui/button"
 
 export type SetupStepFooterProps = {
   /** Goes to the step before, or none on the first step. */

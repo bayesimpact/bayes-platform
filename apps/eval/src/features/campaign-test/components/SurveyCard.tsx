@@ -1,10 +1,10 @@
+import { buttonVariants } from "@caseai-connect/app-ui/components/button"
 import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 import { CheckCircle2Icon } from "lucide-react"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { buttonVariants } from "@/components/ui/button"
 
 export type SurveyCardProps = {
   campaign: ReviewCampaignParamsDto

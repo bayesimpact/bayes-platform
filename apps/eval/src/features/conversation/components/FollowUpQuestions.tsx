@@ -1,5 +1,5 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { useLingui } from "@lingui/react/macro"
-import { Button } from "@/components/ui/button"
 
 export type FollowUpQuestionsProps = {
   questions: string[]

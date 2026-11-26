@@ -1,5 +1,3 @@
-import { Trans } from "@lingui/react/macro"
-import { CircleStopIcon } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -9,8 +7,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+} from "@caseai-connect/app-ui/components/alert-dialog"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Trans } from "@lingui/react/macro"
+import { CircleStopIcon } from "lucide-react"
 
 export type StopCsvRunButtonProps = {
   /** The request that stops the run is on its way. */

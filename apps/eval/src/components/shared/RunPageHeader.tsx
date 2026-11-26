@@ -1,3 +1,11 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@caseai-connect/app-ui/components/dropdown-menu"
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { durationOf, fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
@@ -11,14 +19,6 @@ import {
 } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { toast } from "sonner"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { isRunActive, type RunSummary } from "@/lib/run-status"
 import { shortIdOf } from "@/lib/short-id"
 import { BackLink } from "./BackLink"

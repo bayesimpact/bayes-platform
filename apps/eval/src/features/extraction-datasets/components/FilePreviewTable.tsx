@@ -1,4 +1,3 @@
-import type { ExtractionDatasetFileColumnOutputDto } from "@caseai-connect/eval-contracts"
 import {
   Table,
   TableBody,
@@ -6,7 +5,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@caseai-connect/app-ui/components/table"
+import type { ExtractionDatasetFileColumnOutputDto } from "@caseai-connect/eval-contracts"
 
 export type FilePreviewTableProps = {
   /** The columns of a file, each with its first values. */

@@ -1,5 +1,3 @@
-import { Trans } from "@lingui/react/macro"
-import type { ReactNode } from "react"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -8,8 +6,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+} from "@caseai-connect/app-ui/components/alert-dialog"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Trans } from "@lingui/react/macro"
+import type { ReactNode } from "react"
 
 export type ConfirmDialogProps = {
   isOpen: boolean

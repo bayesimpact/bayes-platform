@@ -1,10 +1,14 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@caseai-connect/app-ui/components/collapsible"
 import { hasOwnKey } from "@caseai-connect/frontend-lib"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CircleAlertIcon, RotateCcwIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 /** The errors that a new try would meet again, which then offer none. */
 const LASTING_ERRORS = new Set(["PDF_PAGE_LIMIT_EXCEEDED"])

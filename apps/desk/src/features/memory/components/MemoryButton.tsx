@@ -1,8 +1,8 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { BrainIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { memoriesQueryOptions } from "../api/queries"
 
 export type MemoryButtonProps = {

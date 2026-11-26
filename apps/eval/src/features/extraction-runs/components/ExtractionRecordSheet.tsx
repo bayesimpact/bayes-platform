@@ -1,3 +1,10 @@
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@caseai-connect/app-ui/components/sheet"
 import type {
   ExtractionDatasetColumnDto,
   ExtractionRunKeyMappingEntryDto,
@@ -9,13 +16,6 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { cn } from "cn"
 import { CheckIcon, XIcon } from "lucide-react"
 import { ExternalLink } from "@/components/shared/ExternalLink"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import { canReadTracesQueryOptions } from "@/features/account"
 import { cellTextOf } from "@/lib/extraction-columns"
 import { SUCCESS_TEXT_CLASSES } from "@/lib/success-classes"

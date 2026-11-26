@@ -1,9 +1,9 @@
+import { Message, MessageContent } from "@caseai-connect/app-ui/components/message"
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Markdown } from "@/components/shared/Markdown"
-import { Message, MessageContent } from "@/components/ui/message"
 import { useStartConversation } from "../api/mutations"
 import { Composer } from "./Composer"
 

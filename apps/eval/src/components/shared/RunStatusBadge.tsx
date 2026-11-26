@@ -1,6 +1,6 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import { useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { RUN_STATUS_LABELS, type RunStatus } from "@/lib/run-status"
 import { SUCCESS_BADGE_CLASSES } from "@/lib/success-classes"
 

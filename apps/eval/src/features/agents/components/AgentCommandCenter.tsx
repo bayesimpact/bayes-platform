@@ -1,3 +1,19 @@
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "@caseai-connect/app-ui/components/command"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@caseai-connect/app-ui/components/dialog"
+import { Kbd } from "@caseai-connect/app-ui/components/kbd"
 import { type AgentTypeDto, agentTypeSchema } from "@caseai-connect/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
@@ -6,22 +22,6 @@ import { cn } from "cn"
 import { ArrowRightIcon } from "lucide-react"
 import { AgentTypeIcon } from "@/components/shared/AgentTypeIcon"
 import { CommandSearchInput } from "@/components/shared/CommandSearchInput"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandShortcut,
-} from "@/components/ui/command"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Kbd } from "@/components/ui/kbd"
 import type { CampaignAgent } from "../campaign-agents"
 import type { EvaluationAgent, EvaluationProjectAgents } from "../evaluation-agents"
 

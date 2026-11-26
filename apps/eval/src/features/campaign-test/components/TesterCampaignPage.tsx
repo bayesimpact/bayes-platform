@@ -1,3 +1,4 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type {
   ReviewCampaignParamsDto,
   TesterSessionOutputDto,
@@ -9,7 +10,6 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { Button } from "@/components/ui/button"
 import { ParticipantCampaignFrame, useCampaignContext } from "@/features/campaign-context"
 import { useDeleteSession } from "../api/mutations"
 import { testerSessionsQueryOptions, testerSurveyQueryOptions } from "../api/queries"

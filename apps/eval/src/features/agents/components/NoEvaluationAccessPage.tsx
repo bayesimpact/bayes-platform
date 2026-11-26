@@ -1,9 +1,9 @@
+import { Button, buttonVariants } from "@caseai-connect/app-ui/components/button"
 import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import { HouseIcon, LockIcon, LogOutIcon } from "lucide-react"
 import { platformHomePath } from "@/app/config"
 import { StatusPage } from "@/components/shared/StatusPage"
-import { Button, buttonVariants } from "@/components/ui/button"
 import { signOut } from "@/lib/auth/session"
 
 /** What a signed-in person sees when no project lets them evaluate its agents. */

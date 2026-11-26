@@ -1,7 +1,7 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/app-ui/components/tabs"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import { type ReactNode, useMemo } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RUN_STATUS_LABELS, RUN_STATUS_ORDER, type RunSummary } from "@/lib/run-status"
 
 /** The dataset's page, where the runs show: the sub-tab is one of its search params. */

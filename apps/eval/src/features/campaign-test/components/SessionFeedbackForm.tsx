@@ -1,3 +1,4 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type {
   CampaignContextOutputDto,
   ReviewCampaignParamsDto,
@@ -5,7 +6,6 @@ import type {
 import { Trans, useLingui } from "@lingui/react/macro"
 import { toast } from "sonner"
 import { RatedFeedbackForm } from "@/components/shared/RatedFeedbackForm"
-import { Button } from "@/components/ui/button"
 import { useSubmitFeedback } from "../api/mutations"
 
 export type SessionFeedbackFormProps = {

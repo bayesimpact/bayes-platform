@@ -1,5 +1,5 @@
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 import type { ReactNode } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
 
 export type TableLoadingRowsProps = {
   /** What loads, for who cannot see the skeleton. */

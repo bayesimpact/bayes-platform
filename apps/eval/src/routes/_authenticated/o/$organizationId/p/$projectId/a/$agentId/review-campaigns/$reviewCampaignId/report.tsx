@@ -1,6 +1,6 @@
+import { TabsContent } from "@caseai-connect/app-ui/components/tabs"
 import { createFileRoute } from "@tanstack/react-router"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
-import { TabsContent } from "@/components/ui/tabs"
 import {
   CampaignReportContent,
   DownloadReportButton,

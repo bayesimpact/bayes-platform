@@ -1,3 +1,4 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   EXTRACTION_RUN_RECORDS_PAGE_SIZE,
   type ExtractionDatasetOutputDto,
@@ -16,7 +17,6 @@ import { RunProgressNote } from "@/components/shared/RunProgressNote"
 import { TableLoadError } from "@/components/shared/TableLoadError"
 import { TableLoadingRows } from "@/components/shared/TableLoadingRows"
 import { TablePagination } from "@/components/shared/TablePagination"
-import { Button } from "@/components/ui/button"
 import { cellTextOf, columnsOf, columnsOfRole } from "@/lib/extraction-columns"
 import { hasFilters, searchWithFilter, searchWithSort, sortingOf } from "@/lib/records-search"
 import type { RunSearch } from "@/lib/run-search"

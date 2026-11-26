@@ -1,3 +1,7 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Popover, PopoverContent } from "@caseai-connect/app-ui/components/popover"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import {
   clearQuoteHighlights,
   isPointInRange,
@@ -7,10 +11,6 @@ import { useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { Trash2Icon } from "lucide-react"
 import { type KeyboardEvent, type ReactNode, useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent } from "@/components/ui/popover"
-import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { type Annotation, isSameRange, readQuotableSelection } from "../annotation"
 import { type ReplyClick, useSettledSelection } from "../hooks/use-settled-selection"
 import { AnnotationBadge } from "./AnnotationBadge"

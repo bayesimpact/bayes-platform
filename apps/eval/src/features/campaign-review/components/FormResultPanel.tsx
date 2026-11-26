@@ -1,7 +1,7 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import type { ReviewerSessionOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { PanelSection } from "@/components/shared/PanelSection"
-import { Badge } from "@/components/ui/badge"
 import { listFormResultFields } from "../form-result"
 
 export type FormResultPanelProps = {

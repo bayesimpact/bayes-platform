@@ -1,7 +1,7 @@
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 import { durationOf } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
-import { Skeleton } from "@/components/ui/skeleton"
 
 export type ExtractionPendingProps = {
   createdAt: number

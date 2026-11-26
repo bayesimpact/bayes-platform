@@ -1,8 +1,8 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type { ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { DownloadIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { campaignReportQueryOptions } from "../api/queries"
 import { reportCsvOf } from "../report-csv"
 

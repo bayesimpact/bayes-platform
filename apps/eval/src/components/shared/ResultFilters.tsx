@@ -1,5 +1,5 @@
+import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/app-ui/components/toggle-group"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 export type ResultFiltersProps<TFilter extends string> = {
   /** The filters offered, each with its name and how many results it keeps. */

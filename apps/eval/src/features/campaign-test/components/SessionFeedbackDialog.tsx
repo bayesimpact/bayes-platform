@@ -1,15 +1,15 @@
-import type {
-  CampaignContextOutputDto,
-  ReviewCampaignParamsDto,
-} from "@caseai-connect/eval-contracts"
-import { Trans } from "@lingui/react/macro"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@caseai-connect/app-ui/components/dialog"
+import type {
+  CampaignContextOutputDto,
+  ReviewCampaignParamsDto,
+} from "@caseai-connect/eval-contracts"
+import { Trans } from "@lingui/react/macro"
 import { SessionFeedbackForm } from "./SessionFeedbackForm"
 
 export type SessionFeedbackDialogProps = {

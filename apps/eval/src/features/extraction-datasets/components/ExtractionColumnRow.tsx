@@ -1,9 +1,9 @@
+import { Checkbox } from "@caseai-connect/app-ui/components/checkbox"
+import { Input } from "@caseai-connect/app-ui/components/input"
+import { NativeSelect, NativeSelectOption } from "@caseai-connect/app-ui/components/native-select"
 import type { ExtractionDatasetSetupInputDto } from "@caseai-connect/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { type Control, Controller } from "react-hook-form"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { COLUMN_ROLE_LABELS, COLUMN_ROLES } from "@/lib/extraction-columns"
 
 export type ExtractionColumnRowProps = {

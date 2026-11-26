@@ -1,6 +1,6 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 
 export type TablePaginationProps = {
   /** The page shown, counted from 0. */

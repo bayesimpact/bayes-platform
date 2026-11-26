@@ -1,3 +1,4 @@
+import { buttonVariants } from "@caseai-connect/app-ui/components/button"
 import {
   type AgentParamsDto,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
@@ -9,7 +10,6 @@ import { cn } from "cn"
 import { PlusIcon } from "lucide-react"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { buttonVariants } from "@/components/ui/button"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { projectCampaignsQueryOptions } from "../api/queries"
 import { CampaignsEmptyState } from "./CampaignsEmptyState"

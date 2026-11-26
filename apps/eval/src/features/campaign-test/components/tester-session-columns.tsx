@@ -1,3 +1,5 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
+import { Button, buttonVariants } from "@caseai-connect/app-ui/components/button"
 import type {
   ReviewCampaignParamsDto,
   TesterSessionOutputDto,
@@ -10,8 +12,6 @@ import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { cn } from "cn"
 import { CheckCircle2Icon, CircleDashedIcon, Trash2Icon } from "lucide-react"
 import { TimeAgo } from "@/components/shared/TimeAgo"
-import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
 
 const columnHelper = createColumnHelper<TesterSessionOutputDto>()
 

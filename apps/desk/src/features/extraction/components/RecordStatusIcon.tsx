@@ -1,7 +1,7 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import type { CsvExtractionRecordOutputDto } from "@caseai-connect/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { RunStateIcon } from "@/components/shared/RunStateIcon"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RUN_STATE_LABELS } from "@/lib/run-state"
 import { CSV_RECORD_STATES } from "../run-states"
 

@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 
 /** The user menu's place in the bar while the signed-in person loads. */
 export function UserMenuSkeleton() {

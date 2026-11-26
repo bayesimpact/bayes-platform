@@ -1,10 +1,10 @@
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Input } from "@caseai-connect/app-ui/components/input"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import type { CampaignFormValues } from "../schemas"
 import { AgentVersionField } from "./AgentVersionField"
 

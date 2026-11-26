@@ -1,14 +1,19 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Checkbox } from "@caseai-connect/app-ui/components/checkbox"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@caseai-connect/app-ui/components/field"
+import { Input } from "@caseai-connect/app-ui/components/input"
+import { Label } from "@caseai-connect/app-ui/components/label"
+import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/app-ui/components/toggle-group"
 import { reviewCampaignQuestionTypeSchema } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-react"
 import { useId } from "react"
 import { type Control, Controller, useWatch } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { CampaignFormValues, QuestionListName } from "../schemas"
 
 export type QuestionEditorProps = {

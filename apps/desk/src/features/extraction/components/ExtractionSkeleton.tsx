@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 
 /** An extraction's page while it loads: its heading, then its content. */
 export function ExtractionSkeleton() {

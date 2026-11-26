@@ -1,7 +1,7 @@
+import { SidebarTrigger, useSidebar } from "@caseai-connect/app-ui/components/sidebar"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import { useLingui } from "@lingui/react/macro"
 import type { ComponentProps } from "react"
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ShortcutHint } from "./ShortcutHint"
 
 /** The handlers that let the hidden sidebar peek. */

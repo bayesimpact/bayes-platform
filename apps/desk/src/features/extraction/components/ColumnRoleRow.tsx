@@ -1,3 +1,4 @@
+import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/app-ui/components/toggle-group"
 import {
   type CsvColumnRoleDto,
   type CsvFileColumnOutputDto,
@@ -5,7 +6,6 @@ import {
 } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { sampleOf } from "../csv-setup"
 
 export type ColumnRoleRowProps = {

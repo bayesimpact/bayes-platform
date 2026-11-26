@@ -1,8 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
-import { Trans } from "@lingui/react/macro"
-import { Link } from "@tanstack/react-router"
-import type { ReactNode } from "react"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@caseai-connect/app-ui/components/button"
 import {
   Empty,
   EmptyContent,
@@ -10,7 +6,11 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
+} from "@caseai-connect/app-ui/components/empty"
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import { Trans } from "@lingui/react/macro"
+import { Link } from "@tanstack/react-router"
+import type { ReactNode } from "react"
 import { CsvFileHeader } from "./CsvFileHeader"
 
 export type CsvFileUnusableProps = {

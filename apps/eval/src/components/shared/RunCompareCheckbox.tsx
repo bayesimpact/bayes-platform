@@ -1,7 +1,7 @@
+import { Checkbox } from "@caseai-connect/app-ui/components/checkbox"
 import { fullDateTimeOf } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import type { Row } from "@tanstack/react-table"
-import { Checkbox } from "@/components/ui/checkbox"
 
 export type RunCompareCheckboxProps<TRun extends { createdAt: number }> = {
   /** The row of the run, whose selection picks it for the comparison. */

@@ -129,7 +129,11 @@ the conventions as they stand. When a rule changes, its reference file changes i
   `hasSourcesTool`) `features/agents`, what an agent remembers `features/memory`, the envelope of
   invitations `features/invitations`, the terms and the name `features/account`. Each feature's
   route loaders sit in its `load-*.ts`.
-- The sidebar's colors, in `src/styles/global.css`: unlike the platform's other tokens, the
+- The shadcn components, the design tokens and the stylesheet shadcn relies on come from
+  `@caseai-connect/app-ui` (`packages/app-ui`), which the Desk shares with Evaluation:
+  `src/styles/global.css` imports its `globals.css`, then styles the Desk's own code.
+- The sidebar's colors, in the tokens of `packages/app-ui/src/styles/globals.css`: unlike the
+  platform's other tokens, the
   `--sidebar-*` ones derive from `--primary` (mixed in `oklab`, which keeps its hue), so the
   sidebar takes each install's color from its `theme.css`.
 - Shared compositions, in `src/components/shared/`: `SidePanel` for every panel docked beside a

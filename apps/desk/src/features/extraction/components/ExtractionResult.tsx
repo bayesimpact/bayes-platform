@@ -1,6 +1,6 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/app-ui/components/tabs"
 import { Trans } from "@lingui/react/macro"
 import { useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { extractedFieldsOf, resultFileNameOf, resultJsonOf } from "../extraction-fields"
 import { ResultFields } from "./ResultFields"
 import { ResultFileActions } from "./ResultFileActions"

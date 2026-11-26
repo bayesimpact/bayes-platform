@@ -1,6 +1,6 @@
+import { Checkbox } from "@caseai-connect/app-ui/components/checkbox"
 import { useLingui } from "@lingui/react/macro"
 import type { Table } from "@tanstack/react-table"
-import { Checkbox } from "@/components/ui/checkbox"
 
 export type RunCompareAllCheckboxProps<TRun> = {
   /** The table of runs, whose rows the box picks or lets go together. */

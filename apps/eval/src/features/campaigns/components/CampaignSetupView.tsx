@@ -1,3 +1,4 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/app-ui/components/tabs"
 import type {
   AgentParamsDto,
   AgentTypeDto,
@@ -8,7 +9,6 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 import { AgentVersionTitle } from "@/components/shared/AgentVersionTitle"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { AGENT_TYPE_LABELS } from "@/lib/agent-type-labels"
 import { FeedbackFormFields } from "./FeedbackFormFields"

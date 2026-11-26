@@ -1,3 +1,12 @@
+import { ScrollArea, ScrollBar } from "@caseai-connect/app-ui/components/scroll-area"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@caseai-connect/app-ui/components/table"
 import { Trans } from "@lingui/react/macro"
 import {
   type Cell,
@@ -9,15 +18,6 @@ import {
 import { cn } from "cn"
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon, MoveHorizontalIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 
 export type DataTableProps<TData> = {
   table: TanStackTable<TData>

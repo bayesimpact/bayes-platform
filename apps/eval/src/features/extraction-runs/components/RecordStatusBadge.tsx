@@ -1,9 +1,9 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import type { ExtractionRunRecordStatusDto } from "@caseai-connect/eval-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { useLingui } from "@lingui/react/macro"
 import { LoaderCircleIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { SUCCESS_BADGE_CLASSES } from "@/lib/success-classes"
 
 export type RecordStatusBadgeProps = {

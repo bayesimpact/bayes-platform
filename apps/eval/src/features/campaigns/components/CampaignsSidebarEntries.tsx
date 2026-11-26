@@ -1,3 +1,4 @@
+import { SidebarMenuSubButton, SidebarMenuSubItem } from "@caseai-connect/app-ui/components/sidebar"
 import {
   type AgentParamsDto,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
@@ -9,7 +10,6 @@ import { Link } from "@tanstack/react-router"
 import { ListIcon, PlusIcon } from "lucide-react"
 import { SidebarSection } from "@/components/shared/SidebarSection"
 import { SidebarSubGroupLabel } from "@/components/shared/SidebarSubGroupLabel"
-import { SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { CAMPAIGN_STATUS_LABELS } from "@/lib/campaign-status"
 import { projectCampaignsQueryOptions } from "../api/queries"

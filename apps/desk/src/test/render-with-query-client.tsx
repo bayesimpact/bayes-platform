@@ -1,7 +1,7 @@
+import { Toaster } from "@caseai-connect/app-ui/components/sonner"
 import { QueryClientProvider } from "@tanstack/react-query"
 import type { ReactElement } from "react"
 import { createQueryClient } from "@/app/query-client"
-import { Toaster } from "@/components/ui/sonner"
 import { renderWithI18n } from "./render-with-i18n"
 
 /** The params of a conversation that exists nowhere, for a component that only sends requests. */

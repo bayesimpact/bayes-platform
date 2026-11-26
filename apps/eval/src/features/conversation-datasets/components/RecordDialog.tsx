@@ -1,3 +1,19 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@caseai-connect/app-ui/components/dialog"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@caseai-connect/app-ui/components/field"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import {
   CONVERSATION_DATASET_RECORD_MAX_LENGTH,
   type ConversationDatasetRecordInputDto,
@@ -7,17 +23,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans } from "@lingui/react/macro"
 import { type ReactNode, useId } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
-import { Textarea } from "@/components/ui/textarea"
 
 export type RecordDialogProps = {
   title: ReactNode

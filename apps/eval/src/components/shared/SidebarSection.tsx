@@ -1,8 +1,8 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { Trans } from "@lingui/react/macro"
 import { useQueryErrorResetBoundary } from "@tanstack/react-query"
 import { CatchBoundary, type ErrorComponentProps } from "@tanstack/react-router"
 import { type ReactNode, Suspense } from "react"
-import { Button } from "@/components/ui/button"
 import { SidebarEntriesSkeleton } from "./SidebarEntriesSkeleton"
 
 export type SidebarSectionProps = {

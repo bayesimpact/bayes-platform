@@ -1,10 +1,3 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { useQuery } from "@tanstack/react-query"
-import { Trash2Icon } from "lucide-react"
-import { useState } from "react"
-import { toast } from "sonner"
-import { SidePanel } from "@/components/shared/SidePanel"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -13,9 +6,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "@caseai-connect/app-ui/components/alert-dialog"
+import { Badge } from "@caseai-connect/app-ui/components/badge"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { useQuery } from "@tanstack/react-query"
+import { Trash2Icon } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { SidePanel } from "@/components/shared/SidePanel"
 import { useForgetAllMemories, useForgetMemory } from "../api/mutations"
 import { memoriesQueryOptions } from "../api/queries"
 

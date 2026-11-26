@@ -1,6 +1,6 @@
+import { TabsContent } from "@caseai-connect/app-ui/components/tabs"
 import type { AgentParamsDto, ReviewCampaignParamsDto } from "@caseai-connect/eval-contracts"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { TabsContent } from "@/components/ui/tabs"
 import type { EvaluationAgent } from "@/features/agents"
 import { campaignQueryOptions } from "../api/queries"
 import type { CampaignTab } from "../schemas"

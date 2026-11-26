@@ -1,8 +1,8 @@
+import { Checkbox } from "@caseai-connect/app-ui/components/checkbox"
 import type { TermsDocumentOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useId } from "react"
 import { ExternalLink } from "@/components/shared/ExternalLink"
-import { Checkbox } from "@/components/ui/checkbox"
 
 export type TermsCheckboxProps = {
   label: string

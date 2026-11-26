@@ -1,3 +1,5 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Checkbox } from "@caseai-connect/app-ui/components/checkbox"
 import {
   EXTRACTION_DATASET_FILE_MAX_SIZE,
   EXTRACTION_DATASET_FILE_MIME_TYPE,
@@ -12,8 +14,6 @@ import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { SectionCard } from "@/components/shared/SectionCard"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useDeleteExtractionFiles, useUploadExtractionFile } from "../api/mutations"
 import { extractionFilesQueryOptions } from "../api/queries"
 import { csvFileProblemOf } from "../csv-file"

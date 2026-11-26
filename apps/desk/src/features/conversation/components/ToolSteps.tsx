@@ -1,9 +1,3 @@
-import { TOOL_NAMES, type ToolName } from "@caseai-connect/desk-contracts"
-import { hasOwnKey } from "@caseai-connect/frontend-lib"
-import type { MessageDescriptor } from "@lingui/core"
-import { msg } from "@lingui/core/macro"
-import { Plural, Trans, useLingui } from "@lingui/react/macro"
-import { CheckIcon, SparklesIcon } from "lucide-react"
 import {
   Trace,
   TraceCollapsible,
@@ -12,7 +6,13 @@ import {
   TraceIcon,
   TraceLine,
   TraceTitle,
-} from "@/components/ui/trace"
+} from "@caseai-connect/app-ui/components/trace"
+import { TOOL_NAMES, type ToolName } from "@caseai-connect/desk-contracts"
+import { hasOwnKey } from "@caseai-connect/frontend-lib"
+import type { MessageDescriptor } from "@lingui/core"
+import { msg } from "@lingui/core/macro"
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { CheckIcon, SparklesIcon } from "lucide-react"
 
 /** What a person reads while the agent uses a tool. The tools missing here read as a generic step. */
 const TOOL_LABELS = {

@@ -1,6 +1,6 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CheckIcon, XIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { isRecord } from "@/lib/is-record"
 import { extractedFieldsOf, isEmptyValue } from "../extraction-fields"
 

@@ -1,6 +1,6 @@
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import type { ReviewCampaignStatusDto } from "@caseai-connect/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
-import { Badge } from "@/components/ui/badge"
 import { CAMPAIGN_STATUS_LABELS } from "@/lib/campaign-status"
 
 export type CampaignStatusBadgeProps = {

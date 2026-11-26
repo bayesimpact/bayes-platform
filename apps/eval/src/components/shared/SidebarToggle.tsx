@@ -1,8 +1,8 @@
+import { Kbd, KbdGroup } from "@caseai-connect/app-ui/components/kbd"
+import { SidebarTrigger, useSidebar } from "@caseai-connect/app-ui/components/sidebar"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import { isApplePlatform } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
-import { Kbd, KbdGroup } from "@/components/ui/kbd"
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { SidebarPeekHandlers } from "@/hooks/use-sidebar-peek"
 
 /**

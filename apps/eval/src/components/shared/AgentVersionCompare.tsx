@@ -1,11 +1,16 @@
+import { badgeVariants } from "@caseai-connect/app-ui/components/badge"
+import { Button } from "@caseai-connect/app-ui/components/button"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@caseai-connect/app-ui/components/empty"
+import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/app-ui/components/toggle-group"
 import type { AgentVersionOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { CheckIcon } from "lucide-react"
-import { badgeVariants } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useVersionComparison } from "@/hooks/use-version-comparison"
 import {
   AGENT_VERSION_DIFF_FILE_NAMES,

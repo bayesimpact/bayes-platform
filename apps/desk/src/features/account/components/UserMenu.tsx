@@ -1,9 +1,4 @@
-import type { MeUserOutputDto } from "@caseai-connect/desk-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { ChevronDownIcon, CircleHelpIcon, HouseIcon, LogOutIcon, PencilIcon } from "lucide-react"
-import { isLocale, type Locale, languageNameOf } from "@/app/i18n"
-import { ExternalLink } from "@/components/shared/ExternalLink"
-import { Button } from "@/components/ui/button"
+import { Button } from "@caseai-connect/app-ui/components/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +9,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@caseai-connect/app-ui/components/dropdown-menu"
+import type { MeUserOutputDto } from "@caseai-connect/desk-contracts"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { ChevronDownIcon, CircleHelpIcon, HouseIcon, LogOutIcon, PencilIcon } from "lucide-react"
+import { isLocale, type Locale, languageNameOf } from "@/app/i18n"
+import { ExternalLink } from "@/components/shared/ExternalLink"
 
 export type UserMenuProps = {
   user: MeUserOutputDto

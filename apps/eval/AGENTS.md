@@ -139,7 +139,8 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   around every signed-in page): ⌘K, or Ctrl+K outside Apple systems, the button at the top of an
   agent's sidebar and the app's home open it. It lists every agent by project,
   with a search on the names of the agents, projects and organizations. A person with a single
-  agent gets none. It is shadcn's `Command` (`components/ui/command.tsx`) on `cmdk`, a library a
+  agent gets none. It is shadcn's `Command` (`command.tsx` of `packages/app-ui`, the shadcn
+  components the app shares with the Desk) on `cmdk`, a library a
   human chose for it: `cmdk` brings a few Radix primitives of its own, which the app's code does
   not import.
 - The home: `src/routes/_authenticated/index.tsx`, with no page of its own while the person has

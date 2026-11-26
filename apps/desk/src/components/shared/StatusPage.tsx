@@ -1,4 +1,3 @@
-import type { ReactNode } from "react"
 import {
   Empty,
   EmptyContent,
@@ -6,7 +5,8 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
+} from "@caseai-connect/app-ui/components/empty"
+import type { ReactNode } from "react"
 
 export type StatusPageProps = {
   icon: ReactNode

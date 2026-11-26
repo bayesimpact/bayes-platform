@@ -1,8 +1,8 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { DownloadIcon } from "lucide-react"
 import { CopyButton } from "@/components/shared/CopyButton"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { downloadText } from "../download"
 
 export type ResultFileActionsProps = {

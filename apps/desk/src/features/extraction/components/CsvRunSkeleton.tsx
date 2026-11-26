@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 import { CsvRecordsSkeleton } from "./CsvRecordsSkeleton"
 
 /** A CSV run's page while it loads: its heading, its progress, then its table of rows. */

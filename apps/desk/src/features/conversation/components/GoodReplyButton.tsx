@@ -1,10 +1,10 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { ThumbsUpIcon } from "lucide-react"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSendFeedback } from "../api/mutations"
 
 export type GoodReplyButtonProps = {

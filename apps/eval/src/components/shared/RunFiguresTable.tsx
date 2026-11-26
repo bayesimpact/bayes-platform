@@ -1,6 +1,3 @@
-import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
-import { Trans } from "@lingui/react/macro"
-import type { ReactNode } from "react"
 import {
   Table,
   TableBody,
@@ -8,7 +5,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@caseai-connect/app-ui/components/table"
+import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
+import { Trans } from "@lingui/react/macro"
+import type { ReactNode } from "react"
 import { ComparedRunHead } from "./ComparedRunHead"
 
 /** A figure of the comparison: its name, and its value for a run. */

@@ -1,3 +1,4 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type {
   AgentParamsDto,
   AgentTypeDto,
@@ -5,7 +6,6 @@ import type {
 } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { type ReactNode, useState } from "react"
-import { Button } from "@/components/ui/button"
 import { AGENT_TYPE_LABELS } from "@/lib/agent-type-labels"
 import { studioAgentPathOf } from "@/lib/studio-path"
 import { AgentTypeIcon } from "./AgentTypeIcon"

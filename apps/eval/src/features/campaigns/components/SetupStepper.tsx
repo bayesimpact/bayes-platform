@@ -1,9 +1,9 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
 import { useMediaQuery } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { CheckIcon } from "lucide-react"
 import type { ComponentProps } from "react"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { SETUP_STEPS, type SetupStep } from "../schemas"
 import { SETUP_STEP_LABELS } from "../setup-steps"
 

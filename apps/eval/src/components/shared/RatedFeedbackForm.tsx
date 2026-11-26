@@ -1,3 +1,6 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
+import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
+import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import type {
   RatedFeedbackInputDto,
   ReviewCampaignQuestionDto,
@@ -6,9 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans } from "@lingui/react/macro"
 import { type ReactNode, useId } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Textarea } from "@/components/ui/textarea"
 import {
   type RatedFeedback,
   ratedFeedbackFormSchema,

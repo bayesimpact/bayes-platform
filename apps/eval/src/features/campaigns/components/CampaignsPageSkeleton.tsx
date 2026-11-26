@@ -1,5 +1,5 @@
+import { Skeleton } from "@caseai-connect/app-ui/components/skeleton"
 import { PageContainer } from "@/components/shared/PageContainer"
-import { Skeleton } from "@/components/ui/skeleton"
 
 /** The shape of a campaign page while it loads: its title, then its content. */
 export function CampaignsPageSkeleton() {

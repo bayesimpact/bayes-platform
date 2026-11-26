@@ -1,9 +1,9 @@
+import { Button, buttonVariants } from "@caseai-connect/app-ui/components/button"
 import type { AgentParamsDto } from "@caseai-connect/eval-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 import { GitCompareArrowsIcon } from "lucide-react"
-import { Button, buttonVariants } from "@/components/ui/button"
 
 export type CompareRunsButtonProps = {
   agentParams: AgentParamsDto

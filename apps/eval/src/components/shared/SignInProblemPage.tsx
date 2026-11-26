@@ -1,8 +1,8 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { LogOutIcon, RotateCcwIcon, ShieldAlertIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { type SignInProblem, signOut } from "@/lib/auth/session"
 import { StatusPage } from "./StatusPage"
 

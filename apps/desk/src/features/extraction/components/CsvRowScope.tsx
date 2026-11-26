@@ -1,8 +1,8 @@
+import { Input } from "@caseai-connect/app-ui/components/input"
+import { Label } from "@caseai-connect/app-ui/components/label"
+import { RadioGroup, RadioGroupItem } from "@caseai-connect/app-ui/components/radio-group"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { RowScope } from "../csv-setup"
 
 /** The rows a try reads by default: enough to judge, few enough to wait little. */

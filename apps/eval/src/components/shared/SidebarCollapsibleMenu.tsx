@@ -1,7 +1,15 @@
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@caseai-connect/app-ui/components/collapsible"
+import {
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+} from "@caseai-connect/app-ui/components/sidebar"
 import { ChevronDownIcon, type LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { SidebarMenuButton, SidebarMenuItem, SidebarMenuSub } from "@/components/ui/sidebar"
 
 export type SidebarCollapsibleMenuProps = {
   label: ReactNode

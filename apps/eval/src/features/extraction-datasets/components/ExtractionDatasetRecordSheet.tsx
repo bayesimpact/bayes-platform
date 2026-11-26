@@ -1,16 +1,16 @@
-import type {
-  ExtractionDatasetColumnDto,
-  ExtractionDatasetRecordOutputDto,
-} from "@caseai-connect/eval-contracts"
-import { Trans } from "@lingui/react/macro"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@caseai-connect/app-ui/components/badge"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
+} from "@caseai-connect/app-ui/components/sheet"
+import type {
+  ExtractionDatasetColumnDto,
+  ExtractionDatasetRecordOutputDto,
+} from "@caseai-connect/eval-contracts"
+import { Trans } from "@lingui/react/macro"
 import { cellTextOf } from "@/lib/extraction-columns"
 
 export type ExtractionDatasetRecordSheetProps = {

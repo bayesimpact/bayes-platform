@@ -1,6 +1,6 @@
+import { Button } from "@caseai-connect/app-ui/components/button"
 import { Trans } from "@lingui/react/macro"
 import type { ReactNode } from "react"
-import { Button } from "@/components/ui/button"
 
 export type TableLoadErrorProps = {
   /** What could not load. */

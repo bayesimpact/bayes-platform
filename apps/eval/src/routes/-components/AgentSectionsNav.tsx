@@ -1,4 +1,9 @@
 import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@caseai-connect/app-ui/components/sidebar"
+import {
   type AgentParamsDto,
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
@@ -7,7 +12,6 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { FlaskConicalIcon, LayoutGridIcon } from "lucide-react"
 import { SidebarCollapsibleMenu } from "@/components/shared/SidebarCollapsibleMenu"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { type EvaluationAgent, hasProjectPermission } from "@/features/agents"
 import { ConversationDatasetsSidebarEntries } from "@/features/conversation-datasets"
 import { ExtractionDatasetsSidebarEntries } from "@/features/extraction-datasets"

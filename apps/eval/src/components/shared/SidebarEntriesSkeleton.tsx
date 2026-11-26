@@ -1,4 +1,8 @@
-import { SidebarGroup, SidebarMenu, SidebarMenuSkeleton } from "@/components/ui/sidebar"
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuSkeleton,
+} from "@caseai-connect/app-ui/components/sidebar"
 
 const PLACEHOLDER_ENTRIES = ["first", "second", "third", "fourth", "fifth"]
 
