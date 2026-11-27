@@ -1,13 +1,11 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
-import type { ChatSource } from "@caseai-connect/chat"
+import { type ChatSource, useChat, useOpenDocument } from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
 import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { DownloadIcon, FileTextIcon, GlobeIcon } from "lucide-react"
 import { toast } from "sonner"
-import { useOpenDocument } from "../api/mutations"
-import { documentIsPublicQueryOptions } from "../api/queries"
 
 export type SourceItemProps = {
   conversation: ConversationParamsDto
@@ -20,11 +18,12 @@ export type SourceItemProps = {
  */
 export function SourceItem({ conversation, source }: SourceItemProps) {
   const { t } = useLingui()
+  const chat = useChat()
   const isWebPage = source.documentSourceType === "webCrawl"
   // useQuery: optional data, read only while the sources are open, which hides the button
   // until it knows whether the person may open the document.
   const publicStatus = useQuery({
-    ...documentIsPublicQueryOptions({ ...conversation, documentId: source.documentId }),
+    ...chat.documentIsPublicQueryOptions({ ...conversation, documentId: source.documentId }),
     enabled: !isWebPage,
   })
   const canOpen = publicStatus.data === true

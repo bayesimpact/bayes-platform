@@ -1,3 +1,4 @@
+import { ChatProvider } from "@caseai-connect/chat"
 import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
@@ -7,6 +8,7 @@ import {
   EvaluationAccessGate,
   loadEvaluationWorkspace,
 } from "@/features/agents"
+import { chat } from "@/features/conversation"
 import {
   claimAutomaticSignIn,
   hasSession,
@@ -43,7 +45,9 @@ function AuthenticatedLayout() {
   return (
     <EvaluationAccessGate>
       <AgentCommandCenterProvider>
-        <Outlet />
+        <ChatProvider chat={chat}>
+          <Outlet />
+        </ChatProvider>
       </AgentCommandCenterProvider>
     </EvaluationAccessGate>
   )

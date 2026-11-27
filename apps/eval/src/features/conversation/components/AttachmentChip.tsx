@@ -1,11 +1,11 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
 import type { ChatAttachment } from "@caseai-connect/chat"
+import { useOpenAttachment } from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
 import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { ExternalLinkIcon, FileIcon } from "lucide-react"
 import { toast } from "sonner"
-import { useOpenAttachment } from "../api/mutations"
 
 export type AttachmentChipProps = {
   conversation: ConversationParamsDto
