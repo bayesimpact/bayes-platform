@@ -58,8 +58,7 @@ describe("AgentsService", () => {
           name: "My Template",
           instructions: "This is a default prompt",
           documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
+          model: AgentModel.Gemini35Flash,
           deletedTemperature: 0,
         },
         userId: user.id,
@@ -113,8 +112,7 @@ describe("AgentsService", () => {
           name: "New Agent",
           instructions: "Prompt",
           documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
+          model: AgentModel.Gemini35Flash,
           deletedTemperature: 0,
         },
         userId: user.id,
@@ -155,8 +153,7 @@ describe("AgentsService", () => {
             name: "AB",
             instructions: "Prompt",
             documentsRagMode: DocumentsRagMode.All,
-            providerOptions: {},
-            model: AgentModel.Gemini25Flash,
+            model: AgentModel.Gemini35Flash,
             deletedTemperature: 0,
           },
           userId: user.id,
@@ -182,8 +179,7 @@ describe("AgentsService", () => {
           name: "Conversation Agent",
           instructions: "This is a default prompt",
           documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
+          model: AgentModel.Gemini35Flash,
           deletedTemperature: 0,
         },
         userId: user.id,
@@ -203,8 +199,7 @@ describe("AgentsService", () => {
           instructions: "Prompt",
           greetingMessage: "Hi! How can I help you today?",
           documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
+          model: AgentModel.Gemini35Flash,
           deletedTemperature: 0,
         },
         userId: user.id,
@@ -223,8 +218,7 @@ describe("AgentsService", () => {
           name: "Silent Agent",
           instructions: "Prompt",
           documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
+          model: AgentModel.Gemini35Flash,
           deletedTemperature: 0,
         },
         userId: user.id,
@@ -245,8 +239,7 @@ describe("AgentsService", () => {
           instructions: "Prompt",
           greetingMessage: "   ",
           documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
+          model: AgentModel.Gemini35Flash,
           deletedTemperature: 0,
         },
         userId: user.id,
@@ -255,31 +248,28 @@ describe("AgentsService", () => {
       expect(agentSettings?.greetingMessage).toBeNull()
     })
 
-    it("should require extraction fields when type is extraction", async () => {
+    it("gives an extraction agent created without a schema the example schema", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
-      const createExtractionWithoutSchema = async () =>
-        service.createAgent({
-          connectScope: {
-            organizationId: organization.id,
-            projectId: project.id,
-          },
-          fields: {
-            name: "Extraction Agent",
-            instructions: "This is a default prompt",
-            documentsRagMode: DocumentsRagMode.All,
-            providerOptions: {},
-            model: AgentModel.Gemini25Flash,
-            deletedTemperature: 0,
-            type: "extraction",
-          },
-          userId: user.id,
-        })
+      const { agentSettings } = await service.createAgent({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        fields: {
+          name: "Extraction Agent",
+          instructions: "This is a default prompt",
+          documentsRagMode: DocumentsRagMode.All,
+          model: AgentModel.Gemini35Flash,
+          deletedTemperature: 0,
+          type: "extraction",
+        },
+        userId: user.id,
+      })
 
-      await expect(createExtractionWithoutSchema()).rejects.toThrow(UnprocessableEntityException)
-      await expect(createExtractionWithoutSchema()).rejects.toThrow(
-        "Extraction agent requires outputJsonSchema",
-      )
+      expect(agentSettings.isDraft).toBe(true)
+      expect(agentSettings.instructions).toBe("This is a default prompt")
+      expect(agentSettings.outputJsonSchema).toMatchObject({ type: "object" })
     })
   })
 

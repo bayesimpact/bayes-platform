@@ -82,6 +82,9 @@ function registerListeners() {
       const agentId = action.payload.id
       await listenerApi.dispatch(listAgents({ includeDrafts: true }))
       await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
+      // The new agent is a draft: its owner membership must reach the abilities before its
+      // editor opens, as for a copy.
+      await listenerApi.dispatch(fetchMe())
 
       listenerApi.dispatch(
         notificationsActions.show({
@@ -90,10 +93,7 @@ function registerListeners() {
         }),
       )
 
-      const onSuccess = action.meta.arg.onSuccess
-      onSuccess?.(action.payload)
-
-      listenerApi.dispatch(fetchMe()) // To update agent membership and then abilities
+      action.meta.arg.onSuccess?.(action.payload)
     },
   })
   listenerMiddleware.startListening({

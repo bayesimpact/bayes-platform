@@ -26,14 +26,12 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { z } from "zod"
 import { GridCard } from "@/common/components/grid/Grid"
-import { selectAvailableModelsCatalog } from "@/common/features/agents/agents.selectors"
 import type { Project } from "@/common/features/projects/projects.models"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { defaultModelOptions } from "@/studio/features/agents/agent-settings/components/tabs/model-tab.helpers"
+import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import {
   type AgentCreationChoice,
-  getDefaultFormValues,
+  getCreationFields,
 } from "../agent-settings/components/agent-form.shared"
 import { createAgent } from "../agents.thunks"
 
@@ -97,19 +95,11 @@ function AgentCreatorDialog({
     onOpenChange(nextOpen)
   }
 
-  // The catalog gives the model a new agent starts on; creating waits for it.
-  const catalog = useAppSelector(selectAvailableModelsCatalog)
-
   // The submit stays pending until the agent opens or the creation fails. Enter then a click
   // on the button would otherwise create the agent twice.
   const handleFormSubmit = async (values: FormValues) => {
-    if (!catalog) return
     const fields: CreateAgentDto = {
-      ...getDefaultFormValues({
-        creationChoice: selectedChoice,
-        defaultModel: catalog.defaults.agent,
-        defaultModelOptions: defaultModelOptions(catalog, catalog.defaults.agent),
-      }),
+      ...getCreationFields(selectedChoice),
       name: values.name,
       projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
     }
@@ -180,11 +170,7 @@ function AgentCreatorDialog({
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={form.formState.isSubmitting || catalog === null}
-            >
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {t("actions:create")}
             </Button>
           </form>

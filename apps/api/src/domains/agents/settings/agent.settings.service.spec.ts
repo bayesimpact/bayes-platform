@@ -435,7 +435,13 @@ describe("AgentSettings", () => {
   })
 
   describe("Settings revisions", () => {
-    it("createAgent should also create published settings with revision = 1", async () => {
+    // A new agent runs on an available model, and the service gives it that model's options.
+    const { providerOptions: _options, ...newAgentValues } = {
+      ...agentSettingsValuesRev1,
+      model: AgentModel.Gemini35Flash,
+    }
+
+    it("createAgent should also create draft settings with revision = 1", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
       const { agent, agentSettings } = await agentService.createAgent({
         connectScope: {
@@ -443,15 +449,14 @@ describe("AgentSettings", () => {
           projectId: project.id,
         },
         fields: {
-          ...agentSettingsValuesRev1,
-          instructions: agentSettingsValuesRev1.instructions,
+          ...newAgentValues,
           type: "conversation",
           name: "My Template",
         },
         userId: user.id,
       })
 
-      assertOnSettings(agentSettingsValuesRev1, agentSettings)
+      assertOnSettings(newAgentValues, agentSettings)
 
       const savedSettings = await service.getLatest({
         connectScope: {
@@ -460,9 +465,10 @@ describe("AgentSettings", () => {
         },
         agentId: agent.id,
       })
-      assertOnSettings(agentSettingsValuesRev1, savedSettings)
-      // Creating an agent publishes its first revision right away.
-      expect(savedSettings?.isDraft).toBeFalsy()
+      assertOnSettings(newAgentValues, savedSettings)
+      // A new agent's first revision is a draft, as a copy's is: nothing runs it yet.
+      expect(savedSettings?.isDraft).toBe(true)
+      expect(savedSettings?.isProduction).toBe(false)
       expect(savedSettings?.revision).toBe(1)
     })
 
@@ -474,15 +480,14 @@ describe("AgentSettings", () => {
           projectId: project.id,
         },
         fields: {
-          ...agentSettingsValuesRev1,
-          instructions: agentSettingsValuesRev1.instructions,
+          ...newAgentValues,
           type: "conversation",
           name: "My Template",
         },
         userId: user.id,
       })
 
-      assertOnSettings(agentSettingsValuesRev1, agentSettings)
+      assertOnSettings(newAgentValues, agentSettings)
 
       const savedSettings = await service.getLatest({
         connectScope: {
@@ -491,7 +496,7 @@ describe("AgentSettings", () => {
         },
         agentId: agent.id,
       })
-      assertOnSettings(agentSettingsValuesRev1, savedSettings)
+      assertOnSettings(newAgentValues, savedSettings)
       expect(savedSettings?.revision).toBe(1)
     })
     it("updateAllSettings should create draft settings with revision = last revision +1 - no existing draft", async () => {

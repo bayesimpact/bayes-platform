@@ -5,8 +5,6 @@ import type { AgentPermission } from "../rbac/permissions"
 import {
   agentSettingsValidationSchema,
   hasRequiredDocumentTags,
-  refineFillFormOutputJsonSchema,
-  refineOutputJsonSchema,
   refineResourceLibraries,
 } from "./settings/agent-settings.dto"
 
@@ -110,26 +108,29 @@ export const agentValidationSchema = z.object({
   type: agentTypeSchema,
 })
 
+/**
+ * A new agent needs a name and a type only. The API gives every setting left out the default of
+ * the agent's type: instructions, result schema (extraction, or fillForm on), model and its options.
+ */
 export const createAgentSchema = agentValidationSchema
   .pick({ type: true, name: true })
   .extend({
-    ...agentSettingsValidationSchema.pick({
-      documentsRagMode: true,
-      greetingMessage: true,
-      instructions: true,
-      model: true,
-      outputJsonSchema: true,
-      projectAgentSessionCategoryIds: true,
-      resourceLibraryIds: true,
-    }).shape,
-    fillFormEnabled: agentSettingsValidationSchema.shape.fillFormEnabled.optional(),
-    // The model's defaults when left out.
-    providerOptions: agentSettingsValidationSchema.shape.providerOptions.optional(),
-    tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
+    ...agentSettingsValidationSchema
+      .pick({
+        documentsRagMode: true,
+        greetingMessage: true,
+        instructions: true,
+        model: true,
+        outputJsonSchema: true,
+        projectAgentSessionCategoryIds: true,
+        resourceLibraryIds: true,
+        fillFormEnabled: true,
+        providerOptions: true,
+      })
+      .partial().shape,
+    tagsToAdd: updateDocumentTagsSchema.shape.tagsToAdd.optional(),
   })
-  .refine(refineOutputJsonSchema.fn, refineOutputJsonSchema.message)
   .refine(refineResourceLibraries.fn, refineResourceLibraries.message)
-  .refine(refineFillFormOutputJsonSchema.fn, refineFillFormOutputJsonSchema.message)
   .refine(hasRequiredDocumentTags, {
     message: "At least one document tag is required when documentsRagMode is 'tags'",
     path: ["tagsToAdd"],

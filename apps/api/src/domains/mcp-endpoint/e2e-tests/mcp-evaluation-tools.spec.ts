@@ -15,6 +15,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { configureGlobalPrefix } from "@/config/api-prefix"
+import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
 import { EvaluationConversationDatasetRecord } from "@/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity"
 import { createDatasetWithRecords } from "@/domains/evaluations/conversation/runs/e2e-tests/conversation-dataset.helpers"
@@ -128,7 +130,17 @@ describe("MCP endpoint - evaluation tools", () => {
     }
   }
 
-  /** An agent created and published through the tools, then changed into a draft (revision 2). */
+  /** A new agent is a draft: put its first version in production, as the studio's Publish does. */
+  const publishFirstVersion = async (agentId: string) => {
+    const agent = await setup.getRepository(Agent).findOneByOrFail({ id: agentId })
+    await setup.module.get(AgentSettingsService).publish({
+      connectScope: { organizationId: agent.organizationId, projectId: agent.projectId },
+      agentId,
+      revision: 1,
+    })
+  }
+
+  /** An agent created through the tools and published, then changed into a draft (revision 2). */
   const createAgentWithDraft = async (client: Client, projectId: string) => {
     const created = await call(client, "create_agent", {
       projectId,
@@ -137,6 +149,7 @@ describe("MCP endpoint - evaluation tools", () => {
       model: AgentModel.Gemini35FlashLite,
     })
     const agentId: string = created.output.agent.id
+    await publishFirstVersion(agentId)
     await call(client, "update_agent", {
       agentId,
       instructions: "Answer questions about the product, in two sentences at most.",
@@ -518,6 +531,7 @@ describe("MCP endpoint - evaluation tools", () => {
         name: "Helpful Assistant",
         instructions: "Answer questions about the product.",
       })
+      await publishFirstVersion(created.output.agent.id)
       const datasetId = await createDataset(client, project.id)
 
       const { isError, text } = await call(client, "run_evaluation", {

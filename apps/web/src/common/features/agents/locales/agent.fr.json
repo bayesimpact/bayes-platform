@@ -98,7 +98,7 @@
       "updateError": "La mise à jour de l'agent a échoué",
       "deleted": "Agent supprimé avec succès",
       "deleteError": "La suppression de l'agent a échoué",
-      "created": "Agent créé avec succès",
+      "created": "Agent créé en brouillon",
       "createError": "La création de l'agent a échoué",
       "duplicated": "Agent dupliqué en brouillon",
       "duplicateError": "La duplication de l'agent a échoué"

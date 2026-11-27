@@ -27,6 +27,7 @@ import { DocumentTag } from "../../documents/tags/document-tag.entity"
 import { documentTagFactory } from "../../documents/tags/document-tag.factory"
 import { Agent } from "../agent.entity"
 import { AgentsModule } from "../agents.module"
+import { AGENT_DEFAULT_MODELS } from "../settings/agent-models.service"
 
 describe("Agents - createOne", () => {
   let app: INestApplication<App>
@@ -211,8 +212,8 @@ describe("Agents - createOne", () => {
     expect(response.body.data.type).toBe("conversation")
     expect(response.body.data.projectId).toBe(projectId)
     expect(response.body.data.id).toBeDefined()
-    expect(response.body.data.currentRevision.number).toBe(1)
-    expect(response.body.data.currentRevision.updatedAt).toBeDefined()
+    expect(response.body.data.currentRevision).toBeUndefined()
+    expect(response.body.data.draftRevision?.number).toBe(1)
 
     const agentRepository = setup.getRepository(Agent)
     const agent = await agentRepository.findOne({
@@ -231,38 +232,82 @@ describe("Agents - createOne", () => {
     await expectActivityCreated("agent.create")
   })
 
-  it("should publish the first revision so the new agent is immediately usable", async () => {
+  it("creates the agent as a draft that nothing runs until a version is published", async () => {
     await createContext()
 
-    const response = await subject({
-      payload: {
-        type: "conversation",
-        name: "Fresh Agent",
-        instructions: "This is a default prompt",
-        documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini31FlashLite,
-        tagsToAdd: [],
-        projectAgentSessionCategoryIds: [],
-      },
-    })
+    const response = await subject({ payload: { type: "conversation", name: "Fresh Agent" } })
     expectResponse(response, 201)
 
     const agentSettings = await setup.getRepository(AgentSettings).findOne({
       where: { agentId: response.body.data.id, revision: 1 },
     })
-    expect(agentSettings?.isDraft).toBe(false)
+    expect(agentSettings?.isDraft).toBe(true)
 
-    // Every runtime path resolves the last published revision, so listing the
-    // project agents must not 404 right after creation.
-    const listResponse = await request({
+    // The studio lists the draft, as it lists a fresh copy.
+    const listWithDraftsResponse = await request({
       route: AgentsRoutes.getAllWithDrafts,
       pathParams: removeNullish({ organizationId, projectId }),
       token: accessToken,
     })
+    expectResponse(listWithDraftsResponse, 200)
+    expect(listWithDraftsResponse.body.data).toHaveLength(1)
+    expect(listWithDraftsResponse.body.data[0]?.currentRevision).toBeUndefined()
+    expect(listWithDraftsResponse.body.data[0]?.draftRevision?.number).toBe(1)
+
+    // The agents a conversation can reach are the published ones.
+    const listResponse = await request({
+      route: AgentsRoutes.getAll,
+      pathParams: removeNullish({ organizationId, projectId }),
+      token: accessToken,
+    })
     expectResponse(listResponse, 200)
-    expect(listResponse.body.data).toHaveLength(1)
-    expect(listResponse.body.data[0]?.currentRevision?.number).toBe(1)
-    expect(listResponse.body.data[0]?.draftRevision).toBeUndefined()
+    expect(listResponse.body.data).toHaveLength(0)
+  })
+
+  it("gives a conversation agent created from its name and type the defaults", async () => {
+    await createContext()
+
+    const response = await subject({ payload: { type: "conversation", name: "Default Agent" } })
+    expectResponse(response, 201)
+
+    const agentSettings = await setup
+      .getRepository(AgentSettings)
+      .findOneByOrFail({ agentId: response.body.data.id, revision: 1 })
+    expect(agentSettings.instructions).toContain("## Purpose")
+    expect(agentSettings.instructions).toContain(
+      "Always answer in the language of the user's last message.",
+    )
+    expect(agentSettings.model).toBe(AGENT_DEFAULT_MODELS.agent)
+    expect(agentSettings.documentsRagMode).toBe(DocumentsRagMode.All)
+    expect(agentSettings.outputJsonSchema).toBeNull()
+    expect(agentSettings.fillFormEnabled).toBe(false)
+  })
+
+  it("gives an extraction agent created from its name and type an example schema", async () => {
+    await createContext()
+
+    const response = await subject({ payload: { type: "extraction", name: "Extraction Agent" } })
+    expectResponse(response, 201)
+
+    const agentSettings = await setup
+      .getRepository(AgentSettings)
+      .findOneByOrFail({ agentId: response.body.data.id, revision: 1 })
+    expect(agentSettings.instructions).toContain("Extract structured information")
+    expect(agentSettings.outputJsonSchema).toMatchObject({ type: "object" })
+  })
+
+  it("keeps the instructions the caller sends", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: { type: "conversation", name: "Custom Agent", instructions: "Answer briefly." },
+    })
+    expectResponse(response, 201)
+
+    const agentSettings = await setup
+      .getRepository(AgentSettings)
+      .findOneByOrFail({ agentId: response.body.data.id, revision: 1 })
+    expect(agentSettings.instructions).toBe("Answer briefly.")
   })
 
   it("should persist greetingMessage when provided", async () => {
@@ -344,27 +389,24 @@ describe("Agents - createOne", () => {
     })
   })
 
-  it("should reject enabling the fillForm tool without an outputJsonSchema", async () => {
+  it("gives a form agent created without a schema the default form and its instructions", async () => {
     await createContext()
 
     const response = await subject({
-      payload: {
-        type: "conversation",
-        name: "Form Filling Agent",
-        instructions: "This is a default prompt",
-        documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini31FlashLite,
-        fillFormEnabled: true,
-        tagsToAdd: [],
-        projectAgentSessionCategoryIds: [],
-      },
+      payload: { type: "conversation", name: "Form Filling Agent", fillFormEnabled: true },
     })
 
-    // Rejected by the zod pipe (`outputJsonSchema is required when the fillForm tool is enabled`).
-    expectResponse(response, 400)
+    expectResponse(response, 201)
 
-    const agentRepository = setup.getRepository(Agent)
-    expect(await agentRepository.count()).toBe(0)
+    const agentSettings = await setup
+      .getRepository(AgentSettings)
+      .findOneByOrFail({ agentId: response.body.data.id, revision: 1 })
+    expect(agentSettings.fillFormEnabled).toBe(true)
+    expect(agentSettings.instructions).toContain("fill out the form")
+    expect(agentSettings.outputJsonSchema).toMatchObject({
+      type: "object",
+      required: ["country", "language"],
+    })
   })
 
   it("should create a tagged agent when documentsRagMode is tags", async () => {

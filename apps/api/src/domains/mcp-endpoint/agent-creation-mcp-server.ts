@@ -15,12 +15,12 @@ import type { McpAgentToolsService, McpCaller, McpResult } from "./mcp-agent-too
 import type { McpEvaluationToolsService } from "./mcp-evaluation-tools.service"
 
 export const MCP_SERVER_NAME = "agents"
-export const MCP_SERVER_VERSION = "1.3.0"
+export const MCP_SERVER_VERSION = "1.4.0"
 
 const MCP_SERVER_INSTRUCTIONS = [
   "Creates, updates, duplicates and evaluates agents on the platform for the signed-in user.",
   "Call list_projects first: an agent always belongs to a project. It lists the projects the user granted to this client, and only the ones with canCreateAgents set to true accept new agents.",
-  "Then call create_agent with that project's id. It returns the agent's id and, when the platform knows its public URL, a link to the agent in the studio.",
+  "Then call create_agent with that project's id. It returns the agent's id and, when the platform knows its public URL, a link to the agent in the studio. The new agent's settings are a draft (published is false): change it with update_agent, and the user puts a version in production in the studio.",
   "To change an existing agent, call list_agents with the project's id, then update_agent with the agent's id: only the agents with canUpdate set to true can be changed. update_agent edits the draft, and save_agent_version saves the draft as a version. Neither puts a version in production: the user does that in the studio.",
   "To start a variant of an existing agent, call duplicate_agent with the agent's id from list_agents and a new name: only the agents with canDuplicate set to true can be copied. The copy is a new agent of the same project whose settings are a draft (published is false): nothing uses it until the user puts a version in production in the studio.",
   "Call get_agent before changing an agent: it returns the instructions of its published version and of its draft, and its versions.",
@@ -49,7 +49,10 @@ const createAgentInputSchema = z.object({
   instructions: z
     .string()
     .min(1)
-    .describe("System prompt: what the agent does, its tone and the rules it follows."),
+    .optional()
+    .describe(
+      "System prompt: what the agent does, its tone and the rules it follows. Left out, the agent starts from the platform's default instructions for its type.",
+    ),
   model: z
     .enum(AgentModel)
     .default(AGENT_DEFAULT_MODELS.agent)
@@ -61,7 +64,9 @@ const createAgentInputSchema = z.object({
     .describe("First message shown to users of a conversation agent."),
   outputJsonSchema: outputJsonSchemaSchema
     .optional()
-    .describe("JSON Schema of the result. Required for an extraction agent."),
+    .describe(
+      "JSON Schema of the result of an extraction agent. Left out, the agent starts from an example schema to replace.",
+    ),
 })
 
 const createdAgentSchema = z.looseObject({
@@ -70,6 +75,7 @@ const createdAgentSchema = z.looseObject({
   type: agentTypeSchema,
   projectId: z.string(),
   organizationId: z.string(),
+  published: z.boolean(),
   studioUrl: z.string().nullable(),
 })
 
@@ -271,7 +277,7 @@ export function buildAgentCreationMcpServer({
     {
       title: "Create agent",
       description:
-        "Creates an agent in a project and publishes its first version. Documents, tags and other settings are edited afterwards in the studio.",
+        "Creates an agent in a project. Its settings are a draft (published is false): nothing uses it until the user puts a version in production in the studio. Settings left out take the platform's defaults. Documents, tags and other settings are edited afterwards in the studio.",
       inputSchema: createAgentInputSchema,
       outputSchema: z.looseObject({ agent: createdAgentSchema }),
       annotations: {

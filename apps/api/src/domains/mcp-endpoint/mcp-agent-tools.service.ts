@@ -2,7 +2,6 @@ import {
   type AgentType,
   type CreateAgentDto,
   createAgentSchema,
-  DocumentsRagMode,
   type PartialUpdateAgentSettingsDto,
   partialUpdateAgentSettingsSchema,
 } from "@caseai-connect/api-contracts"
@@ -51,6 +50,8 @@ export type McpCreatedAgent = {
   type: AgentType
   projectId: string
   organizationId: string
+  /** Always false: a new agent's settings are a draft until the user publishes a version. */
+  published: false
   studioUrl: string | null
 }
 
@@ -197,14 +198,8 @@ export class McpAgentToolsService {
       return { ok: false, error: PROJECT_NOT_FOUND_ERROR }
     }
 
-    // The defaults the web app's agent creator starts from.
-    const parsed = createAgentSchema.safeParse({
-      ...agentFields,
-      documentsRagMode: DocumentsRagMode.All,
-      tagsToAdd: [],
-      projectAgentSessionCategoryIds: [],
-      resourceLibraryIds: [],
-    })
+    // The API gives every setting left out the default of the agent's type, as for the studio.
+    const parsed = createAgentSchema.safeParse(agentFields)
     if (!parsed.success) {
       return {
         ok: false,
@@ -218,14 +213,7 @@ export class McpAgentToolsService {
     try {
       const { agent } = await this.agentsService.createAgent({
         connectScope,
-        fields: {
-          ...parsed.data,
-          providerOptions: await this.agentSettingsService.resolveNewAgentModelOptions({
-            connectScope,
-            model: parsed.data.model,
-            providerOptions: parsed.data.providerOptions,
-          }),
-        },
+        fields: parsed.data,
         userId,
       })
       await this.activitiesService.createActivity({
@@ -244,6 +232,7 @@ export class McpAgentToolsService {
           type: agent.type,
           projectId,
           organizationId: connectScope.organizationId,
+          published: false,
           studioUrl: buildStudioAgentUrl({ ...connectScope, agentId: agent.id }),
         },
       }

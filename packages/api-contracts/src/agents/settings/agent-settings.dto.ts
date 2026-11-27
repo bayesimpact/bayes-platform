@@ -6,7 +6,7 @@ import {
 } from "../../document-tags/document-tag.dto"
 import type { TimeType } from "../../generic"
 import { EmbeddingModel } from "../../project-embedding-models/project-embedding-models.dto"
-import type { AgentDto, AgentType } from "../agents.dto"
+import type { AgentType } from "../agents.dto"
 
 export enum AgentModel {
   Gemini25Flash = "gemini-2.5-flash",
@@ -377,15 +377,6 @@ export const agentSettingsValidationSchema = z.object({
   variables: z.record(z.string(), z.string()).nullable().optional(),
 })
 
-export const refineOutputJsonSchema = {
-  fn: (data: { type: AgentDto["type"]; outputJsonSchema?: AgentSettingsDto["outputJsonSchema"] }) =>
-    data.type === "conversation" || data.outputJsonSchema !== undefined,
-  message: {
-    message: "outputJsonSchema is required when type is not 'conversation'",
-    path: ["outputJsonSchema"],
-  },
-}
-
 export const refineResourceLibraries = {
   fn: (data: { type?: AgentType; resourceLibraryIds?: string[] }) =>
     (data.resourceLibraryIds?.length ?? 0) === 0 || data.type === "conversation",
@@ -406,7 +397,7 @@ export const refineFillFormOutputJsonSchema = {
 
 export const hasRequiredDocumentTags = (data: {
   documentTagIds?: string[]
-  documentsRagMode: DocumentsRagMode
+  documentsRagMode?: DocumentsRagMode
   tagsToAdd?: string[]
 }) =>
   data.documentsRagMode !== DocumentsRagMode.Tags ||

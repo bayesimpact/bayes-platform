@@ -1,3 +1,4 @@
+import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -13,10 +14,12 @@ import { PermissionService } from "../rbac/permission.service"
 import { Agent } from "./agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentRepository } from "./agent.repository"
+import { newAgentDefaults } from "./agent-defaults"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
+import { AGENT_DEFAULT_MODELS } from "./settings/agent-models.service"
 import type { AgentSettings } from "./settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "./settings/agent-settings.service"
@@ -47,23 +50,39 @@ export class AgentsService {
   }
 
   /**
-   * Creates a new agent for a project.
+   * Creates a new agent for a project. Its settings are a draft, as a copy's are: no live
+   * conversation runs it until someone publishes a version in the studio. A setting the caller
+   * leaves out takes the default of the agent's type (newAgentDefaults).
    */
   async createAgent({
     userId,
     connectScope,
-    fields,
+    fields: requestedFields,
   }: {
     userId: string
     connectScope: RequiredConnectScope
-    fields: Pick<RequiredConnectScope, never> &
-      Pick<Agent, "name" | "type"> &
-      AgentSettingsCreateFields &
+    fields: Pick<Agent, "name" | "type"> &
+      Partial<AgentSettingsCreateFields> &
       DocumentTagsUpdateFields &
       AgentProjectCategoriesUpdateFields &
       AgentResourceLibrariesUpdateFields
   }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
-    this.validateAgentName(fields.name)
+    this.validateAgentName(requestedFields.name)
+
+    const defaults = newAgentDefaults(requestedFields)
+    const model = requestedFields.model ?? AGENT_DEFAULT_MODELS.agent
+    const fields = {
+      ...requestedFields,
+      instructions: requestedFields.instructions ?? defaults.instructions,
+      outputJsonSchema: requestedFields.outputJsonSchema ?? defaults.outputJsonSchema,
+      documentsRagMode: requestedFields.documentsRagMode ?? DocumentsRagMode.All,
+      model,
+      providerOptions: await this.agentSettingsService.resolveNewAgentModelOptions({
+        connectScope,
+        model,
+        providerOptions: requestedFields.providerOptions,
+      }),
+    }
 
     const outputJsonSchema = fields.outputJsonSchema || null
     this.agentSettingsService.validateExtractionAgent({ type: fields.type, outputJsonSchema })
@@ -137,20 +156,7 @@ export class AgentsService {
       excludeUserId: userId,
     })
 
-    //first settings are automatically published
-    const publishedAgentSettings = await this.agentSettingsService.publish({
-      connectScope,
-      agentId: agent.id,
-      revision: agentSettings.revision,
-      revisionName: "",
-    })
-    if (!publishedAgentSettings) {
-      throw new UnprocessableEntityException(
-        `Unable to publish revision ${agentSettings.revision} for agent with id ${agent.id}`,
-      )
-    }
-
-    return { agent, agentSettings: publishedAgentSettings }
+    return { agent, agentSettings }
   }
 
   /**
