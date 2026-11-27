@@ -137,6 +137,9 @@ export function createApiClient(session: ApiClientSession) {
   return { apiRequest, apiStreamResponse }
 }
 
+/** The client `createApiClient` returns, for what takes an app's client as an option. */
+export type ApiClient = ReturnType<typeof createApiClient>
+
 /**
  * Sends a request built from the route's schemas, with the bearer token: a 401 refreshes the
  * token once, then starts a new sign-in, and an error answer throws an `ApiError`.

@@ -25,14 +25,25 @@
     "zod": "^4.4.3"
   },
   "peerDependencies": {
+    "@tanstack/react-query": "^5.104.5",
     "react": "^19.2.6"
   },
   "devDependencies": {
+    "@caseai-connect/api-client": "*",
+    "@caseai-connect/schema-route": "*",
     "@repo/typescript-config": "*",
+    "@tanstack/react-query": "^5.104.5",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^22.19.17",
     "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "babel-plugin-react-compiler": "^1.0.0",
     "happy-dom": "^21.0.4",
+    "msw": "^2.15.0",
     "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "vitest": "^4.1.2"
   }
 }

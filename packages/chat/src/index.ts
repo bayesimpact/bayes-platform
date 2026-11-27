@@ -15,6 +15,9 @@ export {
   readQuotableSelection,
   saveAnnotation,
 } from "./annotation"
+export { type Chat, type ChatApi, type ChatOptions, createChat } from "./api/create-chat"
+export { ChatProvider } from "./ChatProvider"
+export { useChat } from "./chat-context"
 export {
   applyReplyEvent,
   type ChatAttachment,
