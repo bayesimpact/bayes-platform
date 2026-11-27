@@ -11,10 +11,6 @@ msgstr ""
 msgid "“{removedPrompt}” leaves this list, with its settings."
 msgstr "\"{removedPrompt}\" esce da questo elenco, con le sue impostazioni."
 
-#: src/components/shared/ExternalLink.tsx
-msgid "(opens in a new tab)"
-msgstr "(si apre in una nuova scheda)"
-
 #: src/features/conversation-runs/components/RunEvaluationPanel.tsx
 msgid "{agentName} answers the records of {datasetName}, and a judge model grades each answer against the expected output."
 msgstr "{agentName} risponde ai record di {datasetName} e un modello giudice valuta ogni risposta rispetto alla risposta attesa."
@@ -691,10 +687,6 @@ msgstr "Chiudere \"{name}\"?"
 msgid "Close the campaign"
 msgstr "Chiudi la campagna"
 
-#: src/components/shared/SidePanel.tsx
-msgid "Close the panel"
-msgstr "Chiudi il pannello"
-
 #. A review campaign that is over
 #: src/lib/campaign-status.ts
 msgid "Closed"
@@ -787,8 +779,6 @@ msgid "Conversational agent"
 msgstr "Agente conversazionale"
 
 #. The copy button, once it copied its text
-#. The copy button, once it copied its text
-#: src/components/shared/CopyButton.tsx
 #: src/features/conversation/components/SelectionActions.tsx
 msgid "Copied"
 msgstr "Copiato"
@@ -1542,11 +1532,6 @@ msgstr "Giudice"
 msgid "Judge model"
 msgstr "Modello giudice"
 
-#. Something that happened less than a minute ago
-#: src/components/shared/RelativeTime.tsx
-msgid "just now"
-msgstr "proprio ora"
-
 #. Gives up cancelling a run under way
 #: src/components/shared/RunPageHeader.tsx
 msgid "Keep it running"
@@ -2288,10 +2273,6 @@ msgstr "Segnala un problema con questa risposta"
 #: src/features/campaigns/components/QuestionEditor.tsx
 msgid "Required"
 msgstr "Obbligatoria"
-
-#: src/components/shared/SidePanel.tsx
-msgid "Resize the panel"
-msgstr "Ridimensiona il pannello"
 
 #: src/components/shared/AppShell.tsx
 msgid "Resize the sidebar"

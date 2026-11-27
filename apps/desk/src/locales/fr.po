@@ -15,10 +15,6 @@ msgstr "« {name} » ne sera plus proposé pour une extraction. Ses extractions 
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "« {title} » et ses messages seront supprimés. Cette action est définitive."
 
-#: src/components/shared/ExternalLink.tsx
-msgid "(opens in a new tab)"
-msgstr "(s'ouvre dans un nouvel onglet)"
-
 #. A document the person may accept or not
 #: src/features/account/components/TermsCheckbox.tsx
 msgid "(optional)"
@@ -254,10 +250,6 @@ msgstr "Choisir un autre fichier"
 msgid "Choose at least one column for the agent to read."
 msgstr "Choisissez au moins une colonne que l’agent lira."
 
-#: src/components/shared/SidePanel.tsx
-msgid "Close the panel"
-msgstr "Fermer le panneau"
-
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Columns"
 msgstr "Colonnes"
@@ -279,8 +271,6 @@ msgid "Conversation agents"
 msgstr "Agents de conversation"
 
 #. The copy button, once it copied its text
-#. The copy button, once it copied its text
-#: src/components/shared/CopyButton.tsx
 #: src/features/conversation/components/SelectionActions.tsx
 msgid "Copied"
 msgstr "Copié"
@@ -595,11 +585,6 @@ msgstr "Carte interactive"
 msgid "Invitations"
 msgstr "Invitations"
 
-#. Something that happened less than a minute ago
-#: src/components/shared/RelativeTime.tsx
-msgid "just now"
-msgstr "à l'instant"
-
 #. The column shows beside the results, unread
 #: src/features/extraction/components/ColumnRoleRow.tsx
 msgid "Keep"
@@ -846,10 +831,6 @@ msgstr "Signaler un problème"
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
-
-#: src/components/shared/SidePanel.tsx
-msgid "Resize the panel"
-msgstr "Redimensionner le panneau"
 
 #: src/components/shared/DeskShell.tsx
 msgid "Resize the sidebar"

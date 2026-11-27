@@ -1,4 +1,5 @@
 import { Checkbox } from "@caseai-connect/app-ui/components/checkbox"
+import { ExternalLink } from "@caseai-connect/app-ui/compositions/ExternalLink"
 import { withTaskStates } from "@caseai-connect/frontend-lib"
 import { useLingui } from "@lingui/react/macro"
 import { type ComponentProps, createContext, use, useId } from "react"
@@ -8,7 +9,6 @@ import {
   Streamdown,
   useIsCodeFenceIncomplete,
 } from "streamdown"
-import { ExternalLink } from "./ExternalLink"
 import { HighlightedCodeBlock } from "./HighlightedCodeBlock"
 import { InlineCode } from "./InlineCode"
 

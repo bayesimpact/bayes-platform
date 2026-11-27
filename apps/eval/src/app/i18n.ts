@@ -1,3 +1,4 @@
+import { loadMessages } from "@caseai-connect/app-ui/locales"
 import { i18n } from "@lingui/core"
 
 export const LOCALES = ["en", "fr", "de", "it", "es", "pl"] as const
@@ -49,8 +50,12 @@ export function activeLocaleOf(locale: string): Locale {
 
 /** Loads a catalog and shows the app in its language. */
 export async function activateLocale(locale: Locale): Promise<void> {
-  const { messages } = await import(`../locales/${locale}.po`)
-  i18n.loadAndActivate({ locale, messages })
+  const [shared, { messages }] = await Promise.all([
+    loadMessages(locale),
+    import(`../locales/${locale}.po`),
+  ])
+  // The app's catalog last: it wins for a message both hold.
+  i18n.loadAndActivate({ locale, messages: { ...shared, ...messages } })
   document.documentElement.lang = locale
 }
 

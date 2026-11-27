@@ -1,5 +1,7 @@
 import { Bubble, BubbleContent } from "@caseai-connect/app-ui/components/bubble"
 import { Message, MessageContent } from "@caseai-connect/app-ui/components/message"
+import { CopyButton } from "@caseai-connect/app-ui/compositions/CopyButton"
+import { RelativeTime } from "@caseai-connect/app-ui/compositions/RelativeTime"
 import type {
   AppsHtml,
   ChatMessage,
@@ -9,8 +11,6 @@ import type {
 } from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
 import { useLingui } from "@lingui/react/macro"
-import { CopyButton } from "@/components/shared/CopyButton"
-import { RelativeTime } from "@/components/shared/RelativeTime"
 import { AssistantMessageView } from "./AssistantMessageView"
 import { AttachmentChip } from "./AttachmentChip"
 import { MessageActions } from "./MessageActions"

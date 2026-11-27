@@ -1,7 +1,7 @@
+import { ResizeHandle } from "@caseai-connect/app-ui/compositions/ResizeHandle"
 import { useResizableWidth } from "@caseai-connect/frontend-lib"
 import { fireEvent, render, screen } from "@testing-library/react"
-import { beforeEach, describe, expect, it } from "vitest"
-import { ResizeHandle } from "./ResizeHandle"
+import { describe, expect, it } from "vitest"
 
 function ResizableBox() {
   const resizable = useResizableWidth({
@@ -13,10 +13,6 @@ function ResizableBox() {
   })
   return <ResizeHandle edge="right" aria-label="Resize the box" {...resizable.handleProps} />
 }
-
-beforeEach(() => {
-  window.localStorage.clear()
-})
 
 describe("ResizeHandle", () => {
   it("widens its element by a drag, within its bounds, and keeps the width", () => {

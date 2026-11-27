@@ -10,11 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@caseai-connect/app-ui/components/dropdown-menu"
+import { ExternalLink } from "@caseai-connect/app-ui/compositions/ExternalLink"
 import type { MeUserOutputDto } from "@caseai-connect/eval-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ChevronDownIcon, CircleHelpIcon, HouseIcon, LogOutIcon } from "lucide-react"
 import { isLocale, type Locale, languageNameOf } from "@/app/i18n"
-import { ExternalLink } from "@/components/shared/ExternalLink"
 
 export type UserMenuProps = {
   user: MeUserOutputDto

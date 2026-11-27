@@ -1,5 +1,5 @@
+import { RelativeTime } from "@caseai-connect/app-ui/compositions/RelativeTime"
 import type { ReactNode } from "react"
-import { RelativeTime } from "@/components/shared/RelativeTime"
 import type { FileKind } from "../extraction-files"
 import { FileKindIcon } from "./FileKindIcon"
 

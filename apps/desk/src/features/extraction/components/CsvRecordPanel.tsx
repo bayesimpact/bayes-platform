@@ -1,6 +1,6 @@
+import { SidePanel } from "@caseai-connect/app-ui/compositions/SidePanel"
 import type { CsvColumnDto, CsvExtractionRecordOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { SidePanel } from "@/components/shared/SidePanel"
 import { fileValueOf } from "../csv-records"
 import { extractedFieldsOf } from "../extraction-fields"
 import { FieldValue } from "./FieldValue"

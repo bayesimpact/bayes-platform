@@ -84,7 +84,7 @@ Run them from the repository root.
 | `npm run check -w @caseai-connect/desk` | Typecheck, Biome, the component files check, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run test -w @caseai-connect/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
 | `npm run check:desk-parity -w @caseai-connect/eval` | Compares the Desk's chat with Evaluation's copy of it: run it after a change to the chat |
-| `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, without line numbers, to translate in the same change |
+| `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and to the catalog of each other language of `lingui.config.ts`, and the texts of the shared packages to their own catalogs (`packages/app-ui/src/locales/`), without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
 | `npm run preview -w @caseai-connect/desk` | Serves that build on port 5178 at `/app/` |
 
@@ -140,12 +140,18 @@ the conventions as they stand. When a rule changes, its reference file changes i
   highlights, which Evaluation's parity check compares with its copy. `npx shadcn add`, run in
   `apps/desk`, writes into the package. The sidebar takes each install's color from its
   `theme.css` (`docs/frontend/conventions.md`, UI and styling).
-- Shared compositions, in `src/components/shared/`: `SidePanel` for every panel docked beside a
-  page (it makes the page behind inert where it covers it, and folds the sidebar when it opens or
-  stretches so wide that the page, its previous sibling, keeps less than 480 px), `HeaderActions`
-  for the actions of the bar above it, `DataTable` for every table, `ExternalLink` for a link to a
-  new tab, `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
-  `NewReleaseBanner` for a new release. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,
+- `SidePanel` for every panel docked beside a page comes from `@caseai-connect/app-ui`
+  (`compositions/SidePanel`): it makes the page behind inert where it covers it, and folds the
+  sidebar when it opens or stretches so wide that the page, its previous sibling, keeps less than
+  480 px. `DeskShell` gives it the key of the width it saves, `desk.sidePanelWidth`.
+- `HeaderActions` for the actions of the bar above the page comes from `@caseai-connect/app-ui`
+  (`compositions/HeaderActions`): `DeskShell` gives it the element of the bar through
+  `HeaderActionsContext`.
+- Shared compositions, in `src/components/shared/`: `DataTable` for every table,
+  `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands,
+  `NewReleaseBanner` for a new release. The compositions that know no feature (`SidePanel`,
+  `ResizeHandle`, `HeaderActions`, `CopyButton`, `RelativeTime`, `ExternalLink`) come from
+  `@caseai-connect/app-ui/compositions/<Name>`. Shared hooks sit in `src/hooks/` (`useAbortOnUnmount`,
   `useIsNewReleaseOut`, `useReloadWhenSafe`), and shared logic in `src/lib/`: `not-found.ts`,
   `agent-params.ts`, `field-text.ts`, `run-state.ts`, `is-record.ts`, `app-update.ts`. The hooks
   and helpers the Desk shares with Evaluation come from `@caseai-connect/frontend-lib`

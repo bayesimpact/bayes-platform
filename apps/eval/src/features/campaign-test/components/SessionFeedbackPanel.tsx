@@ -1,9 +1,9 @@
+import { SidePanel } from "@caseai-connect/app-ui/compositions/SidePanel"
 import type {
   CampaignContextOutputDto,
   CampaignSessionParamsDto,
 } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
-import { SidePanel } from "@/components/shared/SidePanel"
 import { SessionFeedbackForm } from "./SessionFeedbackForm"
 
 export type SessionFeedbackPanelProps = {

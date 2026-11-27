@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@caseai-connect/app-ui/components/dropdown-menu"
+import { HeaderActions } from "@caseai-connect/app-ui/compositions/HeaderActions"
 import type {
   AgentParamsDto,
   CsvExtractionRunDetailOutputDto,
@@ -13,7 +14,6 @@ import { openBlankTab } from "@caseai-connect/frontend-lib"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { DownloadIcon, EllipsisIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
-import { HeaderActions } from "@/components/shared/HeaderActions"
 import {
   useCancelCsvExtraction,
   useOpenExtractionFile,

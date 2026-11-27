@@ -1,4 +1,5 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
+import { ExternalLink } from "@caseai-connect/app-ui/compositions/ExternalLink"
 import type {
   AgentParamsDto,
   AgentTypeDto,
@@ -10,7 +11,6 @@ import { AGENT_TYPE_LABELS } from "@/lib/agent-type-labels"
 import { studioAgentPathOf } from "@/lib/studio-path"
 import { AgentTypeIcon } from "./AgentTypeIcon"
 import { AgentVersionsSheet } from "./AgentVersionsSheet"
-import { ExternalLink } from "./ExternalLink"
 import { RunFact } from "./RunFact"
 
 export type RunAgentFactsProps = {

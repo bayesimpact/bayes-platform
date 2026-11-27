@@ -7,6 +7,7 @@ import {
 } from "@caseai-connect/app-ui/components/field"
 import { NativeSelect, NativeSelectOption } from "@caseai-connect/app-ui/components/native-select"
 import { Textarea } from "@caseai-connect/app-ui/components/textarea"
+import { SidePanel } from "@caseai-connect/app-ui/compositions/SidePanel"
 import {
   type AgentParamsDto,
   CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
@@ -22,7 +23,6 @@ import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { AgentVersionPicker } from "@/components/shared/AgentVersionPicker"
 import { RunScopeField } from "@/components/shared/RunScopeField"
-import { SidePanel } from "@/components/shared/SidePanel"
 import type { EvaluationAgent } from "@/features/agents"
 import { agentVersionsQueryOptions } from "@/features/agents"
 import { useStartConversationRun } from "../api/mutations"

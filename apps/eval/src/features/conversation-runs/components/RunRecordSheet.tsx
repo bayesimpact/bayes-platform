@@ -5,12 +5,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@caseai-connect/app-ui/components/sheet"
+import { ExternalLink } from "@caseai-connect/app-ui/compositions/ExternalLink"
 import type { ConversationRunRecordOutputDto } from "@caseai-connect/eval-contracts"
 import { toHttpsUrl } from "@caseai-connect/frontend-lib"
 import { Trans } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
-import { ExternalLink } from "@/components/shared/ExternalLink"
 import { Markdown } from "@/components/shared/Markdown"
 import { canReadTracesQueryOptions } from "@/features/account"
 import { FilledForm } from "./FilledForm"

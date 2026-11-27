@@ -1,0 +1,30 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-26 19:45+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+
+#: ../../packages/app-ui/src/compositions/ExternalLink.tsx
+msgid "(opens in a new tab)"
+msgstr "(s'ouvre dans un nouvel onglet)"
+
+#: ../../packages/app-ui/src/compositions/SidePanel.tsx
+msgid "Close the panel"
+msgstr "Fermer le panneau"
+
+#. The copy button, once it copied its text
+#: ../../packages/app-ui/src/compositions/CopyButton.tsx
+msgid "Copied"
+msgstr "Copié"
+
+#. Something that happened less than a minute ago
+#: ../../packages/app-ui/src/compositions/RelativeTime.tsx
+msgid "just now"
+msgstr "à l'instant"
+
+#: ../../packages/app-ui/src/compositions/SidePanel.tsx
+msgid "Resize the panel"
+msgstr "Redimensionner le panneau"
