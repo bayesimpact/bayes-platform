@@ -111,7 +111,7 @@ the conventions as they stand. When a rule changes, its reference file changes i
 | A mutation and its cache refresh | `src/features/account/api/mutations.ts` |
 | A form | `src/features/account/components/EditNameDialog.tsx` |
 | A table, its columns and its skeleton | `src/features/extraction/components/CsvRecordsTable.tsx`, `csv-record-columns.tsx`, `CsvRecordsSkeleton.tsx` |
-| A stream | `src/features/conversation/api/stream-reply.ts` |
+| A stream | `packages/chat/src/api/stream-reply.ts` |
 | A route's spec | `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId.spec.tsx` |
 | An MSW handler and its factory | `src/test/msw/extraction-handlers.ts`, `src/test/factories/extractions.factory.ts` |
 | A story | `src/stories/Extraction.stories.tsx` |
@@ -159,16 +159,22 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
-- The chat's logic and hooks come from `@caseai-connect/chat` (`packages/chat`). A message keeps
+- The chat's logic, hooks and calls to the API come from `@caseai-connect/chat`
+  (`packages/chat`). `src/features/conversation/chat.ts` creates the Desk's chat object with
+  `createChat`: its routes (conversation and documents), the functions of its API client, and what
+  the Desk refreshes when a tool runs (`onToolCalled`) and when a reply ends (`onReplySettled`).
+  `src/routes/_authenticated.tsx` gives it to `<ChatProvider>`, and `renderWithQueryClient` does
+  the same in the tests: a hook of the package throws outside a provider. The feature's `api/`
+  keeps `mutations.ts` for `useStartConversation`, which only the Desk has. A message keeps
   the results of its
   tool calls, in which the Desk reads the facts its memory saved (`savedMemoryIdsOf` of `features/memory`):
   the package knows no memory.
-- Evaluation (`apps/eval`) holds a copy of the rest of the chat: `src/features/conversation/`,
+- Evaluation (`apps/eval`) holds a copy of what is still in the Desk's `features/conversation`: its components and the hooks and helpers that show a text. Its calls to the API are not among them.
   and `Markdown`, `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. A change
   to one of these files goes to the copy too, in the same PR.
   `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
-  of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
+  of each wanted difference, a file only one app has included (`ConversationMenu.tsx`, `api/mutations.ts`): record
   one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a
   snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
 - The API client: `src/lib/api-client.ts`, which creates the client of

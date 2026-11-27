@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * Checks that the chat of Evaluation stays the Desk's. The apps share the chat's logic and hooks
- * that hold no text, call, configuration or memory (`@caseai-connect/chat`), but a tester talks
- * to the agent through a copy of the rest of the Desk's conversation code
- * (`features/conversation`: its components, its calls to the API and the hooks and helpers that
- * show a text or call the API, and the Markdown it renders with), so a fix made in the Desk must
- * reach Evaluation too.
+ * Checks that the chat of Evaluation stays the Desk's. The apps share the chat's logic, hooks and
+ * calls to the API (`@caseai-connect/chat`, through the chat object each app creates in
+ * `features/conversation/chat.ts`), but a tester talks to the agent through a copy of the rest of
+ * the Desk's conversation code (`features/conversation`: its components, and the hooks and
+ * helpers that show a text, with the Markdown it renders with), so a fix made in the Desk must
+ * reach Evaluation too. The calls to the API are no longer copied. A file only one app has
+ * counts as a recorded difference.
  *
  * Each file is compared with the Desk's once the names that differ by app are aligned (the
  * contracts package, the route objects). The differences Evaluation keeps on purpose (no memory,

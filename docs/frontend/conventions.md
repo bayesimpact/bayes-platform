@@ -198,7 +198,9 @@ or editing the boundaries' configuration.
 
 ## Network code, mutations, forms and tables
 
-- Every network call lives in `features/<feature>/api` on top of `lib/api-client.ts`, streams and
+- The chat's calls live in `packages/chat`, on the routes and the client the app gives in
+  `features/conversation/chat.ts`. Every other network call lives in `features/<feature>/api` on
+  top of `lib/api-client.ts`, streams and
   signed-URL uploads included, and takes its types from the route's schemas. The one call outside
   the API client is the PUT of an upload's bytes to its signed URL, `putFileToSignedUrl` of
   `@caseai-connect/frontend-lib`, which a feature's mutation calls. No component calls

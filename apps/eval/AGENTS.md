@@ -316,11 +316,15 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   shows how the answers spread, and a last one the sessions.
 - The conversation of a tester's session: `features/conversation`, the Desk's chat on the
   `review_campaign_tester` session routes, without the memory (the API gives a test session
-  none) and the history. The logic and hooks that hold no text a screen shows, no call to the
-  API and no memory come from `@caseai-connect/chat` (`packages/chat`), which the app shares
-  with the Desk. The rest is a copy of the Desk's: the components, the calls to the API, and
-  the hooks and helpers that show a text or call the API (`use-conversation-send`,
-  `use-mcp-app`, `form-fields.ts`). `npm run check:desk-parity` compares it, and the
+  none) and the history. The logic, the hooks and the calls to the API that hold no text a
+  screen shows and no memory come from `@caseai-connect/chat` (`packages/chat`), which the app
+  shares with the Desk. `src/features/conversation/chat.ts` creates the app's chat object with
+  `createChat`: its routes (conversation and documents), the functions of its API client, and what
+  the app refreshes when a tool runs and when a reply ends, the tester's sessions through
+  `src/lib/tester-session-keys.ts`. `src/routes/_authenticated.tsx` gives it to `<ChatProvider>`,
+  and `renderWithQueryClient` does the same in the tests. The feature has no `api/` folder. The
+  rest is a copy of the Desk's: the components, and the hooks and helpers that show a text
+  (`use-mcp-app`, `form-fields.ts`). `npm run check:desk-parity` compares it, and the
   Markdown it renders with, with the Desk's, and fails on any difference not recorded in
   `scripts/desk-parity.json` (record a wanted one with `-- --update`). `chat-parity.spec.tsx`,
   in both apps, renders one conversation to a snapshot that check compares too. The reviewer's
