@@ -21,7 +21,7 @@ const send = (content: string) => ({ content, attachment: null })
 
 /** The messages of the conversation in the cache, as the screen reads them. */
 const messagesIn = (queryClient: QueryClient, chat: Chat): ChatMessage[] =>
-  queryClient.getQueryData(chat.keys.messages(conversation.agentSessionId)) ?? []
+  queryClient.getQueryData(chat.messagesQueryOptions(conversation).queryKey) ?? []
 
 const stops: (() => void)[] = []
 
@@ -300,7 +300,7 @@ describe("streamReply", () => {
     expect(consoleError).not.toHaveBeenCalled()
   })
 
-  it("stops the first stream of a conversation when a second one starts", async () => {
+  it("records today's behaviour when a second stream starts: the first reply fails as ended", async () => {
     const firstReplyId = crypto.randomUUID()
     const secondReplyId = crypto.randomUUID()
     server.use(
@@ -331,6 +331,95 @@ describe("streamReply", () => {
       "completed",
       null,
     ])
+  })
+
+  it("shows what the handler threw as the reply's error, from Nest's `error` frame", async () => {
+    const replyId = crypto.randomUUID()
+    server.use(
+      mockStreamRoute(testRoutes.conversation.streamReply, () => [
+        startOf(replyId),
+        { thrownError: "The agent broke" },
+        // Never read: the reply stops at the error frame.
+        { stayOpen: true },
+      ]),
+    )
+    const chat = createTestChat()
+    const queryClient = createTestQueryClient()
+
+    await chat.streamReply(queryClient, conversation, send("Question"))
+
+    const reply = messagesIn(queryClient, chat).at(-1)
+    expect([reply?.id, reply?.status, reply?.content, reply?.failure]).toEqual([
+      replyId,
+      "error",
+      "The agent broke",
+      null,
+    ])
+  })
+
+  it("fails the reply as `ended` on an `error` frame that carries no message", async () => {
+    const replyId = crypto.randomUUID()
+    server.use(
+      mockStreamRoute(testRoutes.conversation.streamReply, () => [
+        startOf(replyId),
+        chunkOf(replyId, "Half of an ans"),
+        { thrownError: "" },
+        // Never read: the reply stops at the error frame.
+        { stayOpen: true },
+      ]),
+    )
+    const chat = createTestChat()
+    const queryClient = createTestQueryClient()
+
+    await chat.streamReply(queryClient, conversation, send("Question"))
+
+    const reply = messagesIn(queryClient, chat).at(-1)
+    expect([reply?.id, reply?.status, reply?.failure, reply?.content]).toEqual([
+      replyId,
+      "error",
+      "ended",
+      "Half of an ans",
+    ])
+  })
+
+  it("keeps the messages' query from polling and from refetching on focus while this tab streams", async () => {
+    const replyId = crypto.randomUUID()
+    server.use(
+      mockStreamRoute(testRoutes.conversation.streamReply, () => [
+        startOf(replyId),
+        chunkOf(replyId, "Still writing"),
+        { stayOpen: true },
+      ]),
+    )
+    const chat = createTestChat()
+    const queryClient = createTestQueryClient()
+    const options = chat.messagesQueryOptions(conversation)
+    // The query the options describe, as the cache holds it: the stream writes into it.
+    queryClient.setQueryData(options.queryKey, [])
+    const query = new QueryObserver(queryClient, options).getCurrentQuery()
+    const interval = () => {
+      if (typeof options.refetchInterval !== "function") throw new Error("A function was expected")
+      return options.refetchInterval(query)
+    }
+    const refetchesOnFocus = () => {
+      if (typeof options.refetchOnWindowFocus !== "function") {
+        throw new Error("A function was expected")
+      }
+      return options.refetchOnWindowFocus(query)
+    }
+
+    const streaming = chat.streamReply(queryClient, conversation, send("Question"))
+    await vi.waitFor(() =>
+      expect(messagesIn(queryClient, chat).at(-1)?.content).toBe("Still writing"),
+    )
+
+    expect([interval(), refetchesOnFocus()]).toEqual([false, false])
+
+    chat.stopReplyStream(conversation.agentSessionId)
+    await streaming
+
+    // The reply is still being written as far as the cache tells: the query recovers it.
+    expect([interval(), refetchesOnFocus()]).toEqual([2000, true])
   })
 
   it("calls onToolCalled for each tool the stream names, with its name", async () => {

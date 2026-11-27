@@ -508,11 +508,20 @@ describe("a tester's session with the agent", () => {
       { send: true },
     )
 
-    // The stream is still open: the reply has not ended.
-    expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
-    const openStream = required(stream, "the open stream")
-    openStream.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
-    openStream.close()
+    try {
+      // The stream is still open: the reply has not ended.
+      expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
+    } finally {
+      // Whatever happened above, the stream ends here: it never stays open for the next spec.
+      const openStream = required(stream, "the open stream")
+      openStream.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
+      openStream.close()
+    }
+
+    // The reply is over once the person can write again.
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toBeEnabled(),
+    )
   })
 
   it("ends with the tester's feedback, then goes back to the campaign", async () => {
