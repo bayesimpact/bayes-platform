@@ -5,9 +5,11 @@ import type {
   DocumentsRoutes,
 } from "@caseai-connect/chat-contracts"
 import type { QueryClient } from "@tanstack/react-query"
+import type { OutgoingMessage } from "../chat-messages"
 import { chatKeys } from "./keys"
 import { createChatQueries } from "./queries"
 import { createReplyStreams } from "./reply-streams"
+import { streamReply } from "./stream-reply"
 
 /** The API client an app gives its chat: its calls, and the reader of the streams it opens. */
 export type ChatApi = Pick<ApiClient, "apiRequest" | "apiStreamResponse"> & {
@@ -32,14 +34,27 @@ export type ChatOptions = {
 export type Chat = ReturnType<typeof createChatQueries> & {
   keys: typeof chatKeys
   stopReplyStream: (agentSessionId: string) => void
+  /**
+   * Sends a message and streams the replies into the conversation's messages in the query cache.
+   * Resolves once the stream is over, whatever way it ended.
+   */
+  streamReply: (
+    queryClient: QueryClient,
+    conversation: ConversationParamsDto,
+    outgoing: OutgoingMessage,
+  ) => Promise<void>
 }
 
 /** Creates the one chat of an app, which its `ChatProvider` gives to the hooks under it. */
 export function createChat(options: ChatOptions): Chat {
   const replyStreams = createReplyStreams()
+  const queries = createChatQueries(options, replyStreams)
+  const context = { options, replyStreams, messagesQueryOptions: queries.messagesQueryOptions }
   return {
     keys: chatKeys,
-    ...createChatQueries(options, replyStreams),
+    ...queries,
     stopReplyStream: replyStreams.stop,
+    streamReply: (queryClient, conversation, outgoing) =>
+      streamReply(context, queryClient, conversation, outgoing),
   }
 }

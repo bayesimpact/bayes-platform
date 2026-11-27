@@ -158,9 +158,15 @@ export function mockRoute<TRoute extends AnySchemaRoute>(
   )
 }
 
-/** A frame of a mocked stream: an event of the route, or what the handler throws. */
+/**
+ * A frame of a mocked stream: an event of the route, what the handler throws, a frame that is not
+ * an event (`raw` is its data as it goes on the wire), or the stream staying open: nothing follows
+ * it, and the stream ends only when the reader stops.
+ */
 export type MockStreamFrame<TRoute extends AnyStreamRoute> =
   | { event: z.input<TRoute["schemas"]["event"]> }
+  | { raw: string }
+  | { stayOpen: true }
   /** Nest writes what a stream's handler throws as an `error` frame whose data is the bare message. */
   | { thrownError: string }
 
@@ -171,25 +177,48 @@ export type MockStreamResolver<TRoute extends AnyStreamRoute> = (request: {
   request: Request
 }) => MaybePromise<MockStreamFrame<TRoute>[] | Response>
 
+/** What `streamOf` waits on for a frame that keeps the stream open. */
+const STAY_OPEN = Symbol("stay open")
+
 /** One frame as Nest writes it, with an `id:` line. */
 function serializeFrame<TRoute extends AnyStreamRoute>(
   route: TRoute,
   frame: MockStreamFrame<TRoute>,
-): string {
+): string | typeof STAY_OPEN {
+  if ("stayOpen" in frame) return STAY_OPEN
+  if ("raw" in frame) return `id: 1\ndata: ${frame.raw}\n\n`
   if ("thrownError" in frame) return `event: error\ndata: ${frame.thrownError}\n\n`
   return `id: 1\ndata: ${JSON.stringify(route.schemas.event.parse(frame.event))}\n\n`
 }
 
-/** The frames as a stream, with a pause before each one, as a real agent takes. */
-function streamOf(frames: string[]): ReadableStream<Uint8Array> {
+/**
+ * The frames as a stream, with a pause before each one, as a real agent takes. A request the
+ * caller aborts breaks the stream, as it breaks a real connection: MSW does not do it by itself.
+ */
+function streamOf(
+  frames: (string | typeof STAY_OPEN)[],
+  signal: AbortSignal,
+): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder()
   return new ReadableStream({
     async start(controller) {
+      let isAborted = signal.aborted
+      signal.addEventListener(
+        "abort",
+        () => {
+          isAborted = true
+          controller.error(signal.reason)
+        },
+        { once: true },
+      )
       for (const frame of frames) {
         await delay()
+        if (isAborted) return
+        // The stream stays open: `start` returns without closing it, and an abort ends it.
+        if (frame === STAY_OPEN) return
         controller.enqueue(encoder.encode(frame))
       }
-      controller.close()
+      if (!isAborted) controller.close()
     },
   })
 }
@@ -223,7 +252,7 @@ export function mockStreamRoute<TRoute extends AnyStreamRoute>(
       })
       if (answer instanceof Response) return answer
       const frames = answer.map((frame) => serializeFrame(route, frame))
-      return new HttpResponse(streamOf(frames), {
+      return new HttpResponse(streamOf(frames, request.signal), {
         headers: { "Content-Type": "text/event-stream" },
       })
     },

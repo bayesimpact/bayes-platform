@@ -39,6 +39,7 @@ export {
   startTurn,
   toChatMessages,
 } from "./chat-messages"
+export { isFormTool } from "./form-tools"
 export { useAnnotations } from "./hooks/use-annotations"
 export { type CitedPassages, useCitedPassages } from "./hooks/use-cited-passages"
 export { useIsOverflowing } from "./hooks/use-is-overflowing"
