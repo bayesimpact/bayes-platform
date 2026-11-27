@@ -12,7 +12,7 @@ import { createChatQueries } from "./queries"
 import { createReplyStreams } from "./reply-streams"
 import { streamReply } from "./stream-reply"
 
-/** The chat of an app: its query keys and queries, and the state of the replies it streams. */
+/** The chat of an app: its queries, its calls to the API and the state of the replies it streams. */
 export type Chat = ReturnType<typeof createChatQueries> & {
   stopReplyStream: (agentSessionId: string) => void
   /**
