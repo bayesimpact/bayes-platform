@@ -200,25 +200,31 @@ function streamOf(
   signal: AbortSignal,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder()
+  // Set when the request aborts or the reader cancels: nothing is enqueued after it.
+  let isStopped = signal.aborted
   return new ReadableStream({
     async start(controller) {
-      let isAborted = signal.aborted
       signal.addEventListener(
         "abort",
         () => {
-          isAborted = true
+          if (isStopped) return
+          isStopped = true
           controller.error(signal.reason)
         },
         { once: true },
       )
       for (const frame of frames) {
         await delay()
-        if (isAborted) return
+        if (isStopped) return
         // The stream stays open: `start` returns without closing it, and an abort ends it.
         if (frame === STAY_OPEN) return
         controller.enqueue(encoder.encode(frame))
       }
-      if (!isAborted) controller.close()
+      if (!isStopped) controller.close()
+    },
+    // A reader that stops before the last frame ends the source too.
+    cancel() {
+      isStopped = true
     },
   })
 }

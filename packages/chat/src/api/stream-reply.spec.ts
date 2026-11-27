@@ -2,7 +2,7 @@ import { TOOL_NAMES } from "@caseai-connect/chat-contracts"
 import { type QueryClient, QueryObserver } from "@tanstack/react-query"
 import { HttpResponse, http } from "msw"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import type { ChatMessage } from "../chat-messages"
+import type { ChatMessage, OutgoingMessage } from "../chat-messages"
 import { apiError, type MockStreamFrame, mockRoute, mockStreamRoute } from "../test/mock-route"
 import { server } from "../test/server"
 import { createTestChat, createTestQueryClient, testRoutes } from "../test/test-chat"
@@ -87,6 +87,14 @@ describe("streamReply", () => {
 
     await chat.streamReply(queryClient, conversation, send("Question"))
 
+    // The reply ended: it is complete as the stream left it, before the persisted messages
+    // replace it.
+    const endedReply = messagesIn(queryClient, chat).find((message) => message.id === replyId)
+    expect([endedReply?.content, endedReply?.status, endedReply?.failure]).toEqual([
+      "Hello world",
+      "completed",
+      null,
+    ])
     expect(requestedContents).toEqual(["Question"])
     const firstTurn = turns.find((messages) => messages.length === 2)
     expect(firstTurn?.map((message) => [message.role, message.content, message.status])).toEqual([
@@ -210,10 +218,11 @@ describe("streamReply", () => {
     const uploadUrl = `https://storage.example.test/${crypto.randomUUID()}`
     const file = new File(["%PDF-1.4"], "notes.pdf", { type: "application/pdf" })
     const streamedAttachments: (string | undefined)[] = []
+    const presigned: unknown[] = []
     let uploadStatus = 200
     server.use(
       mockRoute(testRoutes.conversation.presignAttachment, ({ payload }) => {
-        expect(payload).toEqual({ fileName: "notes.pdf", mimeType: "application/pdf", size: 8 })
+        presigned.push(payload)
         return { attachmentDocumentId, uploadUrl }
       }),
       http.put(uploadUrl, () => new HttpResponse(null, { status: uploadStatus })),
@@ -231,6 +240,7 @@ describe("streamReply", () => {
     expect(userMessage?.attachment).toMatchObject({ documentId: attachmentDocumentId })
     expect([reply?.status, reply?.content]).toEqual(["completed", "I read it."])
     expect(streamedAttachments).toEqual([attachmentDocumentId])
+    expect(presigned).toEqual([{ fileName: "notes.pdf", mimeType: "application/pdf", size: 8 }])
 
     uploadStatus = 500
     const notUploaded = createTestQueryClient()
@@ -277,6 +287,11 @@ describe("streamReply", () => {
     chat.stopReplyStream(conversation.agentSessionId)
     await streaming
 
+    // Right away, before the refetch answers: the local reply stopped where it was, with no failure.
+    const localReply = messagesIn(queryClient, chat).at(-1)
+    expect([localReply?.content, localReply?.failure]).toEqual(["Still writing", null])
+    expect(messageReads).toBe(0)
+
     await vi.waitFor(() =>
       expect(messagesIn(queryClient, chat).at(-1)?.content).toBe("Written to the end"),
     )
@@ -308,6 +323,9 @@ describe("streamReply", () => {
     const firstReply = messages.find((message) => message.id === firstReplyId)
     const secondReply = messages.find((message) => message.id === secondReplyId)
     expect(firstReply?.content).toBe("Writing")
+    // Today's behaviour, kept from the Desk when two turns overlap: the first reply, still
+    // streaming when the second turn ends, is failed as `ended` by that turn's closing check.
+    expect([firstReply?.status, firstReply?.failure]).toEqual(["error", "ended"])
     expect([secondReply?.content, secondReply?.status, secondReply?.failure]).toEqual([
       "Second answer",
       "completed",
@@ -340,34 +358,78 @@ describe("streamReply", () => {
   })
 
   it("calls onReplySettled once, after a reply that ended, failed or was stopped", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {})
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
     const replyId = crypto.randomUUID()
+    const uploadUrl = `https://storage.example.test/${crypto.randomUUID()}`
+    const file = new File(["%PDF-1.4"], "notes.pdf", { type: "application/pdf" })
     const cases: {
       name: string
       frames: ReplyFrame[] | Response
-      stopsTheReader: boolean
+      outgoing?: OutgoingMessage
+      stopsTheReader?: boolean
       replyStatusWhenSettled: ChatMessage["status"]
+      /** How many times the code logs on the way: where it fails, once, and nowhere else. */
+      loggedErrors: number
     }[] = [
       {
         name: "ended",
         frames: replyOf(replyId, "Answer"),
-        stopsTheReader: false,
         replyStatusWhenSettled: "completed",
+        loggedErrors: 0,
       },
       {
         name: "failed",
         frames: apiError(503),
-        stopsTheReader: false,
         replyStatusWhenSettled: "error",
+        loggedErrors: 1,
       },
       {
         name: "stopped",
         frames: [startOf(replyId), chunkOf(replyId, "Writing"), { stayOpen: true }],
         stopsTheReader: true,
         replyStatusWhenSettled: "streaming",
+        loggedErrors: 0,
+      },
+      {
+        name: "a frame that is not an event",
+        frames: [startOf(replyId), { raw: "this is not JSON" }, { stayOpen: true }],
+        replyStatusWhenSettled: "error",
+        loggedErrors: 1,
+      },
+      {
+        name: "an error event of the stream",
+        frames: [
+          startOf(replyId),
+          { event: { type: "error", messageId: replyId, error: "The agent broke" } },
+          { stayOpen: true },
+        ],
+        replyStatusWhenSettled: "error",
+        loggedErrors: 0,
+      },
+      {
+        name: "an upload that fails",
+        frames: [],
+        outgoing: { content: "Read this", attachment: { file } },
+        replyStatusWhenSettled: "error",
+        loggedErrors: 1,
       },
     ]
-    for (const { name, frames, stopsTheReader, replyStatusWhenSettled } of cases) {
+    server.use(
+      mockRoute(testRoutes.conversation.presignAttachment, () => ({
+        attachmentDocumentId: crypto.randomUUID(),
+        uploadUrl,
+      })),
+      http.put(uploadUrl, () => new HttpResponse(null, { status: 500 })),
+    )
+    for (const {
+      name,
+      frames,
+      outgoing,
+      stopsTheReader,
+      replyStatusWhenSettled,
+      loggedErrors,
+    } of cases) {
+      consoleError.mockClear()
       server.use(mockStreamRoute(testRoutes.conversation.streamReply, () => frames))
       const statusesWhenSettled: (ChatMessage["status"] | undefined)[] = []
       const queryClient = createTestQueryClient()
@@ -376,7 +438,7 @@ describe("streamReply", () => {
       })
       const chat = createTestChat({ onReplySettled })
 
-      const streaming = chat.streamReply(queryClient, conversation, send("Question"))
+      const streaming = chat.streamReply(queryClient, conversation, outgoing ?? send("Question"))
       if (stopsTheReader) {
         await vi.waitFor(() =>
           expect(messagesIn(queryClient, chat).at(-1)?.content).toBe("Writing"),
@@ -386,8 +448,9 @@ describe("streamReply", () => {
       await streaming
 
       expect(onReplySettled, name).toHaveBeenCalledTimes(1)
-      expect(onReplySettled).toHaveBeenCalledWith(queryClient, conversation)
+      expect(onReplySettled, name).toHaveBeenCalledWith(queryClient, conversation)
       expect(statusesWhenSettled, name).toEqual([replyStatusWhenSettled])
+      expect(consoleError, name).toHaveBeenCalledTimes(loggedErrors)
     }
   })
 
