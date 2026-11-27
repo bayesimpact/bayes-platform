@@ -2,7 +2,6 @@ import { DeskConversationsRoutes, TOOL_NAMES } from "@caseai-connect/desk-contra
 import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
-import type { z } from "zod"
 import { agentOf, agentUrlOf, conversationOf, conversationUrlOf } from "@/test/desk-urls"
 import { buildConversationMessage } from "@/test/factories/agent-sessions.factory"
 import {
@@ -15,7 +14,7 @@ import { buildMemory } from "@/test/factories/memories.factory"
 import { hiddenFileInput } from "@/test/file-input"
 import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
-import { apiError, mockRoute, mockStreamRoute } from "@/test/msw/mock-route"
+import { apiError, mockRoute, mockStreamRoute, openMockStream } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 import { required } from "@/test/required"
@@ -565,12 +564,7 @@ describe("a conversation", () => {
     const world = serveDeskWorld()
     const conversation = conversationOf(world, { position: 1 })
     const replyId = crypto.randomUUID()
-    const encoder = new TextEncoder()
-    const frameOf = (event: z.input<typeof DeskConversationsRoutes.streamReply.schemas.event>) =>
-      encoder.encode(
-        `id: 1\ndata: ${JSON.stringify(DeskConversationsRoutes.streamReply.schemas.event.parse(event))}\n\n`,
-      )
-    let stream: ReadableStreamDefaultController<Uint8Array> | undefined
+    const stream = openMockStream(DeskConversationsRoutes.streamReply)
     server.use(
       mockStreamRoute(DeskConversationsRoutes.streamReply, () => {
         // The agent's tool saves the form, the stream says so, and the reply goes on.
@@ -583,16 +577,9 @@ describe("a conversation", () => {
             updatedAt: Date.now(),
           },
         ]
-        return new Response(
-          new ReadableStream<Uint8Array>({
-            start(controller) {
-              stream = controller
-              controller.enqueue(frameOf({ type: "start", messageId: replyId }))
-              controller.enqueue(frameOf({ type: "notify_client", toolName: TOOL_NAMES.fillForm }))
-            },
-          }),
-          { headers: { "Content-Type": "text/event-stream" } },
-        )
+        stream.send({ type: "start", messageId: replyId })
+        stream.send({ type: "notify_client", toolName: TOOL_NAMES.fillForm })
+        return stream.response
       }),
     )
     renderApp(conversationUrlOf(world, { position: 1 }))
@@ -610,9 +597,14 @@ describe("a conversation", () => {
       expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
     } finally {
       // Whatever happened above, the stream ends here: it never stays open for the next spec.
-      stream?.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
-      stream?.close()
+      stream.send({ type: "end", messageId: replyId, fullContent: "Noted." })
+      stream.close()
     }
+
+    // The reply is over once the person can write again.
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toBeEnabled(),
+    )
   })
 
   it("forgets what the agent remembers, one fact or all of them", async () => {

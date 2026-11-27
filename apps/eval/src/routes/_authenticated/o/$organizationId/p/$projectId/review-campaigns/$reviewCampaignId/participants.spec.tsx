@@ -6,7 +6,6 @@ import {
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
-import type { z } from "zod"
 import {
   campaignOf,
   campaignUrlOf,
@@ -17,7 +16,7 @@ import {
 import { buildEveryAccessWorld, buildParticipantWorld } from "@/test/factories/eval-world.factory"
 import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
-import { mockRoute, mockStreamRoute } from "@/test/msw/mock-route"
+import { mockRoute, mockStreamRoute, openMockStream } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 import { required } from "@/test/required"
@@ -468,12 +467,7 @@ describe("a tester's session with the agent", () => {
     const campaignId = campaignOf(world, "Support assistant pilot").id
     const session = required(world.testerSessions[campaignId]?.[0], "the open session")
     const replyId = crypto.randomUUID()
-    const encoder = new TextEncoder()
-    const frameOf = (event: z.input<typeof EvalConversationsRoutes.streamReply.schemas.event>) =>
-      encoder.encode(
-        `id: 1\ndata: ${JSON.stringify(EvalConversationsRoutes.streamReply.schemas.event.parse(event))}\n\n`,
-      )
-    let stream: ReadableStreamDefaultController<Uint8Array> | undefined
+    const stream = openMockStream(EvalConversationsRoutes.streamReply)
     server.use(
       mockStreamRoute(EvalConversationsRoutes.streamReply, () => {
         // The agent's tool saves the form, the stream says so, and the reply goes on.
@@ -490,16 +484,9 @@ describe("a tester's session with the agent", () => {
             ],
           },
         ]
-        return new Response(
-          new ReadableStream<Uint8Array>({
-            start(controller) {
-              stream = controller
-              controller.enqueue(frameOf({ type: "start", messageId: replyId }))
-              controller.enqueue(frameOf({ type: "notify_client", toolName: TOOL_NAMES.fillForm }))
-            },
-          }),
-          { headers: { "Content-Type": "text/event-stream" } },
-        )
+        stream.send({ type: "start", messageId: replyId })
+        stream.send({ type: "notify_client", toolName: TOOL_NAMES.fillForm })
+        return stream.response
       }),
       ...worldHandlers(world),
     )
@@ -517,8 +504,8 @@ describe("a tester's session with the agent", () => {
       expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
     } finally {
       // Whatever happened above, the stream ends here: it never stays open for the next spec.
-      stream?.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
-      stream?.close()
+      stream.send({ type: "end", messageId: replyId, fullContent: "Noted." })
+      stream.close()
     }
 
     // The reply is over once the person can write again.
