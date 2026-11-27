@@ -275,6 +275,21 @@ export const chat = createChat({
 - [ ] **Step 5: Run the gates** of "Global Constraints". Expected: all exit 0.
 - [ ] **Step 6: Commit** — `docs: the chat object and the calls to the API in @caseai-connect/chat`
 
+## What changed during execution
+
+The reviews changed a few interfaces the tasks above describe. The code is the reference:
+
+- `Chat` has no `keys` member. An app reads or invalidates a query of the chat through the `queryKey` of its query options (`chat.messagesQueryOptions(conversation).queryKey`). `packages/chat/src/api/keys.ts` stays internal, and `create-chat.spec.ts` pins the key values through the query options.
+- `packages/chat/src/index.ts` exports only what an app imports. `Chat`, `ChatApi`, `ChatOptions` and `useSendMessage` are not exported: the apps call `useConversationSend`. Eight exports the move made internal left the index too: `applyReplyEvent`, `failStreamingReplies`, `newLocalMessageId`, `ReplyCursor`, `setAttachmentDocument`, `startTurn`, `quoteSourceOf` and `useAnnotations`.
+- `ChatApi` and `ChatOptions` live in `packages/chat/src/api/chat-options.ts`, which removes a cycle of type imports through `create-chat.ts`.
+- `sendFeedback` returns the output of the route `createMessageFeedback`, derived from its schema.
+- The Desk's `useStartConversation` reads the chat with `useChat()`. The loaders and the routes' `onLeave` import the app's `chat`, since they run outside React.
+- Each app's `src/stories/StoryProviders.tsx` gives the chat too.
+- Evaluation's callbacks invalidate through `src/lib/tester-session-keys.ts`: the conversation's params name no campaign, and the conversation feature cannot import the campaign-test one.
+- Each app's `src/test/msw/mock-route.ts` has `openMockStream`, for a spec that checks what a person sees while a reply is still being written.
+- `@caseai-connect/api-client` is a peer dependency of `packages/chat`, which imports its types.
+- A second reply started on a conversation while the first is open fails the first as ended. Both apps did this before; a spec records it, and issue #1327 tracks the fix.
+
 ## After this PR
 
 PR 3 moves the components, the chat's catalog and its stylesheet, gives `createChat` the app's settings and texts, and ends the parity check. Its plan also takes what PR 1's plan carried: every pair of catalogs compared, `check-component-files` in the packages' checks, and the React Compiler in `packages/app-ui`'s Vitest (this PR gives it to `packages/chat`).

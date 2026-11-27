@@ -192,7 +192,7 @@ the conventions as they stand. When a rule changes, its reference file changes i
   of `src/stories/desk-meta.tsx`. Each one sets its `desk` parameter with `desk()` (a world,
   handlers that win over it, a starting page), which `src/test/msw/story-api.ts` serves with ids
   that are the same on every load. A new state of the Desk is a new story in the file of its
-  folder; a component's own story gets the i18n and query providers from
+  folder; a component's own story gets the i18n and query providers, and the Desk's chat, from
   `src/stories/StoryProviders.tsx`.
   `src/stories/Desk.stories.spec.tsx` renders every story in the tests.
 
