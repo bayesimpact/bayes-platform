@@ -176,8 +176,8 @@ the conventions as they stand. When a rule changes, its reference file changes i
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
   of each wanted difference, a file only one app has included (`ConversationMenu.tsx`,
   `api/mutations.ts`): record one with `-- --update`. `chat-parity.spec.tsx`, in both apps,
-  renders one conversation to a
-  snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
+  renders one conversation to a snapshot the check compares too. The Desk's `check` does not run
+  it: CI's `eval-tests` job does.
 - The API client: `src/lib/api-client.ts`, which creates the client of
   `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
   `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).

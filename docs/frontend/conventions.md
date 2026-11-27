@@ -203,7 +203,8 @@ or editing the boundaries' configuration.
   top of `lib/api-client.ts`, streams and signed-URL uploads included, and takes its types from
   the route's schemas. The one call outside the API client is the PUT of an upload's bytes to its
   signed URL, `putFileToSignedUrl` of `@caseai-connect/frontend-lib`, which a feature's mutation
-  calls. No component calls `fetch`. An upload is one mutation that presigns, sends the bytes and confirms.
+  calls. No component calls `fetch`. An upload is one mutation that presigns, sends the bytes and
+  confirms.
 - `apiRequest(route, { params, query, body, signal })` takes the params and the query as their
   schemas output them, encodes them with `z.encode`, parses the body with its schema and sends it in
   `{ payload }`, and returns the response's `data` parsed with the route's schema. It keeps the

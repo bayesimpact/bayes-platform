@@ -329,7 +329,7 @@ registers `<origin>/eval/auth/callback` and `<origin>/eval/` with its identity p
   `scripts/desk-parity.json` (record a wanted one with `-- --update`). `chat-parity.spec.tsx`,
   in both apps, renders one conversation to a snapshot that check compares too. The reviewer's
   transcript shows each reply's sources with the same `SourcesList`. Its
-  owner gives it the session's forms and loads them again when the agent fills one in.
+  owner gives it the session's forms.
 - MCP Apps: a card runs in the sandbox of `@caseai-connect/mcp-app-host`
   (`packages/mcp-app-host`). The chat keeps what is its own, as the Desk does: the
   `useMcpApp` hook and `McpAppCard` in `features/conversation`. The lookup of an app's HTML

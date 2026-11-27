@@ -32,8 +32,8 @@
 * **Amended**: 2026-11-26, by Alexis: the compositions that know no feature, and the texts they
   show, are part of `packages/app-ui`, which has a catalog of its own (section 2.4)
 * **Amended**: 2026-11-27, by Alexis: the chat's calls to the API are part of `packages/chat`, which
-  each app gives its routes and its client through a chat object (section 2.4, "The shared chat
-  logic")
+  each app gives its routes and its client through a chat object (sections 2.4, "The shared chat
+  logic", 2.6 and 2.7)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -520,7 +520,7 @@ of this ADR that gives its reasons, and a row in the list.
   boundary.
 * `useQuery` is an exception, justified in a one-line comment: a conditional query, optional data
   such as a badge, or live search with `placeholderData: keepPreviousData`.
-* Each feature has a query key factory (`conversationKeys.messages(id)`), and each query is a
+* Each feature has a query key factory (`accountKeys.me()`), and each query is a
   `queryOptions` factory in `features/<feature>/api/queries.ts`, shared by loaders and components.
   The cache is read and written through `xxxQueryOptions(...).queryKey`, which carries the data's
   type, never through a bare key and a type argument.
@@ -529,8 +529,10 @@ of this ADR that gives its reasons, and a row in the list.
 
 ### 2.7 Network code, mutations, forms and tables
 
-* Every network call, streams and signed-URL uploads included, lives in `features/<feature>/api`
-  on top of `lib/api-client.ts`, which wraps `@caseai-connect/api-client` (section 2.4), and takes
+* The chat's calls live in `packages/chat`, on the routes and the client the app gives it (section
+  2.4). Every other network call, streams and signed-URL uploads included, lives in
+  `features/<feature>/api` on top of `lib/api-client.ts`, which wraps
+  `@caseai-connect/api-client` (section 2.4), and takes
   its types from the route's schemas. The one call outside the API client is the PUT of an
   upload's bytes to its signed URL (`putFileToSignedUrl` of `@caseai-connect/frontend-lib`),
   which a feature's mutation calls.
