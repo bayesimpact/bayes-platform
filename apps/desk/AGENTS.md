@@ -111,7 +111,7 @@ the conventions as they stand. When a rule changes, its reference file changes i
 | A mutation and its cache refresh | `src/features/account/api/mutations.ts` |
 | A form | `src/features/account/components/EditNameDialog.tsx` |
 | A table, its columns and its skeleton | `src/features/extraction/components/CsvRecordsTable.tsx`, `csv-record-columns.tsx`, `CsvRecordsSkeleton.tsx` |
-| A stream | `packages/chat/src/api/stream-reply.ts` |
+| A stream | `packages/chat/src/api/stream-reply.ts`, which calls the client the app gives; a stream of another feature calls `apiStreamResponse` of `@/lib/api-client` directly |
 | A route's spec | `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId.spec.tsx` |
 | An MSW handler and its factory | `src/test/msw/extraction-handlers.ts`, `src/test/factories/extractions.factory.ts` |
 | A story | `src/stories/Extraction.stories.tsx` |
