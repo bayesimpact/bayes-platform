@@ -1,4 +1,4 @@
-export { stopReplyStream } from "./api/reply-streams"
+export { chat } from "./chat"
 export { ConversationSkeleton } from "./components/ConversationSkeleton"
 export { ConversationTitle } from "./components/ConversationTitle"
 export { ConversationView } from "./components/ConversationView"

@@ -1,8 +1,10 @@
+import { ChatProvider } from "@caseai-connect/chat"
 import { I18nProvider } from "@lingui/react"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { type ReactNode, useState } from "react"
 import { i18n } from "@/app/i18n"
 import { createQueryClient } from "@/app/query-client"
+import { chat } from "@/features/conversation"
 
 export type StoryProvidersProps = {
   children: ReactNode
@@ -10,13 +12,16 @@ export type StoryProvidersProps = {
 
 /**
  * What a story of one component needs around it, which the whole app brings itself: the language
- * of the toolbar, and a cache of its own on the mocked API, whose queries do not retry.
+ * of the toolbar, a cache of its own on the mocked API, whose queries do not retry, and the
+ * chat.
  */
 export function StoryProviders({ children }: StoryProvidersProps) {
   const [queryClient] = useState(() => createQueryClient({ isRetrying: false }))
   return (
     <I18nProvider i18n={i18n}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <ChatProvider chat={chat}>{children}</ChatProvider>
+      </QueryClientProvider>
     </I18nProvider>
   )
 }

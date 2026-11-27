@@ -111,7 +111,7 @@ the conventions as they stand. When a rule changes, its reference file changes i
 | A mutation and its cache refresh | `src/features/account/api/mutations.ts` |
 | A form | `src/features/account/components/EditNameDialog.tsx` |
 | A table, its columns and its skeleton | `src/features/extraction/components/CsvRecordsTable.tsx`, `csv-record-columns.tsx`, `CsvRecordsSkeleton.tsx` |
-| A stream | `src/features/conversation/api/stream-reply.ts` |
+| A stream | `packages/chat/src/api/stream-reply.ts`, which calls the client the app gives; a stream of another feature calls `apiStreamResponse` of `@/lib/api-client` directly |
 | A route's spec | `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId.spec.tsx` |
 | An MSW handler and its factory | `src/test/msw/extraction-handlers.ts`, `src/test/factories/extractions.factory.ts` |
 | A story | `src/stories/Extraction.stories.tsx` |
@@ -159,18 +159,25 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
-- The chat's logic and hooks come from `@caseai-connect/chat` (`packages/chat`). A message keeps
-  the results of its
-  tool calls, in which the Desk reads the facts its memory saved (`savedMemoryIdsOf` of `features/memory`):
-  the package knows no memory.
-- Evaluation (`apps/eval`) holds a copy of the rest of the chat: `src/features/conversation/`,
-  and `Markdown`, `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. A change
-  to one of these files goes to the copy too, in the same PR.
+- The chat's logic, hooks and calls to the API come from `@caseai-connect/chat`
+  (`packages/chat`). `src/features/conversation/chat.ts` creates the Desk's chat object with
+  `createChat`: its routes (conversation and documents), the functions of its API client, and what
+  the Desk refreshes when a tool runs (`onToolCalled`) and when a reply ends (`onReplySettled`).
+  `src/routes/_authenticated.tsx` gives it to `<ChatProvider>`, and `renderWithQueryClient` does
+  the same in the tests: a hook of the package throws outside a provider. A message keeps the
+  results of its tool calls, in which the Desk reads the facts its memory saved
+  (`savedMemoryIdsOf` of `features/memory`): the package knows no memory. The feature's `api/`
+  keeps `mutations.ts` for `useStartConversation`, which only the Desk has.
+- Evaluation (`apps/eval`) holds a copy of what is still in the Desk's
+  `src/features/conversation/`: its components and the hooks and helpers that show a text, and
+  `Markdown`, `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. Its calls to the
+  API are not among them. A change to one of these files goes to the copy too, in the same PR.
   `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
-  of each wanted difference, a file only the Desk has included (`ConversationMenu.tsx`): record
-  one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a
-  snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
+  of each wanted difference, a file only one app has included (`ConversationMenu.tsx`,
+  `api/mutations.ts`): record one with `-- --update`. `chat-parity.spec.tsx`, in both apps,
+  renders one conversation to a snapshot the check compares too. The Desk's `check` does not run
+  it: CI's `eval-tests` job does.
 - The API client: `src/lib/api-client.ts`, which creates the client of
   `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
   `src/app/query-client.ts`, with the retry rule of that package (`shouldRetryQuery`).
@@ -185,7 +192,7 @@ the conventions as they stand. When a rule changes, its reference file changes i
   of `src/stories/desk-meta.tsx`. Each one sets its `desk` parameter with `desk()` (a world,
   handlers that win over it, a starting page), which `src/test/msw/story-api.ts` serves with ids
   that are the same on every load. A new state of the Desk is a new story in the file of its
-  folder; a component's own story gets the i18n and query providers from
+  folder; a component's own story gets the i18n and query providers, and the Desk's chat, from
   `src/stories/StoryProviders.tsx`.
   `src/stories/Desk.stories.spec.tsx` renders every story in the tests.
 

@@ -1,3 +1,4 @@
+import { ChatProvider } from "@caseai-connect/chat"
 import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { AppShellSkeleton } from "@/components/shared/AppShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
@@ -7,6 +8,7 @@ import {
   EvaluationAccessGate,
   loadEvaluationWorkspace,
 } from "@/features/agents"
+import { chat } from "@/features/conversation"
 import {
   claimAutomaticSignIn,
   hasSession,
@@ -19,7 +21,8 @@ import {
  * Every page of the app but the sign-in callback: a session, the signed-in person (`GET eval/me`), at
  * least one project they can evaluate, then the page. A sign-in the API refuses shows here, and so
  * does a person without the evaluator role, before any page. Every page gets the command center
- * that switches agent, for a person with several.
+ * that switches agent, for a person with several, and the app's chat, which the hooks of
+ * `@caseai-connect/chat` read.
  */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -43,7 +46,9 @@ function AuthenticatedLayout() {
   return (
     <EvaluationAccessGate>
       <AgentCommandCenterProvider>
-        <Outlet />
+        <ChatProvider chat={chat}>
+          <Outlet />
+        </ChatProvider>
       </AgentCommandCenterProvider>
     </EvaluationAccessGate>
   )

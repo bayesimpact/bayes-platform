@@ -4,8 +4,8 @@ import { hasSourcesTool, requireAgentType } from "@/features/agents"
 import {
   ConversationSkeleton,
   ConversationView,
+  chat,
   loadConversation,
-  stopReplyStream,
 } from "@/features/conversation"
 import { uuidParams } from "@/lib/not-found"
 
@@ -17,7 +17,7 @@ export const Route = createFileRoute(
   beforeLoad: ({ context }) => requireAgentType(context.agent, "conversation"),
   loader: ({ context, params }) => loadConversation(context.queryClient, params),
   // Leaving the conversation stops reading its reply; the server finishes writing it.
-  onLeave: ({ params }) => stopReplyStream(params.agentSessionId),
+  onLeave: ({ params }) => chat.stopReplyStream(params.agentSessionId),
   pendingComponent: ConversationSkeleton,
   errorComponent: RouteErrorState,
   component: ConversationRoute,

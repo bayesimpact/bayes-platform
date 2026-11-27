@@ -1,9 +1,11 @@
+import { ChatProvider } from "@caseai-connect/chat"
 import { startQuery } from "@caseai-connect/frontend-lib"
 import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { Suspense } from "react"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { meQueryOptions, TermsGate } from "@/features/account"
+import { chat } from "@/features/conversation"
 import {
   claimAutomaticSignIn,
   hasSession,
@@ -14,7 +16,7 @@ import {
 
 /**
  * Every page of the Desk but the sign-in callback: a session, the terms accepted, then the page in
- * its frame.
+ * its frame. Every page gets the app's chat, which the hooks of `@caseai-connect/chat` read.
  */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -39,7 +41,9 @@ function AuthenticatedLayout() {
   return (
     <Suspense fallback={<DeskShellSkeleton />}>
       <TermsGate>
-        <Outlet />
+        <ChatProvider chat={chat}>
+          <Outlet />
+        </ChatProvider>
       </TermsGate>
     </Suspense>
   )

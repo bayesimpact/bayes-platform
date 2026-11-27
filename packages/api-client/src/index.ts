@@ -1,4 +1,5 @@
 export {
+  type ApiClient,
   type ApiClientSession,
   ApiError,
   ContractMismatchError,

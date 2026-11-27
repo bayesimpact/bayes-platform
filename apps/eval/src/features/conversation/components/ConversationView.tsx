@@ -13,7 +13,9 @@ import {
   findRetryableMessage,
   isBeingWritten,
   lastReplyFollowUpQuestions,
+  useChat,
   useCitedPassages,
+  useConversationSend,
   withAppMessage,
 } from "@caseai-connect/chat"
 import type {
@@ -25,9 +27,7 @@ import { Trans } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
 import { type ReactNode, useId, useState } from "react"
-import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
-import { useConversationSend } from "../hooks/use-conversation-send"
 import { ChatMessageView } from "./ChatMessageView"
 import { CitedPassageBadges } from "./CitedPassageBadges"
 import { Composer } from "./Composer"
@@ -44,8 +44,6 @@ export type ConversationViewProps = {
   agentName: string
   /** The forms the agents filled in during the conversation, which its owner loads. */
   forms: ConversationFormOutputDto[]
-  /** Called each time the agent fills in a form: the owner then loads the forms again. */
-  onFormsChange: () => void
   /** What the bar above the conversation shows before its own buttons, such as a way to end it. */
   headerActions?: ReactNode
   /**
@@ -67,14 +65,14 @@ export function ConversationView({
   conversation,
   agentName,
   forms,
-  onFormsChange,
   headerActions,
   sidePanel = null,
   onSidePanelDismiss,
   hasSourcesTool,
 }: ConversationViewProps) {
-  const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
-  const sending = useConversationSend(conversation, messages, onFormsChange)
+  const chat = useChat()
+  const { data: messages } = useSuspenseQuery(chat.messagesQueryOptions(conversation))
+  const sending = useConversationSend(conversation, messages)
   const now = useNow(CLOCK_INTERVAL_IN_MILLISECONDS, true)
   const isBusy = sending.isSending || messages.some((message) => isBeingWritten(message, now))
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
@@ -91,7 +89,7 @@ export function ConversationView({
   )
   // useQuery: optional data, read once a reply shows an MCP App, which must not hold it back.
   const mcpAppsHtml = useQuery({
-    ...mcpAppsHtmlQueryOptions(conversation),
+    ...chat.mcpAppsHtmlQueryOptions(conversation),
     enabled: hasSettledApps,
   })
   const appsHtml = { htmls: mcpAppsHtml.data ?? [], isPending: mcpAppsHtml.isPending }

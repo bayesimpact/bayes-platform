@@ -2,7 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { loadCampaignContext } from "@/features/campaign-context"
 import { loadTesterSession, TesterSessionPage } from "@/features/campaign-test"
-import { ConversationSkeleton, stopReplyStream } from "@/features/conversation"
+import { ConversationSkeleton, chat } from "@/features/conversation"
 import { uuidParams } from "@/lib/not-found"
 
 /** A tester's session with the campaign's agent. */
@@ -19,7 +19,7 @@ export const Route = createFileRoute(
     await loadTesterSession(context.queryClient, params, campaign.agent.id)
   },
   // Leaving the session stops reading its reply; the server finishes writing it.
-  onLeave: ({ params }) => stopReplyStream(params.sessionId),
+  onLeave: ({ params }) => chat.stopReplyStream(params.sessionId),
   pendingComponent: ConversationSkeleton,
   errorComponent: RouteErrorState,
   component: TesterSessionRoute,

@@ -1,22 +1,20 @@
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
-import {
-  EvalConversationsRoutes,
-  presignAttachmentInputSchema,
-} from "@caseai-connect/eval-contracts"
+import type { ConversationParamsDto } from "@caseai-connect/chat-contracts"
+import { presignAttachmentInputSchema } from "@caseai-connect/chat-contracts"
 import { putFileToSignedUrl } from "@caseai-connect/frontend-lib"
-import { apiRequest } from "@/lib/api-client"
+import type { ChatOptions } from "./chat-options"
 
 /**
  * Uploads a file to attach to the next message of a conversation: the API signs an upload URL,
  * then the bytes go straight to storage. Returns the document the message names.
  */
 export async function uploadAttachment(
+  { routes, api }: Pick<ChatOptions, "routes" | "api">,
   conversation: ConversationParamsDto,
   file: File,
   signal: AbortSignal,
 ): Promise<string> {
-  const { attachmentDocumentId, uploadUrl } = await apiRequest(
-    EvalConversationsRoutes.presignAttachment,
+  const { attachmentDocumentId, uploadUrl } = await api.apiRequest(
+    routes.conversation.presignAttachment,
     {
       params: conversation,
       body: presignAttachmentInputSchema.parse({

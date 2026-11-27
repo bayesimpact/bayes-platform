@@ -17,6 +17,5 @@ export {
   ApiError,
   ContractMismatchError,
   readServerSentEvents,
-  type ServerSentEvent,
   shouldRetryQuery,
 } from "@caseai-connect/api-client"

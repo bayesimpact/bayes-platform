@@ -1,7 +1,7 @@
 import { Button } from "@caseai-connect/app-ui/components/button"
 import type { CampaignSessionParamsDto } from "@caseai-connect/eval-contracts"
 import { Trans } from "@lingui/react/macro"
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { CheckIcon, EyeIcon } from "lucide-react"
 import { useState } from "react"
@@ -9,7 +9,6 @@ import { BackLink } from "@/components/shared/BackLink"
 import { HeaderBack } from "@/components/shared/HeaderBack"
 import { useCampaignContext } from "@/features/campaign-context"
 import { ConversationView } from "@/features/conversation"
-import { campaignTestKeys } from "../api/keys"
 import { testerSessionsQueryOptions } from "../api/queries"
 import { SessionFeedbackPanel } from "./SessionFeedbackPanel"
 
@@ -22,7 +21,6 @@ export type TesterSessionPageProps = {
  * feedback, in a panel beside the conversation. A session whose feedback is given stays readable.
  */
 export function TesterSessionPage({ sessionParams }: TesterSessionPageProps) {
-  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const context = useCampaignContext(sessionParams)
   const { data: sessions } = useSuspenseQuery(testerSessionsQueryOptions(sessionParams))
@@ -64,9 +62,6 @@ export function TesterSessionPage({ sessionParams }: TesterSessionPageProps) {
         // tester cannot read: a reply that carries sources shows them.
         hasSourcesTool
         forms={session?.forms ?? []}
-        onFormsChange={() =>
-          void queryClient.invalidateQueries({ queryKey: campaignTestKeys.sessions(sessionParams) })
-        }
         headerActions={
           canGiveFeedback ? (
             <Button

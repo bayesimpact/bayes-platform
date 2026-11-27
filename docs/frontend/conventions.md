@@ -198,11 +198,13 @@ or editing the boundaries' configuration.
 
 ## Network code, mutations, forms and tables
 
-- Every network call lives in `features/<feature>/api` on top of `lib/api-client.ts`, streams and
-  signed-URL uploads included, and takes its types from the route's schemas. The one call outside
-  the API client is the PUT of an upload's bytes to its signed URL, `putFileToSignedUrl` of
-  `@caseai-connect/frontend-lib`, which a feature's mutation calls. No component calls
-  `fetch`. An upload is one mutation that presigns, sends the bytes and confirms.
+- The chat's calls live in `packages/chat`, on the routes and the client the app gives in
+  `features/conversation/chat.ts`. Every other network call lives in `features/<feature>/api` on
+  top of `lib/api-client.ts`, streams and signed-URL uploads included, and takes its types from
+  the route's schemas. The one call outside the API client is the PUT of an upload's bytes to its
+  signed URL, `putFileToSignedUrl` of `@caseai-connect/frontend-lib`, which a feature's mutation
+  calls. No component calls `fetch`. An upload is one mutation that presigns, sends the bytes and
+  confirms.
 - `apiRequest(route, { params, query, body, signal })` takes the params and the query as their
   schemas output them, encodes them with `z.encode`, parses the body with its schema and sends it in
   `{ payload }`, and returns the response's `data` parsed with the route's schema. It keeps the

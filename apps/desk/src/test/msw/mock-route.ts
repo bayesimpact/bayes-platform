@@ -193,6 +193,34 @@ function streamOf(frames: string[]): ReadableStream<Uint8Array> {
 }
 
 /**
+ * A stream a spec holds open, to check what a person sees while a reply is still being written.
+ * The events it sends go through the route's event schema, as a mocked stream's do, and it stays
+ * open until the spec closes it. A resolver of `mockStreamRoute` answers with its `response`.
+ */
+export function openMockStream<TRoute extends AnyStreamRoute>(route: TRoute) {
+  const encoder = new TextEncoder()
+  let controller: ReadableStreamDefaultController<Uint8Array> | undefined
+  let isClosed = false
+  const body = new ReadableStream<Uint8Array>({
+    start(streamController) {
+      controller = streamController
+    },
+  })
+  return {
+    response: new Response(body, { headers: { "Content-Type": "text/event-stream" } }),
+    send(event: z.input<TRoute["schemas"]["event"]>) {
+      if (!isClosed) controller?.enqueue(encoder.encode(serializeFrame(route, { event })))
+    },
+    /** Ends the stream. A second call does nothing, so a spec can close it in a `finally`. */
+    close() {
+      if (isClosed) return
+      isClosed = true
+      controller?.close()
+    },
+  }
+}
+
+/**
  * An MSW handler for a stream route of the contracts: its method comes from the route, its params,
  * query and body are decoded by the route's schemas, and each event the resolver returns is parsed
  * by the event schema, then sent as a server-sent event. It answers 200 whatever the method, as

@@ -1,7 +1,9 @@
-// The chat's logic and hooks the Desk and Evaluation share: its messages, the stream of a reply,
-// the annotations and quoted passages of a reply, its task checks, its MCP Apps, its resources,
-// the document of the message box and the form that reports a problem with a reply. Only what
-// the apps import is exported here, by name, so an export they stop using shows as unused.
+// The chat the Desk and Evaluation share: the chat object (`createChat`, which holds the calls to
+// the API and the stream of a reply) and its provider, and the logic and hooks around it: the
+// messages, the annotations and quoted passages of a reply, its task checks, its MCP Apps, its
+// resources, the document of the message box and the form that reports a problem with a reply.
+// Only what the apps import is exported here, by name, so an export they stop using shows as
+// unused.
 export {
   ANNOTATION_LAYER_ATTRIBUTE,
   type Annotation,
@@ -11,33 +13,35 @@ export {
   isSameRange,
   messageSegmentsOf,
   QUOTABLE_ATTRIBUTE,
-  quoteSourceOf,
   readQuotableSelection,
   saveAnnotation,
 } from "./annotation"
+export { createChat } from "./api/create-chat"
 export {
-  applyReplyEvent,
+  useOpenAttachment,
+  useOpenDocument,
+  useSendFeedback,
+} from "./api/mutations"
+export { ChatProvider } from "./ChatProvider"
+export { useChat } from "./chat-context"
+export {
   type ChatAttachment,
   type ChatMcpApp,
   type ChatMessage,
   type ChatResource,
   type ChatSource,
   type ChatToolResult,
-  failStreamingReplies,
   findRetryableMessage,
   isBeingWritten,
   isLocalMessageId,
   lastReplyFollowUpQuestions,
-  newLocalMessageId,
   type OutgoingMessage,
-  type ReplyCursor,
   type ReplyFailure,
-  setAttachmentDocument,
-  startTurn,
   toChatMessages,
 } from "./chat-messages"
-export { useAnnotations } from "./hooks/use-annotations"
+export { isFormTool } from "./form-tools"
 export { type CitedPassages, useCitedPassages } from "./hooks/use-cited-passages"
+export { useConversationSend } from "./hooks/use-conversation-send"
 export { useIsOverflowing } from "./hooks/use-is-overflowing"
 export { useRangeEnd } from "./hooks/use-range-end"
 export { type ReplyClick, useSettledSelection } from "./hooks/use-settled-selection"

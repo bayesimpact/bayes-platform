@@ -1,7 +1,9 @@
 import { Toaster } from "@caseai-connect/app-ui/components/sonner"
+import { ChatProvider } from "@caseai-connect/chat"
 import { QueryClientProvider } from "@tanstack/react-query"
 import type { ReactElement } from "react"
 import { createQueryClient } from "@/app/query-client"
+import { chat } from "@/features/conversation"
 import { renderWithI18n } from "./render-with-i18n"
 
 /** The params of a conversation that exists nowhere, for a component that only sends requests. */
@@ -18,7 +20,7 @@ export function randomConversationParams() {
 export function renderWithQueryClient(ui: ReactElement) {
   return renderWithI18n(
     <QueryClientProvider client={createQueryClient({ isRetrying: false })}>
-      {ui}
+      <ChatProvider chat={chat}>{ui}</ChatProvider>
       <Toaster />
     </QueryClientProvider>,
   )

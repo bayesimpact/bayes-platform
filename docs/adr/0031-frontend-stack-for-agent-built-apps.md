@@ -31,6 +31,9 @@
   (sections 2.3, 2.4, 2.11, 4 and 6)
 * **Amended**: 2026-11-26, by Alexis: the compositions that know no feature, and the texts they
   show, are part of `packages/app-ui`, which has a catalog of its own (section 2.4)
+* **Amended**: 2026-11-27, by Alexis: the chat's calls to the API are part of `packages/chat`, which
+  each app gives its routes and its client through a chat object (sections 2.4, "The shared chat
+  logic", 2.6 and 2.7)
 * **Amends**: [ADR 0010](0010-factory-per-model-and-story-per-route.md),
   [ADR 0011](0011-frontend-architecture.md) and [ADR 0012](0012-form-architecture.md), which keep
   governing `apps/web` until each of its apps is rebuilt on this stack, and
@@ -396,7 +399,14 @@ hooks of the chat that the Desk and Evaluation each held in `features/conversati
 messages of a conversation and the stream of a reply (`toChatMessages`, `startTurn`,
 `applyReplyEvent`), the annotations and quoted passages of a reply and the hooks that follow the
 person's selection, the task checks, the MCP Apps a reply shows, the media of its resources, the
-document of the message box, and the form that reports a problem with a reply. Evaluation's chat
+document of the message box, and the form that reports a problem with a reply. Since 2026-11-27 it
+also makes the chat's calls to the API: the queries of a conversation's messages, of its MCP Apps
+and of a document's public state, the hooks that send a message or a feedback and open a document
+or an attachment, the stream of a reply and the upload of an attachment. Each app creates one
+chat object in `features/conversation/chat.ts` with `createChat`, and gives it what it alone
+knows: its routes, the functions of its API client, and two callbacks, for what the app refreshes
+when a tool runs and when a reply ends. The layout route of the signed-in pages gives the object
+to `<ChatProvider>`, and a hook of the package throws outside a provider. Evaluation's chat
 started as a copy of the Desk's, which a parity check compared file by file; these files were
 the same in both apps but for their imports and comments, and the memory, which only the Desk
 has. Its limits:
@@ -404,13 +414,13 @@ has. Its limits:
 * No app owns it, and it holds nothing only one app shows: a message keeps the results of its
   tool calls, without their arguments, in which the Desk reads the facts its memory saved, so the
   package knows no memory. It holds no
-  component, style or text a screen shows, and makes no call to the API: the components, the
-  calls, and the hooks and helpers that show a text or call the API stay in each app, which the
-  parity check still compares,
-  until the next steps move them with a way for each app to give its routes, its client and its
-  texts.
-* It depends on React as a peer, on Zod, and on `@caseai-connect/chat-contracts`,
-  `@caseai-connect/frontend-lib` and `@caseai-connect/mcp-app-host`, which no app owns either.
+  component, style or text a screen shows, writes no route by hand and has no client of its own:
+  it calls the API through the routes and the client the app gives. The components, and the hooks
+  and helpers that show a text, stay in each app, which the parity check still compares, until a
+  next step moves them with a way for each app to give its texts.
+* It depends on React and TanStack Query as peers, on Zod, and on `@caseai-connect/chat-contracts`,
+  `@caseai-connect/frontend-lib` and `@caseai-connect/mcp-app-host`, which no app owns either. It
+  imports the types of `@caseai-connect/api-client`, and nothing else of it.
 * The apps import it directly. It follows the TypeScript options of the new stack, resolves
   through its `exports` with no build, and has its own specs, which CI runs in the Desk's job.
   Its hooks go through the React Compiler of each app, and its `biome.json` extends the apps'
@@ -510,7 +520,7 @@ of this ADR that gives its reasons, and a row in the list.
   boundary.
 * `useQuery` is an exception, justified in a one-line comment: a conditional query, optional data
   such as a badge, or live search with `placeholderData: keepPreviousData`.
-* Each feature has a query key factory (`conversationKeys.messages(id)`), and each query is a
+* Each feature has a query key factory (`accountKeys.me()`), and each query is a
   `queryOptions` factory in `features/<feature>/api/queries.ts`, shared by loaders and components.
   The cache is read and written through `xxxQueryOptions(...).queryKey`, which carries the data's
   type, never through a bare key and a type argument.
@@ -519,8 +529,10 @@ of this ADR that gives its reasons, and a row in the list.
 
 ### 2.7 Network code, mutations, forms and tables
 
-* Every network call, streams and signed-URL uploads included, lives in `features/<feature>/api`
-  on top of `lib/api-client.ts`, which wraps `@caseai-connect/api-client` (section 2.4), and takes
+* The chat's calls live in `packages/chat`, on the routes and the client the app gives it (section
+  2.4). Every other network call, streams and signed-URL uploads included, lives in
+  `features/<feature>/api` on top of `lib/api-client.ts`, which wraps
+  `@caseai-connect/api-client` (section 2.4), and takes
   its types from the route's schemas. The one call outside the API client is the PUT of an
   upload's bytes to its signed URL (`putFileToSignedUrl` of `@caseai-connect/frontend-lib`),
   which a feature's mutation calls.

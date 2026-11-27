@@ -1,3 +1,11 @@
+import type { ServerSentEvent } from "@caseai-connect/api-client"
+import {
+  type ConversationParamsDto,
+  type ReplyStreamEventDto,
+  replyStreamEventSchema,
+} from "@caseai-connect/chat-contracts"
+import type { QueryClient } from "@tanstack/react-query"
+import { z } from "zod"
 import {
   applyReplyEvent,
   type ChatMessage,
@@ -8,24 +16,19 @@ import {
   type ReplyFailure,
   setAttachmentDocument,
   startTurn,
-} from "@caseai-connect/chat"
-import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
-import {
-  EvalConversationsRoutes,
-  type ReplyStreamEventDto,
-  replyStreamEventSchema,
-  TOOL_NAMES,
-} from "@caseai-connect/eval-contracts"
-import type { QueryClient } from "@tanstack/react-query"
-import { z } from "zod"
-import { apiStreamResponse, readServerSentEvents, type ServerSentEvent } from "@/lib/api-client"
-import { conversationKeys } from "./keys"
-import { messagesQueryOptions } from "./queries"
-import { registerReplyStream, unregisterReplyStream } from "./reply-streams"
+} from "../chat-messages"
+import type { ChatOptions } from "./chat-options"
+import { chatKeys } from "./keys"
+import type { createChatQueries } from "./queries"
+import type { ReplyStreams } from "./reply-streams"
 import { uploadAttachment } from "./upload-attachment"
 
-/** The tools that change a form of the conversation. */
-const FORM_TOOLS: ReadonlySet<string> = new Set([TOOL_NAMES.fillForm, TOOL_NAMES.consolidateForm])
+/** What `streamReply` works with: the app's options, the chat's streams and its messages' query. */
+export type StreamReplyContext = {
+  options: ChatOptions
+  replyStreams: ReplyStreams
+  messagesQueryOptions: ReturnType<typeof createChatQueries>["messagesQueryOptions"]
+}
 
 /** An event of the stream, or the failure to read one. */
 type ReadEvent = { event: ReplyStreamEventDto } | { failure: ReplyFailure }
@@ -60,15 +63,15 @@ function readEvent(frame: ServerSentEvent): ReadEvent {
  * stops reading; the server keeps writing, and the messages refetch once the stream is over.
  */
 export async function streamReply(
+  { options, replyStreams, messagesQueryOptions }: StreamReplyContext,
   queryClient: QueryClient,
   conversation: ConversationParamsDto,
   outgoing: OutgoingMessage,
-  onFormsChange: () => void,
 ): Promise<void> {
   // The key of the messages' query carries their type: the cache's reads and writes are checked.
   const { queryKey } = messagesQueryOptions(conversation)
   await queryClient.cancelQueries({ queryKey })
-  const controller = registerReplyStream(conversation.agentSessionId)
+  const controller = replyStreams.register(conversation.agentSessionId)
   const replyId = newLocalMessageId()
   const update = (change: (messages: ChatMessage[]) => ChatMessage[]) =>
     queryClient.setQueryData(queryKey, (messages = []) => change(messages))
@@ -82,6 +85,7 @@ export async function streamReply(
     if (outgoing.attachment && "file" in outgoing.attachment) {
       try {
         attachmentDocumentId = await uploadAttachment(
+          options,
           conversation,
           outgoing.attachment.file,
           controller.signal,
@@ -97,13 +101,13 @@ export async function streamReply(
     } else if (outgoing.attachment) {
       attachmentDocumentId = outgoing.attachment.documentId
     }
-    const response = await apiStreamResponse(EvalConversationsRoutes.streamReply, {
+    const response = await options.api.apiStreamResponse(options.routes.conversation.streamReply, {
       params: conversation,
       body: { content: outgoing.content, attachmentDocumentId },
       signal: controller.signal,
     })
     if (!response.body) throw new Error("The reply stream has no body")
-    for await (const frame of readServerSentEvents(response.body)) {
+    for await (const frame of options.api.readServerSentEvents(response.body)) {
       const read = readEvent(frame)
       if ("failure" in read) {
         update((messages) => failStreamingReplies(messages, read.failure))
@@ -114,9 +118,12 @@ export async function streamReply(
         cursor = next.cursor
         return next.messages
       })
-      // A form the agent fills in shows its new answers while the reply goes on.
-      if (read.event.type === "notify_client" && FORM_TOOLS.has(read.event.toolName)) {
-        onFormsChange()
+      if (read.event.type === "notify_client") {
+        try {
+          options.onToolCalled?.(queryClient, conversation, read.event.toolName)
+        } catch (error) {
+          console.error("onToolCalled failed:", error)
+        }
       }
       if (read.event.type === "error") return
     }
@@ -131,17 +138,20 @@ export async function streamReply(
     console.error("The reply could not be streamed:", error)
     update((messages) => failStreamingReplies(messages, "unreachable"))
   } finally {
-    unregisterReplyStream(conversation.agentSessionId, controller)
+    replyStreams.unregister(conversation.agentSessionId, controller)
     // The persisted messages replace the local ones. A failed reply stays as it is, with its
     // reason and the retry, until the person sends again or comes back.
     if (!hasFailed || controller.signal.aborted) void queryClient.invalidateQueries({ queryKey })
     // A reply may show an MCP App the conversation did not show yet: its HTML loads again.
     if (!hasFailed) {
       void queryClient.invalidateQueries({
-        queryKey: conversationKeys.mcpApps(conversation.agentSessionId),
+        queryKey: chatKeys.mcpApps(conversation.agentSessionId),
       })
     }
-    // A form may have changed in the last tool call of the reply.
-    onFormsChange()
+    try {
+      options.onReplySettled?.(queryClient, conversation)
+    } catch (error) {
+      console.error("onReplySettled failed:", error)
+    }
   }
 }

@@ -12,7 +12,7 @@ import {
 import { Field, FieldError, FieldLabel } from "@caseai-connect/app-ui/components/field"
 import { Textarea } from "@caseai-connect/app-ui/components/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/app-ui/components/tooltip"
-import { reportFormSchema } from "@caseai-connect/chat"
+import { reportFormSchema, useSendFeedback } from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/eval-contracts"
 import { MESSAGE_FEEDBACK_MAX_LENGTH } from "@caseai-connect/eval-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -21,7 +21,6 @@ import { ThumbsDownIcon } from "lucide-react"
 import { useId, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { useSendFeedback } from "../api/mutations"
 
 export type FeedbackDialogProps = {
   conversation: ConversationParamsDto
