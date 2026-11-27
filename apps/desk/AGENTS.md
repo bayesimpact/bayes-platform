@@ -164,18 +164,19 @@ the conventions as they stand. When a rule changes, its reference file changes i
   `createChat`: its routes (conversation and documents), the functions of its API client, and what
   the Desk refreshes when a tool runs (`onToolCalled`) and when a reply ends (`onReplySettled`).
   `src/routes/_authenticated.tsx` gives it to `<ChatProvider>`, and `renderWithQueryClient` does
-  the same in the tests: a hook of the package throws outside a provider. The feature's `api/`
-  keeps `mutations.ts` for `useStartConversation`, which only the Desk has. A message keeps
-  the results of its
-  tool calls, in which the Desk reads the facts its memory saved (`savedMemoryIdsOf` of `features/memory`):
-  the package knows no memory.
-- Evaluation (`apps/eval`) holds a copy of what is still in the Desk's `features/conversation`: its components and the hooks and helpers that show a text. Its calls to the API are not among them.
-  and `Markdown`, `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. A change
-  to one of these files goes to the copy too, in the same PR.
+  the same in the tests: a hook of the package throws outside a provider. A message keeps the
+  results of its tool calls, in which the Desk reads the facts its memory saved
+  (`savedMemoryIdsOf` of `features/memory`): the package knows no memory. The feature's `api/`
+  keeps `mutations.ts` for `useStartConversation`, which only the Desk has.
+- Evaluation (`apps/eval`) holds a copy of what is still in the Desk's
+  `src/features/conversation/`: its components and the hooks and helpers that show a text, and
+  `Markdown`, `HighlightedCodeBlock` and `InlineCode` of `src/components/shared/`. Its calls to the
+  API are not among them. A change to one of these files goes to the copy too, in the same PR.
   `npm run check:desk-parity -w @caseai-connect/eval` compares the two, and fails on any
   difference not recorded in `apps/eval/scripts/desk-parity.json`. That file holds a fingerprint
-  of each wanted difference, a file only one app has included (`ConversationMenu.tsx`, `api/mutations.ts`): record
-  one with `-- --update`. `chat-parity.spec.tsx`, in both apps, renders one conversation to a
+  of each wanted difference, a file only one app has included (`ConversationMenu.tsx`,
+  `api/mutations.ts`): record one with `-- --update`. `chat-parity.spec.tsx`, in both apps,
+  renders one conversation to a
   snapshot the check compares too. The Desk's `check` does not run it: CI's `eval-tests` job does.
 - The API client: `src/lib/api-client.ts`, which creates the client of
   `@caseai-connect/api-client` (`packages/api-client`) on the app's session. The query client:
