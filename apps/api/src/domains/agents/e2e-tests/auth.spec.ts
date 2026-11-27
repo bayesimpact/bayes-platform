@@ -1,10 +1,5 @@
 import { randomUUID } from "node:crypto"
-import {
-  AgentModel,
-  AgentSubAgentsRoutes,
-  AgentsRoutes,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import { AgentSubAgentsRoutes, AgentsRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -434,15 +429,7 @@ describe("Agents - Auth", () => {
         pathParams: pathParams(),
         token: "token",
         request: {
-          payload: {
-            type: "conversation",
-            name: "New Agent",
-            instructions: "This is a default prompt",
-            documentsRagMode: DocumentsRagMode.All,
-            model: AgentModel.Gemini35Flash,
-            tagsToAdd: [],
-            projectAgentSessionCategoryIds: [],
-          },
+          payload: { type: "conversation", name: "New Agent" },
         },
       })
 

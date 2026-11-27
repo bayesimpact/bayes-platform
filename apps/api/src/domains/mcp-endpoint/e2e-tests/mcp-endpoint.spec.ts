@@ -14,6 +14,7 @@ import {
 import { configureGlobalPrefix } from "@/config/api-prefix"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { obtainTokens, resetRateLimits } from "@/domains/oauth/e2e-tests/oauth-test.helpers"
 import type { OrganizationRoleKey } from "@/domains/organizations/memberships/organization-membership.types"
 import {
@@ -104,6 +105,16 @@ describe("MCP endpoint", () => {
     })
     await client.connect(transport)
     return client
+  }
+
+  /** A new agent is a draft: put its first version in production, as the studio's Publish does. */
+  const publishFirstVersion = async (agentId: string) => {
+    const agent = await setup.getRepository(Agent).findOneByOrFail({ id: agentId })
+    await setup.module.get(AgentSettingsService).publish({
+      connectScope: { organizationId: agent.organizationId, projectId: agent.projectId },
+      agentId,
+      revision: 1,
+    })
   }
 
   const postToolsList = (accessToken?: string) => {
@@ -206,7 +217,7 @@ describe("MCP endpoint", () => {
       await client.close()
     })
 
-    it("creates and publishes an agent", async () => {
+    it("creates an agent as a draft that nothing uses until it is published", async () => {
       const { organization, project, user } = await createContext()
       const client = await connect(await grantAccess([project.id]), era)
 
@@ -227,6 +238,7 @@ describe("MCP endpoint", () => {
         type: "conversation",
         projectId: project.id,
         organizationId: organization.id,
+        published: false,
       })
       const savedAgent = await setup.getRepository(Agent).findOneBy({ id: agent.id })
       expect(savedAgent?.name).toBe("Helpful Assistant")
@@ -236,7 +248,8 @@ describe("MCP endpoint", () => {
       expect(agentSettings).toMatchObject({
         instructions: "Answer questions about the product.",
         model: AgentModel.Gemini35Flash,
-        isDraft: false,
+        isDraft: true,
+        isProduction: false,
       })
       await expectActivityCreated("agent.create", {
         userId: user.id,
@@ -258,7 +271,9 @@ describe("MCP endpoint", () => {
           model: AgentModel.Gemini35FlashLite,
         },
       })
-      return (result.structuredContent as { agent: { id: string } }).agent.id
+      const agentId = (result.structuredContent as { agent: { id: string } }).agent.id
+      await publishFirstVersion(agentId)
+      return agentId
     }
 
     it("lists the agents the person can change", async () => {
@@ -401,7 +416,9 @@ describe("MCP endpoint", () => {
           model: AgentModel.Gemini35FlashLite,
         },
       })
-      return (result.structuredContent as { agent: { id: string } }).agent.id
+      const agentId = (result.structuredContent as { agent: { id: string } }).agent.id
+      await publishFirstVersion(agentId)
+      return agentId
     }
 
     const listRevisions = async (agentId: string) =>
@@ -547,7 +564,9 @@ describe("MCP endpoint", () => {
           model: AgentModel.Gemini35FlashLite,
         },
       })
-      return (result.structuredContent as { agent: { id: string } }).agent.id
+      const agentId = (result.structuredContent as { agent: { id: string } }).agent.id
+      await publishFirstVersion(agentId)
+      return agentId
     }
 
     it("copies an agent into a draft that nothing uses until it is published", async () => {
@@ -808,7 +827,27 @@ describe("MCP endpoint", () => {
       await client.close()
     })
 
-    it("explains why an extraction agent without an output schema is refused", async () => {
+    it("gives an agent created without instructions the platform's defaults", async () => {
+      const { project } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+
+      const result = await client.callTool({
+        name: "create_agent",
+        arguments: { projectId: project.id, name: "Helpful Assistant" },
+      })
+
+      expect(result.isError).toBeFalsy()
+      const { agent } = result.structuredContent as { agent: { id: string } }
+      const agentSettings = await setup
+        .getRepository(AgentSettings)
+        .findOneByOrFail({ agentId: agent.id, revision: 1 })
+      expect(agentSettings.instructions).toContain(
+        "Always answer in the language of the user's last message.",
+      )
+      await client.close()
+    })
+
+    it("gives an extraction agent created without an output schema an example schema", async () => {
       const { project } = await createContext()
       const client = await connect(await grantAccess([project.id]))
 
@@ -822,13 +861,13 @@ describe("MCP endpoint", () => {
         },
       })
 
-      expect(result.isError).toBe(true)
-      expect(result.content).toEqual([
-        {
-          type: "text",
-          text: "outputJsonSchema: outputJsonSchema is required when type is not 'conversation'",
-        },
-      ])
+      expect(result.isError).toBeFalsy()
+      const { agent } = result.structuredContent as { agent: { id: string } }
+      const agentSettings = await setup
+        .getRepository(AgentSettings)
+        .findOneByOrFail({ agentId: agent.id, revision: 1 })
+      expect(agentSettings.instructions).toBe("Extract a title and a summary.")
+      expect(agentSettings.outputJsonSchema).toMatchObject({ type: "object" })
       await client.close()
     })
   })

@@ -1,6 +1,6 @@
-import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
-import { UnprocessableEntityException } from "@nestjs/common"
+import { BadRequestException, UnprocessableEntityException } from "@nestjs/common"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -57,10 +57,7 @@ describe("AgentsService", () => {
           type: "conversation",
           name: "My Template",
           instructions: "This is a default prompt",
-          documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
-          deletedTemperature: 0,
+          model: AgentModel.Gemini35Flash,
         },
         userId: user.id,
       })
@@ -112,10 +109,7 @@ describe("AgentsService", () => {
           type: "conversation",
           name: "New Agent",
           instructions: "Prompt",
-          documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
-          deletedTemperature: 0,
+          model: AgentModel.Gemini35Flash,
         },
         userId: user.id,
       })
@@ -154,10 +148,7 @@ describe("AgentsService", () => {
             type: "conversation",
             name: "AB",
             instructions: "Prompt",
-            documentsRagMode: DocumentsRagMode.All,
-            providerOptions: {},
-            model: AgentModel.Gemini25Flash,
-            deletedTemperature: 0,
+            model: AgentModel.Gemini35Flash,
           },
           userId: user.id,
         })
@@ -181,10 +172,7 @@ describe("AgentsService", () => {
           type: "conversation",
           name: "Conversation Agent",
           instructions: "This is a default prompt",
-          documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
-          deletedTemperature: 0,
+          model: AgentModel.Gemini35Flash,
         },
         userId: user.id,
       })
@@ -202,10 +190,7 @@ describe("AgentsService", () => {
           name: "Greeter Agent",
           instructions: "Prompt",
           greetingMessage: "Hi! How can I help you today?",
-          documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
-          deletedTemperature: 0,
+          model: AgentModel.Gemini35Flash,
         },
         userId: user.id,
       })
@@ -222,10 +207,7 @@ describe("AgentsService", () => {
           type: "conversation",
           name: "Silent Agent",
           instructions: "Prompt",
-          documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
-          deletedTemperature: 0,
+          model: AgentModel.Gemini35Flash,
         },
         userId: user.id,
       })
@@ -244,10 +226,7 @@ describe("AgentsService", () => {
           name: "Whitespace Agent",
           instructions: "Prompt",
           greetingMessage: "   ",
-          documentsRagMode: DocumentsRagMode.All,
-          providerOptions: {},
-          model: AgentModel.Gemini25Flash,
-          deletedTemperature: 0,
+          model: AgentModel.Gemini35Flash,
         },
         userId: user.id,
       })
@@ -255,31 +234,96 @@ describe("AgentsService", () => {
       expect(agentSettings?.greetingMessage).toBeNull()
     })
 
-    it("should require extraction fields when type is extraction", async () => {
+    it("gives an extraction agent created without a schema the example schema", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
-      const createExtractionWithoutSchema = async () =>
-        service.createAgent({
-          connectScope: {
-            organizationId: organization.id,
-            projectId: project.id,
-          },
-          fields: {
-            name: "Extraction Agent",
-            instructions: "This is a default prompt",
-            documentsRagMode: DocumentsRagMode.All,
-            providerOptions: {},
-            model: AgentModel.Gemini25Flash,
-            deletedTemperature: 0,
-            type: "extraction",
-          },
-          userId: user.id,
-        })
+      const { agentSettings } = await service.createAgent({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        fields: {
+          name: "Extraction Agent",
+          instructions: "This is a default prompt",
+          model: AgentModel.Gemini35Flash,
+          type: "extraction",
+        },
+        userId: user.id,
+      })
 
-      await expect(createExtractionWithoutSchema()).rejects.toThrow(UnprocessableEntityException)
-      await expect(createExtractionWithoutSchema()).rejects.toThrow(
-        "Extraction agent requires outputJsonSchema",
-      )
+      expect(agentSettings.isDraft).toBe(true)
+      expect(agentSettings.instructions).toBe("This is a default prompt")
+      expect(agentSettings.outputJsonSchema).toMatchObject({ type: "object" })
+    })
+
+    it("creates a form agent as a conversation agent with the fillForm tool and an example form", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+
+      const { agent, agentSettings } = await service.createAgent({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        fields: { name: "Form Agent", type: "form" },
+        userId: user.id,
+      })
+
+      expect(agent.type).toBe("conversation")
+      expect(agentSettings.fillFormEnabled).toBe(true)
+      expect(agentSettings.instructions).toContain("fill out the form")
+      expect(agentSettings.outputJsonSchema).toMatchObject({ required: ["country", "language"] })
+    })
+
+    it("gives a new agent every session category of its project", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+      const [billing, support] = await repositories.projectAgentSessionCategoryRepository.save([
+        repositories.projectAgentSessionCategoryRepository.create({
+          projectId: project.id,
+          name: "Billing",
+        }),
+        repositories.projectAgentSessionCategoryRepository.create({
+          projectId: project.id,
+          name: "Support",
+        }),
+      ])
+
+      const { agent } = await service.createAgent({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        fields: { name: "Categorized Agent", type: "conversation" },
+        userId: user.id,
+      })
+
+      const agentCategories = await repositories.agentSessionCategoryRepository.find({
+        where: { agentId: agent.id },
+        order: { name: "ASC" },
+      })
+      expect(agentCategories.map((category) => category.projectAgentSessionCategoryId)).toEqual([
+        billing?.id,
+        support?.id,
+      ])
+    })
+
+    it("rejects a model the workspace has not enabled", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+
+      await expect(
+        service.createAgent({
+          connectScope: { organizationId: organization.id, projectId: project.id },
+          fields: { name: "Gemma Agent", type: "conversation", model: AgentModel.Gemma4_26B },
+          userId: user.id,
+        }),
+      ).rejects.toThrow(BadRequestException)
+      expect(await repositories.agentRepository.count()).toBe(0)
+    })
+
+    it("rejects a model past its deprecation date", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+
+      // Gemini 2.5 was deprecated on 2026-09-30.
+      await expect(
+        service.createAgent({
+          connectScope: { organizationId: organization.id, projectId: project.id },
+          fields: { name: "Old Agent", type: "conversation", model: AgentModel.Gemini25Flash },
+          userId: user.id,
+        }),
+      ).rejects.toThrow("Model gemini-2.5-flash is no longer available")
     })
   })
 

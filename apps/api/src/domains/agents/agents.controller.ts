@@ -81,14 +81,7 @@ export class AgentsController {
     const connectScope = getRequiredConnectScope(request)
     const { agent, agentSettings } = await this.agentsService.createAgent({
       connectScope,
-      fields: {
-        ...payload,
-        providerOptions: await this.agentSettingsService.resolveNewAgentModelOptions({
-          connectScope,
-          model: payload.model,
-          providerOptions: payload.providerOptions,
-        }),
-      },
+      fields: payload,
       userId: request.user.id,
     })
 
@@ -96,7 +89,9 @@ export class AgentsController {
       userId: request.user.id,
       agentId: agent.id,
     })
-    return { data: toAgentDto({ agent, agentSettings, permissions }) }
+    return {
+      data: toAgentWithDraftDto({ agent, draftAgentSettings: agentSettings, permissions }),
+    }
   }
 
   /**

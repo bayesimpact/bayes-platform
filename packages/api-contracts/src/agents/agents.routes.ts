@@ -10,7 +10,8 @@ import type {
 import type { AgentModelListDto } from "./settings/agent-settings.dto"
 
 export const AgentsRoutes = {
-  createOne: defineRoute<ResponseData<AgentDto>, RequestPayload<CreateAgentDto>>({
+  /** Creates an agent whose settings start as a draft, with the defaults of its type. */
+  createOne: defineRoute<ResponseData<AgentWithDraftDto>, RequestPayload<CreateAgentDto>>({
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/agents",
   }),

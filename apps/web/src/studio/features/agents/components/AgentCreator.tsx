@@ -1,4 +1,9 @@
-import { agentValidationSchema, type CreateAgentDto } from "@caseai-connect/api-contracts"
+import {
+  type AgentCreationType,
+  agentCreationTypeSchema,
+  agentValidationSchema,
+  type CreateAgentDto,
+} from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -26,19 +31,13 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { z } from "zod"
 import { GridCard } from "@/common/components/grid/Grid"
-import { selectAvailableModelsCatalog } from "@/common/features/agents/agents.selectors"
 import type { Project } from "@/common/features/projects/projects.models"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { defaultModelOptions } from "@/studio/features/agents/agent-settings/components/tabs/model-tab.helpers"
+import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import {
-  type AgentCreationChoice,
-  getDefaultFormValues,
-} from "../agent-settings/components/agent-form.shared"
 import { createAgent } from "../agents.thunks"
 
-const defaultChoice: AgentCreationChoice = "conversation"
-const creationChoices: AgentCreationChoice[] = ["conversation", "extraction", "form"]
+const defaultChoice: AgentCreationType = "conversation"
+const creationChoices = agentCreationTypeSchema.options
 const agentNameSchema = agentValidationSchema.pick({ name: true })
 
 type FormValues = z.infer<typeof agentNameSchema>
@@ -83,7 +82,7 @@ function AgentCreatorDialog({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const [selectedChoice, setSelectedChoice] = useState<AgentCreationChoice>(defaultChoice)
+  const [selectedChoice, setSelectedChoice] = useState<AgentCreationType>(defaultChoice)
   const form = useForm<FormValues>({
     resolver: zodResolver(agentNameSchema),
     defaultValues: { name: "" },
@@ -97,22 +96,11 @@ function AgentCreatorDialog({
     onOpenChange(nextOpen)
   }
 
-  // The catalog gives the model a new agent starts on; creating waits for it.
-  const catalog = useAppSelector(selectAvailableModelsCatalog)
-
   // The submit stays pending until the agent opens or the creation fails. Enter then a click
   // on the button would otherwise create the agent twice.
   const handleFormSubmit = async (values: FormValues) => {
-    if (!catalog) return
-    const fields: CreateAgentDto = {
-      ...getDefaultFormValues({
-        creationChoice: selectedChoice,
-        defaultModel: catalog.defaults.agent,
-        defaultModelOptions: defaultModelOptions(catalog, catalog.defaults.agent),
-      }),
-      name: values.name,
-      projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
-    }
+    // The API sets everything else from the type, and the new agent's settings are a draft.
+    const fields: CreateAgentDto = { name: values.name, type: selectedChoice }
 
     // `onSuccess` runs once the new agent is listed, after the thunk itself resolved.
     await new Promise<void>((resolve) => {
@@ -180,11 +168,7 @@ function AgentCreatorDialog({
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={form.formState.isSubmitting || catalog === null}
-            >
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {t("actions:create")}
             </Button>
           </form>

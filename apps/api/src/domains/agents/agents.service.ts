@@ -1,3 +1,4 @@
+import { type AgentCreationType, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -5,29 +6,23 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { extractAgentSettingsCreateFields } from "@/domains/agents/settings/agent.settings.functions"
 import type { AgentSettingsCreateFields } from "@/domains/agents/settings/agent.settings.types"
-import type { DocumentTagsUpdateFields } from "../documents/tags/document-tags.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "../rbac/permission.service"
 import { Agent } from "./agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentRepository } from "./agent.repository"
+import { newAgentDefaults } from "./agent-defaults"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSessionCategoryRepository } from "./session-categories/agent-session-category.repository"
+import { AGENT_DEFAULT_MODELS } from "./settings/agent-models.service"
 import type { AgentSettings } from "./settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "./settings/agent-settings.service"
-
-type AgentProjectCategoriesUpdateFields = {
-  projectAgentSessionCategoryIds?: string[]
-}
-
-type AgentResourceLibrariesUpdateFields = {
-  resourceLibraryIds?: string[]
-}
 
 @Injectable()
 export class AgentsService {
@@ -42,12 +37,17 @@ export class AgentsService {
     private readonly transactionService: TransactionService,
     private readonly agentsRepository: AgentRepository,
     private readonly permissionService: PermissionService,
+    private readonly agentSessionCategoryRepository: AgentSessionCategoryRepository,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
   }
 
   /**
-   * Creates a new agent for a project.
+   * Creates a new agent for a project from its name and creation type (newAgentDefaults). Its
+   * settings are a draft, as a copy's are: no live conversation runs it until someone publishes a
+   * version in the studio. It runs on the default model with that model's options, searches all the
+   * project's documents and gets every session category of the project. The MCP create_agent tool
+   * may give its instructions, model, greeting and result schema.
    */
   async createAgent({
     userId,
@@ -56,75 +56,61 @@ export class AgentsService {
   }: {
     userId: string
     connectScope: RequiredConnectScope
-    fields: Pick<RequiredConnectScope, never> &
-      Pick<Agent, "name" | "type"> &
-      AgentSettingsCreateFields &
-      DocumentTagsUpdateFields &
-      AgentProjectCategoriesUpdateFields &
-      AgentResourceLibrariesUpdateFields
+    fields: { name: string; type: AgentCreationType } & Partial<
+      Pick<
+        AgentSettingsCreateFields,
+        "instructions" | "model" | "greetingMessage" | "outputJsonSchema"
+      >
+    >
   }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
     this.validateAgentName(fields.name)
 
-    const outputJsonSchema = fields.outputJsonSchema || null
-    this.agentSettingsService.validateExtractionAgent({ type: fields.type, outputJsonSchema })
+    const defaults = newAgentDefaults(fields.type)
+    const outputJsonSchema = fields.outputJsonSchema ?? defaults.outputJsonSchema
+    this.agentSettingsService.validateExtractionAgent({ type: defaults.type, outputJsonSchema })
     this.agentSettingsService.validateFillFormAgent({
-      fillFormEnabled: fields.fillFormEnabled ?? false,
+      fillFormEnabled: defaults.fillFormEnabled,
       outputJsonSchema,
     })
 
+    const model = fields.model ?? AGENT_DEFAULT_MODELS.agent
+    const providerOptions = await this.agentSettingsService.resolveNewAgentModelOptions({
+      connectScope,
+      model,
+      providerOptions: undefined,
+    })
     const greetingMessage = this.agentSettingsService.normalizeGreetingMessage(
       fields.greetingMessage,
     )
 
-    const { tagsToAdd, projectAgentSessionCategoryIds, resourceLibraryIds, ...agentFields } = fields
-    const documentTags = await this.agentSettingsService.resolveDocumentTags({
-      connectScope,
-      currentTags: [],
-      tagsToAdd,
-    })
-    const resourceLibraries = await this.agentSettingsService.resolveResourceLibraries({
-      connectScope,
-      resourceLibraryIds,
-      agentType: fields.type,
-    })
-
-    // Create the agent with defaults
     const agent = await this.agentConnectRepository.createAndSave(connectScope, {
-      ...agentFields,
-      type: agentFields.type,
-      documentTags,
-      resourceLibraries,
+      name: fields.name,
+      type: defaults.type,
+      documentTags: [],
+      resourceLibraries: [],
     })
-    const agentSettingsValues = extractAgentSettingsCreateFields(agentFields)
-    if (agentSettingsValues.embeddingModel !== undefined) {
-      await this.agentSettingsService.validateEmbeddingModel({
-        connectScope,
-        embeddingModel: agentSettingsValues.embeddingModel,
-      })
-    }
-    const embeddingModel =
-      agentSettingsValues.embeddingModel ??
-      (await this.agentSettingsService.resolveDefaultEmbeddingModel(connectScope))
     const agentSettings = await this.agentSettingsService.updateSettings({
       connectScope,
       agentId: agent.id,
-      agentSettings: { ...agentSettingsValues, outputJsonSchema, greetingMessage, embeddingModel },
+      agentSettings: {
+        instructions: fields.instructions ?? defaults.instructions,
+        model,
+        providerOptions,
+        documentsRagMode: DocumentsRagMode.All,
+        fillFormEnabled: defaults.fillFormEnabled,
+        outputJsonSchema,
+        greetingMessage,
+        embeddingModel: await this.agentSettingsService.resolveDefaultEmbeddingModel(connectScope),
+      },
     })
 
-    if (projectAgentSessionCategoryIds !== undefined) {
-      const selectedProjectCategories =
-        await this.agentSettingsService.resolveProjectAgentSessionCategories({
-          projectId: connectScope.projectId,
-          projectAgentSessionCategoryIds,
-          withDeleted: false,
-        })
-      await this.agentSessionCategoriesService.replaceActiveCategoriesForAgent(
-        agent.id,
-        selectedProjectCategories,
-      )
-      agent.sessionCategories =
-        await this.agentSessionCategoriesService.listActiveCategoriesForAgent(agent.id)
-    }
+    await this.agentSessionCategoryRepository.giveProjectCategories({
+      projectId: connectScope.projectId,
+      agentId: agent.id,
+    })
+    agent.sessionCategories = await this.agentSessionCategoriesService.listActiveCategoriesForAgent(
+      agent.id,
+    )
 
     await this.agentMembershipsService.createAgentOwnerMembership({
       agentId: agent.id,
@@ -137,20 +123,7 @@ export class AgentsService {
       excludeUserId: userId,
     })
 
-    //first settings are automatically published
-    const publishedAgentSettings = await this.agentSettingsService.publish({
-      connectScope,
-      agentId: agent.id,
-      revision: agentSettings.revision,
-      revisionName: "",
-    })
-    if (!publishedAgentSettings) {
-      throw new UnprocessableEntityException(
-        `Unable to publish revision ${agentSettings.revision} for agent with id ${agent.id}`,
-      )
-    }
-
-    return { agent, agentSettings: publishedAgentSettings }
+    return { agent, agentSettings }
   }
 
   /**

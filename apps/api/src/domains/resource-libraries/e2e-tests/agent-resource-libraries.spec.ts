@@ -1,9 +1,4 @@
-import {
-  AgentModel,
-  AgentSettingsRoutes,
-  AgentsRoutes,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import { AgentSettingsRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -16,10 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
-import {
-  createOrganizationWithAgent,
-  createOrganizationWithProject,
-} from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { createResourceLibraryForProject } from "../resource-library.factory"
@@ -57,20 +49,6 @@ describe("Agents - resource library selection", () => {
     await app.close()
   })
 
-  const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
-
-    const resourceLibrary = await createResourceLibraryForProject({
-      repositories,
-      organization,
-      project,
-    })
-
-    organizationId = organization.id
-    projectId = project.id
-    authSubject = user.authSubject!
-    return { organization, project, resourceLibrary }
-  }
   const createContextWithAgentAndResource = async () => {
     const { user, organization, project, agent, agentResourceLibraries } =
       await createOrganizationWithAgent(repositories)
@@ -81,13 +59,6 @@ describe("Agents - resource library selection", () => {
     return { organization, project, agent, agentResourceLibraries }
   }
 
-  const createAgent = async (payload: typeof AgentsRoutes.createOne.request) =>
-    request({
-      route: AgentsRoutes.createOne,
-      pathParams: removeNullish({ organizationId, projectId }),
-      token: accessToken,
-      request: payload,
-    })
   const updateAgentSettings = async ({
     agentId,
     payload,
@@ -101,35 +72,6 @@ describe("Agents - resource library selection", () => {
       token: accessToken,
       request: payload,
     })
-
-  const baseAgentPayload = {
-    name: "Helpful Assistant",
-    instructions: "You are helpful",
-    documentsRagMode: DocumentsRagMode.All,
-    model: AgentModel.Gemini31FlashLite,
-    tagsToAdd: [] as string[],
-    projectAgentSessionCategoryIds: [] as string[],
-  }
-
-  it("attaches selected resource libraries to a created conversation agent", async () => {
-    const { resourceLibrary } = await createContext()
-
-    const response = await createAgent({
-      payload: {
-        ...baseAgentPayload,
-        type: "conversation",
-        resourceLibraryIds: [resourceLibrary.id],
-      },
-    })
-
-    expectResponse(response, 201)
-
-    const joinRows = await setup.dataSource.query(
-      "SELECT * FROM agent_resource_library WHERE resource_library_id = $1 AND agent_id= $2",
-      [resourceLibrary.id, response.body.data.id],
-    )
-    expect(joinRows).toHaveLength(1)
-  })
 
   it("attaches selected resource libraries to an updated conversation agent", async () => {
     const { organization, project, agent, agentResourceLibraries } =
@@ -170,27 +112,5 @@ describe("Agents - resource library selection", () => {
     expect(resourceLibrariesAfterUpdate).toHaveLength(2)
     expect(resourceLibrariesAfterUpdate).toContain(resourceLibrary1.id)
     expect(resourceLibrariesAfterUpdate).toContain(resourceLibrary2.id)
-  })
-  it("rejects attaching resource libraries to an extraction agent", async () => {
-    const { organization, project } = await createContext()
-    const resourceLibrary = await createResourceLibraryForProject({
-      repositories,
-      organization,
-      project,
-    })
-
-    const response = await createAgent({
-      payload: {
-        ...baseAgentPayload,
-        type: "extraction",
-        outputJsonSchema: {
-          type: "object",
-          properties: { summary: { type: "string" } },
-        },
-        resourceLibraryIds: [resourceLibrary.id],
-      },
-    })
-
-    expectResponse(response, 400)
   })
 })

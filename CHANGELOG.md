@@ -18,6 +18,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- Agent creation: a new agent starts as a draft, and nothing uses it until someone publishes a version.
+- MCP: AI assistants create agents as drafts, with the default instructions of their type when they give none.
 - Models: superadmins choose in the backoffice which models each workspace offers, replacing the model feature flags.
 - Review campaign report: the campaign's managers read the free-text answers, and the CSV file holds every answer.
 - Desk side panels: a panel that opens or grows too wide for the page folds the sidebar.

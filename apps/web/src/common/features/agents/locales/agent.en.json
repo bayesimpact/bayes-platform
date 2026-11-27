@@ -98,7 +98,7 @@
       "updateError": "Agent update failed",
       "deleted": "Agent deleted successfully",
       "deleteError": "Agent deletion failed",
-      "created": "Agent created successfully",
+      "created": "Agent created as a draft",
       "createError": "Agent creation failed",
       "duplicated": "Agent duplicated as a draft",
       "duplicateError": "Agent duplication failed"
