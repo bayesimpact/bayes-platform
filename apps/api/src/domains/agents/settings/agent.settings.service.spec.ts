@@ -436,9 +436,12 @@ describe("AgentSettings", () => {
 
   describe("Settings revisions", () => {
     // A new agent runs on an available model, and the service gives it that model's options.
-    const { providerOptions: _options, ...newAgentValues } = {
-      ...agentSettingsValuesRev1,
-      model: AgentModel.Gemini35Flash,
+    const newAgentValues = { ...agentSettingsValuesRev1, model: AgentModel.Gemini35Flash }
+    const newAgentFields = {
+      instructions: newAgentValues.instructions,
+      model: newAgentValues.model,
+      greetingMessage: newAgentValues.greetingMessage,
+      outputJsonSchema: newAgentValues.outputJsonSchema,
     }
 
     it("createAgent should also create draft settings with revision = 1", async () => {
@@ -449,7 +452,7 @@ describe("AgentSettings", () => {
           projectId: project.id,
         },
         fields: {
-          ...newAgentValues,
+          ...newAgentFields,
           type: "conversation",
           name: "My Template",
         },
@@ -480,7 +483,7 @@ describe("AgentSettings", () => {
           projectId: project.id,
         },
         fields: {
-          ...newAgentValues,
+          ...newAgentFields,
           type: "conversation",
           name: "My Template",
         },

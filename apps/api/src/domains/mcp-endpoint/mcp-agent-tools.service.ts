@@ -1,7 +1,7 @@
 import {
+  type AgentCreationType,
+  type AgentModel,
   type AgentType,
-  type CreateAgentDto,
-  createAgentSchema,
   type PartialUpdateAgentSettingsDto,
   partialUpdateAgentSettingsSchema,
 } from "@caseai-connect/api-contracts"
@@ -39,10 +39,16 @@ export type McpProject = {
   canCreateAgents: boolean
 }
 
-export type McpCreateAgentInput = Omit<
-  CreateAgentDto,
-  "documentsRagMode" | "tagsToAdd" | "projectAgentSessionCategoryIds" | "resourceLibraryIds"
-> & { projectId: string }
+/** What create_agent takes: the API gives every setting left out the default of the type. */
+export type McpCreateAgentInput = {
+  projectId: string
+  name: string
+  type: AgentCreationType
+  instructions?: string
+  model?: AgentModel
+  greetingMessage?: string
+  outputJsonSchema?: Record<string, unknown>
+}
 
 export type McpCreatedAgent = {
   id: string
@@ -198,22 +204,13 @@ export class McpAgentToolsService {
       return { ok: false, error: PROJECT_NOT_FOUND_ERROR }
     }
 
-    // The API gives every setting left out the default of the agent's type, as for the studio.
-    const parsed = createAgentSchema.safeParse(agentFields)
-    if (!parsed.success) {
-      return {
-        ok: false,
-        error: parsed.error.issues
-          .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)
-          .join("\n"),
-      }
-    }
-
+    // The tool's input schema checked the fields. The API gives every setting left out the default
+    // of the creation type, as for the studio.
     const connectScope = { organizationId: project.organizationId, projectId }
     try {
       const { agent } = await this.agentsService.createAgent({
         connectScope,
-        fields: parsed.data,
+        fields: agentFields,
         userId,
       })
       await this.activitiesService.createActivity({

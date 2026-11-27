@@ -1,4 +1,9 @@
-import { agentValidationSchema, type CreateAgentDto } from "@caseai-connect/api-contracts"
+import {
+  type AgentCreationType,
+  agentCreationTypeSchema,
+  agentValidationSchema,
+  type CreateAgentDto,
+} from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -29,14 +34,10 @@ import { GridCard } from "@/common/components/grid/Grid"
 import type { Project } from "@/common/features/projects/projects.models"
 import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import {
-  type AgentCreationChoice,
-  getCreationFields,
-} from "../agent-settings/components/agent-form.shared"
 import { createAgent } from "../agents.thunks"
 
-const defaultChoice: AgentCreationChoice = "conversation"
-const creationChoices: AgentCreationChoice[] = ["conversation", "extraction", "form"]
+const defaultChoice: AgentCreationType = "conversation"
+const creationChoices = agentCreationTypeSchema.options
 const agentNameSchema = agentValidationSchema.pick({ name: true })
 
 type FormValues = z.infer<typeof agentNameSchema>
@@ -81,7 +82,7 @@ function AgentCreatorDialog({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const [selectedChoice, setSelectedChoice] = useState<AgentCreationChoice>(defaultChoice)
+  const [selectedChoice, setSelectedChoice] = useState<AgentCreationType>(defaultChoice)
   const form = useForm<FormValues>({
     resolver: zodResolver(agentNameSchema),
     defaultValues: { name: "" },
@@ -98,11 +99,8 @@ function AgentCreatorDialog({
   // The submit stays pending until the agent opens or the creation fails. Enter then a click
   // on the button would otherwise create the agent twice.
   const handleFormSubmit = async (values: FormValues) => {
-    const fields: CreateAgentDto = {
-      ...getCreationFields(selectedChoice),
-      name: values.name,
-      projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
-    }
+    // The API sets everything else from the type, and the new agent's settings are a draft.
+    const fields: CreateAgentDto = { name: values.name, type: selectedChoice }
 
     // `onSuccess` runs once the new agent is listed, after the thunk itself resolved.
     await new Promise<void>((resolve) => {

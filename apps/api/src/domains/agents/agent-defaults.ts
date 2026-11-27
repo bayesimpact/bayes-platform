@@ -1,4 +1,4 @@
-import type { AgentType } from "@caseai-connect/api-contracts"
+import type { AgentCreationType, AgentType } from "@caseai-connect/api-contracts"
 
 /** A result schema, as the settings store it. */
 type OutputJsonSchema = Record<string, unknown>
@@ -52,29 +52,39 @@ const EXTRACTION_OUTPUT_JSON_SCHEMA: OutputJsonSchema = {
   required: ["numberOfParagraphs", "language"],
 }
 
-/**
- * The instructions and result schema a new agent starts from when its creator gives none: the
- * studio's agent creator and the MCP create_agent tool both rely on them. A conversation agent with
- * the fillForm tool starts as a form agent.
- */
-export function newAgentDefaults({
-  type,
-  fillFormEnabled,
-}: {
+export type NewAgentDefaults = {
   type: AgentType
-  fillFormEnabled?: boolean
-}): { instructions: string; outputJsonSchema: OutputJsonSchema | null } {
-  if (type === "extraction") {
+  fillFormEnabled: boolean
+  instructions: string
+  outputJsonSchema: OutputJsonSchema | null
+}
+
+/**
+ * What a new agent starts as, from its creation type: its agent type, whether the fillForm tool is
+ * on, and the instructions and result schema it starts from. The studio's agent creator and the MCP
+ * create_agent tool both rely on them.
+ */
+export function newAgentDefaults(creationType: AgentCreationType): NewAgentDefaults {
+  if (creationType === "extraction") {
     return {
+      type: "extraction",
+      fillFormEnabled: false,
       instructions: EXTRACTION_INSTRUCTIONS,
       outputJsonSchema: structuredClone(EXTRACTION_OUTPUT_JSON_SCHEMA),
     }
   }
-  if (fillFormEnabled) {
+  if (creationType === "form") {
     return {
+      type: "conversation",
+      fillFormEnabled: true,
       instructions: FORM_INSTRUCTIONS,
       outputJsonSchema: structuredClone(FORM_OUTPUT_JSON_SCHEMA),
     }
   }
-  return { instructions: CONVERSATION_INSTRUCTIONS, outputJsonSchema: null }
+  return {
+    type: "conversation",
+    fillFormEnabled: false,
+    instructions: CONVERSATION_INSTRUCTIONS,
+    outputJsonSchema: null,
+  }
 }

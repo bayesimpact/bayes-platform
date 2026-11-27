@@ -1,5 +1,6 @@
 import {
   AgentModel,
+  agentCreationTypeSchema,
   agentTypeSchema,
   duplicateAgentSchema,
   EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH,
@@ -41,10 +42,10 @@ const projectSchema = z.looseObject({
 const createAgentInputSchema = z.object({
   projectId: z.uuid().describe("Id of the project the agent belongs to, from list_projects."),
   name: z.string().trim().min(3).describe("Name of the agent, at least 3 characters."),
-  type: agentTypeSchema
+  type: agentCreationTypeSchema
     .default("conversation")
     .describe(
-      "conversation: the agent chats with users. extraction: the agent reads a document and returns JSON that follows outputJsonSchema.",
+      "conversation: the agent chats with users. extraction: the agent reads a document and returns JSON that follows outputJsonSchema. form: a conversation agent that fills the form outputJsonSchema describes with the user.",
     ),
   instructions: z
     .string()
@@ -65,7 +66,7 @@ const createAgentInputSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema
     .optional()
     .describe(
-      "JSON Schema of the result of an extraction agent. Left out, the agent starts from an example schema to replace.",
+      "JSON Schema of the result of an extraction agent, or of the form a form agent fills. Left out, the agent starts from an example schema to replace.",
     ),
 })
 

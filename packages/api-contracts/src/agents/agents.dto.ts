@@ -1,12 +1,6 @@
 import { z } from "zod"
-import { updateDocumentTagsSchema } from "../document-tags/document-tag.dto"
 import { type TimeType, timeTypeSchema } from "../generic"
 import type { AgentPermission } from "../rbac/permissions"
-import {
-  agentSettingsValidationSchema,
-  hasRequiredDocumentTags,
-  refineResourceLibraries,
-} from "./settings/agent-settings.dto"
 
 export const agentTypeSchema = z.enum(["conversation", "extraction"])
 export type AgentType = z.infer<typeof agentTypeSchema>
@@ -109,32 +103,21 @@ export const agentValidationSchema = z.object({
 })
 
 /**
- * A new agent needs a name and a type only. The API gives every setting left out the default of
- * the agent's type: instructions, result schema (extraction, or fillForm on), model and its options.
+ * What a new agent starts as. "form" is not an agent type: it is a conversation agent with the
+ * fillForm tool on and an example form.
  */
-export const createAgentSchema = agentValidationSchema
-  .pick({ type: true, name: true })
-  .extend({
-    ...agentSettingsValidationSchema
-      .pick({
-        documentsRagMode: true,
-        greetingMessage: true,
-        instructions: true,
-        model: true,
-        outputJsonSchema: true,
-        projectAgentSessionCategoryIds: true,
-        resourceLibraryIds: true,
-        fillFormEnabled: true,
-        providerOptions: true,
-      })
-      .partial().shape,
-    tagsToAdd: updateDocumentTagsSchema.shape.tagsToAdd.optional(),
-  })
-  .refine(refineResourceLibraries.fn, refineResourceLibraries.message)
-  .refine(hasRequiredDocumentTags, {
-    message: "At least one document tag is required when documentsRagMode is 'tags'",
-    path: ["tagsToAdd"],
-  })
+export const agentCreationTypeSchema = z.enum(["conversation", "extraction", "form"])
+export type AgentCreationType = z.infer<typeof agentCreationTypeSchema>
+
+/**
+ * The studio creates an agent from a name and a creation type. The API sets everything else from
+ * the type (instructions, result schema, model and its options, the project's session categories),
+ * and the new agent's settings are a draft.
+ */
+export const createAgentSchema = z.object({
+  name: agentValidationSchema.shape.name,
+  type: agentCreationTypeSchema,
+})
 
 export type CreateAgentDto = z.infer<typeof createAgentSchema>
 
