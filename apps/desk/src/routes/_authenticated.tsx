@@ -16,7 +16,7 @@ import {
 
 /**
  * Every page of the Desk but the sign-in callback: a session, the terms accepted, then the page in
- * its frame.
+ * its frame. Every page gets the app's chat, which the hooks of `@caseai-connect/chat` read.
  */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {

@@ -1,17 +1,17 @@
-import type { OutgoingMessage } from "@caseai-connect/chat"
+import { type OutgoingMessage, useChat } from "@caseai-connect/chat"
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
-import { chat } from "../chat"
 
 /**
  * Starts a conversation with its first message, as in the Claude app: creates it, opens it, then
  * streams the replies there.
  */
 export function useStartConversation(agent: AgentParamsDto) {
+  const chat = useChat()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   return useMutation({

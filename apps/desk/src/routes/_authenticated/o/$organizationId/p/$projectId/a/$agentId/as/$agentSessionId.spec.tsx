@@ -1,8 +1,9 @@
-import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes, TOOL_NAMES } from "@caseai-connect/desk-contracts"
 import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
-import { agentUrlOf, conversationOf, conversationUrlOf } from "@/test/desk-urls"
+import type { z } from "zod"
+import { agentOf, agentUrlOf, conversationOf, conversationUrlOf } from "@/test/desk-urls"
 import { buildConversationMessage } from "@/test/factories/agent-sessions.factory"
 import {
   buildDeskWorld,
@@ -10,6 +11,7 @@ import {
   buildQuotedMessageWorld,
   type DeskWorld,
 } from "@/test/factories/desk-world.factory"
+import { buildMemory } from "@/test/factories/memories.factory"
 import { hiddenFileInput } from "@/test/file-input"
 import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
@@ -527,6 +529,90 @@ describe("a conversation", () => {
 
     expect(await screen.findByText("Likes short answers")).toBeInTheDocument()
     expect(screen.queryByText("Should the agent remember this?")).not.toBeInTheDocument()
+  })
+
+  it("shows a fact the agent saves in the memory while the reply goes on", async () => {
+    const world = serveDeskWorld()
+    const agentId = agentOf(world).id
+    const replyId = crypto.randomUUID()
+    server.use(
+      mockStreamRoute(DeskConversationsRoutes.streamReply, () => {
+        // The agent's tool saves the fact on the server, then the stream says so.
+        world.memories[agentId] = [
+          ...(world.memories[agentId] ?? []),
+          buildMemory({ content: "Prefers metric units", status: "saved" }),
+        ]
+        return [
+          { event: { type: "start", messageId: replyId } },
+          { event: { type: "notify_client", toolName: TOOL_NAMES.saveMemory } },
+          { event: { type: "end", messageId: replyId, fullContent: "Noted." } },
+        ]
+      }),
+    )
+    renderApp(conversationUrlOf(world))
+
+    expect(await screen.findByRole("button", { name: "Memory (2)" })).toBeInTheDocument()
+    await writeMessage(
+      screen.getByRole("textbox", { name: "Message to Helpful Assistant" }),
+      "I use metric units",
+      { send: true },
+    )
+
+    expect(await screen.findByRole("button", { name: "Memory (3)" })).toBeInTheDocument()
+  })
+
+  it("shows a form the agent fills in while the reply is still being written", async () => {
+    const world = serveDeskWorld()
+    const conversation = conversationOf(world, { position: 1 })
+    const replyId = crypto.randomUUID()
+    const encoder = new TextEncoder()
+    const frameOf = (event: z.input<typeof DeskConversationsRoutes.streamReply.schemas.event>) =>
+      encoder.encode(
+        `id: 1\ndata: ${JSON.stringify(DeskConversationsRoutes.streamReply.schemas.event.parse(event))}\n\n`,
+      )
+    let stream: ReadableStreamDefaultController<Uint8Array> | undefined
+    server.use(
+      mockStreamRoute(DeskConversationsRoutes.streamReply, () => {
+        // The agent's tool saves the form, the stream says so, and the reply goes on.
+        conversation.forms = [
+          {
+            agentId: crypto.randomUUID(),
+            agentName: "Helpful Assistant",
+            status: "in_progress",
+            state: { plan: "Pro" },
+            updatedAt: Date.now(),
+          },
+        ]
+        return new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              stream = controller
+              controller.enqueue(frameOf({ type: "start", messageId: replyId }))
+              controller.enqueue(frameOf({ type: "notify_client", toolName: TOOL_NAMES.fillForm }))
+            },
+          }),
+          { headers: { "Content-Type": "text/event-stream" } },
+        )
+      }),
+    )
+    renderApp(conversationUrlOf(world, { position: 1 }))
+
+    await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
+    expect(screen.queryByRole("button", { name: "Form in progress" })).not.toBeInTheDocument()
+    await writeMessage(
+      screen.getByRole("textbox", { name: "Message to Helpful Assistant" }),
+      "We pick Pro",
+      { send: true },
+    )
+
+    try {
+      // The stream is still open: the reply has not ended.
+      expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
+    } finally {
+      // Whatever happened above, the stream ends here: it never stays open for the next spec.
+      stream?.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
+      stream?.close()
+    }
   })
 
   it("forgets what the agent remembers, one fact or all of them", async () => {

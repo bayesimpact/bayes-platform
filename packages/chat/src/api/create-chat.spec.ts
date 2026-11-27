@@ -13,9 +13,22 @@ const conversation = {
 describe("createChat", () => {
   it("keeps the query keys the apps' caches and invalidations use", () => {
     const chat = createTestChat()
-    expect(chat.keys.messages("s1")).toEqual(["conversations", "s1", "messages"])
-    expect(chat.keys.mcpApps("s1")).toEqual(["conversations", "s1", "mcp-apps"])
-    expect(chat.keys.documentIsPublic("d1")).toEqual(["documents", "d1", "is-public"])
+    const documentId = crypto.randomUUID()
+    expect(chat.messagesQueryOptions(conversation).queryKey).toEqual([
+      "conversations",
+      conversation.agentSessionId,
+      "messages",
+    ])
+    expect(chat.mcpAppsHtmlQueryOptions(conversation).queryKey).toEqual([
+      "conversations",
+      conversation.agentSessionId,
+      "mcp-apps",
+    ])
+    expect(chat.documentIsPublicQueryOptions({ ...conversation, documentId }).queryKey).toEqual([
+      "documents",
+      documentId,
+      "is-public",
+    ])
   })
 
   it("reads a conversation's messages through the app's routes and client", async () => {

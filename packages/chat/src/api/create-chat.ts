@@ -1,19 +1,19 @@
 import type {
   ConversationParamsDto,
+  ConversationRoutes,
   MessageFeedbackInputDto,
   MessageParamsDto,
 } from "@caseai-connect/chat-contracts"
 import type { QueryClient } from "@tanstack/react-query"
+import type { z } from "zod"
 import type { OutgoingMessage } from "../chat-messages"
 import type { ChatOptions } from "./chat-options"
-import { chatKeys } from "./keys"
 import { createChatQueries } from "./queries"
 import { createReplyStreams } from "./reply-streams"
 import { streamReply } from "./stream-reply"
 
 /** The chat of an app: its query keys and queries, and the state of the replies it streams. */
 export type Chat = ReturnType<typeof createChatQueries> & {
-  keys: typeof chatKeys
   stopReplyStream: (agentSessionId: string) => void
   /**
    * Sends a message and streams the replies into the conversation's messages in the query cache.
@@ -28,7 +28,7 @@ export type Chat = ReturnType<typeof createChatQueries> & {
   sendFeedback: (
     conversation: ConversationParamsDto,
     input: Pick<MessageParamsDto, "agentMessageId"> & { feedback: MessageFeedbackInputDto },
-  ) => Promise<{ success: boolean }>
+  ) => Promise<z.output<ConversationRoutes["createMessageFeedback"]["schemas"]["response"]>["data"]>
   /** The short-lived URL of a document a reply cites. */
   getDocumentUrl: (conversation: ConversationParamsDto, documentId: string) => Promise<string>
   /** The short-lived URL of the file a person attached to a message. */
@@ -44,7 +44,6 @@ export function createChat(options: ChatOptions): Chat {
   const queries = createChatQueries(options, replyStreams)
   const context = { options, replyStreams, messagesQueryOptions: queries.messagesQueryOptions }
   return {
-    keys: chatKeys,
     ...queries,
     stopReplyStream: replyStreams.stop,
     streamReply: (queryClient, conversation, outgoing) =>

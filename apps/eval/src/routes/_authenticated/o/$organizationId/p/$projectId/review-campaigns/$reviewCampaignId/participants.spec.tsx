@@ -6,6 +6,7 @@ import {
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
+import type { z } from "zod"
 import {
   campaignOf,
   campaignUrlOf,
@@ -468,7 +469,10 @@ describe("a tester's session with the agent", () => {
     const session = required(world.testerSessions[campaignId]?.[0], "the open session")
     const replyId = crypto.randomUUID()
     const encoder = new TextEncoder()
-    const frameOf = (event: object) => encoder.encode(`id: 1\ndata: ${JSON.stringify(event)}\n\n`)
+    const frameOf = (event: z.input<typeof EvalConversationsRoutes.streamReply.schemas.event>) =>
+      encoder.encode(
+        `id: 1\ndata: ${JSON.stringify(EvalConversationsRoutes.streamReply.schemas.event.parse(event))}\n\n`,
+      )
     let stream: ReadableStreamDefaultController<Uint8Array> | undefined
     server.use(
       mockStreamRoute(EvalConversationsRoutes.streamReply, () => {
@@ -513,15 +517,56 @@ describe("a tester's session with the agent", () => {
       expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
     } finally {
       // Whatever happened above, the stream ends here: it never stays open for the next spec.
-      const openStream = required(stream, "the open stream")
-      openStream.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
-      openStream.close()
+      stream?.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
+      stream?.close()
     }
 
     // The reply is over once the person can write again.
     await waitFor(() =>
       expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toBeEnabled(),
     )
+  })
+
+  it("shows a form the agent filled in the last tool call once the reply ends", async () => {
+    const world = buildParticipantWorld()
+    const campaignId = campaignOf(world, "Support assistant pilot").id
+    const session = required(world.testerSessions[campaignId]?.[0], "the open session")
+    server.use(
+      mockStreamRoute(EvalConversationsRoutes.streamReply, () => {
+        // The form changes on the server, and the stream carries no tool event to say so.
+        world.testerSessions[campaignId] = [
+          {
+            ...session,
+            forms: [
+              {
+                agentId: session.agentId,
+                status: "in_progress",
+                state: { plan: "Pro" },
+                updatedAt: Date.now(),
+              },
+            ],
+          },
+        ]
+        const replyId = crypto.randomUUID()
+        return [
+          { event: { type: "start", messageId: replyId } },
+          { event: { type: "chunk", messageId: replyId, content: "Noted." } },
+          { event: { type: "end", messageId: replyId, fullContent: "Noted." } },
+        ]
+      }),
+      ...worldHandlers(world),
+    )
+    renderApp(testerSessionUrlOf(world, "Support assistant pilot", 0))
+
+    expect(await screen.findByText(/For a team of five/)).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Form in progress" })).not.toBeInTheDocument()
+    await writeMessage(
+      screen.getByRole("textbox", { name: "Message to Helpful Assistant" }),
+      "We pick Pro",
+      { send: true },
+    )
+
+    expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
   })
 
   it("ends with the tester's feedback, then goes back to the campaign", async () => {
