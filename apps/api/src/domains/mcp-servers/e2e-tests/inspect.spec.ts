@@ -1,6 +1,7 @@
 import { createMCPClient } from "@ai-sdk/mcp"
 import { McpServersRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import { type INestApplication, Logger } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -95,6 +96,24 @@ describe("McpServers - inspect", () => {
 
   const lastClientOptions = () => jest.mocked(createMCPClient).mock.calls.at(-1)?.[0]
 
+  /** The options of the last transport, whichever transport the client got. */
+  const lastTransport = () => {
+    const transport = lastClientOptions()?.transport
+    if (transport instanceof StreamableHTTPClientTransport) {
+      const { _url, _requestInit } = transport as unknown as {
+        _url: URL
+        _requestInit?: RequestInit
+      }
+      return {
+        checksEachConnection: true,
+        url: _url.href,
+        headers: _requestInit?.headers,
+        redirect: _requestInit?.redirect,
+      }
+    }
+    return { checksEachConnection: false, ...transport }
+  }
+
   const subject = async () =>
     request({
       route: McpServersRoutes.inspect,
@@ -126,7 +145,8 @@ describe("McpServers - inspect", () => {
       ],
     })
     expect(response.body.data.checkedAt).toEqual(expect.any(Number))
-    expect(lastClientOptions()?.transport).toMatchObject({
+    expect(lastTransport()).toMatchObject({
+      checksEachConnection: true,
       url: "https://mcp.example.com/mcp",
       headers: { Authorization: "Bearer stored-key", "X-Api-Version": "2" },
     })
@@ -188,7 +208,7 @@ describe("McpServers - inspect", () => {
 
     expectResponse(response, 200)
     expect(response.body.data).toMatchObject({ status: "connected", tools: [] })
-    expect(lastClientOptions()?.transport).toMatchObject({
+    expect(lastTransport()).toMatchObject({
       headers: { Authorization: "Bearer at-1" },
     })
   })
@@ -223,7 +243,10 @@ describe("McpServers - inspect", () => {
 
       expectResponse(response, 200)
       expect(response.body.data).toMatchObject({ status: "connected", error: null })
-      expect(lastClientOptions()?.transport).toMatchObject({ url: "http://localhost:3100/mcp" })
+      expect(lastTransport()).toMatchObject({
+        checksEachConnection: false,
+        url: "http://localhost:3100/mcp",
+      })
     } finally {
       delete process.env.MCP_OAUTH_ALLOW_INSECURE_LOCAL
     }
@@ -235,7 +258,7 @@ describe("McpServers - inspect", () => {
 
     await subject()
 
-    expect(lastClientOptions()?.transport).toMatchObject({ redirect: "error" })
+    expect(lastTransport()).toMatchObject({ redirect: "error" })
   })
 
   it("should refuse to send an OAuth token to a URL that resolves inside the network", async () => {

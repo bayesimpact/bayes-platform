@@ -3,7 +3,6 @@ import {
   assertAllowedOutboundUrl,
   DisallowedOutboundUrlError,
   isAllowedOutboundUrl,
-  isPrivateOrLocalAddress,
 } from "./outbound-url-guard"
 
 jest.mock("node:dns/promises", () => ({ lookup: jest.fn() }))
@@ -11,56 +10,6 @@ const lookupMock = lookup as jest.Mock
 
 const PUBLIC_V4 = { address: "93.184.216.34", family: 4 }
 const PUBLIC_V6 = { address: "2606:2800:220:1:248:1893:25c8:1946", family: 6 }
-
-describe("isPrivateOrLocalAddress", () => {
-  it.each([
-    "127.0.0.1",
-    "127.255.255.254",
-    "0.0.0.0",
-    "0.1.2.3",
-    "10.0.0.1",
-    "10.255.255.255",
-    "172.16.0.1",
-    "172.31.255.255",
-    "192.168.1.1",
-    "169.254.169.254",
-    "::",
-    "::1",
-    "[::1]",
-    "fe80::1",
-    "febf::1",
-    "fe80::1%eth0",
-    "fc00::1",
-    "fd12:3456:789a::1",
-    "::ffff:127.0.0.1",
-    "::ffff:10.0.0.1",
-    "::ffff:169.254.169.254",
-    "::ffff:7f00:1",
-    "::ffff:a9fe:a9fe",
-  ])("treats %s as private or local", (address) => {
-    expect(isPrivateOrLocalAddress(address)).toBe(true)
-  })
-
-  it.each([
-    "93.184.216.34",
-    "8.8.8.8",
-    "172.15.255.255",
-    "172.32.0.1",
-    "192.169.0.1",
-    "11.0.0.1",
-    "2606:2800:220:1:248:1893:25c8:1946",
-    "2001:db8::1",
-    "::ffff:93.184.216.34",
-    "fec0::1",
-  ])("treats %s as public", (address) => {
-    expect(isPrivateOrLocalAddress(address)).toBe(false)
-  })
-
-  it("treats unparseable input as private", () => {
-    expect(isPrivateOrLocalAddress("not-an-ip")).toBe(true)
-    expect(isPrivateOrLocalAddress("")).toBe(true)
-  })
-})
 
 describe("assertAllowedOutboundUrl", () => {
   const originalFlag = process.env.MCP_OAUTH_ALLOW_INSECURE_LOCAL

@@ -1,4 +1,9 @@
-import { describeMcpConnectionError, McpConnectionTimeoutError } from "./mcp-connection-error"
+import { SdkErrorCode, SdkHttpError } from "@modelcontextprotocol/client"
+import {
+  describeMcpConnectionError,
+  McpAddressNotAllowedError,
+  McpConnectionTimeoutError,
+} from "./mcp-connection-error"
 
 describe("describeMcpConnectionError", () => {
   it("reads a 401 from the transport message", () => {
@@ -67,6 +72,28 @@ describe("describeMcpConnectionError", () => {
       code: "unknown",
       httpStatus: null,
       detail: "boom",
+    })
+  })
+
+  it("reads the status of the SdkHttpError of the transport of public servers", () => {
+    const error = new SdkHttpError(
+      SdkErrorCode.ClientHttpFailedToOpenStream,
+      "Failed to open SSE stream: Forbidden",
+      { status: 403, statusText: "Forbidden" },
+    )
+    expect(describeMcpConnectionError(error)).toMatchObject({ code: "forbidden", httpStatus: 403 })
+  })
+
+  it("reports a refused address, even under the cause fetch wraps it in", () => {
+    const error = new TypeError("fetch failed", {
+      cause: new McpAddressNotAllowedError(
+        "The host rebinding.example.test is not a public address",
+      ),
+    })
+    expect(describeMcpConnectionError(error)).toEqual({
+      code: "urlNotAllowed",
+      httpStatus: null,
+      detail: "The host rebinding.example.test is not a public address",
     })
   })
 })

@@ -31,6 +31,12 @@ export type EnabledMcpServer = McpServerConfig & {
    * could lead to an internal address that its URL check never saw.
    */
   followRedirects?: boolean
+  /**
+   * For a server a project configured at a public address: each connection
+   * checks the address the host resolves to, so a DNS answer that changes
+   * after the URL check cannot lead the call into the platform's network.
+   */
+  publicAddressesOnly?: boolean
 }
 
 export type McpServerOauthTokens = {

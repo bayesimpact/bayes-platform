@@ -9,7 +9,7 @@ import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
-import { ALLOW_PRIVATE_MODEL_ENDPOINTS_ENV } from "@/external/llm/workspace-models/model-endpoint-url"
+import { ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV } from "@/external/llm/workspace-models/model-endpoint-url"
 
 const URL_ENV = "VLLM_GEMMA4_26B_URL"
 const API_KEY_ENV = "VLLM_GEMMA4_26B_APIKEY" // gitleaks:allow (the name of the variable, not a key)
@@ -210,7 +210,7 @@ describe("AISDKVllmProviderBase", () => {
     let serverUrl: string
     let receivedRequests: ReceivedRequest[]
     let answer: (path: string, response: ServerResponse) => void
-    const savedAllowPrivate = process.env[ALLOW_PRIVATE_MODEL_ENDPOINTS_ENV]
+    const savedAllowPrivate = process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
 
     beforeAll(async () => {
       server = createServer((request, response) => {
@@ -242,12 +242,13 @@ describe("AISDKVllmProviderBase", () => {
         response.end(chatCompletionBody("Hello"))
       }
       // The test server listens on the loopback, which only a developer's machine allows.
-      process.env[ALLOW_PRIVATE_MODEL_ENDPOINTS_ENV] = "true"
+      process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV] = "true"
     })
 
     afterEach(() => {
-      if (savedAllowPrivate === undefined) delete process.env[ALLOW_PRIVATE_MODEL_ENDPOINTS_ENV]
-      else process.env[ALLOW_PRIVATE_MODEL_ENDPOINTS_ENV] = savedAllowPrivate
+      if (savedAllowPrivate === undefined)
+        delete process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
+      else process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV] = savedAllowPrivate
     })
 
     const callServer = (
@@ -311,7 +312,7 @@ describe("AISDKVllmProviderBase", () => {
     })
 
     it("refuses to connect to a name that resolves to a private address", async () => {
-      delete process.env[ALLOW_PRIVATE_MODEL_ENDPOINTS_ENV]
+      delete process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
 
       for (const callConfig of [config, { ...config, useExtendedTimeouts: true }]) {
         const error = await callServer(
@@ -324,7 +325,7 @@ describe("AISDKVllmProviderBase", () => {
     })
 
     it("refuses to call a private address", async () => {
-      delete process.env[ALLOW_PRIVATE_MODEL_ENDPOINTS_ENV]
+      delete process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
 
       const error = await callServer({ url: `${serverUrl}/v1` }).catch((caught: unknown) => caught)
 

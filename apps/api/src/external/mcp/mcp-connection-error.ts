@@ -27,6 +27,32 @@ export class McpConnectionTimeoutError extends Error {
   }
 }
 
+/** A connection to a server on a public address met a private one (see McpClientService). */
+export class McpAddressNotAllowedError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "McpAddressNotAllowedError"
+  }
+}
+
+/** The error, or the error fetch hides one or two `cause` levels down, of the given class. */
+function findCause<T extends Error>(
+  error: unknown,
+  errorClass: new (...args: never[]) => T,
+  depth = 0,
+): T | null {
+  if (!(error instanceof Error) || depth > 3) return null
+  if (error instanceof errorClass) return error
+  return findCause(error.cause, errorClass, depth + 1)
+}
+
+/** The HTTP status of an `SdkHttpError` of `@modelcontextprotocol/client`. */
+function findSdkHttpStatus(error: unknown): number | null {
+  if (!(error instanceof Error) || error.name !== "SdkHttpError") return null
+  const status = (error as Error & { status?: unknown }).status
+  return typeof status === "number" ? status : null
+}
+
 function codeForHttpStatus(httpStatus: number): McpServerConnectionErrorCode {
   if (httpStatus === 401) return "unauthorized"
   if (httpStatus === 403) return "forbidden"
@@ -52,7 +78,9 @@ function shorten(text: string): string {
 /**
  * Turns whatever the MCP client threw into a code the UI can explain.
  * `@ai-sdk/mcp` throws plain `MCPClientError`s whose only structured part is
- * the message, so the HTTP status is read from it.
+ * the message, so the HTTP status is read from it. The transport of the
+ * servers on public addresses (`@modelcontextprotocol/client`) throws an
+ * `SdkHttpError` that carries it.
  */
 export function describeMcpConnectionError(error: unknown): McpServerConnectionErrorDto {
   const message = error instanceof Error ? error.message : String(error)
@@ -63,6 +91,14 @@ export function describeMcpConnectionError(error: unknown): McpServerConnectionE
   }
   if (error instanceof Error && error.name === "UnauthorizedError") {
     return { code: "unauthorized", httpStatus: 401, detail }
+  }
+  const addressNotAllowed = findCause(error, McpAddressNotAllowedError)
+  if (addressNotAllowed) {
+    return { code: "urlNotAllowed", httpStatus: null, detail: shorten(addressNotAllowed.message) }
+  }
+  const sdkHttpStatus = findSdkHttpStatus(error)
+  if (sdkHttpStatus !== null) {
+    return { code: codeForHttpStatus(sdkHttpStatus), httpStatus: sdkHttpStatus, detail }
   }
 
   const httpStatusMatch = /\(HTTP (\d{3})\)|GET SSE failed: (\d{3})/.exec(message)

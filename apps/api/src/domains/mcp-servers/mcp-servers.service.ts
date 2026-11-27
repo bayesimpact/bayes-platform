@@ -35,7 +35,11 @@ import type { EnabledMcpServer, McpServerConfig } from "./mcp-server-config.type
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpOauthService } from "./oauth/mcp-oauth.service"
 import { canStillAuthenticate } from "./oauth/oauth-tokens"
-import { assertAllowedOutboundUrl, DisallowedOutboundUrlError } from "./oauth/outbound-url-guard"
+import {
+  assertAllowedOutboundUrl,
+  DisallowedOutboundUrlError,
+  isInsecureLocalUrl,
+} from "./oauth/outbound-url-guard"
 
 export type {
   EnabledMcpServer,
@@ -333,6 +337,7 @@ export class McpServersService {
       id: mcpServer.id,
       ...config,
       ...(isConfiguredByPlatform(mcpServer) ? { followRedirects: true } : {}),
+      ...(this.isOnPublicAddress(mcpServer, config.url) ? { publicAddressesOnly: true } : {}),
       ...(usesGoogleIam ? { googleIamAudience: new URL(config.url).origin } : {}),
     }
   }
@@ -352,6 +357,19 @@ export class McpServersService {
       if (!(error instanceof DisallowedOutboundUrlError)) throw error
       return error.message
     }
+  }
+
+  /**
+   * A server a project configured, at neither an internal host the platform
+   * allows nor localhost in local development, must stay on public addresses:
+   * each connection checks the address again.
+   */
+  private isOnPublicAddress(mcpServer: McpServer, url: string): boolean {
+    return (
+      !isConfiguredByPlatform(mcpServer) &&
+      !this.isAllowedInternalHost(url) &&
+      !isInsecureLocalUrl(url)
+    )
   }
 
   /**
