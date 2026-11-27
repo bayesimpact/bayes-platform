@@ -17,7 +17,7 @@ import {
   setAttachmentDocument,
   startTurn,
 } from "../chat-messages"
-import type { ChatOptions } from "./create-chat"
+import type { ChatOptions } from "./chat-options"
 import { chatKeys } from "./keys"
 import type { createChatQueries } from "./queries"
 import type { ReplyStreams } from "./reply-streams"

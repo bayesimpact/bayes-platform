@@ -2,7 +2,7 @@ import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { loaderStaleTime } from "@caseai-connect/frontend-lib"
 import type { QueryClient } from "@tanstack/react-query"
 import { orNotFound } from "@/lib/not-found"
-import { messagesQueryOptions } from "./api/queries"
+import { chat } from "./chat"
 
 /**
  * Loads a conversation's messages for its route. A conversation that does not exist, or that is
@@ -13,6 +13,6 @@ export async function loadConversation(
   conversation: ConversationParamsDto,
 ): Promise<void> {
   await orNotFound(() =>
-    queryClient.query({ ...messagesQueryOptions(conversation), staleTime: loaderStaleTime }),
+    queryClient.query({ ...chat.messagesQueryOptions(conversation), staleTime: loaderStaleTime }),
   )
 }

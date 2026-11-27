@@ -1,39 +1,11 @@
 import type { OutgoingMessage } from "@caseai-connect/chat"
-import type {
-  AgentParamsDto,
-  ConversationParamsDto,
-  MessageFeedbackInputDto,
-  MessageParamsDto,
-} from "@caseai-connect/desk-contracts"
-import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
-import { openInTab } from "@caseai-connect/frontend-lib"
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
-import { streamReply } from "./stream-reply"
-
-/** Sends a message in a conversation and streams the replies into its messages. */
-export function useSendMessage(conversation: ConversationParamsDto) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (outgoing: OutgoingMessage) => streamReply(queryClient, conversation, outgoing),
-  })
-}
-
-/** Gives a thumbs-up to one of the agent's replies, or reports a problem with it. */
-export function useSendFeedback(conversation: ConversationParamsDto) {
-  return useMutation({
-    mutationFn: ({
-      agentMessageId,
-      feedback,
-    }: Pick<MessageParamsDto, "agentMessageId"> & { feedback: MessageFeedbackInputDto }) =>
-      apiRequest(DeskConversationsRoutes.createMessageFeedback, {
-        params: { ...conversation, agentMessageId },
-        body: feedback,
-      }),
-  })
-}
+import { chat } from "../chat"
 
 /**
  * Starts a conversation with its first message, as in the Claude app: creates it, opens it, then
@@ -55,42 +27,7 @@ export function useStartConversation(agent: AgentParamsDto) {
         to: "/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId",
         params: conversation,
       })
-      await streamReply(queryClient, conversation, outgoing)
+      await chat.streamReply(queryClient, conversation, outgoing)
     },
-  })
-}
-
-/**
- * Opens a document a reply cites, in a new tab. The tab opens at once, while the click still
- * counts as the person's, and goes to the file once its short-lived URL arrives.
- */
-export function useOpenDocument(conversation: ConversationParamsDto) {
-  return useMutation({
-    mutationFn: ({ documentId, tab }: { documentId: string; tab: Window | null }) =>
-      openInTab(tab, async () => {
-        const { url } = await apiRequest(DeskDocumentsRoutes.getTemporaryUrl, {
-          params: { ...conversation, documentId },
-        })
-        return url
-      }),
-  })
-}
-
-/** Opens the file a person attached to a message, in a new tab, as `useOpenDocument` does. */
-export function useOpenAttachment(conversation: ConversationParamsDto) {
-  return useMutation({
-    mutationFn: async ({
-      attachmentDocumentId,
-      tab,
-    }: {
-      attachmentDocumentId: string
-      tab: Window | null
-    }) =>
-      openInTab(tab, async () => {
-        const { url } = await apiRequest(DeskConversationsRoutes.getAttachmentUrl, {
-          params: { ...conversation, attachmentDocumentId },
-        })
-        return url
-      }),
   })
 }

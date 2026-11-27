@@ -15,7 +15,8 @@ export {
   readQuotableSelection,
   saveAnnotation,
 } from "./annotation"
-export { type Chat, type ChatApi, type ChatOptions, createChat } from "./api/create-chat"
+export type { ChatApi, ChatOptions } from "./api/chat-options"
+export { type Chat, createChat } from "./api/create-chat"
 export {
   useOpenAttachment,
   useOpenDocument,

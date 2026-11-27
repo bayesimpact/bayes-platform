@@ -1,9 +1,11 @@
+import { ChatProvider } from "@caseai-connect/chat"
 import { startQuery } from "@caseai-connect/frontend-lib"
 import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { Suspense } from "react"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { meQueryOptions, TermsGate } from "@/features/account"
+import { chat } from "@/features/conversation"
 import {
   claimAutomaticSignIn,
   hasSession,
@@ -39,7 +41,9 @@ function AuthenticatedLayout() {
   return (
     <Suspense fallback={<DeskShellSkeleton />}>
       <TermsGate>
-        <Outlet />
+        <ChatProvider chat={chat}>
+          <Outlet />
+        </ChatProvider>
       </TermsGate>
     </Suspense>
   )

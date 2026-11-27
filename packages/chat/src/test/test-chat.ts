@@ -1,7 +1,8 @@
 import { createApiClient, readServerSentEvents } from "@caseai-connect/api-client"
 import { conversationRoutesAt, documentsRoutesAt } from "@caseai-connect/chat-contracts"
 import { QueryClient } from "@tanstack/react-query"
-import { type ChatOptions, createChat } from "../api/create-chat"
+import type { ChatOptions } from "../api/chat-options"
+import { createChat } from "../api/create-chat"
 
 const PROJECT_PATH = "test/organizations/:organizationId/projects/:projectId"
 

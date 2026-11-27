@@ -1,7 +1,7 @@
 import type { ConversationParamsDto } from "@caseai-connect/chat-contracts"
 import { presignAttachmentInputSchema } from "@caseai-connect/chat-contracts"
 import { putFileToSignedUrl } from "@caseai-connect/frontend-lib"
-import type { ChatOptions } from "./create-chat"
+import type { ChatOptions } from "./chat-options"
 
 /**
  * Uploads a file to attach to the next message of a conversation: the API signs an upload URL,

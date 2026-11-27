@@ -6,7 +6,7 @@ import type {
 import { pollWhile } from "@caseai-connect/frontend-lib"
 import { queryOptions } from "@tanstack/react-query"
 import { type ChatMessage, isBeingWritten, toChatMessages } from "../chat-messages"
-import type { ChatOptions } from "./create-chat"
+import type { ChatOptions } from "./chat-options"
 import { chatKeys } from "./keys"
 import type { ReplyStreams } from "./reply-streams"
 

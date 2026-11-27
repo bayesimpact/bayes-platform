@@ -13,7 +13,9 @@ import {
   findRetryableMessage,
   isBeingWritten,
   lastReplyFollowUpQuestions,
+  useChat,
   useCitedPassages,
+  useConversationSend,
   withAppMessage,
 } from "@caseai-connect/chat"
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
@@ -23,10 +25,8 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
 import { useId, useState } from "react"
 import { MemoryButton, MemoryPanel } from "@/features/memory"
-import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
-import { useConversationSend } from "../hooks/use-conversation-send"
 import { ChatMessageView } from "./ChatMessageView"
 import { CitedPassageBadges } from "./CitedPassageBadges"
 import { Composer } from "./Composer"
@@ -55,7 +55,8 @@ export function ConversationView({
   agentName,
   hasSourcesTool,
 }: ConversationViewProps) {
-  const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
+  const chat = useChat()
+  const { data: messages } = useSuspenseQuery(chat.messagesQueryOptions(conversation))
   const sending = useConversationSend(conversation, messages)
   const now = useNow(CLOCK_INTERVAL_IN_MILLISECONDS, true)
   const isBusy = sending.isSending || messages.some((message) => isBeingWritten(message, now))
@@ -74,7 +75,7 @@ export function ConversationView({
   )
   // useQuery: optional data, read once a reply shows an MCP App, which must not hold it back.
   const mcpAppsHtml = useQuery({
-    ...mcpAppsHtmlQueryOptions(conversation),
+    ...chat.mcpAppsHtmlQueryOptions(conversation),
     enabled: hasSettledApps,
   })
   const appsHtml = { htmls: mcpAppsHtml.data ?? [], isPending: mcpAppsHtml.isPending }
