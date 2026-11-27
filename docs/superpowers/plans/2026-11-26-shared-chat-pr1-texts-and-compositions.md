@@ -327,9 +327,12 @@ Carried to those plans, from the review of this branch:
 - **A package checks its own component files and compiles them as the apps do.** The
   `check-component-files` check and the React Compiler join the `check` and the Vitest of
   `packages/app-ui` and of `packages/chat`, before about 50 component files arrive.
-- **A look in a browser, in French.** Before PR 3 starts, open a page with a `SidePanel` and an
-  `ExternalLink` in French in a worktree environment and in Storybook: this PR proved the texts of
-  a package in the tests and in the production builds only.
+- **A look in a browser, in French.** Done for this PR in the Storybook of each app, served by a
+  worktree environment's dev server, with a headless browser, in French and in English, at
+  desktop and phone widths: the panel's texts, the link to a new tab, the copy button, the time
+  of a message, the actions and the back link in the top bar, and the storage key of a panel's
+  width (`desk.sidePanelWidth`, `eval.sidePanelWidth`). PR 3 does the same for the chat's texts,
+  and adds the check by hand in the apps themselves, signed in.
 - **Texts in no catalog.** `message-scroller.tsx` and `code-block.tsx` of
   `packages/app-ui/src/components/` hold English texts ("Scroll to end", "Copied") from before
   this work. The chat shows both: PR 3 decides where their translations live.
