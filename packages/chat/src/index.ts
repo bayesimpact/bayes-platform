@@ -16,6 +16,12 @@ export {
   saveAnnotation,
 } from "./annotation"
 export { type Chat, type ChatApi, type ChatOptions, createChat } from "./api/create-chat"
+export {
+  useOpenAttachment,
+  useOpenDocument,
+  useSendFeedback,
+  useSendMessage,
+} from "./api/mutations"
 export { ChatProvider } from "./ChatProvider"
 export { useChat } from "./chat-context"
 export {
@@ -42,6 +48,7 @@ export {
 export { isFormTool } from "./form-tools"
 export { useAnnotations } from "./hooks/use-annotations"
 export { type CitedPassages, useCitedPassages } from "./hooks/use-cited-passages"
+export { useConversationSend } from "./hooks/use-conversation-send"
 export { useIsOverflowing } from "./hooks/use-is-overflowing"
 export { useRangeEnd } from "./hooks/use-range-end"
 export { type ReplyClick, useSettledSelection } from "./hooks/use-settled-selection"
