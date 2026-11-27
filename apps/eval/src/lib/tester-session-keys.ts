@@ -12,14 +12,22 @@ export const TESTER_SESSIONS_QUERY_KEY = [...CAMPAIGN_TEST_QUERY_KEY, "sessions"
 function holdsSession(data: unknown, sessionId: string): boolean {
   return (
     Array.isArray(data) &&
-    data.some((session) => typeof session === "object" && session?.id === sessionId)
+    data.some(
+      (session: unknown) =>
+        typeof session === "object" &&
+        session !== null &&
+        "id" in session &&
+        session.id === sessionId,
+    )
   )
 }
 
 /**
  * Loads again the sessions of the campaign a session belongs to, which carry its forms. The
  * conversation's params name no campaign: the sessions' queries that hold the session are the
- * ones to refresh, and no other campaign's.
+ * ones to refresh, and no other campaign's. A list that does not hold the session yet is left
+ * out, which is safe: the page of a session shows no forms without it in that list, and the start
+ * of a session (`useStartSession`) already refreshes the list.
  */
 export function invalidateTesterSession(queryClient: QueryClient, sessionId: string): void {
   void queryClient.invalidateQueries({

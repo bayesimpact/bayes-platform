@@ -462,6 +462,59 @@ describe("a tester's session with the agent", () => {
     expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
   })
 
+  it("shows a form the agent fills in while the reply is still being written", async () => {
+    const world = buildParticipantWorld()
+    const campaignId = campaignOf(world, "Support assistant pilot").id
+    const session = required(world.testerSessions[campaignId]?.[0], "the open session")
+    const replyId = crypto.randomUUID()
+    const encoder = new TextEncoder()
+    const frameOf = (event: object) => encoder.encode(`id: 1\ndata: ${JSON.stringify(event)}\n\n`)
+    let stream: ReadableStreamDefaultController<Uint8Array> | undefined
+    server.use(
+      mockStreamRoute(EvalConversationsRoutes.streamReply, () => {
+        // The agent's tool saves the form, the stream says so, and the reply goes on.
+        world.testerSessions[campaignId] = [
+          {
+            ...session,
+            forms: [
+              {
+                agentId: session.agentId,
+                status: "in_progress",
+                state: { plan: "Pro" },
+                updatedAt: Date.now(),
+              },
+            ],
+          },
+        ]
+        return new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              stream = controller
+              controller.enqueue(frameOf({ type: "start", messageId: replyId }))
+              controller.enqueue(frameOf({ type: "notify_client", toolName: TOOL_NAMES.fillForm }))
+            },
+          }),
+          { headers: { "Content-Type": "text/event-stream" } },
+        )
+      }),
+      ...worldHandlers(world),
+    )
+    renderApp(testerSessionUrlOf(world, "Support assistant pilot", 0))
+
+    expect(await screen.findByText(/For a team of five/)).toBeInTheDocument()
+    await writeMessage(
+      screen.getByRole("textbox", { name: "Message to Helpful Assistant" }),
+      "We pick Pro",
+      { send: true },
+    )
+
+    // The stream is still open: the reply has not ended.
+    expect(await screen.findByRole("button", { name: "Form in progress" })).toBeInTheDocument()
+    const openStream = required(stream, "the open stream")
+    openStream.enqueue(frameOf({ type: "end", messageId: replyId, fullContent: "Noted." }))
+    openStream.close()
+  })
+
   it("ends with the tester's feedback, then goes back to the campaign", async () => {
     const world = buildParticipantWorld()
     server.use(...worldHandlers(world))
