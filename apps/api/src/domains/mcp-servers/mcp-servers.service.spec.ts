@@ -325,7 +325,7 @@ describe("McpServersService", () => {
 
       expect(await service.listMcpServers(project.id)).toHaveLength(1)
       expect(await service.getEnabledServersForAgent(agent.id)).toEqual([
-        { id: survivor.id, url: "https://survivor.example.com" },
+        { id: survivor.id, url: "https://survivor.example.com", publicAddressesOnly: true },
       ])
     })
   })
@@ -508,6 +508,7 @@ describe("McpServersService", () => {
           id: server.id,
           url: "https://headers.example.com/mcp",
           headers: { "X-Api-Version": "2", "X-Tenant": "acme" },
+          publicAddressesOnly: true,
         },
       ])
     })
@@ -546,12 +547,13 @@ describe("McpServersService", () => {
         })
         await service.enableForAgent(agent.id, server.id)
 
-        expect(await service.getEnabledServersForAgent(agent.id)).toEqual([
-          expect.objectContaining({
-            id: server.id,
-            url: "http://mcp-service.tools.svc.cluster.local/mcp",
-          }),
-        ])
+        const [enabledServer, ...others] = await service.getEnabledServersForAgent(agent.id)
+        expect(others).toEqual([])
+        expect(enabledServer).toMatchObject({
+          id: server.id,
+          url: "http://mcp-service.tools.svc.cluster.local/mcp",
+        })
+        expect(enabledServer).not.toHaveProperty("publicAddressesOnly")
       } finally {
         delete process.env.MCP_ALLOWED_INTERNAL_HOSTS
       }
@@ -669,7 +671,13 @@ describe("McpServersService", () => {
         await service.enableForAgent(agent.id, server.id)
 
         expect(await service.getEnabledServersForAgent(agent.id)).toEqual([
-          { id: server.id, url, authMethod: "oauth", apiKey: "fresh-token" },
+          {
+            id: server.id,
+            url,
+            authMethod: "oauth",
+            apiKey: "fresh-token",
+            publicAddressesOnly: true,
+          },
         ])
       })
 
@@ -740,7 +748,9 @@ describe("McpServersService", () => {
 
         const configs = await service.getEnabledServersForAgent(agent.id)
 
-        expect(configs).toEqual([{ id: server.id, url: "https://custom.example.com/mcp" }])
+        expect(configs).toEqual([
+          { id: server.id, url: "https://custom.example.com/mcp", publicAddressesOnly: true },
+        ])
       })
 
       it("should not expose an IAM audience for a preset that is not built-in", async () => {

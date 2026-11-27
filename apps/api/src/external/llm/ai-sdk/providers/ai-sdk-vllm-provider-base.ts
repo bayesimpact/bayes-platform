@@ -4,6 +4,7 @@ import type { JSONSchema7, JSONSchema7Definition, LanguageModelV3 } from "@ai-sd
 import type { AgentProvider } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, NotImplementedException, Optional } from "@nestjs/common"
 import { asSchema, type ToolSet } from "ai"
+import { Agent, fetch as undiciFetch } from "undici"
 import type { LLMCallContext, LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { getAgentModelKey } from "@/external/llm/agent-provider"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
@@ -13,6 +14,10 @@ import {
   type ModelEndpointResolver,
   type ModelEndpointSettings,
 } from "@/external/llm/workspace-models/model-endpoint.types"
+import {
+  assertModelEndpointRequestHost,
+  modelEndpointLookup,
+} from "@/external/llm/workspace-models/model-endpoint-url"
 
 /**
  * A provider whose models we host on vLLM (Gemma, MedGemma, Mistral, Qwen).
@@ -27,6 +32,9 @@ export abstract class AISDKVllmProviderBase<
 > extends AISDKLLMProviderBase<Provider> {
   /** Name shown in the traces and tags, e.g. "Gemma Provider". */
   protected abstract readonly providerName: string
+
+  /** The dispatchers of the calls to a workspace's server, by timeouts, created on first use. */
+  private readonly endpointDispatchers = new Map<"default" | "extended", Agent>()
 
   /**
    * The resolver is optional: a provider built with `new`, or in a test module
@@ -81,30 +89,76 @@ export abstract class AISDKVllmProviderBase<
       name: this.providerName,
       baseURL: url,
       apiKey,
-      fetch: this.fetchFor(config),
+      fetch: this.fetchForEndpoint(config, endpoint),
     }).chat(modelName)
   }
 
   /**
+   * The fetch of a call. To the server of the environment variables: the
+   * fetch of {@link fetchFor}. To a server a workspace set, whose URL comes
+   * from the backoffice: a fetch that checks the address of each connection
+   * and fails on a redirect, so neither a DNS answer that changed since the
+   * URL was checked nor a redirect leads the call to a private address.
+   */
+  protected fetchForEndpoint(
+    config: LLMConfig,
+    endpoint?: ModelEndpointSettings,
+  ): typeof globalThis.fetch {
+    if (!endpoint) return this.fetchFor(config)
+    const dispatcher = this.getEndpointDispatcher(
+      config.useExtendedTimeouts ? "extended" : "default",
+    )
+    return async (input, init) => {
+      assertModelEndpointRequestHost(
+        typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+      )
+      return (await undiciFetch(input as Parameters<typeof undiciFetch>[0], {
+        ...(init as Parameters<typeof undiciFetch>[1]),
+        redirect: "error",
+        dispatcher,
+      })) as unknown as Response
+    }
+  }
+
+  private getEndpointDispatcher(timeouts: "default" | "extended"): Agent {
+    let dispatcher = this.endpointDispatchers.get(timeouts)
+    if (!dispatcher) {
+      dispatcher = new Agent({
+        ...(timeouts === "extended" ? this.extendedTimeoutsOptions() : {}),
+        connect: { lookup: modelEndpointLookup },
+      })
+      this.endpointDispatchers.set(timeouts, dispatcher)
+    }
+    return dispatcher
+  }
+
+  /**
    * The URL, API key and model name of a call. On a server the workspace
-   * added: its URL, its key (else the environment's, else none, as a vLLM
-   * without `--api-key` takes any) and its served name (else the model id).
-   * Otherwise the environment variables of the model.
+   * added: its URL, its key and its served name (else the model id). Without
+   * a key of its own, the server gets the key of the environment only when it
+   * is the server of the environment (same origin), and otherwise none, as a
+   * vLLM without `--api-key` takes any. Otherwise the environment variables of
+   * the model.
    */
   protected getModelSettings(
     model: string,
     endpoint?: ModelEndpointSettings,
   ): { url: string; apiKey: string; modelName: string } {
     if (!endpoint) return { ...this.getModelEnvSettings(model), modelName: model }
-    const agentModelKey = getAgentModelKey(model)
-    const envApiKey = agentModelKey
-      ? process.env[`VLLM_${agentModelKey.toUpperCase()}_APIKEY`]
-      : undefined
     return {
       url: endpoint.url,
-      apiKey: endpoint.apiKey ?? envApiKey ?? "<not used>",
+      apiKey: endpoint.apiKey ?? this.getEnvApiKeyFor(model, endpoint.url) ?? "<not used>",
       modelName: endpoint.servedModelName ?? model,
     }
+  }
+
+  /** The API key of the environment, when `url` is on the server of the environment. */
+  private getEnvApiKeyFor(model: string, url: string): string | undefined {
+    const agentModelKey = getAgentModelKey(model)?.toUpperCase()
+    if (!agentModelKey) return undefined
+    const envUrl = process.env[`VLLM_${agentModelKey}_URL`]
+    if (!envUrl || !isSameOrigin(envUrl, url)) return undefined
+    return process.env[`VLLM_${agentModelKey}_APIKEY`]
   }
 
   protected getModelEnvSettings(model: string): { url: string; apiKey: string } {
@@ -217,5 +271,13 @@ export abstract class AISDKVllmProviderBase<
     if (typeof value === "string") return `'${value.replace(/'/g, "\\'")}'`
     if (typeof value === "object" && value !== null) return JSON.stringify(value)
     return String(value)
+  }
+}
+
+function isSameOrigin(firstUrl: string, secondUrl: string): boolean {
+  try {
+    return new URL(firstUrl).origin === new URL(secondUrl).origin
+  } catch {
+    return false
   }
 }

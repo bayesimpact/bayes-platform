@@ -43,7 +43,17 @@ export abstract class AISDKLLMFetchMgmt<
    * hold one. The three timeouts are configurable through env vars.
    */
   private getExtendedTimeoutsDispatcher(): Agent {
-    this.extendedTimeoutsDispatcher ??= new Agent({
+    this.extendedTimeoutsDispatcher ??= new Agent(this.extendedTimeoutsOptions())
+    return this.extendedTimeoutsDispatcher
+  }
+
+  /** The three network timeouts of a long call, for a provider that builds its own dispatcher. */
+  protected extendedTimeoutsOptions(): {
+    headersTimeout: number
+    bodyTimeout: number
+    connectTimeout: number
+  } {
+    return {
       headersTimeout: this.readTimeoutMs(
         process.env.LLM_FETCH_HEADERS_TIMEOUT_MS,
         this.defaultHeadersTimeoutMs,
@@ -56,8 +66,7 @@ export abstract class AISDKLLMFetchMgmt<
         process.env.LLM_FETCH_CONNECT_TIMEOUT_MS,
         this.defaultConnectTimeoutMs,
       ),
-    })
-    return this.extendedTimeoutsDispatcher
+    }
   }
 
   private readTimeoutMs(value: string | undefined, defaultMs: number): number {

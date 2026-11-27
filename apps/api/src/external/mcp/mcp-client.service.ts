@@ -1,7 +1,15 @@
+import { isIP } from "node:net"
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp"
 import type { McpServerConnectionErrorDto, McpServerToolDto } from "@caseai-connect/api-contracts"
-import { Injectable, Logger } from "@nestjs/common"
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
+import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common"
 import type { ToolSet } from "ai"
+import { Agent, fetch as undiciFetch } from "undici"
+import {
+  createPublicAddressLookup,
+  isPrivateAddress,
+  toBareHostname,
+} from "@/common/network/public-address"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { GoogleIdTokenService } from "@/external/google-iam"
 import {
@@ -9,7 +17,11 @@ import {
   type McpConversationContext,
 } from "@/external/mcp/mcp-request-headers"
 import { MCP_APP_MIME_TYPE } from "./mcp-app-resource"
-import { describeMcpConnectionError, McpConnectionTimeoutError } from "./mcp-connection-error"
+import {
+  describeMcpConnectionError,
+  McpAddressNotAllowedError,
+  McpConnectionTimeoutError,
+} from "./mcp-connection-error"
 
 const MCP_APP_CLIENT_CAPABILITIES = {
   extensions: {
@@ -18,6 +30,12 @@ const MCP_APP_CLIENT_CAPABILITIES = {
     },
   },
 }
+
+/**
+ * The protocol version `@ai-sdk/mcp` sends on every request of its own transport. The transport
+ * of the servers on public addresses sends the same, so a server sees no difference.
+ */
+const MCP_PROTOCOL_VERSION = "2025-11-25"
 
 /** A configuration page waits on this call, so it gives up well before the HTTP request does. */
 const INSPECTION_TIMEOUT_MS = 10_000
@@ -38,6 +56,12 @@ export type McpConnectionConfig = {
   googleIamAudience?: string
   /** A redirect fails the request unless this is true (servers the platform runs itself). */
   followRedirects?: boolean
+  /**
+   * Every connection checks the address the host resolves to, and refuses a private one. Set for
+   * a server a project configured at a public address: a DNS answer that changes after the URL
+   * check cannot lead the request into the platform's network.
+   */
+  publicAddressesOnly?: boolean
 }
 
 export type McpInspection =
@@ -51,8 +75,11 @@ export type McpSession = {
 }
 
 @Injectable()
-export class McpClientService {
+export class McpClientService implements OnModuleDestroy {
   private readonly logger = new Logger(McpClientService.name)
+
+  /** The dispatcher of the servers on public addresses, created on first use. */
+  private publicAddressDispatcher?: Agent
 
   constructor(private readonly googleIdTokenService: GoogleIdTokenService) {}
 
@@ -131,15 +158,57 @@ export class McpClientService {
       )
     }
     return createMCPClient({
-      transport: {
-        type: "http",
-        url: config.url,
-        redirect: config.followRedirects ? "follow" : "error",
-        ...(Object.keys(headers).length > 0 ? { headers } : {}),
-      },
+      transport: config.publicAddressesOnly
+        ? new StreamableHTTPClientTransport(new URL(config.url), {
+            requestInit: { headers, redirect: "error" },
+            fetch: this.publicAddressFetch,
+            protocolVersion: MCP_PROTOCOL_VERSION,
+          })
+        : {
+            type: "http",
+            url: config.url,
+            redirect: config.followRedirects ? "follow" : "error",
+            ...(Object.keys(headers).length > 0 ? { headers } : {}),
+          },
       name: "caseai-connect",
       version: "1.0.0",
       capabilities: MCP_APP_CLIENT_CAPABILITIES,
     })
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    const dispatcher = this.publicAddressDispatcher
+    if (!dispatcher || dispatcher.closed || dispatcher.destroyed) return
+    await dispatcher.close()
+  }
+
+  /**
+   * The fetch of a server on a public address. Its connections resolve the host and refuse a
+   * private address, and a redirect fails the request. Node does not resolve an address, so an
+   * address in the URL is checked here.
+   */
+  private readonly publicAddressFetch = async (
+    input: string | URL | Request,
+    init?: RequestInit,
+  ): Promise<Response> => {
+    const requestUrl = new URL(
+      typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+    )
+    const hostname = toBareHostname(requestUrl)
+    if (isIP(hostname) && isPrivateAddress(hostname)) {
+      throw new McpAddressNotAllowedError(`The host ${hostname} is not a public address`)
+    }
+    this.publicAddressDispatcher ??= new Agent({
+      connect: {
+        lookup: createPublicAddressLookup({
+          refusal: (message) => new McpAddressNotAllowedError(message),
+        }),
+      },
+    })
+    return (await undiciFetch(input as Parameters<typeof undiciFetch>[0], {
+      ...(init as Parameters<typeof undiciFetch>[1]),
+      redirect: "error",
+      dispatcher: this.publicAddressDispatcher,
+    })) as unknown as Response
   }
 }

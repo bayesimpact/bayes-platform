@@ -1,3 +1,5 @@
+import { createServer, type Server, type ServerResponse } from "node:http"
+import type { AddressInfo } from "node:net"
 import type { JSONSchema7Definition, LanguageModelV3CallOptions } from "@ai-sdk/provider"
 import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
 import { jsonSchema, type ToolSet, tool } from "ai"
@@ -7,6 +9,7 @@ import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
+import { ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV } from "@/external/llm/workspace-models/model-endpoint-url"
 
 const URL_ENV = "VLLM_GEMMA4_26B_URL"
 const API_KEY_ENV = "VLLM_GEMMA4_26B_APIKEY" // gitleaks:allow (the name of the variable, not a key)
@@ -51,6 +54,30 @@ const callContext = {
   agentSessionId: "session-1",
   currentTurn: 1,
 } as LLMCallContext
+
+function chatCompletionBody(content: string): string {
+  return JSON.stringify({
+    id: "completion-1",
+    object: "chat.completion",
+    created: 0,
+    model: AgentModel.Gemma4_26B,
+    choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
+    usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+  })
+}
+
+const userPrompt = {
+  prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
+} as LanguageModelV3CallOptions
+
+/** The messages of an error and of its causes, to tell a refusal from another failure. */
+function errorMessages(error: unknown): string {
+  const messages: string[] = []
+  for (let current = error; current instanceof Error; current = current.cause) {
+    messages.push(current.message)
+  }
+  return messages.join(" <- ")
+}
 
 function chatCompletionResponse(content: string): Response {
   return new Response(
@@ -170,56 +197,140 @@ describe("AISDKVllmProviderBase", () => {
       expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer vllm-api-key")
     })
 
-    it("calls the server of the endpoint, with the environment key when it has none", async () => {
-      const fetchSpy = jest
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(chatCompletionResponse("Hello"))
-      const model = provider.getLanguageModel({
-        config,
-        callOrigin: CallOrigin.generateText,
-        endpoint: {
-          url: "https://other-server.example.com/v1",
-          apiKey: null,
-          servedModelName: null,
-        },
-      })
-
-      await model.doGenerate({
-        prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
-      } as LanguageModelV3CallOptions)
-
-      const [requestUrl, init] = fetchSpy.mock.calls[0] ?? []
-      expect(String(requestUrl)).toBe("https://other-server.example.com/v1/chat/completions")
-      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer vllm-api-key")
-    })
-
-    it("sends the key and the served name of the endpoint when it has them", async () => {
-      const fetchSpy = jest
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(chatCompletionResponse("Hello"))
-      const model = provider.getLanguageModel({
-        config,
-        callOrigin: CallOrigin.generateText,
-        endpoint: {
-          url: "https://other-server.example.com/v1",
-          apiKey: "endpoint-key",
-          servedModelName: "gemma-on-new-server",
-        },
-      })
-
-      await model.doGenerate({
-        prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
-      } as LanguageModelV3CallOptions)
-
-      const [, init] = fetchSpy.mock.calls[0] ?? []
-      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer endpoint-key")
-      expect(JSON.parse(String(init?.body)).model).toBe("gemma-on-new-server")
-    })
-
     it("names the model after the provider", () => {
       const model = provider.getLanguageModel({ config, callOrigin: CallOrigin.generateText })
       expect(model.provider).toContain("Test Provider")
       expect(model.modelId).toBe(AgentModel.Gemma4_26B)
+    })
+  })
+
+  describe("the server of a workspace", () => {
+    type ReceivedRequest = { path: string; authorization: string | undefined; model: unknown }
+    let server: Server
+    let serverUrl: string
+    let receivedRequests: ReceivedRequest[]
+    let answer: (path: string, response: ServerResponse) => void
+    const savedAllowPrivate = process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
+
+    beforeAll(async () => {
+      server = createServer((request, response) => {
+        let body = ""
+        request.on("data", (chunk) => {
+          body += chunk
+        })
+        request.on("end", () => {
+          receivedRequests.push({
+            path: request.url ?? "",
+            authorization: request.headers.authorization,
+            model: body ? JSON.parse(body).model : undefined,
+          })
+          answer(request.url ?? "", response)
+        })
+      })
+      await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve))
+      serverUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
+    })
+
+    afterAll(async () => {
+      await new Promise<void>((resolve) => server.close(() => resolve()))
+    })
+
+    beforeEach(() => {
+      receivedRequests = []
+      answer = (_path, response) => {
+        response.writeHead(200, { "content-type": "application/json" })
+        response.end(chatCompletionBody("Hello"))
+      }
+      // The test server listens on the loopback, which only a developer's machine allows.
+      process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV] = "true"
+    })
+
+    afterEach(() => {
+      if (savedAllowPrivate === undefined)
+        delete process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
+      else process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV] = savedAllowPrivate
+    })
+
+    const callServer = (
+      endpoint: { url: string; apiKey?: string | null; servedModelName?: string | null },
+      callConfig: LLMConfig = config,
+    ) =>
+      Promise.resolve(
+        provider
+          .getLanguageModel({
+            config: callConfig,
+            callOrigin: CallOrigin.generateText,
+            endpoint: { apiKey: null, servedModelName: null, ...endpoint },
+          })
+          .doGenerate(userPrompt),
+      )
+
+    it("calls the server of the endpoint with its key and its served name", async () => {
+      const result = await callServer({
+        url: `${serverUrl}/v1`,
+        apiKey: "endpoint-key",
+        servedModelName: "gemma-on-new-server",
+      })
+
+      expect(result.content).toEqual([{ type: "text", text: "Hello" }])
+      expect(receivedRequests).toEqual([
+        {
+          path: "/v1/chat/completions",
+          authorization: "Bearer endpoint-key",
+          model: "gemma-on-new-server",
+        },
+      ])
+    })
+
+    it("does not send the key of the environment to another server", async () => {
+      await callServer({ url: `${serverUrl}/v1` })
+
+      expect(receivedRequests[0]?.authorization).toBe("Bearer <not used>")
+    })
+
+    it("sends the key of the environment to the server of the environment", async () => {
+      process.env[URL_ENV] = `${serverUrl}/v1`
+
+      await callServer({ url: `${serverUrl}/v1`, servedModelName: "gemma-other-name" })
+
+      expect(receivedRequests[0]?.authorization).toBe("Bearer vllm-api-key")
+    })
+
+    it("fails on a redirect and does not follow it", async () => {
+      answer = (path, response) => {
+        if (path === "/elsewhere/chat/completions") {
+          response.writeHead(200, { "content-type": "application/json" })
+          response.end(chatCompletionBody("Followed"))
+          return
+        }
+        response.writeHead(307, { location: `${serverUrl}/elsewhere/chat/completions` })
+        response.end()
+      }
+
+      await expect(callServer({ url: `${serverUrl}/v1` })).rejects.toThrow()
+      expect(receivedRequests.map((request) => request.path)).toEqual(["/v1/chat/completions"])
+    })
+
+    it("refuses to connect to a name that resolves to a private address", async () => {
+      delete process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
+
+      for (const callConfig of [config, { ...config, useExtendedTimeouts: true }]) {
+        const error = await callServer(
+          { url: `http://localhost:${new URL(serverUrl).port}/v1` },
+          callConfig,
+        ).catch((caught: unknown) => caught)
+        expect(errorMessages(error)).toContain("is not a public address")
+      }
+      expect(receivedRequests).toEqual([])
+    })
+
+    it("refuses to call a private address", async () => {
+      delete process.env[ALLOW_INSECURE_LOCAL_MODEL_ENDPOINTS_ENV]
+
+      const error = await callServer({ url: `${serverUrl}/v1` }).catch((caught: unknown) => caught)
+
+      expect(errorMessages(error)).toContain("is not a public address")
+      expect(receivedRequests).toEqual([])
     })
   })
 

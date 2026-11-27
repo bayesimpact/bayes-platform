@@ -1,60 +1,16 @@
-import { type LookupAddress, lookup } from "node:dns"
-import { BlockList, isIP, type LookupFunction } from "node:net"
+import { isIP } from "node:net"
 import { Injectable, type OnModuleDestroy } from "@nestjs/common"
 import { Agent, fetch } from "undici"
+import { createPublicAddressLookup } from "@/common/network/public-address"
 
 const FETCH_TIMEOUT_MS = 5_000
 const MAX_DOCUMENT_BYTES = 5 * 1024
-
-/** Addresses a metadata document is never fetched from: private, loopback, link-local, reserved. */
-const blockedAddresses = new BlockList()
-for (const subnet of [
-  "0.0.0.0/8",
-  "10.0.0.0/8",
-  "100.64.0.0/10",
-  "127.0.0.0/8",
-  "169.254.0.0/16",
-  "172.16.0.0/12",
-  "192.0.0.0/24",
-  "192.0.2.0/24",
-  "192.168.0.0/16",
-  "198.18.0.0/15",
-  "198.51.100.0/24",
-  "203.0.113.0/24",
-  "224.0.0.0/4",
-  "240.0.0.0/4",
-]) {
-  const [network, prefix] = subnet.split("/")
-  blockedAddresses.addSubnet(network!, Number(prefix), "ipv4")
-}
-for (const subnet of [
-  "::/127",
-  "64:ff9b::/96",
-  "100::/64",
-  "2001:db8::/32",
-  "fc00::/7",
-  "fe80::/10",
-  "ff00::/8",
-]) {
-  const [network, prefix] = subnet.split("/")
-  blockedAddresses.addSubnet(network!, Number(prefix), "ipv6")
-}
 
 export class ClientMetadataDocumentError extends Error {
   constructor(message: string) {
     super(message)
     this.name = "ClientMetadataDocumentError"
   }
-}
-
-export function isBlockedAddress(address: string): boolean {
-  const family = isIP(address)
-  if (family === 4) return blockedAddresses.check(address, "ipv4")
-  if (family !== 6) return true
-  // An IPv4-mapped IPv6 address (::ffff:10.0.0.1) is checked as the IPv4 address it carries.
-  const mappedIpv4 = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(address)?.[1]
-  if (mappedIpv4) return blockedAddresses.check(mappedIpv4, "ipv4")
-  return blockedAddresses.check(address, "ipv6")
 }
 
 /**
@@ -80,23 +36,12 @@ export function parseClientMetadataDocumentUrl(clientId: string): URL | null {
 }
 
 /**
- * Resolves the name, refuses blocked addresses, and hands the connection the
+ * Resolves the name, refuses private addresses, and hands the connection the
  * addresses it checked, so a second DNS answer cannot point elsewhere.
  */
-const safeLookup: LookupFunction = (hostname, options, callback) => {
-  lookup(hostname, { ...options, all: true }, (error, addresses: LookupAddress[]) => {
-    if (error) return callback(error, [])
-    if (addresses.length === 0 || addresses.some((entry) => isBlockedAddress(entry.address))) {
-      return callback(
-        new ClientMetadataDocumentError(`${hostname} resolves to a blocked address`),
-        [],
-      )
-    }
-    if (options.all) return callback(null, addresses)
-    const [first] = addresses
-    callback(null, first!.address, first!.family)
-  })
-}
+const safeLookup = createPublicAddressLookup({
+  refusal: (message) => new ClientMetadataDocumentError(message),
+})
 
 /**
  * Fetches client ID metadata documents (CIMD). The URL comes from outside the
