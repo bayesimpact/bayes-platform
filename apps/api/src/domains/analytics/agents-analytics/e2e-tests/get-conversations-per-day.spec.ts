@@ -85,12 +85,15 @@ describe("Agents Analytics - getConversationsPerDay", () => {
     agentId = agent.id
 
     const session1Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
     const session2Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 2 * 3600 * 1000), updatedAt: new Date() })
     const session3Day2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: new Date(day2Start.getTime() + 3600 * 1000), updatedAt: new Date() })
 
@@ -162,10 +165,12 @@ describe("Agents Analytics - getConversationsPerDay", () => {
     })
 
     const primarySession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: agentPrimary, user })
       .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
     const otherSessions = Array.from({ length: 5 }, () =>
       conversationAgentSessionFactory
+        .live()
         .transient({ organization, project, agent: agentOther, user })
         .build({
           createdAt: new Date(day1Start.getTime() + 2 * 3600 * 1000),
@@ -186,6 +191,54 @@ describe("Agents Analytics - getConversationsPerDay", () => {
     )
 
     agentId = agentPrimary.id
+    const response = await subject()
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual([
+      { date: day1Start.toISOString().slice(0, 10), value: 1 },
+      { date: day2Start.toISOString().slice(0, 10), value: 0 },
+      { date: day3Start.toISOString().slice(0, 10), value: 0 },
+    ])
+  })
+
+  it("leaves out playground sessions", async () => {
+    const { organization, project, user } = await createOrganizationWithProject(repositories, {
+      projectMembership: { roleKeys: ["project_owner"] },
+    })
+    organizationId = organization.id
+    projectId = project.id
+    authSubject = user.authSubject!
+
+    const agent = agentFactory.transient({ organization, project }).build()
+    await repositories.agentRepository.save(agent)
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
+    await saveAgentMembership({
+      repositories,
+      membership: agentMembershipFactory
+        .withRoles("agent_owner")
+        .transient({ user, agent })
+        .build(),
+    })
+
+    const liveSession = conversationAgentSessionFactory
+      .live()
+      .transient({ organization, project, agent, user })
+      .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
+    const playgroundSession = conversationAgentSessionFactory
+      .playground()
+      .transient({ organization, project, agent, user })
+      .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
+    await repositories.conversationAgentSessionRepository.save([liveSession, playgroundSession])
+    await repositories.agentMessageRepository.save(
+      [liveSession, playgroundSession].map((session) =>
+        agentMessageFactory
+          .user()
+          .transient({ organization, project, session, agentSettings })
+          .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000 + 60 * 1000) }),
+      ),
+    )
+
+    agentId = agent.id
     const response = await subject()
     expectResponse(response, 200)
     expect(response.body.data).toEqual([

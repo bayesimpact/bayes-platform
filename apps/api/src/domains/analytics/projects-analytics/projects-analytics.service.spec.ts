@@ -58,15 +58,19 @@ describe("ProjectsAnalyticsService", () => {
     await repositories.agentSettingsRepository.save([primaryAgentSettings, secondaryAgentSettings])
 
     const session1Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
     const session2Day1 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: hours(2).after(day1Start), updatedAt: new Date() })
     const session3Day2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: hours(1).after(day2Start), updatedAt: new Date() })
     const session4Day2 = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent: secondaryAgent, user })
       .build({ createdAt: hours(3).after(day2Start), updatedAt: new Date() })
 
@@ -235,6 +239,7 @@ describe("ProjectsAnalyticsService", () => {
     await repositories.agentRepository.save(otherAgent)
 
     const leakedSession = conversationAgentSessionFactory
+      .live()
       .transient({
         organization: otherOrganization,
         project: otherProject,
@@ -285,6 +290,7 @@ describe("ProjectsAnalyticsService", () => {
     await repositories.agentSettingsRepository.save(otherAgentSettings)
 
     const leakedSession = conversationAgentSessionFactory
+      .live()
       .transient({
         organization: otherOrganization,
         project: otherProject,
@@ -339,6 +345,7 @@ describe("ProjectsAnalyticsService", () => {
     await repositories.agentSettingsRepository.save(agentSettings)
 
     const conversationSession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
     await repositories.conversationAgentSessionRepository.save(conversationSession)

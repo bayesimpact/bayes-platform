@@ -72,12 +72,14 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
       .save({ agentId: agent.id, name: "billing" })
 
     const day1CategorySession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({
         createdAt: new Date(day1Start.getTime() + 1 * 60 * 60 * 1000),
         updatedAt: new Date(),
       })
     const day2UncategorizedSession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({
         createdAt: new Date(day2Start.getTime() + 2 * 60 * 60 * 1000),
@@ -85,6 +87,7 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
       })
     // No user message: an empty session is not a conversation, so it is not uncategorized either.
     const day2EmptySession = conversationAgentSessionFactory
+      .live()
       .transient({ organization, project, agent, user })
       .build({
         createdAt: new Date(day2Start.getTime() + 3 * 60 * 60 * 1000),

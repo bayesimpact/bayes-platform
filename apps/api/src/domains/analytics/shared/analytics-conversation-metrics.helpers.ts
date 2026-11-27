@@ -1,5 +1,6 @@
 import type { TimeType } from "@caseai-connect/api-contracts"
 import { BadRequestException } from "@nestjs/common"
+import type { ConversationAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 
 export function getUtcDayKeys(startAt: TimeType, endAt: TimeType): string[] {
   if (endAt < startAt) {
@@ -37,4 +38,14 @@ export function getDayKeySql(alias: string, createdAtColumnName: string): string
   // Match UTC day bucketing used by previous `toISOString().slice(0, 10)`.
   const createdAtCol = getQualifiedColumnSql(alias, createdAtColumnName)
   return `to_char(timezone('UTC', ${createdAtCol})::date, 'YYYY-MM-DD')`
+}
+
+const PLAYGROUND_SESSION_TYPE: ConversationAgentSessionType = "playground"
+
+/**
+ * Leaves out playground sessions: they are the builders' tests of an agent, not its use, so no
+ * analytics chart counts them. Only conversation sessions have a type.
+ */
+export function getExcludePlaygroundSql(conversationSessionAlias: string): string {
+  return `${getQualifiedColumnSql(conversationSessionAlias, "type")} <> '${PLAYGROUND_SESSION_TYPE}'`
 }
