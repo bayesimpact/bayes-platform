@@ -135,21 +135,11 @@ function LiveChat({
     reset,
   } = usePublicChat(embedToken)
 
-  // Tell the launcher what to show next to its button while the chat is closed: the agent's
-  // opening message, as long as the visitor has not written anything. The greeting is public
-  // text, which is why any parent origin may read it.
-  const preview = previewOf(messages)
-  useEffect(() => {
-    if (status !== "ready") return
-    window.parent.postMessage(
-      {
-        type: "agent-studio:preview",
-        text: preview,
-        title: remoteConfig?.title ?? remoteConfig?.agentName ?? null,
-      },
-      "*",
-    )
-  }, [status, preview, remoteConfig?.title, remoteConfig?.agentName])
+  useLauncherPreview(
+    status === "ready",
+    messages,
+    remoteConfig?.title ?? remoteConfig?.agentName ?? null,
+  )
 
   // Once the visitor has written, the latest finished reply, so one that ends while the chat is
   // closed shows next to the button with a badge. It is the visitor's conversation, so only its
@@ -239,8 +229,15 @@ function SimulatedChat({
   hideHeader: boolean
   onClose: () => void
 }) {
-  const [messages, setMessages] = useState<AgentSessionMessageDto[]>(shortConversation)
+  // `?demo=greeting` opens on the agent's greeting alone, so the launcher shows its preview card.
+  const [messages, setMessages] = useState<AgentSessionMessageDto[]>(() =>
+    readParam("demo") === "greeting"
+      ? shortConversation.filter((message) => message.role === "assistant")
+      : shortConversation,
+  )
   const [isStreaming, setIsStreaming] = useState(false)
+
+  useLauncherPreview(true, messages, "Helpful Assistant")
 
   const handleNewConversation = () => {
     setIsStreaming(false)
@@ -304,6 +301,23 @@ function SimulatedChat({
       onNewConversation={handleNewConversation}
     />
   )
+}
+
+/**
+ * Tells the launcher what to show next to its button while the chat is closed: the agent's
+ * opening message, as long as the visitor has not written anything.
+ * The greeting is public text, which is why any parent origin may read it.
+ */
+function useLauncherPreview(
+  isReady: boolean,
+  messages: AgentSessionMessageDto[],
+  title: string | null,
+) {
+  const preview = previewOf(messages)
+  useEffect(() => {
+    if (!isReady) return
+    window.parent.postMessage({ type: "agent-studio:preview", text: preview, title }, "*")
+  }, [isReady, preview, title])
 }
 
 // ─── Loading / error shells ────────────────────────────────────────────────

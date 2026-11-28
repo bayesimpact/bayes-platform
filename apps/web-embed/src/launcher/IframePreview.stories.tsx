@@ -1,10 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { embedDevServer } from "./devServer"
 
 /**
  * These stories render the chat inside a real <iframe> that loads the Vite
- * dev server at http://localhost:5175.
+ * dev server: in a worktree environment, the embed app of that worktree
+ * (`<name>-embed-storybook.<domain>` loads `<name>-embed.<domain>`);
+ * otherwise http://localhost:5175.
  *
- * ⚠️  The Vite dev server must be running:
+ * ⚠️  Outside a worktree environment, the Vite dev server must be running:
  *       npm run dev   (from apps/web-embed)
  *     or from the repo root:
  *       npx turbo dev --filter=web-embed
@@ -16,7 +19,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
  *   logoUrl       — URL of a logo image
  */
 
-const DEV_SERVER = "http://localhost:5175"
+const DEV_SERVER = embedDevServer()
 
 function buildSrc(params: Record<string, string | undefined>) {
   const qs = new URLSearchParams(
